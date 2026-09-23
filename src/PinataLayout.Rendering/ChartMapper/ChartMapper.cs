@@ -47,9 +47,11 @@ public class ChartMapper
 
   private static ChartFrame MapObject(DocumentObjectModel.Shapes.Charts.Chart domChart)
   {
-    var chartFrame = new ChartFrame();
-    chartFrame.Size = new XSize(domChart.Width.Point, domChart.Height.Point);
-    chartFrame.Location = new XPoint(domChart.Left.Position.Point, domChart.Top.Position.Point);
+    var chartFrame = new ChartFrame
+    {
+      Size = new XSize(domChart.Width.Point, domChart.Height.Point),
+      Location = new XPoint(domChart.Left.Position.Point, domChart.Top.Position.Point)
+    };
 
     var chart = new Chart((ChartType)domChart.Type);
 

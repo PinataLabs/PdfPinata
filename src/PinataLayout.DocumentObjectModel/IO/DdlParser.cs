@@ -74,8 +74,7 @@ internal class DdlParser
     /// </summary>
     internal Document ParseDocument(Document document)
     {
-        if (document == null)
-            document = new Document();
+        document ??= new Document();
 
         MoveToCode();
         AssertSymbol(Symbol.Document);
@@ -1064,8 +1063,7 @@ internal class DdlParser
         var tbl = table;
         try
         {
-            if (tbl == null)
-                tbl = elements.AddTable();
+            tbl ??= elements.AddTable();
 
             MoveToCode();
             AssertSymbol(Symbol.Table);

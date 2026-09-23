@@ -85,8 +85,7 @@ public class PlotArea : ChartObject
   {
     get
     {
-      if (this.lineFormat == null)
-        this.lineFormat = new LineFormat(this);
+      this.lineFormat ??= new LineFormat(this);
 
       return this.lineFormat;
     }
@@ -100,8 +99,7 @@ public class PlotArea : ChartObject
   {
     get
     {
-      if (this.fillFormat == null)
-        this.fillFormat = new FillFormat(this);
+      this.fillFormat ??= new FillFormat(this);
 
       return this.fillFormat;
     }

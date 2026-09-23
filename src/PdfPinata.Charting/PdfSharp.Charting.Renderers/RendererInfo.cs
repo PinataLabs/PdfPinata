@@ -139,8 +139,7 @@ internal class ChartRendererInfo : AreaRendererInfo
   {
     get
     {
-      if (defaultFont == null)
-        defaultFont = Converter.ToXFont(this.Chart.font, new XFont("Arial", 12, XFontStyle.Regular));
+      defaultFont ??= Converter.ToXFont(this.Chart.font, new XFont("Arial", 12, XFontStyle.Regular));
 
       return defaultFont;
     }
@@ -154,8 +153,7 @@ internal class ChartRendererInfo : AreaRendererInfo
   {
     get
     {
-      if (defaultDataLabelFont == null)
-        defaultDataLabelFont = Converter.ToXFont(this.Chart.font, new XFont("Arial", 10, XFontStyle.Regular));
+      defaultDataLabelFont ??= Converter.ToXFont(this.Chart.font, new XFont("Arial", 10, XFontStyle.Regular));
 
       return defaultDataLabelFont;
     }

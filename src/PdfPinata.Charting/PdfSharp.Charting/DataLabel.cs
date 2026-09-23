@@ -91,8 +91,7 @@ public class DataLabel : DocumentObject
   {
     get
     {
-      if (this.font == null)
-        this.font = new Font(this);
+      this.font ??= new Font(this);
 
       return this.font;
     }

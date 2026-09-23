@@ -354,11 +354,8 @@ static class PSSR
                 try
                 {
                     Lock.EnterFontFactory();
-                    if (_resmngr == null)
-                    {
-                        _resmngr = new ResourceManager("PdfPinata.Resources.Messages",
-                            Assembly.GetExecutingAssembly());
-                    }
+                    _resmngr ??= new ResourceManager("PdfPinata.Resources.Messages",
+                        Assembly.GetExecutingAssembly());
                 }
                 finally { Lock.ExitFontFactory(); }
             }

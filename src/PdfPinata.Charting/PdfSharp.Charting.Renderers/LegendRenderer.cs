@@ -55,8 +55,7 @@ internal abstract class LegendRenderer : Renderer
     if (lri == null)
       return;
 
-    var parms = new RendererParameters();
-    parms.Graphics = this.rendererParms.Graphics;
+    var parms = new RendererParameters { Graphics = this.rendererParms.Graphics };
 
     var verticalLegend = (lri.Legend.docking == DockingType.Left || lri.Legend.docking == DockingType.Right);
     var maxMarkerArea = new XSize();
@@ -176,8 +175,7 @@ internal abstract class LegendRenderer : Renderer
       return;
 
     var gfx = this.rendererParms.Graphics;
-    var parms = new RendererParameters();
-    parms.Graphics = gfx;
+    var parms = new RendererParameters { Graphics = gfx };
 
     var ler = new LegendEntryRenderer(parms);
 

@@ -62,10 +62,7 @@ internal static class PdfEncoders
     {
         get
         {
-            if (_winAnsiEncoding == null)
-            {
-                _winAnsiEncoding = new AnsiEncoding();
-            }
+            _winAnsiEncoding ??= new AnsiEncoding();
             return _winAnsiEncoding;
         }
     }

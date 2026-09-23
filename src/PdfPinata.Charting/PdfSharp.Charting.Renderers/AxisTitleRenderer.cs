@@ -112,9 +112,11 @@ internal class AxisTitleRenderer : Renderer
         var position = AxisTitleGeometry.RotatedCaption(
           atri.Rect, caption, atri.AxisTitleOrientation, atri.AxisTitleAlignment, atri.AxisTitleVerticalAlignment);
 
-        var xsf = new XStringFormat();
-        xsf.Alignment = XStringAlignment.Center;
-        xsf.LineAlignment = XLineAlignment.Center;
+        var xsf = new XStringFormat
+        {
+          Alignment = XStringAlignment.Center,
+          LineAlignment = XLineAlignment.Center
+        };
 
         var state = gfx.Save();
         gfx.TranslateTransform(position.Anchor.X, position.Anchor.Y);

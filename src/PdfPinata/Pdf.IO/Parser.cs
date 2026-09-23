@@ -558,8 +558,7 @@ internal sealed class Parser
     {
         Debug.Assert(Symbol == Symbol.BeginArray);
 
-        if (array == null)
-            array = new PdfArray(_document);
+        array ??= new PdfArray(_document);
 
         var sp = _stack.SP;
         ParseObject(Symbol.EndArray);
@@ -581,8 +580,7 @@ internal sealed class Parser
     {
         Debug.Assert(Symbol == Symbol.BeginDictionary);
 
-        if (dict == null)
-            dict = new PdfDictionary(_document);
+        dict ??= new PdfDictionary(_document);
 
         var sp = _stack.SP;
         ParseObject(Symbol.EndDictionary);
@@ -1063,8 +1061,7 @@ internal sealed class Parser
             var trailer = ReadXRefTableAndTrailer(_document._irefTable, accuracy);
 
             // 1st trailer seems to be the best.
-            if (firstTrailer == null)
-                firstTrailer = trailer;
+            firstTrailer ??= trailer;
 
             // Before /Prev, because the stream belongs to the revision just read rather than to the
             // one before it.
@@ -1381,9 +1378,11 @@ internal sealed class Parser
         }
         else
         {
-            iref = new PdfReference(xrefStream);
-            iref.ObjectID = objectID;
-            iref.Value = xrefStream;
+            iref = new PdfReference(xrefStream)
+            {
+                ObjectID = objectID,
+                Value = xrefStream
+            };
             xrefTable.Add(iref);
         }
 
@@ -1438,12 +1437,13 @@ internal sealed class Parser
                 index2++;
 
                 var item =
-                    new PdfCrossReferenceStream.CrossReferenceStreamEntry();
-
-                item.Type = (uint)StreamHelper.ReadBytes(bytes, index2 * wsum, wsize[0]);
-                item.Field2 = (long)StreamHelper.ReadBytes(bytes, index2 * wsum + wsize[0], wsize[1]);
-                item.Field3 = (uint)StreamHelper.ReadBytes(bytes, index2 * wsum + wsize[0] + wsize[1], wsize[2]);
-                item.ObjectNumber = subsections[ssc][0] + idx;
+                    new PdfCrossReferenceStream.CrossReferenceStreamEntry
+                    {
+                        Type = (uint)StreamHelper.ReadBytes(bytes, index2 * wsum, wsize[0]),
+                        Field2 = (long)StreamHelper.ReadBytes(bytes, index2 * wsum + wsize[0], wsize[1]),
+                        Field3 = (uint)StreamHelper.ReadBytes(bytes, index2 * wsum + wsize[0] + wsize[1], wsize[2]),
+                        ObjectNumber = subsections[ssc][0] + idx
+                    };
 
                 xrefStream.Entries.Add(item);
 

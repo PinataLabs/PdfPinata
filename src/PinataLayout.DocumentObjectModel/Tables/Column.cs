@@ -129,8 +129,7 @@ public partial class Column : DocumentObject
   {
     get
     {
-      if (this.format == null)
-        this.format = new ParagraphFormat(this);
+      this.format ??= new ParagraphFormat(this);
 
       return this.format;
     }
@@ -183,8 +182,7 @@ public partial class Column : DocumentObject
   {
     get
     {
-      if (this.borders == null)
-        this.borders = new Borders(this);
+      this.borders ??= new Borders(this);
 
       return this.borders;
     }
@@ -227,8 +225,7 @@ public partial class Column : DocumentObject
   {
     get
     {
-      if (this.shading == null)
-        this.shading = new Shading(this);
+      this.shading ??= new Shading(this);
 
       return this.shading;
     }

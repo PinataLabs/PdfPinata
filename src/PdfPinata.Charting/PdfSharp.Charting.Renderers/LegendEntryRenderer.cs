@@ -57,9 +57,11 @@ internal class LegendEntryRenderer : Renderer
     // Initialize
     leri.MarkerArea.Width = MaxLegendMarkerWidth;
     leri.MarkerArea.Height = MaxLegendMarkerHeight;
-    leri.MarkerSize = new XSize();
-    leri.MarkerSize.Width = leri.MarkerArea.Width;
-    leri.MarkerSize.Height = leri.MarkerArea.Height;
+    leri.MarkerSize = new XSize
+    {
+      Width = leri.MarkerArea.Width,
+      Height = leri.MarkerArea.Height
+    };
     if (leri.SeriesRendererInfo.Series.chartType == ChartType.Line)
       leri.MarkerArea.Width *= 3;
     leri.Width = leri.MarkerArea.Width;
@@ -195,8 +197,7 @@ internal class LegendEntryRenderer : Renderer
     {
       rect = leri.Rect;
       rect.X += leri.MarkerArea.Width + LegendEntryRenderer.SpacingBetweenMarkerAndText;
-      var format = new XStringFormat();
-      format.LineAlignment = XLineAlignment.Near;
+      var format = new XStringFormat { LineAlignment = XLineAlignment.Near };
       if (leri.Lines.Length > 1)
         rect.Height = leri.LineHeight;
       foreach (var line in leri.Lines)

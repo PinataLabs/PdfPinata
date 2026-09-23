@@ -425,22 +425,24 @@ public partial class PageSetup : DocumentObject
 
   private static PageSetup CreateDefaultPageSetup()
   {
-    var pageSetup = new PageSetup();
-    pageSetup.PageFormat = PageFormat.A4;
-    pageSetup.SectionStart = BreakType.BreakNextPage;
-    pageSetup.Orientation = Orientation.Portrait;
-    pageSetup.PageWidth = "21cm";
-    pageSetup.PageHeight = "29.7cm";
-    pageSetup.TopMargin = "2.5cm";
-    pageSetup.BottomMargin = "2cm";
-    pageSetup.LeftMargin = "2.5cm";
-    pageSetup.RightMargin = "2.5cm";
-    pageSetup.HeaderDistance = "1.25cm";
-    pageSetup.FooterDistance = "1.25cm";
-    pageSetup.OddAndEvenPagesHeaderFooter = false;
-    pageSetup.DifferentFirstPageHeaderFooter = false;
-    pageSetup.MirrorMargins = false;
-    pageSetup.HorizontalPageBreak = false;
+    var pageSetup = new PageSetup
+    {
+      PageFormat = PageFormat.A4,
+      SectionStart = BreakType.BreakNextPage,
+      Orientation = Orientation.Portrait,
+      PageWidth = "21cm",
+      PageHeight = "29.7cm",
+      TopMargin = "2.5cm",
+      BottomMargin = "2cm",
+      LeftMargin = "2.5cm",
+      RightMargin = "2.5cm",
+      HeaderDistance = "1.25cm",
+      FooterDistance = "1.25cm",
+      OddAndEvenPagesHeaderFooter = false,
+      DifferentFirstPageHeaderFooter = false,
+      MirrorMargins = false,
+      HorizontalPageBreak = false
+    };
     return pageSetup;
   }
 

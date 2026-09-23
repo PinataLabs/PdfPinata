@@ -49,8 +49,7 @@ internal class BarChartRenderer : ChartRenderer
   /// </summary>
   internal override RendererInfo Init()
   {
-    var cri = new ChartRendererInfo();
-    cri.Chart = (Chart)this.rendererParms.DrawingItem;
+    var cri = new ChartRendererInfo { Chart = (Chart)this.rendererParms.DrawingItem };
     this.rendererParms.RendererInfo = cri;
 
     InitSeriesRendererInfo();
@@ -212,8 +211,7 @@ internal class BarChartRenderer : ChartRenderer
     // Lowest series is the first, like in Excel 
     for (var idx = 0; idx < seriesColl.Count; ++idx)
     {
-      var sri = new SeriesRendererInfo();
-      sri.Series = seriesColl[idx];
+      var sri = new SeriesRendererInfo { Series = seriesColl[idx] };
       cri.SeriesRendererInfos[idx] = sri;
     }
 

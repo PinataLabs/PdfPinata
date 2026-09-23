@@ -157,14 +157,11 @@ public abstract class VisitorBase : DocumentObjectVisitor
     /// </summary>
     protected Border FlattenedBorderFromBorders(Border border, Borders parentBorders)
     {
-        if (border == null)
-            border = new Border(parentBorders);
+        border ??= new Border(parentBorders);
 
-        if (border.visible == null)
-            border.visible = parentBorders.visible;
+        border.visible ??= parentBorders.visible;
 
-        if (border.style == null)
-            border.style = parentBorders.style;
+        border.style ??= parentBorders.style;
 
         if (border.width.IsNull)
             border.width = parentBorders.width;
@@ -303,10 +300,8 @@ public abstract class VisitorBase : DocumentObjectVisitor
             }
         }
 
-        if (pageSetup.sectionStart == null)
-            pageSetup.sectionStart = refPageSetup.sectionStart;
-        if (pageSetup.orientation == null)
-            pageSetup.orientation = refPageSetup.orientation;
+        pageSetup.sectionStart ??= refPageSetup.sectionStart;
+        pageSetup.orientation ??= refPageSetup.orientation;
         if (pageSetup.topMargin.IsNull)
             pageSetup.topMargin = refPageSetup.topMargin;
         if (pageSetup.bottomMargin.IsNull)
@@ -319,14 +314,10 @@ public abstract class VisitorBase : DocumentObjectVisitor
             pageSetup.headerDistance = refPageSetup.headerDistance;
         if (pageSetup.footerDistance.IsNull)
             pageSetup.footerDistance = refPageSetup.footerDistance;
-        if (pageSetup.oddAndEvenPagesHeaderFooter == null)
-            pageSetup.oddAndEvenPagesHeaderFooter = refPageSetup.oddAndEvenPagesHeaderFooter;
-        if (pageSetup.differentFirstPageHeaderFooter == null)
-            pageSetup.differentFirstPageHeaderFooter = refPageSetup.differentFirstPageHeaderFooter;
-        if (pageSetup.mirrorMargins == null)
-            pageSetup.mirrorMargins = refPageSetup.mirrorMargins;
-        if (pageSetup.horizontalPageBreak == null)
-            pageSetup.horizontalPageBreak = refPageSetup.horizontalPageBreak;
+        pageSetup.oddAndEvenPagesHeaderFooter ??= refPageSetup.oddAndEvenPagesHeaderFooter;
+        pageSetup.differentFirstPageHeaderFooter ??= refPageSetup.differentFirstPageHeaderFooter;
+        pageSetup.mirrorMargins ??= refPageSetup.mirrorMargins;
+        pageSetup.horizontalPageBreak ??= refPageSetup.horizontalPageBreak;
     }
 
     /// <summary>
@@ -367,8 +358,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
         if (axis == null)
             return;
 
-        var refLineFormat = new LineFormat();
-        refLineFormat.width = 0.15;
+        var refLineFormat = new LineFormat { width = 0.15 };
         if ((axis.hasMajorGridlines ?? false) && axis.majorGridlines != null)
             FlattenLineFormat(axis.majorGridlines.lineFormat, refLineFormat);
         if ((axis.hasMinorGridlines ?? false) && axis.minorGridlines != null)
@@ -418,8 +408,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
     internal override void VisitChart(Chart chart)
     {
         var document = chart.Document;
-        if (chart.style == null)
-            chart.style = Style.DefaultParagraphName;
+        chart.style ??= Style.DefaultParagraphName;
         var style = document.Styles[(chart.style ?? "")];
         if (chart.format == null)
         {

@@ -39,8 +39,7 @@ internal class ImageRenderInfo : ShapeRenderInfo
   {
     get
     {
-      if (formatInfo == null)
-        formatInfo = new ImageFormatInfo();
+      formatInfo ??= new ImageFormatInfo();
       return formatInfo;
     }
   }

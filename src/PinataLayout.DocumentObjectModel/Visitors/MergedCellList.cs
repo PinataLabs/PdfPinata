@@ -211,11 +211,13 @@ public class MergedCellList : List<Cell>
     if (returnBorder != null)
       return returnBorder.Clone();
 
-    returnBorder = new Border();
-    returnBorder.style = borders.style;
-    returnBorder.width = borders.width;
-    returnBorder.color = borders.color;
-    returnBorder.visible = borders.visible;
+    returnBorder = new Border
+    {
+      style = borders.style,
+      width = borders.width,
+      color = borders.color,
+      visible = borders.visible
+    };
     return returnBorder;
   }
 

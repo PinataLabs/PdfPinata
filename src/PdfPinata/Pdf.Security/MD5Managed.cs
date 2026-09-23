@@ -76,13 +76,14 @@ class MD5Managed
         _data = new byte[64];
         _dataSize = 0;
         _totalLength = 0;
-        _abcd = new MD5Core.ABCDStruct();
-
-        // Intitial values as defined in RFC 1321.
-        _abcd.A = A;
-        _abcd.B = B;
-        _abcd.C = C;
-        _abcd.D = D;
+        _abcd = new MD5Core.ABCDStruct
+        {
+            // Intitial values as defined in RFC 1321.
+            A = A,
+            B = B,
+            C = C,
+            D = D
+        };
     }
 
     // TransformBlock, TransformFinalBlock, ComputeHash and Hash are inherited. The base class

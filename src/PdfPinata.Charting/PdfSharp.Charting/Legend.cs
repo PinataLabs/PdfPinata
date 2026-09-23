@@ -86,8 +86,7 @@ public class Legend : ChartObject
   {
     get
     {
-      if (this.lineFormat == null)
-        this.lineFormat = new LineFormat(this);
+      this.lineFormat ??= new LineFormat(this);
 
       return this.lineFormat;
     }
@@ -101,8 +100,7 @@ public class Legend : ChartObject
   {
     get
     {
-      if (this.font == null)
-        this.font = new Font(this);
+      this.font ??= new Font(this);
 
       return this.font;
     }

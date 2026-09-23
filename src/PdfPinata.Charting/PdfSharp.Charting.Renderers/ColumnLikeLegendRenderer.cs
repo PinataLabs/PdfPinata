@@ -56,8 +56,7 @@ internal class ColumnLikeLegendRenderer : LegendRenderer
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
     if (cri.Chart.legend != null)
     {
-      lri = new LegendRendererInfo();
-      lri.Legend = cri.Chart.legend;
+      lri = new LegendRendererInfo { Legend = cri.Chart.legend };
 
       lri.Font = Converter.ToXFont(lri.Legend.font, cri.DefaultFont);
       lri.FontColor = Converter.ToXBrush(lri.Legend.font, cri.DefaultFontColor);
@@ -69,10 +68,12 @@ internal class ColumnLikeLegendRenderer : LegendRenderer
       var index = 0;
       foreach (var sri in cri.SeriesRendererInfos)
       {
-        var leri = new LegendEntryRendererInfo();
-        leri.SeriesRendererInfo = sri;
-        leri.LegendRendererInfo = lri;
-        leri.EntryText = sri.Series.name;
+        var leri = new LegendEntryRendererInfo
+        {
+          SeriesRendererInfo = sri,
+          LegendRendererInfo = lri,
+          EntryText = sri.Series.name
+        };
         if (sri.MarkerRendererInfo != null)
         {
           leri.MarkerSize.Width = leri.MarkerSize.Height = sri.MarkerRendererInfo.MarkerSize.Point;

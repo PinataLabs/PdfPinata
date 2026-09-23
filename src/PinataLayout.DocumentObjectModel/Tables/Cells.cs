@@ -87,8 +87,7 @@ public partial class Cells : DocumentObjectCollection
   {
     get
     {
-      if (this.row == null)
-        this.row = this.Parent as Row;
+      this.row ??= this.Parent as Row;
 
       return this.row;
     }

@@ -148,8 +148,7 @@ public class PdfDocumentRenderer
 
         if (_documentRenderer == null)
         {
-            _documentRenderer = new DocumentRenderer(_document);
-            _documentRenderer.WorkingDirectory = _workingDirectory;
+            _documentRenderer = new DocumentRenderer(_document) { WorkingDirectory = _workingDirectory };
         }
 
         _documentRenderer.TagContent = _tagContent;

@@ -116,8 +116,7 @@ public class Series : ChartObject
   {
     get
     {
-      if (this.SeriesElements == null)
-        this.SeriesElements = new SeriesElements(this);
+      this.SeriesElements ??= new SeriesElements(this);
 
       return this.SeriesElements;
     }
@@ -141,8 +140,7 @@ public class Series : ChartObject
   {
     get
     {
-      if (this.lineFormat == null)
-        this.lineFormat = new LineFormat(this);
+      this.lineFormat ??= new LineFormat(this);
 
       return this.lineFormat;
     }
@@ -156,8 +154,7 @@ public class Series : ChartObject
   {
     get
     {
-      if (this.fillFormat == null)
-        this.fillFormat = new FillFormat(this);
+      this.fillFormat ??= new FillFormat(this);
 
       return this.fillFormat;
     }
@@ -236,8 +233,7 @@ public class Series : ChartObject
   {
     get 
     {
-      if (this.dataLabel == null)
-        this.dataLabel = new DataLabel(this);
+      this.dataLabel ??= new DataLabel(this);
 
       return this.dataLabel;
     }

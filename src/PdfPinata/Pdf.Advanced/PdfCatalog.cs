@@ -127,8 +127,7 @@ public sealed class PdfCatalog : PdfDictionary
     {
         get
         {
-            if (_viewerPreferences == null)
-                _viewerPreferences = (PdfViewerPreferences)Elements.GetValue(Keys.ViewerPreferences, VCF.CreateIndirect);
+            _viewerPreferences ??= (PdfViewerPreferences)Elements.GetValue(Keys.ViewerPreferences, VCF.CreateIndirect);
             return _viewerPreferences;
         }
     }
@@ -141,15 +140,12 @@ public sealed class PdfCatalog : PdfDictionary
     {
         get
         {
-            if (_outline == null)
-            {
-                ////// Ensure that the page tree exists.
-                ////// ReSharper disable once UnusedVariable because we need dummy to call the getter.
-                ////PdfPages dummy = Pages;
+            ////// Ensure that the page tree exists.
+            ////// ReSharper disable once UnusedVariable because we need dummy to call the getter.
+            ////PdfPages dummy = Pages;
 
-                // Now create the outline item tree.
-                _outline = (PdfOutline)Elements.GetValue(Keys.Outlines, VCF.CreateIndirect);
-            }
+            // Now create the outline item tree.
+            _outline ??= (PdfOutline)Elements.GetValue(Keys.Outlines, VCF.CreateIndirect);
             return _outline.Outlines;
         }
     }

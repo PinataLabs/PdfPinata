@@ -67,10 +67,12 @@ public class DocumentRenderer
     {
         var visitor = new PdfFlattenVisitor();
         visitor.Visit(document);
-        previousListNumbers = new Hashtable(3);
-        previousListNumbers[ListType.NumberList1] = 0;
-        previousListNumbers[ListType.NumberList2] = 0;
-        previousListNumbers[ListType.NumberList3] = 0;
+        previousListNumbers = new Hashtable(3)
+        {
+            [ListType.NumberList1] = 0,
+            [ListType.NumberList2] = 0,
+            [ListType.NumberList3] = 0
+        };
         formattedDocument = new FormattedDocument(document, this);
         //REM: Size should not be necessary in this case.
         var gfx = XGraphics.CreateMeasureContext(new XSize(2000, 2000), XGraphicsUnit.Point, XPageDirection.Downwards);

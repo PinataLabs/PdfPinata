@@ -52,8 +52,7 @@ internal class FontHandler
     var style = GetXStyle(font);
 
     // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-    if (xFont == null)
-      xFont = new XFont(font.Name, font.Size, style, options);
+    xFont ??= new XFont(font.Name, font.Size, style, options);
     return xFont;
   }
 

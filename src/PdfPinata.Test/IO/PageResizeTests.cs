@@ -590,8 +590,7 @@ public class PageResizeTests
         var fields = new PdfArray(document);
         fields.Elements.Add(field.Reference);
 
-        var acroForm = new PdfDictionary(document);
-        acroForm.Elements["/Fields"] = fields;
+        var acroForm = new PdfDictionary(document) { Elements = { ["/Fields"] = fields } };
         document.Internals.AddObject(acroForm);
         document.Internals.Catalog.Elements["/AcroForm"] = acroForm.Reference;
 

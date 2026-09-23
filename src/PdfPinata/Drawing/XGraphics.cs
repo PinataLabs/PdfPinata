@@ -1302,8 +1302,7 @@ public sealed class XGraphics : IDisposable
         if (text.Length == 0)
             return;
 
-        if (format == null)
-            format = XStringFormats.Default;
+        format ??= XStringFormats.Default;
 
         if (_renderer != null)
             _renderer.DrawString(text, font, pen, brush, layoutRectangle, format);
@@ -1716,8 +1715,7 @@ public sealed class XGraphics : IDisposable
     public XGraphicsState Save()
     {
         var xState = new XGraphicsState();
-        var iState = new InternalGraphicsState(xState);
-        iState.Transform = _transform;
+        var iState = new InternalGraphicsState(xState) { Transform = _transform };
         _gsStack.Push(iState);
 
         if (_renderer != null)
@@ -1781,8 +1779,7 @@ public sealed class XGraphics : IDisposable
 
         var xContainer = new XGraphicsContainer();
 
-        var iState = new InternalGraphicsState(xContainer);
-        iState.Transform = _transform;
+        var iState = new InternalGraphicsState(xContainer) { Transform = _transform };
 
         _gsStack.Push(iState);
 

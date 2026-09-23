@@ -163,8 +163,7 @@ public sealed class PdfComboBoxField : PdfChoiceField
         {
             get
             {
-                if (_meta == null)
-                    _meta = CreateMeta(typeof(Keys));
+                _meta ??= CreateMeta(typeof(Keys));
                 return _meta;
             }
         }

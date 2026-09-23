@@ -116,8 +116,7 @@ public class ImagePathAndReaderTests : IDisposable
     public void APictureFormatCanBeAssignedWholesale()
     {
         var image = new Image();
-        var other = new Image();
-        other.PictureFormat.CropLeft = "1cm";
+        var other = new Image { PictureFormat = { CropLeft = "1cm" } };
 
         image.PictureFormat = other.PictureFormat.Clone();
 
@@ -127,8 +126,7 @@ public class ImagePathAndReaderTests : IDisposable
     [Fact]
     public void AnImageClonesItsFormatWithIt()
     {
-        var image = new Image { ScaleWidth = 2, Resolution = 300, LockAspectRatio = true };
-        image.PictureFormat.CropTop = "3mm";
+        var image = new Image { ScaleWidth = 2, Resolution = 300, LockAspectRatio = true, PictureFormat = { CropTop = "3mm" } };
 
         var clone = image.Clone();
         clone.ScaleWidth = 4;

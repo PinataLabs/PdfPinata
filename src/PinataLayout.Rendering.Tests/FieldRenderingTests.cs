@@ -111,8 +111,7 @@ public class FieldRenderingTests
     [Fact]
     public void AHeadingBuiltFromDocumentInformationCarriesThatTextIntoTheOutline()
     {
-        var document = new Document();
-        document.Info.Title = "Annual Report";
+        var document = new Document { Info = { Title = "Annual Report" } };
         var paragraph = document.AddSection().AddParagraph();
         paragraph.Style = StyleNames.Heading1;
         paragraph.Format.OutlineLevel = OutlineLevel.Level1;

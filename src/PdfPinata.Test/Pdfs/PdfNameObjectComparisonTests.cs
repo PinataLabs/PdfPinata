@@ -66,8 +66,7 @@ public class PdfNameObjectComparisonTests
     [Fact]
     public void ANameWhoseValueIsNullIsStillNotANullName()
     {
-        var name = new PdfNameObject(new PdfDocument(), "/Kent");
-        name.Value = null;
+        var name = new PdfNameObject(new PdfDocument(), "/Kent") { Value = null };
 
         // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         (name == null).Should().BeFalse("the name is there, whatever it holds");
@@ -85,8 +84,7 @@ public class PdfNameObjectComparisonTests
     [Fact]
     public void ANameWhoseValueIsNullStillAnswersEqualityRatherThanThrowing()
     {
-        var name = new PdfNameObject(new PdfDocument(), "/Kent");
-        name.Value = null;
+        var name = new PdfNameObject(new PdfDocument(), "/Kent") { Value = null };
 
         // ReSharper disable once SuspiciousTypeConversion.Global
         name.Equals("/Kent").Should().BeFalse();
@@ -97,8 +95,7 @@ public class PdfNameObjectComparisonTests
     [Fact]
     public void ANameWhoseValueIsNullCanBeHeldInAHashSet()
     {
-        var name = new PdfNameObject(new PdfDocument(), "/Kent");
-        name.Value = null;
+        var name = new PdfNameObject(new PdfDocument(), "/Kent") { Value = null };
 
         var act = () => new HashSet<PdfNameObject> { name }.Contains(name);
 
@@ -125,8 +122,10 @@ public class PdfNameObjectComparisonTests
     public void ReadingANonStringEntryAsAStringSaysSoRatherThanThrowingNullReference()
     {
         var document = new PdfDocument();
-        var dictionary = new PdfDictionary(document);
-        dictionary.Elements["/V"] = new PdfArray(document, new PdfString("Kent"));
+        var dictionary = new PdfDictionary(document)
+        {
+            Elements = { ["/V"] = new PdfArray(document, new PdfString("Kent")) }
+        };
 
         var act = () => dictionary.Elements.GetString("/V");
 
@@ -137,8 +136,10 @@ public class PdfNameObjectComparisonTests
     public void ReadingANonNameEntryAsANameSaysSoRatherThanThrowingNullReference()
     {
         var document = new PdfDocument();
-        var dictionary = new PdfDictionary(document);
-        dictionary.Elements["/V"] = new PdfArray(document, new PdfString("Kent"));
+        var dictionary = new PdfDictionary(document)
+        {
+            Elements = { ["/V"] = new PdfArray(document, new PdfString("Kent")) }
+        };
 
         var act = () => dictionary.Elements.GetName("/V");
 

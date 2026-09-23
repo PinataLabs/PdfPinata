@@ -111,8 +111,7 @@ internal class ParagraphRenderer : Renderer
     {
         this.paragraph = paragraph;
 
-        var parRenderInfo = new ParagraphRenderInfo();
-        parRenderInfo.paragraph = this.paragraph;
+        var parRenderInfo = new ParagraphRenderInfo { paragraph = this.paragraph };
         ((ParagraphFormatInfo)parRenderInfo.FormatInfo).widowControl = this.paragraph.Format.WidowControl;
 
         renderInfo = parRenderInfo;
@@ -334,16 +333,18 @@ internal class ParagraphRenderer : Renderer
     {
         get
         {
-            var layoutInfo = new LayoutInfo();
-            layoutInfo.PageBreakBefore = paragraph.Format.PageBreakBefore;
-            layoutInfo.MarginTop = paragraph.Format.SpaceBefore.Point;
-            layoutInfo.MarginBottom = paragraph.Format.SpaceAfter.Point;
-            //Don't confuse margins with left or right indent.
-            //Indents are invisible for the layouter.
-            layoutInfo.MarginRight = 0;
-            layoutInfo.MarginLeft = 0;
-            layoutInfo.KeepTogether = paragraph.Format.KeepTogether;
-            layoutInfo.KeepWithNext = paragraph.Format.KeepWithNext;
+            var layoutInfo = new LayoutInfo
+            {
+                PageBreakBefore = paragraph.Format.PageBreakBefore,
+                MarginTop = paragraph.Format.SpaceBefore.Point,
+                MarginBottom = paragraph.Format.SpaceAfter.Point,
+                //Don't confuse margins with left or right indent.
+                //Indents are invisible for the layouter.
+                MarginRight = 0,
+                MarginLeft = 0,
+                KeepTogether = paragraph.Format.KeepTogether,
+                KeepWithNext = paragraph.Format.KeepWithNext
+            };
             return layoutInfo;
         }
     }
@@ -3013,8 +3014,7 @@ internal class ParagraphRenderer : Renderer
         if (bottomBorderOffset > 0)
             contentArea = contentArea.Unite(formattingArea.GetFittingRect(currentYPosition + currentVerticalInfo.height, bottomBorderOffset));
 
-        var lineInfo = new LineInfo();
-        lineInfo.vertical = currentVerticalInfo;
+        var lineInfo = new LineInfo { vertical = currentVerticalInfo };
 
         if (startLeaf != null && startLeaf == currentLeaf)
             HandleNonFittingLine();
@@ -3348,8 +3348,7 @@ internal class ParagraphRenderer : Renderer
 
                 else
                 {
-                    if (imageRenderInfos == null)
-                        imageRenderInfos = new Hashtable();
+                    imageRenderInfos ??= new Hashtable();
 
                     var imageRenderInfo = CalcImageRenderInfo(image);
                     imageRenderInfos.Add(image, imageRenderInfo);

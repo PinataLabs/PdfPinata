@@ -344,8 +344,7 @@ public class XPdfForm : XForm
                 throw new InvalidOperationException(
                     "This XPdfForm is a template and not an imported PDF page; therefore it has no external document.");
 
-            if (_externalDocument == null)
-                _externalDocument = PdfDocument.Tls.GetDocument(Path, _pathReadAccuracy);
+            _externalDocument ??= PdfDocument.Tls.GetDocument(Path, _pathReadAccuracy);
             return _externalDocument;
         }
     }

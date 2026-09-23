@@ -48,11 +48,13 @@ internal abstract class PlotAreaRenderer : Renderer
   /// </summary>
   internal override RendererInfo Init()
   {
-    var pari = new PlotAreaRendererInfo();
-    // Through the property, not the field. The field is filled in lazily, and a chart whose plot
-    // area was never asked for has none, so reading the field here worked only because every chart
-    // renderer's Init had touched the property first, on a line that read as dead code.
-    pari.PlotArea = ((ChartRendererInfo)this.rendererParms.RendererInfo).Chart.PlotArea;
+    var pari = new PlotAreaRendererInfo
+    {
+      // Through the property, not the field. The field is filled in lazily, and a chart whose plot
+      // area was never asked for has none, so reading the field here worked only because every chart
+      // renderer's Init had touched the property first, on a line that read as dead code.
+      PlotArea = ((ChartRendererInfo)this.rendererParms.RendererInfo).Chart.PlotArea
+    };
     InitLineFormat(pari);
     InitFillFormat(pari);
     return pari;

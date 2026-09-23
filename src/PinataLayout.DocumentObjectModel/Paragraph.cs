@@ -447,8 +447,7 @@ public partial class Paragraph : DocumentObject, IVisitable
     {
         get
         {
-            if (format == null)
-                format = new ParagraphFormat(this);
+            format ??= new ParagraphFormat(this);
 
             return format;
         }
@@ -468,8 +467,7 @@ public partial class Paragraph : DocumentObject, IVisitable
     {
         get
         {
-            if (elements == null)
-                elements = new ParagraphElements(this);
+            elements ??= new ParagraphElements(this);
 
             return elements;
         }
@@ -568,10 +566,12 @@ public partial class Paragraph : DocumentObject, IVisitable
                 var character = (Character)element;
                 if (character.SymbolName == SymbolName.ParaBreak)
                 {
-                    var paragraph = new Paragraph();
-                    paragraph.Format = Format.Clone();
-                    paragraph.Style = Style;
-                    paragraph.Elements = SubsetElements(startIdx, idx - 1);
+                    var paragraph = new Paragraph
+                    {
+                        Format = Format.Clone(),
+                        Style = Style,
+                        Elements = SubsetElements(startIdx, idx - 1)
+                    };
                     startIdx = idx + 1;
                     paragraphs.Add(paragraph);
                 }
@@ -581,10 +581,12 @@ public partial class Paragraph : DocumentObject, IVisitable
             return null;
         else
         {
-            var paragraph = new Paragraph();
-            paragraph.Format = Format.Clone();
-            paragraph.Style = Style;
-            paragraph.Elements = SubsetElements(startIdx, elements.Count - 1);
+            var paragraph = new Paragraph
+            {
+                Format = Format.Clone(),
+                Style = Style,
+                Elements = SubsetElements(startIdx, elements.Count - 1)
+            };
             paragraphs.Add(paragraph);
 
             // Not ToArray(Type): it builds the array type at run time, which carries

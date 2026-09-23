@@ -593,9 +593,11 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
 
     private void InitFieldInfos()
     {
-        currentFieldInfos = new FieldInfos(bookmarks);
-        currentFieldInfos.pyhsicalPageNr = currentPage;
-        currentFieldInfos.section = sectionNumber;
+        currentFieldInfos = new FieldInfos(bookmarks)
+        {
+            pyhsicalPageNr = currentPage,
+            section = sectionNumber
+        };
         // A landscape page is the page setup turned on its side, the same way CalcContentRect
         // reads it. This is what lets a bookmark record where up the page it sits.
         var pageSetup = currentSection.PageSetup;

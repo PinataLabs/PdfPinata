@@ -22,10 +22,12 @@ public class ContentSequenceTests
 {
     private static CSequence Three()
     {
-        var sequence = new CSequence();
-        sequence.Add(new CInteger { Value = 1 });
-        sequence.Add(new CInteger { Value = 2 });
-        sequence.Add(new CInteger { Value = 3 });
+        var sequence = new CSequence
+        {
+            new CInteger { Value = 1 },
+            new CInteger { Value = 2 },
+            new CInteger { Value = 3 }
+        };
         return sequence;
     }
 
@@ -97,9 +99,11 @@ public class ContentSequenceTests
     public void ACArrayIsASequenceAndBehavesLikeOne()
     {
         // CArray derives from CSequence, so it inherited every one of the throwing stubs.
-        var array = new CArray();
-        array.Add(new CReal { Value = 1.5 });
-        array.Add(new CReal { Value = 2.5 });
+        var array = new CArray
+        {
+            new CReal { Value = 1.5 },
+            new CReal { Value = 2.5 }
+        };
 
         IEnumerable<CObject> asEnumerable = array;
 

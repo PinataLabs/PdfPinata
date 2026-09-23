@@ -232,8 +232,7 @@ public partial class Cell : DocumentObject, IVisitable
     {
         get
         {
-            if (format == null)
-                format = new ParagraphFormat(this);
+            format ??= new ParagraphFormat(this);
 
             return format;
         }
@@ -264,8 +263,7 @@ public partial class Cell : DocumentObject, IVisitable
     {
         get
         {
-            if (borders == null)
-                borders = new Borders(this);
+            borders ??= new Borders(this);
             return borders;
         }
         set
@@ -284,8 +282,7 @@ public partial class Cell : DocumentObject, IVisitable
     {
         get
         {
-            if (shading == null)
-                shading = new Shading(this);
+            shading ??= new Shading(this);
 
             return shading;
         }
@@ -361,8 +358,7 @@ public partial class Cell : DocumentObject, IVisitable
     {
         get
         {
-            if (elements == null)
-                elements = new DocumentElements(this);
+            elements ??= new DocumentElements(this);
 
             return elements;
         }

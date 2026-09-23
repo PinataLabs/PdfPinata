@@ -130,9 +130,11 @@ public sealed class SquareAnnotationTests : IDisposable
         var document = new PdfDocument();
         var page = document.AddPage();
 
-        var square = new PdfSquareAnnotation();
-        square.Interior = XColors.RoyalBlue;
-        square.Rectangle = new PdfRectangle(Where);
+        var square = new PdfSquareAnnotation
+        {
+            Interior = XColors.RoyalBlue,
+            Rectangle = new PdfRectangle(Where)
+        };
 
         // Everything above was set with no document to build a form in. Adding it to the page is
         // what gives it one, and the appearance has to appear then rather than be lost.

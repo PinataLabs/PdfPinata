@@ -90,8 +90,7 @@ public class TickLabels : ChartObject
   {
     get
     {
-      if (this.font == null)
-        this.font = new Font(this);
+      this.font ??= new Font(this);
 
       return this.font;
     }

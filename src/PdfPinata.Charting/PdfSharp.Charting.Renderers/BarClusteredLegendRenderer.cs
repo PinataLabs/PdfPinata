@@ -55,8 +55,7 @@ internal class BarClusteredLegendRenderer : ColumnLikeLegendRenderer
       return;
 
     var gfx = this.rendererParms.Graphics;
-    var parms = new RendererParameters();
-    parms.Graphics = gfx;
+    var parms = new RendererParameters { Graphics = gfx };
 
     var ler = new LegendEntryRenderer(parms);
 

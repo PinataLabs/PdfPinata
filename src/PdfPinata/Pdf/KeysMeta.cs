@@ -199,8 +199,7 @@ internal class DictionaryMeta
             var attributes = field.GetCustomAttributes<KeyInfoAttribute>(false);
             foreach (var attribute in attributes)
             {
-                var descriptor = new KeyDescriptor(attribute);
-                descriptor.KeyValue = (string)field.GetValue(null);
+                var descriptor = new KeyDescriptor(attribute) { KeyValue = (string)field.GetValue(null) };
                 // ReSharper disable once AssignNullToNotNullAttribute
                 _keyDescriptors[descriptor.KeyValue] = descriptor;
             }

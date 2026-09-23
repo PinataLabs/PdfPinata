@@ -836,8 +836,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     {
         get
         {
-            if (_pagesArray == null)
-                _pagesArray = (PdfArray)Elements.GetValue(Keys.Kids, VCF.Create);
+            _pagesArray ??= (PdfArray)Elements.GetValue(Keys.Kids, VCF.Create);
             return _pagesArray;
         }
     }

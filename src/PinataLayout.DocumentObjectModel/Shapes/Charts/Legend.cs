@@ -82,8 +82,7 @@ public partial class Legend : ChartObject, IVisitable
   {
     get
     {
-      if (format == null)
-        format = new ParagraphFormat(this);
+      format ??= new ParagraphFormat(this);
 
       return format;
     }
@@ -103,8 +102,7 @@ public partial class Legend : ChartObject, IVisitable
   {
     get
     {
-      if (lineFormat == null)
-        lineFormat = new LineFormat(this);
+      lineFormat ??= new LineFormat(this);
 
       return lineFormat;
     }

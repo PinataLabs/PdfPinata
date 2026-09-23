@@ -76,8 +76,7 @@ internal static class DoubleUtil
     /// </summary>
     public static bool IsNaN(double value)
     {
-        var t = new NanUnion();
-        t.DoubleValue = value;
+        var t = new NanUnion { DoubleValue = value };
 
         var exp = t.UintValue & 0xfff0000000000000;
         var man = t.UintValue & 0x000fffffffffffff;

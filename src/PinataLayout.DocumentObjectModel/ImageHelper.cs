@@ -49,8 +49,7 @@ public class ImageHelper
   {
     try
     {
-      var subfolders = new List<string>(imagePath.Split(';', StringSplitOptions.RemoveEmptyEntries));
-      subfolders.Add("");
+      var subfolders = new List<string>(imagePath.Split(';', StringSplitOptions.RemoveEmptyEntries)) { "" };
 
       foreach (var subfolder in subfolders)
       {
@@ -73,8 +72,7 @@ public class ImageHelper
   /// </summary>
   public static bool InSubfolder(string root, string filename, string imagePath, string referenceFilename)
   {
-    var subfolders = new List<string>(imagePath.Split(';', StringSplitOptions.RemoveEmptyEntries));
-    subfolders.Add("");
+    var subfolders = new List<string>(imagePath.Split(';', StringSplitOptions.RemoveEmptyEntries)) { "" };
 
     foreach (var subfolder in subfolders)
     {

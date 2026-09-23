@@ -208,8 +208,7 @@ public partial class TextFrame : Shape, IVisitable
     {
         get
         {
-            if (this.elements == null)
-                this.elements = new DocumentElements(this);
+            this.elements ??= new DocumentElements(this);
 
             return this.elements;
         }

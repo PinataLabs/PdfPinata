@@ -94,8 +94,7 @@ public class Axis : ChartObject
   {
     get
     {
-      if (this.title == null)
-        this.title = new AxisTitle(this);
+      this.title ??= new AxisTitle(this);
 
       return this.title;
     }
@@ -183,8 +182,7 @@ public class Axis : ChartObject
   {
     get
     {
-      if (this.tickLabels == null)
-        this.tickLabels = new TickLabels(this);
+      this.tickLabels ??= new TickLabels(this);
 
       return this.tickLabels;
     }
@@ -198,8 +196,7 @@ public class Axis : ChartObject
   {
     get
     {
-      if (this.lineFormat == null)
-        this.lineFormat = new LineFormat(this);
+      this.lineFormat ??= new LineFormat(this);
 
       return this.lineFormat;
     }
@@ -213,8 +210,7 @@ public class Axis : ChartObject
   {
     get
     {
-      if (this.majorGridlines == null)
-        this.majorGridlines = new Gridlines(this);
+      this.majorGridlines ??= new Gridlines(this);
 
       return this.majorGridlines;
     }
@@ -228,8 +224,7 @@ public class Axis : ChartObject
   {
     get
     {
-      if (this.minorGridlines == null)
-        this.minorGridlines = new Gridlines(this);
+      this.minorGridlines ??= new Gridlines(this);
 
       return this.minorGridlines;
     }

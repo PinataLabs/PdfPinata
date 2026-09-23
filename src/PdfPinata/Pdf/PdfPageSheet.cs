@@ -69,14 +69,12 @@ internal sealed class PdfPageSheet
     {
         get
         {
-            if (_trimMargins == null)
-                _trimMargins = new TrimMargins();
+            _trimMargins ??= new TrimMargins();
             return _trimMargins;
         }
         set
         {
-            if (_trimMargins == null)
-                _trimMargins = new TrimMargins();
+            _trimMargins ??= new TrimMargins();
             if (value != null)
             {
                 _trimMargins.Left = value.Left;

@@ -153,8 +153,7 @@ public class Chart : DocumentObject
   {
     get 
     {
-      if (this.font == null)
-        this.font = new Font(this);
+      this.font ??= new Font(this);
 
       return this.font;
     }
@@ -168,8 +167,7 @@ public class Chart : DocumentObject
   {
     get
     {
-      if (this.legend == null)
-        this.legend = new Legend(this);
+      this.legend ??= new Legend(this);
 
       return this.legend;
     }
@@ -183,8 +181,7 @@ public class Chart : DocumentObject
   {
     get
     {
-      if (this.xAxis == null)
-        this.xAxis = new Axis(this);
+      this.xAxis ??= new Axis(this);
 
       return this.xAxis;
     }
@@ -198,8 +195,7 @@ public class Chart : DocumentObject
   {
     get
     {
-      if (this.yAxis == null)
-        this.yAxis = new Axis(this);
+      this.yAxis ??= new Axis(this);
 
       return this.yAxis;
     }
@@ -213,8 +209,7 @@ public class Chart : DocumentObject
   {
     get
     {
-      if (this.zAxis == null)
-        this.zAxis = new Axis(this);
+      this.zAxis ??= new Axis(this);
 
       return this.zAxis;
     }
@@ -228,8 +223,7 @@ public class Chart : DocumentObject
   {
     get
     {
-      if (this.seriesCollection == null)
-        this.seriesCollection = new SeriesCollection(this);
+      this.seriesCollection ??= new SeriesCollection(this);
 
       return this.seriesCollection;
     }
@@ -243,8 +237,7 @@ public class Chart : DocumentObject
   {
     get
     {
-      if (this.xValues == null)
-        this.xValues = new XValues(this);
+      this.xValues ??= new XValues(this);
 
       return this.xValues;
     }
@@ -258,8 +251,7 @@ public class Chart : DocumentObject
   {
     get
     {
-      if (this.plotArea == null)
-        this.plotArea = new PlotArea(this);
+      this.plotArea ??= new PlotArea(this);
 
       return this.plotArea;
     }
@@ -283,8 +275,7 @@ public class Chart : DocumentObject
   {
     get 
     {
-      if (this.dataLabel == null)
-        this.dataLabel = new DataLabel(this);
+      this.dataLabel ??= new DataLabel(this);
 
       return this.dataLabel;
     }

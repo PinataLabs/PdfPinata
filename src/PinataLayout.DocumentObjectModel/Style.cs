@@ -139,8 +139,7 @@ public sealed partial class Style : DocumentObject, IVisitable
     {
         get
         {
-            if (paragraphFormat == null)
-                paragraphFormat = new ParagraphFormat(this);
+            paragraphFormat ??= new ParagraphFormat(this);
             if (readOnly)
             {
                 // The clone is what stops a caller mutating a built-in style through the real object. On

@@ -49,8 +49,7 @@ internal class AreaChartRenderer : ColumnLikeChartRenderer
   /// </summary>
   internal override RendererInfo Init()
   {
-    var cri = new ChartRendererInfo();
-    cri.Chart = (Chart)this.rendererParms.DrawingItem;
+    var cri = new ChartRendererInfo { Chart = (Chart)this.rendererParms.DrawingItem };
     this.rendererParms.RendererInfo = cri;
 
     InitSeriesRendererInfo();
@@ -142,8 +141,7 @@ internal class AreaChartRenderer : ColumnLikeChartRenderer
     cri.SeriesRendererInfos = new SeriesRendererInfo[seriesColl.Count];
     for (var idx = 0; idx < seriesColl.Count; ++idx)
     {
-      var sri = new SeriesRendererInfo();
-      sri.Series = seriesColl[idx];
+      var sri = new SeriesRendererInfo { Series = seriesColl[idx] };
       cri.SeriesRendererInfos[idx] = sri;
     }
 
