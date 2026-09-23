@@ -51,7 +51,7 @@ public sealed class PdfLongObject : PdfNumberObject
     /// </summary>
     public PdfLongObject(long value)
     {
-        _value = value;
+        Value = value;
     }
 
     /// <summary>
@@ -60,22 +60,20 @@ public sealed class PdfLongObject : PdfNumberObject
     public PdfLongObject(PdfDocument document, long value)
         : base(document)
     {
-        _value = value;
+        Value = value;
     }
 
     /// <summary>
     /// Gets the value as long.
     /// </summary>
-    public long Value => _value;
-
-    private readonly long _value;
+    public long Value { get; }
 
     /// <summary>
     /// Returns the long as string.
     /// </summary>
     public override string ToString()
     {
-        return _value.ToString(CultureInfo.InvariantCulture);
+        return Value.ToString(CultureInfo.InvariantCulture);
     }
 
     /// <summary>
@@ -84,7 +82,7 @@ public sealed class PdfLongObject : PdfNumberObject
     internal override void WriteObject(PdfWriter writer)
     {
         writer.WriteBeginObject(this);
-        writer.Write(_value);
+        writer.Write(Value);
         writer.WriteEndObject();
     }
 }

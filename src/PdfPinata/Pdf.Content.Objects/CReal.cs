@@ -58,13 +58,7 @@ public class CReal : CNumber
     /// <summary>
     /// Gets or sets the value.
     /// </summary>
-    public double Value
-    {
-        get => _value;
-        set => _value = value;
-    }
-
-    private double _value;
+    public double Value { get; set; }
 
     /// <summary>
     /// Returns a string that represents the current value.
@@ -72,7 +66,7 @@ public class CReal : CNumber
     public override string ToString()
     {
         const string format = Config.SignificantFigures1Plus9;
-        return _value.ToString(format, CultureInfo.InvariantCulture);
+        return Value.ToString(format, CultureInfo.InvariantCulture);
     }
 
     internal override void WriteObject(ContentWriter writer)

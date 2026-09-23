@@ -114,7 +114,7 @@ internal sealed class PdfType0Font : PdfFont
         Debug.Assert(font.PdfOptions != null);
 
         CmapInfo = new CMapInfo(ttDescriptor);
-        _descendantFont = new PdfCIDFont(document, FontDescriptor, font) { CMapInfo = CmapInfo };
+        DescendantFont = new PdfCIDFont(document, FontDescriptor, font) { CMapInfo = CmapInfo };
 
         // Create ToUnicode map
         ToUnicode = new PdfToUnicodeMap(document, CmapInfo);
@@ -131,11 +131,11 @@ internal sealed class PdfType0Font : PdfFont
             BaseFont = TagAsSubset(BaseFont);
 
         FontDescriptor.FontName = BaseFont;
-        _descendantFont.BaseFont = BaseFont;
+        DescendantFont.BaseFont = BaseFont;
 
         var descendantFonts = new PdfArray(document);
-        Owner._irefTable.Add(_descendantFont);
-        descendantFonts.Elements.Add(_descendantFont.Reference);
+        Owner._irefTable.Add(DescendantFont);
+        descendantFonts.Elements.Add(DescendantFont.Reference);
         Elements[Keys.DescendantFonts] = descendantFonts;
     }
 
@@ -150,7 +150,7 @@ internal sealed class PdfType0Font : PdfFont
         FontDescriptor = new PdfFontDescriptor(document, ttDescriptor);
 
         CmapInfo = new CMapInfo(ttDescriptor);
-        _descendantFont = new PdfCIDFont(document, FontDescriptor) { CMapInfo = CmapInfo };
+        DescendantFont = new PdfCIDFont(document, FontDescriptor) { CMapInfo = CmapInfo };
 
         // Create ToUnicode map
         ToUnicode = new PdfToUnicodeMap(document, CmapInfo);
@@ -166,11 +166,11 @@ internal sealed class PdfType0Font : PdfFont
             BaseFont = TagAsSubset(BaseFont);
 
         FontDescriptor.FontName = BaseFont;
-        _descendantFont.BaseFont = BaseFont;
+        DescendantFont.BaseFont = BaseFont;
 
         var descendantFonts = new PdfArray(document);
-        Owner._irefTable.Add(_descendantFont);
-        descendantFonts.Elements.Add(_descendantFont.Reference);
+        Owner._irefTable.Add(DescendantFont);
+        descendantFonts.Elements.Add(DescendantFont.Reference);
         Elements[Keys.DescendantFonts] = descendantFonts;
     }
 
@@ -180,9 +180,7 @@ internal sealed class PdfType0Font : PdfFont
         set => Elements.SetName(Keys.BaseFont, value);
     }
 
-    internal PdfCIDFont DescendantFont => _descendantFont;
-
-    private readonly PdfCIDFont _descendantFont;
+    internal PdfCIDFont DescendantFont { get; }
 
     internal override void PrepareForSave()
     {
@@ -191,7 +189,7 @@ internal sealed class PdfType0Font : PdfFont
         RestoreWholeFontName(name =>
         {
             BaseFont = name;
-            _descendantFont.BaseFont = name;
+            DescendantFont.BaseFont = name;
         });
 
         // Use GetGlyphIndices to create the widths array.
@@ -220,10 +218,10 @@ internal sealed class PdfType0Font : PdfFont
             if (glyphIndices.Length > 0)
                 w.Append(']');
             w.Append(']');
-            _descendantFont.Elements.SetValue(PdfCIDFont.Keys.W, new PdfLiteral(w.ToString()));
+            DescendantFont.Elements.SetValue(PdfCIDFont.Keys.W, new PdfLiteral(w.ToString()));
 
         }
-        _descendantFont.PrepareForSave();
+        DescendantFont.PrepareForSave();
         ToUnicode.PrepareForSave();
     }
 

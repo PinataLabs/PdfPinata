@@ -51,24 +51,21 @@ public sealed class PdfReal : PdfNumber
     /// <param name="value">The value.</param>
     public PdfReal(double value)
     {
-        _value = value;
+        Value = value;
     }
 
     /// <summary>
     /// Gets the value as double.
     /// </summary>
-    public double Value =>
-        // This class must behave like a value type. Therefore it cannot be changed (like System.String).
-        _value;
-
-    private readonly double _value;
+    // This class must behave like a value type. Therefore it cannot be changed (like System.String).
+    public double Value { get; }
 
     /// <summary>
     /// Returns the real number as string.
     /// </summary>
     public override string ToString()
     {
-        return _value.ToString(Config.SignificantFigures3, CultureInfo.InvariantCulture);
+        return Value.ToString(Config.SignificantFigures3, CultureInfo.InvariantCulture);
     }
 
     /// <summary>

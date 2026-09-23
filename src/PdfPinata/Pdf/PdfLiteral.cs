@@ -51,7 +51,7 @@ public sealed class PdfLiteral : PdfItem
     /// </summary>
     public PdfLiteral(string value)
     {
-        _value = value;
+        Value = value;
     }
 
     /// <summary>
@@ -59,7 +59,7 @@ public sealed class PdfLiteral : PdfItem
     /// </summary>
     public PdfLiteral(string format, params object[] args)
     {
-        _value = PdfEncoders.Format(format, args);
+        Value = PdfEncoders.Format(format, args);
     }
 
     /// <summary>
@@ -73,18 +73,15 @@ public sealed class PdfLiteral : PdfItem
     /// <summary>
     /// Gets the value as litaral string.
     /// </summary>
-    public string Value =>
-        // This class must behave like a value type. Therefore it cannot be changed (like System.String).
-        _value;
-
-    private readonly string _value = string.Empty;
+    // This class must behave like a value type. Therefore it cannot be changed (like System.String).
+    public string Value { get; } = string.Empty;
 
     /// <summary>
     /// Returns a string that represents the current value.
     /// </summary>
     public override string ToString()
     {
-        return _value;
+        return Value;
     }
 
     internal override void WriteObject(PdfWriter writer)

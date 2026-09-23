@@ -128,7 +128,7 @@ public sealed class PdfString : PdfItem
     public PdfString(string value)
     {
         _value = value;
-        _flags = EncodingFor(value);
+        Flags = EncodingFor(value);
     }
 
     /// <summary>
@@ -167,13 +167,13 @@ public sealed class PdfString : PdfItem
                 throw new ArgumentOutOfRangeException(nameof(encoding));
         }
         _value = value;
-        _flags = (PdfStringFlags)encoding;
+        Flags = (PdfStringFlags)encoding;
     }
 
     internal PdfString(string value, PdfStringFlags flags)
     {
         _value = value;
-        _flags = flags;
+        Flags = flags;
     }
 
     /// <summary>
@@ -184,16 +184,14 @@ public sealed class PdfString : PdfItem
     /// <summary>
     /// Gets the encoding.
     /// </summary>
-    public PdfStringEncoding Encoding => (PdfStringEncoding)(_flags & PdfStringFlags.EncodingMask);
+    public PdfStringEncoding Encoding => (PdfStringEncoding)(Flags & PdfStringFlags.EncodingMask);
 
     /// <summary>
     /// Gets a value indicating whether the string is a hexadecimal literal.
     /// </summary>
-    public bool HexLiteral => (_flags & PdfStringFlags.HexLiteral) != 0;
+    public bool HexLiteral => (Flags & PdfStringFlags.HexLiteral) != 0;
 
-    internal PdfStringFlags Flags => _flags;
-
-    private readonly PdfStringFlags _flags;
+    internal PdfStringFlags Flags { get; }
 
     /// <summary>
     /// Gets the string value.
@@ -239,7 +237,7 @@ public sealed class PdfString : PdfItem
 
     private byte[] GetBytesFromEncoding()
     {
-        var encoding = (PdfStringEncoding)(_flags & PdfStringFlags.EncodingMask);
+        var encoding = (PdfStringEncoding)(Flags & PdfStringFlags.EncodingMask);
         return encoding switch
         {
             PdfStringEncoding.Unicode => PdfEncoders.RawUnicodeEncoding.GetBytes(_value),
@@ -252,8 +250,8 @@ public sealed class PdfString : PdfItem
     /// </summary>
     public override string ToString()
     {
-        var encoding = (PdfStringEncoding)(_flags & PdfStringFlags.EncodingMask);
-        var pdf = (_flags & PdfStringFlags.HexLiteral) == 0 ?
+        var encoding = (PdfStringEncoding)(Flags & PdfStringFlags.EncodingMask);
+        var pdf = (Flags & PdfStringFlags.HexLiteral) == 0 ?
             PdfEncoders.ToStringLiteral(_value, encoding, null) :
             PdfEncoders.ToHexStringLiteral(_value, encoding, null);
         return pdf;

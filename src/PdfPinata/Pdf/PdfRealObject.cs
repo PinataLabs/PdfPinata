@@ -50,7 +50,7 @@ public sealed class PdfRealObject : PdfNumberObject
     /// <param name="value">The value.</param>
     public PdfRealObject(double value)
     {
-        _value = value;
+        Value = value;
     }
 
     /// <summary>
@@ -61,25 +61,20 @@ public sealed class PdfRealObject : PdfNumberObject
     public PdfRealObject(PdfDocument document, double value)
         : base(document)
     {
-        _value = value;
+        Value = value;
     }
 
     /// <summary>
     /// Gets or sets the value.
     /// </summary>
-    public double Value
-    {
-        get => _value;
-        set => _value = value;
-    }
-    private double _value;
+    public double Value { get; set; }
 
     /// <summary>
     /// Returns the real as a culture invariant string.
     /// </summary>
     public override string ToString()
     {
-        return _value.ToString(CultureInfo.InvariantCulture);
+        return Value.ToString(CultureInfo.InvariantCulture);
     }
 
     /// <summary>
@@ -88,7 +83,7 @@ public sealed class PdfRealObject : PdfNumberObject
     internal override void WriteObject(PdfWriter writer)
     {
         writer.WriteBeginObject(this);
-        writer.Write(_value);
+        writer.Write(Value);
         writer.WriteEndObject();
     }
 }

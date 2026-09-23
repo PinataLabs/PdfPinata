@@ -47,7 +47,7 @@ internal class PdfWriter
     public PdfWriter(Stream pdfStream, PdfStandardSecurityHandler securityHandler)
     {
         _stream = pdfStream;
-        _securityHandler = securityHandler;
+        SecurityHandler = securityHandler;
     }
 
     public void Close(bool closeUnderlyingStream)
@@ -233,7 +233,7 @@ internal class PdfWriter
             bytes = PdfEncoders.DocEncoding.GetBytes(text);
         else
             bytes = PdfEncoders.UnicodeEncoding.GetBytes(text);
-        bytes = PdfEncoders.FormatStringLiteral(bytes, unicode, true, false, _securityHandler);
+        bytes = PdfEncoders.FormatStringLiteral(bytes, unicode, true, false, SecurityHandler);
         Write(bytes);
         _lastCat = CharCat.Delimiter;
     }
@@ -242,7 +242,7 @@ internal class PdfWriter
     {
         WriteSeparator();
         var bytes = PdfEncoders.DocEncoding.GetBytes(text);
-        bytes = PdfEncoders.FormatStringLiteral(bytes, false, false, false, _securityHandler);
+        bytes = PdfEncoders.FormatStringLiteral(bytes, false, false, false, SecurityHandler);
         Write(bytes);
         _lastCat = CharCat.Delimiter;
     }
@@ -251,7 +251,7 @@ internal class PdfWriter
     {
         WriteSeparator();
         var bytes = PdfEncoders.DocEncoding.GetBytes(text);
-        bytes = PdfEncoders.FormatStringLiteral(bytes, false, false, true, _securityHandler);
+        bytes = PdfEncoders.FormatStringLiteral(bytes, false, false, true, SecurityHandler);
         _stream.Write(bytes, 0, bytes.Length);
         _lastCat = CharCat.Delimiter;
     }
@@ -262,10 +262,10 @@ internal class PdfWriter
     public void WriteBeginObject(PdfObject obj)
     {
         var indirect = obj.IsIndirect;
-        if (indirect && !_omitIndirectFraming)
+        if (indirect && !OmitIndirectFraming)
         {
             WriteObjectAddress(obj);
-            _securityHandler?.SetHashKey(obj.ObjectID);
+            SecurityHandler?.SetHashKey(obj.ObjectID);
         }
         _stack.Add(new StackItem(obj));
         if (indirect)
@@ -335,7 +335,7 @@ internal class PdfWriter
                 _lastCat = CharCat.NewLine;
             }
         }
-        if (indirect && !_omitIndirectFraming)
+        if (indirect && !OmitIndirectFraming)
         {
             NewLine();
             WriteRaw("endobj\n");
@@ -359,12 +359,7 @@ internal class PdfWriter
     /// A writer built for this is given no security handler at all, so this is belt and braces.
     /// </para>
     /// </summary>
-    internal bool OmitIndirectFraming
-    {
-        get => _omitIndirectFraming;
-        set => _omitIndirectFraming = value;
-    }
-    private bool _omitIndirectFraming;
+    internal bool OmitIndirectFraming { get; set; }
 
     /// <summary>
     /// Writes the stream of the specified dictionary.
@@ -387,10 +382,10 @@ internal class PdfWriter
             var bytes = value.Stream.Value;
             if (bytes.Length != 0)
             {
-                if (_securityHandler != null)
+                if (SecurityHandler != null)
                 {
                     bytes = (byte[])bytes.Clone();
-                    bytes = _securityHandler.EncryptBytes(bytes);
+                    bytes = SecurityHandler.EncryptBytes(bytes);
                 }
                 Write(bytes);
 
@@ -500,12 +495,7 @@ internal class PdfWriter
 
     private Stream _stream;
 
-    internal PdfStandardSecurityHandler SecurityHandler
-    {
-        get => _securityHandler;
-        set => _securityHandler = value;
-    }
-    private PdfStandardSecurityHandler _securityHandler;
+    internal PdfStandardSecurityHandler SecurityHandler { get; set; }
 
     private class StackItem
     {

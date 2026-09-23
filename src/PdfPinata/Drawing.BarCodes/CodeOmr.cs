@@ -71,19 +71,19 @@ public class CodeOmr : BarCode
         _ = uint.TryParse(Text, out var value);
         // HACK: Project Wallenwein: set LK
         value |= 1;
-        _synchronizeCode = true;
+        SynchronizeCode = true;
 
-        if (_synchronizeCode)
+        if (SynchronizeCode)
         {
-            var rect = new XRect(pt.X, pt.Y, _makerThickness, Size.Height);
+            var rect = new XRect(pt.X, pt.Y, MakerThickness, Size.Height);
             gfx.DrawRectangle(brush, rect);
-            pt.X += 2 * _makerDistance;
+            pt.X += 2 * MakerDistance;
         }
         for (var idx = 0; idx < 32; idx++)
         {
             if ((value & 1) == 1)
             {
-                var rect = new XRect(pt.X + idx * _makerDistance, pt.Y, _makerThickness, Size.Height);
+                var rect = new XRect(pt.X + idx * MakerDistance, pt.Y, MakerThickness, Size.Height);
                 gfx.DrawRectangle(brush, rect);
             }
             value >>= 1;
@@ -94,35 +94,17 @@ public class CodeOmr : BarCode
     /// <summary>
     /// Gets or sets a value indicating whether a synchronize mark is rendered.
     /// </summary>
-    public bool SynchronizeCode
-    {
-        get => _synchronizeCode;
-        set => _synchronizeCode = value;
-    }
-
-    private bool _synchronizeCode;
+    public bool SynchronizeCode { get; set; }
 
     /// <summary>
     /// Gets or sets the distance of the markers.
     /// </summary>
-    public double MakerDistance
-    {
-        get => _makerDistance;
-        set => _makerDistance = value;
-    }
-
-    private double _makerDistance = 12;  // 1/6"
+    public double MakerDistance { get; set; } = 12; // 1/6"
 
     /// <summary>
     /// Gets or sets the thickness of the makers.
     /// </summary>
-    public double MakerThickness
-    {
-        get => _makerThickness;
-        set => _makerThickness = value;
-    }
-
-    private double _makerThickness = 1;
+    public double MakerThickness { get; set; } = 1;
 
     /// <summary>
     /// Gets or sets the distance of the markers as one of the standard distances, or null when
@@ -143,7 +125,7 @@ public class CodeOmr : BarCode
         {
             foreach (var distance in Enum.GetValues<MarkDistance>())
             {
-                if (DoubleUtil.AreClose(ToUnit(distance).Point, _makerDistance))
+                if (DoubleUtil.AreClose(ToUnit(distance).Point, MakerDistance))
                     return distance;
             }
             return null;
@@ -153,7 +135,7 @@ public class CodeOmr : BarCode
             if (value is null)
                 throw new ArgumentNullException(nameof(value),
                     "A standard mark distance cannot be cleared; assign MakerDistance for a distance that is not one.");
-            _makerDistance = ToUnit(value.Value).Point;
+            MakerDistance = ToUnit(value.Value).Point;
         }
     }
 

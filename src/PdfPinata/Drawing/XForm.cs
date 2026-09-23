@@ -84,7 +84,7 @@ public class XForm : XImage, IContentStream
         // to store the resources.
 
         _formState = FormState.Created;
-        _document = document ?? throw new ArgumentNullException(nameof(document), "An XPdfForm template must be associated with a document at creation time.");
+        Owner = document ?? throw new ArgumentNullException(nameof(document), "An XPdfForm template must be associated with a document at creation time.");
         _pdfForm = new PdfFormXObject(document);
         _viewBox = viewBox;
         var rect = new PdfRectangle(viewBox);
@@ -188,9 +188,9 @@ public class XForm : XImage, IContentStream
 
         PdfRenderer.Close();
 
-        if (_document.Options.CompressContentStreams)
+        if (Owner.Options.CompressContentStreams)
         {
-            _pdfForm.Stream.Value = Filtering.FlateDecode.Encode(_pdfForm.Stream.Value, _document.Options.FlateEncodeMode);
+            _pdfForm.Stream.Value = Filtering.FlateDecode.Encode(_pdfForm.Stream.Value, Owner.Options.FlateEncodeMode);
             _pdfForm.Elements["/Filter"] = new PdfName("/FlateDecode");
         }
         var length = _pdfForm.Stream.Length;
@@ -200,9 +200,7 @@ public class XForm : XImage, IContentStream
     /// <summary>
     /// Gets the owning document.
     /// </summary>
-    internal PdfDocument Owner => _document;
-
-    private readonly PdfDocument _document;
+    internal PdfDocument Owner { get; }
 
     /// <summary>
     /// Gets the color model used in the underlying PDF document.
@@ -211,7 +209,7 @@ public class XForm : XImage, IContentStream
     {
         get
         {
-            return _document == null ? PdfColorMode.Undefined : _document.Options.ColorMode;
+            return Owner == null ? PdfColorMode.Undefined : Owner.Options.ColorMode;
         }
     }
 
@@ -304,7 +302,7 @@ public class XForm : XImage, IContentStream
     internal string GetFontName(XFont font, out PdfFont pdfFont)
     {
         Debug.Assert(IsTemplate, "This function is for form templates only.");
-        pdfFont = _document.FontTable.GetFont(font);
+        pdfFont = Owner.FontTable.GetFont(font);
         Debug.Assert(pdfFont != null);
         var name = Resources.AddFont(pdfFont);
         return name;
@@ -322,7 +320,7 @@ public class XForm : XImage, IContentStream
     internal string TryGetFontName(string idName, out PdfFont pdfFont)
     {
         Debug.Assert(IsTemplate, "This function is for form templates only.");
-        pdfFont = _document.FontTable.TryGetFont(idName);
+        pdfFont = Owner.FontTable.TryGetFont(idName);
         string name = null;
         if (pdfFont != null)
             name = Resources.AddFont(pdfFont);
@@ -335,7 +333,7 @@ public class XForm : XImage, IContentStream
     internal string GetFontName(string idName, byte[] fontData, out PdfFont pdfFont)
     {
         Debug.Assert(IsTemplate, "This function is for form templates only.");
-        pdfFont = _document.FontTable.GetFont(idName, fontData);
+        pdfFont = Owner.FontTable.GetFont(idName, fontData);
         Debug.Assert(pdfFont != null);
         var name = Resources.AddFont(pdfFont);
         return name;
@@ -352,7 +350,7 @@ public class XForm : XImage, IContentStream
     internal string GetImageName(XImage image)
     {
         Debug.Assert(IsTemplate, "This function is for form templates only.");
-        var pdfImage = _document.ImageTable.GetImage(image);
+        var pdfImage = Owner.ImageTable.GetImage(image);
         Debug.Assert(pdfImage != null);
         var name = Resources.AddImage(pdfImage);
         return name;
@@ -372,7 +370,7 @@ public class XForm : XImage, IContentStream
         {
             Debug.Assert(IsTemplate, "This function is for form templates only.");
             if (_pdfForm.Reference == null)
-                _document._irefTable.Add(_pdfForm);
+                Owner._irefTable.Add(_pdfForm);
             return _pdfForm;
         }
     }
@@ -383,7 +381,7 @@ public class XForm : XImage, IContentStream
     internal string GetFormName(XForm form)
     {
         Debug.Assert(IsTemplate, "This function is for form templates only.");
-        var pdfForm = _document.FormTable.GetForm(form);
+        var pdfForm = Owner.FormTable.GetForm(form);
         Debug.Assert(pdfForm != null);
         var name = Resources.AddForm(pdfForm);
         return name;

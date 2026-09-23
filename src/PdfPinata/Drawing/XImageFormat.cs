@@ -38,10 +38,10 @@ public sealed class XImageFormat
 {
     private XImageFormat(Guid guid)
     {
-        _guid = guid;
+        Guid = guid;
     }
 
-    internal Guid Guid => _guid;
+    internal Guid Guid { get; }
 
     /// <summary>
     /// Determines whether the specified object is equal to the current object.
@@ -50,7 +50,7 @@ public sealed class XImageFormat
     {
         if (obj is not XImageFormat format)
             return false;
-        return _guid == format._guid;
+        return Guid == format.Guid;
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ public sealed class XImageFormat
     /// </summary>
     public override int GetHashCode()
     {
-        return _guid.GetHashCode();
+        return Guid.GetHashCode();
     }
 
     /// <summary>
@@ -92,5 +92,4 @@ public sealed class XImageFormat
     public static XImageFormat Icon { get; } = new(new Guid("{B96B3CB5-0728-11D3-9D7B-0000F81EF32E}"));
 
     // #??? Why Guids?
-    private readonly Guid _guid;
 }

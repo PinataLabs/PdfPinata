@@ -101,9 +101,9 @@ public class FontResolverInfo
         if (collectionNumber != 0)
             throw new NotImplementedException("collectionNumber is not yet implemented and must be 0.");
 
-        _faceName = faceName;
-        _mustSimulateBold = mustSimulateBold;
-        _mustSimulateItalic = mustSimulateItalic;
+        FaceName = faceName;
+        MustSimulateBold = mustSimulateBold;
+        MustSimulateItalic = mustSimulateItalic;
     }
 
     /// <summary>
@@ -130,35 +130,29 @@ public class FontResolverInfo
     /// <summary>
     /// Gets the key for this object.
     /// </summary>
-    internal string Key => field ??= KeyPrefix + _faceName.ToLowerInvariant()
-                                              + '/' + (_mustSimulateBold ? "b+" : "b-") + (_mustSimulateItalic ? "i+" : "i-");
+    internal string Key => field ??= KeyPrefix + FaceName.ToLowerInvariant()
+                                              + '/' + (MustSimulateBold ? "b+" : "b-") + (MustSimulateItalic ? "i+" : "i-");
 
     /// <summary>
     /// A name that uniquely identifies the font (not the family), e.g. the file name of the font. PdfPinata does not use this
     /// name internally, but passes it to the GetFont function of the IFontResolver interface to retrieve the font data.
     /// </summary>
-    public string FaceName => _faceName;
-
-    private readonly string _faceName;
+    public string FaceName { get; }
 
     /// <summary>
     /// Indicates whether bold must be simulated, by stroking the glyphs as well as filling them.
     /// </summary>
-    public bool MustSimulateBold => _mustSimulateBold;
-
-    private readonly bool _mustSimulateBold;
+    public bool MustSimulateBold { get; }
 
     /// <summary>
     /// Indicates whether italic must be simulated.
     /// </summary>
-    public bool MustSimulateItalic => _mustSimulateItalic;
-
-    private readonly bool _mustSimulateItalic;
+    public bool MustSimulateItalic { get; }
 
     /// <summary>
     /// Gets the style simulation flags.
     /// </summary>
-    public XStyleSimulations StyleSimulations => (_mustSimulateBold ? XStyleSimulations.BoldSimulation : 0) | (_mustSimulateItalic ? XStyleSimulations.ItalicSimulation : 0);
+    public XStyleSimulations StyleSimulations => (MustSimulateBold ? XStyleSimulations.BoldSimulation : 0) | (MustSimulateItalic ? XStyleSimulations.ItalicSimulation : 0);
 
     /// <summary>
     /// Gets the DebuggerDisplayAttribute text.

@@ -63,7 +63,7 @@ internal sealed class OpenTypeFontface
     private OpenTypeFontface(OpenTypeFontface fontface)
     {
         _offsetTable = fontface._offsetTable;
-        _fullFaceName = fontface._fullFaceName;
+        FullFaceName = fontface.FullFaceName;
     }
 
     /// <summary>
@@ -71,7 +71,7 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public OpenTypeFontface(byte[] data, string faceName)
     {
-        _fullFaceName = faceName;
+        FullFaceName = faceName;
         // Always save a copy of the font bytes, so that a caller reusing its buffer cannot
         // change the font underneath us. The copy has to exist before it can be filled.
         var length = data.Length;
@@ -85,7 +85,7 @@ internal sealed class OpenTypeFontface
     {
         FontSource = fontSource;
         Read();
-        _fullFaceName = name.FullFontName;
+        FullFaceName = name.FullFontName;
     }
 
     public static OpenTypeFontface CetOrCreateFrom(XFontSource fontSource)
@@ -105,9 +105,7 @@ internal sealed class OpenTypeFontface
     /// Gets the full face name from the name table.
     /// Name is also used as the key.
     /// </summary>
-    public string FullFaceName => _fullFaceName;
-
-    private readonly string _fullFaceName;
+    public string FullFaceName { get; }
 
     public ulong CheckSum
     {
@@ -292,7 +290,7 @@ internal sealed class OpenTypeFontface
         _offsetTable.RangeShift = ReadUShort();
 
         // Move to table dictionary at position 12
-        Debug.Assert(_pos == 12);
+        Debug.Assert(Position == 12);
 
         if (_offsetTable.Version == OTTO)
             FontTechnology = FontTechnology.PostscriptOutlines;
@@ -363,14 +361,14 @@ internal sealed class OpenTypeFontface
         // the next line fail on a null table.
         if (IsPostscriptOutlines)
             throw new InvalidOperationException(
-                "'" + _fullFaceName + "' has PostScript (CFF) outlines, which PdfPinata cannot subset. "
+                "'" + FullFaceName + "' has PostScript (CFF) outlines, which PdfPinata cannot subset. "
                 + "Embed the font whole instead.");
 
         // Every glyph-outline font has a 'maxp' table, and the new 'loca' is sized by the glyph
         // count it holds. A face without one would otherwise fail below on a null table.
         if (maxp == null)
             throw new InvalidOperationException(
-                "'" + _fullFaceName + "' has no 'maxp' table, so PdfPinata cannot tell how many glyphs it has "
+                "'" + FullFaceName + "' has no 'maxp' table, so PdfPinata cannot tell how many glyphs it has "
                 + "and cannot subset it.");
 
         // Create new font image
@@ -488,26 +486,21 @@ internal sealed class OpenTypeFontface
     private static readonly int[] _entrySelectors = [0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
     ];
 
-    public int Position
-    {
-        get => _pos;
-        set => _pos = value;
-    }
-    private int _pos;
+    public int Position { get; set; }
 
     public int Seek(string tag)
     {
         if (!TableDictionary.TryGetValue(tag, out var entry))
             return -1;
 
-        _pos = entry.Offset;
-        return _pos;
+        Position = entry.Offset;
+        return Position;
     }
 
     public int SeekOffset(int offset)
     {
-        _pos += offset;
-        return _pos;
+        Position += offset;
+        return Position;
     }
 
     /// <summary>
@@ -515,7 +508,7 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public byte ReadByte()
     {
-        return _fontSource.Bytes[_pos++];
+        return _fontSource.Bytes[Position++];
     }
 
     /// <summary>
@@ -523,8 +516,8 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public short ReadShort()
     {
-        var pos = _pos;
-        _pos += 2;
+        var pos = Position;
+        Position += 2;
         return (short)((_fontSource.Bytes[pos] << 8) | _fontSource.Bytes[pos + 1]);
     }
 
@@ -533,8 +526,8 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public ushort ReadUShort()
     {
-        var pos = _pos;
-        _pos += 2;
+        var pos = Position;
+        Position += 2;
         return (ushort)((_fontSource.Bytes[pos] << 8) | _fontSource.Bytes[pos + 1]);
     }
 
@@ -543,8 +536,8 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public int ReadLong()
     {
-        var pos = _pos;
-        _pos += 4;
+        var pos = Position;
+        Position += 4;
         return (_fontSource.Bytes[pos] << 24) | (_fontSource.Bytes[pos + 1] << 16) | (_fontSource.Bytes[pos + 2] << 8) | _fontSource.Bytes[pos + 3];
     }
 
@@ -553,8 +546,8 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public uint ReadULong()
     {
-        var pos = _pos;
-        _pos += 4;
+        var pos = Position;
+        Position += 4;
         return (uint)((_fontSource.Bytes[pos] << 24) | (_fontSource.Bytes[pos + 1] << 16) | (_fontSource.Bytes[pos + 2] << 8) | _fontSource.Bytes[pos + 3]);
     }
 
@@ -563,8 +556,8 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public Fixed ReadFixed()
     {
-        var pos = _pos;
-        _pos += 4;
+        var pos = Position;
+        Position += 4;
         return (_fontSource.Bytes[pos] << 24) | (_fontSource.Bytes[pos + 1] << 16) | (_fontSource.Bytes[pos + 2] << 8) | _fontSource.Bytes[pos + 3];
     }
 
@@ -573,8 +566,8 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public short ReadFWord()
     {
-        var pos = _pos;
-        _pos += 2;
+        var pos = Position;
+        Position += 2;
         return (short)((_fontSource.Bytes[pos] << 8) | _fontSource.Bytes[pos + 1]);
     }
 
@@ -583,8 +576,8 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public ushort ReadUFWord()
     {
-        var pos = _pos;
-        _pos += 2;
+        var pos = Position;
+        Position += 2;
         return (ushort)((_fontSource.Bytes[pos] << 8) | _fontSource.Bytes[pos + 1]);
     }
 
@@ -593,8 +586,8 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public long ReadLongDate()
     {
-        var pos = _pos;
-        _pos += 8;
+        var pos = Position;
+        Position += 8;
         var bytes = _fontSource.Bytes;
         return ((long)bytes[pos] << 56) | ((long)bytes[pos + 1] << 48) | ((long)bytes[pos + 2] << 40) | ((long)bytes[pos + 3] << 32) |
                ((long)bytes[pos + 4] << 24) | ((long)bytes[pos + 5] << 16) | ((long)bytes[pos + 6] << 8) | bytes[pos + 7];
@@ -607,7 +600,7 @@ internal sealed class OpenTypeFontface
     {
         var chars = new char[size];
         for (var idx = 0; idx < size; idx++)
-            chars[idx] = (char)_fontSource.Bytes[_pos++];
+            chars[idx] = (char)_fontSource.Bytes[Position++];
         return new string(chars);
     }
 
@@ -618,7 +611,7 @@ internal sealed class OpenTypeFontface
     {
         var bytes = new byte[size];
         for (var idx = 0; idx < size; idx++)
-            bytes[idx] = _fontSource.Bytes[_pos++];
+            bytes[idx] = _fontSource.Bytes[Position++];
         return bytes;
     }
 
@@ -635,8 +628,8 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public void Read(byte[] buffer, int offset, int length)
     {
-        Buffer.BlockCopy(_fontSource.Bytes, _pos, buffer, offset, length);
-        _pos += length;
+        Buffer.BlockCopy(_fontSource.Bytes, Position, buffer, offset, length);
+        Position += length;
     }
 
     /// <summary>
@@ -651,7 +644,7 @@ internal sealed class OpenTypeFontface
     /// Gets the DebuggerDisplayAttribute text.
     /// </summary>
     // ReSharper disable UnusedMember.Local
-    internal string DebuggerDisplay => string.Format(CultureInfo.InvariantCulture, "OpenType fontfaces: {0}", _fullFaceName); // ReSharper restore UnusedMember.Local
+    internal string DebuggerDisplay => string.Format(CultureInfo.InvariantCulture, "OpenType fontfaces: {0}", FullFaceName); // ReSharper restore UnusedMember.Local
 
     /// <summary>
     /// Represents the font offset table.

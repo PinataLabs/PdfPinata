@@ -135,7 +135,6 @@ public class TrailerLocationTests
         private readonly byte[] _tail;
         private readonly long _fillerLength;
         private readonly byte _filler;
-        private long _position;
 
         internal SplicedStream(byte[] head, long fillerLength, byte filler, byte[] tail)
         {
@@ -150,37 +149,33 @@ public class TrailerLocationTests
         public override bool CanWrite => false;
         public override long Length => _head.Length + _fillerLength + _tail.Length;
 
-        public override long Position
-        {
-            get => _position;
-            set => _position = value;
-        }
+        public override long Position { get; set; }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
             var fillerEnd = _head.Length + _fillerLength;
             var total = 0;
 
-            while (total < count && _position < Length)
+            while (total < count && Position < Length)
             {
                 int taken;
-                if (_position < _head.Length)
+                if (Position < _head.Length)
                 {
-                    taken = (int)Math.Min(count - total, _head.Length - _position);
-                    Array.Copy(_head, _position, buffer, offset + total, taken);
+                    taken = (int)Math.Min(count - total, _head.Length - Position);
+                    Array.Copy(_head, Position, buffer, offset + total, taken);
                 }
-                else if (_position < fillerEnd)
+                else if (Position < fillerEnd)
                 {
-                    taken = (int)Math.Min(count - total, fillerEnd - _position);
+                    taken = (int)Math.Min(count - total, fillerEnd - Position);
                     Array.Fill(buffer, _filler, offset + total, taken);
                 }
                 else
                 {
-                    taken = (int)Math.Min(count - total, Length - _position);
-                    Array.Copy(_tail, _position - fillerEnd, buffer, offset + total, taken);
+                    taken = (int)Math.Min(count - total, Length - Position);
+                    Array.Copy(_tail, Position - fillerEnd, buffer, offset + total, taken);
                 }
 
-                _position += taken;
+                Position += taken;
                 total += taken;
             }
 
@@ -189,13 +184,13 @@ public class TrailerLocationTests
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            _position = origin switch
+            Position = origin switch
             {
                 SeekOrigin.Begin => offset,
-                SeekOrigin.Current => _position + offset,
+                SeekOrigin.Current => Position + offset,
                 _ => Length + offset
             };
-            return _position;
+            return Position;
         }
 
         public override void Flush() { }

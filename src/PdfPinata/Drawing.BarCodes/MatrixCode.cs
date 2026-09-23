@@ -70,7 +70,7 @@ public abstract class MatrixCode : CodeBase
         set
         {
             _encoding = value;
-            _matrixImage = null;
+            MatrixImage = null;
         }
     }
 
@@ -85,7 +85,7 @@ public abstract class MatrixCode : CodeBase
         set
         {
             _columns = value;
-            _matrixImage = null;
+            MatrixImage = null;
         }
     }
 
@@ -100,7 +100,7 @@ public abstract class MatrixCode : CodeBase
         set
         {
             _rows = value;
-            _matrixImage = null;
+            MatrixImage = null;
         }
     }
 
@@ -115,17 +115,11 @@ public abstract class MatrixCode : CodeBase
         set
         {
             base.Text = value;
-            _matrixImage = null;
+            MatrixImage = null;
         }
     }
 
-    internal XImage MatrixImage
-    {
-        get => _matrixImage;
-        set => _matrixImage = value;
-    }
-
-    private XImage _matrixImage;
+    internal XImage MatrixImage { get; set; }
 
     /// <summary>
     /// When implemented in a derived class renders the 2D code.

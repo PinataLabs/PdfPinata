@@ -57,20 +57,14 @@ public class CComment : CObject
     /// <summary>
     /// Gets or sets the comment text.
     /// </summary>
-    public string Text
-    {
-        get => _text;
-        set => _text = value;
-    }
-
-    private string _text;
+    public string Text { get; set; }
 
     /// <summary>
     /// Returns a string that represents the current comment.
     /// </summary>
     public override string ToString()
     {
-        return "% " + _text;
+        return "% " + Text;
     }
 
     internal override void WriteObject(ContentWriter writer)

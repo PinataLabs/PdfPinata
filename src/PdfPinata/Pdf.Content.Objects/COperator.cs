@@ -46,7 +46,7 @@ public class COperator : CObject
 
     internal COperator(OpCode opcode)
     {
-        _opcode = opcode;
+        OpCode = opcode;
     }
 
     /// <summary>
@@ -71,7 +71,7 @@ public class COperator : CObject
     /// Gets or sets the name of the operator
     /// </summary>
     /// <value>The name.</value>
-    public virtual string Name => _opcode.Name;
+    public virtual string Name => OpCode.Name;
 
     /// <summary>
     /// Gets or sets the operands.
@@ -84,9 +84,7 @@ public class COperator : CObject
     /// <summary>
     /// Gets the operator description for this instance.
     /// </summary>
-    public OpCode OpCode => _opcode;
-
-    private readonly OpCode _opcode;
+    public OpCode OpCode { get; }
 
 
     /// <summary>
@@ -94,7 +92,7 @@ public class COperator : CObject
     /// </summary>
     public override string ToString()
     {
-        return _opcode.OpCodeName == OpCodeName.Dictionary ? " " : Name;
+        return OpCode.OpCodeName == OpCodeName.Dictionary ? " " : Name;
     }
 
     internal override void WriteObject(ContentWriter writer)

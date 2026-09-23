@@ -78,46 +78,46 @@ public class CLexer
                 goto Again;
 
             case '/':
-                return _symbol = ScanName();
+                return Symbol = ScanName();
 
             case '+':
             case '-':
-                return _symbol = ScanNumber();
+                return Symbol = ScanNumber();
 
             case '[':
                 ScanNextChar();
-                return _symbol = CSymbol.BeginArray;
+                return Symbol = CSymbol.BeginArray;
 
             case ']':
                 ScanNextChar();
-                return _symbol = CSymbol.EndArray;
+                return Symbol = CSymbol.EndArray;
 
             case '(':
-                return _symbol = ScanLiteralString();
+                return Symbol = ScanLiteralString();
 
             case '<':
                 if (_nextChar == '<')
-                    return _symbol = ScanDictionary();
-                return _symbol = ScanHexadecimalString();
+                    return Symbol = ScanDictionary();
+                return Symbol = ScanHexadecimalString();
 
             case '.':
-                return _symbol = ScanNumber();
+                return Symbol = ScanNumber();
 
             case '"':
             case '\'':
-                return _symbol = ScanOperator();
+                return Symbol = ScanOperator();
         }
         if (char.IsDigit(ch))
-            return _symbol = ScanNumber();
+            return Symbol = ScanNumber();
 
         if (char.IsLetter(ch))
-            return _symbol = ScanOperator();
+            return Symbol = ScanOperator();
 
         if (ch == Chars.EOF)
-            return _symbol = CSymbol.Eof;
+            return Symbol = CSymbol.Eof;
 
         ContentReaderDiagnostics.HandleUnexpectedCharacter(ch);
-        return _symbol = CSymbol.None;
+        return Symbol = CSymbol.None;
     }
 
     /// <summary>
@@ -130,7 +130,7 @@ public class CLexer
         ClearToken();
         char ch;
         while ((ch = AppendAndScanNextChar()) != Chars.LF && ch != Chars.EOF) { }
-        return _symbol = CSymbol.Comment;
+        return Symbol = CSymbol.Comment;
     }
 
     /// <summary>
@@ -159,10 +159,10 @@ public class CLexer
         while (ScanNextToken() != CSymbol.Eof)
         {
             // HACK: Is image ASCII85 decoded?
-            if (!ascii85 && _symbol == CSymbol.Name && (Token == "/ASCII85Decode" || Token == "/A85"))
+            if (!ascii85 && Symbol == CSymbol.Name && (Token == "/ASCII85Decode" || Token == "/A85"))
                 ascii85 = true;
 
-            if (_symbol == CSymbol.Operator && Token == "ID")
+            if (Symbol == CSymbol.Operator && Token == "ID")
             {
                 dictionaryEnd = _tokenStart;
                 foundData = true;
@@ -266,7 +266,7 @@ public class CLexer
             // A name that ends the content stream never sees a delimiter, so give up at the
             // end of the content as well rather than appending Chars.EOF for ever.
             if (IsWhiteSpace(ch) || IsDelimiter(ch) || ch == Chars.EOF)
-                return _symbol = CSymbol.Name;
+                return Symbol = CSymbol.Name;
 
             // A '#' followed by two hexadecimal digits stands for the byte they spell. Anything
             // else after it - one digit, a character that is not a digit, or the end of the
@@ -526,7 +526,7 @@ public class CLexer
         if (_token.Length == 1 && _token[0] == 'd' && (ch == '0' || ch == '1'))
             AppendAndScanNextChar();
 
-        return _symbol = CSymbol.Operator;
+        return Symbol = CSymbol.Operator;
     }
 
     /// <summary>Scans a string written in parentheses, resolving the escapes inside it.</summary>
@@ -561,7 +561,7 @@ public class CLexer
             // An unterminated string never sees its closing ')', so give up at the end
             // of the content rather than appending Chars.EOF for ever.
             if (ch == Chars.EOF)
-                return _symbol = DecodeLiteralString(terminated: false);
+                return Symbol = DecodeLiteralString(terminated: false);
 
             switch (ch)
             {
@@ -573,7 +573,7 @@ public class CLexer
                     if (parenLevel == 0)
                     {
                         ScanNextChar(false);
-                        return _symbol = DecodeLiteralString(terminated: true);
+                        return Symbol = DecodeLiteralString(terminated: true);
                     }
                     parenLevel--;
                     break;
@@ -647,7 +647,7 @@ public class CLexer
             // character, which was the end, and the guard at the top of the loop had already
             // been passed. Appending it put U+FFFF in the middle of the text.
             if (ch == Chars.EOF)
-                return _symbol = DecodeLiteralString(terminated: false);
+                return Symbol = DecodeLiteralString(terminated: false);
 
             _token.Append(ch);
             ch = ScanNextChar(false);
@@ -751,7 +751,7 @@ public class CLexer
         var chars = _token.ToString();
         var count = chars.Length;
         if (count <= 2 || chars[0] != (char)0xFE || chars[1] != (char)0xFF)
-            return _symbol = CSymbol.HexString;
+            return Symbol = CSymbol.HexString;
 
         // A Unicode hex string missing half of its last character is short of the low byte
         // of that character, which is taken to be a zero - the same reading a hex string
@@ -766,7 +766,7 @@ public class CLexer
         _token.Length = 0;
         for (var idx = 2; idx < count; idx += 2)
             _token.Append((char)(chars[idx] * 256 + chars[idx + 1]));
-        return _symbol = CSymbol.UnicodeHexString;
+        return Symbol = CSymbol.UnicodeHexString;
     }
 
     /// <summary>
@@ -853,11 +853,7 @@ public class CLexer
     /// <summary>
     /// Gets or sets the current symbol.
     /// </summary>
-    public CSymbol Symbol
-    {
-        get => _symbol;
-        set => _symbol = value;
-    }
+    public CSymbol Symbol { get; set; } = CSymbol.None;
 
     /// <summary>
     /// Gets the current token.
@@ -963,5 +959,4 @@ public class CLexer
     private int _tokenStart;
     private long _tokenAsLong;
     private double _tokenAsReal;
-    private CSymbol _symbol = CSymbol.None;
 }

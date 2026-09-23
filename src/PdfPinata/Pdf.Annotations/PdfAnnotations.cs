@@ -83,7 +83,7 @@ public sealed class PdfAnnotations : PdfArray
     public void Clear()
     {
         for (var idx = Count - 1; idx >= 0; idx--)
-            Page.Annotations.Remove(_page.Annotations[idx]);
+            Page.Annotations.Remove(Page.Annotations[idx]);
     }
 
     /// <summary>
@@ -124,12 +124,7 @@ public sealed class PdfAnnotations : PdfArray
     /// <summary>
     /// Gets the page the annotations belongs to.
     /// </summary>
-    internal PdfPage Page
-    {
-        get => _page;
-        set => _page = value;
-    }
-    private PdfPage _page;
+    internal PdfPage Page { get; set; }
 
     /// <summary>
     /// Fixes the /P element in imported annotation.

@@ -51,26 +51,23 @@ public sealed class PdfUInteger : PdfNumber, IConvertible
     /// </summary>
     public PdfUInteger(uint value)
     {
-        _value = value;
+        Value = value;
     }
 
     /// <summary>
     /// Gets the value as integer.
     /// </summary>
-    public uint Value =>
-        // This class must behave like a value type. Therefore it cannot be changed (like System.String).
-        _value;
-
-    private readonly uint _value;
+    // This class must behave like a value type. Therefore it cannot be changed (like System.String).
+    public uint Value { get; }
 
     /// <summary>
     /// Returns the unsigned integer as string.
     /// </summary>
     public override string ToString()
     {
-        // ToString is impure but does not change the value of _value.
+        // ToString is impure but does not change the value of Value.
         // ReSharper disable ImpureMethodCallOnReadonlyValueField
-        return _value.ToString(CultureInfo.InvariantCulture);
+        return Value.ToString(CultureInfo.InvariantCulture);
         // ReSharper restore ImpureMethodCallOnReadonlyValueField
     }
 
@@ -89,7 +86,7 @@ public sealed class PdfUInteger : PdfNumber, IConvertible
     /// </summary>
     public ulong ToUInt64(IFormatProvider provider)
     {
-        return Convert.ToUInt64(_value);
+        return Convert.ToUInt64(Value);
     }
 
     /// <summary>
@@ -97,7 +94,7 @@ public sealed class PdfUInteger : PdfNumber, IConvertible
     /// </summary>
     public sbyte ToSByte(IFormatProvider provider)
     {
-        return Convert.ToSByte(_value);
+        return Convert.ToSByte(Value);
     }
 
     /// <summary>
@@ -105,7 +102,7 @@ public sealed class PdfUInteger : PdfNumber, IConvertible
     /// </summary>
     public double ToDouble(IFormatProvider provider)
     {
-        return _value;
+        return Value;
     }
 
     /// <summary>
@@ -123,7 +120,7 @@ public sealed class PdfUInteger : PdfNumber, IConvertible
     /// </summary>
     public float ToSingle(IFormatProvider provider)
     {
-        return _value;
+        return Value;
     }
 
     /// <summary>
@@ -131,7 +128,7 @@ public sealed class PdfUInteger : PdfNumber, IConvertible
     /// </summary>
     public bool ToBoolean(IFormatProvider provider)
     {
-        return Convert.ToBoolean(_value);
+        return Convert.ToBoolean(Value);
     }
 
     /// <summary>
@@ -139,7 +136,7 @@ public sealed class PdfUInteger : PdfNumber, IConvertible
     /// </summary>
     public int ToInt32(IFormatProvider provider)
     {
-        return Convert.ToInt32(_value);
+        return Convert.ToInt32(Value);
     }
 
     /// <summary>
@@ -147,7 +144,7 @@ public sealed class PdfUInteger : PdfNumber, IConvertible
     /// </summary>
     public ushort ToUInt16(IFormatProvider provider)
     {
-        return Convert.ToUInt16(_value);
+        return Convert.ToUInt16(Value);
     }
 
     /// <summary>
@@ -155,7 +152,7 @@ public sealed class PdfUInteger : PdfNumber, IConvertible
     /// </summary>
     public short ToInt16(IFormatProvider provider)
     {
-        return Convert.ToInt16(_value);
+        return Convert.ToInt16(Value);
     }
 
     /// <summary>
@@ -163,7 +160,7 @@ public sealed class PdfUInteger : PdfNumber, IConvertible
     /// </summary>
     string IConvertible.ToString(IFormatProvider provider)
     {
-        return _value.ToString(provider);
+        return Value.ToString(provider);
     }
 
     /// <summary>
@@ -171,7 +168,7 @@ public sealed class PdfUInteger : PdfNumber, IConvertible
     /// </summary>
     public byte ToByte(IFormatProvider provider)
     {
-        return Convert.ToByte(_value);
+        return Convert.ToByte(Value);
     }
 
     /// <summary>
@@ -179,7 +176,7 @@ public sealed class PdfUInteger : PdfNumber, IConvertible
     /// </summary>
     public char ToChar(IFormatProvider provider)
     {
-        return Convert.ToChar(_value);
+        return Convert.ToChar(Value);
     }
 
     /// <summary>
@@ -187,7 +184,7 @@ public sealed class PdfUInteger : PdfNumber, IConvertible
     /// </summary>
     public long ToInt64(IFormatProvider provider)
     {
-        return _value;
+        return Value;
     }
 
     /// <summary>
@@ -203,7 +200,7 @@ public sealed class PdfUInteger : PdfNumber, IConvertible
     /// </summary>
     public decimal ToDecimal(IFormatProvider provider)
     {
-        return _value;
+        return Value;
     }
 
     /// <summary>
@@ -211,7 +208,7 @@ public sealed class PdfUInteger : PdfNumber, IConvertible
     /// </summary>
     public object ToType(Type conversionType, IFormatProvider provider)
     {
-        return ((IConvertible)_value).ToType(conversionType, provider);
+        return ((IConvertible)Value).ToType(conversionType, provider);
     }
 
     /// <summary>
@@ -219,7 +216,7 @@ public sealed class PdfUInteger : PdfNumber, IConvertible
     /// </summary>
     public uint ToUInt32(IFormatProvider provider)
     {
-        return Convert.ToUInt32(_value);
+        return Convert.ToUInt32(Value);
     }
 
     #endregion

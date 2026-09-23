@@ -68,13 +68,7 @@ public class XStringFormat
     /// Negative values tighten the text. The default is 0.
     /// This is the Tc operand of PDF 32000-1 section 9.3.2.
     /// </summary>
-    public double CharacterSpacing
-    {
-        get => _characterSpacing;
-        set => _characterSpacing = value;
-    }
-
-    private double _characterSpacing;
+    public double CharacterSpacing { get; set; }
 
     /// <summary>
     /// Gets or sets the extra space added after each space character, in points.
@@ -82,13 +76,7 @@ public class XStringFormat
     /// This is the Tw operand of PDF 32000-1 section 9.3.3, and applies on top of
     /// <see cref="CharacterSpacing"/>, which a space receives as well.
     /// </summary>
-    public double WordSpacing
-    {
-        get => _wordSpacing;
-        set => _wordSpacing = value;
-    }
-
-    private double _wordSpacing;
+    public double WordSpacing { get; set; }
 
     /// <summary>
     /// Gets or sets the horizontal scaling of the text, as a percentage. The default is 100.
@@ -122,13 +110,7 @@ public class XStringFormat
     /// This is the Ts operand of PDF 32000-1 section 9.3.5, and is how superscript and subscript
     /// are expressed. It moves the text without changing how wide it is.
     /// </summary>
-    public double TextRise
-    {
-        get => _textRise;
-        set => _textRise = value;
-    }
-
-    private double _textRise;
+    public double TextRise { get; set; }
 
     /// <summary>
     /// Gets or sets which way the text runs. The default is
@@ -209,7 +191,7 @@ public class XStringFormat
     #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
     internal bool IsDefaultTextState =>
         // ReSharper disable once CompareOfFloatsByEqualityOperator
-        _characterSpacing == 0 && _wordSpacing == 0 && _horizontalScaling == 100 &&
-        _textRise == 0 && _obliqueAngle == 0;
+        CharacterSpacing == 0 && WordSpacing == 0 && _horizontalScaling == 100 &&
+        TextRise == 0 && _obliqueAngle == 0;
     #pragma warning restore S1244
 }

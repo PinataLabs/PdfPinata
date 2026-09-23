@@ -46,7 +46,7 @@ public struct PdfObjectID : IComparable, IEquatable<PdfObjectID>
     public PdfObjectID(int objectNumber)
     {
         Debug.Assert(objectNumber >= 1, "Object number out of range.");
-        _objectNumber = objectNumber;
+        ObjectNumber = objectNumber;
         _generationNumber = 0;
     }
 
@@ -58,16 +58,14 @@ public struct PdfObjectID : IComparable, IEquatable<PdfObjectID>
     public PdfObjectID(int objectNumber, int generationNumber)
     {
         Debug.Assert(objectNumber >= 1, "Object number out of range.");
-        _objectNumber = objectNumber;
+        ObjectNumber = objectNumber;
         _generationNumber = (ushort)generationNumber;
     }
 
     /// <summary>
     /// Gets or sets the object number.
     /// </summary>
-    public int ObjectNumber => _objectNumber;
-
-    private readonly int _objectNumber;
+    public int ObjectNumber { get; }
 
     /// <summary>
     /// Gets or sets the generation number.
@@ -79,7 +77,7 @@ public struct PdfObjectID : IComparable, IEquatable<PdfObjectID>
     /// <summary>
     /// Indicates whether this object is an empty object identifier.
     /// </summary>
-    public bool IsEmpty => _objectNumber == 0;
+    public bool IsEmpty => ObjectNumber == 0;
 
     /// <summary>
     /// Indicates whether this instance and a specified object are equal.
@@ -88,7 +86,7 @@ public struct PdfObjectID : IComparable, IEquatable<PdfObjectID>
     {
         if (obj is PdfObjectID id)
         {
-            if (_objectNumber == id._objectNumber)
+            if (ObjectNumber == id.ObjectNumber)
                 return _generationNumber == id._generationNumber;
         }
         return false;
@@ -99,7 +97,7 @@ public struct PdfObjectID : IComparable, IEquatable<PdfObjectID>
     /// </summary>
     public bool Equals(PdfObjectID other)
     {
-        return _objectNumber == other._objectNumber && _generationNumber == other._generationNumber;
+        return ObjectNumber == other.ObjectNumber && _generationNumber == other._generationNumber;
     }
 
     /// <summary>
@@ -107,7 +105,7 @@ public struct PdfObjectID : IComparable, IEquatable<PdfObjectID>
     /// </summary>
     public override int GetHashCode()
     {
-        return _objectNumber ^ _generationNumber;
+        return ObjectNumber ^ _generationNumber;
     }
 
     /// <summary>
@@ -131,7 +129,7 @@ public struct PdfObjectID : IComparable, IEquatable<PdfObjectID>
     /// </summary>
     public override string ToString()
     {
-        return _objectNumber.ToString(CultureInfo.InvariantCulture) + " " + _generationNumber.ToString(CultureInfo.InvariantCulture);
+        return ObjectNumber.ToString(CultureInfo.InvariantCulture) + " " + _generationNumber.ToString(CultureInfo.InvariantCulture);
     }
 
     /// <summary>
@@ -147,9 +145,9 @@ public struct PdfObjectID : IComparable, IEquatable<PdfObjectID>
         if (obj is not PdfObjectID id)
             return 1;
 
-        if (_objectNumber == id._objectNumber)
+        if (ObjectNumber == id.ObjectNumber)
             return _generationNumber - id._generationNumber;
-        return _objectNumber - id._objectNumber;
+        return ObjectNumber - id.ObjectNumber;
     }
 
     /// <summary>

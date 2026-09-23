@@ -45,26 +45,22 @@ public sealed class PdfImagePlacement
 {
     internal PdfImagePlacement(string name, PdfDictionary xObject, XMatrix transform)
     {
-        _name = name;
-        _xObject = xObject;
-        _transform = transform;
+        Name = name;
+        XObject = xObject;
+        Transform = transform;
     }
-
-    private readonly string _name;
-    private readonly PdfDictionary _xObject;
-    private readonly XMatrix _transform;
 
     /// <summary>
     /// The name the resources the drawing was made in give the image, such as "/Im0". The same
     /// image may go by different names in different scopes, so this says how it was reached
     /// rather than what it is.
     /// </summary>
-    public string Name => _name;
+    public string Name { get; }
 
     /// <summary>
     /// The image XObject itself, to read the stream and the rest of the entries from.
     /// </summary>
-    public PdfDictionary XObject => _xObject;
+    public PdfDictionary XObject { get; }
 
     /// <summary>
     /// The transform in force where the image was drawn, which maps the unit square onto the
@@ -75,13 +71,13 @@ public sealed class PdfImagePlacement
     /// which turns everything the page holds alike.
     /// </para>
     /// </summary>
-    public XMatrix Transform => _transform;
+    public XMatrix Transform { get; }
 
     /// <summary>The width of the image in samples.</summary>
-    public int PixelWidth => _xObject.Elements.GetInteger(PdfImage.Keys.Width);
+    public int PixelWidth => XObject.Elements.GetInteger(PdfImage.Keys.Width);
 
     /// <summary>The height of the image in samples.</summary>
-    public int PixelHeight => _xObject.Elements.GetInteger(PdfImage.Keys.Height);
+    public int PixelHeight => XObject.Elements.GetInteger(PdfImage.Keys.Height);
 
     /// <summary>
     /// Which way round the stored image is against the way the page shows it. Reversing this is
@@ -91,8 +87,8 @@ public sealed class PdfImagePlacement
     {
         get
         {
-            double a = _transform.M11, b = _transform.M12;
-            double c = _transform.M21, d = _transform.M22;
+            double a = Transform.M11, b = Transform.M12;
+            double c = Transform.M21, d = Transform.M22;
 
             // Judged against the size of the transform rather than against a fixed figure, so
             // that a matrix carrying a rounding error in the off-diagonal is still square.
@@ -120,7 +116,7 @@ public sealed class PdfImagePlacement
     {
         get
         {
-            var determinant = _transform.M11 * _transform.M22 - _transform.M12 * _transform.M21;
+            var determinant = Transform.M11 * Transform.M22 - Transform.M12 * Transform.M21;
             return determinant < 0;
         }
     }
@@ -137,7 +133,7 @@ public sealed class PdfImagePlacement
     /// </summary>
     public byte[] GetRawStream()
     {
-        return _xObject.Stream == null ? [] : _xObject.Stream.Value;
+        return XObject.Stream == null ? [] : XObject.Stream.Value;
     }
 
     /// <summary>
@@ -146,6 +142,6 @@ public sealed class PdfImagePlacement
     public override string ToString()
     {
         return string.Format(System.Globalization.CultureInfo.InvariantCulture,
-            "{0} {1}x{2} {3}", _name, PixelWidth, PixelHeight, Orientation);
+            "{0} {1}x{2} {3}", Name, PixelWidth, PixelHeight, Orientation);
     }
 }

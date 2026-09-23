@@ -49,9 +49,9 @@ public sealed class PdfImage : PdfXObject
         Elements.SetName(Keys.Type, "/XObject");
         Elements.SetName(Keys.Subtype, "/Image");
 
-        _image = image;
+        Image = image;
 
-        switch (_image.Format.Guid.ToString("B").ToUpper())
+        switch (Image.Format.Guid.ToString("B").ToUpper())
         {
             // Pdf supports Jpeg, therefore we can write what we've read:
             case "{B96B3CAE-0728-11D3-9D7B-0000F81EF32E}":  //XImageFormat.Jpeg
@@ -79,9 +79,7 @@ public sealed class PdfImage : PdfXObject
     /// <summary>
     /// Gets the underlying XImage object.
     /// </summary>
-    public XImage Image => _image;
-
-    private readonly XImage _image;
+    public XImage Image { get; }
 
     /// <summary>
     /// Returns 'Image'.
@@ -98,7 +96,7 @@ public sealed class PdfImage : PdfXObject
     {
         byte[] imageBits;
 
-        using (var memory = _image.AsJpeg())
+        using (var memory = Image.AsJpeg())
         {
             imageBits = memory.ToArray();
         }
@@ -123,10 +121,10 @@ public sealed class PdfImage : PdfXObject
             Elements[PdfStream.Keys.Length] = new PdfInteger(imageBits.Length);
             Elements[PdfStream.Keys.Filter] = new PdfName("/DCTDecode");
         }
-        if (_image.Interpolate)
+        if (Image.Interpolate)
             Elements[Keys.Interpolate] = PdfBoolean.True;
-        Elements[Keys.Width] = new PdfInteger(_image.PixelWidth);
-        Elements[Keys.Height] = new PdfInteger(_image.PixelHeight);
+        Elements[Keys.Width] = new PdfInteger(Image.PixelWidth);
+        Elements[Keys.Height] = new PdfInteger(Image.PixelHeight);
         Elements[Keys.BitsPerComponent] = new PdfInteger(8);
         Elements[Keys.ColorSpace] = new PdfName("/DeviceRGB");
     }
@@ -149,7 +147,7 @@ public sealed class PdfImage : PdfXObject
     private void InitializeNonJpeg()
     {
         var pdfVersion = Owner.Version;
-        var pixels = _image.GetPixels();
+        var pixels = Image.GetPixels();
 
         Debug.Assert(!pixels.IsEmpty, "Image decoding produced no pixels.");
         if (pixels.IsEmpty)
@@ -256,7 +254,7 @@ public sealed class PdfImage : PdfXObject
         Elements[Keys.Height] = new PdfInteger(height);
         Elements[Keys.BitsPerComponent] = new PdfInteger(8);
         Elements[Keys.ColorSpace] = new PdfName("/DeviceRGB");
-        if (_image.Interpolate)
+        if (Image.Interpolate)
             Elements[Keys.Interpolate] = PdfBoolean.True;
     }
 
@@ -456,9 +454,7 @@ internal class MonochromeMask
     /// <summary>
     /// Returns the bitmap mask that will be written to PDF.
     /// </summary>
-    public byte[] MaskData => _maskData;
-
-    private readonly byte[] _maskData;
+    public byte[] MaskData { get; }
 
     /// <summary>
     /// Creates a bitmap mask.
@@ -467,7 +463,7 @@ internal class MonochromeMask
     {
         _sizeX = sizeX;
         var byteSize = (sizeX + 7) / 8 * sizeY;
-        _maskData = new byte[byteSize];
+        MaskData = new byte[byteSize];
         StartLine(0);
     }
 
@@ -498,7 +494,7 @@ internal class MonochromeMask
         ++_bitsWritten;
         if ((_bitsWritten & 7) == 0)
         {
-            _maskData[_writeOffset] = (byte)_byteBuffer;
+            MaskData[_writeOffset] = (byte)_byteBuffer;
             ++_writeOffset;
             _byteBuffer = 0;
         }
@@ -506,7 +502,7 @@ internal class MonochromeMask
         {
             var n = 8 - (_bitsWritten & 7);
             _byteBuffer <<= n;
-            _maskData[_writeOffset] = (byte)_byteBuffer;
+            MaskData[_writeOffset] = (byte)_byteBuffer;
         }
     }
 

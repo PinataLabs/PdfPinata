@@ -46,7 +46,7 @@ public sealed class PdfNameObject : PdfObject
     /// </summary>
     public PdfNameObject()
     {
-        _value = "/";  // Empty name.
+        Value = "/";  // Empty name.
     }
 
     /// <summary>
@@ -61,7 +61,7 @@ public sealed class PdfNameObject : PdfObject
         if (value.Length == 0 || value[0] != '/')
             throw new ArgumentException(PSSR.NameMustStartWithSlash);
 
-        _value = value;
+        Value = value;
     }
 
     /// <summary>
@@ -76,7 +76,7 @@ public sealed class PdfNameObject : PdfObject
     /// </remarks>
     public override bool Equals(object obj)
     {
-        return _value != null && _value.Equals(obj);
+        return Value != null && Value.Equals(obj);
     }
 
     /// <summary>
@@ -85,25 +85,20 @@ public sealed class PdfNameObject : PdfObject
     public override int GetHashCode()
     {
         // ReSharper disable once NonReadonlyMemberInGetHashCode
-        return _value?.GetHashCode() ?? 0;
+        return Value?.GetHashCode() ?? 0;
     }
 
     /// <summary>
     /// Gets or sets the name value.
     /// </summary>
-    public string Value
-    {
-        get => _value;
-        set => _value = value;
-    }
-    private string _value;
+    public string Value { get; set; }
 
     /// <summary>
     /// Returns the name. The string always begins with a slash.
     /// </summary>
     public override string ToString()
     {
-        return _value;
+        return Value;
     }
 
     /// <summary>
@@ -125,7 +120,7 @@ public sealed class PdfNameObject : PdfObject
 
         // Value is settable and may itself be null, which must not make the object that holds it
         // look like a null object: only the reference check above answers that question.
-        return str != null && name._value == str;
+        return str != null && name.Value == str;
     }
     #pragma warning restore S3875
 
@@ -144,7 +139,7 @@ public sealed class PdfNameObject : PdfObject
     internal override void WriteObject(PdfWriter writer)
     {
         writer.WriteBeginObject(this);
-        writer.Write(new PdfName(_value));
+        writer.Write(new PdfName(Value));
         writer.WriteEndObject();
     }
 }

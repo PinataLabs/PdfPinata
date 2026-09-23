@@ -58,15 +58,13 @@ public class PdfDocumentRenderer
     /// <param name="unicode">If true Unicode encoding is used for all text. If false, WinAnsi encoding is used.</param>
     public PdfDocumentRenderer(bool unicode)
     {
-        _unicode = unicode;
+        Unicode = unicode;
     }
 
     /// <summary>
     /// Gets a value indicating whether the text is rendered as Unicode.
     /// </summary>
-    public bool Unicode => _unicode;
-
-    private readonly bool _unicode;
+    public bool Unicode { get; }
 
     /// <summary>
     /// Gets or sets the language.
@@ -76,13 +74,7 @@ public class PdfDocumentRenderer
     /// An RFC 3066 tag such as "en-GB". Written to the catalog, and required by PDF/UA — a reader
     /// that does not know what language a document is in cannot choose a voice to read it in.
     /// </remarks>
-    public string Language
-    {
-        get => _language;
-        set => _language = value;
-    }
-
-    private string _language = string.Empty;
+    public string Language { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets whether the rendered PDF carries a structure tree describing it. The default is
@@ -147,7 +139,7 @@ public class PdfDocumentRenderer
 
         if (_documentRenderer == null)
         {
-            _documentRenderer = new DocumentRenderer(_document) { WorkingDirectory = _workingDirectory };
+            _documentRenderer = new DocumentRenderer(_document) { WorkingDirectory = WorkingDirectory };
         }
 
         _documentRenderer.TagContent = _tagContent;
@@ -155,8 +147,8 @@ public class PdfDocumentRenderer
         // The document's language belongs on the catalog and in the structure tree both, and it is
         // set here rather than in CreatePdfDocument because a caller supplying their own PdfDocument
         // never goes through that.
-        if (!string.IsNullOrEmpty(_language))
-            _documentRenderer.Tagger.Language = _language;
+        if (!string.IsNullOrEmpty(Language))
+            _documentRenderer.Tagger.Language = Language;
         if (prepareCompletely && _documentRenderer.formattedDocument == null)
         {
             _documentRenderer.PrepareDocument();
@@ -179,11 +171,11 @@ public class PdfDocumentRenderer
     {
         PrepareDocumentRenderer(true);
 
-        if (_pdfDocument == null)
+        if (PdfDocument == null)
         {
-            _pdfDocument = CreatePdfDocument();
+            PdfDocument = CreatePdfDocument();
             if (_document.UseCmykColor)
-                _pdfDocument.Options.ColorMode = PdfColorMode.Cmyk;
+                PdfDocument.Options.ColorMode = PdfColorMode.Cmyk;
         }
 
         WriteDocumentInformation();
@@ -215,10 +207,10 @@ public class PdfDocumentRenderer
         // the working directory decided nothing and every relative path was written against whatever
         // the process's current directory happened to be. A caller passing an absolute path is
         // unaffected either way: Path.Combine answers one with itself.
-        if (_workingDirectory != null)
-            path = Path.Combine(_workingDirectory, path);
+        if (WorkingDirectory != null)
+            path = Path.Combine(WorkingDirectory, path);
 
-        _pdfDocument.Save(path);
+        PdfDocument.Save(path);
     }
 
     /// <summary>
@@ -226,7 +218,7 @@ public class PdfDocumentRenderer
     /// </summary>
     public void Save(Stream stream, bool closeStream)
     {
-        _pdfDocument.Save(stream, closeStream);
+        PdfDocument.Save(stream, closeStream);
     }
 
     /// <summary>
@@ -247,19 +239,19 @@ public class PdfDocumentRenderer
         ArgumentOutOfRangeException.ThrowIfGreaterThan(endPage, _documentRenderer.FormattedDocument.PageCount);
         // ReSharper restore PossibleNullReferenceException
 
-        _pdfDocument ??= CreatePdfDocument();
+        PdfDocument ??= CreatePdfDocument();
 
         _documentRenderer.printDate = GlobalTimeSettings.Now;
         for (var pageNr = startPage; pageNr <= endPage; ++pageNr)
         {
-            var pdfPage = _pdfDocument.AddPage();
+            var pdfPage = PdfDocument.AddPage();
             var pageInfo = _documentRenderer.FormattedDocument.GetPageInfo(pageNr);
             pdfPage.Width = pageInfo.Width;
             pdfPage.Height = pageInfo.Height;
             pdfPage.Orientation = pageInfo.Orientation;
 
             using var gfx = XGraphics.FromPdfPage(pdfPage);
-            gfx.MUH = _unicode ? PdfFontEncoding.Unicode : PdfFontEncoding.WinAnsi;
+            gfx.MUH = Unicode ? PdfFontEncoding.Unicode : PdfFontEncoding.WinAnsi;
             _documentRenderer.RenderPage(gfx, pageNr);
         }
     }
@@ -268,25 +260,13 @@ public class PdfDocumentRenderer
     /// Gets or sets the directory a relative path given to <see cref="Save(string)"/> is resolved
     /// against. Unset, a relative path is resolved against the process's current directory.
     /// </summary>
-    public string WorkingDirectory
-    {
-        get => _workingDirectory;
-        set => _workingDirectory = value;
-    }
-
-    private string _workingDirectory;
+    public string WorkingDirectory { get; set; }
 
     /// <summary>
     /// Gets or sets the PDF document to render on.
     /// </summary>
     /// <remarks>A PDF document in memory is automatically created when printing before this property was set.</remarks>
-    public PdfDocument PdfDocument
-    {
-        get => _pdfDocument;
-        set => _pdfDocument = value;
-    }
-
-    private PdfDocument _pdfDocument;
+    public PdfDocument PdfDocument { get; set; }
 
     /// <summary>
     /// Writes document information like author and subject to the PDF document.
@@ -297,7 +277,7 @@ public class PdfDocumentRenderer
             return;
 
         var docInfo = _document.Info;
-        var pdfInfo = _pdfDocument.Info;
+        var pdfInfo = PdfDocument.Info;
 
         if (!docInfo.IsNull("Author"))
             pdfInfo.Author = docInfo.Author;
@@ -319,8 +299,8 @@ public class PdfDocumentRenderer
     {
         var pdfDocument = new PdfDocument();
         pdfDocument.Info.Creator = "PinataLayout " + typeof(PdfDocumentRenderer).GetTypeInfo().Assembly.GetName().Version;
-        if (_language != null && _language.Length != 0)
-            pdfDocument.Language = _language;
+        if (Language != null && Language.Length != 0)
+            pdfDocument.Language = Language;
         return pdfDocument;
     }
 }
