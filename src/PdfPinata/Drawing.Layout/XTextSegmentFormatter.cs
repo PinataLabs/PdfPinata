@@ -213,11 +213,11 @@ public class XTextSegmentFormatter
         {
             currentBlockUnit.Add(block);
 
-            if (block.Stop || block.Type == BlockType.LineBreak)
-            {
-                blockUnits.Add(currentBlockUnit);
-                currentBlockUnit = new List<Block>();
-            }
+            if (!block.Stop && block.Type != BlockType.LineBreak)
+                continue;
+
+            blockUnits.Add(currentBlockUnit);
+            currentBlockUnit = new List<Block>();
         }
 
         if (!blocks.Last().Stop && blocks.Last().Type != BlockType.LineBreak)

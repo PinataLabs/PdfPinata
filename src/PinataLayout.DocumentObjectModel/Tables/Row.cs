@@ -74,12 +74,12 @@ public partial class Row : DocumentObject, IVisitable
   {
     get
     {
-      if (this.table == null)
-      {
-        var rws = this.Parent as Rows;
-        if (rws != null)
-          this.table = rws.Table;
-      }
+      if (this.table != null)
+        return this.table;
+
+      var rws = this.Parent as Rows;
+      if (rws != null)
+        this.table = rws.Table;
       return this.table;
     }
   }
@@ -92,14 +92,14 @@ public partial class Row : DocumentObject, IVisitable
   {
     get
     {
-      if (!index.HasValue)
+      if (index.HasValue)
+        return index.Value;
+
+      var rws = (Rows)parent;
+      // One for all and all for one.
+      for (var i = 0; i < rws.Count; ++i)
       {
-        var rws = (Rows)parent;
-        // One for all and all for one.
-        for (var i = 0; i < rws.Count; ++i)
-        {
-          rws[i].index = i;
-        }
+        rws[i].index = i;
       }
       return index ?? 0;
     }

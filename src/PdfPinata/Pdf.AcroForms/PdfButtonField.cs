@@ -101,13 +101,13 @@ public abstract class PdfButtonField : PdfAcroField
         if (t == "")
             t = "???";
         Debug.Assert(t != "");
-        if (t.Length > 0)
-        {
-            if (!String.IsNullOrEmpty(partialName))
-                names.Add(partialName + "." + t);
-            else
-                names.Add(t);
-        }
+        if (t.Length <= 0)
+            return;
+
+        if (!String.IsNullOrEmpty(partialName))
+            names.Add(partialName + "." + t);
+        else
+            names.Add(t);
     }
 
     /// <summary>

@@ -130,11 +130,11 @@ public class KeepWithNextTests
 
         var kept = LinesOnTheFirstPage(Filled((paragraph, idx) =>
         {
-            if (idx == capacity)
-            {
-                paragraph.Format.KeepWithNext = true;
-                paragraph.Format.KeepTogether = true;
-            }
+            if (idx != capacity)
+                return;
+
+            paragraph.Format.KeepWithNext = true;
+            paragraph.Format.KeepTogether = true;
         }));
 
         kept.Should().Be(capacity - 1);

@@ -602,17 +602,17 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     /// </summary>
     public void Transform(XPoint[] points)
     {
-        if (points != null)
+        if (points == null)
+            return;
+
+        var count = points.Length;
+        for (var idx = 0; idx < count; idx++)
         {
-            var count = points.Length;
-            for (var idx = 0; idx < count; idx++)
-            {
-                var x = points[idx].X;
-                var y = points[idx].Y;
-                MultiplyPoint(ref x, ref y);
-                points[idx].X = x;
-                points[idx].Y = y;
-            }
+            var x = points[idx].X;
+            var y = points[idx].Y;
+            MultiplyPoint(ref x, ref y);
+            points[idx].X = x;
+            points[idx].Y = y;
         }
     }
 
@@ -652,17 +652,17 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     /// </summary>
     public void Transform(XVector[] vectors)
     {
-        if (vectors != null)
+        if (vectors == null)
+            return;
+
+        var count = vectors.Length;
+        for (var idx = 0; idx < count; idx++)
         {
-            var count = vectors.Length;
-            for (var idx = 0; idx < count; idx++)
-            {
-                var x = vectors[idx].X;
-                var y = vectors[idx].Y;
-                MultiplyVector(ref x, ref y);
-                vectors[idx].X = x;
-                vectors[idx].Y = y;
-            }
+            var x = vectors[idx].X;
+            var y = vectors[idx].Y;
+            MultiplyVector(ref x, ref y);
+            vectors[idx].X = x;
+            vectors[idx].Y = y;
         }
     }
 
@@ -1172,74 +1172,74 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
         {
             var type1 = matrix1._type;
             var type2 = matrix2._type;
-            if (type2 != XMatrixTypes.Identity)
+            if (type2 == XMatrixTypes.Identity)
+                return;
+
+            if (type1 == XMatrixTypes.Identity)
+                matrix1 = matrix2;
+            else if (type2 == XMatrixTypes.Translation)
             {
-                if (type1 == XMatrixTypes.Identity)
-                    matrix1 = matrix2;
-                else if (type2 == XMatrixTypes.Translation)
-                {
-                    matrix1._offsetX += matrix2._offsetX;
-                    matrix1._offsetY += matrix2._offsetY;
-                    if (type1 != XMatrixTypes.Unknown)
-                        matrix1._type |= XMatrixTypes.Translation;
-                }
-                else if (type1 == XMatrixTypes.Translation)
-                {
-                    var num = matrix1._offsetX;
-                    var num2 = matrix1._offsetY;
-                    matrix1 = matrix2;
-                    matrix1._offsetX = num * matrix2._m11 + num2 * matrix2._m21 + matrix2._offsetX;
-                    matrix1._offsetY = num * matrix2._m12 + num2 * matrix2._m22 + matrix2._offsetY;
-                    if (type2 == XMatrixTypes.Unknown)
-                        matrix1._type = XMatrixTypes.Unknown;
-                    else
-                        matrix1._type = XMatrixTypes.Scaling | XMatrixTypes.Translation;
-                }
+                matrix1._offsetX += matrix2._offsetX;
+                matrix1._offsetY += matrix2._offsetY;
+                if (type1 != XMatrixTypes.Unknown)
+                    matrix1._type |= XMatrixTypes.Translation;
+            }
+            else if (type1 == XMatrixTypes.Translation)
+            {
+                var num = matrix1._offsetX;
+                var num2 = matrix1._offsetY;
+                matrix1 = matrix2;
+                matrix1._offsetX = num * matrix2._m11 + num2 * matrix2._m21 + matrix2._offsetX;
+                matrix1._offsetY = num * matrix2._m12 + num2 * matrix2._m22 + matrix2._offsetY;
+                if (type2 == XMatrixTypes.Unknown)
+                    matrix1._type = XMatrixTypes.Unknown;
                 else
+                    matrix1._type = XMatrixTypes.Scaling | XMatrixTypes.Translation;
+            }
+            else
+            {
+                switch (((int)type1 << 4) | (int)type2)
                 {
-                    switch (((int)type1 << 4) | (int)type2)
-                    {
-                        case 0x22:
-                            matrix1._m11 *= matrix2._m11;
-                            matrix1._m22 *= matrix2._m22;
-                            return;
+                    case 0x22:
+                        matrix1._m11 *= matrix2._m11;
+                        matrix1._m22 *= matrix2._m22;
+                        return;
 
-                        case 0x23:
-                            matrix1._m11 *= matrix2._m11;
-                            matrix1._m22 *= matrix2._m22;
-                            matrix1._offsetX = matrix2._offsetX;
-                            matrix1._offsetY = matrix2._offsetY;
-                            matrix1._type = XMatrixTypes.Scaling | XMatrixTypes.Translation;
-                            return;
+                    case 0x23:
+                        matrix1._m11 *= matrix2._m11;
+                        matrix1._m22 *= matrix2._m22;
+                        matrix1._offsetX = matrix2._offsetX;
+                        matrix1._offsetY = matrix2._offsetY;
+                        matrix1._type = XMatrixTypes.Scaling | XMatrixTypes.Translation;
+                        return;
 
-                        case 0x24:
-                        case 0x34:
-                        case 0x42:
-                        case 0x43:
-                        case 0x44:
-                            matrix1 = new XMatrix(
-                                matrix1._m11 * matrix2._m11 + matrix1._m12 * matrix2._m21,
-                                matrix1._m11 * matrix2._m12 + matrix1._m12 * matrix2._m22,
-                                matrix1._m21 * matrix2._m11 + matrix1._m22 * matrix2._m21,
-                                matrix1._m21 * matrix2._m12 + matrix1._m22 * matrix2._m22,
-                                matrix1._offsetX * matrix2._m11 + matrix1._offsetY * matrix2._m21 + matrix2._offsetX,
-                                matrix1._offsetX * matrix2._m12 + matrix1._offsetY * matrix2._m22 + matrix2._offsetY);
-                            return;
+                    case 0x24:
+                    case 0x34:
+                    case 0x42:
+                    case 0x43:
+                    case 0x44:
+                        matrix1 = new XMatrix(
+                            matrix1._m11 * matrix2._m11 + matrix1._m12 * matrix2._m21,
+                            matrix1._m11 * matrix2._m12 + matrix1._m12 * matrix2._m22,
+                            matrix1._m21 * matrix2._m11 + matrix1._m22 * matrix2._m21,
+                            matrix1._m21 * matrix2._m12 + matrix1._m22 * matrix2._m22,
+                            matrix1._offsetX * matrix2._m11 + matrix1._offsetY * matrix2._m21 + matrix2._offsetX,
+                            matrix1._offsetX * matrix2._m12 + matrix1._offsetY * matrix2._m22 + matrix2._offsetY);
+                        return;
 
-                        case 50:
-                            matrix1._m11 *= matrix2._m11;
-                            matrix1._m22 *= matrix2._m22;
-                            matrix1._offsetX *= matrix2._m11;
-                            matrix1._offsetY *= matrix2._m22;
-                            return;
+                    case 50:
+                        matrix1._m11 *= matrix2._m11;
+                        matrix1._m22 *= matrix2._m22;
+                        matrix1._offsetX *= matrix2._m11;
+                        matrix1._offsetY *= matrix2._m22;
+                        return;
 
-                        case 0x33:
-                            matrix1._m11 *= matrix2._m11;
-                            matrix1._m22 *= matrix2._m22;
-                            matrix1._offsetX = matrix2._m11 * matrix1._offsetX + matrix2._offsetX;
-                            matrix1._offsetY = matrix2._m22 * matrix1._offsetY + matrix2._offsetY;
-                            return;
-                    }
+                    case 0x33:
+                        matrix1._m11 *= matrix2._m11;
+                        matrix1._m22 *= matrix2._m22;
+                        matrix1._offsetX = matrix2._m11 * matrix1._offsetX + matrix2._offsetX;
+                        matrix1._offsetY = matrix2._m22 * matrix1._offsetY + matrix2._offsetY;
+                        return;
                 }
             }
         }
@@ -1262,48 +1262,48 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
 
         internal static void TransformRect(ref XRect rect, ref XMatrix matrix)
         {
-            if (!rect.IsEmpty)
+            if (rect.IsEmpty)
+                return;
+
+            var type = matrix._type;
+            if (type == XMatrixTypes.Identity)
+                return;
+
+            if ((type & XMatrixTypes.Scaling) != XMatrixTypes.Identity)
             {
-                var type = matrix._type;
-                if (type != XMatrixTypes.Identity)
+                // Computed apart from the rectangle and assigned once, because a mirroring
+                // scale makes a size negative on the way and XRect refuses one outright.
+                var x = rect.X * matrix._m11;
+                var y = rect.Y * matrix._m22;
+                var width = rect.Width * matrix._m11;
+                var height = rect.Height * matrix._m22;
+                if (width < 0)
                 {
-                    if ((type & XMatrixTypes.Scaling) != XMatrixTypes.Identity)
-                    {
-                        // Computed apart from the rectangle and assigned once, because a mirroring
-                        // scale makes a size negative on the way and XRect refuses one outright.
-                        var x = rect.X * matrix._m11;
-                        var y = rect.Y * matrix._m22;
-                        var width = rect.Width * matrix._m11;
-                        var height = rect.Height * matrix._m22;
-                        if (width < 0)
-                        {
-                            x += width;
-                            width = -width;
-                        }
-                        if (height < 0)
-                        {
-                            y += height;
-                            height = -height;
-                        }
-                        rect = new XRect(x, y, width, height);
-                    }
-                    if ((type & XMatrixTypes.Translation) != XMatrixTypes.Identity)
-                    {
-                        rect.X += matrix._offsetX;
-                        rect.Y += matrix._offsetY;
-                    }
-                    if (type == XMatrixTypes.Unknown)
-                    {
-                        var point1 = matrix.Transform(rect.TopLeft);
-                        var point2 = matrix.Transform(rect.TopRight);
-                        var point3 = matrix.Transform(rect.BottomRight);
-                        var point4 = matrix.Transform(rect.BottomLeft);
-                        rect.X = Math.Min(Math.Min(point1.X, point2.X), Math.Min(point3.X, point4.X));
-                        rect.Y = Math.Min(Math.Min(point1.Y, point2.Y), Math.Min(point3.Y, point4.Y));
-                        rect.Width = Math.Max(Math.Max(point1.X, point2.X), Math.Max(point3.X, point4.X)) - rect.X;
-                        rect.Height = Math.Max(Math.Max(point1.Y, point2.Y), Math.Max(point3.Y, point4.Y)) - rect.Y;
-                    }
+                    x += width;
+                    width = -width;
                 }
+                if (height < 0)
+                {
+                    y += height;
+                    height = -height;
+                }
+                rect = new XRect(x, y, width, height);
+            }
+            if ((type & XMatrixTypes.Translation) != XMatrixTypes.Identity)
+            {
+                rect.X += matrix._offsetX;
+                rect.Y += matrix._offsetY;
+            }
+            if (type == XMatrixTypes.Unknown)
+            {
+                var point1 = matrix.Transform(rect.TopLeft);
+                var point2 = matrix.Transform(rect.TopRight);
+                var point3 = matrix.Transform(rect.BottomRight);
+                var point4 = matrix.Transform(rect.BottomLeft);
+                rect.X = Math.Min(Math.Min(point1.X, point2.X), Math.Min(point3.X, point4.X));
+                rect.Y = Math.Min(Math.Min(point1.Y, point2.Y), Math.Min(point3.Y, point4.Y));
+                rect.Width = Math.Max(Math.Max(point1.X, point2.X), Math.Max(point3.X, point4.X)) - rect.X;
+                rect.Height = Math.Max(Math.Max(point1.Y, point2.Y), Math.Max(point3.Y, point4.Y)) - rect.Y;
             }
         }
     }

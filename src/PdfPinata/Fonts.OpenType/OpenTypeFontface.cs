@@ -427,17 +427,17 @@ internal sealed class OpenTypeFontface
         for (var idx = 0; idx < numGlyphs; idx++)
         {
             locaNew.LocationTable[idx] = glyphOffset;
-            if (glyphIndex < glyphCount && glyphArray[glyphIndex] == idx)
-            {
-                glyphIndex++;
-                var bytes = glyf.GetGlyphData(idx);
-                var length = bytes.Length;
-                if (length > 0)
-                {
-                    Buffer.BlockCopy(bytes, 0, glyfNew.GlyphTable, glyphOffset, length);
-                    glyphOffset += length;
-                }
-            }
+            if (glyphIndex >= glyphCount || glyphArray[glyphIndex] != idx)
+                continue;
+
+            glyphIndex++;
+            var bytes = glyf.GetGlyphData(idx);
+            var length = bytes.Length;
+            if (length <= 0)
+                continue;
+
+            Buffer.BlockCopy(bytes, 0, glyfNew.GlyphTable, glyphOffset, length);
+            glyphOffset += length;
         }
         locaNew.LocationTable[numGlyphs] = glyphOffset;
 
@@ -500,12 +500,11 @@ internal sealed class OpenTypeFontface
 
     public int Seek(string tag)
     {
-        if (TableDictionary.TryGetValue(tag, out var entry))
-        {
-            _pos = entry.Offset;
-            return _pos;
-        }
-        return -1;
+        if (!TableDictionary.TryGetValue(tag, out var entry))
+            return -1;
+
+        _pos = entry.Offset;
+        return _pos;
     }
 
     public int SeekOffset(int offset)

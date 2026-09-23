@@ -430,37 +430,36 @@ internal class DdlScanner
     }
 
     // Check for end of line.
-    if (this.currChar == Chars.LF)
+    if (this.currChar != Chars.LF)
+      return ReadPlainText(rootLevel);
+
+    // The line ends here. See if the paragraph continues in the next line.
+    if (MoveToNextParagraphContentLine(rootLevel))
     {
-      // The line ends here. See if the paragraph continues in the next line.
-      if (MoveToNextParagraphContentLine(rootLevel))
+      // Paragraph continues in next line. Simulate the read of a blank to separate words.
+      this.token = " ";
+      if (IgnoreLineBreak())
+        this.token = "";
+      this.symbol = Symbol.Text;
+      return Symbol.Text;
+    }
+    else
+    {
+      // Paragraph ends here. Return NewLine or BraceRight.
+      if (this.currChar != Chars.BraceRight)
       {
-        // Paragraph continues in next line. Simulate the read of a blank to separate words.
-        this.token = " ";
-        if (IgnoreLineBreak())
-          this.token = "";
-        this.symbol = Symbol.Text;
-        return Symbol.Text;
+        this.symbol = Symbol.EmptyLine;
+        this.tokenType = TokenType.None; //???
+        return Symbol.EmptyLine;
       }
       else
       {
-        // Paragraph ends here. Return NewLine or BraceRight.
-        if (this.currChar != Chars.BraceRight)
-        {
-          this.symbol = Symbol.EmptyLine;
-          this.tokenType = TokenType.None; //???
-          return Symbol.EmptyLine;
-        }
-        else
-        {
-          AppendAndScanNextChar();
-          this.symbol = Symbol.BraceRight;
-          this.tokenType = TokenType.OperatorOrPunctuator;
-          return Symbol.BraceRight;
-        }
+        AppendAndScanNextChar();
+        this.symbol = Symbol.BraceRight;
+        this.tokenType = TokenType.OperatorOrPunctuator;
+        return Symbol.BraceRight;
       }
     }
-    return ReadPlainText(rootLevel);
   }
 
   /// <summary>

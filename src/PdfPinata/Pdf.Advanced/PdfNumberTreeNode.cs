@@ -183,11 +183,11 @@ public sealed class PdfNumberTreeNode : PdfDictionary
         }
 
         var kids = node.Elements.GetArray(Keys.Kids);
-        if (kids != null)
-        {
-            for (var at = 0; at < kids.Elements.Count; at++)
-                Read(kids.Elements.GetDictionary(at), seen, depth + 1);
-        }
+        if (kids == null)
+            return;
+
+        for (var at = 0; at < kids.Elements.Count; at++)
+            Read(kids.Elements.GetDictionary(at), seen, depth + 1);
     }
 
     private static bool TryGetInteger(PdfItem item, out int value)

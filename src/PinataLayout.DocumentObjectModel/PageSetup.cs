@@ -385,12 +385,12 @@ public partial class PageSetup : DocumentObject
   public PageSetup PreviousPageSetup()
   {
     var section = Parent as Section;
+    if (section == null)
+      return null;
+
+    section = section.PreviousSection();
     if (section != null)
-    {
-      section = section.PreviousSection();
-      if (section != null)
-        return section.PageSetup;
-    }
+      return section.PageSetup;
     return null;
   }
 

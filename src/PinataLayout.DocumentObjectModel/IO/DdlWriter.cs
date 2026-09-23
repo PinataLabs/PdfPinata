@@ -266,11 +266,11 @@ public class DdlWriter : IDisposable
     {
         _serializer = null;
 
-        if (_writer != null)
-        {
-            _writer.Dispose();
-            _writer = null;
-        }
+        if (_writer == null)
+            return;
+
+        _writer.Dispose();
+        _writer = null;
     }
 
     private StreamWriter _writer;

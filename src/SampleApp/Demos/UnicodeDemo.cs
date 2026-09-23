@@ -153,17 +153,17 @@ internal sealed class UnicodeDemo : PdfDemo
                         }
                     }
 
-                    if (descriptor != null)
+                    if (descriptor == null)
+                        continue;
+
+                    foreach (var file in new[] { "/FontFile", "/FontFile2", "/FontFile3" })
                     {
-                        foreach (var file in new[] { "/FontFile", "/FontFile2", "/FontFile3" })
-                        {
-                            var embedded = descriptor.Elements.GetDictionary(file);
-                            if (embedded != null)
-                            {
-                                fontFile = file;
-                                length = embedded.Stream?.Length ?? 0;
-                            }
-                        }
+                        var embedded = descriptor.Elements.GetDictionary(file);
+                        if (embedded == null)
+                            continue;
+
+                        fontFile = file;
+                        length = embedded.Stream?.Length ?? 0;
                     }
                 }
             }

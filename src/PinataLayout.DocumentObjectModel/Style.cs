@@ -141,18 +141,16 @@ public sealed partial class Style : DocumentObject, IVisitable
         {
             if (paragraphFormat == null)
                 paragraphFormat = new ParagraphFormat(this);
-            if (readOnly)
-            {
-                // The clone is what stops a caller mutating a built-in style through the real object. On
-                // its own it stopped nothing - Clone() nulls the parent, so a write to the clone had no way
-                // of knowing it was pointless, and simply vanished. Giving the clone its Style back is what
-                // lets ThrowIfReadOnly find it.
-                var copy = paragraphFormat.Clone();
-                copy.parent = this;
-                return copy;
-            }
+            if (!readOnly)
+                return paragraphFormat;
 
-            return paragraphFormat;
+            // The clone is what stops a caller mutating a built-in style through the real object. On
+            // its own it stopped nothing - Clone() nulls the parent, so a write to the clone had no way
+            // of knowing it was pointless, and simply vanished. Giving the clone its Style back is what
+            // lets ThrowIfReadOnly find it.
+            var copy = paragraphFormat.Clone();
+            copy.parent = this;
+            return copy;
         }
         set
         {
@@ -228,18 +226,18 @@ public sealed partial class Style : DocumentObject, IVisitable
     {
         get
         {
-            if (styleType == null)
-            {
-                if (String.Compare(this.baseStyle ?? "", DefaultParagraphFontName, StringComparison.OrdinalIgnoreCase) == 0)
-                    styleType = StyleType.Character;
-                else
-                {
-                    var baseStyleObj = GetBaseStyle();
-                    if (baseStyleObj == null)
-                        throw new InvalidOperationException("User defined style has no valid base Style.");
+            if (styleType != null)
+                return styleType.Value;
 
-                    styleType = baseStyleObj.Type;
-                }
+            if (String.Compare(this.baseStyle ?? "", DefaultParagraphFontName, StringComparison.OrdinalIgnoreCase) == 0)
+                styleType = StyleType.Character;
+            else
+            {
+                var baseStyleObj = GetBaseStyle();
+                if (baseStyleObj == null)
+                    throw new InvalidOperationException("User defined style has no valid base Style.");
+
+                styleType = baseStyleObj.Type;
             }
 
             return styleType.Value;

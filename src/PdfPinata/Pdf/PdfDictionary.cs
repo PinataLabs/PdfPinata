@@ -124,12 +124,12 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             var names = dict._elements.KeyNames;
             foreach (var name in names)
             {
-                if (dict._elements[name] is PdfObject obj)
-                {
-                    obj = obj.Clone();
-                    // Recall that obj.Document is now null.
-                    dict._elements[name] = obj;
-                }
+                if (dict._elements[name] is not PdfObject obj)
+                    continue;
+
+                obj = obj.Clone();
+                // Recall that obj.Document is now null.
+                dict._elements[name] = obj;
             }
         }
         if (dict._stream != null)
@@ -1595,24 +1595,24 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public bool TryUnfilter()
         {
-            if (_value != null)
+            if (_value == null)
+                return true;
+
+            var filter = _ownerDictionary.Elements[Keys.Filter];
+            if (filter == null)
+                return true;
+
+            var decodeParms = _ownerDictionary.Elements[Keys.DecodeParms];
+            // PDFsharp can only uncompress streams that are compressed with the ZIP or LZH algorithm.
+            var bytes = Filtering.Decode(_value, filter, decodeParms);
+            if (bytes != null)
             {
-                var filter = _ownerDictionary.Elements[Keys.Filter];
-                if (filter != null)
-                {
-                    var decodeParms = _ownerDictionary.Elements[Keys.DecodeParms];
-                    // PDFsharp can only uncompress streams that are compressed with the ZIP or LZH algorithm.
-                    var bytes = Filtering.Decode(_value, filter, decodeParms);
-                    if (bytes != null)
-                    {
-                        _ownerDictionary.Elements.Remove(Keys.Filter);
-                        _ownerDictionary.Elements.Remove(Keys.DecodeParms);
-                        Value = bytes;
-                    }
-                    else
-                        return false;
-                }
+                _ownerDictionary.Elements.Remove(Keys.Filter);
+                _ownerDictionary.Elements.Remove(Keys.DecodeParms);
+                Value = bytes;
             }
+            else
+                return false;
             return true;
         }
 
@@ -1625,12 +1625,12 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             if (_value == null)
                 return;
 
-            if (!_ownerDictionary.Elements.ContainsKey(Keys.Filter))
-            {
-                _value = Filtering.FlateDecode.Encode(_value, _ownerDictionary._document.Options.FlateEncodeMode);
-                _ownerDictionary.Elements[Keys.Filter] = new PdfName("/FlateDecode");
-                _ownerDictionary.Elements[Keys.Length] = new PdfInteger(_value.Length);
-            }
+            if (_ownerDictionary.Elements.ContainsKey(Keys.Filter))
+                return;
+
+            _value = Filtering.FlateDecode.Encode(_value, _ownerDictionary._document.Options.FlateEncodeMode);
+            _ownerDictionary.Elements[Keys.Filter] = new PdfName("/FlateDecode");
+            _ownerDictionary.Elements[Keys.Length] = new PdfInteger(_value.Length);
         }
 
         /// <summary>

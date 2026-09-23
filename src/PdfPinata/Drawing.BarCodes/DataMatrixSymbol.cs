@@ -262,13 +262,13 @@ internal static class DataMatrixSymbol
 
             // The two modules of the bottom right corner go unused by some symbol sizes, and
             // carry a fixed pattern rather than nothing.
-            if (!_filled[_height * _width - 1])
-            {
-                _forcedDark[_height * _width - 1] = true;
-                _forcedDark[_height * _width - _width - 2] = true;
-                _filled[_height * _width - 1] = true;
-                _filled[_height * _width - _width - 2] = true;
-            }
+            if (_filled[_height * _width - 1])
+                return;
+
+            _forcedDark[_height * _width - 1] = true;
+            _forcedDark[_height * _width - _width - 2] = true;
+            _filled[_height * _width - 1] = true;
+            _filled[_height * _width - _width - 2] = true;
         }
 
         /// <summary>Places one bit, wrapping it round the symbol where it falls outside.</summary>

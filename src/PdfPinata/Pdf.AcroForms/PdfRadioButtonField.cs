@@ -117,13 +117,13 @@ public sealed class PdfRadioButtonField : PdfButtonField
             if (opt == null)
                 opt = Elements[PdfAcroField.Keys.Kids] as PdfArray;
 
-            if (opt != null)
-            {
-                var count = opt.Elements.Count;
-                if (value < 0 || value >= count)
-                    throw new ArgumentOutOfRangeException(nameof(value));
-                Elements.SetName(PdfAcroField.Keys.V, TextOfOption(opt.Elements[value]));
-            }
+            if (opt == null)
+                return;
+
+            var count = opt.Elements.Count;
+            if (value < 0 || value >= count)
+                throw new ArgumentOutOfRangeException(nameof(value));
+            Elements.SetName(PdfAcroField.Keys.V, TextOfOption(opt.Elements[value]));
         }
     }
 
@@ -136,11 +136,11 @@ public sealed class PdfRadioButtonField : PdfButtonField
             for (var idx = 0; idx < count; idx++)
             {
                 var item = opt.Elements[idx];
-                if (item is PdfString)
-                {
-                    if (TextOfOption(item) == value)
-                        return idx;
-                }
+                if (item is not PdfString)
+                    continue;
+
+                if (TextOfOption(item) == value)
+                    return idx;
             }
         }
         return -1;

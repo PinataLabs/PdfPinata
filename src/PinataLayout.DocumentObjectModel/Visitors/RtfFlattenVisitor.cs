@@ -53,13 +53,13 @@ public class RtfFlattenVisitor : VisitorBase
     else if ((formattedText.style ?? "") != "")
       format = document.styles["InvalidStyleName"].paragraphFormat;
 
-    if (format != null)
-    {
-      if (formattedText.font == null)
-        formattedText.Font = format.font.Clone();
-      else if (format.font != null)
-        FlattenFont(formattedText.font, format.font);
-    }
+    if (format == null)
+      return;
+
+    if (formattedText.font == null)
+      formattedText.Font = format.font.Clone();
+    else if (format.font != null)
+      FlattenFont(formattedText.font, format.font);
   }
 
   internal override void VisitHyperlink(Hyperlink hyperlink)

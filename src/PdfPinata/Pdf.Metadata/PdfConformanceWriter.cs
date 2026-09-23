@@ -331,18 +331,18 @@ internal static class PdfConformanceWriter
                 mismatched.Add(family);
         }
 
-        if (mismatched.Count != 0)
-        {
-            mismatched.Sort();
-            throw new InvalidOperationException(
-                conformance + " requires the output intent to describe every device colour the "
-                + "document paints, and its profile describes a " + componentsOfIntent
-                + "-component space while a page paints with a " + string.Join(" and ",
-                    mismatched.ConvertAll(count => count + "-component"))
-                + " device colour. Set Options.ColorMode and Options.OutputIntentIccProfile to "
-                + "agree with what the pages actually paint, or stop mixing colour spaces the "
-                + "intent cannot describe together.");
-        }
+        if (mismatched.Count == 0)
+            return;
+
+        mismatched.Sort();
+        throw new InvalidOperationException(
+            conformance + " requires the output intent to describe every device colour the "
+            + "document paints, and its profile describes a " + componentsOfIntent
+            + "-component space while a page paints with a " + string.Join(" and ",
+                mismatched.ConvertAll(count => count + "-component"))
+            + " device colour. Set Options.ColorMode and Options.OutputIntentIccProfile to "
+            + "agree with what the pages actually paint, or stop mixing colour spaces the "
+            + "intent cannot describe together.");
     }
 
     /// <summary>

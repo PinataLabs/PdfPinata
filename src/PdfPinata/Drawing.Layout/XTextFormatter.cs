@@ -925,14 +925,12 @@ public class XTextFormatter
         if (y <= rectHeight + FitTolerance)
             return true;
 
-        if (column + 1 < Columns)
-        {
-            column++;
-            y = 0;
-            return true;
-        }
+        if (column + 1 >= Columns)
+            return AllowVerticalOverflow;
 
-        return AllowVerticalOverflow;
+        column++;
+        y = 0;
+        return true;
     }
 
     /// <summary>

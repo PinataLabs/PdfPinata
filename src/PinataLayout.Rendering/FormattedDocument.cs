@@ -147,41 +147,41 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         }
 
         var footers = (HeadersFooters)currentSection.GetValue("Footers", GV.ReadOnly);
-        if (footers != null)
-        {
-            var pagePos = CurrentPagePosition;
-            var hfp = new HeaderFooterPosition(sectionNumber, pagePos);
-            if (!formattedFooters.ContainsKey(hfp))
-                FormatFooter(hfp, ChooseHeaderFooter(footers, pagePos));
-        }
+        if (footers == null)
+            return;
+
+        var footerPos = CurrentPagePosition;
+        var footerHfp = new HeaderFooterPosition(sectionNumber, footerPos);
+        if (!formattedFooters.ContainsKey(footerHfp))
+            FormatFooter(footerHfp, ChooseHeaderFooter(footers, footerPos));
     }
 
 
     private void FormatHeader(HeaderFooterPosition hfp, HeaderFooter header)
     {
-        if (header != null && !formattedHeaders.ContainsKey(hfp))
-        {
-            var formattedHeaderFooter = new FormattedHeaderFooter(header, documentRenderer, currentFieldInfos)
-                {
-                    ContentRect = GetHeaderArea(currentSection, currentPage)
-                };
-            formattedHeaderFooter.Format(gfx);
-            formattedHeaders.Add(hfp, formattedHeaderFooter);
-        }
+        if (header == null || formattedHeaders.ContainsKey(hfp))
+            return;
+
+        var formattedHeaderFooter = new FormattedHeaderFooter(header, documentRenderer, currentFieldInfos)
+            {
+                ContentRect = GetHeaderArea(currentSection, currentPage)
+            };
+        formattedHeaderFooter.Format(gfx);
+        formattedHeaders.Add(hfp, formattedHeaderFooter);
     }
 
 
     private void FormatFooter(HeaderFooterPosition hfp, HeaderFooter footer)
     {
-        if (footer != null && !formattedFooters.ContainsKey(hfp))
-        {
-            var formattedHeaderFooter = new FormattedHeaderFooter(footer, documentRenderer, currentFieldInfos)
-                {
-                    ContentRect = GetFooterArea(currentSection, currentPage)
-                };
-            formattedHeaderFooter.Format(gfx);
-            formattedFooters.Add(hfp, formattedHeaderFooter);
-        }
+        if (footer == null || formattedFooters.ContainsKey(hfp))
+            return;
+
+        var formattedHeaderFooter = new FormattedHeaderFooter(footer, documentRenderer, currentFieldInfos)
+            {
+                ContentRect = GetFooterArea(currentSection, currentPage)
+            };
+        formattedHeaderFooter.Format(gfx);
+        formattedFooters.Add(hfp, formattedHeaderFooter);
     }
 
     /// <summary>
@@ -254,15 +254,14 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     /// <returns>Rendering information for the page content.</returns>
     internal RenderInfo[] GetRenderInfos(int page)
     {
-        if (pageRenderInfos.TryGetValue(page, out var infos))
-        {
-            // Not ToArray(Type): it builds the array type at run time, which carries
-            // RequiresDynamicCode and an AOT compiler cannot always have code for.
-            var result = new RenderInfo[infos.Count];
-            infos.CopyTo(result);
-            return result;
-        }
-        return null;
+        if (!pageRenderInfos.TryGetValue(page, out var infos))
+            return null;
+
+        // Not ToArray(Type): it builds the array type at run time, which carries
+        // RequiresDynamicCode and an AOT compiler cannot always have code for.
+        var result = new RenderInfo[infos.Count];
+        infos.CopyTo(result);
+        return result;
     }
     private Dictionary<int, ArrayList> pageRenderInfos;
 

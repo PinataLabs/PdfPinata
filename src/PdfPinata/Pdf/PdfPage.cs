@@ -144,15 +144,15 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     {
         set
         {
-            if (!ReferenceEquals(_document, value))
-            {
-                if (_document != null)
-                    throw new InvalidOperationException("Cannot change document.");
-                _document = value;
-                if (Reference != null)
-                    Reference.Document = value;
-                Elements[Keys.Parent] = _document.Pages.Reference;
-            }
+            if (ReferenceEquals(_document, value))
+                return;
+
+            if (_document != null)
+                throw new InvalidOperationException("Cannot change document.");
+            _document = value;
+            if (Reference != null)
+                Reference.Document = value;
+            Elements[Keys.Parent] = _document.Pages.Reference;
         }
     }
 
@@ -1284,13 +1284,13 @@ public sealed class PdfPage : PdfDictionary, IContentStream
             {
                 foreach (var name in values.Resources.Elements.KeyNames)
                 {
-                    if (!resources.Elements.ContainsKey(name.Value))
-                    {
-                        var item = values.Resources.Elements[name];
-                        if (item is PdfObject)
-                            item = item.Clone();
-                        resources.Elements.Add(name.ToString(), item);
-                    }
+                    if (resources.Elements.ContainsKey(name.Value))
+                        continue;
+
+                    var item = values.Resources.Elements[name];
+                    if (item is PdfObject)
+                        item = item.Clone();
+                    resources.Elements.Add(name.ToString(), item);
                 }
             }
         }

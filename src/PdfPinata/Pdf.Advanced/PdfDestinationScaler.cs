@@ -167,11 +167,11 @@ static class PdfDestinationScaler
             }
 
             var kids = node.Elements.GetArray("/Kids");
-            if (kids != null)
-            {
-                for (var index = 0; index < kids.Elements.Count; index++)
-                    VisitNameTree(kids.Elements.GetDictionary(index), depth + 1);
-            }
+            if (kids == null)
+                return;
+
+            for (var index = 0; index < kids.Elements.Count; index++)
+                VisitNameTree(kids.Elements.GetDictionary(index), depth + 1);
         }
 
         /// <summary>

@@ -177,15 +177,15 @@ internal class ParagraphFormatInfo : FormatInfo
 
   internal void RemoveEnding()
   {
-    if (!IsEmpty)
-    {
-      if (widowControl && isEnding && LineCount >= 2)
-        lineInfos.RemoveAt(LineCount - 2);
-      if (LineCount > 0)
-        lineInfos.RemoveAt(LineCount - 1);
+    if (IsEmpty)
+      return;
 
-      isEnding = false;
-    }
+    if (widowControl && isEnding && LineCount >= 2)
+      lineInfos.RemoveAt(LineCount - 2);
+    if (LineCount > 0)
+      lineInfos.RemoveAt(LineCount - 1);
+
+    isEnding = false;
   }
 
   internal string listSymbol;

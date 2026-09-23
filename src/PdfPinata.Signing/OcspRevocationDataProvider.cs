@@ -169,18 +169,18 @@ public sealed class OcspRevocationDataProvider : IRevocationDataProvider, IDispo
                 var accessMethod = accessDescription.ReadObjectIdentifier();
 
                 var uriTag = new Asn1Tag(TagClass.ContextSpecific, 6);
-                if (accessMethod == OcspAccessMethodOid && accessDescription.PeekTag() == uriTag)
-                {
-                    var uri = accessDescription.ReadCharacterString(UniversalTagNumber.IA5String, uriTag);
+                if (accessMethod != OcspAccessMethodOid || accessDescription.PeekTag() != uriTag)
+                    continue;
 
-                    // http(s) only. The URI names where an HTTP POST goes, chosen by whoever issued
-                    // the certificate being checked rather than by this library's caller — accepting
-                    // any scheme Uri.TryCreate parses would hand that issuer more than "which server",
-                    // for no benefit, since RFC 6960 traffic is HTTP either way.
-                    if (Uri.TryCreate(uri, UriKind.Absolute, out var responderUri)
-                        && (responderUri.Scheme == Uri.UriSchemeHttp || responderUri.Scheme == Uri.UriSchemeHttps))
-                        return responderUri;
-                }
+                var uri = accessDescription.ReadCharacterString(UniversalTagNumber.IA5String, uriTag);
+
+                // http(s) only. The URI names where an HTTP POST goes, chosen by whoever issued
+                // the certificate being checked rather than by this library's caller — accepting
+                // any scheme Uri.TryCreate parses would hand that issuer more than "which server",
+                // for no benefit, since RFC 6960 traffic is HTTP either way.
+                if (Uri.TryCreate(uri, UriKind.Absolute, out var responderUri)
+                    && (responderUri.Scheme == Uri.UriSchemeHttp || responderUri.Scheme == Uri.UriSchemeHttps))
+                    return responderUri;
             }
         }
         catch (AsnContentException)

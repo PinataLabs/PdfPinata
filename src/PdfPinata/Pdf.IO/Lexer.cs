@@ -331,19 +331,19 @@ public class Lexer
             // #hh is the byte hh (ISO 32000-1 7.3.5). A '#' followed by anything else - one hex
             // digit, none, or the end of the file - is not an escape, and is kept as the
             // character it is rather than refused, as readers do.
-            if (ch == '#' && IsHexChar(_nextChar))
+            if (ch != '#' || !IsHexChar(_nextChar))
+                continue;
+
+            ScanNextChar(true);
+            if (!IsHexChar(_nextChar))
             {
-                ScanNextChar(true);
-                if (!IsHexChar(_nextChar))
-                {
-                    // Only one digit: the '#' stands for itself and the digit is scanned next.
-                    _token.Append('#');
-                    continue;
-                }
-                var high = _currChar;
-                ScanNextChar(true);
-                _currChar = (char)(HexValue(high) << 4 | HexValue(_currChar));
+                // Only one digit: the '#' stands for itself and the digit is scanned next.
+                _token.Append('#');
+                continue;
             }
+            var high = _currChar;
+            ScanNextChar(true);
+            _currChar = (char)(HexValue(high) << 4 | HexValue(_currChar));
         }
     }
 
@@ -680,22 +680,21 @@ public class Lexer
         }
         var chars = _token.ToString();
         var count = chars.Length;
-        if (count > 2 && chars[0] == (char)0xFE && chars[1] == (char)0xFF)
+        if (count <= 2 || chars[0] != (char)0xFE || chars[1] != (char)0xFF)
+            return _symbol = Symbol.HexString;
+
+        // The last character of the string may be short of its low byte, which is a zero
+        // for the same reason the last byte is short of its low digit. Reading on for a
+        // byte that is not there walked off the end of the string.
+        if ((count & 1) == 1)
         {
-            // The last character of the string may be short of its low byte, which is a zero
-            // for the same reason the last byte is short of its low digit. Reading on for a
-            // byte that is not there walked off the end of the string.
-            if ((count & 1) == 1)
-            {
-                chars += '\0';
-                ++count;
-            }
-            _token.Length = 0;
-            for (var idx = 2; idx < count; idx += 2)
-                _token.Append((char)(chars[idx] * 256 + chars[idx + 1]));
-            return _symbol = Symbol.UnicodeHexString;
+            chars += '\0';
+            ++count;
         }
-        return _symbol = Symbol.HexString;
+        _token.Length = 0;
+        for (var idx = 2; idx < count; idx += 2)
+            _token.Append((char)(chars[idx] * 256 + chars[idx + 1]));
+        return _symbol = Symbol.UnicodeHexString;
     }
 
     internal static bool IsHexChar(char c) => CharacterScanning.IsHexChar(c);

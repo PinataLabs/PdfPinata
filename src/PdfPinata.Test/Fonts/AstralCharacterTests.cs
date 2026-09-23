@@ -187,12 +187,12 @@ public class AstralCharacterTests
         using var reopened = Reader.Open(saved, PdfDocumentOpenMode.ReadOnly);
         foreach (var item in reopened.Internals.GetAllObjects())
         {
-            if (item is PdfDictionary dictionary && dictionary.Stream != null)
-            {
-                var decoded = Encoding.ASCII.GetString(dictionary.Stream.UnfilteredValue);
-                if (decoded.Contains("begincmap"))
-                    return decoded;
-            }
+            if (item is not PdfDictionary dictionary || dictionary.Stream == null)
+                continue;
+
+            var decoded = Encoding.ASCII.GetString(dictionary.Stream.UnfilteredValue);
+            if (decoded.Contains("begincmap"))
+                return decoded;
         }
 
         return null;

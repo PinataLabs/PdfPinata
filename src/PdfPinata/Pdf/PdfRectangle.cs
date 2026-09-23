@@ -152,14 +152,13 @@ public sealed class PdfRectangle : PdfItem
     {
         // ReSharper disable CompareOfFloatsByEqualityOperator
         var rectangle = obj as PdfRectangle;
-        if (rectangle != null)
-        {
-            var rect = rectangle;
-            #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
-            return rect._x1 == _x1 && rect._y1 == _y1 && rect._x2 == _x2 && rect._y2 == _y2;
-            #pragma warning restore S1244
-        }
-        return false;
+        if (rectangle == null)
+            return false;
+
+        var rect = rectangle;
+        #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
+        return rect._x1 == _x1 && rect._y1 == _y1 && rect._x2 == _x2 && rect._y2 == _y2;
+        #pragma warning restore S1244
         // ReSharper restore CompareOfFloatsByEqualityOperator
     }
 

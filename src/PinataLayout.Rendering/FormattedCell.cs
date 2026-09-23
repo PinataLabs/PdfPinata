@@ -54,13 +54,12 @@ internal class FormattedCell : IAreaProvider
   private bool isFirstArea = true;
   Area IAreaProvider.GetNextArea()
   {
-    if (isFirstArea)
-    {
-      var rect = CalcContentRect();
-      isFirstArea = false;
-      return rect;
-    }
-    return null;
+    if (!isFirstArea)
+      return null;
+
+    var rect = CalcContentRect();
+    isFirstArea = false;
+    return rect;
   }
 
   Area IAreaProvider.ProbeNextArea()
@@ -152,12 +151,12 @@ internal class FormattedCell : IAreaProvider
   private XUnit CalcContentHeight(DocumentRenderer renderer)
   {
     var height = RenderInfo.GetTotalHeight(GetRenderInfos());
-    if (height == 0)
-    {
-      height = ParagraphRenderer.GetLineHeight(cell.Format, gfx, renderer);
-      height += cell.Format.SpaceBefore;
-      height += cell.Format.SpaceAfter;
-    }
+    if (height != 0)
+      return height;
+
+    height = ParagraphRenderer.GetLineHeight(cell.Format, gfx, renderer);
+    height += cell.Format.SpaceBefore;
+    height += cell.Format.SpaceAfter;
     return height;
   }
 
@@ -165,16 +164,14 @@ internal class FormattedCell : IAreaProvider
 
   internal RenderInfo[] GetRenderInfos()
   {
-    if (renderInfos != null)
-    {
-      // Not ToArray(Type): it builds the array type at run time, which carries
-      // RequiresDynamicCode and an AOT compiler cannot always have code for.
-      var result = new RenderInfo[renderInfos.Count];
-      renderInfos.CopyTo(result);
-      return result;
-    }
+    if (renderInfos == null)
+      return null;
 
-    return null;
+    // Not ToArray(Type): it builds the array type at run time, which carries
+    // RequiresDynamicCode and an AOT compiler cannot always have code for.
+    var result = new RenderInfo[renderInfos.Count];
+    renderInfos.CopyTo(result);
+    return result;
   }
 
   private FieldInfos fieldInfos;

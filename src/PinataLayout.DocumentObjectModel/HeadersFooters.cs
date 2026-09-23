@@ -183,18 +183,18 @@ public partial class HeadersFooters : DocumentObject, IVisitable
   {
     visitor.VisitHeadersFooters(this);
 
-    if (visitChildren)
-    {
-      if (HasHeaderFooter(HeaderFooterIndex.Primary))
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-        ((IVisitable)primary).AcceptVisitor(visitor, visitChildren);
-      if (HasHeaderFooter(HeaderFooterIndex.EvenPage))
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-        ((IVisitable)evenPage).AcceptVisitor(visitor, visitChildren);
-      if (HasHeaderFooter(HeaderFooterIndex.FirstPage))
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-        ((IVisitable)firstPage).AcceptVisitor(visitor, visitChildren);
-    }
+    if (!visitChildren)
+      return;
+
+    if (HasHeaderFooter(HeaderFooterIndex.Primary))
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+      ((IVisitable)primary).AcceptVisitor(visitor, visitChildren);
+    if (HasHeaderFooter(HeaderFooterIndex.EvenPage))
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+      ((IVisitable)evenPage).AcceptVisitor(visitor, visitChildren);
+    if (HasHeaderFooter(HeaderFooterIndex.FirstPage))
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+      ((IVisitable)firstPage).AcceptVisitor(visitor, visitChildren);
   }
 
   #endregion

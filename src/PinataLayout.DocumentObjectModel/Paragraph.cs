@@ -563,19 +563,19 @@ public partial class Paragraph : DocumentObject, IVisitable
         for (var idx = 0; idx < Elements.Count; ++idx)
         {
             var element = Elements[idx];
-            if (element is Character)
-            {
-                var character = (Character)element;
-                if (character.SymbolName == SymbolName.ParaBreak)
-                {
-                    var paragraph = new Paragraph();
-                    paragraph.Format = Format.Clone();
-                    paragraph.Style = Style;
-                    paragraph.Elements = SubsetElements(startIdx, idx - 1);
-                    startIdx = idx + 1;
-                    paragraphs.Add(paragraph);
-                }
-            }
+            if (element is not Character)
+                continue;
+
+            var character = (Character)element;
+            if (character.SymbolName != SymbolName.ParaBreak)
+                continue;
+
+            var paragraph = new Paragraph();
+            paragraph.Format = Format.Clone();
+            paragraph.Style = Style;
+            paragraph.Elements = SubsetElements(startIdx, idx - 1);
+            startIdx = idx + 1;
+            paragraphs.Add(paragraph);
         }
         if (startIdx == 0) //No paragraph breaks given.
             return null;

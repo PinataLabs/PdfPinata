@@ -419,12 +419,12 @@ public abstract class PdfAcroField : PdfDictionary
                 var kids = Fields.Elements.Items;
                 foreach (var pdfItem in kids)
                 {
-                    if (pdfItem is PdfReference)
-                    {
-                        var xxx = ((PdfReference)pdfItem).Value as PdfDictionary;
-                        if (xxx != null)
-                            AppDict(xxx, names);
-                    }
+                    if (pdfItem is not PdfReference)
+                        continue;
+
+                    var xxx = ((PdfReference)pdfItem).Value as PdfDictionary;
+                    if (xxx != null)
+                        AppDict(xxx, names);
                 }
             }
         }

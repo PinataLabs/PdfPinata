@@ -78,34 +78,34 @@ internal class BarStackedPlotAreaRenderer : BarPlotAreaRenderer
           break;
 
         var column = (ColumnRendererInfo)sri.PointRendererInfos[pointIdx];
-        if (!double.IsNaN(column.Value))
+        if (double.IsNaN(column.Value))
+          continue;
+
+        var y = column.Value;
+        if (y < 0)
         {
-          var y = column.Value;
-          if (y < 0)
-          {
-            y0 = yMin + y;
-            y1 = yMin;
-            yMin += y;
-          }
-          else
-          {
-            y0 = yMax;
-            y1 = yMax + y;
-            yMax += y;
-          }
-
-          points[0].Y = x0; // oben links
-          points[0].X = y0;
-          points[1].Y = x1; // unten rechts
-          points[1].X = y1;
-
-          cri.PlotAreaRendererInfo.Matrix.TransformPoints(points);
-
-          column.Rect = new XRect(points[0].X,
-            points[0].Y,
-            points[1].X - points[0].X,
-            points[1].Y - points[0].Y);
+          y0 = yMin + y;
+          y1 = yMin;
+          yMin += y;
         }
+        else
+        {
+          y0 = yMax;
+          y1 = yMax + y;
+          yMax += y;
+        }
+
+        points[0].Y = x0; // oben links
+        points[0].X = y0;
+        points[1].Y = x1; // unten rechts
+        points[1].X = y1;
+
+        cri.PlotAreaRendererInfo.Matrix.TransformPoints(points);
+
+        column.Rect = new XRect(points[0].X,
+          points[0].Y,
+          points[1].X - points[0].X,
+          points[1].Y - points[0].Y);
       }
       x--; // Next stacked column.
     }

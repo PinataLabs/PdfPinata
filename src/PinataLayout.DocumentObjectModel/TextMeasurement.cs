@@ -110,11 +110,11 @@ public sealed class TextMeasurement
         set
         {
             ArgumentNullException.ThrowIfNull(value);
-            if (font != value)
-            {
-                font = value;
-                xFont = null;
-            }
+            if (font == value)
+                return;
+
+            font = value;
+            xFont = null;
         }
     }
 
@@ -124,20 +124,20 @@ public sealed class TextMeasurement
     private XFont XFont
     {
         get {
-            if (xFont == null)
-            {
-                var style = XFontStyle.Regular;
-                if (Font.Bold)
-                {
-                    style |= XFontStyle.Bold;
-                }
-                if (Font.Italic)
-                {
-                    style |= XFontStyle.Italic;
-                }
+            if (xFont != null)
+                return xFont;
 
-                xFont = new XFont(Font.Name, Font.Size, style);
+            var style = XFontStyle.Regular;
+            if (Font.Bold)
+            {
+                style |= XFontStyle.Bold;
             }
+            if (Font.Italic)
+            {
+                style |= XFontStyle.Italic;
+            }
+
+            xFont = new XFont(Font.Name, Font.Size, style);
 
             return xFont;
         }

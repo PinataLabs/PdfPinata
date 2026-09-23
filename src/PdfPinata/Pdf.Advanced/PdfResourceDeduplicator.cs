@@ -215,11 +215,11 @@ internal static class PdfResourceDeduplicator
 
             foreach (var category in ResourceCategories)
             {
-                if (Resolve(resources.Elements[category]) is PdfDictionary entries)
-                {
-                    foreach (var entry in entries.Elements.Values)
-                        AddItem(entry, 0);
-                }
+                if (Resolve(resources.Elements[category]) is not PdfDictionary entries)
+                    continue;
+
+                foreach (var entry in entries.Elements.Values)
+                    AddItem(entry, 0);
             }
         }
 
