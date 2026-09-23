@@ -67,19 +67,9 @@ internal class PdfWriter
     /// <summary>
     /// Gets or sets the kind of layout.
     /// </summary>
-    public PdfWriterLayout Layout
-    {
-        get => _layout;
-        set => _layout = value;
-    }
-    private PdfWriterLayout _layout;
+    public PdfWriterLayout Layout { get; set; }
 
-    public PdfWriterOptions Options
-    {
-        get => _options;
-        set => _options = value;
-    }
-    private PdfWriterOptions _options;
+    public PdfWriterOptions Options { get; set; }
 
     // -----------------------------------------------------------
 

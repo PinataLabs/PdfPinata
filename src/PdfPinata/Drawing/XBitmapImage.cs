@@ -39,23 +39,19 @@ public sealed class XBitmapImage : XBitmapSource
     /// </summary>
     internal XBitmapImage(int width, int height)
     {
-        _pixelWidth = width;
-        _pixelHeight = height;
+        PixelWidth = width;
+        PixelHeight = height;
     }
 
     /// <summary>
     /// Gets the width of the bitmap in pixels, as it was created.
     /// </summary>
-    public override int PixelWidth => _pixelWidth;
-
-    private readonly int _pixelWidth;
+    public override int PixelWidth { get; }
 
     /// <summary>
     /// Gets the height of the bitmap in pixels, as it was created.
     /// </summary>
-    public override int PixelHeight => _pixelHeight;
-
-    private readonly int _pixelHeight;
+    public override int PixelHeight { get; }
 
     /// <summary>
     /// Creates a default 24 bit ARGB bitmap with the specified pixel size.

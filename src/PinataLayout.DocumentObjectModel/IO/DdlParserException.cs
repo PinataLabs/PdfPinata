@@ -46,7 +46,7 @@ internal class DdlParserException : Exception
   public DdlParserException(string message)
     : base(message)
   {
-    error = new DdlReaderError(DdlErrorLevel.Error, message, 0);
+    Error = new DdlReaderError(DdlErrorLevel.Error, message, 0);
   }
 
   /// <summary>
@@ -57,7 +57,7 @@ internal class DdlParserException : Exception
     :
     base(message, innerException)
   {
-    error = new DdlReaderError(DdlErrorLevel.Error, message, 0);
+    Error = new DdlReaderError(DdlErrorLevel.Error, message, 0);
   }
 
   /// <summary>
@@ -68,7 +68,7 @@ internal class DdlParserException : Exception
     :
     base(message)
   {
-    error = new DdlReaderError(level, message, (int)errorCode);
+    Error = new DdlReaderError(level, message, (int)errorCode);
   }
 
   /// <summary>
@@ -77,13 +77,11 @@ internal class DdlParserException : Exception
   public DdlParserException(DdlReaderError error)
     : base(error.ErrorMessage)
   {
-    this.error = error;
+    Error = error;
   }
 
   /// <summary>
   /// Gets the DdlReaderError.
   /// </summary>
-  public DdlReaderError Error => error;
-
-  private readonly DdlReaderError error;
+  public DdlReaderError Error { get; }
 }

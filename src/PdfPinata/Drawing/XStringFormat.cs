@@ -46,24 +46,12 @@ public class XStringFormat
     /// <summary>
     /// Gets or sets horizontal text alignment information.
     /// </summary>
-    public XStringAlignment Alignment
-    {
-        get => _alignment;
-        set => _alignment = value;
-    }
-
-    private XStringAlignment _alignment;
+    public XStringAlignment Alignment { get; set; }
 
     /// <summary>
     /// Gets or sets the line alignment.
     /// </summary>
-    public XLineAlignment LineAlignment
-    {
-        get => _lineAlignment;
-        set => _lineAlignment = value;
-    }
-
-    private XLineAlignment _lineAlignment;
+    public XLineAlignment LineAlignment { get; set; }
 
     // ----- Text state ---------------------------------------------------------------------------
     //
@@ -160,13 +148,7 @@ public class XStringFormat
     /// other direction end up, which is exactly what the paragraph level decides.
     /// </para>
     /// </remarks>
-    public Text.BidiParagraphDirection TextDirection
-    {
-        get => _textDirection;
-        set => _textDirection = value;
-    }
-
-    private Text.BidiParagraphDirection _textDirection;
+    public Text.BidiParagraphDirection TextDirection { get; set; }
 
     /// <summary>
     /// Gets or sets the angle, in degrees, by which the text is slanted to the right.
@@ -201,25 +183,13 @@ public class XStringFormat
     /// Gets or sets the rule drawn under the text. <see cref="XTextDecoration.None"/>, the
     /// default, falls back to <see cref="XFontStyle.Underline"/> on the font.
     /// </summary>
-    public XTextDecoration Underline
-    {
-        get => _underline;
-        set => _underline = value;
-    }
-
-    private XTextDecoration _underline;
+    public XTextDecoration Underline { get; set; }
 
     /// <summary>
     /// Gets or sets the rule drawn through the text. <see cref="XTextDecoration.None"/>, the
     /// default, falls back to <see cref="XFontStyle.Strikeout"/> on the font.
     /// </summary>
-    public XTextDecoration Strikeout
-    {
-        get => _strikeout;
-        set => _strikeout = value;
-    }
-
-    private XTextDecoration _strikeout;
+    public XTextDecoration Strikeout { get; set; }
 
     /// <summary>
     /// Gets or sets the colour of the underline and strikeout rules. Empty, the default, draws
@@ -230,13 +200,7 @@ public class XStringFormat
     /// (<c>ParagraphRenderer</c>) - and neither does PDFKit. It is here because a rule that cannot
     /// be told apart from the text is the one thing a caller cannot achieve by other means.
     /// </remarks>
-    public XColor DecorationColor
-    {
-        get => _decorationColor;
-        set => _decorationColor = value;
-    }
-
-    private XColor _decorationColor = XColor.Empty;
+    public XColor DecorationColor { get; set; } = XColor.Empty;
 
     /// <summary>
     /// Returns true if every text state property still holds its default, and the text can

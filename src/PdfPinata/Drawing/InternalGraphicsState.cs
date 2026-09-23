@@ -81,13 +81,7 @@ internal class InternalGraphicsState
     /// <summary>
     /// Gets or sets the current transformation matrix.
     /// </summary>
-    public XMatrix Transform
-    {
-        get => _transform;
-        set => _transform = value;
-    }
-
-    private XMatrix _transform;
+    public XMatrix Transform { get; set; }
 
     /// <summary>
     /// Called after this instanced was pushed on the internal graphics stack.

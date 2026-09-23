@@ -91,13 +91,7 @@ internal class FormattedHeaderFooter : IAreaProvider
         return result;
     }
 
-    internal Rectangle ContentRect
-    {
-        get => _contentRect;
-        set => _contentRect = value;
-    }
-
-    private Rectangle _contentRect;
+    internal Rectangle ContentRect { get; set; }
 
     bool IAreaProvider.PositionVertically(LayoutInfo layoutInfo)
     {

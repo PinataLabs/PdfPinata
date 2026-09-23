@@ -221,56 +221,31 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// Gets or sets the left postion of the page positioned at the left side of the window.
     /// Applies only if PageDestinationType is Xyz, FitV, FitR, or FitBV.
     /// </summary>
-    public double Left
-    {
-        get => _left;
-        set => _left = value;
-    }
-    private double _left = double.NaN;
+    public double Left { get; set; } = double.NaN;
 
     /// <summary>
     /// Gets or sets the top postion of the page positioned at the top side of the window.
     /// Applies only if PageDestinationType is Xyz, FitH, FitR, ob FitBH.
     /// </summary>
-    public double Top
-    {
-        get => _top;
-        set => _top = value;
-    }
-    private double _top = double.NaN;
+    public double Top { get; set; } = double.NaN;
 
     /// <summary>
     /// Gets or sets the right postion of the page positioned at the right side of the window.
     /// Applies only if PageDestinationType is FitR.
     /// </summary>
-    public double Right
-    {
-        get => _right;
-        set => _right = value;
-    }
-    private double _right = double.NaN;
+    public double Right { get; set; } = double.NaN;
 
     /// <summary>
     /// Gets or sets the bottom postion of the page positioned at the bottom side of the window.
     /// Applies only if PageDestinationType is FitR.
     /// </summary>
-    public double Bottom
-    {
-        get => _bottom;
-        set => _bottom = value;
-    }
-    private double _bottom = double.NaN;
+    public double Bottom { get; set; } = double.NaN;
 
     /// <summary>
     /// Gets or sets the zoom faction of the page.
     /// Applies only if PageDestinationType is Xyz.
     /// </summary>
-    public double Zoom
-    {
-        get => _zoom;
-        set => _zoom = value;
-    }
-    private double _zoom = double.NaN; // PDF teats 0 and null equally.
+    public double Zoom { get; set; } = double.NaN; // PDF teats 0 and null equally.
 
     /// <summary>
     /// Gets or sets whether the outline item is opened (or expanded).

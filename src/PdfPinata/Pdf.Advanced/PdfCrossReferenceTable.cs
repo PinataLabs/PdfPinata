@@ -53,13 +53,7 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
     /// </summary>
     public Dictionary<PdfObjectID, PdfReference> ObjectTable = new();
 
-    internal bool IsUnderConstruction
-    {
-        get => _isUnderConstruction;
-        set => _isUnderConstruction = value;
-    }
-
-    private bool _isUnderConstruction;
+    internal bool IsUnderConstruction { get; set; }
 
     /// <summary>
     /// Adds a cross-reference entry to the table. Used when parsing the trailer.

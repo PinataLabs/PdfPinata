@@ -45,16 +45,11 @@ namespace PinataLayout.Rendering;
 internal abstract class Renderer
 {
     internal readonly static XUnit Tolerance = XUnit.FromPoint(0.001);
-    private XUnit _maxElementHeight = -1;
 
     /// <summary>
     /// Determines the maximum height a single element may have.
     /// </summary>
-    internal XUnit MaxElementHeight
-    {
-        get => _maxElementHeight;
-        set => _maxElementHeight = value;
-    }
+    internal XUnit MaxElementHeight { get; set; } = -1;
 
     internal Renderer(XGraphics gfx, DocumentObject documentObject, FieldInfos fieldInfos)
     {

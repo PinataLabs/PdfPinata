@@ -42,13 +42,11 @@ public class PdfResourceTable
     public PdfResourceTable(PdfDocument owner)
     {
         ArgumentNullException.ThrowIfNull(owner);
-        _owner = owner;
+        Owner = owner;
     }
 
     /// <summary>
     /// Gets the owning document of this resource table.
     /// </summary>
-    protected PdfDocument Owner => _owner;
-
-    private readonly PdfDocument _owner;
+    protected PdfDocument Owner { get; }
 }

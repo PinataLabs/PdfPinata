@@ -53,7 +53,7 @@ internal sealed class KeyDescriptor
         _version = attribute.Version;
         _keyType = attribute.KeyType;
         _fixedValue = attribute.FixedValue;
-        _objectType = attribute.ObjectType;
+        ObjectType = attribute.ObjectType;
 
         if (_version == "")
             _version = "1.0";
@@ -78,13 +78,7 @@ internal sealed class KeyDescriptor
 
     private KeyType _keyType;
 
-    public string KeyValue
-    {
-        get => _keyValue;
-        set => _keyValue = value;
-    }
-
-    private string _keyValue;
+    public string KeyValue { get; set; }
 
     public string FixedValue => _fixedValue;
 
@@ -92,15 +86,7 @@ internal sealed class KeyDescriptor
 
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors |
                                 DynamicallyAccessedMemberTypes.NonPublicConstructors)]
-    public Type ObjectType
-    {
-        get => _objectType;
-        set => _objectType = value;
-    }
-
-    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors |
-                                DynamicallyAccessedMemberTypes.NonPublicConstructors)]
-    private Type _objectType;
+    public Type ObjectType { get; set; }
 
     public bool CanBeIndirect => (_keyType & KeyType.MustNotBeIndirect) == 0;
 
@@ -112,7 +98,7 @@ internal sealed class KeyDescriptor
                                    DynamicallyAccessedMemberTypes.NonPublicConstructors)]
     public Type GetValueType()
     {
-        var type = _objectType;
+        var type = ObjectType;
         if (type != null)
             return type;
 

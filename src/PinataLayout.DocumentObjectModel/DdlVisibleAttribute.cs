@@ -45,7 +45,7 @@ internal class DdlVisibleAttribute : Attribute
   /// </summary>
   public DdlVisibleAttribute()
   {
-    visible = true;
+    Visible = true;
   }
 
   /// <summary>
@@ -53,30 +53,15 @@ internal class DdlVisibleAttribute : Attribute
   /// </summary>
   public DdlVisibleAttribute(bool _visible)
   {
-    visible = _visible;
+    Visible = _visible;
   }
 
   /// <summary>
   /// Gets or sets the visibility.
   /// </summary>
-  public bool Visible
-  {
-    get => visible;
-    set => visible = value;
-  }
-  private bool visible;
+  public bool Visible { get; set; }
 
-  public bool CanAddValue
-  {
-    get => canAddValue;
-    set => canAddValue = value;
-  }
-  private bool canAddValue;
+  public bool CanAddValue { get; set; }
 
-  public bool CanRemoveValue
-  {
-    get => canRemoveValue;
-    set => canRemoveValue = value;
-  }
-  private bool canRemoveValue;
+  public bool CanRemoveValue { get; set; }
 }

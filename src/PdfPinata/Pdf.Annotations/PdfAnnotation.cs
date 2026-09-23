@@ -136,12 +136,7 @@ public abstract class PdfAnnotation : PdfDictionary
     /// <summary>
     /// Gets or sets the PdfAnnotations object that this annotation belongs to.
     /// </summary>
-    public PdfAnnotations Parent
-    {
-        get => _parent;
-        set => _parent = value;
-    }
-    private PdfAnnotations _parent;
+    public PdfAnnotations Parent { get; set; }
 
     /// <summary>
     /// Called once the annotation has been added to a page, and so has an owning document.

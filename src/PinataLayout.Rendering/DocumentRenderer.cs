@@ -314,12 +314,7 @@ public class DocumentRenderer
     /// <summary>
     /// Gets or sets the working directory for rendering.
     /// </summary>
-    public string WorkingDirectory
-    {
-        get => workingDirectory;
-        set => workingDirectory = value;
-    }
-    private string workingDirectory;
+    public string WorkingDirectory { get; set; }
 
     private void RenderHeader(XGraphics graphics, int page)
     {

@@ -492,14 +492,7 @@ public sealed class XGraphicsPath
     /// <summary>
     /// Gets or sets an XFillMode that determines how the interiors of shapes are filled.
     /// </summary>
-    public XFillMode FillMode
-    {
-        get => _fillMode;
-        set => _fillMode = value;
-        // Nothing to do.
-    }
-
-    private XFillMode _fillMode;
+    public XFillMode FillMode { get; set; }
 
     // --------------------------------------------------------------------------------------------
 

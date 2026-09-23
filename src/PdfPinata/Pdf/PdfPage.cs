@@ -114,12 +114,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// Gets or sets a user defined object that contains arbitrary information associated with this PDF page.
     /// The tag is not used by PdfPinata.
     /// </summary>
-    public object Tag
-    {
-        get => _tag;
-        set => _tag = value;
-    }
-    private object _tag;
+    public object Tag { get; set; }
 
     /// <summary>
     /// Closes the page. A closes page cannot be modified anymore and it is not possible to

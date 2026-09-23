@@ -72,13 +72,7 @@ public class CString : CObject
     /// <summary>
     /// Gets or sets the type of the content string.
     /// </summary>
-    public CStringType CStringType
-    {
-        get => _cStringType;
-        set => _cStringType = value;
-    }
-
-    private CStringType _cStringType;
+    public CStringType CStringType { get; set; }
 
     /// <summary>
     /// Returns a string that represents the current value.

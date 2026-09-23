@@ -289,25 +289,13 @@ public sealed class PdfCheckBoxField : PdfButtonField
     /// Gets or sets the name of the dictionary that represents the Checked state.
     /// </summary>
     /// The default value is "/Yes".
-    public string CheckedName
-    {
-        get => _checkedName;
-        set => _checkedName = value;
-    }
-
-    private string _checkedName = "/Yes";
+    public string CheckedName { get; set; } = "/Yes";
 
     /// <summary>
     /// Gets or sets the name of the dictionary that represents the Unchecked state.
     /// The default value is "/Off".
     /// </summary>
-    public string UncheckedName
-    {
-        get => _uncheckedName;
-        set => _uncheckedName = value;
-    }
-
-    private string _uncheckedName = "/Off";
+    public string UncheckedName { get; set; } = "/Off";
 
     /// <summary>
     /// Predefined keys of this dictionary.

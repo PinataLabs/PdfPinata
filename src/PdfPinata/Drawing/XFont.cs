@@ -190,13 +190,7 @@ public sealed class XFont
     /// <summary>
     /// Temporary HACK for XPS to PDF converter.
     /// </summary>
-    internal bool IsVertical
-    {
-        get => _isVertical;
-        set => _isVertical = value;
-    }
-
-    private bool _isVertical;
+    internal bool IsVertical { get; set; }
 
 
     /// <summary>
@@ -214,35 +208,17 @@ public sealed class XFont
     /// <summary>
     /// Gets the cell space for the font. The CellSpace is the line spacing, the sum of CellAscent and CellDescent and optionally some extra space.
     /// </summary>
-    public int CellSpace
-    {
-        get => _cellSpace;
-        internal set => _cellSpace = value;
-    }
-
-    private int _cellSpace;
+    public int CellSpace { get; internal set; }
 
     /// <summary>
     /// Gets the cell ascent, the area above the base line that is used by the font.
     /// </summary>
-    public int CellAscent
-    {
-        get => _cellAscent;
-        internal set => _cellAscent = value;
-    }
-
-    private int _cellAscent;
+    public int CellAscent { get; internal set; }
 
     /// <summary>
     /// Gets the cell descent, the area below the base line that is used by the font.
     /// </summary>
-    public int CellDescent
-    {
-        get => _cellDescent;
-        internal set => _cellDescent = value;
-    }
-
-    private int _cellDescent;
+    public int CellDescent { get; internal set; }
 
     /// <summary>
     /// Gets the font metrics.
@@ -332,13 +308,7 @@ public sealed class XFont
     /// Cache PdfFontTable.FontSelector to speed up finding the right PdfFont
     /// if this font is used more than once.
     /// </summary>
-    internal string Selector
-    {
-        get => _selector;
-        set => _selector = value;
-    }
-
-    private string _selector;
+    internal string Selector { get; set; }
 
     /// <summary>
     /// Gets the DebuggerDisplayAttribute text.

@@ -179,19 +179,9 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
         Elements.SetInteger("/Length", bytes.Length);
     }
 
-    internal double DpiX
-    {
-        get => _dpiX;
-        set => _dpiX = value;
-    }
-    private double _dpiX = 72;
+    internal double DpiX { get; set; } = 72;
 
-    internal double DpiY
-    {
-        get => _dpiY;
-        set => _dpiY = value;
-    }
-    private double _dpiY = 72;
+    internal double DpiY { get; set; } = 72;
 
     internal PdfFormXObject(PdfDocument thisDocument, PdfImportedObjectTable importedObjectTable, XPdfForm form)
         : base(thisDocument)

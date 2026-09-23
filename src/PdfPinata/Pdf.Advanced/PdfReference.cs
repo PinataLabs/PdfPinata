@@ -155,12 +155,7 @@ public sealed class PdfReference : PdfItem
     /// <summary>
     /// Gets or sets the document this object belongs to.
     /// </summary>
-    public PdfDocument Document
-    {
-        get => _document;
-        set => _document = value;
-    }
-    private PdfDocument _document;
+    public PdfDocument Document { get; set; }
 
     /// <summary>
     /// Gets a string representing the object identifier.

@@ -64,41 +64,33 @@ public sealed class XImageFormat
     /// <summary>
     /// Gets the Portable Network Graphics (PNG) image format.
     /// </summary>
-    public static XImageFormat Png => _png;
+    public static XImageFormat Png { get; } = new(new Guid("{B96B3CAF-0728-11D3-9D7B-0000F81EF32E}"));
 
     /// <summary>
     /// Gets the Graphics Interchange Format (GIF) image format.
     /// </summary>
-    public static XImageFormat Gif => _gif;
+    public static XImageFormat Gif { get; } = new(new Guid("{B96B3CB0-0728-11D3-9D7B-0000F81EF32E}"));
 
     /// <summary>
     /// Gets the Joint Photographic Experts Group (JPEG) image format.
     /// </summary>
-    public static XImageFormat Jpeg => _jpeg;
+    public static XImageFormat Jpeg { get; } = new(new Guid("{B96B3CAE-0728-11D3-9D7B-0000F81EF32E}"));
 
     /// <summary>
     /// Gets the Tag Image File Format (TIFF) image format.
     /// </summary>
-    public static XImageFormat Tiff => _tiff;
+    public static XImageFormat Tiff { get; } = new(new Guid("{B96B3CB1-0728-11D3-9D7B-0000F81EF32E}"));
 
     /// <summary>
     /// Gets the Portable Document Format (PDF) image format
     /// </summary>
-    public static XImageFormat Pdf => _pdf;
+    public static XImageFormat Pdf { get; } = new(new Guid("{84570158-DBF0-4C6B-8368-62D6A3CA76E0}")); // not GDI+ conform
 
     /// <summary>
     /// Gets the Windows icon image format.
     /// </summary>
-    public static XImageFormat Icon => _icon;
-
-    private readonly Guid _guid;
+    public static XImageFormat Icon { get; } = new(new Guid("{B96B3CB5-0728-11D3-9D7B-0000F81EF32E}"));
 
     // #??? Why Guids?
-    private static readonly XImageFormat _png = new(new Guid("{B96B3CAF-0728-11D3-9D7B-0000F81EF32E}"));
-    private static readonly XImageFormat _gif = new(new Guid("{B96B3CB0-0728-11D3-9D7B-0000F81EF32E}"));
-    private static readonly XImageFormat _jpeg = new(new Guid("{B96B3CAE-0728-11D3-9D7B-0000F81EF32E}"));
-    private static readonly XImageFormat _tiff = new(new Guid("{B96B3CB1-0728-11D3-9D7B-0000F81EF32E}"));
-    private static readonly XImageFormat _icon = new(new Guid("{B96B3CB5-0728-11D3-9D7B-0000F81EF32E}"));
-    // not GDI+ conform
-    private static readonly XImageFormat _pdf = new(new Guid("{84570158-DBF0-4C6B-8368-62D6A3CA76E0}"));
+    private readonly Guid _guid;
 }

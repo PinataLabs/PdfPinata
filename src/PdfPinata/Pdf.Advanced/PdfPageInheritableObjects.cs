@@ -41,21 +41,9 @@ internal class PdfPageInheritableObjects : PdfDictionary
     /// <summary>
     ///
     /// </summary>
-    public PdfRectangle MediaBox
-    {
-        get => _mediaBox;
-        set => _mediaBox = value;
-    }
+    public PdfRectangle MediaBox { get; set; }
 
-    private PdfRectangle _mediaBox;
-
-    public PdfRectangle CropBox
-    {
-        get => _cropBox;
-        set => _cropBox = value;
-    }
-
-    private PdfRectangle _cropBox;
+    public PdfRectangle CropBox { get; set; }
 
     public int Rotate
     {
