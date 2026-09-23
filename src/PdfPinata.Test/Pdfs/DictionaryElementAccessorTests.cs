@@ -747,7 +747,9 @@ public class DictionaryElementAccessorTests
         throughTheDictionary.Should().BeEquivalentTo("/A", "/B");
         throughTheElements.Should().BeEquivalentTo("/A", "/B");
         throughTheOldInterface.Should().HaveCount(2);
-        ((IEnumerable)dictionary).GetEnumerator().Should().NotBeNull();
+        var enumerator = ((IEnumerable)dictionary).GetEnumerator();
+        using (enumerator as IDisposable)
+            enumerator.Should().NotBeNull();
     }
 
     [Fact]
