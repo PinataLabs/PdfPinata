@@ -1585,7 +1585,7 @@ internal sealed class Parser
     /// is what read them before: white space around the digits and a sign are both accepted.
     /// </summary>
     private static bool TryParseField(string date, int start, int length, out int value) =>
-        int.TryParse(date.Substring(start, length), NumberStyles.Integer, NumberFormatInfo.CurrentInfo, out value);
+        int.TryParse(date.AsSpan(start, length), NumberStyles.Integer, NumberFormatInfo.CurrentInfo, out value);
 
     private ParserState SaveState()
     {

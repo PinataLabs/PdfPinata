@@ -1084,12 +1084,10 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// <param name="fontData">The font program itself, as an OpenType or TrueType file.</param>
     public string AddFontProgram(string idName, byte[] fontData)
     {
-        if (idName == null)
-            throw new ArgumentNullException(nameof(idName));
+        ArgumentNullException.ThrowIfNull(idName);
         if (idName.Length == 0)
             throw new ArgumentException("The name of a font program must not be empty.", nameof(idName));
-        if (fontData == null)
-            throw new ArgumentNullException(nameof(fontData));
+        ArgumentNullException.ThrowIfNull(fontData);
 
         return GetFontName(idName, fontData, out _);
     }
@@ -1100,8 +1098,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// </summary>
     public string TryGetFontProgramName(string idName)
     {
-        if (idName == null)
-            throw new ArgumentNullException(nameof(idName));
+        ArgumentNullException.ThrowIfNull(idName);
 
         return TryGetFontName(idName, out _);
     }

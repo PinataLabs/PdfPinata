@@ -151,7 +151,7 @@ public struct TopPosition : INullableValue
     if (value is ShapePosition value1)
       SetFromEnum(value1);
     else if (value is string s && Enum.IsDefined(typeof(ShapePosition), s))
-      SetFromEnum((ShapePosition)Enum.Parse(typeof(ShapePosition), s));
+      SetFromEnum(Enum.Parse<ShapePosition>(s));
     else
       SetFromUnit(value.ToString());
 

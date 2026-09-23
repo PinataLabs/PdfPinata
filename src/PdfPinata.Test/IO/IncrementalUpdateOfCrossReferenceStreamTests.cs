@@ -206,5 +206,5 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
 
     /// <summary>How many cross-reference stream dictionaries the text holds, however it is spaced.</summary>
     private static int CrossReferenceStreamsIn(string text) =>
-        Regex.Matches(text, @"/Type\s*/XRef").Count;
+        Regex.Count(text, @"/Type\s*/XRef");
 }

@@ -25,7 +25,7 @@ namespace PdfPinata.Test.IO;
 ///   <c>PdfPinata.Pdf.Internal.ThreadLocalStorage</c>, which nothing else in the library reaches.
 ///   </para>
 /// </summary>
-public class ImportedPageFormTests : IDisposable
+public sealed class ImportedPageFormTests : IDisposable
 {
     private readonly string _directory =
         Path.Combine(Path.GetTempPath(), "PdfPinataImported" + Guid.NewGuid().ToString("N"));

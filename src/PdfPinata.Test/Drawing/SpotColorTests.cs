@@ -209,8 +209,8 @@ public class SpotColorTests
         })[0];
 
         var content = Content(page);
-        Regex.Matches(content, @"\bcs\b").Count.Should().Be(1);
-        Regex.Matches(content, @"\bscn\b").Count.Should().Be(2, "the third rectangle is the tint already set");
+        Regex.Count(content, @"\bcs\b").Should().Be(1);
+        Regex.Count(content, @"\bscn\b").Should().Be(2, "the third rectangle is the tint already set");
     }
 
     [Fact]

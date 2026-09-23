@@ -38,8 +38,7 @@ public sealed class XSpotColor : IEquatable<XSpotColor>
     /// <param name="alternate">The process colour a device without the ink paints at full tint.</param>
     public XSpotColor(string name, XColor alternate)
     {
-        if (name == null)
-            throw new ArgumentNullException(nameof(name));
+        ArgumentNullException.ThrowIfNull(name);
         if (name.Length == 0)
             throw new ArgumentException("A spot colour needs a name: it is the name a press separates by.", nameof(name));
 

@@ -29,6 +29,8 @@
 
 // ReSharper disable ConvertToAutoProperty
 
+using System;
+
 namespace PdfPinata.Pdf;
 
 /// <summary>
@@ -182,7 +184,7 @@ public sealed class PdfDocumentOptions
         get => _metadataStrategy;
         set
         {
-            if (!System.Enum.IsDefined(typeof(Metadata.PdfMetadataStrategy), value))
+            if (!Enum.IsDefined(value))
                 throw new System.ArgumentOutOfRangeException(nameof(value), value, "Not a metadata strategy.");
 
             _metadataStrategy = value;
