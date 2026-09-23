@@ -166,8 +166,7 @@ public sealed class PdfStructureElement : PdfDictionary
     /// </returns>
     internal bool RemoveLastMarkedContent(int mcid)
     {
-        var kids = Elements[Keys.K] as PdfArray;
-        if (kids == null || kids.Elements.Count == 0)
+        if (Elements[Keys.K] is not PdfArray kids || kids.Elements.Count == 0)
             return false;
 
         var last = kids.Elements[^1];

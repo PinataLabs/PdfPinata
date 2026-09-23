@@ -90,8 +90,7 @@ public partial class XSeriesElements : DocumentObjectCollection
     var count = Count;
     for (var index = 0; index < count; index++)
     {
-      var xValue = this[index] as XValue;
-      if (xValue == null)
+      if (this[index] is not XValue xValue)
         serializer.Write("null, ");
       else
         xValue.Serialize(serializer);

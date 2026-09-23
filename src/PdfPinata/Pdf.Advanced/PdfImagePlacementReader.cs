@@ -75,8 +75,7 @@ internal sealed class PdfImagePlacementReader
 
         foreach (var item in sequence)
         {
-            var op = item as COperator;
-            if (op == null)
+            if (item is not COperator op)
                 continue;
 
             switch (op.OpCode.OpCodeName)
@@ -223,8 +222,7 @@ internal sealed class PdfImagePlacementReader
         if (index < 0 || index >= op.Operands.Count)
             return null;
 
-        var name = op.Operands[index] as CName;
-        return name == null ? null : name.Name;
+        return op.Operands[index] is CName name ? name.Name : null;
     }
 
     private static bool TryGetNumber(CObject operand, out double value)

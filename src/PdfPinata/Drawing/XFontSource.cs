@@ -152,8 +152,7 @@ internal class XFontSource
 
     public override bool Equals(object obj)
     {
-        var fontSource = obj as XFontSource;
-        if (fontSource == null)
+        if (obj is not XFontSource fontSource)
             return false;
         return Key == fontSource.Key;
     }

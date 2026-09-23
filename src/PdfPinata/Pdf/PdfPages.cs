@@ -698,8 +698,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
 
         // A destination going into another file names its page by number rather than holding a
         // reference to it, and there is nothing here to detach.
-        var externalPage = externalDestination.Elements[0] as PdfReference;
-        if (externalPage == null)
+        if (externalDestination.Elements[0] is not PdfReference externalPage)
             return;
 
         PdfArray destination;

@@ -278,8 +278,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
     private static string StateOf(PdfDictionary child, bool wanted)
     {
         var appearances = child?.Elements["/AP"] as PdfDictionary;
-        var normal = appearances?.Elements["/N"] as PdfDictionary;
-        if (normal == null)
+        if (appearances?.Elements["/N"] is not PdfDictionary normal)
             return "";
 
         foreach (var name in normal.Elements.Keys)

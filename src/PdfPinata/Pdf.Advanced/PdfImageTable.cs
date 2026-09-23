@@ -97,8 +97,7 @@ internal sealed class PdfImageTable : PdfResourceTable
 
         public override bool Equals(object obj)
         {
-            var selector = obj as ImageSelector;
-            if (selector == null)
+            if (obj is not ImageSelector selector)
                 return false;
             return _path == selector._path;
         }

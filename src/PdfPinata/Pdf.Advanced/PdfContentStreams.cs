@@ -27,8 +27,7 @@ internal static class PdfContentStreams
             return true;
         }
 
-        var streams = item as PdfArray;
-        if (streams == null)
+        if (item is not PdfArray streams)
             return TryGetContent(item as PdfDictionary, out content);
 
         // The streams of a page are one stream broken up, and a token may span the break, so

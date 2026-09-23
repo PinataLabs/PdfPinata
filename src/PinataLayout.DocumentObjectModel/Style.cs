@@ -258,8 +258,7 @@ public sealed partial class Style : DocumentObject, IVisitable
         if (IsRootStyle)
             return null;
 
-        var styles = Parent as Styles;
-        if (styles == null)
+        if (Parent is not Styles styles)
             throw new InvalidOperationException(
                 "This instance of 'style' is currently not owner of a parent; access failed");
         if ((baseStyle ?? "") == "")

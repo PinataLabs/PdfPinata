@@ -216,10 +216,8 @@ internal sealed class PdfFormXObjectTable : PdfResourceTable
 
         public override bool Equals(object obj)
         {
-            var selector = obj as Selector;
-            if (selector == null)
+            if (obj is not Selector selector)
                 return false;
-            // ReSharper disable once PossibleNullReferenceException
             return _path == selector._path;
         }
 

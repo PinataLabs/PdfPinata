@@ -103,8 +103,7 @@ internal abstract class PdfPageWalk
     {
         foreach (var item in sequence)
         {
-            var op = item as COperator;
-            if (op == null)
+            if (item is not COperator op)
                 continue;
 
             Observe(op, scope, depth);
@@ -196,8 +195,7 @@ internal abstract class PdfPageWalk
         var resolved = ResolveRaw(category, name, scope);
         RecordResolved(category, name, resolved);
 
-        var resource = resolved as PdfDictionary;
-        if (resource == null)
+        if (resolved is not PdfDictionary resource)
         {
             // The content names something the resources do not hold, or something that is not a
             // dictionary at all — a bare colour space name, say. There is nothing to follow.

@@ -1636,10 +1636,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
 
         public override bool Equals(object obj)
         {
-            var handle = obj as DocumentHandle;
-            if (!ReferenceEquals(handle, null))
-                return Id == handle.Id;
-            return false;
+            return obj is DocumentHandle handle && Id == handle.Id;
         }
 
         public override int GetHashCode()

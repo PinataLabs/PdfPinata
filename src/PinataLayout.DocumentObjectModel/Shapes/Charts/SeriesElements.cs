@@ -95,8 +95,7 @@ public partial class SeriesElements : DocumentObjectCollection
     var count = Count;
     for (var index = 0; index < count; ++index)
     {
-      var point = this[index] as Point;
-      if (point == null)
+      if (this[index] is not Point point)
         serializer.Write("null, ");
       else
         point.Serialize(serializer);
