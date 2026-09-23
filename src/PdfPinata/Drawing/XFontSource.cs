@@ -99,15 +99,13 @@ internal class XFontSource
     /// </summary>
     internal OpenTypeFontface Fontface
     {
-        get => _fontface;
+        get;
         set
         {
-            _fontface = value;
+            field = value;
             FontName = value.name.FullFontName;
         }
     }
-
-    private OpenTypeFontface _fontface;
 
     /// <summary>
     /// Gets the key that uniquely identifies this font source.

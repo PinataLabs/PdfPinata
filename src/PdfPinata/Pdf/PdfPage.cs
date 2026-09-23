@@ -962,18 +962,17 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     {
         get
         {
-            _customValues ??= PdfCustomValues.Get(Elements);
-            return _customValues;
+            field ??= PdfCustomValues.Get(Elements);
+            return field;
         }
         set
         {
             if (value != null)
                 throw new ArgumentException("Only null is allowed to clear all custom values.");
             PdfCustomValues.Remove(Elements);
-            _customValues = null;
+            field = null;
         }
     }
-    private PdfCustomValues _customValues;
 
     /// <summary>
     /// Gets the PdfResources object of this page.

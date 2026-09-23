@@ -67,11 +67,10 @@ public abstract class PdfDictionaryWithContentStream : PdfDictionary, IContentSt
     {
         get
         {
-            _resources ??= (PdfResources)Elements.GetValue(Keys.Resources, VCF.Create);
-            return _resources;
+            field ??= (PdfResources)Elements.GetValue(Keys.Resources, VCF.Create);
+            return field;
         }
     }
-    private PdfResources _resources;
 
     /// <summary>
     /// Implements the interface because the primary function is internal.

@@ -1688,17 +1688,15 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     {
         get
         {
-            if (_noSoftMaskState == null)
+            if (field == null)
             {
-                _noSoftMaskState = new PdfExtGState(Owner);
-                _noSoftMaskState.Elements.SetName(PdfExtGState.Keys.SMask, "/None");
+                field = new PdfExtGState(Owner);
+                field.Elements.SetName(PdfExtGState.Keys.SMask, "/None");
             }
 
-            return _noSoftMaskState;
+            return field;
         }
     }
-
-    private PdfExtGState _noSoftMaskState;
 
     /// <summary>
     /// Gets the size of this page or form as it is written to the file. It is the area drawing

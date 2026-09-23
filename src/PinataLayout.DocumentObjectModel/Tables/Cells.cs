@@ -69,15 +69,14 @@ public partial class Cells : DocumentObjectCollection
   {
     get
     {
-      if (table != null)
-        return table;
+      if (field != null)
+        return field;
 
       if (Parent is Row rw)
-        table = rw.Table;
-      return table;
+        field = rw.Table;
+      return field;
     }
   }
-  private Table table;
 
   /// <summary>
   /// Gets the row the cells collection belongs to.
@@ -86,12 +85,11 @@ public partial class Cells : DocumentObjectCollection
   {
     get
     {
-      row ??= Parent as Row;
+      field ??= Parent as Row;
 
-      return row;
+      return field;
     }
   }
-  private Row row;
 
   /// <summary>
   /// Gets a cell by its index. The first cell has the index 0.

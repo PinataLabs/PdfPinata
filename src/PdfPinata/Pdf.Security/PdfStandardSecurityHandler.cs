@@ -605,8 +605,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// The MD5 implementation the standard security handler is built on. It is created on
     /// first use, because a handler is also instantiated for documents that are not encrypted.
     /// </summary>
-    private MD5Managed _md5 => _md5Instance ??= new MD5Managed();
-    private MD5Managed _md5Instance;
+    private MD5Managed _md5 => field ??= new MD5Managed();
 
     /// <summary>
     /// Bytes used for RC4 encryption.

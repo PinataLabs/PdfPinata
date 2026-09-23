@@ -131,11 +131,10 @@ public class PdfFileAttachmentAnnotation : PdfMarkupAnnotation
         {
             get
             {
-                meta ??= CreateMeta(typeof(Keys));
-                return meta;
+                field ??= CreateMeta(typeof(Keys));
+                return field;
             }
         }
-        private static DictionaryMeta meta;
     }
 
     /// <summary>

@@ -44,24 +44,23 @@ public sealed class PdfDocumentSettings
     {
         get
         {
-            _trimMargins ??= new TrimMargins();
-            return _trimMargins;
+            field ??= new TrimMargins();
+            return field;
         }
         set
         {
-            _trimMargins ??= new TrimMargins();
+            field ??= new TrimMargins();
             if (value != null)
             {
-                _trimMargins.Left = value.Left;
-                _trimMargins.Right = value.Right;
-                _trimMargins.Top = value.Top;
-                _trimMargins.Bottom = value.Bottom;
+                field.Left = value.Left;
+                field.Right = value.Right;
+                field.Top = value.Top;
+                field.Bottom = value.Bottom;
             }
             else
             {
-                _trimMargins.All = 0;
+                field.All = 0;
             }
         }
-    }
-    private TrimMargins _trimMargins = new();
+    } = new();
 }

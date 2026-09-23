@@ -74,15 +74,14 @@ public partial class Row : DocumentObject, IVisitable
   {
     get
     {
-      if (table != null)
-        return table;
+      if (field != null)
+        return field;
 
       if (Parent is Rows rws)
-        table = rws.Table;
-      return table;
+        field = rws.Table;
+      return field;
     }
   }
-  private Table table;
 
   /// <summary>
   /// Gets the index of the row. First row has index 0.

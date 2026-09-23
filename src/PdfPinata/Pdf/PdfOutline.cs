@@ -207,16 +207,15 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// </summary>
     public PdfPage DestinationPage
     {
-        get => _destinationPage;
+        get;
         set
         {
-            _destinationPage = value;
+            field = value;
             // Being given a destination page makes the entry one this library describes, whatever
             // the document it came from said.
             _keepDestinationAsFound = false;
         }
     }
-    private PdfPage _destinationPage;
 
     /// <summary>
     /// Gets or sets the left postion of the page positioned at the left side of the window.
@@ -303,14 +302,13 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// </summary>
     public PdfPageDestinationType PageDestinationType
     {
-        get => _pageDestinationType;
+        get;
         set
         {
-            _pageDestinationType = value;
+            field = value;
             _keepDestinationAsFound = false;
         }
-    }
-    private PdfPageDestinationType _pageDestinationType = PdfPageDestinationType.Xyz;
+    } = PdfPageDestinationType.Xyz;
 
     /// <summary>
     /// Whether where this entry goes is something this library cannot describe - a destination of

@@ -58,20 +58,19 @@ internal class FormattedTextArea : IAreaProvider
 
   internal XUnit InnerWidth
   {
-    set => innerWidth = value;
+    set => field = value;
     get
     {
-      if (!double.IsNaN(innerWidth))
-        return innerWidth;
+      if (!double.IsNaN(field))
+        return field;
 
       if (!textArea.IsNull("Width"))
-        innerWidth = textArea.Width.Point;
+        field = textArea.Width.Point;
       else
-        innerWidth = CalcInherentWidth();
-      return innerWidth;
+        field = CalcInherentWidth();
+      return field;
     }
-  }
-  private XUnit innerWidth = double.NaN;
+  } = double.NaN;
 
   internal XUnit InnerHeight
   {

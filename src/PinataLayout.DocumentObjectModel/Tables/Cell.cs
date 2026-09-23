@@ -163,15 +163,14 @@ public partial class Cell : DocumentObject, IVisitable
     {
         get
         {
-            if (table != null)
-                return table;
+            if (field != null)
+                return field;
 
             if (Parent is Cells cls)
-                table = cls.Table;
-            return table;
+                field = cls.Table;
+            return field;
         }
     }
-    private Table table;
 
     /// <summary>
     /// Gets the column the cell belongs to.

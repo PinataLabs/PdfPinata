@@ -127,11 +127,10 @@ public sealed class PdfCatalog : PdfDictionary
     {
         get
         {
-            _viewerPreferences ??= (PdfViewerPreferences)Elements.GetValue(Keys.ViewerPreferences, VCF.CreateIndirect);
-            return _viewerPreferences;
+            field ??= (PdfViewerPreferences)Elements.GetValue(Keys.ViewerPreferences, VCF.CreateIndirect);
+            return field;
         }
     }
-    private PdfViewerPreferences _viewerPreferences;
 
     /// <summary>
     /// Implementation of PdfDocument.Outlines.

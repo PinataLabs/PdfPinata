@@ -2106,9 +2106,7 @@ public sealed class XGraphics : IDisposable
     /// <summary>
     /// (Under construction. May change in future versions.)
     /// </summary>
-    public SpaceTransformer Transformer => _transformer ??= new SpaceTransformer(this);
-
-    private SpaceTransformer _transformer;
+    public SpaceTransformer Transformer => field ??= new SpaceTransformer(this);
 
     #endregion
 

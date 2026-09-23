@@ -507,21 +507,20 @@ public abstract class PdfAcroField : PdfDictionary
     {
         get
         {
-            if (_fields == null)
+            if (field == null)
             {
                 object o = Elements.GetValue(Keys.Kids, VCF.CreateIndirect);
-                _fields = (PdfAcroFieldCollection)o;
+                field = (PdfAcroFieldCollection)o;
 
                 // Whose /Kids this is. The same class serves as a form's /Fields, where there is
                 // nobody to be under, so the collection cannot work it out for itself - and a
                 // field added to /Kids needs the /Parent back-reference that a root field must
                 // not have.
-                _fields.SetParentField(this);
+                field.SetParentField(this);
             }
-            return _fields;
+            return field;
         }
     }
-    private PdfAcroFieldCollection _fields;
 
     /// <summary>
     /// Holds a collection of interactive fields.

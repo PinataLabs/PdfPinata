@@ -62,11 +62,10 @@ internal static class PdfEncoders
     {
         get
         {
-            _winAnsiEncoding ??= new AnsiEncoding();
-            return _winAnsiEncoding;
+            field ??= new AnsiEncoding();
+            return field;
         }
     }
-    private static Encoding _winAnsiEncoding;
 
     /// <summary>
     /// Gets the PDF DocEncoding encoding.

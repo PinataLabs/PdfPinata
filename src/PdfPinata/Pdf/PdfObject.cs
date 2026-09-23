@@ -148,9 +148,7 @@ public abstract class PdfObject : PdfItem
     /// Gets the PdfInternals object of this document, that grants access to some internal structures
     /// which are not part of the public interface of PdfDocument.
     /// </summary>
-    public PdfObjectInternals Internals => _internals ??= new PdfObjectInternals(this);
-
-    private PdfObjectInternals _internals;
+    public PdfObjectInternals Internals => field ??= new PdfObjectInternals(this);
 
     /// <summary>
     /// When overridden in a derived class, prepares the object to get saved.

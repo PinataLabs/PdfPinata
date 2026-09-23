@@ -288,11 +288,10 @@ internal sealed class PdfType0Font : PdfFont
         {
             get
             {
-                _meta ??= CreateMeta(typeof(Keys));
-                return _meta;
+                field ??= CreateMeta(typeof(Keys));
+                return field;
             }
         }
-        private static DictionaryMeta _meta;
     }
 
     /// <summary>

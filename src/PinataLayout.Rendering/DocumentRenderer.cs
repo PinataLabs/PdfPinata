@@ -176,8 +176,7 @@ public class DocumentRenderer
     /// Builds the structure tree as the document is drawn. Shared by every renderer of this pass, so
     /// that a paragraph broken over two pages stays one paragraph.
     /// </summary>
-    internal StructureTagger Tagger => tagger ??= new StructureTagger();
-    private StructureTagger tagger;
+    internal StructureTagger Tagger => field ??= new StructureTagger();
 
     /// <summary>
     /// Renders a PinataLayout document to the specified graphics object.

@@ -349,20 +349,19 @@ internal static class PSSR
     {
         get
         {
-            if (_resmngr == null)
+            if (field == null)
             {
                 try
                 {
                     Lock.EnterFontFactory();
-                    _resmngr ??= new ResourceManager("PdfPinata.Resources.Messages",
+                    field ??= new ResourceManager("PdfPinata.Resources.Messages",
                         Assembly.GetExecutingAssembly());
                 }
                 finally { Lock.ExitFontFactory(); }
             }
-            return _resmngr;
+            return field;
         }
     }
-    private static ResourceManager _resmngr;
 
     #endregion
 }

@@ -73,15 +73,14 @@ public partial class Column : DocumentObject
   {
     get
     {
-      if (table != null)
-        return table;
+      if (field != null)
+        return field;
 
       if (Parent is Columns clms)
-        table = clms.Parent as Table;
-      return table;
+        field = clms.Parent as Table;
+      return field;
     }
   }
-  private Table table;
 
   /// <summary>
   /// Gets the index of the column. First column has index 0.
