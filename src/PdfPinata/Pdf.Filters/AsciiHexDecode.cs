@@ -93,7 +93,9 @@ public class AsciiHexDecode : Filter
                 throw new ArgumentException($@"Illegal character 0x{ch:X2} in ASCIIHexDecode data.", nameof(data));
 
             if (hi < 0)
+            {
                 hi = digit;
+            }
             else
             {
                 bytes[count++] = (byte)(hi << 4 | digit);

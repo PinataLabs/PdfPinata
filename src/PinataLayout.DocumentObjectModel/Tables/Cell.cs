@@ -398,7 +398,7 @@ public partial class Cell : DocumentObject, IVisitable
 
         var pos = serializer.BeginAttributes();
 
-        if ((style ?? "") != String.Empty)
+        if ((style ?? "") != string.Empty)
             serializer.WriteSimpleAttribute("Style", Style);
 
         if (!IsNull("Format"))

@@ -446,7 +446,9 @@ public abstract class PdfObject : PdfItem
                 Debug.Assert(value.Owner == owner);
             }
             else
+            {
                 Debug.Assert(false, "Should not come here. Object is neither a dictionary nor an array.");
+            }
         }
     }
 

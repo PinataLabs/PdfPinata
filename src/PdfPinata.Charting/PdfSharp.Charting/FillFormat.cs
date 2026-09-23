@@ -64,8 +64,8 @@ public class FillFormat : DocumentObject
   /// </summary>
   public XColor Color
   {
-    get => this.color;
-    set => this.color = value;
+    get => color;
+    set => color = value;
   }
   internal XColor color = XColor.Empty;
 
@@ -74,8 +74,8 @@ public class FillFormat : DocumentObject
   /// </summary>
   public bool Visible
   {
-    get => this.visible;
-    set => this.visible = value;
+    get => visible;
+    set => visible = value;
   }
   internal bool visible;
   #endregion

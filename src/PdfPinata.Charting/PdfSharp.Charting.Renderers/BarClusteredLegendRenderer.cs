@@ -49,12 +49,12 @@ internal class BarClusteredLegendRenderer : ColumnLikeLegendRenderer
   /// </summary>
   internal override void Draw()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     var lri = cri.LegendRendererInfo;
     if (lri == null)
       return;
 
-    var gfx = this.rendererParms.Graphics;
+    var gfx = rendererParms.Graphics;
     var parms = new RendererParameters();
     parms.Graphics = gfx;
 

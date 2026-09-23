@@ -50,21 +50,21 @@ internal class LineChartRenderer : ColumnLikeChartRenderer
   internal override RendererInfo Init()
   {
     var cri = new ChartRendererInfo();
-    cri.Chart = (Chart)this.rendererParms.DrawingItem;
-    this.rendererParms.RendererInfo = cri;
+    cri.Chart = (Chart)rendererParms.DrawingItem;
+    rendererParms.RendererInfo = cri;
 
     InitSeriesRendererInfo();
 
-    var lr = new ColumnLikeLegendRenderer(this.rendererParms);
+    var lr = new ColumnLikeLegendRenderer(rendererParms);
     cri.LegendRendererInfo = (LegendRendererInfo)lr.Init();
 
-    var xar = new HorizontalXAxisRenderer(this.rendererParms);
+    var xar = new HorizontalXAxisRenderer(rendererParms);
     cri.XAxisRendererInfo = (AxisRendererInfo)xar.Init();
 
-    var yar = new VerticalYAxisRenderer(this.rendererParms);
+    var yar = new VerticalYAxisRenderer(rendererParms);
     cri.YAxisRendererInfo = (AxisRendererInfo)yar.Init();
 
-    var lpar = new LinePlotAreaRenderer(this.rendererParms);
+    var lpar = new LinePlotAreaRenderer(rendererParms);
     cri.PlotAreaRendererInfo = (PlotAreaRendererInfo)lpar.Init();
 
     return cri;
@@ -75,21 +75,21 @@ internal class LineChartRenderer : ColumnLikeChartRenderer
   /// </summary>
   internal override void Format()
   {
-    var lr = new ColumnLikeLegendRenderer(this.rendererParms);
+    var lr = new ColumnLikeLegendRenderer(rendererParms);
     lr.Format();
 
     // axes
-    var xar = new HorizontalXAxisRenderer(this.rendererParms);
+    var xar = new HorizontalXAxisRenderer(rendererParms);
     xar.Format();
 
-    var yar = new VerticalYAxisRenderer(this.rendererParms);
+    var yar = new VerticalYAxisRenderer(rendererParms);
     yar.Format();
 
     // Calculate rects and positions.
     CalcLayout();
 
     // Calculated remaining plot area, now it's safe to format.
-    var lpar = new LinePlotAreaRenderer(this.rendererParms);
+    var lpar = new LinePlotAreaRenderer(rendererParms);
     lpar.Format();
   }
 
@@ -98,36 +98,36 @@ internal class LineChartRenderer : ColumnLikeChartRenderer
   /// </summary>
   internal override void Draw()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
-    var lr = new ColumnLikeLegendRenderer(this.rendererParms);
+    var lr = new ColumnLikeLegendRenderer(rendererParms);
     lr.Draw();
 
     // Draw wall.
-    var wr = new WallRenderer(this.rendererParms);
+    var wr = new WallRenderer(rendererParms);
     wr.Draw();
 
     // Draw gridlines.
-    var glr = new ColumnLikeGridlinesRenderer(this.rendererParms);
+    var glr = new ColumnLikeGridlinesRenderer(rendererParms);
     glr.Draw();
 
-    var pabr = new PlotAreaBorderRenderer(this.rendererParms);
+    var pabr = new PlotAreaBorderRenderer(rendererParms);
     pabr.Draw();
 
     // Draw line chart's plot area.
-    var lpar = new LinePlotAreaRenderer(this.rendererParms);
+    var lpar = new LinePlotAreaRenderer(rendererParms);
     lpar.Draw();
 
     // Draw x- and y-axis.
     if (cri.XAxisRendererInfo.Axis != null)
     {
-      var xar = new HorizontalXAxisRenderer(this.rendererParms);
+      var xar = new HorizontalXAxisRenderer(rendererParms);
       xar.Draw();
     }
 
     if (cri.YAxisRendererInfo.Axis != null)
     {
-      var yar = new VerticalYAxisRenderer(this.rendererParms);
+      var yar = new VerticalYAxisRenderer(rendererParms);
       yar.Draw();
     }
   }
@@ -137,7 +137,7 @@ internal class LineChartRenderer : ColumnLikeChartRenderer
   /// </summary>
   private void InitSeriesRendererInfo()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
     var seriesColl = cri.Chart.SeriesCollection;
     cri.SeriesRendererInfos = new SeriesRendererInfo[seriesColl.Count];
@@ -156,7 +156,7 @@ internal class LineChartRenderer : ColumnLikeChartRenderer
   /// </summary>
   internal void InitSeries()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
     var seriesIndex = 0;
     foreach (var sri in cri.SeriesRendererInfos)

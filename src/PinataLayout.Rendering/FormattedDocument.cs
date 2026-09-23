@@ -278,11 +278,15 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         var fieldInfos = pageFieldInfos[page];
 
         if (page == 1)
+        {
             pagePos = PagePosition.First;
+        }
         else //page > 1
         {
             if (IsEmptyPage(page - 1)) // these empty pages only occur between sections.
+            {
                 pagePos = PagePosition.First;
+            }
             else
             {
                 var prevFieldInfos = pageFieldInfos[page - 1];
@@ -308,12 +312,16 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         var fieldInfos = pageFieldInfos[page];
 
         if (page == 1)
+        {
             pagePos = PagePosition.First;
+        }
 
         else //page > 1
         {
             if (IsEmptyPage(page - 1)) // these empty pages only occur between sections.
+            {
                 pagePos = PagePosition.First;
+            }
             else
             {
                 var prevFieldInfos = pageFieldInfos[page - 1];

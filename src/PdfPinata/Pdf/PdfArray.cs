@@ -606,6 +606,6 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
     /// </summary>
     // ReSharper disable UnusedMember.Local
     private string DebuggerDisplay =>
-        String.Format(CultureInfo.InvariantCulture, "array({0},[{1}])", ObjectID.DebuggerDisplay,
+        string.Format(CultureInfo.InvariantCulture, "array({0},[{1}])", ObjectID.DebuggerDisplay,
             _elements?.Count ?? 0); // ReSharper restore UnusedMember.Local
 }

@@ -140,7 +140,9 @@ internal sealed class PdfToUnicodeMap : PdfDictionary
         }
 
         if (Stream == null)
+        {
             CreateStream(bytes);
+        }
         else
         {
             Stream.Value = bytes;

@@ -552,7 +552,7 @@ internal sealed class PdfGraphicsState : ICloneable
     #region Text
 
     internal PdfFont RealizedFont;
-    private string _realizedFontName = String.Empty;
+    private string _realizedFontName = string.Empty;
     private double _realizedFontSize;
     private int _realizedRenderingMode;  // Reference: TABLE 5.2  Text state operators / Page 398
     private double _realizedCharSpace;  // Reference: TABLE 5.2  Text state operators / Page 398

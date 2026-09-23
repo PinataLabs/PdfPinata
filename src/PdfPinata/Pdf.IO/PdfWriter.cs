@@ -421,7 +421,7 @@ internal class PdfWriter
 
     public void WriteRaw(string rawString)
     {
-        if (String.IsNullOrEmpty(rawString))
+        if (string.IsNullOrEmpty(rawString))
             return;
 
         var bytes = PdfEncoders.RawEncoding.GetBytes(rawString);

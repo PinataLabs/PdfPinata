@@ -47,7 +47,7 @@ public class XSeries : ChartObject
   /// <summary>
   /// Gets the xvalue at the specified index.
   /// </summary>
-  public XValue this[int index] => (XValue)this.xSeriesElements[index];
+  public XValue this[int index] => (XValue)xSeriesElements[index];
 
   /// <summary>
   /// The actual value container of the XSeries.
@@ -82,7 +82,7 @@ public class XSeries : ChartObject
   /// </summary>
   public void AddBlank()
   {
-    this.xSeriesElements.AddBlank();
+    xSeriesElements.AddBlank();
   }
 
   /// <summary>
@@ -90,7 +90,7 @@ public class XSeries : ChartObject
   /// </summary>
   public XValue Add(string value)
   {
-    return this.xSeriesElements.Add(value);
+    return xSeriesElements.Add(value);
   }
 
   /// <summary>
@@ -98,7 +98,7 @@ public class XSeries : ChartObject
   /// </summary>
   public void Add(params string[] values)
   {
-    this.xSeriesElements.Add(values);
+    xSeriesElements.Add(values);
   }
 
   /// <summary>
@@ -107,7 +107,7 @@ public class XSeries : ChartObject
   /// <returns></returns>
   public IEnumerator GetEnumerator()
   {
-    return this.xSeriesElements.GetEnumerator();
+    return xSeriesElements.GetEnumerator();
   }
   #endregion
 
@@ -115,7 +115,7 @@ public class XSeries : ChartObject
   /// <summary>
   /// Gets the number of xvalues actually contained in the xseries.
   /// </summary>
-  public int Count => this.xSeriesElements.Count;
+  public int Count => xSeriesElements.Count;
 
   #endregion
 }

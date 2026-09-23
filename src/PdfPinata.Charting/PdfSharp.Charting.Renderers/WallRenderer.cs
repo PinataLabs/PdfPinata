@@ -47,14 +47,14 @@ internal class WallRenderer : Renderer
   /// </summary>
   internal override void Draw()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     if (cri.PlotAreaRendererInfo.FillFormat != null)
     {
       var plotAreaBox = cri.PlotAreaRendererInfo.Rect;
       if (HasNoRoom(plotAreaBox))
         return;
 
-      this.rendererParms.Graphics.DrawRectangle(cri.PlotAreaRendererInfo.FillFormat, plotAreaBox);
+      rendererParms.Graphics.DrawRectangle(cri.PlotAreaRendererInfo.FillFormat, plotAreaBox);
     }
   }
 }

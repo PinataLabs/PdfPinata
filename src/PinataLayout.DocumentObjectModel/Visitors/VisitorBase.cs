@@ -108,7 +108,9 @@ public abstract class VisitorBase : DocumentObjectVisitor
             }
         }
         else if (refFormat.font != null)
+        {
             FlattenFont(format.font, refFormat.font);
+        }
 
         if (format.shading == null)
         {
@@ -119,7 +121,9 @@ public abstract class VisitorBase : DocumentObjectVisitor
             }
         }
         else if (refFormat.shading != null)
+        {
             FlattenShading(format.shading, refFormat.shading);
+        }
 
         // Copied rather than shared, as the font and the shading above are: a format is flattened
         // more than once, and the second pass would otherwise write what it inherits back into the
@@ -279,7 +283,9 @@ public abstract class VisitorBase : DocumentObjectVisitor
                 pageSetup.pageFormat = refPageSetup.pageFormat;
             }
             else
+            {
                 PageSetup.GetPageSize(pageSetup.PageFormat, out pageSetup.pageWidth, out pageSetup.pageHeight);
+            }
         }
         else
         {
@@ -427,7 +433,9 @@ public abstract class VisitorBase : DocumentObjectVisitor
             chart.format.parent = chart;
         }
         else
+        {
             FlattenParagraphFormat(chart.format, style.paragraphFormat);
+        }
 
 
         FlattenLineFormat(chart.lineFormat, null);
@@ -486,7 +494,9 @@ public abstract class VisitorBase : DocumentObjectVisitor
 
         var style = document.styles[(footnote.style ?? "")];
         if (style != null)
+        {
             format = ParagraphFormatFromStyle(style);
+        }
         else
         {
             footnote.Style = "Footnote";
@@ -499,7 +509,9 @@ public abstract class VisitorBase : DocumentObjectVisitor
             footnote.format.parent = footnote;
         }
         else
+        {
             FlattenParagraphFormat(footnote.format, format);
+        }
     }
 
     internal override void VisitParagraph(Paragraph paragraph)
@@ -511,7 +523,9 @@ public abstract class VisitorBase : DocumentObjectVisitor
         var currentElementHolder = GetDocumentElementHolder(paragraph);
         var style = document.styles[(paragraph.style ?? "")];
         if (style != null)
+        {
             format = ParagraphFormatFromStyle(style);
+        }
 
         else if (currentElementHolder is Cell cell)
         {
@@ -559,7 +573,9 @@ public abstract class VisitorBase : DocumentObjectVisitor
             paragraph.format.parent = paragraph;
         }
         else
+        {
             FlattenParagraphFormat(paragraph.format, format);
+        }
     }
 
     #endregion
@@ -578,7 +594,9 @@ public abstract class VisitorBase : DocumentObjectVisitor
         ParagraphFormat format;
         var style = document.styles[(headerFooter.style ?? "")];
         if (style != null)
+        {
             format = ParagraphFormatFromStyle(style);
+        }
         else
         {
             format = document.styles[styleString].paragraphFormat;
@@ -591,7 +609,9 @@ public abstract class VisitorBase : DocumentObjectVisitor
             headerFooter.format.parent = headerFooter;
         }
         else
+        {
             FlattenParagraphFormat(headerFooter.format, format);
+        }
     }
 
     internal override void VisitHeadersFooters(HeadersFooters headersFooters)
@@ -697,7 +717,9 @@ public abstract class VisitorBase : DocumentObjectVisitor
             return format;
         }
         else
+        {
             return style.paragraphFormat;
+        }
     }
 
     internal override void VisitTable(Table table)

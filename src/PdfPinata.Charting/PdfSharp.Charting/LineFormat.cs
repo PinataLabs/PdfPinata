@@ -64,8 +64,8 @@ public class LineFormat : DocumentObject
   /// </summary>
   public bool Visible
   {
-    get => this.visible;
-    set => this.visible = value;
+    get => visible;
+    set => visible = value;
   }
   internal bool visible;
 
@@ -74,8 +74,8 @@ public class LineFormat : DocumentObject
   /// </summary>
   public XUnit Width
   {
-    get => this.width;
-    set => this.width = value;
+    get => width;
+    set => width = value;
   }
   internal XUnit width;
 
@@ -84,8 +84,8 @@ public class LineFormat : DocumentObject
   /// </summary>
   public XColor Color
   {
-    get => this.color;
-    set => this.color = value;
+    get => color;
+    set => color = value;
   }
   internal XColor color = XColor.Empty;
 
@@ -94,8 +94,8 @@ public class LineFormat : DocumentObject
   /// </summary>
   public XDashStyle DashStyle
   {
-    get => this.dashStyle;
-    set => this.dashStyle = value;
+    get => dashStyle;
+    set => dashStyle = value;
   }
   internal XDashStyle dashStyle;
 
@@ -104,8 +104,8 @@ public class LineFormat : DocumentObject
   /// </summary>
   public LineStyle Style
   {
-    get => this.style;
-    set => this.style = value;
+    get => style;
+    set => style = value;
   }
   internal LineStyle style;
   #endregion

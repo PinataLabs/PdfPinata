@@ -103,18 +103,18 @@ public class ImageHelper
     if (length != 0)
     {
       length--;
-      if (Char.IsDigit(path, length))
+      if (char.IsDigit(path, length))
       {
         // Bound first: the old order asked whether path[-1] was a digit when every character
         // was one, and Char.IsDigit threw rather than the loop ending. Duplicated in XPdfForm.
-        while (length >= 0 && Char.IsDigit(path, length))
+        while (length >= 0 && char.IsDigit(path, length))
           length--;
         if (length > 0 && path[length] == '#')
         {
           // must have at least one dot left of colon to distinguish from e.g. '#123'
           if (path.Contains('.'))
           {
-            pageNumber = Int32.Parse(path[(length + 1)..]);
+            pageNumber = int.Parse(path[(length + 1)..]);
             path = path[..length];
           }
         }

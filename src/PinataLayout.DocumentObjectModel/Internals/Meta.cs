@@ -134,7 +134,9 @@ public sealed class Meta
       doc.SetValue(trail, val);
     }
     else
+    {
       vd.SetValue(dom, val);
+    }
   }
 
   /// <summary>

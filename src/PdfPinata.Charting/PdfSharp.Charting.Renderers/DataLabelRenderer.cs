@@ -49,7 +49,7 @@ internal abstract class DataLabelRenderer : Renderer
   /// </summary>
   internal override RendererInfo Init()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     foreach (var sri in cri.SeriesRendererInfos)
     {
       if (cri.Chart.hasDataLabel || cri.Chart.dataLabel != null ||

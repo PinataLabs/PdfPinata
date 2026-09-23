@@ -49,8 +49,8 @@ internal abstract class ChartRenderer : Renderer
   /// </summary>
   protected XRect LayoutLegend()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    var remainingRect = this.rendererParms.Box;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
+    var remainingRect = rendererParms.Box;
     if (cri.LegendRendererInfo != null)
     {
       switch (cri.LegendRendererInfo.Legend.Docking)

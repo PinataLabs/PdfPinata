@@ -58,7 +58,7 @@ public class PdfDocumentRenderer
     /// <param name="unicode">If true Unicode encoding is used for all text. If false, WinAnsi encoding is used.</param>
     public PdfDocumentRenderer(bool unicode)
     {
-        this._unicode = unicode;
+        _unicode = unicode;
     }
 
     /// <summary>
@@ -82,7 +82,7 @@ public class PdfDocumentRenderer
         set => _language = value;
     }
 
-    private string _language = String.Empty;
+    private string _language = string.Empty;
 
     /// <summary>
     /// Gets or sets whether the rendered PDF carries a structure tree describing it. The default is

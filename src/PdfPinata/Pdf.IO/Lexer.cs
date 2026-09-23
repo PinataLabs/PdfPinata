@@ -195,7 +195,9 @@ public class Lexer
                 pos = _idxChar + 1;
         }
         else
+        {
             pos = _idxChar + 1;
+        }
         return pos;
     }
 
@@ -380,17 +382,19 @@ public class Lexer
                 _token.Append(ch);
             }
             else
+            {
                 break;
+            }
             ch = ScanNextChar(true);
         }
 
         if (period)
             return Symbol.Real;
-        var l = Int64.Parse(_token.ToString(), CultureInfo.InvariantCulture);
-        if (l >= Int32.MinValue && l <= Int32.MaxValue)
+        var l = long.Parse(_token.ToString(), CultureInfo.InvariantCulture);
+        if (l >= int.MinValue && l <= int.MaxValue)
             return Symbol.Integer;
         // ReSharper disable ConditionIsAlwaysTrueOrFalse
-        if (l >= Int64.MinValue && l <= Int64.MaxValue)
+        if (l >= long.MinValue && l <= long.MaxValue)
             return Symbol.Long;
         // ReSharper restore ConditionIsAlwaysTrueOrFalse
 
@@ -805,8 +809,8 @@ public class Lexer
         get
         {
             var numbers = Token.Split('|');
-            var objectNumber = Int32.Parse(numbers[0]);
-            var generationNumber = Int32.Parse(numbers[1]);
+            var objectNumber = int.Parse(numbers[0]);
+            var generationNumber = int.Parse(numbers[1]);
             return new PdfObjectID(objectNumber, generationNumber);
         }
     }

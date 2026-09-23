@@ -198,7 +198,7 @@ internal class DdlParser
             {
                 ReadCode();
                 if (Symbol != Symbol.Identifier && Symbol != Symbol.StringLiteral)
-                    this.ThrowParserException(DomMsgID.StyleNameExpected, styleName);
+                    ThrowParserException(DomMsgID.StyleNameExpected, styleName);
 
                 // If baseStyle is not valid, choose InvalidStyleName by default.
                 baseStyleName = scanner.Token;
@@ -854,7 +854,7 @@ internal class DdlParser
         ReadCode();  // read integer
         if (TokenType == TokenType.IntegerLiteral)
         {
-            var val = this.scanner.GetTokenValueAsInt();
+            var val = scanner.GetTokenValueAsInt();
             if (val >= 1 && val < 256)
                 ch = (char)val;
             else
@@ -1297,7 +1297,9 @@ internal class DdlParser
                 ParseAttributes(image, !paragraphContent);
             }
             else if (!paragraphContent)
+            {
                 ReadCode(); // We are a part of a section, cell etc.; read beyond ')'.
+            }
         }
         catch (DdlParserException ex)
         {
@@ -1566,7 +1568,9 @@ internal class DdlParser
                 return;
 
             if (IsParagraphContent())
+            {
                 ParseParagraphContent(area.Elements, null);
+            }
             else
             {
                 ReadCode(); // read beyond '{'
@@ -1705,7 +1709,7 @@ internal class DdlParser
 
                     default:
                         AssertCondition(fFoundComma, DomMsgID.MissingComma);
-                        series.Add(this.scanner.GetTokenValueAsReal());
+                        series.Add(scanner.GetTokenValueAsReal());
                         fFoundComma = false;
                         ReadCode();
                         break;
@@ -1800,7 +1804,7 @@ internal class DdlParser
 
             AssertSymbol(Symbol.BraceLeft, DomMsgID.MissingBraceLeft, GetSymbolText(Symbol.Point));
             ReadCode(); // read beyond '{'
-            point.Value = this.scanner.GetTokenValueAsReal();
+            point.Value = scanner.GetTokenValueAsReal();
 
             ReadCode(); // read '}'
             AssertSymbol(Symbol.BraceRight, DomMsgID.MissingBraceRight, GetSymbolText(Symbol.Point));
@@ -1931,7 +1935,7 @@ internal class DdlParser
                     // Hard-coded for TabStops only...
                     if (!(doc is ParagraphFormat))
                         ThrowParserException(DomMsgID.SymbolNotAllowed, scanner.Token);
-                    if (String.Compare(valueName, "TabStops", StringComparison.OrdinalIgnoreCase) != 0)
+                    if (string.Compare(valueName, "TabStops", StringComparison.OrdinalIgnoreCase) != 0)
                         ThrowParserException(DomMsgID.InvalidValueForOperation, valueName, scanner.Token);
 
                     var paragraphFormat = (ParagraphFormat)doc;
@@ -1957,7 +1961,9 @@ internal class DdlParser
                             ReadCode();
                         }
                         else
+                        {
                             ThrowParserException(DomMsgID.UnexpectedSymbol, Token);
+                        }
 
                         if (fAddItem)
                             tabStops.AddTabStop(tabStop);
@@ -2024,19 +2030,33 @@ internal class DdlParser
         try
         {
             if (valType == typeof(string))
+            {
                 ParseStringAssignment(dom, vd);
+            }
             else if (valType == typeof(int))
+            {
                 ParseIntegerAssignment(dom, vd);
+            }
             else if (valType == typeof(Unit))
+            {
                 ParseUnitAssignment(dom, vd);
+            }
             else if (valType == typeof(double) || valType == typeof(float))
+            {
                 ParseRealAssignment(dom, vd);
+            }
             else if (valType == typeof(bool))
+            {
                 ParseBoolAssignment(dom, vd);
+            }
             else if (typeof(Enum).GetTypeInfo().IsAssignableFrom(valType.GetTypeInfo()))
+            {
                 ParseEnumAssignment(dom, vd);
+            }
             else if (valType == typeof(Color))
+            {
                 ParseColorAssignment(dom, vd);
+            }
             else if (typeof(ValueType).IsAssignableFrom(valType))
             {
                 ParseValueTypeAssignment(dom, vd);
@@ -2077,7 +2097,7 @@ internal class DdlParser
         AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.HexIntegerLiteral || Symbol == Symbol.StringLiteral,
             DomMsgID.IntegerExpected, Token);
 
-        var n = Int32.Parse(scanner.Token, CultureInfo.InvariantCulture);
+        var n = int.Parse(scanner.Token, CultureInfo.InvariantCulture);
         dom.SetValue(vd.ValueName, n);
 
         ReadCode();
@@ -2175,18 +2195,26 @@ internal class DdlParser
             {
                 var type = vd.ValueType;
                 if (typeof(Border) == type)
+                {
                     ((Border)val).Clear();
+                }
                 else if (typeof(Borders) == type)
+                {
                     ((Borders)val).ClearAll();
+                }
                 else if (typeof(Shading) == type)
+                {
                     ((Shading)val).Clear();
+                }
                 else if (typeof(TabStops) == type)
                 {
                     var tabStops = (TabStops)vd.GetValue(dom, GV.ReadWrite);
                     tabStops.ClearAll();
                 }
                 else
+                {
                     ThrowParserException(DomMsgID.NullAssignmentNotSupported, vd.ValueName);
+                }
 
                 ReadCode();
             }
@@ -2264,7 +2292,9 @@ internal class DdlParser
             throw new NotImplementedException("ParseColor(color-name)");
         }
         else
+        {
             ThrowParserException(DomMsgID.StringExpected, scanner.Token);
+        }
         return color;
     }
 
@@ -2279,8 +2309,8 @@ internal class DdlParser
 
         ReadCode();  // read red value
         AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.HexIntegerLiteral,
-            DomMsgID.IntegerExpected, this.scanner.Token);
-        r = this.scanner.GetTokenValueAsUInt();
+            DomMsgID.IntegerExpected, scanner.Token);
+        r = scanner.GetTokenValueAsUInt();
         AssertCondition(r <= 255, DomMsgID.InvalidRange, "0 - 255");
 
         ReadCode();  // read ','
@@ -2288,8 +2318,8 @@ internal class DdlParser
 
         ReadCode();  // read green value
         AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.HexIntegerLiteral,
-            DomMsgID.IntegerExpected, this.scanner.Token);
-        g = this.scanner.GetTokenValueAsUInt();
+            DomMsgID.IntegerExpected, scanner.Token);
+        g = scanner.GetTokenValueAsUInt();
         AssertCondition(g <= 255, DomMsgID.InvalidRange, "0 - 255");
 
         ReadCode();  // read ','
@@ -2297,8 +2327,8 @@ internal class DdlParser
 
         ReadCode();  // read blue value
         AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.HexIntegerLiteral,
-            DomMsgID.IntegerExpected, this.scanner.Token);
-        b = this.scanner.GetTokenValueAsUInt();
+            DomMsgID.IntegerExpected, scanner.Token);
+        b = scanner.GetTokenValueAsUInt();
         AssertCondition(b <= 255, DomMsgID.InvalidRange, "0 - 255");
 
         ReadCode();  // read ')'
@@ -2320,8 +2350,8 @@ internal class DdlParser
 
         ReadCode();  // read v1 value
         AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.RealLiteral,
-            DomMsgID.NumberExpected, this.scanner.Token);
-        v1 = this.scanner.GetTokenValueAsReal();
+            DomMsgID.NumberExpected, scanner.Token);
+        v1 = scanner.GetTokenValueAsReal();
         AssertCondition(v1 >= 0.0f && v1 <= 100.0f, DomMsgID.InvalidRange, "0.0 - 100.0");
 
         ReadCode();  // read ','
@@ -2329,8 +2359,8 @@ internal class DdlParser
 
         ReadCode();  // read v2 value
         AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.RealLiteral,
-            DomMsgID.NumberExpected, this.scanner.Token);
-        v2 = this.scanner.GetTokenValueAsReal();
+            DomMsgID.NumberExpected, scanner.Token);
+        v2 = scanner.GetTokenValueAsReal();
         AssertCondition(v2 >= 0.0f && v2 <= 100.0f, DomMsgID.InvalidRange, "0.0 - 100.0");
 
         ReadCode();  // read ','
@@ -2338,8 +2368,8 @@ internal class DdlParser
 
         ReadCode();  // read v3 value
         AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.RealLiteral,
-            DomMsgID.NumberExpected, this.scanner.Token);
-        v3 = this.scanner.GetTokenValueAsReal();
+            DomMsgID.NumberExpected, scanner.Token);
+        v3 = scanner.GetTokenValueAsReal();
         AssertCondition(v3 >= 0.0f && v3 <= 100.0f, DomMsgID.InvalidRange, "0.0 - 100.0");
 
         ReadCode();  // read ','
@@ -2347,8 +2377,8 @@ internal class DdlParser
 
         ReadCode();  // read v4 value
         AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.RealLiteral,
-            DomMsgID.NumberExpected, this.scanner.Token);
-        v4 = this.scanner.GetTokenValueAsReal();
+            DomMsgID.NumberExpected, scanner.Token);
+        v4 = scanner.GetTokenValueAsReal();
         AssertCondition(v4 >= 0.0f && v4 <= 100.0, DomMsgID.InvalidRange, "0.0 - 100.0");
 
         ReadCode();  // read ')' or ','
@@ -2358,8 +2388,8 @@ internal class DdlParser
             hasAlpha = true;
             ReadCode();  // read v5 value
             AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.RealLiteral,
-                DomMsgID.NumberExpected, this.scanner.Token);
-            v5 = this.scanner.GetTokenValueAsReal();
+                DomMsgID.NumberExpected, scanner.Token);
+            v5 = scanner.GetTokenValueAsReal();
             AssertCondition(v5 >= 0.0f && v5 <= 100.0, DomMsgID.InvalidRange, "0.0 - 100.0");
 
             ReadCode();  // read ')'
@@ -2391,8 +2421,8 @@ internal class DdlParser
 
         ReadCode();  // read gray value
         AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.HexIntegerLiteral,
-            DomMsgID.IntegerExpected, this.scanner.Token);
-        gray = this.scanner.GetTokenValueAsReal();
+            DomMsgID.IntegerExpected, scanner.Token);
+        gray = scanner.GetTokenValueAsReal();
         AssertCondition(gray >= 0.0f && gray <= 100.0f, DomMsgID.InvalidRange, "0.0 - 100.0");
 
         ReadCode();  // read ')'
@@ -2543,9 +2573,9 @@ internal class DdlParser
         // ReSharper disable once CoVariantArrayConversion
         var message = DomSR.FormatMessage(errorCode, parms);
         var error = new DdlReaderError(level, message, (int)errorCode,
-            this.scanner.DocumentFileName, this.scanner.CurrentLine, this.scanner.CurrentLinePos);
+            scanner.DocumentFileName, scanner.CurrentLine, scanner.CurrentLinePos);
 
-        this.errors.AddError(error);
+        errors.AddError(error);
     }
 
     /// <summary>
@@ -2553,7 +2583,7 @@ internal class DdlParser
     /// </summary>
     private void ReportParserException(DdlParserException ex)
     {
-        this.errors.AddError(ex.Error);
+        errors.AddError(ex.Error);
     }
 
     /// <summary>
@@ -2568,7 +2598,7 @@ internal class DdlParser
         // ReSharper disable once CoVariantArrayConversion
         message += DomSR.FormatMessage(errorCode, parms);
         var error = new DdlReaderError(DdlErrorLevel.Error, message, (int)errorCode,
-            this.scanner.DocumentFileName, this.scanner.CurrentLine, this.scanner.CurrentLinePos);
+            scanner.DocumentFileName, scanner.CurrentLine, scanner.CurrentLinePos);
 
         this.errors.AddError(error);
     }
@@ -2582,7 +2612,7 @@ internal class DdlParser
     {
         var message = DomSR.FormatMessage(errorCode, parms);
         var error = new DdlReaderError(DdlErrorLevel.Error, message, (int)errorCode,
-            this.scanner.DocumentFileName, this.scanner.CurrentLine, this.scanner.CurrentLinePos);
+            scanner.DocumentFileName, scanner.CurrentLine, scanner.CurrentLinePos);
 
         throw new DdlParserException(error);
     }

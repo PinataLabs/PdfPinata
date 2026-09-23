@@ -83,7 +83,9 @@ static class GeometryHelper
         var endQuadrant = Quadrant(β, false, clockwise);
 
         if (startQuadrant == endQuadrant && smallAngle)
+        {
             AppendPartialArcQuadrant(points, x, y, width, height, α, β, pathStart, matrix);
+        }
         else
         {
             var currentQuadrant = startQuadrant;
@@ -142,7 +144,9 @@ static class GeometryHelper
                 quadrant = quadrant == 0 ? 3 : quadrant - 1;
         }
         else
+        {
             quadrant = clockwise ? ((int)Math.Floor(φ / 90)) % 4 : (int)Math.Floor(φ / 90);
+        }
         return quadrant;
     }
 

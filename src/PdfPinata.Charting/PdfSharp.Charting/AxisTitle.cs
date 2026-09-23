@@ -78,10 +78,10 @@ public class AxisTitle : ChartObject
   /// </summary>
   public string Caption
   {
-    get => this.caption;
-    set => this.caption = value;
+    get => caption;
+    set => caption = value;
   }
-  internal string caption = String.Empty;
+  internal string caption = string.Empty;
 
   /// <summary>
   /// Gets the font of the title.
@@ -90,10 +90,10 @@ public class AxisTitle : ChartObject
   {
     get
     {
-      if (this.font == null)
-        this.font = new Font(this);
+      if (font == null)
+        font = new Font(this);
 
-      return this.font;
+      return font;
     }
   }
   internal Font font;
@@ -103,8 +103,8 @@ public class AxisTitle : ChartObject
   /// </summary>
   public double Orientation
   {
-    get => this.orientation;
-    set => this.orientation = value;
+    get => orientation;
+    set => orientation = value;
   }
   internal double orientation;
 
@@ -113,8 +113,8 @@ public class AxisTitle : ChartObject
   /// </summary>
   public HorizontalAlignment Alignment
   {
-    get => this.alignment;
-    set => this.alignment = value;
+    get => alignment;
+    set => alignment = value;
   }
   internal HorizontalAlignment alignment;
 
@@ -123,8 +123,8 @@ public class AxisTitle : ChartObject
   /// </summary>
   public VerticalAlignment VerticalAlignment
   {
-    get => this.verticalAlignment;
-    set => this.verticalAlignment = value;
+    get => verticalAlignment;
+    set => verticalAlignment = value;
   }
   internal VerticalAlignment verticalAlignment;
   #endregion

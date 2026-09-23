@@ -46,7 +46,7 @@ internal abstract class YAxisRenderer : AxisRenderer
   internal YAxisRenderer(RendererParameters parms, AxisOrientation orientation)
     : base(parms)
   {
-    this.isHorizontal = orientation == AxisOrientation.Horizontal;
+    isHorizontal = orientation == AxisOrientation.Horizontal;
   }
 
   /// <summary>
@@ -60,14 +60,14 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// </summary>
   internal override RendererInfo Init()
   {
-    var chart = (Chart)this.rendererParms.DrawingItem;
+    var chart = (Chart)rendererParms.DrawingItem;
 
     var yari = new AxisRendererInfo();
     yari.Axis = chart.yAxis;
     InitScale(yari);
     if (yari.Axis != null)
     {
-      var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+      var cri = (ChartRendererInfo)rendererParms.RendererInfo;
       InitTickLabels(yari, cri.DefaultFont, cri.DefaultFontColor);
       InitAxisTitle(yari, cri.DefaultFont, cri.DefaultFontColor);
       InitAxisLineFormat(yari);
@@ -81,10 +81,10 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// </summary>
   internal override void Format()
   {
-    var yari = ((ChartRendererInfo)this.rendererParms.RendererInfo).YAxisRendererInfo;
+    var yari = ((ChartRendererInfo)rendererParms.RendererInfo).YAxisRendererInfo;
     if (yari.Axis != null)
     {
-      var gfx = this.rendererParms.Graphics;
+      var gfx = rendererParms.Graphics;
 
       var size = new XSize(0, 0);
 
@@ -92,7 +92,7 @@ internal abstract class YAxisRenderer : AxisRenderer
       var yMin = yari.MinimumScale;
       var yMax = yari.MaximumScale;
       var yMajorTick = yari.MajorTick;
-      var lineHeight = Double.MinValue;
+      var lineHeight = double.MinValue;
       var labelSize = new XSize(0, 0);
       for (var y = yMin; y <= yMax; y += yMajorTick)
       {
@@ -161,7 +161,7 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// </summary>
   internal override void Draw()
   {
-    var yari = ((ChartRendererInfo)this.rendererParms.RendererInfo).YAxisRendererInfo;
+    var yari = ((ChartRendererInfo)rendererParms.RendererInfo).YAxisRendererInfo;
 
     var yMin = yari.MinimumScale;
     var yMax = yari.MaximumScale;
@@ -189,7 +189,7 @@ internal abstract class YAxisRenderer : AxisRenderer
       minorTickMarkStart, minorTickMarkEnd;
     GetTickMarkPos(yari, out majorTickMarkStart, out majorTickMarkEnd, out minorTickMarkStart, out minorTickMarkEnd);
 
-    var gfx = this.rendererParms.Graphics;
+    var gfx = rendererParms.Graphics;
     var lineFormatRenderer = new LineFormatRenderer(gfx, yari.LineFormat);
 
     // The tick marks now read the pens the base class already computes for every axis - the fix
@@ -283,7 +283,9 @@ internal abstract class YAxisRenderer : AxisRenderer
           majorTickMarkLineFormat.DrawLine(points[0], points[1]);
         }
         else
+        {
           labelSize.Width += SpaceBetweenLabelAndTickmark;
+        }
 
         // Draw label text.
         var layoutText = new XPoint[1];
@@ -414,7 +416,7 @@ internal abstract class YAxisRenderer : AxisRenderer
     yMin = double.MaxValue;
     yMax = double.MinValue;
 
-    foreach (Series series in ((Chart)this.rendererParms.DrawingItem).SeriesCollection)
+    foreach (Series series in ((Chart)rendererParms.DrawingItem).SeriesCollection)
     {
       foreach (Point point in series.Elements)
       {
@@ -443,7 +445,7 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// </remarks>
   protected void CalcStackedYAxis(out double yMin, out double yMax)
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     if (cri is CombinationRendererInfo combination)
     {
       CalcStackedYAxis(combination.ColumnSeriesRendererInfos ?? [], out var stackedMin, out var stackedMax);
@@ -529,7 +531,9 @@ internal abstract class YAxisRenderer : AxisRenderer
           yMax = 0;
       }
       else if (yMax / yMin >= 1.2)
+      {
         yMin = 0;
+      }
     }
 
     var deltaYRaw = yMax - yMin;
@@ -557,7 +561,9 @@ internal abstract class YAxisRenderer : AxisRenderer
       yari.MinimumScale = (int)(Math.Abs((yMin - roundFactor) / stepWidth) - (1 * signumMin)) * stepWidth * signumMin;
     }
     else
+    {
       yari.MinimumScale = yari.Axis.minimumScale;
+    }
 
     if (yari.Axis == null || double.IsNaN(yari.Axis.maximumScale))
     {
@@ -565,7 +571,9 @@ internal abstract class YAxisRenderer : AxisRenderer
       yari.MaximumScale = (int)(Math.Abs((yMax + roundFactor) / stepWidth) + (1 * signumMax)) * stepWidth * signumMax;
     }
     else
+    {
       yari.MaximumScale = yari.Axis.maximumScale;
+    }
 
     if (yari.Axis == null || double.IsNaN(yari.Axis.minorTick))
       yari.MinorTick = yari.MajorTick / 5;

@@ -58,15 +58,15 @@ internal abstract class Renderer
 
     internal Renderer(XGraphics gfx, DocumentObject documentObject, FieldInfos fieldInfos)
     {
-        this.DocumentObject = documentObject;
-        this.Gfx = gfx;
+        DocumentObject = documentObject;
+        Gfx = gfx;
         this.fieldInfos = fieldInfos;
     }
 
     internal Renderer(XGraphics gfx, RenderInfo renderInfo, FieldInfos fieldInfos)
     {
         DocumentObject = renderInfo.DocumentObject;
-        this.Gfx = gfx;
+        Gfx = gfx;
         this.renderInfo = renderInfo;
         this.fieldInfos = fieldInfos;
     }

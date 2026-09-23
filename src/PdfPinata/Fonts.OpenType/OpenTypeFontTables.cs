@@ -849,17 +849,17 @@ internal class NameTable : OpenTypeFontTable
     /// <summary>
     /// Get the font family name.
     /// </summary>
-    public string Name = String.Empty;
+    public string Name = string.Empty;
 
     /// <summary>
     /// Get the font subfamily name.
     /// </summary>
-    public string Style = String.Empty;
+    public string Style = string.Empty;
 
     /// <summary>
     /// Get the full font name.
     /// </summary>
-    public string FullFontName = String.Empty;
+    public string FullFontName = string.Empty;
 
     public ushort format;
     public ushort count;
@@ -898,19 +898,19 @@ internal class NameTable : OpenTypeFontTable
                 {
                     if (nrec.nameID == 1)
                     {
-                        if (String.IsNullOrEmpty(Name))
+                        if (string.IsNullOrEmpty(Name))
                             Name = Encoding.UTF8.GetString(value, 0, value.Length);
                     }
 
                     if (nrec.nameID == 2)
                     {
-                        if (String.IsNullOrEmpty(Style))
+                        if (string.IsNullOrEmpty(Style))
                             Style = Encoding.UTF8.GetString(value, 0, value.Length);
                     }
 
                     if (nrec.nameID == 4)
                     {
-                        if (String.IsNullOrEmpty(FullFontName))
+                        if (string.IsNullOrEmpty(FullFontName))
                             FullFontName = Encoding.UTF8.GetString(value, 0, value.Length);
                     }
                 }
@@ -923,7 +923,7 @@ internal class NameTable : OpenTypeFontTable
                     // as defined by OS/2.fsSelection bit settings).
                     if (nrec.nameID == 1 && nrec.languageID == 0x0409)
                     {
-                        if (String.IsNullOrEmpty(Name))
+                        if (string.IsNullOrEmpty(Name))
                             Name = Encoding.BigEndianUnicode.GetString(value, 0, value.Length);
                     }
 
@@ -935,7 +935,7 @@ internal class NameTable : OpenTypeFontTable
                     // this position.
                     if (nrec.nameID == 2 && nrec.languageID == 0x0409)
                     {
-                        if (String.IsNullOrEmpty(Style))
+                        if (string.IsNullOrEmpty(Style))
                             Style = Encoding.BigEndianUnicode.GetString(value, 0, value.Length);
                     }
 
@@ -943,13 +943,13 @@ internal class NameTable : OpenTypeFontTable
                     // variant. If string 2 is "Regular", it is sometimes omitted from name ID 4.
                     if (nrec.nameID == 4 && nrec.languageID == 0x0409)
                     {
-                        if (String.IsNullOrEmpty(FullFontName))
+                        if (string.IsNullOrEmpty(FullFontName))
                             FullFontName = Encoding.BigEndianUnicode.GetString(value, 0, value.Length);
                     }
                 }
             }
 
-            Debug.Assert(!String.IsNullOrEmpty(Name));
+            Debug.Assert(!string.IsNullOrEmpty(Name));
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
         {

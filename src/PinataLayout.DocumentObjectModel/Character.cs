@@ -196,7 +196,7 @@ public partial class Character : DocumentObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    var text = String.Empty;
+    var text = string.Empty;
     // An unset name matches none of these, and a character is never held there.
     if (count == 1)
     {

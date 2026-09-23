@@ -784,7 +784,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// </summary>
     private static string Fd(double value)
     {
-        return Double.IsNaN(value) ? "null" : value.ToString("#.##", CultureInfo.InvariantCulture);
+        return double.IsNaN(value) ? "null" : value.ToString("#.##", CultureInfo.InvariantCulture);
     }
 
     internal override void WriteObject(PdfWriter writer)

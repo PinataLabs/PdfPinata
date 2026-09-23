@@ -1048,7 +1048,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         var endQuadrant = Quadrant(β, false, clockwise);
 
         if (startQuadrant == endQuadrant && smallAngle)
+        {
             AppendPartialArcQuadrant(x, y, width, height, α, β, pathStart, matrix);
+        }
         else
         {
             var currentQuadrant = startQuadrant;
@@ -1107,7 +1109,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                 quadrant = quadrant == 0 ? 3 : quadrant - 1;
         }
         else
+        {
             quadrant = clockwise ? ((int)Math.Floor(φ / 90)) % 4 : (int)Math.Floor(φ / 90);
+        }
 
         return quadrant;
     }

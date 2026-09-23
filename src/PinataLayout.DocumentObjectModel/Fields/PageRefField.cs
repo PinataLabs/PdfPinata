@@ -52,7 +52,7 @@ public partial class PageRefField : NumericFieldBase
   public PageRefField(string name)
     : this()
   {
-    this.Name = name;
+    Name = name;
   }
 
   /// <summary>
@@ -76,8 +76,8 @@ public partial class PageRefField : NumericFieldBase
   /// </summary>
   public string Name
   {
-    get => this.name ?? "";
-    set => this.name = value;
+    get => name ?? "";
+    set => name = value;
   }
   [DV]
   internal string name;
@@ -90,10 +90,10 @@ public partial class PageRefField : NumericFieldBase
   internal override void Serialize(Serializer serializer)
   {
     var str = "\\field(PageRef)";
-    str += "[Name = \"" + this.Name + "\"";
+    str += "[Name = \"" + Name + "\"";
 
-    if ((this.format ?? "") != "")
-      str += " Format = \"" + this.Format + "\"";
+    if ((format ?? "") != "")
+      str += " Format = \"" + Format + "\"";
     str += "]";
 
     serializer.Write(str);

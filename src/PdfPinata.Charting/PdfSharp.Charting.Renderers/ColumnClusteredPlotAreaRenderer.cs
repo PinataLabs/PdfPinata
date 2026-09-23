@@ -50,7 +50,7 @@ internal class ColumnClusteredPlotAreaRenderer : ColumnPlotAreaRenderer
   /// </summary>
   protected override void CalcColumns()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     if (cri.SeriesRendererInfos.Length == 0)
       return;
 

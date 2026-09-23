@@ -67,8 +67,8 @@ public partial class LineFormat : DocumentObject
   /// </summary>
   public bool Visible
   {
-    get => this.visible ?? false;
-    set => this.visible = value;
+    get => visible ?? false;
+    set => visible = value;
   }
   [DV]
   internal bool? visible;
@@ -78,8 +78,8 @@ public partial class LineFormat : DocumentObject
   /// </summary>
   public Unit Width
   {
-    get => this.width;
-    set => this.width = value;
+    get => width;
+    set => width = value;
   }
   [DV]
   internal Unit width = Unit.NullValue;
@@ -89,8 +89,8 @@ public partial class LineFormat : DocumentObject
   /// </summary>
   public Color Color
   {
-    get => this.color;
-    set => this.color = value;
+    get => color;
+    set => color = value;
   }
   [DV]
   internal Color color = Color.Empty;
@@ -100,8 +100,8 @@ public partial class LineFormat : DocumentObject
   /// </summary>
   public DashStyle DashStyle
   {
-    get => this.dashStyle ?? default;
-    set => this.dashStyle = EnumGuard.Checked(value);
+    get => dashStyle ?? default;
+    set => dashStyle = EnumGuard.Checked(value);
   }
   [DV]
   internal DashStyle? dashStyle;
@@ -111,8 +111,8 @@ public partial class LineFormat : DocumentObject
   /// </summary>
   public LineStyle Style
   {
-    get => this.style ?? default;
-    set => this.style = EnumGuard.Checked(value);
+    get => style ?? default;
+    set => style = EnumGuard.Checked(value);
   }
   [DV]
   internal LineStyle? style;
@@ -125,16 +125,16 @@ public partial class LineFormat : DocumentObject
   internal override void Serialize(Serializer serializer)
   {
     serializer.BeginContent("LineFormat");
-    if (this.visible != null)
-      serializer.WriteSimpleAttribute("Visible", this.Visible);
-    if (this.style != null)
-      serializer.WriteSimpleAttribute("Style", this.Style);
-    if (this.dashStyle != null)
-      serializer.WriteSimpleAttribute("DashStyle", this.DashStyle);
-    if (!this.width.IsNull)
-      serializer.WriteSimpleAttribute("Width", this.Width);
-    if (!this.color.IsNull)
-      serializer.WriteSimpleAttribute("Color", this.Color);
+    if (visible != null)
+      serializer.WriteSimpleAttribute("Visible", Visible);
+    if (style != null)
+      serializer.WriteSimpleAttribute("Style", Style);
+    if (dashStyle != null)
+      serializer.WriteSimpleAttribute("DashStyle", DashStyle);
+    if (!width.IsNull)
+      serializer.WriteSimpleAttribute("Width", Width);
+    if (!color.IsNull)
+      serializer.WriteSimpleAttribute("Color", Color);
     serializer.EndContent();
   }
 

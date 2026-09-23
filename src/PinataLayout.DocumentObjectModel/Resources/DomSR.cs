@@ -30,7 +30,7 @@ internal static class DomSR
             message = GetString(id);
             if (message != null)
             {
-                message = String.Format(message, args);
+                message = string.Format(message, args);
             }
             else
                 message = "<<<error: message not found>>>";

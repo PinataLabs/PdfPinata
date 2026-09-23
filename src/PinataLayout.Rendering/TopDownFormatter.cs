@@ -166,7 +166,9 @@ internal class TopDownFormatter
                     renderer.RenderInfo.RemoveEnding();
                     prevRenderInfo = FinishPage(renderer.RenderInfo, pagebreakBefore, ref renderInfos);
                     if (prevRenderInfo != null)
+                    {
                         prevFormatInfo = prevRenderInfo.FormatInfo;
+                    }
                     else
                     {
                         prevFormatInfo = null;
@@ -208,7 +210,9 @@ internal class TopDownFormatter
                         }
                     }
                     else
+                    {
                         prevBottomMargin = 0;
+                    }
 
                     prevFormatInfo = null;
                     prevRenderInfo = null;

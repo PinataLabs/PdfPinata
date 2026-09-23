@@ -47,7 +47,7 @@ internal abstract class XAxisRenderer : AxisRenderer
   internal XAxisRenderer(RendererParameters parms, AxisOrientation orientation)
     : base(parms)
   {
-    this.isHorizontal = orientation == AxisOrientation.Horizontal;
+    isHorizontal = orientation == AxisOrientation.Horizontal;
   }
 
   /// <summary>
@@ -69,7 +69,7 @@ internal abstract class XAxisRenderer : AxisRenderer
   /// </summary>
   internal override RendererInfo Init()
   {
-    var chart = (Chart)this.rendererParms.DrawingItem;
+    var chart = (Chart)rendererParms.DrawingItem;
 
     var xari = new AxisRendererInfo();
     xari.Axis = chart.xAxis;
@@ -83,7 +83,7 @@ internal abstract class XAxisRenderer : AxisRenderer
 
     if (xari.Axis != null)
     {
-      var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+      var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
       // The two orientations used to call these in different orders. The horizontal one needed
       // its own order, because InitXValues formats the default category labels with
@@ -114,7 +114,7 @@ internal abstract class XAxisRenderer : AxisRenderer
   /// </summary>
   internal override void Format()
   {
-    var xari = ((ChartRendererInfo)this.rendererParms.RendererInfo).XAxisRendererInfo;
+    var xari = ((ChartRendererInfo)rendererParms.RendererInfo).XAxisRendererInfo;
     if (xari.Axis != null)
     {
       var atri = xari.AxisTitleRendererInfo;
@@ -126,7 +126,7 @@ internal abstract class XAxisRenderer : AxisRenderer
       if (atri != null && atri.AxisTitleText != null && atri.AxisTitleText.Length > 0)
       {
         var parms = new RendererParameters();
-        parms.Graphics = this.rendererParms.Graphics;
+        parms.Graphics = rendererParms.Graphics;
         parms.RendererInfo = xari;
         new AxisTitleRenderer(parms).Format();
         titleSize = atri.AxisTitleSize;
@@ -146,7 +146,7 @@ internal abstract class XAxisRenderer : AxisRenderer
             if (xv != null)
             {
               var tickLabel = xv.Value;
-              var valueSize = this.rendererParms.Graphics.MeasureString(tickLabel, xari.TickLabelsFont);
+              var valueSize = rendererParms.Graphics.MeasureString(tickLabel, xari.TickLabelsFont);
               size.Height = Math.Max(valueSize.Height, size.Height);
               size.Width += valueSize.Width;
             }
@@ -168,7 +168,7 @@ internal abstract class XAxisRenderer : AxisRenderer
             // the horizontal axis's own measuring already allows for.
             if (xv != null)
             {
-              var valueSize = this.rendererParms.Graphics.MeasureString(xv.Value, xari.TickLabelsFont);
+              var valueSize = rendererParms.Graphics.MeasureString(xv.Value, xari.TickLabelsFont);
               size.Height += valueSize.Height;
               size.Width = Math.Max(valueSize.Width, size.Width);
             }
@@ -190,8 +190,8 @@ internal abstract class XAxisRenderer : AxisRenderer
   /// </summary>
   internal override void Draw()
   {
-    var gfx = this.rendererParms.Graphics;
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var gfx = rendererParms.Graphics;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     var xari = cri.XAxisRendererInfo;
 
     var xMax = xari.MaximumScale;

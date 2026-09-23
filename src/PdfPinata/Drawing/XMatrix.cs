@@ -746,7 +746,9 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
         set
         {
             if (_type == XMatrixTypes.Identity)
+            {
                 SetMatrix(value, 0, 0, 1, 0, 0, XMatrixTypes.Scaling);
+            }
             else
             {
                 _m11 = value;
@@ -770,7 +772,9 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
         set
         {
             if (_type == XMatrixTypes.Identity)
+            {
                 SetMatrix(1, value, 0, 1, 0, 0, XMatrixTypes.Unknown);
+            }
             else
             {
                 _m12 = value;
@@ -793,7 +797,9 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
         set
         {
             if (_type == XMatrixTypes.Identity)
+            {
                 SetMatrix(1, 0, value, 1, 0, 0, XMatrixTypes.Unknown);
+            }
             else
             {
                 _m21 = value;
@@ -816,7 +822,9 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
         set
         {
             if (_type == XMatrixTypes.Identity)
+            {
                 SetMatrix(1, 0, 0, value, 0, 0, XMatrixTypes.Scaling);
+            }
             else
             {
                 _m22 = value;
@@ -840,7 +848,9 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
         set
         {
             if (_type == XMatrixTypes.Identity)
+            {
                 SetMatrix(1, 0, 0, 1, value, 0, XMatrixTypes.Translation);
+            }
             else
             {
                 _offsetX = value;
@@ -864,7 +874,9 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
         set
         {
             if (_type == XMatrixTypes.Identity)
+            {
                 SetMatrix(1, 0, 0, 1, 0, value, XMatrixTypes.Translation);
+            }
             else
             {
                 _offsetY = value;
@@ -1175,7 +1187,9 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
             if (type2 != XMatrixTypes.Identity)
             {
                 if (type1 == XMatrixTypes.Identity)
+                {
                     matrix1 = matrix2;
+                }
                 else if (type2 == XMatrixTypes.Translation)
                 {
                     matrix1._offsetX += matrix2._offsetX;
@@ -1326,7 +1340,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
             // Calculate the angle in degrees.
             var point = new XMatrix(_m11, _m12, _m21, _m22, 0, 0).Transform(new XPoint(1, 0));
             var φ = Math.Atan2(point.Y, point.X) / Calc.Deg2Rad;
-            return String.Format(CultureInfo.InvariantCulture,
+            return string.Format(CultureInfo.InvariantCulture,
                 "matrix=({0:" + format + "}, {1:" + format + "}, {2:" + format + "}, {3:" + format + "}, {4:" + format + "}, {5:" + format + "}), φ={6:0.0#########}°",
                 _m11, _m12, _m21, _m22, _offsetX, _offsetY, φ);
         }

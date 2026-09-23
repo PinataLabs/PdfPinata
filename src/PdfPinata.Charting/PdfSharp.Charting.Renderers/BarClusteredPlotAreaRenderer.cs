@@ -50,7 +50,7 @@ internal class BarClusteredPlotAreaRenderer : BarPlotAreaRenderer
   /// </summary>
   protected override void CalcBars()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     if (cri.SeriesRendererInfos.Length == 0)
       return;
 

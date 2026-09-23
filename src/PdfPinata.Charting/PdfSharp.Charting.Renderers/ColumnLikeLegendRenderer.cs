@@ -53,7 +53,7 @@ internal class ColumnLikeLegendRenderer : LegendRenderer
   internal override RendererInfo Init()
   {
     LegendRendererInfo lri = null;
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     if (cri.Chart.legend != null)
     {
       lri = new LegendRendererInfo();

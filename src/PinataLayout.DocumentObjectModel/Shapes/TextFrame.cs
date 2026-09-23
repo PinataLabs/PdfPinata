@@ -69,7 +69,7 @@ public partial class TextFrame : Shape, IVisitable
     /// </summary>
     public Paragraph AddParagraph()
     {
-        return this.Elements.AddParagraph();
+        return Elements.AddParagraph();
     }
 
     /// <summary>
@@ -77,7 +77,7 @@ public partial class TextFrame : Shape, IVisitable
     /// </summary>
     public Paragraph AddParagraph(string _paragraphText)
     {
-        return this.Elements.AddParagraph(_paragraphText);
+        return Elements.AddParagraph(_paragraphText);
     }
 
     /// <summary>
@@ -85,7 +85,7 @@ public partial class TextFrame : Shape, IVisitable
     /// </summary>
     public Chart AddChart(ChartType _type)
     {
-        return this.Elements.AddChart(_type);
+        return Elements.AddChart(_type);
     }
 
     /// <summary>
@@ -93,7 +93,7 @@ public partial class TextFrame : Shape, IVisitable
     /// </summary>
     public Chart AddChart()
     {
-        return this.Elements.AddChart();
+        return Elements.AddChart();
     }
 
     /// <summary>
@@ -101,7 +101,7 @@ public partial class TextFrame : Shape, IVisitable
     /// </summary>
     public Table AddTable()
     {
-        return this.Elements.AddTable();
+        return Elements.AddTable();
     }
 
     /// <summary>
@@ -109,7 +109,7 @@ public partial class TextFrame : Shape, IVisitable
     /// </summary>
     public Image AddImage(IImageSource imageSource)
     {
-        return this.Elements.AddImage(imageSource);
+        return Elements.AddImage(imageSource);
     }
 
     /// <summary>
@@ -117,7 +117,7 @@ public partial class TextFrame : Shape, IVisitable
     /// </summary>
     public void Add(Paragraph paragraph)
     {
-        this.Elements.Add(paragraph);
+        Elements.Add(paragraph);
     }
 
     /// <summary>
@@ -125,7 +125,7 @@ public partial class TextFrame : Shape, IVisitable
     /// </summary>
     public void Add(Chart chart)
     {
-        this.Elements.Add(chart);
+        Elements.Add(chart);
     }
 
     /// <summary>
@@ -133,7 +133,7 @@ public partial class TextFrame : Shape, IVisitable
     /// </summary>
     public void Add(Table table)
     {
-        this.Elements.Add(table);
+        Elements.Add(table);
     }
 
     /// <summary>
@@ -141,7 +141,7 @@ public partial class TextFrame : Shape, IVisitable
     /// </summary>
     public void Add(Image image)
     {
-        this.Elements.Add(image);
+        Elements.Add(image);
     }
     #endregion
 
@@ -151,8 +151,8 @@ public partial class TextFrame : Shape, IVisitable
     /// </summary>
     public Unit MarginLeft
     {
-        get => this.marginLeft;
-        set => this.marginLeft = value;
+        get => marginLeft;
+        set => marginLeft = value;
     }
     [DV]
     internal Unit marginLeft = Unit.NullValue;
@@ -162,8 +162,8 @@ public partial class TextFrame : Shape, IVisitable
     /// </summary>
     public Unit MarginRight
     {
-        get => this.marginRight;
-        set => this.marginRight = value;
+        get => marginRight;
+        set => marginRight = value;
     }
     [DV]
     internal Unit marginRight = Unit.NullValue;
@@ -173,8 +173,8 @@ public partial class TextFrame : Shape, IVisitable
     /// </summary>
     public Unit MarginTop
     {
-        get => this.marginTop;
-        set => this.marginTop = value;
+        get => marginTop;
+        set => marginTop = value;
     }
     [DV]
     internal Unit marginTop = Unit.NullValue;
@@ -184,8 +184,8 @@ public partial class TextFrame : Shape, IVisitable
     /// </summary>
     public Unit MarginBottom
     {
-        get => this.marginBottom;
-        set => this.marginBottom = value;
+        get => marginBottom;
+        set => marginBottom = value;
     }
     [DV]
     internal Unit marginBottom = Unit.NullValue;
@@ -195,8 +195,8 @@ public partial class TextFrame : Shape, IVisitable
     /// </summary>
     public TextOrientation Orientation
     {
-        get => this.orientation ?? default;
-        set => this.orientation = EnumGuard.Checked(value);
+        get => orientation ?? default;
+        set => orientation = EnumGuard.Checked(value);
     }
     [DV]
     internal TextOrientation? orientation;
@@ -208,15 +208,15 @@ public partial class TextFrame : Shape, IVisitable
     {
         get
         {
-            if (this.elements == null)
-                this.elements = new DocumentElements(this);
+            if (elements == null)
+                elements = new DocumentElements(this);
 
-            return this.elements;
+            return elements;
         }
         set
         {
             SetParent(value);
-            this.elements = value;
+            elements = value;
         }
     }
     /// <summary>Backing field for <see cref="Elements"/>.</summary>
@@ -231,9 +231,9 @@ public partial class TextFrame : Shape, IVisitable
     {
         visitor.VisitTextFrame(this);
 
-        if (visitChildren && this.elements != null)
+        if (visitChildren && elements != null)
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            ((IVisitable)this.elements).AcceptVisitor(visitor, visitChildren);
+            ((IVisitable)elements).AcceptVisitor(visitor, visitChildren);
     }
 
     #region Internal
@@ -245,21 +245,21 @@ public partial class TextFrame : Shape, IVisitable
         serializer.WriteLine("\\textframe");
         var pos = serializer.BeginAttributes();
         base.Serialize(serializer);
-        if (!this.marginLeft.IsNull)
-            serializer.WriteSimpleAttribute("MarginLeft", this.MarginLeft);
-        if (!this.marginRight.IsNull)
-            serializer.WriteSimpleAttribute("MarginRight", this.MarginRight);
-        if (!this.marginTop.IsNull)
-            serializer.WriteSimpleAttribute("MarginTop", this.MarginTop);
-        if (!this.marginBottom.IsNull)
-            serializer.WriteSimpleAttribute("MarginBottom", this.MarginBottom);
-        if (this.orientation != null)
-            serializer.WriteSimpleAttribute("Orientation", this.Orientation);
+        if (!marginLeft.IsNull)
+            serializer.WriteSimpleAttribute("MarginLeft", MarginLeft);
+        if (!marginRight.IsNull)
+            serializer.WriteSimpleAttribute("MarginRight", MarginRight);
+        if (!marginTop.IsNull)
+            serializer.WriteSimpleAttribute("MarginTop", MarginTop);
+        if (!marginBottom.IsNull)
+            serializer.WriteSimpleAttribute("MarginBottom", MarginBottom);
+        if (orientation != null)
+            serializer.WriteSimpleAttribute("Orientation", Orientation);
         serializer.EndAttributes(pos);
 
         serializer.BeginContent();
-        if (this.elements != null)
-            this.elements.Serialize(serializer);
+        if (elements != null)
+            elements.Serialize(serializer);
         serializer.EndContent();
     }
 

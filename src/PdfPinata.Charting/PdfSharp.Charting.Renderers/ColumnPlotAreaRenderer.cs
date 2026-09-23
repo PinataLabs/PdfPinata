@@ -58,13 +58,13 @@ internal abstract class ColumnPlotAreaRenderer : ColumnLikePlotAreaRenderer
   /// </summary>
   internal override void Draw()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
     var plotAreaBox = cri.PlotAreaRendererInfo.Rect;
     if (HasNoRoom(plotAreaBox))
       return;
 
-    var gfx = this.rendererParms.Graphics;
+    var gfx = rendererParms.Graphics;
 
     var xMin = cri.XAxisRendererInfo.MinimumScale;
     var xMax = cri.XAxisRendererInfo.MaximumScale;

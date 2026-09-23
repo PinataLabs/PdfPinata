@@ -51,8 +51,8 @@ internal class LegendEntryRenderer : Renderer
   /// </summary>
   internal override void Format()
   {
-    var gfx = this.rendererParms.Graphics;
-    var leri = (LegendEntryRendererInfo)this.rendererParms.RendererInfo;
+    var gfx = rendererParms.Graphics;
+    var leri = (LegendEntryRendererInfo)rendererParms.RendererInfo;
 
     // Initialize
     leri.MarkerArea.Width = MaxLegendMarkerWidth;
@@ -93,11 +93,11 @@ internal class LegendEntryRenderer : Renderer
   /// </summary>
   internal void FitToWidth(double maxWidth)
   {
-    var leri = (LegendEntryRendererInfo)this.rendererParms.RendererInfo;
+    var leri = (LegendEntryRendererInfo)rendererParms.RendererInfo;
     if (leri.Lines.Length == 0 || leri.Width <= maxWidth)
       return;
 
-    var gfx = this.rendererParms.Graphics;
+    var gfx = rendererParms.Graphics;
     var font = leri.LegendRendererInfo.Font;
     var textWidth = maxWidth - leri.MarkerArea.Width - SpacingBetweenMarkerAndText;
     var lines = new List<string>();
@@ -113,9 +113,13 @@ internal class LegendEntryRenderer : Renderer
       foreach (var word in paragraph.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
       {
         if (line == null)
+        {
           line = word;
+        }
         else if (gfx.MeasureString(line + " " + word, font).Width <= textWidth)
+        {
           line += " " + word;
+        }
         else
         {
           lines.Add(line);
@@ -157,8 +161,8 @@ internal class LegendEntryRenderer : Renderer
   /// </summary>
   internal override void Draw()
   {
-    var gfx = this.rendererParms.Graphics;
-    var leri = (LegendEntryRendererInfo)this.rendererParms.RendererInfo;
+    var gfx = rendererParms.Graphics;
+    var leri = (LegendEntryRendererInfo)rendererParms.RendererInfo;
 
     // The marker keys the first line of the entry. For an entry of one line that is the middle
     // of the entry, as it always was; for one of several it is not.

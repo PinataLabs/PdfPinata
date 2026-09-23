@@ -89,11 +89,11 @@ public abstract partial class NumericFieldBase : DocumentObject
     /// </summary>
     public string Format
     {
-        get => this.format ?? "";
+        get => format ?? "";
         set
         {
             if (IsValidFormat(value))
-                this.format = value;
+                format = value;
             else
                 throw new ArgumentException(DomSR.InvalidFieldFormat(value));
         }
