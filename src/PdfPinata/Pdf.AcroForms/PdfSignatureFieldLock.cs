@@ -60,7 +60,7 @@ public sealed class PdfSignatureFieldLock : PdfDictionary
         };
         set
         {
-            if (!Enum.IsDefined(typeof(PdfFieldLockAction), value))
+            if (!Enum.IsDefined(value))
                 throw new ArgumentOutOfRangeException(nameof(value), value, "Not a lock action.");
 
             Elements.SetName(Keys.Action, "/" + value);

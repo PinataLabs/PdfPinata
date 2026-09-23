@@ -69,7 +69,7 @@ public class ResourceDeduplicationRenderingTests(ITestOutputHelper output)
         DrawsTheSame(documents, "assets");
     }
 
-    private void DrawsTheSame(IReadOnlyList<byte[]> documents, string name)
+    private static void DrawsTheSame(IReadOnlyList<byte[]> documents, string name)
     {
         var before = Render(Merged(documents, deduplicate: false), name + "_plain");
         var after = Render(Merged(documents, deduplicate: true), name + "_deduplicated");

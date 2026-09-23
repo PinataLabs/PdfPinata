@@ -141,7 +141,7 @@ public class CodeOmr : BarCode
     {
         get
         {
-            foreach (MarkDistance distance in Enum.GetValues(typeof(MarkDistance)))
+            foreach (var distance in Enum.GetValues<MarkDistance>())
             {
                 if (DoubleUtil.AreClose(ToUnit(distance).Point, _makerDistance))
                     return distance;

@@ -17,7 +17,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 ///   answers a path whether or not anything is there.
 ///   </para>
 /// </summary>
-public class ImagePathAndReaderTests : IDisposable
+public sealed class ImagePathAndReaderTests : IDisposable
 {
     private readonly string _directory = Path.Combine(Path.GetTempPath(), "pinata-image-" + Guid.NewGuid().ToString("N"));
 

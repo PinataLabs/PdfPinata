@@ -95,10 +95,8 @@ internal sealed class PdfFontTable : PdfResourceTable
     /// </summary>
     public PdfFont GetFont(string idName, byte[] fontData)
     {
-        if (idName == null)
-            throw new ArgumentNullException(nameof(idName));
-        if (fontData == null)
-            throw new ArgumentNullException(nameof(fontData));
+        ArgumentNullException.ThrowIfNull(idName);
+        ArgumentNullException.ThrowIfNull(fontData);
 
         var selector = ComputeKey(idName);
         if (!_fonts.TryGetValue(selector, out var pdfFont))
@@ -122,8 +120,7 @@ internal sealed class PdfFontTable : PdfResourceTable
     /// </summary>
     public PdfFont TryGetFont(string idName)
     {
-        if (idName == null)
-            throw new ArgumentNullException(nameof(idName));
+        ArgumentNullException.ThrowIfNull(idName);
 
         _fonts.TryGetValue(ComputeKey(idName), out var pdfFont);
         return pdfFont;
