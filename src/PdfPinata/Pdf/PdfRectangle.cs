@@ -107,8 +107,8 @@ public sealed class PdfRectangle : PdfItem
         if (item == null || item is PdfNull)
             return;
 
-        if (item is PdfReference)
-            item = ((PdfReference)item).Value;
+        if (item is PdfReference reference)
+            item = reference.Value;
 
         var array = item as PdfArray;
         if (array == null)

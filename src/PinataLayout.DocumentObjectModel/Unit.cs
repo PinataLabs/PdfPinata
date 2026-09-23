@@ -87,8 +87,8 @@ public struct Unit : IFormattable, INullableValue, IEquatable<Unit>
     {
         ArgumentNullException.ThrowIfNull(newValue);
 
-        if (newValue is Unit)
-            this = (Unit)newValue;
+        if (newValue is Unit unit)
+            this = unit;
         else
             this = newValue.ToString()
                 ?? throw new ArgumentException($"A {newValue.GetType()} whose ToString() answers null cannot be read as a Unit.", nameof(newValue));

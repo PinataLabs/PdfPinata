@@ -596,11 +596,10 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
             importedObjectTable = Owner.FormTable.GetImportedObjectTable(importPage);
 
         // The item can be indirect. If so, replace it by its value.
-        if (item is PdfReference)
-            item = ((PdfReference)item).Value;
-        if (item is PdfObject)
+        if (item is PdfReference reference)
+            item = reference.Value;
+        if (item is PdfObject root)
         {
-            var root = (PdfObject)item;
             if (deepcopy)
             {
                 Debug.Assert(root.Owner != null, "See 'else' case for details");

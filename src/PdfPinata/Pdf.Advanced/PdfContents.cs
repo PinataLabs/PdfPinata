@@ -58,11 +58,11 @@ public sealed class PdfContents : PdfArray
             // Convert the references from PdfDictionary to PdfContent
             var item = Elements[idx];
             var iref = item as PdfReference;
-            if (iref is { Value: PdfDictionary })
+            if (iref is { Value: PdfDictionary dictionary })
             {
                 // Called for its side effect: the constructor replaces the dictionary behind the
                 // reference with the PdfContent it builds.
-                _ = new PdfContent((PdfDictionary)iref.Value);
+                _ = new PdfContent(dictionary);
             }
             else
                 throw new InvalidOperationException("Unexpected item in a content stream array.");

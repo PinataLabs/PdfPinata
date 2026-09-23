@@ -202,9 +202,9 @@ public class PdfFlattenVisitor : VisitorBase
     var parentElements = DocumentRelations.GetParent(obj);
     var parentObject = DocumentRelations.GetParent(parentElements);
     Font parentFont;
-    if (parentObject is Paragraph)
+    if (parentObject is Paragraph paragraph)
     {
-      var format = ((Paragraph)parentObject).Format;
+      var format = paragraph.Format;
       parentFont = format.font;
     }
     else //Hyperlink or FormattedText

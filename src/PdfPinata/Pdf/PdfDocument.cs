@@ -626,11 +626,11 @@ public sealed class PdfDocument : PdfObject, IDisposable
         try
         {
             // HACK: Remove XRefTrailer
-            if (_trailer is PdfCrossReferenceStream)
+            if (_trailer is PdfCrossReferenceStream crossReferenceStream)
             {
                 // HACK^2: Preserve the SecurityHandler.
                 var securityHandler = _securitySettings.SecurityHandler;
-                _trailer = new PdfTrailer((PdfCrossReferenceStream)_trailer) { _securityHandler = securityHandler };
+                _trailer = new PdfTrailer(crossReferenceStream) { _securityHandler = securityHandler };
             }
 
             var encrypt = _securitySettings.DocumentSecurityLevel != PdfDocumentSecurityLevel.None;

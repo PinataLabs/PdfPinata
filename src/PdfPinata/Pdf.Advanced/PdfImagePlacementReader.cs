@@ -249,8 +249,8 @@ internal sealed class PdfImagePlacementReader
 
     private static bool TryGetNumber(PdfItem item, out double value)
     {
-        if (item is PdfReference)
-            item = ((PdfReference)item).Value;
+        if (item is PdfReference reference)
+            item = reference.Value;
 
         var real = item as PdfReal;
         if (real != null)

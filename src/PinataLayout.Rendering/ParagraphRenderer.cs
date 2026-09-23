@@ -298,9 +298,9 @@ internal class ParagraphRenderer : Renderer
                 title += " ";
                 ignoreBlank = true;
             }
-            else if (current is Text)
+            else if (current is Text text)
             {
-                title += ((Text)current).Content;
+                title += text.Content;
                 ignoreBlank = false;
             }
             else if (FieldEvaluator.IsField(current))
@@ -399,30 +399,30 @@ internal class ParagraphRenderer : Renderer
 
     private static bool IsLineBreak(DocumentObject docObj)
     {
-        if (docObj is not Character)
+        if (docObj is not Character character)
             return false;
 
-        if (((Character)docObj).SymbolName == SymbolName.LineBreak)
+        if (character.SymbolName == SymbolName.LineBreak)
             return true;
         return false;
     }
 
     private static bool IsBlank(DocumentObject docObj)
     {
-        if (docObj is not Text)
+        if (docObj is not Text text)
             return false;
 
-        if (((Text)docObj).Content == " ")
+        if (text.Content == " ")
             return true;
         return false;
     }
 
     private static bool IsTab(DocumentObject docObj)
     {
-        if (docObj is not Character)
+        if (docObj is not Character character)
             return false;
 
-        if (((Character)docObj).SymbolName == SymbolName.Tab)
+        if (character.SymbolName == SymbolName.Tab)
             return true;
         return false;
     }
@@ -2401,10 +2401,10 @@ internal class ParagraphRenderer : Renderer
 
     private static bool IsSpaceCharacter(DocumentObject docObj)
     {
-        if (docObj is not Character)
+        if (docObj is not Character character)
             return false;
 
-        switch (((Character)docObj).SymbolName)
+        switch (character.SymbolName)
         {
             case SymbolName.Blank:
             case SymbolName.Em:
@@ -3114,10 +3114,10 @@ internal class ParagraphRenderer : Renderer
 
             var parent = DocumentRelations.GetParent(currentLeaf.Current);
             parent = DocumentRelations.GetParent(parent);
-            if (parent is FormattedText)
-                return ((FormattedText)parent).Font;
-            if (parent is Hyperlink)
-                return ((Hyperlink)parent).Font;
+            if (parent is FormattedText formattedText)
+                return formattedText.Font;
+            if (parent is Hyperlink hyperlink)
+                return hyperlink.Font;
             return paragraph.Format.Font;
         }
     }
@@ -3284,10 +3284,9 @@ internal class ParagraphRenderer : Renderer
     {
         get
         {
-            if (currentLeaf is not { Current: Image })
+            if (currentLeaf is not { Current: Image image })
                 return null;
 
-            var image = (Image)currentLeaf.Current;
             if (imageRenderInfos != null && imageRenderInfos.ContainsKey(image))
             {
                 return (RenderInfo)imageRenderInfos[image];

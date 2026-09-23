@@ -220,10 +220,9 @@ public struct Color : INullableValue, IEquatable<Color>
     /// </summary>
     public override bool Equals(Object obj)
     {
-        if (obj is not Color)
+        if (obj is not Color color)
             return false;
 
-        var color = (Color)obj;
         if (isCmyk ^ color.isCmyk)
             return false;
         #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.

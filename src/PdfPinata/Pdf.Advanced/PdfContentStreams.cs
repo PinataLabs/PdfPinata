@@ -17,8 +17,8 @@ internal static class PdfContentStreams
         content = null;
 
         var item = page.Elements[PdfPage.Keys.Contents];
-        if (item is PdfReference)
-            item = ((PdfReference)item).Value;
+        if (item is PdfReference reference)
+            item = reference.Value;
 
         if (item == null)
         {

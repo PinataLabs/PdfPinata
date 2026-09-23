@@ -694,7 +694,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         const string format = Config.SignificantFigures4;
 
         var name = Realize(image);
-        if (!(image is XForm))
+        if (image is not XForm form)
         {
             if (_gfx.PageDirection == XPageDirection.Downwards)
             {
@@ -713,7 +713,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         {
             BeginPage();
 
-            var form = (XForm)image;
             form.Finish();
 
             Owner.FormTable.GetForm(form);

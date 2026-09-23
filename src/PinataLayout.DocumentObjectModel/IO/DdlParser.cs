@@ -532,10 +532,9 @@ internal class DdlParser
     private static void RemoveTrailingBlank(ParagraphElements elements)
     {
         var dom = elements.LastObject;
-        if (dom is not Text)
+        if (dom is not Text text)
             return;
 
-        var text = (Text)dom;
         if (text.Content.EndsWith(' '))
             text.Content = text.Content.Remove(text.Content.Length - 1, 1);
     }
@@ -1972,8 +1971,8 @@ internal class DdlParser
                     val = doc.GetValue(valueName);
                     AssertCondition(val != null, DomMsgID.InvalidValueName, valueName);
 
-                    if (val is DocumentObject)
-                        ParseAttributeBlock((DocumentObject)val);
+                    if (val is DocumentObject documentObject)
+                        ParseAttributeBlock(documentObject);
                     else
                         ThrowParserException(DomMsgID.SymbolIsNotAnObject, valueName);
                     break;

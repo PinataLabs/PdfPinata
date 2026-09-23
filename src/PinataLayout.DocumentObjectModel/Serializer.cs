@@ -519,17 +519,17 @@ internal class Serializer
     get
     {
       textWriter.Flush();
-      if (textWriter is StreamWriter)
-        return (int)((StreamWriter)textWriter).BaseStream.Position;
-      if (textWriter is StringWriter)
-        return ((StringWriter)textWriter).GetStringBuilder().Length;
+      if (textWriter is StreamWriter streamWriter)
+        return (int)streamWriter.BaseStream.Position;
+      if (textWriter is StringWriter stringWriter)
+        return stringWriter.GetStringBuilder().Length;
       return 0;
     }
     set
     {
       textWriter.Flush();
-      if (textWriter is StreamWriter)
-        ((StreamWriter)textWriter).BaseStream.SetLength(value);
+      if (textWriter is StreamWriter streamWriter)
+        streamWriter.BaseStream.SetLength(value);
       else
         (textWriter as StringWriter)?.GetStringBuilder().Length = value;
     }
