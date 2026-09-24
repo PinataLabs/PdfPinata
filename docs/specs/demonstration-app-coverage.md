@@ -138,7 +138,7 @@ test to use.
 stacked columns, clustered and stacked bars, area, pie, exploded pie — plus combination charts, which
 are not a ninth value but a series whose own `ChartType` disagrees with its chart's. Around them sit
 `Axis`, `Gridlines`, `Legend`, `DataLabel`, `TickLabels`, `MarkerStyle` and `FillFormat`, and a
-renderer for each in `PdfSharp.Charting.Renderers`. `PinataLayout.Rendering` renders a MigraDoc
+renderer for each in `PdfPinata.Charting.Renderers`. `PinataLayout.Rendering` renders a MigraDoc
 `Chart` too:
 `Renderer.Create` dispatches it, and `PinataLayout.Rendering.ChartMapper` maps the DOM's chart onto the
 charting engine's.
@@ -154,7 +154,7 @@ The demo shows both routes, because they are different tools:
 
 - **The MigraDoc route** — `section.AddChart(ChartType.Column2D)`, series added to the DOM, the
   document renderer laying the chart out in the flow beside the text. This is what a report wants.
-- **The PdfSharp route** — a `PdfSharp.Charting.Chart` drawn straight onto an `XGraphics` at a
+- **The PdfSharp route** — a `PdfPinata.Charting.Chart` drawn straight onto an `XGraphics` at a
   rectangle the caller chose. This is what a dashboard wants, and it is the only route that lets a
   chart sit inside a page the caller is otherwise drawing by hand.
 

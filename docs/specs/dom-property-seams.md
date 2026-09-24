@@ -178,7 +178,7 @@ needing a real font belongs in `PinataLayout.Rendering.Tests` instead.
 - **The generator's incremental caching cost.** `dom-value-model-findings.md` records that the
   `Collect()` barrier in `GroupByTypeClosingInheritance` is unmeasured. Unrelated to this.
 - **`DdlScanner` as a third lexer.** See `docs/specs/shared-character-scanner.md`.
-- **`PdfSharp.Charting.Font`, the hand-mirrored second `Font` type.** Real duplication, different
+- **`PdfPinata.Charting.Font`, the hand-mirrored second `Font` type.** Real duplication, different
   problem.
 - **Thread safety.** `docs/specs/dom-thread-safety.md` owns that.
 - **Testing `Emitter` in isolation.** It was written free of Roslyn types precisely so it could be,
