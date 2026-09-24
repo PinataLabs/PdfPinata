@@ -181,7 +181,7 @@ internal class AreaChartRenderer : ColumnLikeChartRenderer
     pri.FillFormat = sri.FillFormat;
     if (point.lineFormat is { color.IsEmpty: false })
       pri.LineFormat = new XPen(point.lineFormat.color, point.lineFormat.width);
-    if (point.fillFormat != null && point.lineFormat is { color.IsEmpty: false })
+    if (point.fillFormat is { color.IsEmpty: false })
       pri.FillFormat = new XSolidBrush(point.fillFormat.color);
     return pri;
   }

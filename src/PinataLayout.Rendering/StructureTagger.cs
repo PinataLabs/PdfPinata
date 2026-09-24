@@ -434,14 +434,14 @@ internal sealed class StructureTagger
         // The outermost frame hangs off wherever the ambient context says it should; a
         // nested one always hangs off the same fixed parent it was opened with, so this
         // comparison only ever finds a mismatch at the outermost level - exactly where a
-        // change of surrounding context matters.
+        // change of surrounding context matters. The replacement is opened under that desired
+        // parent, not the old one, or a list starting a new section lands in the previous one.
         var desiredParent = _listFrames.Count == 1 ? ambientParent : top.Parent;
         if (type == top.Type && ReferenceEquals(top.Parent, desiredParent))
             return;
 
-        var parent = top.Parent;
         _listFrames.Pop();
-        OpenList(type, level, parent);
+        OpenList(type, level, desiredParent);
     }
 
     /// <summary>

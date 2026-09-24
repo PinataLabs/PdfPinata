@@ -185,6 +185,22 @@ public class TaggedOutputTests
     }
 
     [Fact]
+    public void AListStartingANewSectionIsTaggedInThatSection()
+    {
+        // Nothing but the list is tagged at the section break, so the run is not ended there: the
+        // next section's list is found by the change of parent, and has to be opened under it.
+        var document = new Document();
+        document.AddSection().AddParagraph("First").Format.ListInfo.ListType = ListType.BulletList1;
+        document.AddSection().AddParagraph("Second").Format.ListInfo.ListType = ListType.BulletList1;
+
+        var sections = Structure.Of(document).Children.Where(child => child.Tag == "Sect").ToList();
+
+        sections.Should().HaveCount(2);
+        sections[0].ChildTags().Should().Equal("L");
+        sections[1].ChildTags().Should().Equal("L");
+    }
+
+    [Fact]
     public void ANestedListIsAListInsideAnItemsBody()
     {
         // docs/specs/nested-lists.md. Two outer items with two inner ones between them: the tree

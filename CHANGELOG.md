@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **A literal string continued onto the next line with a backslash before CR LF no longer keeps the LF.** A CR LF is one end-of-line marker (ISO 32000-1 7.2.3), and the backslash is ignored together with the whole of it (7.3.4.2). Both the document lexer and the content-stream lexer dropped the CR and kept the LF as the first character of the next line. A backslash before a lone CR or a lone LF was already read correctly. (#131)
 - **A stream whose `/Length` refers back to itself no longer overflows the stack in `PdfReader.Open`.** An indirect `/Length` is resolved by reading the object it names. When that object was the stream itself, or another stream whose `/Length` named the first, reading it resolved the same length again, until the stack overflowed and the process ended with no exception to catch. Such a length is now unknown, as a missing one is, and the stream is read up to its `endstream` keyword. (#128)
+- **Text extraction no longer hangs on a font whose `/W` widths run up to the last `int` code.** A `cFirst cLast w` run was filled in with an `int` counter, which wraps at `int.MaxValue` rather than passing it, so a run ending there never finished and filled a dictionary until memory ran out. The guard against a run claiming more than 65,536 codes computed the span as an `int` too, so a run such as `-1 2147483647` overflowed past it. Both are now `long`, and such a run is either skipped by the guard or filled in and finished. (#137)
 
 ### Pages & Documents
 
@@ -36,6 +37,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 #### Fixed
 
 - **A PinataLayout image whose source fails to open with anything but an `InvalidOperationException` gets a placeholder.** The exception used to escape formatting and end the whole render. It is now reported through `ImageFailed` as `ImageFailure.NotRead` and a placeholder is drawn, as it already was for the same exception thrown while the image was drawn. An `InvalidOperationException` is still reported as `InvalidType`. (#131)
+- **A list that starts a new section is tagged in that section.** When a section ended with a list and the next began with one of the same kind and level, the tagger saw that the list's parent had changed, closed the old list and opened a new one, but under the previous section's `/Sect`. So the new section's list appeared in the structure tree inside the section before it. It is now opened under its own section. (#137)
 
 ### API & Packaging
 
