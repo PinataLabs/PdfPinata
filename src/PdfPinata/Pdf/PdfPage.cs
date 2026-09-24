@@ -797,38 +797,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         {
             if (_contents == null)
             {
-                if (true) // || Document.IsImported)
-                {
-                    var item = Elements[Keys.Contents];
-                    if (item == null)
-                    {
-                        _contents = new PdfContents(Owner);
-                    }
-                    else
-                    {
-                        if (item is PdfReference reference)
-                            item = reference.Value;
-
-                        if (item is PdfArray array)
-                        {
-                            // It is already an array of content streams.
-                            if (array.IsIndirect)
-                            {
-                                // Make it a direct array
-                                array = array.Clone();
-                                array.Document = Owner;
-                            }
-                            _contents = new PdfContents(array);
-                        }
-                        else
-                        {
-                            // Only one content stream -> create array
-                            _contents = new PdfContents(Owner);
-                            var content = new PdfContent((PdfDictionary)item);
-                            _contents.Elements.Add(content.Reference);
-                        }
-                    }
-                }
+                _contents = ReadContents();
                 Debug.Assert(_contents.Reference == null);
                 Elements[Keys.Contents] = _contents;
             }
@@ -836,6 +805,37 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         }
     }
     private PdfContents _contents;
+
+    /// <summary>
+    /// Builds a direct array of content streams from whatever <c>/Contents</c> holds now.
+    /// </summary>
+    private PdfContents ReadContents()
+    {
+        var item = Elements[Keys.Contents];
+        if (item == null)
+            return new PdfContents(Owner);
+
+        if (item is PdfReference reference)
+            item = reference.Value;
+
+        if (item is PdfArray array)
+        {
+            // It is already an array of content streams.
+            if (array.IsIndirect)
+            {
+                // Make it a direct array
+                array = array.Clone();
+                array.Document = Owner;
+            }
+            return new PdfContents(array);
+        }
+
+        // Only one content stream -> create array
+        var contents = new PdfContents(Owner);
+        var content = new PdfContent((PdfDictionary)item);
+        contents.Elements.Add(content.Reference);
+        return contents;
+    }
 
     #region Annotations
 
@@ -1243,48 +1243,55 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     {
         // HACK: I'M ABSOLUTELY NOT SURE WHETHER THIS CODE COVERS ALL CASES.
         if (values.Resources != null)
+            InheritResources(page, values.Resources);
+
+        InheritEntry(page, InheritablePageKeys.MediaBox, values.MediaBox);
+        InheritEntry(page, InheritablePageKeys.CropBox, values.CropBox);
+        InheritEntry(page, InheritablePageKeys.Rotate, values.Rotate);
+    }
+
+    /// <summary>
+    /// Gives the page the inherited resources outright when it has none of its own, and otherwise
+    /// adds each inherited category the page does not name itself.
+    /// </summary>
+    private static void InheritResources(PdfDictionary page, PdfDictionary inherited)
+    {
+        PdfDictionary resources;
+        var res = InheritableEntry(page, InheritablePageKeys.Resources);
+        if (res is PdfReference reference)
         {
-            PdfDictionary resources;
-            var res = InheritableEntry(page, InheritablePageKeys.Resources);
-            if (res is PdfReference reference)
-            {
-                resources = (PdfDictionary)reference.Value.Clone();
-                resources.Document = page.Owner;
-            }
-            else
-            {
-                resources = (PdfDictionary)res;
-            }
-
-            if (resources == null)
-            {
-                resources = values.Resources.Clone();
-                resources.Document = page.Owner;
-                page.Elements.Add(InheritablePageKeys.Resources, resources);
-            }
-            else
-            {
-                foreach (var name in values.Resources.Elements.KeyNames)
-                {
-                    if (resources.Elements.ContainsKey(name.Value))
-                        continue;
-
-                    var item = values.Resources.Elements[name];
-                    if (item is PdfObject)
-                        item = item.Clone();
-                    resources.Elements.Add(name.ToString(), item);
-                }
-            }
+            resources = (PdfDictionary)reference.Value.Clone();
+            resources.Document = page.Owner;
+        }
+        else
+        {
+            resources = (PdfDictionary)res;
         }
 
-        if (values.MediaBox != null && InheritableEntry(page, InheritablePageKeys.MediaBox) == null)
-            page.Elements[InheritablePageKeys.MediaBox] = values.MediaBox;
+        if (resources == null)
+        {
+            resources = inherited.Clone();
+            resources.Document = page.Owner;
+            page.Elements.Add(InheritablePageKeys.Resources, resources);
+            return;
+        }
 
-        if (values.CropBox != null && InheritableEntry(page, InheritablePageKeys.CropBox) == null)
-            page.Elements[InheritablePageKeys.CropBox] = values.CropBox;
+        foreach (var name in inherited.Elements.KeyNames)
+        {
+            if (resources.Elements.ContainsKey(name.Value))
+                continue;
 
-        if (values.Rotate != null && InheritableEntry(page, InheritablePageKeys.Rotate) == null)
-            page.Elements[InheritablePageKeys.Rotate] = values.Rotate;
+            var item = inherited.Elements[name];
+            if (item is PdfObject)
+                item = item.Clone();
+            resources.Elements.Add(name.ToString(), item);
+        }
+    }
+
+    private static void InheritEntry(PdfDictionary page, string key, PdfItem inherited)
+    {
+        if (inherited != null && InheritableEntry(page, key) == null)
+            page.Elements[key] = inherited;
     }
 
     /// <summary>

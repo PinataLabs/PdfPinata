@@ -113,35 +113,33 @@ internal static class PdfResourceDeduplicator
             case PdfDictionary dictionary:
                 foreach (var key in dictionary.Elements.Keys.ToList())
                 {
-                    var value = dictionary.Elements[key];
-                    if (value is PdfReference reference)
-                    {
-                        if (replacements.TryGetValue(reference, out var replacement))
-                            dictionary.Elements[key] = replacement;
-                    }
-                    else if (value is PdfDictionary or PdfArray)
-                    {
-                        Redirect(value, replacements, depth + 1);
-                    }
+                    if (Redirected(dictionary.Elements[key], replacements, depth) is { } replacement)
+                        dictionary.Elements[key] = replacement;
                 }
                 break;
 
             case PdfArray array:
                 for (var i = 0; i < array.Elements.Count; i++)
                 {
-                    var value = array.Elements[i];
-                    if (value is PdfReference reference)
-                    {
-                        if (replacements.TryGetValue(reference, out var replacement))
-                            array.Elements[i] = replacement;
-                    }
-                    else if (value is PdfDictionary or PdfArray)
-                    {
-                        Redirect(value, replacements, depth + 1);
-                    }
+                    if (Redirected(array.Elements[i], replacements, depth) is { } replacement)
+                        array.Elements[i] = replacement;
                 }
                 break;
         }
+    }
+
+    /// <summary>
+    /// The reference to put in place of <paramref name="value"/>, or null to leave it where it is.
+    /// A direct dictionary or array is redirected in place, one level deeper.
+    /// </summary>
+    private static PdfReference Redirected(PdfItem value, Dictionary<PdfReference, PdfReference> replacements, int depth)
+    {
+        if (value is PdfReference reference)
+            return replacements.TryGetValue(reference, out var replacement) ? replacement : null;
+
+        if (value is PdfDictionary or PdfArray)
+            Redirect(value, replacements, depth + 1);
+        return null;
     }
 
     /// <summary>
@@ -295,14 +293,34 @@ internal static class PdfResourceDeduplicator
         /// </summary>
         public int[] Partition()
         {
-            var classes = new int[Count];
             var children = new List<int>[Count];
+            var classes = ClassesByContent(children, out var classCount);
 
-            // What each object says with the references among the candidates blanked out, and
-            // where those references lead. Stream bytes are keyed by length and hash, and compared
-            // outright within a key, so that a collision cannot merge two different streams.
+            // Split every class by the classes its references lead to, until nothing splits. Each
+            // round can only split, never join, so the count of classes rising is the only change
+            // to look for, and it cannot rise past the number of objects.
+            var signature = new StringBuilder();
+            while (true)
+            {
+                var next = SplitByChildren(classes, children, signature, out var nextCount);
+                var changed = nextCount != classCount;
+                classes = next;
+                classCount = nextCount;
+                if (!changed)
+                    return classes;
+            }
+        }
+
+        /// <summary>
+        /// What each object says with the references among the candidates blanked out, and where
+        /// those references lead. Stream bytes are keyed by length and hash, and compared outright
+        /// within a key, so that a collision cannot merge two different streams.
+        /// </summary>
+        private int[] ClassesByContent(List<int>[] children, out int classCount)
+        {
+            var classes = new int[Count];
             var groups = new Dictionary<string, List<(byte[] Bytes, int Class)>>(StringComparer.Ordinal);
-            var classCount = 0;
+            classCount = 0;
             for (var i = 0; i < Count; i++)
             {
                 var obj = Objects[i];
@@ -317,55 +335,50 @@ internal static class PdfResourceDeduplicator
                     continue;
                 }
 
-                var bytes = (obj as PdfDictionary)?.Stream?.Value;
                 if (!groups.TryGetValue(key, out var candidates))
                     groups[key] = candidates = [];
 
-                var found = -1;
-                foreach (var candidate in candidates)
-                {
-                    if (bytes == null || candidate.Bytes.AsSpan().SequenceEqual(bytes))
-                    {
-                        found = candidate.Class;
-                        break;
-                    }
-                }
-
-                if (found < 0)
-                {
-                    found = classCount++;
-                    candidates.Add((bytes, found));
-                }
-                classes[i] = found;
+                classes[i] = ClassAmong(candidates, (obj as PdfDictionary)?.Stream?.Value, ref classCount);
             }
 
-            // Split every class by the classes its references lead to, until nothing splits. Each
-            // round can only split, never join, so the count of classes rising is the only change
-            // to look for, and it cannot rise past the number of objects.
-            var signature = new StringBuilder();
-            while (true)
+            return classes;
+        }
+
+        /// <summary>
+        /// The class of the candidate whose stream bytes match, or a new one added to the candidates.
+        /// </summary>
+        private static int ClassAmong(List<(byte[] Bytes, int Class)> candidates, byte[] bytes, ref int classCount)
+        {
+            foreach (var candidate in candidates)
             {
-                var next = new int[Count];
-                var ids = new Dictionary<string, int>(StringComparer.Ordinal);
-                for (var i = 0; i < Count; i++)
-                {
-                    signature.Clear();
-                    signature.Append(classes[i]);
-                    foreach (var child in children[i])
-                        signature.Append(',').Append(classes[child]);
-
-                    var text = signature.ToString();
-                    if (!ids.TryGetValue(text, out var id))
-                        ids[text] = id = ids.Count;
-                    next[i] = id;
-                }
-
-                var changed = ids.Count != classCount;
-                classes = next;
-                classCount = ids.Count;
-                if (!changed)
-                    return classes;
+                if (bytes == null || candidate.Bytes.AsSpan().SequenceEqual(bytes))
+                    return candidate.Class;
             }
+
+            var found = classCount++;
+            candidates.Add((bytes, found));
+            return found;
+        }
+
+        private int[] SplitByChildren(int[] classes, List<int>[] children, StringBuilder signature, out int classCount)
+        {
+            var next = new int[Count];
+            var ids = new Dictionary<string, int>(StringComparer.Ordinal);
+            for (var i = 0; i < Count; i++)
+            {
+                signature.Clear();
+                signature.Append(classes[i]);
+                foreach (var child in children[i])
+                    signature.Append(',').Append(classes[child]);
+
+                var text = signature.ToString();
+                if (!ids.TryGetValue(text, out var id))
+                    ids[text] = id = ids.Count;
+                next[i] = id;
+            }
+
+            classCount = ids.Count;
+            return next;
         }
 
         /// <summary>

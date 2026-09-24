@@ -28,6 +28,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using PdfPinata.Drawing;
 
@@ -118,70 +119,74 @@ internal abstract class XAxisRenderer : AxisRenderer
       return;
 
     var atri = xari.AxisTitleRendererInfo;
-
-    // Calculate space used for axis title, through the renderer that draws it rather than by
-    // measuring the string here. Measuring it here took no account of the title's orientation,
-    // so a caption turned on its side reserved the room it would have taken lying flat.
-    var titleSize = new XSize(0, 0);
-    if (atri is { AxisTitleText.Length: > 0 })
-    {
-      var parms = new RendererParameters
-      {
-        Graphics = rendererParms.Graphics,
-        RendererInfo = xari
-      };
-      new AxisTitleRenderer(parms).Format();
-      titleSize = atri.AxisTitleSize;
-    }
+    var titleSize = MeasureAxisTitle(xari, atri);
 
     // Calculate space used for tick labels, from the one category series the axis is labelled
     // with - see CategoryLabels. The vertical axis used to measure every series it was given,
     // though only the first was ever meant to be drawn.
-    var categories = CategoryLabels(xari);
     var size = new XSize(0, 0);
+    foreach (var valueSize in MeasureTickLabels(xari))
+    {
+      if (isHorizontal)
+      {
+        size.Height = Math.Max(valueSize.Height, size.Height);
+        size.Width += valueSize.Width;
+      }
+      else
+      {
+        size.Height += valueSize.Height;
+        size.Width = Math.Max(valueSize.Width, size.Width);
+      }
+    }
+
+    // Remember space for later drawing.
+    xari.TickLabelsHeight = size.Height;
     if (isHorizontal)
     {
-      if (categories != null)
-      {
-        foreach (XValue xv in categories)
-        {
-          if (xv == null)
-            continue;
-
-          var tickLabel = xv.Value;
-          var valueSize = rendererParms.Graphics.MeasureString(tickLabel, xari.TickLabelsFont);
-          size.Height = Math.Max(valueSize.Height, size.Height);
-          size.Width += valueSize.Width;
-        }
-      }
-
-      // Remember space for later drawing.
-      xari.TickLabelsHeight = size.Height;
       xari.Height = titleSize.Height + size.Height + xari.MajorTickMarkWidth;
       xari.Width = Math.Max(titleSize.Width, size.Width);
     }
     else
     {
-      if (categories != null)
-      {
-        foreach (XValue xv in categories)
-        {
-          // A category added with XSeries.AddBlank is a null, as it is in Draw below and as
-          // the horizontal axis's own measuring already allows for.
-          if (xv == null)
-            continue;
-
-          var valueSize = rendererParms.Graphics.MeasureString(xv.Value, xari.TickLabelsFont);
-          size.Height += valueSize.Height;
-          size.Width = Math.Max(valueSize.Width, size.Width);
-        }
-      }
-
-      // Remember space for later drawing.
       atri?.AxisTitleSize = titleSize;
-      xari.TickLabelsHeight = size.Height;
       xari.Height = size.Height;
       xari.Width = titleSize.Width + size.Width + xari.MajorTickMarkWidth;
+    }
+  }
+
+  /// <summary>
+  /// Calculates the space used for the axis title, through the renderer that draws it rather than by
+  /// measuring the string here. Measuring it here took no account of the title's orientation, so a
+  /// caption turned on its side reserved the room it would have taken lying flat.
+  /// </summary>
+  private XSize MeasureAxisTitle(AxisRendererInfo xari, AxisTitleRendererInfo atri)
+  {
+    if (atri is not { AxisTitleText.Length: > 0 })
+      return new XSize(0, 0);
+
+    var parms = new RendererParameters
+    {
+      Graphics = rendererParms.Graphics,
+      RendererInfo = xari
+    };
+    new AxisTitleRenderer(parms).Format();
+    return atri.AxisTitleSize;
+  }
+
+  /// <summary>
+  /// Measures each tick label the axis is labelled with. A category added with XSeries.AddBlank is
+  /// a null, as it is in Draw below, and takes no room.
+  /// </summary>
+  private IEnumerable<XSize> MeasureTickLabels(AxisRendererInfo xari)
+  {
+    var categories = CategoryLabels(xari);
+    if (categories == null)
+      yield break;
+
+    foreach (XValue xv in categories)
+    {
+      if (xv != null)
+        yield return rendererParms.Graphics.MeasureString(xv.Value, xari.TickLabelsFont);
     }
   }
 

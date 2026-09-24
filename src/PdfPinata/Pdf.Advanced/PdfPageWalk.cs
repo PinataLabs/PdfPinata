@@ -363,38 +363,39 @@ internal abstract class PdfPageWalk
 
         for (var idx = 0; idx < annotations.Elements.Count && _understood; idx++)
         {
-            var annotation = annotations.Elements.GetDictionary(idx);
-            var appearance = annotation == null
-                ? null
-                : annotation.Elements.GetDictionary("/AP");
-            if (appearance == null)
+            var appearance = annotations.Elements.GetDictionary(idx)?.Elements.GetDictionary("/AP");
+            if (appearance != null)
+                ReadAppearance(appearance);
+        }
+    }
+
+    private void ReadAppearance(PdfDictionary appearance)
+    {
+        foreach (var kind in appearance.Elements.KeyNames)
+        {
+            var stream = appearance.Elements.GetDictionary(kind.Value);
+            if (stream == null)
                 continue;
 
-            foreach (var kind in appearance.Elements.KeyNames)
-            {
-                var stream = appearance.Elements.GetDictionary(kind.Value);
-                if (stream == null)
-                    continue;
+            if (stream.Stream != null)
+                ReadNested(stream, stream, PageResources, 0);
+            else
+                ReadAppearanceStates(stream);
 
-                if (stream.Stream != null)
-                {
-                    ReadNested(stream, stream, PageResources, 0);
-                }
-                else
-                {
-                    // An appearance that changes with the state of the annotation is a
-                    // dictionary of one stream per state.
-                    foreach (var state in stream.Elements.KeyNames)
-                    {
-                        var perState = stream.Elements.GetDictionary(state.Value);
-                        if (perState is { Stream: not null })
-                            ReadNested(perState, perState, PageResources, 0);
-                    }
-                }
+            if (!_understood)
+                return;
+        }
+    }
 
-                if (!_understood)
-                    return;
-            }
+    // An appearance that changes with the state of the annotation is a dictionary of one stream
+    // per state.
+    private void ReadAppearanceStates(PdfDictionary states)
+    {
+        foreach (var state in states.Elements.KeyNames)
+        {
+            var perState = states.Elements.GetDictionary(state.Value);
+            if (perState is { Stream: not null })
+                ReadNested(perState, perState, PageResources, 0);
         }
     }
 

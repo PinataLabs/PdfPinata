@@ -435,20 +435,9 @@ public class XTextFormatter
         SetAlignment(alignments);
 
         var dx = layoutRectangle.Location.X;
-        var dy = layoutRectangle.Location.Y;
+        var dy = AlignedTop(layoutRectangle);
 
         var lines = GetLines(_blocks).ToArray();
-
-        if (VerticalAlignment == XVerticalAlignment.Middle)
-        {
-            dy += (layoutRectangle.Height - _layoutRectangle.Height) / 2;
-        }
-        else if (VerticalAlignment == XVerticalAlignment.Bottom)
-        {
-            // A line is placed by its top, so the last one ends on the bottom of the rectangle
-            // once the text as a whole is put that far down.
-            dy = layoutRectangle.Location.Y + layoutRectangle.Height - _layoutRectangle.Height;
-        }
 
         // Turning the text turns the whole block of it about the corner it starts from, so the
         // lines stay in the same order and the same distance apart whatever the angle.
@@ -466,53 +455,7 @@ public class XTextFormatter
             DrawDropCap(brush, dx, dy);
 
             foreach (var line in lines)
-            {
-                var lineBlocks = line as Block[] ?? [..line];
-                var lineY = dy + lineBlocks.First().Location.Y;
-                var indent = lineBlocks.First().LineIndent;
-
-                // A line is laid out and aligned within its own column, so that is the left edge it
-                // is measured from.
-                var columnLeft = dx + ColumnLeft(lineBlocks.First().Column, columnWidth);
-
-                // ...and against the measure that line was broken to, which is the column's width
-                // until something narrows it. Aligning to the column while breaking to something
-                // narrower is what makes justified text ragged in a way no assertion on the text
-                // itself would notice.
-                var lineWidth = lineBlocks.First().LineWidth;
-
-                // The last line of a paragraph keeps its natural width. Stretching it over the
-                // full width of the column would tear the few words it holds apart.
-                if (Alignment == XParagraphAlignment.Justify && !lineBlocks[^1].EndsParagraph)
-                {
-                    var locationX = columnLeft + indent;
-                    var gaps = lineBlocks.Length - 1;
-                    var gapSize = gaps > 0
-                        ? (lineWidth - indent - lineBlocks.Select(l => l.Width).Sum()) / gaps
-                        : 0;
-
-                    var wordFormat = XStringFormats.TopLeft;
-                    wordFormat.TextDirection = TextDirection;
-
-                    foreach (var block in InVisualOrder(lineBlocks))
-                    {
-                        _gfx.DrawString(block.Text.Trim(), font, brush, locationX, lineY, wordFormat);
-                        locationX += block.Width + gapSize;
-                    }
-                }
-                else
-                {
-                    var lineText = string.Join(" ", lineBlocks.Select(l => l.Text));
-                    // An indent takes room off the left, so what is left to centre in - or to push a
-                    // line to the right end of - is that much narrower.
-                    var locationX = columnLeft + indent;
-                    if (Alignment == XParagraphAlignment.Center)
-                        locationX = columnLeft + indent + (lineWidth - indent) / 2;
-                    if (Alignment == XParagraphAlignment.Right)
-                        locationX = columnLeft + lineWidth;
-                    _gfx.DrawString(lineText, font, brush, locationX, lineY, GetXStringFormat());
-                }
-            }
+                DrawLine(line as Block[] ?? [..line], font, brush, dx, dy, columnWidth);
         }
         finally
         {
@@ -521,6 +464,80 @@ public class XTextFormatter
             // applied, and everything the caller drew afterwards would come out turned.
             if (state != null)
                 _gfx.Restore(state);
+        }
+    }
+
+    /// <summary>
+    /// Where the top of the text goes in the layout rectangle, by the vertical alignment.
+    /// </summary>
+    private double AlignedTop(XRect layoutRectangle)
+    {
+        var top = layoutRectangle.Location.Y;
+        return VerticalAlignment switch
+        {
+            XVerticalAlignment.Middle => top + (layoutRectangle.Height - _layoutRectangle.Height) / 2,
+            // A line is placed by its top, so the last one ends on the bottom of the rectangle
+            // once the text as a whole is put that far down.
+            XVerticalAlignment.Bottom => layoutRectangle.Location.Y + layoutRectangle.Height - _layoutRectangle.Height,
+            _ => top
+        };
+    }
+
+    /// <summary>
+    /// Draws one laid-out line, offset by <paramref name="dx"/> and <paramref name="dy"/>.
+    /// </summary>
+    private void DrawLine(Block[] lineBlocks, XFont font, XBrush brush, double dx, double dy, double columnWidth)
+    {
+        var lineY = dy + lineBlocks.First().Location.Y;
+        var indent = lineBlocks.First().LineIndent;
+
+        // A line is laid out and aligned within its own column, so that is the left edge it
+        // is measured from.
+        var columnLeft = dx + ColumnLeft(lineBlocks.First().Column, columnWidth);
+
+        // ...and against the measure that line was broken to, which is the column's width
+        // until something narrows it. Aligning to the column while breaking to something
+        // narrower is what makes justified text ragged in a way no assertion on the text
+        // itself would notice.
+        var lineWidth = lineBlocks.First().LineWidth;
+
+        // The last line of a paragraph keeps its natural width. Stretching it over the
+        // full width of the column would tear the few words it holds apart.
+        if (Alignment == XParagraphAlignment.Justify && !lineBlocks[^1].EndsParagraph)
+        {
+            DrawJustifiedLine(lineBlocks, font, brush, columnLeft + indent, lineY, lineWidth - indent);
+            return;
+        }
+
+        var lineText = string.Join(" ", lineBlocks.Select(l => l.Text));
+        // An indent takes room off the left, so what is left to centre in - or to push a
+        // line to the right end of - is that much narrower.
+        var locationX = columnLeft + indent;
+        if (Alignment == XParagraphAlignment.Center)
+            locationX = columnLeft + indent + (lineWidth - indent) / 2;
+        if (Alignment == XParagraphAlignment.Right)
+            locationX = columnLeft + lineWidth;
+        _gfx.DrawString(lineText, font, brush, locationX, lineY, GetXStringFormat());
+    }
+
+    /// <summary>
+    /// Draws a justified line word by word, spreading what room is left over the gaps between them.
+    /// </summary>
+    private void DrawJustifiedLine(Block[] lineBlocks, XFont font, XBrush brush, double locationX, double lineY,
+        double availableWidth)
+    {
+        var gaps = lineBlocks.Length - 1;
+        var gapSize = gaps > 0
+            ? (availableWidth - lineBlocks.Select(l => l.Width).Sum()) / gaps
+            : 0;
+
+        var wordFormat = XStringFormats.TopLeft;
+        wordFormat.TextDirection = TextDirection;
+
+        foreach (var block in InVisualOrder(lineBlocks))
+        {
+            _gfx.DrawString(block.Text.Trim(), font, brush, locationX, lineY, wordFormat);
+            locationX += block.Width + gapSize;
         }
     }
 

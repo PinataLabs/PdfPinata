@@ -323,7 +323,13 @@ internal sealed class VectorsDemo : PdfDemo
     private static void PensAndBrushes(PdfDocument document, Fonts fonts)
     {
         var sheet = NewPage(document, fonts, "Pens and brushes");
+        PenPanels(sheet, fonts);
+        BrushPanels(sheet, fonts);
+    }
 
+    // The top two rows: everything an XPen carries besides its colour.
+    private static void PenPanels(XGraphics sheet, Fonts fonts)
+    {
         Panel(sheet, fonts, Cell(0, 0), "Width", (gfx, r) =>
         {
             var y = r.Y + 6;
@@ -429,7 +435,11 @@ internal sealed class VectorsDemo : PdfDemo
             }
             #pragma warning restore CA1861
         });
+    }
 
+    // The bottom two rows: brushes, and a pen made from one.
+    private static void BrushPanels(XGraphics sheet, Fonts fonts)
+    {
         Panel(sheet, fonts, Cell(0, 2), "XSolidBrush with alpha", (gfx, r) =>
         {
             gfx.DrawRectangle(new XSolidBrush(XColors.Gold), r);

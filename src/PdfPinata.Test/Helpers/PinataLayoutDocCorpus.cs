@@ -47,133 +47,144 @@ internal static class PinataLayoutDocCorpus
     /// </summary>
     private static IEnumerable<(string Name, Action<Document> Build)> Documents()
     {
-        yield return ("flowed prose", document =>
-        {
-            var section = document.AddSection();
-            for (var idx = 0; idx < 6; idx++)
-                section.AddParagraph(Prose);
-        });
+        yield return ("flowed prose", FlowedProse);
+        yield return ("justified with indents", JustifiedWithIndents);
+        yield return ("paragraph across a page break", ParagraphAcrossAPageBreak);
+        yield return ("table across a page break", TableAcrossAPageBreak);
+        yield return ("text frame beside prose", TextFrameBesideProse);
+        yield return ("frame the text ignores", FrameTheTextIgnores);
+        yield return ("image between paragraphs", ImageBetweenParagraphs);
+        yield return ("headers, footers and page fields", HeadersFootersAndPageFields);
+        yield return ("lists", Lists);
+        yield return ("two sections", TwoSections);
+    }
 
-        yield return ("justified with indents", document =>
-        {
-            var section = document.AddSection();
-            for (var idx = 0; idx < 6; idx++)
-            {
-                var paragraph = section.AddParagraph(Prose);
-                paragraph.Format.Alignment = ParagraphAlignment.Justify;
-                paragraph.Format.FirstLineIndent = "1cm";
-                paragraph.Format.LeftIndent = "0.5cm";
-                paragraph.Format.RightIndent = "0.5cm";
-            }
-        });
-
-        yield return ("paragraph across a page break", document =>
-        {
-            var section = document.AddSection();
-            for (var idx = 0; idx < 40; idx++)
-                section.AddParagraph(Prose);
-        });
-
-        yield return ("table across a page break", document =>
-        {
-            var section = document.AddSection();
-            var table = section.AddTable();
-            table.Borders.Width = 0.5;
-            table.AddColumn("6cm");
-            table.AddColumn("6cm");
-
-            var heading = table.AddRow();
-            heading.HeadingFormat = true;
-            heading.Cells[0].AddParagraph("Column one");
-            heading.Cells[1].AddParagraph("Column two");
-
-            for (var idx = 0; idx < 45; idx++)
-            {
-                var row = table.AddRow();
-                row.Cells[0].AddParagraph("Row " + idx);
-                row.Cells[1].AddParagraph(Prose[..40]);
-            }
-        });
-
-        yield return ("text frame beside prose", document =>
-        {
-            var section = document.AddSection();
-            var frame = section.AddTextFrame();
-            frame.Width = "4cm";
-            frame.Height = "3cm";
-            frame.RelativeVertical = RelativeVertical.Paragraph;
-            frame.RelativeHorizontal = RelativeHorizontal.Margin;
-            frame.Left = ShapePosition.Right;
-            frame.WrapFormat.Style = WrapStyle.TopBottom;
-            frame.AddParagraph("A frame with words in it.");
-
-            for (var idx = 0; idx < 8; idx++)
-                section.AddParagraph(Prose);
-        });
-
-        yield return ("frame the text ignores", document =>
-        {
-            var section = document.AddSection();
-            var frame = section.AddTextFrame();
-            frame.Width = "4cm";
-            frame.Height = "3cm";
-            frame.RelativeVertical = RelativeVertical.Paragraph;
-            frame.WrapFormat.Style = WrapStyle.Through;
-            frame.AddParagraph("Overlapping on purpose.");
-
-            for (var idx = 0; idx < 8; idx++)
-                section.AddParagraph(Prose);
-        });
-
-        yield return ("image between paragraphs", document =>
-        {
-            var section = document.AddSection();
+    private static void FlowedProse(Document document)
+    {
+        var section = document.AddSection();
+        for (var idx = 0; idx < 6; idx++)
             section.AddParagraph(Prose);
+    }
 
-            var image = section.AddImage(ImageSource.FromFile(
-                PathHelper.GetInstance().GetAssetPath("frog-and-toad.jpg")));
-            image.Width = "5cm";
-            image.WrapFormat.Style = WrapStyle.TopBottom;
-
-            for (var idx = 0; idx < 6; idx++)
-                section.AddParagraph(Prose);
-        });
-
-        yield return ("headers, footers and page fields", document =>
+    private static void JustifiedWithIndents(Document document)
+    {
+        var section = document.AddSection();
+        for (var idx = 0; idx < 6; idx++)
         {
-            var section = document.AddSection();
-            section.PageSetup.StartingNumber = 1;
-            section.Headers.Primary.AddParagraph("A header");
-            var footer = section.Footers.Primary.AddParagraph("Page ");
-            footer.AddPageField();
-            footer.AddText(" of ");
-            footer.AddNumPagesField();
+            var paragraph = section.AddParagraph(Prose);
+            paragraph.Format.Alignment = ParagraphAlignment.Justify;
+            paragraph.Format.FirstLineIndent = "1cm";
+            paragraph.Format.LeftIndent = "0.5cm";
+            paragraph.Format.RightIndent = "0.5cm";
+        }
+    }
 
-            for (var idx = 0; idx < 30; idx++)
-                section.AddParagraph(Prose);
-        });
+    private static void ParagraphAcrossAPageBreak(Document document)
+    {
+        var section = document.AddSection();
+        for (var idx = 0; idx < 40; idx++)
+            section.AddParagraph(Prose);
+    }
 
-        yield return ("lists", document =>
+    private static void TableAcrossAPageBreak(Document document)
+    {
+        var section = document.AddSection();
+        var table = section.AddTable();
+        table.Borders.Width = 0.5;
+        table.AddColumn("6cm");
+        table.AddColumn("6cm");
+
+        var heading = table.AddRow();
+        heading.HeadingFormat = true;
+        heading.Cells[0].AddParagraph("Column one");
+        heading.Cells[1].AddParagraph("Column two");
+
+        for (var idx = 0; idx < 45; idx++)
         {
-            var section = document.AddSection();
-            for (var idx = 0; idx < 8; idx++)
-            {
-                var item = section.AddParagraph("Item " + idx + ": " + Prose);
-                item.Format.ListInfo = new ListInfo { ListType = ListType.BulletList1 };
-            }
-        });
+            var row = table.AddRow();
+            row.Cells[0].AddParagraph("Row " + idx);
+            row.Cells[1].AddParagraph(Prose[..40]);
+        }
+    }
 
-        yield return ("two sections", document =>
+    private static void TextFrameBesideProse(Document document)
+    {
+        var section = document.AddSection();
+        var frame = section.AddTextFrame();
+        frame.Width = "4cm";
+        frame.Height = "3cm";
+        frame.RelativeVertical = RelativeVertical.Paragraph;
+        frame.RelativeHorizontal = RelativeHorizontal.Margin;
+        frame.Left = ShapePosition.Right;
+        frame.WrapFormat.Style = WrapStyle.TopBottom;
+        frame.AddParagraph("A frame with words in it.");
+
+        for (var idx = 0; idx < 8; idx++)
+            section.AddParagraph(Prose);
+    }
+
+    private static void FrameTheTextIgnores(Document document)
+    {
+        var section = document.AddSection();
+        var frame = section.AddTextFrame();
+        frame.Width = "4cm";
+        frame.Height = "3cm";
+        frame.RelativeVertical = RelativeVertical.Paragraph;
+        frame.WrapFormat.Style = WrapStyle.Through;
+        frame.AddParagraph("Overlapping on purpose.");
+
+        for (var idx = 0; idx < 8; idx++)
+            section.AddParagraph(Prose);
+    }
+
+    private static void ImageBetweenParagraphs(Document document)
+    {
+        var section = document.AddSection();
+        section.AddParagraph(Prose);
+
+        var image = section.AddImage(ImageSource.FromFile(
+            PathHelper.GetInstance().GetAssetPath("frog-and-toad.jpg")));
+        image.Width = "5cm";
+        image.WrapFormat.Style = WrapStyle.TopBottom;
+
+        for (var idx = 0; idx < 6; idx++)
+            section.AddParagraph(Prose);
+    }
+
+    private static void HeadersFootersAndPageFields(Document document)
+    {
+        var section = document.AddSection();
+        section.PageSetup.StartingNumber = 1;
+        section.Headers.Primary.AddParagraph("A header");
+        var footer = section.Footers.Primary.AddParagraph("Page ");
+        footer.AddPageField();
+        footer.AddText(" of ");
+        footer.AddNumPagesField();
+
+        for (var idx = 0; idx < 30; idx++)
+            section.AddParagraph(Prose);
+    }
+
+    private static void Lists(Document document)
+    {
+        var section = document.AddSection();
+        for (var idx = 0; idx < 8; idx++)
         {
-            var first = document.AddSection();
-            for (var idx = 0; idx < 5; idx++)
-                first.AddParagraph(Prose);
+            var item = section.AddParagraph("Item " + idx + ": " + Prose);
+            item.Format.ListInfo = new ListInfo { ListType = ListType.BulletList1 };
+        }
+    }
 
-            var second = document.AddSection();
-            second.PageSetup.Orientation = Orientation.Landscape;
-            for (var idx = 0; idx < 5; idx++)
-                second.AddParagraph(Prose);
-        });
+    private static void TwoSections(Document document)
+    {
+        var first = document.AddSection();
+        for (var idx = 0; idx < 5; idx++)
+            first.AddParagraph(Prose);
+
+        var second = document.AddSection();
+        second.PageSetup.Orientation = Orientation.Landscape;
+        for (var idx = 0; idx < 5; idx++)
+            second.AddParagraph(Prose);
     }
 
     /// <summary>

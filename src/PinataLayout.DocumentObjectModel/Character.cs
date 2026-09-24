@@ -196,56 +196,50 @@ public partial class Character : DocumentObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    var text = string.Empty;
+    var text = count == 1 ? BreakText() : null;
+    serializer.Write(text ?? SymbolText((uint)(symbolName ?? default)));
+  }
+
+  /// <summary>
+  /// The DDL of a tab, line break or paragraph break, or null for anything else.
+  /// </summary>
+  private string BreakText()
+  {
     // An unset name matches none of these, and a character is never held there.
-    if (count == 1)
+    return name switch
     {
-      if (name == SymbolName.Tab)
-        text = "\\tab ";
-      else if (name == SymbolName.LineBreak)
-        text = "\\linebreak\x0D\x0A";
-      else if (name == SymbolName.ParaBreak)
-        text = "\x0D\x0A\x0D\x0A";
+      SymbolName.Tab => "\\tab ",
+      SymbolName.LineBreak => "\\linebreak\x0D\x0A",
+      SymbolName.ParaBreak => "\x0D\x0A\x0D\x0A",
+      _ => null
+    };
+  }
 
-      if (text != "")
-      {
-        serializer.Write(text);
-        return;
-      }
-    }
-
-    var raw = (uint)(symbolName ?? default);
-    if ((raw & 0xF0000000) == 0xF0000000)
-    {
-      // SymbolName == SpaceType?
-      if ((raw & 0xF1000000) == 0xF1000000)
-      {
-        if (name == SymbolName.Blank)
-        {
-          //Note: Don't try to optimize it by leaving away the braces in case a single space is added.
-          //This would lead to confusion with '(' in directly following text.
-          text = "\\space(" + Count + ")";
-        }
-        else
-        {
-          if (count == 1)
-            text = "\\space(" + SymbolName + ")";
-          else
-            text = "\\space(" + SymbolName + ", " + Count + ")";
-        }
-      }
-      else
-      {
-        text = "\\symbol(" + SymbolName + ")";
-      }
-    }
-    else
+  /// <summary>
+  /// The DDL of a space, a symbol or a (unicode) character.
+  /// </summary>
+  private string SymbolText(uint raw)
+  {
+    var isSymbol = (raw & 0xF0000000) == 0xF0000000;
+    if (!isSymbol)
     {
       // symbolType is a (unicode) character
-      text = " \\chr(0x" + ((int)raw).ToString("X") + ")";
+      return " \\chr(0x" + ((int)raw).ToString("X") + ")";
     }
 
-    serializer.Write(text);
+    // SymbolName == SpaceType?
+    var isSpace = (raw & 0xF1000000) == 0xF1000000;
+    if (!isSpace)
+      return "\\symbol(" + SymbolName + ")";
+
+    //Note: Don't try to optimize it by leaving away the braces in case a single space is added.
+    //This would lead to confusion with '(' in directly following text.
+    if (name == SymbolName.Blank)
+      return "\\space(" + Count + ")";
+
+    return count == 1
+      ? "\\space(" + SymbolName + ")"
+      : "\\space(" + SymbolName + ", " + Count + ")";
   }
 
   #endregion

@@ -31,9 +31,9 @@ internal sealed class UnicodeDemo : PdfDemo
 
     public override int PageCount => 2;
 
+    #region example
     protected override PdfDocument Build(DemoContext context)
     {
-        #region example
         var document = new PdfDocument();
         document.Info.Title = "Unicode";
 
@@ -105,71 +105,6 @@ internal sealed class UnicodeDemo : PdfDemo
 
         // Two one-string documents, saved, so the difference can be read out of the files rather
         // than described. Nothing is written to disk.
-        (string Encoding, string Subtype, string FontFile, int Length, long Bytes) Probe(
-            XPdfFontOptions options, string text, string family)
-        {
-            using var buffer = new MemoryStream();
-            using (var probe = new PdfDocument())
-            {
-                probe.Options.CompressContentStreams = true;
-                var page = probe.AddPage();
-                using (var gfx = XGraphics.FromPdfPage(page))
-                {
-                    gfx.DrawString(text, new XFont(family, 12, XFontStyle.Regular, options),
-                        XBrushes.Black, new XPoint(50, 50));
-                }
-
-                probe.Save(buffer, false);
-            }
-
-            buffer.Position = 0;
-            using var reopened = PdfReader.Open(buffer, PdfDocumentOpenMode.Import);
-
-            // Walk the page's font resources and report what kind of font object was written and
-            // which key the face's bytes ended up under.
-            var fonts = reopened.Pages[0].Elements
-                .GetDictionary("/Resources")?.Elements.GetDictionary("/Font");
-
-            string subtype = "none", fontFile = "none";
-            var length = 0;
-
-            if (fonts != null)
-            {
-                foreach (var key in fonts.Elements.KeyNames.Select(name => name.Value))
-                {
-                    var font = fonts.Elements.GetDictionary(key);
-                    subtype = font.Elements.GetName("/Subtype");
-
-                    // A CID font hides the descriptor one level down, under /DescendantFonts.
-                    var descriptor = font.Elements.GetDictionary("/FontDescriptor");
-                    if (descriptor == null)
-                    {
-                        var descendants = font.Elements.GetArray("/DescendantFonts");
-                        if (descendants != null && descendants.Elements.Count > 0)
-                        {
-                            descriptor = descendants.Elements.GetDictionary(0)
-                                ?.Elements.GetDictionary("/FontDescriptor");
-                        }
-                    }
-
-                    if (descriptor == null)
-                        continue;
-
-                    foreach (var file in new[] { "/FontFile", "/FontFile2", "/FontFile3" })
-                    {
-                        var embedded = descriptor.Elements.GetDictionary(file);
-                        if (embedded == null)
-                            continue;
-
-                        fontFile = file;
-                        length = embedded.Stream?.Length ?? 0;
-                    }
-                }
-            }
-
-            return (options.FontEncoding.ToString(), subtype, fontFile, length, buffer.Length);
-        }
-
         var probes = new[]
         {
             Probe(XPdfFontOptions.WinAnsiDefault, "Hello", "Liberation Sans"),
@@ -238,8 +173,83 @@ internal sealed class UnicodeDemo : PdfDemo
             + "leaves the asset to whoever needs it - register any face through IFontResolver and "
             + "the Unicode path above carries it.",
             body, XBrushes.Black, new XRect(50, row + 138, 495, 80));
-        #endregion
 
         return document;
     }
+
+    private static (string Encoding, string Subtype, string FontFile, int Length, long Bytes) Probe(
+        XPdfFontOptions options, string text, string family)
+    {
+        using var buffer = new MemoryStream();
+        using (var probe = new PdfDocument())
+        {
+            probe.Options.CompressContentStreams = true;
+            var page = probe.AddPage();
+            using (var gfx = XGraphics.FromPdfPage(page))
+            {
+                gfx.DrawString(text, new XFont(family, 12, XFontStyle.Regular, options),
+                    XBrushes.Black, new XPoint(50, 50));
+            }
+
+            probe.Save(buffer, false);
+        }
+
+        buffer.Position = 0;
+        using var reopened = PdfReader.Open(buffer, PdfDocumentOpenMode.Import);
+
+        // Walk the page's font resources and report what kind of font object was written and
+        // which key the face's bytes ended up under.
+        var fonts = reopened.Pages[0].Elements
+            .GetDictionary("/Resources")?.Elements.GetDictionary("/Font");
+
+        string subtype = "none", fontFile = "none";
+        var length = 0;
+
+        if (fonts != null)
+        {
+            foreach (var key in fonts.Elements.KeyNames.Select(name => name.Value))
+            {
+                var font = fonts.Elements.GetDictionary(key);
+                subtype = font.Elements.GetName("/Subtype");
+
+                if (EmbeddedFontFile(font) is { } embedded)
+                    (fontFile, length) = embedded;
+            }
+        }
+
+        return (options.FontEncoding.ToString(), subtype, fontFile, length, buffer.Length);
+    }
+
+    private static PdfDictionary? FontDescriptorOf(PdfDictionary font)
+    {
+        var descriptor = font.Elements.GetDictionary("/FontDescriptor");
+        if (descriptor != null)
+            return descriptor;
+
+        // A CID font hides the descriptor one level down, under /DescendantFonts.
+        var descendants = font.Elements.GetArray("/DescendantFonts");
+        if (descendants == null || descendants.Elements.Count == 0)
+            return null;
+
+        return descendants.Elements.GetDictionary(0)?.Elements.GetDictionary("/FontDescriptor");
+    }
+
+    // The last of the three keys the descriptor carries, and the length of the stream under it.
+    private static (string File, int Length)? EmbeddedFontFile(PdfDictionary font)
+    {
+        var descriptor = FontDescriptorOf(font);
+        if (descriptor == null)
+            return null;
+
+        (string File, int Length)? found = null;
+        foreach (var file in new[] { "/FontFile", "/FontFile2", "/FontFile3" })
+        {
+            var embedded = descriptor.Elements.GetDictionary(file);
+            if (embedded != null)
+                found = (file, embedded.Stream?.Length ?? 0);
+        }
+
+        return found;
+    }
+    #endregion
 }

@@ -123,41 +123,45 @@ internal class BarDataLabelRenderer : DataLabelRenderer
 
       var columnIndex = 0;
       foreach (var bar in sri.PointRendererInfos.Cast<ColumnRendererInfo>())
-      {
-        var dleri = sri.DataLabelRendererInfo.Entries[columnIndex++];
+        PositionLabel(sri.DataLabelRendererInfo.Entries[columnIndex++], sri.DataLabelRendererInfo.Position, bar);
+    }
+  }
 
-        dleri.Y = bar.Rect.Y + (bar.Rect.Height - dleri.Height) / 2; // Always the same...
-        switch (sri.DataLabelRendererInfo.Position)
-        {
-          case DataLabelPosition.InsideEnd:
-            // Inner border of the column.
-            dleri.X = bar.Rect.X;
-            if (bar.Value > 0)
-              dleri.X += bar.Rect.Width - dleri.Width;
-            break;
+  /// <summary>
+  /// Places one bar's data label where the position asks for it.
+  /// </summary>
+  private static void PositionLabel(DataLabelEntryRendererInfo dleri, DataLabelPosition position, ColumnRendererInfo bar)
+  {
+    dleri.Y = bar.Rect.Y + (bar.Rect.Height - dleri.Height) / 2; // Always the same...
+    switch (position)
+    {
+      case DataLabelPosition.InsideEnd:
+        // Inner border of the column.
+        dleri.X = bar.Rect.X;
+        if (bar.Value > 0)
+          dleri.X += bar.Rect.Width - dleri.Width;
+        break;
 
-          case DataLabelPosition.Center:
-            // Centered inside the column.
-            dleri.X = bar.Rect.X + (bar.Rect.Width - dleri.Width) / 2;
-            break;
+      case DataLabelPosition.Center:
+        // Centered inside the column.
+        dleri.X = bar.Rect.X + (bar.Rect.Width - dleri.Width) / 2;
+        break;
 
-          case DataLabelPosition.InsideBase:
-            // Aligned at the base of the column.
-            dleri.X = bar.Rect.X;
-            if (bar.Value < 0)
-              dleri.X += bar.Rect.Width - dleri.Width;
-            break;
+      case DataLabelPosition.InsideBase:
+        // Aligned at the base of the column.
+        dleri.X = bar.Rect.X;
+        if (bar.Value < 0)
+          dleri.X += bar.Rect.Width - dleri.Width;
+        break;
 
-          case DataLabelPosition.OutsideEnd:
-            // Outer border of the column.
-            dleri.X = bar.Rect.X;
-            if (bar.Value > 0)
-              dleri.X += bar.Rect.Width;
-            else
-              dleri.X -= dleri.Width;
-            break;
-        }
-      }
+      case DataLabelPosition.OutsideEnd:
+        // Outer border of the column.
+        dleri.X = bar.Rect.X;
+        if (bar.Value > 0)
+          dleri.X += bar.Rect.Width;
+        else
+          dleri.X -= dleri.Width;
+        break;
     }
   }
 }
