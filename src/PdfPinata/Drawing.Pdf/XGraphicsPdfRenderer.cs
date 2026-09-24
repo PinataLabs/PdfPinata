@@ -1117,7 +1117,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                 β = Math.PI / 2 - Math.Atan(δy * Math.Cos(β) / (δx * sinβ));
         }
 
-        var κ = 4 * (1 - Math.Cos((α - β) / 2)) / (3 * Math.Sin((β - α) / 2));
+        var κ = GeometryHelper.ArcKappa(α, β);
         sinα = Math.Sin(α);
         var cosα = Math.Cos(α);
         sinβ = Math.Sin(β);

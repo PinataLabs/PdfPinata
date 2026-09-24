@@ -20,6 +20,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **`PdfDocument.CanSave()` returns a `PdfSaveCheck`.** Its `CanSave` says whether the document can be saved and its `Reason` says why not, or is null when it can. It replaces `CanSave(ref string message)`, which is now deprecated.
 
+### Drawing & Graphics
+
+#### Fixed
+
+- **An arc with a sweep of 0 is drawn as a single curve that stays at its start, and always returns.** `XGraphics.DrawArc` and `XGraphicsPath.AddArc` never returned for a zero sweep starting at exactly 360 or -360: the quadrant the arc ends in came out as 4, and the walk through quadrants 0 to 3 kept adding curves until the process ran out of memory. Off a quadrant edge, such as a start of 45, both control points were 0/0 and the content-stream writer refused the NaN, so `DrawArc` threw at once and a path holding the arc threw when it was drawn. On any other quadrant edge the arc was cut as though it crossed that edge, so a start of 90 drew the whole ellipse. A zero sweep is now one piece from its start to its start, whose control points lie at that point. Arcs with a non-zero sweep are unchanged. (#129, #130)
+
 ### PinataLayout & DDL
 
 #### Breaking
