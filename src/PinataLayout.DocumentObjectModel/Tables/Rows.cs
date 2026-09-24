@@ -126,6 +126,10 @@ public partial class Rows : DocumentObjectCollection, IVisitable
   /// <summary>
   /// Gets or sets the row alignment of the table.
   /// </summary>
+  /// <remarks>
+  /// A value of the whole table, read off this collection to place it; no row has an alignment of
+  /// its own.
+  /// </remarks>
   public RowAlignment Alignment
   {
     get => alignment ?? default;
@@ -138,6 +142,10 @@ public partial class Rows : DocumentObjectCollection, IVisitable
   /// Gets or sets the left indent of the table. If row alignment is not Left,
   /// the value is ignored.
   /// </summary>
+  /// <remarks>
+  /// A value of the whole table, read off this collection to place it; no row has an indent of its
+  /// own.
+  /// </remarks>
   public Unit LeftIndent
   {
     get => leftIndent;
@@ -149,6 +157,10 @@ public partial class Rows : DocumentObjectCollection, IVisitable
   /// <summary>
   /// Gets or sets the default vertical alignment for all rows.
   /// </summary>
+  /// <remarks>
+  /// A default, not a value applied to every row: it is used for each row whose own
+  /// <see cref="Row.VerticalAlignment"/> is not set, and a row that sets one keeps it.
+  /// </remarks>
   public VerticalAlignment VerticalAlignment
   {
     get => verticalAlignment ?? default;
@@ -160,6 +172,10 @@ public partial class Rows : DocumentObjectCollection, IVisitable
   /// <summary>
   /// Gets or sets the height of the rows.
   /// </summary>
+  /// <remarks>
+  /// A default, not a value applied to every row: it is used for each row whose own
+  /// <see cref="Row.Height"/> is not set, and a row that sets one keeps it.
+  /// </remarks>
   public Unit Height
   {
     get => height;
@@ -171,6 +187,10 @@ public partial class Rows : DocumentObjectCollection, IVisitable
   /// <summary>
   /// Gets or sets the rule which is used to determine the height of the rows.
   /// </summary>
+  /// <remarks>
+  /// A default, not a value applied to every row: it is used for each row whose own
+  /// <see cref="Row.HeightRule"/> is not set, and a row that sets one keeps it.
+  /// </remarks>
   public RowHeightRule HeightRule
   {
     get => heightRule ?? default;

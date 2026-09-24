@@ -9,7 +9,7 @@ investigation turned up. All three are tracked the same way, because what a read
 first is the same in each case: is this the code as it stands, or the code as somebody hoped it
 would be?
 
-**48 done · 4 in progress · 10 not started · 62 total.**
+**48 done · 5 in progress · 10 not started · 63 total.**
 
 Read the relevant spec before extending that feature area.
 
@@ -78,6 +78,7 @@ Part of the spec has landed. Each entry says what is left.
 - [ ] [crap-coverage-backlog.md](crap-coverage-backlog.md) — the CRAP backlog, worked in batches. Batches 0–18 are done: 237 methods over the threshold down to 172, 109 never-executed down to 71. Batches 15–18 leave a handful of named items for later, and the list wants re-measuring.
 - [ ] [generated-serialization.md](generated-serialization.md) — generating the flat attribute writes inside the DOM's `Serialize`. **Step 1 of 6 shipped** — the `MDG007` diagnostic exists and fires. Steps 2–6 have not started: no `SerializeValues` is emitted anywhere.
 - [ ] [interactive-layer-gaps.md](interactive-layer-gaps.md) — gaps found writing the Forms, Annotations and Outline demos. Five fixed, one partly. **Open:** authoring a form through the typed AcroForm API, `PdfAcroFieldFlags.Comb`, `PdfInternals.CreateIndirectObject<T>()` returning null, bookmarks and links not surviving page import.
+- [ ] [linq-and-enumeration.md](linq-and-enumeration.md) — what LINQ over the public collections gives, prompted by ClosedXML#2867. The audit and the DOM's defaults documented as defaults have landed. **Open:** `PdfContents` and the AcroForm field collection enumerating references, `doc.Pages.OfType<PdfPage>()` finding nothing, three enumerators that skip members when the collection changes under them, the DOM's explicit `IList` members, and three small items.
 - [ ] [pdfkit-text-parity.md](pdfkit-text-parity.md) — text feature parity against PDFKit's 25 `doc.text()` options. **Sections A–E are built.** Section F is not, and is deliberately left: it is a shaping engine, and bigger than everything above it put together.
 
 ## Not started
