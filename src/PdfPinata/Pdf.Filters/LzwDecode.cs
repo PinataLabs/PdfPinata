@@ -78,7 +78,7 @@ public class LzwDecode : Filter
     /// <summary>
     /// Reads codes up to the end-of-data code, writing the string each one stands for.
     /// </summary>
-    private void DecodeCodes(Stream outputStream)
+    private void DecodeCodes(MemoryStream outputStream)
     {
         int code, oldCode = 0;
         while ((code = NextCode) != 257)

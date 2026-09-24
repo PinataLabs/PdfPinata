@@ -351,6 +351,6 @@ internal sealed class CompressDemo : PdfDemo
     private static string Signed(long delta) => $"{(delta > 0 ? "+" : "")}{delta:N0}";
 
     // Red for a file that grew, green for one that did not.
-    private static XBrush DeltaBrush(long delta) => delta > 0 ? XBrushes.Firebrick : XBrushes.SeaGreen;
+    private static XSolidBrush DeltaBrush(long delta) => delta > 0 ? XBrushes.Firebrick : XBrushes.SeaGreen;
     #endregion
 }

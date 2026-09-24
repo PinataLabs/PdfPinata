@@ -86,9 +86,13 @@ public class CString : CObject
                 {
                     // One char per byte. Anything wider has no two digits to say it with, and
                     // writing its low byte would write a different string.
+                    // ToString is how a content stream is written, and Value and CStringType are
+                    // set independently, so this is the first point at which the pair can be judged.
+                    #pragma warning disable S3877
                     if (ch > 0xFF)
                         throw new InvalidOperationException(
                             $"A hex string holds bytes, and U+{(int)ch:X4} is not one. Use CStringType.UnicodeHexString for text.");
+                    #pragma warning restore S3877
                     s.Append(((int)ch).ToString("X2", CultureInfo.InvariantCulture));
                 }
                 s.Append('>');

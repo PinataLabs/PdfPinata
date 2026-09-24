@@ -556,7 +556,9 @@ public sealed class XGraphicsPath
     /// <summary>
     /// Grants access to internal objects of this class.
     /// </summary>
+    #pragma warning disable CA1822 // Public API: making it static would break every caller writing path.Internals.
     public XGraphicsPathInternals Internals => new();
+    #pragma warning restore CA1822
 
     /// <summary>
     /// Gets access to underlying Core graphics path.

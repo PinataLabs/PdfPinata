@@ -528,7 +528,7 @@ public struct XUnit : IFormattable, IEquatable<XUnit>
     /// Note that <c>unit == "an inch"</c> does throw, and always has; that is the operator's
     /// business and it is not made better by <c>Equals</c> joining in.
     /// </remarks>
-    #pragma warning disable S3400 // Deliberate: the constant is the answer, and the remarks say why the overload exists at all.
+    #pragma warning disable S3400, CA1822 // Deliberate: the constant is the answer, and the remarks say why the overload exists at all. A static one could not be reached as unit.Equals(...).
     public bool Equals(string other) => false;
-    #pragma warning restore S3400
+    #pragma warning restore S3400, CA1822
 }

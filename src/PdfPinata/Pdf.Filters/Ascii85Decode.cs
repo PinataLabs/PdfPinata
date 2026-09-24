@@ -202,8 +202,11 @@ public class Ascii85Decode : Filter
         // A z stands for a whole group of zeros, so it can only come where a group would
         // begin. Inside one it would be read as a digit worth 89, which no digit is, and
         // every group after it would be read out of step.
+        // Named after Decode's parameter, which is where the character came from.
+        #pragma warning disable CA2208
         if (groupLength != 0)
             throw new ArgumentException("Illegal character 'z' inside a group.", "data");
+        #pragma warning restore CA2208
     }
 
     /// <summary>

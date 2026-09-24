@@ -97,7 +97,7 @@ public struct LeftPosition : INullableValue
       SetFromEnum(position);
 
     else if (value is string name && Enum.IsDefined(typeof(ShapePosition), name))
-      SetFromEnum((ShapePosition)Enum.Parse(typeof(ShapePosition), name));
+      SetFromEnum(Enum.Parse<ShapePosition>(name));
     else
       SetFromUnit(value.ToString());
 

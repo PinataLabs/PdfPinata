@@ -353,7 +353,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
     ///   pop-up are not.
     /// </summary>
     [Theory]
-    [MemberData(nameof(MarkupOrNot))]
+    [MemberData(nameof(MarkupOrNot), DisableDiscoveryEnumeration = true)]
     public void TheMarkupAnnotationsAreTheOnesTheSpecificationNames(PdfAnnotation annotation, bool isMarkup)
     {
         (annotation is PdfMarkupAnnotation).Should().Be(isMarkup);

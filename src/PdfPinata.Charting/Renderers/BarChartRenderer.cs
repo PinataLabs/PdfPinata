@@ -165,7 +165,7 @@ internal class BarChartRenderer : ChartRenderer
   /// <summary>
   /// Returns the specific legend renderer.
   /// </summary>
-  private LegendRenderer GetLegendRenderer()
+  private ColumnLikeLegendRenderer GetLegendRenderer()
   {
     var chart = (Chart)rendererParms.DrawingItem;
     return chart.type switch
@@ -179,7 +179,7 @@ internal class BarChartRenderer : ChartRenderer
   /// <summary>
   /// Returns the specific plot area renderer.
   /// </summary>
-  private YAxisRenderer GetYAxisRenderer()
+  private HorizontalYAxisRenderer GetYAxisRenderer()
   {
     var chart = (Chart)rendererParms.DrawingItem;
     return chart.type switch
