@@ -225,6 +225,10 @@ public partial class Borders : DocumentObject, IEnumerable
     /// <summary>
     /// Gets or sets a value indicating whether the borders are visible.
     /// </summary>
+    /// <remarks>
+    /// A default, not a value applied to every border: it is used for each border whose own
+    /// <see cref="Border.Visible"/> is not set, and a border that sets one keeps it.
+    /// </remarks>
     public bool Visible
     {
         get => visible ?? false;
@@ -236,6 +240,10 @@ public partial class Borders : DocumentObject, IEnumerable
     /// <summary>
     /// Gets or sets the line style of the borders.
     /// </summary>
+    /// <remarks>
+    /// A default, not a value applied to every border: it is used for each border whose own
+    /// <see cref="Border.Style"/> is not set, and a border that sets one keeps it.
+    /// </remarks>
     public BorderStyle Style
     {
         get => style ?? default;
@@ -247,6 +255,10 @@ public partial class Borders : DocumentObject, IEnumerable
     /// <summary>
     /// Gets or sets the standard width of the borders.
     /// </summary>
+    /// <remarks>
+    /// A default, not a value applied to every border: it is used for each border whose own
+    /// <see cref="Border.Width"/> is not set, and a border that sets one keeps it.
+    /// </remarks>
     public Unit Width
     {
         get => width;
@@ -258,6 +270,10 @@ public partial class Borders : DocumentObject, IEnumerable
     /// <summary>
     /// Gets or sets the color of the borders.
     /// </summary>
+    /// <remarks>
+    /// A default, not a value applied to every border: it is used for each border whose own
+    /// <see cref="Border.Color"/> is not set, and a border that sets one keeps it.
+    /// </remarks>
     public Color Color
     {
         get => color;

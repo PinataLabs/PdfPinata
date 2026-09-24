@@ -103,6 +103,10 @@ public partial class Columns : DocumentObjectCollection, IVisitable
   /// <summary>
   /// Gets or sets the default width of all columns.
   /// </summary>
+  /// <remarks>
+  /// A default, not a value applied to every column: it is used for each column whose own
+  /// <see cref="Column.Width"/> is not set, and a column that sets one keeps it.
+  /// </remarks>
   public Unit Width
   {
     get => width;
