@@ -106,12 +106,14 @@ internal static class GeometryHelper
             var startQuadrant = Quadrant(_start, true, _clockwise);
             _endQuadrant = Quadrant(_end, false, _clockwise);
 
-            // An arc with no sweep goes nowhere, so it is one piece from its start back to its
-            // start. Left to the walk, a start on a quadrant edge is placed in the quadrant before
-            // the edge and its end in the quadrant after it, as though the arc crossed the edge -
-            // so the walk went the whole way round to get from one to the other (#129).
-            #pragma warning disable S1244 // Exact on purpose: only no sweep at all goes nowhere, and a sweep near it is still cut by the walk.
-            _withinOneQuadrant = sweep == 0 || (startQuadrant == _endQuadrant && _smallAngle);
+            // An arc that ends where it starts goes nowhere, so it is one piece from its start back
+            // to its start. Left to the walk, a start on a quadrant edge is placed in the quadrant
+            // before the edge and its end in the quadrant after it, as though the arc crossed the
+            // edge - so the walk went the whole way round to get from one to the other (#129). That
+            // is a sweep of 0, and also a sweep too small to move the angle it is added to, such as
+            // float cancellation leaves behind: 90 + 1e-15 is 90.
+            #pragma warning disable S1244 // Exact on purpose: an end that differs from the start by any amount is placed in its quadrant correctly by the walk.
+            _withinOneQuadrant = _end == _start || (startQuadrant == _endQuadrant && _smallAngle);
             #pragma warning restore S1244
             _pathStart = pathStart;
 

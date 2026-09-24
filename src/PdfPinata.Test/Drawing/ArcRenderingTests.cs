@@ -93,29 +93,37 @@ public class ArcRenderingTests
     ///   can interrupt it.
     /// </remarks>
     [Theory(Timeout = 30000)]
-    [InlineData(45)]
-    [InlineData(359)]
-    [InlineData(-45)]
-    [InlineData(405)]
-    [InlineData(0)]
-    [InlineData(90)]
-    [InlineData(360)]
-    [InlineData(-360)]
-    public async Task DrawArcWithNoSweepDrawsOneDegenerateCurveAtTheStart(double startAngle)
+    [InlineData(45, 0)]
+    [InlineData(359, 0)]
+    [InlineData(-45, 0)]
+    [InlineData(405, 0)]
+    [InlineData(0, 0)]
+    [InlineData(90, 0)]
+    [InlineData(360, 0)]
+    [InlineData(-360, 0)]
+    // Sweeps too small to move the angle they are added to, such as float cancellation leaves
+    // behind: 90 + 1e-15 is 90, so these go nowhere just as a sweep of 0 does.
+    [InlineData(90, 1e-15)]
+    [InlineData(360, -1e-15)]
+    [InlineData(45, 1e-15)]
+    [InlineData(0, 0.1 + 0.2 - 0.3)]
+    public async Task DrawArcWithNoSweepDrawsOneDegenerateCurveAtTheStart(double startAngle, double sweepAngle)
     {
         var content = await Interruptibly.Run(() =>
-            ContentOf(gfx => gfx.DrawArc(XPens.Black, 10, 20, 100, 60, startAngle, 0)));
+            ContentOf(gfx => gfx.DrawArc(XPens.Black, 10, 20, 100, 60, startAngle, sweepAngle)));
 
         content.Should().NotContain("NaN");
         ShouldBeOneCurveThatStaysAtItsStart(PathConstruction(content));
     }
 
     [Theory(Timeout = 30000)]
-    [InlineData(-360)]
-    [InlineData(359)]
-    [InlineData(45)]
-    [InlineData(0)]
-    public async Task AnArcWithNoSweepAddedToAPathIsDrawnAndSaved(double startAngle)
+    [InlineData(-360, 0)]
+    [InlineData(359, 0)]
+    [InlineData(45, 0)]
+    [InlineData(0, 0)]
+    [InlineData(90, 1e-15)]
+    [InlineData(360, -1e-15)]
+    public async Task AnArcWithNoSweepAddedToAPathIsDrawnAndSaved(double startAngle, double sweepAngle)
     {
         var (content, saved) = await Interruptibly.Run(() =>
         {
@@ -125,7 +133,7 @@ public class ArcRenderingTests
             using (var gfx = XGraphics.FromPdfPage(page))
             {
                 var path = new XGraphicsPath();
-                path.AddArc(10, 20, 100, 60, startAngle, 0);
+                path.AddArc(10, 20, 100, 60, startAngle, sweepAngle);
                 gfx.DrawPath(XPens.Black, path);
             }
 
