@@ -228,6 +228,34 @@ public class DocumentInternalsAndOutlineCollectionTests
         outlines.Count.Should().Be(0);
     }
 
+    /// <summary>
+    ///   <see cref="System.Collections.Generic.IList{T}.Insert"/> takes the count as an append, and
+    ///   used to be refused there - into an empty list, at index 0, as well. An entry put there has
+    ///   to be linked into the tree as one added is, or the file would lose it.
+    /// </summary>
+    [Fact]
+    public void AnOutlineInsertedAtTheCountIsAppendedAndSurvivesTheFile()
+    {
+        var document = ADocumentOf();
+        var outlines = document.Outlines;
+
+        outlines.Insert(0, new PdfOutline("first", document.Pages[0]));
+        outlines.Add("second", document.Pages[1]);
+        var last = new PdfOutline("last", document.Pages[1]);
+        outlines.Insert(outlines.Count, last);
+        var child = new PdfOutline("child", document.Pages[0]);
+        last.Outlines.Insert(last.Outlines.Count, child);
+
+        outlines.Select(outline => outline.Title).Should().Equal("first", "second", "last");
+        last.Parent.Should().BeSameAs(outlines[0].Parent);
+        child.Parent.Should().BeSameAs(last);
+
+        var reopened = RoundTripped(document);
+
+        reopened.Outlines.Select(outline => outline.Title).Should().Equal("first", "second", "last");
+        reopened.Outlines[2].Outlines.Select(outline => outline.Title).Should().Equal("child");
+    }
+
     [Fact]
     public void AnOutlineIndexOutsideTheListIsRefusedRatherThanReadPastTheEnd()
     {

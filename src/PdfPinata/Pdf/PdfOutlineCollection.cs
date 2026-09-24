@@ -193,12 +193,16 @@ public class PdfOutlineCollection : PdfObject, IList<PdfOutline>
     }
 
     /// <summary>
-    /// Inserts the item at the specified index.
+    /// Inserts the item at the specified index. An index equal to <see cref="Count"/> appends it,
+    /// as <see cref="Add(PdfOutline)"/> does.
     /// </summary>
     public void Insert(int index, PdfOutline outline)
     {
         ArgumentNullException.ThrowIfNull(outline);
-        if (index < 0 || index >= _outlines.Count)
+        // Count itself is a place to insert at - the end - as IList<T>.Insert requires. The
+        // links to the neighbours are written at save time, so an entry placed there needs no
+        // more than one placed anywhere else.
+        if (index < 0 || index > _outlines.Count)
             throw new ArgumentOutOfRangeException(nameof(index), index, PSSR.OutlineIndexOutOfRange);
 
         AddToOutlinesTree(outline);
