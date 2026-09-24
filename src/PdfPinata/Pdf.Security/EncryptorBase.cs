@@ -120,6 +120,11 @@ internal abstract class EncryptorBase
         // Length may be absent, use default of 40 bits (see 7.6.1 Table 20, "V" entry)
         if (keyLength <= 0)
             keyLength = 5;
+        // Up to revision 4 the key is cut from a 16-byte MD5 digest, so ISO 32000-1 Table 20 allows
+        // /Length 40 to 128. A larger one would have every rehash read past the digest. qpdf opens
+        // such a file as 128-bit, and so does this. Revisions 5 and 6 are AES-256 and never read it.
+        if (rValue <= 4 && keyLength > 16)
+            keyLength = 16;
         keySize = keyLength;
     }
 
