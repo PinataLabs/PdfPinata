@@ -425,9 +425,20 @@ is lost.
 **A form field and its widget are always separate objects.** `PdfAcroField.AddWidget(page, rect)` is
 the only way to put a field on a page, and it never merges the two dictionaries even though ISO
 32000-1 12.7.3.1 allows it for a field with one widget — so a field that gains a second widget does
-not change shape. Consequences worth carrying: `/Kids` holds **both** nested fields and widget
-annotations, and only the first sort has a `/T`, so anything walking it has to allow for a kid with
-no name; and `PdfTextField` renders its value onto each kid that has a `/Rect`, not onto the field.
+not change shape. `/Kids` holds **both** nested fields and widget annotations, and only the first
+sort has a `/T`. **`Fields` lists the fields and `Widgets` the widgets**, both sorted by
+`PdfAcroField.IsWidgetOnly` — walk whichever you mean, never the raw array as if it were one kind.
+`PdfTextField` renders its value onto its `Widgets`, not onto the field.
+
+**A field and an annotation are never made out of one another.** Type transformation points a
+dictionary's reference at the new wrapper, so retyping a widget as a field took it away from
+`page.Annotations`, and back again on the next read (#146). `PdfObject`'s transforming constructor
+now throws when `Role` changes. A field **merged** with its widget is canonically the field;
+`PdfAnnotation.FromDictionary` makes it one if nothing has yet and hands out
+`PdfAcroField.WidgetView`, a `PdfWidgetAnnotation` built with the `PdfDictionary(viewed, View.Of)`
+constructor, which shares the entries and the reference and takes neither over. Both halves are
+load-bearing: which object a caller got used to depend on which collection was read first.
+`docs/specs/field-and-widget-model.md` has the rest.
 
 **A partial field name may not contain a period.** `Name = "name.full"` is refused, because a period
 joins partial names into the path `Fields["name.full"]` looks a field up by — so writing one produces

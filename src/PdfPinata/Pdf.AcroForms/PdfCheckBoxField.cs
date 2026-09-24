@@ -93,9 +93,9 @@ public sealed class PdfCheckBoxField : PdfButtonField
 
             if (!HasKids)
                 SetOwnState(value);
-            else if (Fields.Elements.Items.Length == 1)
+            else if (Widgets.Count == 1)
                 SetSingleChildState(value);
-            else if (Fields.Elements.Items.Length == 2)
+            else if (Widgets.Count == 2)
                 SetTwinChildStates(value);
         }
     }
@@ -147,11 +147,9 @@ public sealed class PdfCheckBoxField : PdfButtonField
     }
 
     /// <summary>
-    /// The child at the given position, which the twin-widget path takes to be an indirect
-    /// reference to a dictionary - anything else fails the cast.
+    /// The widget at the given position, which the twin-widget path takes to exist.
     /// </summary>
-    private PdfDictionary ReferencedChildAt(int index) =>
-        (PdfDictionary)((PdfReference)Fields.Elements.Items[index]).Value;
+    private PdfDictionary ReferencedChildAt(int index) => Widgets[index];
 
     /// <summary>
     /// Writes the child's on or off state into its <c>/V</c> and <c>/AS</c>, unless its appearances
@@ -168,19 +166,16 @@ public sealed class PdfCheckBoxField : PdfButtonField
     }
 
     /// <summary>
-    /// Gets the child field at the given position, or null when there is no such child or it is
-    /// not a dictionary.
+    /// Gets the widget at the given position, or null when there is no such widget.
     /// </summary>
+    /// <remarks>
+    /// The widgets, not the kids: <c>/Kids</c> can hold nested fields as well, and those carry
+    /// states of their own rather than this field's.
+    /// </remarks>
     private PdfDictionary ChildAt(int index)
     {
-        var kids = Fields.Elements.Items;
-        if (index < 0 || index >= kids.Length)
-            return null;
-
-        var kid = kids[index];
-        if (kid is PdfReference reference)
-            kid = reference.Value;
-        return kid as PdfDictionary;
+        var widgets = Widgets;
+        return index >= 0 && index < widgets.Count ? widgets[index] : null;
     }
 
     /// <summary>

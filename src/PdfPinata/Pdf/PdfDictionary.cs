@@ -99,6 +99,34 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
     }
 
     /// <summary>
+    /// Initializes a view of another dictionary: the same entries, the same stream and the same
+    /// reference, under a second type.
+    /// </summary>
+    /// <remarks>
+    /// Unlike type transformation this takes nothing over. The reference goes on naming the
+    /// dictionary viewed, which keeps its entries - and with them the meta information that types
+    /// what is read out of them, and the dirty flag an incremental save looks at. A write through
+    /// the view is a write into those entries. It exists for the one dictionary that is two things
+    /// at once, a form field merged with its widget annotation.
+    /// </remarks>
+    private protected PdfDictionary(PdfDictionary viewed, View _)
+        : base(viewed.Owner)
+    {
+        _elements = viewed.Elements;
+        _stream = viewed._stream;
+        Reference = viewed.Reference;
+    }
+
+    /// <summary>
+    /// Selects the constructor that makes a view rather than a transformation.
+    /// </summary>
+    private protected enum View
+    {
+        /// <summary>A view of the dictionary passed with it.</summary>
+        Of
+    }
+
+    /// <summary>
     /// Creates a copy of this dictionary. Direct values are deep copied. Indirect references are not
     /// modified.
     /// </summary>

@@ -137,7 +137,9 @@ and left its widget showing whatever it showed before. The reference is followed
 **`PdfTextField` drew its value into the field rather than into its widgets.** `RenderAppearance`
 read `/Rect` off the field whatever the field's shape, so an unmerged one drew into a form of no size
 and hung it where no reader looks. It renders onto each `/Kids` entry that has a rectangle now, and
-onto the field itself when the field is its own annotation.
+onto the field itself when the field is its own annotation. (Since #146, onto each of `Widgets`: a
+`/Kids` entry with a rectangle can also be a nested field merged with its widget, and that has a
+value of its own - see [`field-and-widget-model.md`](field-and-widget-model.md).)
 
 **`GetDescendantNames` took every kid for a field.** `/Kids` holds two different things and only one
 of them has a name: a widget reached the walk with no `/T`, tripped a `Debug.Assert` and contributed
