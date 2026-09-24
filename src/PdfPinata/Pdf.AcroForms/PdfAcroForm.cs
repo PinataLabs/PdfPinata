@@ -176,14 +176,18 @@ public sealed class PdfAcroForm : PdfDictionary
     /// <summary>
     /// Gets the fields collection of this form.
     /// </summary>
+    /// <remarks>
+    /// Reading it makes <c>/Fields</c> if the form has none, since ISO 32000-1 Table 218 requires
+    /// the entry of every form.
+    /// </remarks>
     public PdfAcroField.PdfAcroFieldCollection Fields
     {
         get
         {
             if (field == null)
             {
-                object o = Elements.GetValue(Keys.Fields, VCF.CreateIndirect);
-                field = (PdfAcroField.PdfAcroFieldCollection)o;
+                field = new PdfAcroField.PdfAcroFieldCollection(this, Keys.Fields, parent: null);
+                field.GetOrCreateEntries();
             }
             return field;
         }
@@ -201,7 +205,7 @@ public sealed class PdfAcroForm : PdfDictionary
         /// (Required) An array of references to the document’s root fields (those with
         /// no ancestors in the field hierarchy).
         /// </summary>
-        [KeyInfo(KeyType.Array | KeyType.Required, typeof(PdfAcroField.PdfAcroFieldCollection))]
+        [KeyInfo(KeyType.Array | KeyType.Required)]
         public const string Fields = "/Fields";
 
         /// <summary>

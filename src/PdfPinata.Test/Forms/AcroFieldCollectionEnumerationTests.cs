@@ -15,9 +15,9 @@ namespace PdfPinata.Test.Forms;
 /// <summary>
 ///   <see cref="PdfAcroField.PdfAcroFieldCollection"/> is both a form's <c>/Fields</c> and a
 ///   field's <c>/Kids</c>. Its indexer hands back typed fields; enumerating it - with
-///   <c>foreach</c>, as <see cref="IEnumerable{T}"/> of <see cref="PdfItem"/>, which is what LINQ
-///   sees, or as plain <see cref="IEnumerable"/> - has to hand back the same objects, not the
-///   references underneath them.
+///   <c>foreach</c>, through LINQ, which sees it as an <see cref="IEnumerable{T}"/> of
+///   <see cref="PdfAcroField"/>, or as plain <see cref="IEnumerable"/> - has to hand back the same
+///   objects, not the references underneath them.
 /// </summary>
 public class AcroFieldCollectionEnumerationTests
 {
@@ -53,14 +53,9 @@ public class AcroFieldCollectionEnumerationTests
             untyped.Add(field);
         untyped.Should().Equal(byIndex);
 
-        var asArray = new List<PdfItem>();
-        foreach (var item in (PdfArray)fields)
-            asArray.Add(item);
-        asArray.Should().Equal(byIndex);
-
+        fields.ToList().Should().Equal(byIndex, "LINQ over the collection is typed");
         fields.OfType<PdfAcroField>().Should().Equal(byIndex);
         fields.Cast<PdfAcroField>().Should().Equal(byIndex);
-        fields.OfType<PdfReference>().Should().BeEmpty();
     }
 
     [Fact]
@@ -69,7 +64,7 @@ public class AcroFieldCollectionEnumerationTests
         var fields = AFormWithThreeFields();
 
         fields.Count.Should().Be(3);
-        fields.Count.Should().Be(fields.Elements.Count);
+        fields.Should().HaveCount(3);
     }
 
     [Fact]
@@ -131,10 +126,48 @@ public class AcroFieldCollectionEnumerationTests
     }
 
     [Fact]
+    public void LinqOverTheFieldsIsTyped()
+    {
+        var fields = AFormWithThreeFields();
+
+        // Each of these names PdfAcroField as its element type without a Cast: the collection is
+        // an IReadOnlyList<PdfAcroField> and nothing else, so LINQ has one type to choose.
+        PdfAcroField first = fields.First();
+        var check = fields.Single(field => field.Name == "check");
+        var names = fields.Select(field => field.Name).ToArray();
+
+        first.Name.Should().Be("text");
+        check.Should().BeOfType<PdfCheckBoxField>();
+        names.Should().Equal("text", "check", "combo");
+    }
+
+    [Fact]
+    public void ReadingAFieldsKidsWritesNoKids()
+    {
+        // /Kids used to be made - empty, and indirect - by asking for it, so a terminal field
+        // that had merely been looked at was written out with an empty array of children.
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var form = document.GetOrCreateAcroForm();
+        var text = new PdfTextField(document) { Name = "text" };
+        form.Fields.Add(text);
+
+        text.Fields.Count.Should().Be(0);
+        text.Fields.Should().BeEmpty();
+        text.Elements.ContainsKey(PdfAcroField.Keys.Kids).Should().BeFalse();
+
+        text.AddWidget(page, new PdfRectangle(new XRect(60, 700, 200, 20)));
+
+        text.Elements[PdfAcroField.Keys.Kids].Should().BeOfType<PdfReference>("/Kids is made indirect when first needed");
+        text.Elements.GetArray(PdfAcroField.Keys.Kids).Elements.Count.Should().Be(1);
+        text.Fields.Count.Should().Be(0);
+    }
+
+    [Fact]
     public void MakingTheFormReadOnlyReachesEveryRootField()
     {
         var fields = AFormWithThreeFields();
-        var document = fields.Owner;
+        var document = fields[0].Owner;
 
         document.MakeAcroFormsReadOnly();
 

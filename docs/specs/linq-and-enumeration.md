@@ -115,6 +115,11 @@ Item 2 overrides `EnumerateItems` to yield the typed fields, adds a public typed
 that would be a second `IEnumerable<T>` beside the inherited `IEnumerable<PdfItem>`, which is §3.1's
 ambiguity introduced on purpose.
 
+**Superseded by #146.** The collection is no longer a `PdfArray` at all but a read-only view of one,
+and implements `IReadOnlyList<PdfAcroField>` alone, so LINQ over it is typed. It also stopped
+listing a field's widget annotations. [`field-and-widget-model.md`](field-and-widget-model.md) §3.3
+has why.
+
 ### 3.5 The ClosedXML shape: defaults on the DOM's collections
 
 The one place the reporter's complaint lands is the DOM, where the collection objects carry values:

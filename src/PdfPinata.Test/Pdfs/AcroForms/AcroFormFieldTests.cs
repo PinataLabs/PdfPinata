@@ -143,7 +143,7 @@ public class AcroFormFieldTests
 
         var fields = document.AcroForm.Fields;
 
-        fields.Elements.Count.Should().Be(2);
+        fields.Count.Should().Be(2);
         fields[0].Name.Should().Be("first");
         fields[1].Name.Should().Be("second");
         fields["second"].Should().NotBeNull();
@@ -172,7 +172,7 @@ public class AcroFormFieldTests
         var address = document.AcroForm.Fields["address"];
 
         address.HasKids.Should().BeTrue();
-        address.Fields.Elements.Count.Should().Be(2);
+        address.Fields.Count.Should().Be(2);
         document.AcroForm.Fields["address.town"].Should().NotBeNull();
         document.AcroForm.Fields["address.town"].Name.Should().Be("town");
         document.AcroForm.Fields["address.nosuchchild"].Should().BeNull();

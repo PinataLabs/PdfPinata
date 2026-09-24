@@ -38,7 +38,7 @@ public class AcroFormTwinCheckBoxTests
     /// <summary>The value and appearance state of one of the field's children.</summary>
     private static (string Value, string Appearance) ChildState(PdfAcroField field, int index)
     {
-        var kid = (PdfDictionary)((PdfReference)field.Fields.Elements.Items[index]).Value;
+        var kid = field.Widgets[index];
         return (kid.Elements.GetName("/V"), kid.Elements.GetName("/AS"));
     }
 
@@ -48,7 +48,8 @@ public class AcroFormTwinCheckBoxTests
         var field = ATwinTickBox();
 
         field.HasKids.Should().BeTrue();
-        field.Fields.Elements.Items.Length.Should().Be(2);
+        field.Widgets.Should().HaveCount(2);
+        field.Fields.Should().BeEmpty("the two children are widgets, not fields");
     }
 
     [Fact]
