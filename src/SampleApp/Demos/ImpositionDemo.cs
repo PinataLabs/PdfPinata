@@ -32,9 +32,9 @@ internal sealed class ImpositionDemo : PdfDemo
 
     public override int PageCount => 5;
 
+    #region example
     protected override PdfDocument Build(DemoContext context)
     {
-        #region example
         var document = new PdfDocument();
         document.Info.Title = "Imposition";
 
@@ -97,41 +97,6 @@ internal sealed class ImpositionDemo : PdfDemo
             gfx1.Restore(state);
         }
         // docs:end place-form
-
-        // Measured rather than asserted. The same twenty rosettes, drawn straight onto a page
-        // instead of through a form, into a throwaway document that is never saved to disk.
-        long WithoutTheForm()
-        {
-            using var plain = new PdfDocument();
-            using var gfx = XGraphics.FromPdfPage(plain.AddPage());
-
-            for (var index = 0; index < 20; index++)
-            {
-                var scale = 0.4 + index % 5 * 0.25;
-                var state = gfx.Save();
-                // ReSharper disable once PossibleLossOfFraction
-                gfx.TranslateTransform(80 + index % 5 * 110, 220 + index / 5 * 110);
-                gfx.RotateTransform(index * 17);
-                gfx.ScaleTransform(scale, scale);
-
-                for (var spoke = 0; spoke < 12; spoke++)
-                {
-                    var turn = gfx.Save();
-                    gfx.TranslateTransform(0, 0);
-                    gfx.RotateTransform(spoke * 30);
-                    gfx.DrawEllipse(new XPen(XColors.MidnightBlue, 0.6),
-                        new XSolidBrush(XColor.FromArgb(40, 70, 130, 180)), -6, -26, 12, 26);
-                    gfx.Restore(turn);
-                }
-
-                gfx.DrawEllipse(new XSolidBrush(XColors.Firebrick), -4, -4, 8, 8);
-                gfx.Restore(state);
-            }
-
-            using var buffer = new MemoryStream();
-            plain.Save(buffer, false);
-            return buffer.Length;
-        }
 
         var drawnLongHand = WithoutTheForm();
 
@@ -328,8 +293,43 @@ internal sealed class ImpositionDemo : PdfDemo
                 width / 2, 70, width / 2, height - 30);
             gfx.DrawString("fold", note, XBrushes.Gray, new XPoint(width / 2 + 4, height - 34));
         }
-        #endregion
 
         return document;
     }
+
+    // Measured rather than asserted. The same twenty rosettes, drawn straight onto a page
+    // instead of through a form, into a throwaway document that is never saved to disk.
+    private static long WithoutTheForm()
+    {
+        using var plain = new PdfDocument();
+        using var gfx = XGraphics.FromPdfPage(plain.AddPage());
+
+        for (var index = 0; index < 20; index++)
+        {
+            var scale = 0.4 + index % 5 * 0.25;
+            var state = gfx.Save();
+            // ReSharper disable once PossibleLossOfFraction
+            gfx.TranslateTransform(80 + index % 5 * 110, 220 + index / 5 * 110);
+            gfx.RotateTransform(index * 17);
+            gfx.ScaleTransform(scale, scale);
+
+            for (var spoke = 0; spoke < 12; spoke++)
+            {
+                var turn = gfx.Save();
+                gfx.TranslateTransform(0, 0);
+                gfx.RotateTransform(spoke * 30);
+                gfx.DrawEllipse(new XPen(XColors.MidnightBlue, 0.6),
+                    new XSolidBrush(XColor.FromArgb(40, 70, 130, 180)), -6, -26, 12, 26);
+                gfx.Restore(turn);
+            }
+
+            gfx.DrawEllipse(new XSolidBrush(XColors.Firebrick), -4, -4, 8, 8);
+            gfx.Restore(state);
+        }
+
+        using var buffer = new MemoryStream();
+        plain.Save(buffer, false);
+        return buffer.Length;
+    }
+    #endregion
 }

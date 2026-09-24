@@ -249,18 +249,25 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
             MaxObjectNumber = Math.Max(MaxObjectNumber, iref.ObjectNumber);
         }
         foreach (var iref in outside)
-        {
-            if (!iref.ObjectID.IsEmpty && ObjectTable.TryAdd(iref.ObjectID, iref))
-            {
-                MaxObjectNumber = Math.Max(MaxObjectNumber, iref.ObjectNumber);
-                continue;
-            }
-            iref.ObjectID = new PdfObjectID(GetNewObjectNumber());
-            ObjectTable.Add(iref.ObjectID, iref);
-        }
+            AddKeepingNumberIfFree(iref);
 
         removed -= ObjectTable.Count;
         return removed;
+    }
+
+    /// <summary>
+    /// Adds a reference under the number it has, or under a new one when it has none or its
+    /// number is already another object's.
+    /// </summary>
+    private void AddKeepingNumberIfFree(PdfReference iref)
+    {
+        if (!iref.ObjectID.IsEmpty && ObjectTable.TryAdd(iref.ObjectID, iref))
+        {
+            MaxObjectNumber = Math.Max(MaxObjectNumber, iref.ObjectNumber);
+            return;
+        }
+        iref.ObjectID = new PdfObjectID(GetNewObjectNumber());
+        ObjectTable.Add(iref.ObjectID, iref);
     }
 
     /// <summary>

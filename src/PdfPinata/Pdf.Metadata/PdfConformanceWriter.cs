@@ -167,8 +167,14 @@ internal static class PdfConformanceWriter
                 "A PDF/A document has to have a title, in the document information dictionary and "
                 + "in its XMP metadata alike. Set Info.Title.");
 
-        var options = document.Options;
+        CheckOutputProfile(document.Options);
+    }
 
+    /// <summary>
+    /// Refuses a document whose colours no profile this library could supply would describe.
+    /// </summary>
+    private static void CheckOutputProfile(PdfDocumentOptions options)
+    {
         // Refused only where nothing true could be supplied. An RGB document with no profile of its
         // own is given sRGB, because colours written as RGB by a library that was never told
         // otherwise are sRGB — see PdfOutputIntents. The other two modes are a different question
@@ -275,31 +281,36 @@ internal static class PdfConformanceWriter
         var families = new HashSet<int>();
 
         for (var index = 0; index < document.PageCount; index++)
-        {
-            var page = document.Pages[index];
-            var pageNumber = index + 1;
-
-            // The page's own group needs no walk of its content to be seen, so it is refused
-            // whether or not the content was understood.
-            if (IsPart1(conformance))
-                CheckPageGroupForPart1(page, pageNumber);
-
-            var usage = PdfPageResourceUsage.Walk(page);
-            if (!usage.Understood)
-                continue;
-
-            if (IsPart1(conformance))
-                CheckUsageForPart1(usage, pageNumber);
-
-            if (PdfResourceConformanceRules.UsesInterpolatedImage(usage))
-                throw new InvalidOperationException(
-                    conformance + " forbids an image set to interpolate, and page " + pageNumber
-                    + " carries one. Clear XImage.Interpolate before saving.");
-
-            PdfResourceConformanceRules.CollectDeviceColorFamilies(usage, families);
-        }
+            CheckPageResources(document.Pages[index], index + 1, conformance, families);
 
         CheckDeviceColorFamilies(document, conformance, families);
+    }
+
+    /// <summary>
+    /// The resource rules for one page, adding the device colour families it paints with to
+    /// <paramref name="families"/>.
+    /// </summary>
+    private static void CheckPageResources(PdfPage page, int pageNumber, PdfAConformance conformance,
+        HashSet<int> families)
+    {
+        // The page's own group needs no walk of its content to be seen, so it is refused
+        // whether or not the content was understood.
+        if (IsPart1(conformance))
+            CheckPageGroupForPart1(page, pageNumber);
+
+        var usage = PdfPageResourceUsage.Walk(page);
+        if (!usage.Understood)
+            return;
+
+        if (IsPart1(conformance))
+            CheckUsageForPart1(usage, pageNumber);
+
+        if (PdfResourceConformanceRules.UsesInterpolatedImage(usage))
+            throw new InvalidOperationException(
+                conformance + " forbids an image set to interpolate, and page " + pageNumber
+                + " carries one. Clear XImage.Interpolate before saving.");
+
+        PdfResourceConformanceRules.CollectDeviceColorFamilies(usage, families);
     }
 
     /// <summary>

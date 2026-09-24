@@ -159,33 +159,40 @@ internal class LineChartRenderer : ColumnLikeChartRenderer
     var seriesIndex = 0;
     foreach (var sri in cri.SeriesRendererInfos)
     {
-      if (sri.Series.markerBackgroundColor.IsEmpty)
-        sri.LineFormat = Converter.ToXPen(sri.Series.lineFormat, LineColors.Item(seriesIndex), DefaultSeriesLineWidth);
-      else
-        sri.LineFormat = Converter.ToXPen(sri.Series.lineFormat, sri.Series.markerBackgroundColor, DefaultSeriesLineWidth);
+      var lineColor = sri.Series.markerBackgroundColor.IsEmpty
+        ? LineColors.Item(seriesIndex)
+        : sri.Series.markerBackgroundColor;
+      sri.LineFormat = Converter.ToXPen(sri.Series.lineFormat, lineColor, DefaultSeriesLineWidth);
       sri.LineFormat.LineJoin = XLineJoin.Bevel;
 
-      var mri = new MarkerRendererInfo();
-      sri.MarkerRendererInfo = mri;
-
-      mri.MarkerForegroundColor = sri.Series.markerForegroundColor;
-      if (mri.MarkerForegroundColor.IsEmpty)
-        mri.MarkerForegroundColor = XColors.Black;
-
-      mri.MarkerBackgroundColor = sri.Series.markerBackgroundColor;
-      if (mri.MarkerBackgroundColor.IsEmpty)
-        mri.MarkerBackgroundColor = sri.LineFormat.Color;
-
-      mri.MarkerSize = sri.Series.markerSize;
-      if (mri.MarkerSize == 0)
-        mri.MarkerSize = 7;
-
-      if (!sri.Series.MarkerStyleInitialized)
-        mri.MarkerStyle = (MarkerStyle)(seriesIndex % (Enum.GetNames<MarkerStyle>().Length - 1) + 1);
-      else
-        mri.MarkerStyle = sri.Series.markerStyle;
-
+      sri.MarkerRendererInfo = InitMarker(sri, seriesIndex);
       ++seriesIndex;
     }
+  }
+
+  /// <summary>
+  /// Initializes the markers of one series, filling in whatever the series leaves unset.
+  /// </summary>
+  private static MarkerRendererInfo InitMarker(SeriesRendererInfo sri, int seriesIndex)
+  {
+    var mri = new MarkerRendererInfo();
+
+    mri.MarkerForegroundColor = sri.Series.markerForegroundColor;
+    if (mri.MarkerForegroundColor.IsEmpty)
+      mri.MarkerForegroundColor = XColors.Black;
+
+    mri.MarkerBackgroundColor = sri.Series.markerBackgroundColor;
+    if (mri.MarkerBackgroundColor.IsEmpty)
+      mri.MarkerBackgroundColor = sri.LineFormat.Color;
+
+    mri.MarkerSize = sri.Series.markerSize;
+    if (mri.MarkerSize == 0)
+      mri.MarkerSize = 7;
+
+    if (!sri.Series.MarkerStyleInitialized)
+      mri.MarkerStyle = (MarkerStyle)(seriesIndex % (Enum.GetNames<MarkerStyle>().Length - 1) + 1);
+    else
+      mri.MarkerStyle = sri.Series.markerStyle;
+    return mri;
   }
 }

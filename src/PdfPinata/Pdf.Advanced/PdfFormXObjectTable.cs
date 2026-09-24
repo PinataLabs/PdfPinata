@@ -132,34 +132,42 @@ internal sealed class PdfFormXObjectTable : PdfResourceTable
     public void DetachDocument(PdfDocument.DocumentHandle handle)
     {
         if (handle.IsAlive)
+            RemoveTableOf(handle);
+
+        // Clean table
+        while (RemoveOneDeadTable())
         {
-            foreach (var selector in _forms.Keys)
+        }
+    }
+
+    private void RemoveTableOf(PdfDocument.DocumentHandle handle)
+    {
+        foreach (var selector in _forms.Keys)
+        {
+            var table = _forms[selector];
+            if (table.ExternalDocument != null && table.ExternalDocument.Handle == handle)
             {
-                var table = _forms[selector];
-                if (table.ExternalDocument != null && table.ExternalDocument.Handle == handle)
-                {
-                    _forms.Remove(selector);
-                    break;
-                }
+                _forms.Remove(selector);
+                return;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Removes one table whose external document has gone, and answers whether there was one.
+    /// </summary>
+    private bool RemoveOneDeadTable()
+    {
+        foreach (var selector in _forms.Keys)
+        {
+            if (_forms[selector].ExternalDocument == null)
+            {
+                _forms.Remove(selector);
+                return true;
             }
         }
 
-        // Clean table
-        var itemRemoved = true;
-        while (itemRemoved)
-        {
-            itemRemoved = false;
-            foreach (var selector in _forms.Keys)
-            {
-                var table = _forms[selector];
-                if (table.ExternalDocument == null)
-                {
-                    _forms.Remove(selector);
-                    itemRemoved = true;
-                    break;
-                }
-            }
-        }
+        return false;
     }
 
     /// <summary>

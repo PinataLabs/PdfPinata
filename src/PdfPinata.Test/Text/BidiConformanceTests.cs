@@ -197,33 +197,41 @@ public class BidiConformanceTests
             if (parts.Length < 5)
                 continue;
 
-            var codePoints = Fields(parts[0])
-                .Select(f => int.Parse(f, NumberStyles.HexNumber, CultureInfo.InvariantCulture))
-                .ToList();
-
-            var direction = int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture) switch
-            {
-                0 => BidiParagraphDirection.LeftToRight,
-                1 => BidiParagraphDirection.RightToLeft,
-                _ => BidiParagraphDirection.Automatic
-            };
-
-            var paragraphLevel = byte.Parse(parts[2].Trim(), CultureInfo.InvariantCulture);
-            var (expectedLevels, levelIgnored) = Levels(Fields(parts[3]));
-            var expectedOrder = Order(Fields(parts[4]));
-
             cases++;
-            var result = BidiAlgorithm.Resolve(codePoints, direction);
-
-            var complaint = result.ParagraphLevel != paragraphLevel
-                ? $"paragraph level {result.ParagraphLevel}, expected {paragraphLevel}"
-                : Compare(result, expectedLevels, levelIgnored, expectedOrder);
-
+            var complaint = CharacterTestComplaint(parts);
             if (complaint != null)
                 failures.Add($"{parts[0].Trim()}; dir {parts[1].Trim()}: {complaint}");
         }
 
         Report(cases, failures, "BidiCharacterTest.txt");
+    }
+
+    /// <summary>
+    ///   Runs one case of BidiCharacterTest.txt, given as its semicolon-separated fields, and says
+    ///   what is wrong with the result, or null if nothing is.
+    /// </summary>
+    private static string CharacterTestComplaint(string[] parts)
+    {
+        var codePoints = Fields(parts[0])
+            .Select(f => int.Parse(f, NumberStyles.HexNumber, CultureInfo.InvariantCulture))
+            .ToList();
+
+        var direction = int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture) switch
+        {
+            0 => BidiParagraphDirection.LeftToRight,
+            1 => BidiParagraphDirection.RightToLeft,
+            _ => BidiParagraphDirection.Automatic
+        };
+
+        var paragraphLevel = byte.Parse(parts[2].Trim(), CultureInfo.InvariantCulture);
+        var (expectedLevels, levelIgnored) = Levels(Fields(parts[3]));
+        var expectedOrder = Order(Fields(parts[4]));
+
+        var result = BidiAlgorithm.Resolve(codePoints, direction);
+
+        return result.ParagraphLevel != paragraphLevel
+            ? $"paragraph level {result.ParagraphLevel}, expected {paragraphLevel}"
+            : Compare(result, expectedLevels, levelIgnored, expectedOrder);
     }
 
     // ----- comparing ----------------------------------------------------------------------------
@@ -248,28 +256,40 @@ public class BidiConformanceTests
     ///   compared over the characters that survived rule X9 rather than over all of them.
     /// </summary>
     private static string Compare(BidiResult result, byte[] expectedLevels, bool[] levelIgnored, int[] expectedOrder)
+        => CompareLevels(result, expectedLevels, levelIgnored) ?? CompareOrder(result, expectedOrder);
+
+    private static string CompareLevels(BidiResult result, byte[] expectedLevels, bool[] levelIgnored)
     {
         if (result.Levels.Count != expectedLevels.Length)
             return $"{result.Levels.Count} levels, expected {expectedLevels.Length}";
 
         for (var idx = 0; idx < expectedLevels.Length; idx++)
         {
-            if (levelIgnored[idx])
-            {
-                if (!result.Removed[idx])
-                    return $"level at {idx} should have been removed by X9";
-
-                continue;
-            }
-
-            if (result.Removed[idx])
-                return $"character at {idx} was removed by X9 and should not have been";
-
-            if (result.Levels[idx] != expectedLevels[idx])
-                return $"level at {idx} is {result.Levels[idx]}, expected {expectedLevels[idx]}"
-                     + $" (levels {string.Join(" ", result.Levels)})";
+            var complaint = CompareLevelAt(result, expectedLevels, levelIgnored, idx);
+            if (complaint != null)
+                return complaint;
         }
 
+        return null;
+    }
+
+    private static string CompareLevelAt(BidiResult result, byte[] expectedLevels, bool[] levelIgnored, int idx)
+    {
+        if (levelIgnored[idx])
+            return result.Removed[idx] ? null : $"level at {idx} should have been removed by X9";
+
+        if (result.Removed[idx])
+            return $"character at {idx} was removed by X9 and should not have been";
+
+        if (result.Levels[idx] != expectedLevels[idx])
+            return $"level at {idx} is {result.Levels[idx]}, expected {expectedLevels[idx]}"
+                 + $" (levels {string.Join(" ", result.Levels)})";
+
+        return null;
+    }
+
+    private static string CompareOrder(BidiResult result, int[] expectedOrder)
+    {
         var order = result.VisualOrder;
         if (order.Count != expectedOrder.Length)
             return $"{order.Count} in visual order, expected {expectedOrder.Length}"

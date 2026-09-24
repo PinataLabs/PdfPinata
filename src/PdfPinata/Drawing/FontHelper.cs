@@ -155,17 +155,7 @@ internal static class FontHelper
                     continue;
                 }
 
-                // A tab becomes a space and every other control character is dropped -
-                // the rule read from the one place that states it, because
-                // XGraphicsPdfRenderer.DrawString now filters through the same call and
-                // the two must not drift apart again.
-                if (!TextNormalization.TryNormalize(ch, out ch))
-                    continue;
-
-                if (ch == ' ')
-                    spaceCount++;
-
-                line[lineLength++] = ch;
+                AppendNormalized(ch, line, ref lineLength, ref spaceCount);
             }
 
             return Math.Max(maxWidth,
@@ -175,6 +165,25 @@ internal static class FontHelper
         {
             ArrayPool<char>.Shared.Return(line);
         }
+    }
+
+    /// <summary>
+    /// Puts a character on the end of the line being measured, as it will be drawn, counting it if
+    /// it is a space.
+    /// </summary>
+    private static void AppendNormalized(char ch, char[] line, ref int lineLength, ref int spaceCount)
+    {
+        // A tab becomes a space and every other control character is dropped -
+        // the rule read from the one place that states it, because
+        // XGraphicsPdfRenderer.DrawString now filters through the same call and
+        // the two must not drift apart again.
+        if (!TextNormalization.TryNormalize(ch, out ch))
+            return;
+
+        if (ch == ' ')
+            spaceCount++;
+
+        line[lineLength++] = ch;
     }
 
     /// <summary>

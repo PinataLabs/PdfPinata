@@ -159,28 +159,31 @@ public static class Filtering
         filterItem = Direct(filterItem);
         decodeParms = Direct(decodeParms);
 
-        byte[] result = null;
         if (filterItem is PdfName && (decodeParms is null or PdfDictionary))
+            return GetFilter(filterItem.ToString())?.Decode(data, decodeParms as PdfDictionary);
+
+        if (filterItem is PdfArray itemArray && (decodeParms is null or PdfArray))
+            return DecodeWithEach(data, itemArray, decodeParms as PdfArray);
+
+        return null;
+    }
+
+    /// <summary>
+    /// Decodes the data with each filter of an array in turn, each with its own parameters.
+    /// </summary>
+    private static byte[] DecodeWithEach(byte[] data, PdfArray itemArray, PdfArray decodeArray)
+    {
+        // array length of filter and decode parms should match. if they dont, return data unmodified
+        if (decodeArray != null && decodeArray.Elements.Count != itemArray.Elements.Count)
+            return data;
+
+        for (var i = 0; i < itemArray.Elements.Count; i++)
         {
-            var filter = GetFilter(filterItem.ToString());
-            if (filter != null)
-                result = filter.Decode(data, decodeParms as PdfDictionary);
+            var item = itemArray.Elements[i];
+            var parms = decodeArray != null ? decodeArray.Elements[i] : null;
+            data = Decode(data, item, parms);
         }
-        else if (filterItem is PdfArray itemArray && (decodeParms is null or PdfArray))
-        {
-            var decodeArray = decodeParms as PdfArray;
-            // array length of filter and decode parms should match. if they dont, return data unmodified
-            if (decodeArray != null && decodeArray.Elements.Count != itemArray.Elements.Count)
-                return data;
-            for (var i = 0; i < itemArray.Elements.Count; i++)
-            {
-                var item = itemArray.Elements[i];
-                var parms = decodeArray != null ? decodeArray.Elements[i] : null;
-                data = Decode(data, item, parms);
-            }
-            result = data;
-        }
-        return result;
+        return data;
     }
 
     /// <summary>

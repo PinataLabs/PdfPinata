@@ -128,13 +128,7 @@ internal sealed class PdfPageResourceUsage : PdfPageWalk
         {
             case "/XObject":
                 if (resolved is PdfDictionary xObject)
-                {
-                    var subtype = xObject.Elements.GetName("/Subtype");
-                    if (subtype == "/Image")
-                        Images.Add(xObject);
-                    else if (subtype == "/Form")
-                        Forms.Add(xObject);
-                }
+                    RecordXObject(xObject);
                 break;
 
             case "/ExtGState":
@@ -146,5 +140,14 @@ internal sealed class PdfPageResourceUsage : PdfPageWalk
                 NamedColorSpaces.Add(resolved);
                 break;
         }
+    }
+
+    private void RecordXObject(PdfDictionary xObject)
+    {
+        var subtype = xObject.Elements.GetName("/Subtype");
+        if (subtype == "/Image")
+            Images.Add(xObject);
+        else if (subtype == "/Form")
+            Forms.Add(xObject);
     }
 }

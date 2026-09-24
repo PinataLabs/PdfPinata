@@ -64,14 +64,19 @@ public static class PdfSignatures
             if (kids != null)
                 Collect(kids, found, seen, depth + 1);
 
-            if (field.Elements.GetName("/FT") != "/Sig")
-                continue;
-
-            var value = field.Elements.GetDictionary("/V");
-            var info = Read(field, value);
-            if (info != null)
-                found.Add(info);
+            AddIfSignature(field, found);
         }
+    }
+
+    private static void AddIfSignature(PdfDictionary field, List<PdfSignatureInfo> found)
+    {
+        if (field.Elements.GetName("/FT") != "/Sig")
+            return;
+
+        var value = field.Elements.GetDictionary("/V");
+        var info = Read(field, value);
+        if (info != null)
+            found.Add(info);
     }
 
     private static PdfSignatureInfo Read(PdfDictionary field, PdfDictionary value)

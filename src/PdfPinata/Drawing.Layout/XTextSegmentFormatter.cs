@@ -206,20 +206,29 @@ public class XTextSegmentFormatter
 
             ShiftLaterBlockUnitsDown(blockUnits, index, maxCyAscend);
 
-            foreach (var block in blockUnit)
+            ApplyBlocks(blockUnit, dx, dy, applyBlock, applyBlockIfLineBreak);
+        }
+    }
+
+    /// <summary>
+    /// Hands each block of a unit to <paramref name="applyBlock"/>, up to the first that did not fit.
+    /// </summary>
+    private static void ApplyBlocks(List<Block> blockUnit, double dx, double dy, Action<Block, double, double> applyBlock,
+        bool applyBlockIfLineBreak)
+    {
+        foreach (var block in blockUnit)
+        {
+            if (block.Stop)
             {
-                if (block.Stop)
-                {
-                    break;
-                }
-
-                if (block.Type == BlockType.LineBreak && !applyBlockIfLineBreak)
-                {
-                    continue;
-                }
-
-                applyBlock(block, dx, dy);
+                break;
             }
+
+            if (block.Type == BlockType.LineBreak && !applyBlockIfLineBreak)
+            {
+                continue;
+            }
+
+            applyBlock(block, dx, dy);
         }
     }
 
@@ -333,10 +342,7 @@ public class XTextSegmentFormatter
 
             if (ch == Chars.LF)
             {
-                if (blockLength != 0)
-                {
-                    blocks.Add(TextBlock(text.Substring(startIndex, blockLength), textSegment));
-                }
+                AddTextBlockIfAny(textSegment, startIndex, blockLength, blocks);
 
                 startIndex = idx + 1;
                 blockLength = 0;
@@ -360,9 +366,14 @@ public class XTextSegmentFormatter
             }
         }
 
+        AddTextBlockIfAny(textSegment, startIndex, blockLength, blocks);
+    }
+
+    private void AddTextBlockIfAny(TextSegment textSegment, int startIndex, int blockLength, List<Block> blocks)
+    {
         if (blockLength != 0)
         {
-            blocks.Add(TextBlock(text.Substring(startIndex, blockLength), textSegment));
+            blocks.Add(TextBlock(textSegment.Text.Substring(startIndex, blockLength), textSegment));
         }
     }
 

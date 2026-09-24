@@ -174,62 +174,87 @@ internal class AESEncryptor : RC4Encryptor
             var iv = new byte[16];
             var aesKey = new byte[16];
 
-            /* Step 1: calculate initial data block */
-            using (var sha256 = SHA256.Create())
+            InitialDataBlock(pwdBytes, salt, ownerKey, block);
+
+            for (var i = 0; i < 64 || i < data[dataLen * 64 - 1] + 32; i++)
             {
-                sha256.TransformBlock(pwdBytes, 0, pwdBytes.Length, pwdBytes, 0);
-                sha256.TransformBlock(salt, 0, salt.Length, salt, 0);
-                if (ownerKey != null)
-                    sha256.TransformBlock(ownerKey, 0, ownerKey.Length, ownerKey, 0);
-                sha256.TransformFinalBlock(salt, 0, 0);
-                // ReSharper disable once AssignNullToNotNullAttribute
-                Array.Copy(sha256.Hash, block, sha256.HashSize / 8);
-            }
-
-            int i;
-            for (i = 0; i < 64 || i < data[dataLen * 64 - 1] + 32; i++)
-            {
-                /* Step 2: repeat password and data block 64 times */
-                Array.Copy(pwdBytes, data, pwdBytes.Length);
-                Array.Copy(block, 0, data, pwdBytes.Length, blockSize);
-                if (ownerKey != null)
-                    Array.Copy(ownerKey, 0, data, pwdBytes.Length + blockSize, 48);
-                dataLen = pwdBytes.Length + blockSize + (ownerKey != null ? 48 : 0);
-                int j;
-                for (j = 1; j < 64; j++)
-                    Array.Copy(data, 0, data, j * dataLen, dataLen);
-
-                /* Step 3: encrypt data using data block as key and iv */
-                // Not encryption for secrecy: ISO 32000-2 Algorithm 2.B uses AES here as a step of
-                // the password hash, and prescribes this IV. A random one would compute a hash no
-                // other reader agrees with, and no revision 6 password would ever match.
-                Array.Copy(block, 16, iv, 0, 16);
-                Array.Copy(block, 0, aesKey, 0, 16);
-                #pragma warning disable S3329 // The IV is prescribed by ISO 32000-2 Algorithm 2.B; see above.
-                using var aesEnc = aes128.CreateEncryptor(aesKey, iv);
-                aesEnc.TransformBlock(data, 0, dataLen * 64, data, 0);
-
-                /* Step 4: determine SHA-2 hash size for this round */
-                int sum;
-                for (j = 0, sum = 0; j < 16; j++)
-                    sum += data[j];
-
-                /* Step 5: calculate data block for next round */
-                blockSize = 32 + sum % 3 * 16;
-                // The sum is never negative, so the block size is always one of these three.
-                using HashAlgorithm hashAlg = blockSize switch
-                {
-                    32 => SHA256.Create(),
-                    48 => SHA384.Create(),
-                    _ => SHA512.Create()
-                };
-                hashAlg.TransformBlock(data, 0, dataLen * 64, data, 0);
-                hashAlg.TransformFinalBlock(data, 0, 0);
-                // ReSharper disable once AssignNullToNotNullAttribute
-                Array.Copy(hashAlg.Hash, block, hashAlg.HashSize / 8);
+                dataLen = RepeatPasswordAndBlock(data, pwdBytes, block, blockSize, ownerKey);
+                EncryptRound(aes128, data, dataLen, block, iv, aesKey);
+                blockSize = NextDataBlock(data, dataLen, block);
             }
         }
         Array.Copy(block, hash, 32);
+    }
+
+    /// <summary>
+    /// Step 1 of ISO 32000-2 Algorithm 2.B: calculates the initial data block.
+    /// </summary>
+    private static void InitialDataBlock(byte[] pwdBytes, byte[] salt, byte[] ownerKey, byte[] block)
+    {
+        using var sha256 = SHA256.Create();
+        sha256.TransformBlock(pwdBytes, 0, pwdBytes.Length, pwdBytes, 0);
+        sha256.TransformBlock(salt, 0, salt.Length, salt, 0);
+        if (ownerKey != null)
+            sha256.TransformBlock(ownerKey, 0, ownerKey.Length, ownerKey, 0);
+        sha256.TransformFinalBlock(salt, 0, 0);
+        // ReSharper disable once AssignNullToNotNullAttribute
+        Array.Copy(sha256.Hash, block, sha256.HashSize / 8);
+    }
+
+    /// <summary>
+    /// Step 2: repeats password and data block 64 times, and answers the length of one repetition.
+    /// </summary>
+    private static int RepeatPasswordAndBlock(byte[] data, byte[] pwdBytes, byte[] block, int blockSize,
+        byte[] ownerKey)
+    {
+        Array.Copy(pwdBytes, data, pwdBytes.Length);
+        Array.Copy(block, 0, data, pwdBytes.Length, blockSize);
+        if (ownerKey != null)
+            Array.Copy(ownerKey, 0, data, pwdBytes.Length + blockSize, 48);
+        var dataLen = pwdBytes.Length + blockSize + (ownerKey != null ? 48 : 0);
+        for (var j = 1; j < 64; j++)
+            Array.Copy(data, 0, data, j * dataLen, dataLen);
+        return dataLen;
+    }
+
+    /// <summary>
+    /// Step 3: encrypts data using data block as key and iv.
+    /// </summary>
+    private static void EncryptRound(Aes aes128, byte[] data, int dataLen, byte[] block, byte[] iv, byte[] aesKey)
+    {
+        // Not encryption for secrecy: ISO 32000-2 Algorithm 2.B uses AES here as a step of
+        // the password hash, and prescribes this IV. A random one would compute a hash no
+        // other reader agrees with, and no revision 6 password would ever match.
+        Array.Copy(block, 16, iv, 0, 16);
+        Array.Copy(block, 0, aesKey, 0, 16);
+        #pragma warning disable S3329 // The IV is prescribed by ISO 32000-2 Algorithm 2.B; see above.
+        using var aesEnc = aes128.CreateEncryptor(aesKey, iv);
+        aesEnc.TransformBlock(data, 0, dataLen * 64, data, 0);
+    }
+
+    /// <summary>
+    /// Steps 4 and 5: determines the SHA-2 hash size for this round and calculates the data block
+    /// for the next one, answering its size.
+    /// </summary>
+    private static int NextDataBlock(byte[] data, int dataLen, byte[] block)
+    {
+        var sum = 0;
+        for (var j = 0; j < 16; j++)
+            sum += data[j];
+
+        var blockSize = 32 + sum % 3 * 16;
+        // The sum is never negative, so the block size is always one of these three.
+        using HashAlgorithm hashAlg = blockSize switch
+        {
+            32 => SHA256.Create(),
+            48 => SHA384.Create(),
+            _ => SHA512.Create()
+        };
+        hashAlg.TransformBlock(data, 0, dataLen * 64, data, 0);
+        hashAlg.TransformFinalBlock(data, 0, 0);
+        // ReSharper disable once AssignNullToNotNullAttribute
+        Array.Copy(hashAlg.Hash, block, hashAlg.HashSize / 8);
+        return blockSize;
     }
 
     private static bool PasswordMatchR5(byte[] key, byte[] comparand)

@@ -69,48 +69,57 @@ internal class ColumnStackedPlotAreaRenderer : ColumnPlotAreaRenderer
     var points = new XPoint[2];
     for (var pointIdx = 0; pointIdx < maxPoints; ++pointIdx)
     {
-      // Set x to first clustered column for each series.
-      double yMin = 0, yMax = 0, y0, y1;
-      var x0 = x - columnWidth;
-      var x1 = x + columnWidth;
-
-      foreach (var sri in cri.SeriesRendererInfos)
-      {
-        if (sri.PointRendererInfos.Length <= pointIdx)
-          break;
-
-        var column = (ColumnRendererInfo)sri.PointRendererInfos[pointIdx];
-        if (double.IsNaN(column.Value))
-          continue;
-
-        var y = column.Value;
-        if (y < 0)
-        {
-          y0 = yMin + y;
-          y1 = yMin;
-          yMin += y;
-        }
-        else
-        {
-          y0 = yMax;
-          y1 = yMax + y;
-          yMax += y;
-        }
-
-        points[0].X = x0; // upper left
-        points[0].Y = y1;
-        points[1].X = x1; // lower right
-        points[1].Y = y0;
-
-        cri.PlotAreaRendererInfo.Matrix.TransformPoints(points);
-
-        column.Rect = new XRect(points[0].X,
-          points[0].Y,
-          points[1].X - points[0].X,
-          points[1].Y - points[0].Y);
-      }
+      StackColumns(cri, points, pointIdx, x - columnWidth, x + columnWidth);
       x++; // Next stacked column.
     }
+  }
+
+  /// <summary>
+  /// Stacks the columns every series has at one point, negative values below zero and the rest above.
+  /// </summary>
+  private static void StackColumns(ChartRendererInfo cri, XPoint[] points, int pointIdx, double x0, double x1)
+  {
+    double yMin = 0, yMax = 0;
+    foreach (var sri in cri.SeriesRendererInfos)
+    {
+      if (sri.PointRendererInfos.Length <= pointIdx)
+        break;
+
+      var column = (ColumnRendererInfo)sri.PointRendererInfos[pointIdx];
+      if (double.IsNaN(column.Value))
+        continue;
+
+      var (y0, y1) = StackOnto(column.Value, ref yMin, ref yMax);
+
+      points[0].X = x0; // upper left
+      points[0].Y = y1;
+      points[1].X = x1; // lower right
+      points[1].Y = y0;
+
+      cri.PlotAreaRendererInfo.Matrix.TransformPoints(points);
+
+      column.Rect = new XRect(points[0].X,
+        points[0].Y,
+        points[1].X - points[0].X,
+        points[1].Y - points[0].Y);
+    }
+  }
+
+  /// <summary>
+  /// The bottom and top of a value stacked onto the negative or the positive pile, which it grows.
+  /// </summary>
+  private static (double Y0, double Y1) StackOnto(double y, ref double yMin, ref double yMax)
+  {
+    if (y < 0)
+    {
+      var bottom = yMin;
+      yMin += y;
+      return (bottom + y, bottom);
+    }
+
+    var top = yMax;
+    yMax += y;
+    return (top, top + y);
   }
 
   /// <summary>

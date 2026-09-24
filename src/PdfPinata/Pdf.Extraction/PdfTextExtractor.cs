@@ -73,45 +73,53 @@ public static class PdfTextExtractor
 
         foreach (var run in ExtractRuns(page))
         {
-            if (run.IsArtifact)
+            var shown = ShownText(run, contributed);
+            if (string.IsNullOrEmpty(shown))
                 continue;
 
-            string shown;
-            if (run.ActualTextScope != null)
-            {
-                // The sequence that declared this text may span several runs, and it is only the
-                // first of them that gets to say it — the rest were already shown once, by it.
-                if (!contributed.Add(run.ActualTextScope))
-                    continue;
-
-                shown = run.ActualText;
-            }
-            else
-            {
-                shown = run.Text;
-            }
-
-            if (shown.Length == 0)
-                continue;
-
-            if (baseline == null || Math.Abs(run.Origin.Y - baseline.Value) > 0.5)
-            {
-                if (baseline != null)
-                    text.Append('\n');
-                baseline = run.Origin.Y;
-            }
-            else if (run.Origin.X - endOfPrevious > run.FontSize * 0.2)
-            {
-                // A gap wider than a fifth of the type size is a space somebody drew by moving the
-                // pen rather than by showing one.
-                text.Append(' ');
-            }
-
+            AppendSeparator(text, run, ref baseline, endOfPrevious);
             text.Append(shown);
             endOfPrevious = run.Origin.X + run.Width;
         }
 
         return text.ToString();
+    }
+
+    /// <summary>
+    /// The text a run contributes to <see cref="ExtractText"/>, or null for one that contributes
+    /// nothing.
+    /// </summary>
+    private static string ShownText(PdfTextRun run, HashSet<object> contributed)
+    {
+        if (run.IsArtifact)
+            return null;
+
+        if (run.ActualTextScope == null)
+            return run.Text;
+
+        // The sequence that declared this text may span several runs, and it is only the
+        // first of them that gets to say it — the rest were already shown once, by it.
+        return contributed.Add(run.ActualTextScope) ? run.ActualText : null;
+    }
+
+    /// <summary>
+    /// Starts a new line when <paramref name="run"/> is on a new baseline, or puts a space before
+    /// it when it is far enough along from the previous one.
+    /// </summary>
+    private static void AppendSeparator(StringBuilder text, PdfTextRun run, ref double? baseline, double endOfPrevious)
+    {
+        if (baseline == null || Math.Abs(run.Origin.Y - baseline.Value) > 0.5)
+        {
+            if (baseline != null)
+                text.Append('\n');
+            baseline = run.Origin.Y;
+        }
+        else if (run.Origin.X - endOfPrevious > run.FontSize * 0.2)
+        {
+            // A gap wider than a fifth of the type size is a space somebody drew by moving the
+            // pen rather than by showing one.
+            text.Append(' ');
+        }
     }
 
     /// <summary>
@@ -373,19 +381,9 @@ public static class PdfTextExtractor
             if (op.Operands.Count >= 2 && op.Operands[0] is CName direct)
             {
                 tag = direct.Name;
-                var properties = PropertiesFor(NameOperand(op, 1));
-                if (properties != null)
-                {
-                    actualText = properties.Elements.TryGetString("/ActualText", out var declared)
-                        ? declared : null;
-                    mcid = properties.Elements.ContainsKey("/MCID") ? properties.Elements.GetInteger("/MCID") : null;
-                }
+                (actualText, mcid) = NamedProperties(op);
             }
-            else if (index > 0 && content[index - 1] is COperator prior
-                     && prior.OpCode.OpCodeName == OpCodeName.Dictionary
-                     && prior.Operands.Count >= 2
-                     && prior.Operands[0] is CName inlineTag
-                     && prior.Operands[1] is CString inlineDictionary)
+            else if (TryInlineDictionaryBefore(content, index, out var inlineTag, out var inlineDictionary))
             {
                 tag = inlineTag.Name;
                 (actualText, mcid) = InlineMarkedContentProperties.Read(inlineDictionary.Value);
@@ -399,6 +397,40 @@ public static class PdfTextExtractor
             }
 
             PushScope(new MarkedContentScope(tag, actualText, mcid));
+        }
+
+        /// <summary>
+        /// The <c>/ActualText</c> and <c>/MCID</c> of the property list a <c>BDC</c> names in the
+        /// page's <c>/Properties</c> resources.
+        /// </summary>
+        private (string ActualText, int? Mcid) NamedProperties(COperator op)
+        {
+            var properties = PropertiesFor(NameOperand(op, 1));
+            if (properties == null)
+                return (null, null);
+
+            var actualText = properties.Elements.TryGetString("/ActualText", out var declared) ? declared : null;
+            int? mcid = properties.Elements.ContainsKey("/MCID") ? properties.Elements.GetInteger("/MCID") : null;
+            return (actualText, mcid);
+        }
+
+        /// <summary>
+        /// Whether the operator before <paramref name="index"/> is the tag-and-inline-dictionary pair
+        /// the content parser splits an inline <c>BDC</c> into.
+        /// </summary>
+        private static bool TryInlineDictionaryBefore(CSequence content, int index, out CName tag, out CString dictionary)
+        {
+            tag = null;
+            dictionary = null;
+            if (index <= 0 || content[index - 1] is not COperator prior)
+                return false;
+
+            if (prior.OpCode.OpCodeName != OpCodeName.Dictionary || prior.Operands.Count < 2)
+                return false;
+
+            tag = prior.Operands[0] as CName;
+            dictionary = prior.Operands[1] as CString;
+            return tag != null && dictionary != null;
         }
 
         /// <summary>
@@ -476,33 +508,39 @@ public static class PdfTextExtractor
                         break;
 
                     case CInteger kerning:
-                        advance += -kerning.Value / 1000.0 * _fontSize * _horizontalScale;
+                        advance += KerningAdvance(kerning.Value);
                         break;
 
                     case CReal kerning:
-                        advance += -kerning.Value / 1000.0 * _fontSize * _horizontalScale;
+                        advance += KerningAdvance(kerning.Value);
                         break;
                 }
             }
 
             if (text.Length > 0)
-            {
-                // Both the width and the size are measured through the same matrix, and they have to
-                // be: the run is reported in user space, so leaving the current transformation out
-                // of one of them makes a run under a scaled container report a width in text space
-                // and a size in user space, which disagree with each other and with the documented
-                // contract. A test that only translates cannot see it, because a translation scales
-                // by one.
-                var scale = ScaleOf(Multiply(_textMatrix, _ctm));
-                var innermost = _markedContent.Count > 0 ? _markedContent.Peek() : null;
-                var declaring = DeclaringScope();
-                Runs.Add(new PdfTextRun(text.ToString(), origin, advance * scale,
-                    _fontSize * scale, _fontName,
-                    string.IsNullOrEmpty(innermost?.Tag) ? null : new PdfTag(innermost.Tag),
-                    declaring?.ActualText, innermost?.Mcid, declaring, IsInsideArtifact()));
-            }
+                AddRun(text.ToString(), origin, advance);
 
             _textMatrix = Multiply(new XMatrix(1, 0, 0, 1, advance, 0), _textMatrix);
+        }
+
+        private double KerningAdvance(double kerning) =>
+            -kerning / 1000.0 * _fontSize * _horizontalScale;
+
+        private void AddRun(string text, XPoint origin, double advance)
+        {
+            // Both the width and the size are measured through the same matrix, and they have to
+            // be: the run is reported in user space, so leaving the current transformation out
+            // of one of them makes a run under a scaled container report a width in text space
+            // and a size in user space, which disagree with each other and with the documented
+            // contract. A test that only translates cannot see it, because a translation scales
+            // by one.
+            var scale = ScaleOf(Multiply(_textMatrix, _ctm));
+            var innermost = _markedContent.Count > 0 ? _markedContent.Peek() : null;
+            var declaring = DeclaringScope();
+            Runs.Add(new PdfTextRun(text, origin, advance * scale,
+                _fontSize * scale, _fontName,
+                string.IsNullOrEmpty(innermost?.Tag) ? null : new PdfTag(innermost.Tag),
+                declaring?.ActualText, innermost?.Mcid, declaring, IsInsideArtifact()));
         }
 
         /// <summary>

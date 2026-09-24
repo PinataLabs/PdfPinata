@@ -92,16 +92,20 @@ public class RunLengthDecode : Filter
                 var count = Math.Min(length + 1, data.Length - idx);
                 output.Write(data, idx, count);
                 idx += count;
+                continue;
             }
-            else
-            {
-                if (idx >= data.Length)
-                    break;
-                var value = data[idx++];
-                for (var repeat = 257 - length; repeat > 0; repeat--)
-                    output.WriteByte(value);
-            }
+
+            if (idx >= data.Length)
+                break;
+            WriteRepeated(output, data[idx++], 257 - length);
         }
         return output.ToArray();
+    }
+
+    /// <summary>Writes <paramref name="value"/> <paramref name="count"/> times.</summary>
+    private static void WriteRepeated(MemoryStream output, byte value, int count)
+    {
+        for (var repeat = count; repeat > 0; repeat--)
+            output.WriteByte(value);
     }
 }

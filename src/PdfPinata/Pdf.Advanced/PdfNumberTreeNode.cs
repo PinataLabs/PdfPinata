@@ -154,29 +154,10 @@ public sealed class PdfNumberTreeNode : PdfDictionary
     /// </summary>
     private void Read(PdfDictionary node, Dictionary<string, object> seen, int depth)
     {
-        if (node == null || depth > MaximumDepth)
+        if (node == null || depth > MaximumDepth || !FirstVisit(node, seen))
             return;
 
-        if (node.IsIndirect)
-        {
-            var id = node.ObjectID.ToString();
-            if (seen.ContainsKey(id))
-                return;
-
-            seen[id] = null;
-        }
-
-        var nums = node.Elements.GetArray(Keys.Nums);
-        if (nums != null)
-        {
-            // Key and value one after the other. An odd one at the end has no value and is
-            // left where it is.
-            for (var at = 0; at + 1 < nums.Elements.Count; at += 2)
-            {
-                if (TryGetInteger(nums.Elements[at], out var key))
-                    _entries[key] = nums.Elements[at + 1];
-            }
-        }
+        ReadEntries(node.Elements.GetArray(Keys.Nums));
 
         var kids = node.Elements.GetArray(Keys.Kids);
         if (kids == null)
@@ -184,6 +165,36 @@ public sealed class PdfNumberTreeNode : PdfDictionary
 
         for (var at = 0; at < kids.Elements.Count; at++)
             Read(kids.Elements.GetDictionary(at), seen, depth + 1);
+    }
+
+    /// <summary>
+    /// Whether this is the first time the node is reached. A direct node cannot be reached twice.
+    /// </summary>
+    private static bool FirstVisit(PdfDictionary node, Dictionary<string, object> seen)
+    {
+        if (!node.IsIndirect)
+            return true;
+
+        var id = node.ObjectID.ToString();
+        if (seen.ContainsKey(id))
+            return false;
+
+        seen[id] = null;
+        return true;
+    }
+
+    private void ReadEntries(PdfArray nums)
+    {
+        if (nums == null)
+            return;
+
+        // Key and value one after the other. An odd one at the end has no value and is
+        // left where it is.
+        for (var at = 0; at + 1 < nums.Elements.Count; at += 2)
+        {
+            if (TryGetInteger(nums.Elements[at], out var key))
+                _entries[key] = nums.Elements[at + 1];
+        }
     }
 
     private static bool TryGetInteger(PdfItem item, out int value)

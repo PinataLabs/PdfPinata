@@ -57,31 +57,34 @@ internal class BarDataLabelRenderer : DataLabelRenderer
       if (sri.DataLabelRendererInfo == null)
         continue;
 
-      var gfx = rendererParms.Graphics;
-
-      sri.DataLabelRendererInfo.Entries = new DataLabelEntryRendererInfo[sri.PointRendererInfos.Length];
+      var dlri = sri.DataLabelRendererInfo;
+      dlri.Entries = new DataLabelEntryRendererInfo[sri.PointRendererInfos.Length];
       var index = 0;
-      foreach (var column in sri.PointRendererInfos.Cast<ColumnRendererInfo>())
-      {
-        var dleri = new DataLabelEntryRendererInfo();
-        if (sri.DataLabelRendererInfo.Type == DataLabelType.Percent)
-          throw new InvalidOperationException(PSCSR.PercentNotSupportedByColumnDataLabel);
-
-        // A blank has no value to write, so it is left with no text at all and Draw passes over
-        // it. Writing what NaN formats to would put the word NaN on the plot area.
-        if (sri.DataLabelRendererInfo.Type == DataLabelType.Value && !double.IsNaN(column.Value))
-        {
-          dleri.Text = column.Value.ToString(sri.DataLabelRendererInfo.Format);
-
-          if (dleri.Text.Length > 0)
-            dleri.Size = gfx.MeasureString(dleri.Text, sri.DataLabelRendererInfo.Font);
-        }
-
-        sri.DataLabelRendererInfo.Entries[index++] = dleri;
-      }
+      foreach (var bar in sri.PointRendererInfos.Cast<ColumnRendererInfo>())
+        dlri.Entries[index++] = FormatLabel(dlri, bar);
     }
 
     CalcPositions();
+  }
+
+  /// <summary>
+  /// Writes and measures the data label of one bar.
+  /// </summary>
+  private DataLabelEntryRendererInfo FormatLabel(DataLabelRendererInfo dlri, ColumnRendererInfo bar)
+  {
+    var dleri = new DataLabelEntryRendererInfo();
+    if (dlri.Type == DataLabelType.Percent)
+      throw new InvalidOperationException(PSCSR.PercentNotSupportedByColumnDataLabel);
+
+    // A blank has no value to write, so it is left with no text at all and Draw passes over
+    // it. Writing what NaN formats to would put the word NaN on the plot area.
+    if (dlri.Type != DataLabelType.Value || double.IsNaN(bar.Value))
+      return dleri;
+
+    dleri.Text = bar.Value.ToString(dlri.Format);
+    if (dleri.Text.Length > 0)
+      dleri.Size = rendererParms.Graphics.MeasureString(dleri.Text, dlri.Font);
+    return dleri;
   }
 
   /// <summary>

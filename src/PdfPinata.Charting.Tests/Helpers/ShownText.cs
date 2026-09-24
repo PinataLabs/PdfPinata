@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using PdfPinata.Pdf;
@@ -360,11 +361,8 @@ internal static class ShownText
                     break;
 
                 case CArray array:
-                    foreach (var item in array)
-                    {
-                        if (item is CString part)
-                            yield return part.Value;
-                    }
+                    foreach (var part in array.OfType<CString>())
+                        yield return part.Value;
                     break;
             }
         }

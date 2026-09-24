@@ -243,16 +243,12 @@ internal static class GeometryHelper
 
             var quadrant = (int)(φ / 90);
             #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
-            if (quadrant * 90 == φ)
+            var onEdge = quadrant * 90 == φ;
             #pragma warning restore S1244
-            {
-                if ((start && !clockwise) || (!start && clockwise))
-                    quadrant = quadrant == 0 ? 3 : quadrant - 1;
-            }
-            else
-            {
+            if (!onEdge)
                 quadrant = clockwise ? (int)Math.Floor(φ / 90) % 4 : (int)Math.Floor(φ / 90);
-            }
+            else if (start != clockwise)
+                quadrant = quadrant == 0 ? 3 : quadrant - 1;
 
             // Exactly 360 is on the edge of quadrant 3 and, taken the other way, would be quadrant
             // 4, which a walk through 0 to 3 never reaches and so never stops looking for (#129).
@@ -285,6 +281,32 @@ internal static class GeometryHelper
     /// </summary>
     private static void AppendPartialArcQuadrant(List<XPoint> points, double x, double y, double width, double height, double α, double β, PathStart pathStart, XMatrix matrix)
     {
+        var curve = ArcQuadrantCurveOf(x, y, width, height, α, β, matrix);
+        if (pathStart is PathStart.MoveTo1st or PathStart.LineTo1st)
+            points.Add(curve.Start);
+        points.Add(curve.Control1);
+        points.Add(curve.Control2);
+        points.Add(curve.End);
+    }
+
+    /// <summary>
+    /// The Bézier curve for an arc within a quadrant: its start, its two control points and its end,
+    /// each transformed by the matrix.
+    /// </summary>
+    internal readonly struct ArcQuadrantCurve(XPoint start, XPoint control1, XPoint control2, XPoint end)
+    {
+        public XPoint Start { get; } = start;
+        public XPoint Control1 { get; } = control1;
+        public XPoint Control2 { get; } = control2;
+        public XPoint End { get; } = end;
+    }
+
+    /// <summary>
+    /// Calculates the Bézier curve for an arc from <paramref name="α"/> to <paramref name="β"/>
+    /// degrees, at most a quadrant apart, on the ellipse inscribed in the rectangle.
+    /// </summary>
+    internal static ArcQuadrantCurve ArcQuadrantCurveOf(double x, double y, double width, double height, double α, double β, XMatrix matrix)
+    {
         Debug.Assert(α is >= 0 and <= 360);
         Debug.Assert(β >= 0);
         if (β > 360)
@@ -308,82 +330,50 @@ internal static class GeometryHelper
         // If the angles lie in quarter 2 or 3, their values are subtracted by 180 and the
         // resulting curve is reflected at the center. This algorithm works as expected (simply tried out).
         // There may be a mathematically more elegant solution...
-        var reflect = false;
-        if (α >= 180 && β >= 180)
+        var reflect = α >= 180 && β >= 180;
+        if (reflect)
         {
             α -= 180;
             β -= 180;
-            reflect = true;
         }
 
-        double cosα, cosβ, sinα, sinβ;
         #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
-        if (width == height)
+        var circular = width == height;
         #pragma warning restore S1244
-        {
-            // Circular arc needs no correction.
-            α *= Calc.Deg2Rad;
-            β *= Calc.Deg2Rad;
-        }
-        else
-        {
-            // Elliptic arc needs the angles to be adjusted such that the scaling transformation is compensated.
-            α *= Calc.Deg2Rad;
-            sinα = Math.Sin(α);
-            if (Math.Abs(sinα) > 1E-10)
-                α = Math.PI / 2 - Math.Atan(δy * Math.Cos(α) / (δx * sinα));
-            β *= Calc.Deg2Rad;
-            sinβ = Math.Sin(β);
-            if (Math.Abs(sinβ) > 1E-10)
-                β = Math.PI / 2 - Math.Atan(δy * Math.Cos(β) / (δx * sinβ));
-        }
+        α = ArcAngleInRadians(α, circular, δx, δy);
+        β = ArcAngleInRadians(β, circular, δx, δy);
 
         var κ = ArcKappa(α, β);
-        sinα = Math.Sin(α);
-        cosα = Math.Cos(α);
-        sinβ = Math.Sin(β);
-        cosβ = Math.Cos(β);
+        var sinα = Math.Sin(α);
+        var cosα = Math.Cos(α);
+        var sinβ = Math.Sin(β);
+        var cosβ = Math.Cos(β);
 
-        if (!reflect)
-        {
-            // Calculation for quarter 0 and 1.
-            switch (pathStart)
-            {
-                case PathStart.MoveTo1st:
-                    points.Add(matrix.Transform(new XPoint(x0 + δx * cosα, y0 + δy * sinα)));
-                    break;
+        // Quarters 0 and 1 are calculated as they are; quarters 2 and 3 reflected at the centre.
+        // Negating the radii is exact, so x0 + (-δx) * c is the same number as x0 - δx * c.
+        var rx = reflect ? -δx : δx;
+        var ry = reflect ? -δy : δy;
+        return new ArcQuadrantCurve(
+            matrix.Transform(new XPoint(x0 + rx * cosα, y0 + ry * sinα)),
+            matrix.Transform(new XPoint(x0 + rx * (cosα - κ * sinα), y0 + ry * (sinα + κ * cosα))),
+            matrix.Transform(new XPoint(x0 + rx * (cosβ + κ * sinβ), y0 + ry * (sinβ - κ * cosβ))),
+            matrix.Transform(new XPoint(x0 + rx * cosβ, y0 + ry * sinβ)));
+    }
 
-                case PathStart.LineTo1st:
-                    points.Add(matrix.Transform(new XPoint(x0 + δx * cosα, y0 + δy * sinα)));
-                    break;
+    /// <summary>
+    /// An arc angle in degrees turned into radians. On a circle that is all; on an ellipse the
+    /// angle is also adjusted such that the scaling transformation is compensated.
+    /// </summary>
+    private static double ArcAngleInRadians(double φ, bool circular, double δx, double δy)
+    {
+        φ *= Calc.Deg2Rad;
+        if (circular)
+            return φ;
 
-                case PathStart.Ignore1st:
-                    break;
-            }
-            points.Add(matrix.Transform(new XPoint(x0 + δx * (cosα - κ * sinα), y0 + δy * (sinα + κ * cosα))));
-            points.Add(matrix.Transform(new XPoint(x0 + δx * (cosβ + κ * sinβ), y0 + δy * (sinβ - κ * cosβ))));
-            points.Add(matrix.Transform(new XPoint(x0 + δx * cosβ, y0 + δy * sinβ)));
-        }
-        else
-        {
-            // Calculation for quarter 2 and 3.
-            switch (pathStart)
-            {
-                case PathStart.MoveTo1st:
-                    points.Add(matrix.Transform(new XPoint(x0 - δx * cosα, y0 - δy * sinα)));
-                    break;
-
-                case PathStart.LineTo1st:
-                    points.Add(matrix.Transform(new XPoint(x0 - δx * cosα, y0 - δy * sinα)));
-                    break;
-
-                case PathStart.Ignore1st:
-                    break;
-            }
-            points.Add(matrix.Transform(new XPoint(x0 - δx * (cosα - κ * sinα), y0 - δy * (sinα + κ * cosα))));
-            points.Add(matrix.Transform(new XPoint(x0 - δx * (cosβ + κ * sinβ), y0 - δy * (sinβ - κ * cosβ))));
-            points.Add(matrix.Transform(new XPoint(x0 - δx * cosβ, y0 - δy * sinβ)));
-        }
+        var sinφ = Math.Sin(φ);
+        return Math.Abs(sinφ) > 1E-10
+            ? Math.PI / 2 - Math.Atan(δy * Math.Cos(φ) / (δx * sinφ))
+            : φ;
     }
 
     /// <summary>

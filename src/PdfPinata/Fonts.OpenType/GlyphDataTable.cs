@@ -145,15 +145,23 @@ internal class GlyphDataTable : OpenTypeFontTable
             }
             if ((flags & MORE_COMPONENTS) == 0)
                 return;
-            var offset = (flags & ARG_1_AND_2_ARE_WORDS) == 0 ? 2 : 4;
-            if ((flags & WE_HAVE_A_SCALE) != 0)
-                offset += 2;
-            else if ((flags & WE_HAVE_AN_X_AND_Y_SCALE) != 0)
-                offset += 4;
-            if ((flags & WE_HAVE_A_TWO_BY_TWO) != 0)
-                offset += 8;
-            _fontData.SeekOffset(offset);
+            _fontData.SeekOffset(ComponentArgumentsLength(flags));
         }
+    }
+
+    /// <summary>
+    /// How many bytes of arguments and transformation follow a component's flags and glyph index.
+    /// </summary>
+    private static int ComponentArgumentsLength(int flags)
+    {
+        var offset = (flags & ARG_1_AND_2_ARE_WORDS) == 0 ? 2 : 4;
+        if ((flags & WE_HAVE_A_SCALE) != 0)
+            offset += 2;
+        else if ((flags & WE_HAVE_AN_X_AND_Y_SCALE) != 0)
+            offset += 4;
+        if ((flags & WE_HAVE_A_TWO_BY_TWO) != 0)
+            offset += 8;
+        return offset;
     }
 
     /// <summary>

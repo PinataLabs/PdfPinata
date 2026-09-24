@@ -35,10 +35,9 @@ internal sealed class NavigationDemo : PdfDemo
 
     public override int PageCount => 6;
 
+    #region example
     protected override PdfDocument Build(DemoContext context)
     {
-        #region example
-
         var document = new PdfDocument();
         document.Info.Title = "Navigation";
 
@@ -197,8 +196,7 @@ internal sealed class NavigationDemo : PdfDemo
                 // docs:end label-probe
 
                 gfx.DrawString(style.Style.ToString(), mono, XBrushes.Black, new XPoint(50, styleY));
-                gfx.DrawString(style.Prefix is null ? "" : $"prefix \"{style.Prefix}\"",
-                    body, XBrushes.DimGray, new XPoint(210, styleY));
+                gfx.DrawString(PrefixNote(style.Prefix), body, XBrushes.DimGray, new XPoint(210, styleY));
                 gfx.DrawString(string.Join("   ", labels), body, XBrushes.Firebrick,
                     new XPoint(320, styleY));
                 styleY += 15;
@@ -233,8 +231,10 @@ internal sealed class NavigationDemo : PdfDemo
                 mono, XBrushes.Black, new XPoint(50, styleY + 78));
         }
 
-        #endregion
-
         return document;
     }
+
+    private static string PrefixNote(string? prefix) => prefix is null ? "" : $"prefix \"{prefix}\"";
+
+    #endregion
 }

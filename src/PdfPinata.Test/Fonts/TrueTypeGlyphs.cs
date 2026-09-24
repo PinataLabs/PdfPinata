@@ -72,19 +72,28 @@ internal sealed class TrueTypeGlyphs
         {
             var flags = U16(position);
             components.Add(U16(position + 2));
-            position += 4;
-
-            position += (flags & Arg1And2AreWords) == 0 ? 2 : 4;
-            if ((flags & WeHaveAScale) != 0)
-                position += 2;
-            else if ((flags & WeHaveAnXAndYScale) != 0)
-                position += 4;
-            if ((flags & WeHaveATwoByTwo) != 0)
-                position += 8;
+            position += 4 + ArgumentsAndTransformLength(flags);
 
             if ((flags & MoreComponents) == 0)
                 return [..components];
         }
+    }
+
+    /// <summary>
+    ///   How many bytes follow a component's flags and glyph index: its two arguments, then
+    ///   whichever transform its flags say it carries.
+    /// </summary>
+    private static int ArgumentsAndTransformLength(int flags)
+    {
+        var length = (flags & Arg1And2AreWords) == 0 ? 2 : 4;
+        if ((flags & WeHaveAScale) != 0)
+            length += 2;
+        else if ((flags & WeHaveAnXAndYScale) != 0)
+            length += 4;
+        if ((flags & WeHaveATwoByTwo) != 0)
+            length += 8;
+
+        return length;
     }
 
     /// <summary>
@@ -106,17 +115,7 @@ internal sealed class TrueTypeGlyphs
     /// </summary>
     public int GlyphIndexOf(char character)
     {
-        var cmap = _tables["cmap"];
-        var subtable = 0;
-        var count = U16(cmap + 2);
-        for (var idx = 0; idx < count; idx++)
-        {
-            var record = cmap + 4 + idx * 8;
-            if (U16(record) == 3 && U16(record + 2) == 1)
-                subtable = cmap + (int)U32(record + 4);
-        }
-        if (subtable == 0 || U16(subtable) != 4)
-            throw new InvalidOperationException("no format 4 Windows Unicode cmap subtable");
+        var subtable = WindowsUnicodeSubtable();
 
         var segCountX2 = U16(subtable + 6);
         var endCodes = subtable + 14;
@@ -140,6 +139,27 @@ internal sealed class TrueTypeGlyphs
             return glyph == 0 ? 0 : (glyph + delta) & 0xFFFF;
         }
         return 0;
+    }
+
+    /// <summary>
+    ///   Where the format 4 Windows Unicode (3, 1) cmap subtable begins; the last one listed, if
+    ///   the font lists several.
+    /// </summary>
+    private int WindowsUnicodeSubtable()
+    {
+        var cmap = _tables["cmap"];
+        var subtable = 0;
+        var count = U16(cmap + 2);
+        for (var idx = 0; idx < count; idx++)
+        {
+            var record = cmap + 4 + idx * 8;
+            if (U16(record) == 3 && U16(record + 2) == 1)
+                subtable = cmap + (int)U32(record + 4);
+        }
+        if (subtable == 0 || U16(subtable) != 4)
+            throw new InvalidOperationException("no format 4 Windows Unicode cmap subtable");
+
+        return subtable;
     }
 
     /// <summary>
@@ -213,22 +233,31 @@ internal sealed class TrueTypeGlyphs
             if (Ascii(record, 4) != "OS/2")
                 continue;
 
-            var length = (int)U32(record + 12);
-            uint sum = 0;
-            for (var at = 0; at < length; at += 4)
-            {
-                uint word = 0;
-                for (var b = 0; b < 4; b++)
-                    word = (word << 8) | (at + b < length ? patched[os2 + at + b] : (byte)0);
-                sum = unchecked(sum + word);
-            }
-
+            var sum = TableChecksum(patched, os2, (int)U32(record + 12));
             patched[record + 4] = (byte)(sum >> 24);
             patched[record + 5] = (byte)(sum >> 16);
             patched[record + 6] = (byte)(sum >> 8);
             patched[record + 7] = (byte)sum;
         }
         return patched;
+    }
+
+    /// <summary>
+    ///   The OpenType checksum of a table: its big-endian 32-bit words summed, the last one padded
+    ///   with zeros.
+    /// </summary>
+    private static uint TableChecksum(byte[] bytes, int offset, int length)
+    {
+        uint sum = 0;
+        for (var at = 0; at < length; at += 4)
+        {
+            uint word = 0;
+            for (var b = 0; b < 4; b++)
+                word = (word << 8) | (at + b < length ? bytes[offset + at + b] : (byte)0);
+            sum = unchecked(sum + word);
+        }
+
+        return sum;
     }
 
     private string Ascii(int offset, int length)

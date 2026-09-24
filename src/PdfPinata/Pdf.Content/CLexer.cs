@@ -370,44 +370,69 @@ public class CLexer
 
             _token.Append(ch);
 
-            switch (ch)
-            {
-                case '<':
-                    if (_nextChar == '<')
-                    {
-                        _token.Append(ScanNextChar());
-                        depth++;
-                    }
-                    else if (!TryAppendHexStringInDictionary())
-                    {
-                        return CSymbol.Dictionary;
-                    }
-                    break;
-
-                case '(':
-                    if (!TryAppendLiteralStringInDictionary())
-                        return CSymbol.Dictionary;
-                    break;
-
-                case '%':
-                    AppendCommentInDictionary();
-                    break;
-
-                case '>':
-                    if (_nextChar != '>')
-                        break;
-
-                    _token.Append(ScanNextChar());
-                    if (--depth == 0)
-                    {
-                        // Left standing on the character after the dictionary, which is where every
-                        // other scan leaves the reader.
-                        ScanNextChar();
-                        return CSymbol.Dictionary;
-                    }
-                    break;
-            }
+            if (!TryAppendInDictionary(ch, ref depth))
+                return CSymbol.Dictionary;
         }
+    }
+
+    /// <summary>
+    /// Appends whatever the character just appended to a dictionary opens, and tracks how deeply
+    /// dictionaries are nested.
+    /// </summary>
+    /// <returns>False when the dictionary is over: closed, or cut off by the end of the content.</returns>
+    private bool TryAppendInDictionary(char ch, ref int depth)
+    {
+        switch (ch)
+        {
+            case '<':
+                return TryAppendAngleBracketInDictionary(ref depth);
+
+            case '(':
+                return TryAppendLiteralStringInDictionary();
+
+            case '%':
+                AppendCommentInDictionary();
+                return true;
+
+            case '>':
+                return !ClosesDictionary(ref depth);
+
+            default:
+                return true;
+        }
+    }
+
+    /// <summary>
+    /// Appends a nested dictionary's '&lt;&lt;' or a hex string, its first '&lt;' already appended.
+    /// </summary>
+    /// <returns>False when the content ends first.</returns>
+    private bool TryAppendAngleBracketInDictionary(ref int depth)
+    {
+        if (_nextChar != '<')
+            return TryAppendHexStringInDictionary();
+
+        _token.Append(ScanNextChar());
+        depth++;
+        return true;
+    }
+
+    /// <summary>
+    /// Appends the second '&gt;' of a '&gt;&gt;', the first already appended, and says whether it
+    /// closed the dictionary being scanned rather than one nested in it.
+    /// </summary>
+    private bool ClosesDictionary(ref int depth)
+    {
+        if (_nextChar != '>')
+            return false;
+
+        _token.Append(ScanNextChar());
+        if (--depth > 0)
+            return false;
+
+        // Left standing on the character after the dictionary, which is where every
+        // other scan leaves the reader.
+        ScanNextChar();
+        return true;
     }
 
     /// <summary>
@@ -446,22 +471,30 @@ public class CLexer
 
             _token.Append(ch);
 
-            if (ch == '\\')
+            if (ch == '\\' && !TryAppendNextChar())
+                return false;
+
+            parentheses += ch switch
             {
-                ch = ScanNextChar();
-                if (ch == Chars.EOF)
-                    return false;
-                _token.Append(ch);
-            }
-            else if (ch == '(')
-            {
-                parentheses++;
-            }
-            else if (ch == ')')
-            {
-                parentheses--;
-            }
+                '(' => 1,
+                ')' => -1,
+                _ => 0
+            };
         }
+        return true;
+    }
+
+    /// <summary>
+    /// Appends the next character to the token, whatever it is.
+    /// </summary>
+    /// <returns>False when the content ends first.</returns>
+    private bool TryAppendNextChar()
+    {
+        var ch = ScanNextChar();
+        if (ch == Chars.EOF)
+            return false;
+
+        _token.Append(ch);
         return true;
     }
 
@@ -670,39 +703,44 @@ public class CLexer
             if (ch == Chars.EOF)
                 return Symbol = DecodeLiteralString(terminated: false);
 
-            switch (ch)
+            if (ClosesLiteralString(ch, ref parenLevel))
             {
-                case '(':
-                    parenLevel++;
-                    break;
-
-                case ')':
-                    if (parenLevel == 0)
-                    {
-                        ScanNextChar(false);
-                        return Symbol = DecodeLiteralString(terminated: true);
-                    }
-                    parenLevel--;
-                    break;
-
-                case '\\':
-                    // A backslash right before either spelling of an end of line continues the
-                    // string onto the next one; neither the backslash nor the line ending becomes
-                    // part of it, and ch is then what follows the line ending.
-                    if (!TryReadEscapedChar(out ch))
-                        continue;
-                    break;
+                ScanNextChar(false);
+                return Symbol = DecodeLiteralString(terminated: true);
             }
 
-            // The end-of-file marker is not a character of the string. It reaches here when
-            // the content ends immediately after a backslash: the escape read the next
-            // character, which was the end, and the guard at the top of the loop had already
-            // been passed. Appending it put U+FFFF in the middle of the text.
-            if (ch == Chars.EOF)
-                return Symbol = DecodeLiteralString(terminated: false);
+            // A backslash right before either spelling of an end of line continues the
+            // string onto the next one; neither the backslash nor the line ending becomes
+            // part of it, and ch is then what follows the line ending.
+            if (ch == '\\' && !TryReadEscapedChar(out ch))
+                continue;
 
             _token.Append(ch);
             ch = ScanNextChar(false);
+        }
+    }
+
+    /// <summary>
+    /// Counts an unescaped parenthesis of a literal string, and says whether it is the one that
+    /// closes the string.
+    /// </summary>
+    private static bool ClosesLiteralString(char ch, ref int parenLevel)
+    {
+        switch (ch)
+        {
+            case '(':
+                parenLevel++;
+                return false;
+
+            case ')' when parenLevel == 0:
+                return true;
+
+            case ')':
+                parenLevel--;
+                return false;
+
+            default:
+                return false;
         }
     }
 
@@ -712,11 +750,19 @@ public class CLexer
     /// </summary>
     /// <returns>
     /// False when the backslash continues the line instead, in which case <paramref name="ch"/> is
-    /// the character after the line ending and still to be read as part of the string.
+    /// the character after the line ending and still to be read as part of the string - and false
+    /// too when the content ends right after the backslash, leaving <paramref name="ch"/> the
+    /// end-of-file marker for the caller to stop at.
     /// </returns>
     private bool TryReadEscapedChar(out char ch)
     {
         ch = ScanNextChar(false);
+
+        // The end-of-file marker is not a character of the string. Resolved as an escape it
+        // stood for itself, and appending it put U+FFFF in the middle of the text.
+        if (ch == Chars.EOF)
+            return false;
+
         if (ch is Chars.CR or Chars.LF)
         {
             // CR LF is one line ending, not a CR ending the line and an LF opening the next.
@@ -818,19 +864,7 @@ public class CLexer
             return CSymbol.String;
 
         var bytes = _token.ToString();
-        var length = bytes.Length;
-        if ((length & 1) == 1)
-        {
-            if (terminated)
-            {
-                bytes += '\0';
-                ++length;
-            }
-            else
-            {
-                --length;
-            }
-        }
+        var length = EvenLength(ref bytes, terminated);
 
         _token.Length = 0;
         for (var idx = 2; idx < length; idx += 2)
@@ -840,6 +874,24 @@ public class CLexer
                 : (char)(bytes[idx + 1] * 256 + bytes[idx]));
         }
         return CSymbol.UnicodeString;
+    }
+
+    /// <summary>
+    /// Answers the even number of bytes a UTF-16 string is decoded from. An odd byte left over
+    /// at the end is completed with a zero when the string was terminated, and dropped when it
+    /// was cut off.
+    /// </summary>
+    private static int EvenLength(ref string bytes, bool terminated)
+    {
+        var length = bytes.Length;
+        if ((length & 1) == 0)
+            return length;
+
+        if (!terminated)
+            return length - 1;
+
+        bytes += '\0';
+        return length + 1;
     }
 
     /// <summary>Scans a string written in angle brackets as pairs of hexadecimal digits.</summary>
@@ -870,45 +922,58 @@ public class CLexer
                 continue;
             }
 
-            hex[0] = _currChar;
-            ScanNextChar();
-            // What may come between the two digits of a byte is what may come before one:
-            // white space, and anything else that is not a digit. Only the end of the
-            // string decides that the second digit is missing rather than merely late.
-            while (!IsHexChar(_currChar) && _currChar != '>' && _currChar != Chars.EOF)
-                ScanNextChar();
-
-            if (IsHexChar(_currChar))
-            {
-                hex[1] = _currChar;
-                ScanNextChar();
-            }
-            else
-            {
-                // A hex string with an odd number of digits ends in a zero.
-                hex[1] = '0';
-            }
-            _token.Append((char)int.Parse(new string(hex), NumberStyles.AllowHexSpecifier));
+            _token.Append(ReadHexByte(hex));
         }
+        return Symbol = DecodeHexString();
+    }
+
+    /// <summary>
+    /// Reads the byte whose first hex digit is the current character, into and out of
+    /// <paramref name="hex"/>.
+    /// </summary>
+    private char ReadHexByte(char[] hex)
+    {
+        hex[0] = _currChar;
+        ScanNextChar();
+        // What may come between the two digits of a byte is what may come before one:
+        // white space, and anything else that is not a digit. Only the end of the
+        // string decides that the second digit is missing rather than merely late.
+        while (!IsHexChar(_currChar) && _currChar != '>' && _currChar != Chars.EOF)
+            ScanNextChar();
+
+        if (IsHexChar(_currChar))
+        {
+            hex[1] = _currChar;
+            ScanNextChar();
+        }
+        else
+        {
+            // A hex string with an odd number of digits ends in a zero.
+            hex[1] = '0';
+        }
+        return (char)int.Parse(new string(hex), NumberStyles.AllowHexSpecifier);
+    }
+
+    /// <summary>
+    /// Decodes the bytes <see cref="ScanHexadecimalString"/> has gathered in the token as UTF-16
+    /// when they open with a byte order mark, and says which kind of string they turned out to be.
+    /// </summary>
+    private CSymbol DecodeHexString()
+    {
         var chars = _token.ToString();
-        var count = chars.Length;
-        if (count <= 2 || chars[0] != (char)0xFE || chars[1] != (char)0xFF)
-            return Symbol = CSymbol.HexString;
+        if (chars.Length <= 2 || chars[0] != (char)0xFE || chars[1] != (char)0xFF)
+            return CSymbol.HexString;
 
         // A Unicode hex string missing half of its last character is short of the low byte
         // of that character, which is taken to be a zero - the same reading a hex string
         // missing its final digit gets, just above. Debug.Assert(count % 2 == 0) stood here
         // instead: it caught the odd count in a Debug build and did nothing in a Release
         // build, where the loop below read one character past the end of the string.
-        if ((count & 1) == 1)
-        {
-            chars += '\0';
-            ++count;
-        }
+        var count = EvenLength(ref chars, terminated: true);
         _token.Length = 0;
         for (var idx = 2; idx < count; idx += 2)
             _token.Append((char)(chars[idx] * 256 + chars[idx + 1]));
-        return Symbol = CSymbol.UnicodeHexString;
+        return CSymbol.UnicodeHexString;
     }
 
     /// <summary>

@@ -45,29 +45,7 @@ internal static class TrueTypeCollectionBuilder
         var placements = new int[fonts.Length][];
 
         for (var i = 0; i < fonts.Length; i++)
-        {
-            placements[i] = new int[tableCounts[i]];
-
-            for (var t = 0; t < tableCounts[i]; t++)
-            {
-                var record = OffsetTableLength + t * TableRecordLength;
-                var offset = (int)U32(fonts[i], record + 8);
-                var length = (int)U32(fonts[i], record + 12);
-
-                var bytes = new byte[length];
-                Buffer.BlockCopy(fonts[i], offset, bytes, 0, length);
-
-                var key = Convert.ToBase64String(bytes);
-                if (!pooled.TryGetValue(key, out var placed))
-                {
-                    placed = position;
-                    position += Align4(length);
-                    pooled.Add(key, placed);
-                }
-
-                placements[i][t] = placed;
-            }
-        }
+            placements[i] = PlaceTables(fonts[i], tableCounts[i], pooled, ref position);
 
         var collection = new byte[position];
 
@@ -81,26 +59,64 @@ internal static class TrueTypeCollectionBuilder
         var written = new HashSet<int>();
 
         for (var i = 0; i < fonts.Length; i++)
-        {
-            // The offset table carries over as-is; only the table offsets need rewriting.
-            Buffer.BlockCopy(fonts[i], 0, collection, directoryOffsets[i], OffsetTableLength);
-
-            for (var t = 0; t < tableCounts[i]; t++)
-            {
-                var source = OffsetTableLength + t * TableRecordLength;
-                var target = directoryOffsets[i] + OffsetTableLength + t * TableRecordLength;
-                var length = (int)U32(fonts[i], source + 12);
-
-                Buffer.BlockCopy(fonts[i], source, collection, target, 8);
-                W32(collection, target + 8, (uint)placements[i][t]);
-                W32(collection, target + 12, (uint)length);
-
-                if (written.Add(placements[i][t]))
-                    Buffer.BlockCopy(fonts[i], (int)U32(fonts[i], source + 8), collection, placements[i][t], length);
-            }
-        }
+            WriteFace(collection, fonts[i], directoryOffsets[i], tableCounts[i], placements[i], written);
 
         return collection;
+    }
+
+    /// <summary>
+    ///   Where each of one font's tables goes in the pooled data, placing a table whose bytes are
+    ///   not pooled yet at <paramref name="position"/> and moving it past.
+    /// </summary>
+    private static int[] PlaceTables(byte[] font, int tableCount, Dictionary<string, int> pooled, ref int position)
+    {
+        var placements = new int[tableCount];
+
+        for (var t = 0; t < tableCount; t++)
+        {
+            var record = OffsetTableLength + t * TableRecordLength;
+            var offset = (int)U32(font, record + 8);
+            var length = (int)U32(font, record + 12);
+
+            var bytes = new byte[length];
+            Buffer.BlockCopy(font, offset, bytes, 0, length);
+
+            var key = Convert.ToBase64String(bytes);
+            if (!pooled.TryGetValue(key, out var placed))
+            {
+                placed = position;
+                position += Align4(length);
+                pooled.Add(key, placed);
+            }
+
+            placements[t] = placed;
+        }
+
+        return placements;
+    }
+
+    /// <summary>
+    ///   Writes one face's directory, and whichever of its tables no earlier face has written.
+    /// </summary>
+    private static void WriteFace(byte[] collection, byte[] font, int directoryOffset, int tableCount,
+        int[] placements, HashSet<int> written)
+    {
+        // The offset table carries over as-is; only the table offsets need rewriting.
+        Buffer.BlockCopy(font, 0, collection, directoryOffset, OffsetTableLength);
+
+        for (var t = 0; t < tableCount; t++)
+        {
+            var source = OffsetTableLength + t * TableRecordLength;
+            var target = directoryOffset + OffsetTableLength + t * TableRecordLength;
+            var length = (int)U32(font, source + 12);
+
+            Buffer.BlockCopy(font, source, collection, target, 8);
+            W32(collection, target + 8, (uint)placements[t]);
+            W32(collection, target + 12, (uint)length);
+
+            if (written.Add(placements[t]))
+                Buffer.BlockCopy(font, (int)U32(font, source + 8), collection, placements[t], length);
+        }
     }
 
     private static int Align4(int length) => (length + 3) & ~3;

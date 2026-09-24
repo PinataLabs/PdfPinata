@@ -230,40 +230,47 @@ internal class Serializer
     var lineEnd = comment.IndexOfAny(LineEndChars);
     if (lineEnd != -1)
     {
-      var lineEndLength = comment[lineEnd] == '\r' && lineEnd + 1 < comment.Length && comment[lineEnd + 1] == '\n' ? 2 : 1;
+      var lineEndLength = IsCrLfAt(comment, lineEnd) ? 2 : 1;
       WriteComment(comment[..lineEnd]);
       WriteComment(comment[(lineEnd + lineEndLength)..]);
       return;
     }
     CloseUpLine();
-    int len;
     var chopBeyond = lineBreakBeyond - indent - "// ".Length;
-    while ((len = comment.Length) > 0)
+    while (comment.Length > 0)
     {
-      string wrt;
-      if (len <= chopBeyond)
-      {
-        wrt = "// " + comment;
-        comment = string.Empty;
-      }
-      else
-      {
-        int idxChop;
-        if ((idxChop = comment.LastIndexOf(' ', chopBeyond)) == -1 &&
-            (idxChop = comment.IndexOf(' ', chopBeyond)) == -1)
-        {
-          wrt = "// " + comment;
-          comment = string.Empty;
-        }
-        else
-        {
-          wrt = string.Concat("// ", comment.AsSpan(0, idxChop));
-          comment = comment[(idxChop + 1)..];
-        }
-      }
-      WriteLineToStream(wrt);
+      WriteLineToStream("// " + ChopCommentLine(ref comment, chopBeyond));
       CommitText();
     }
+  }
+
+  private static bool IsCrLfAt(string text, int index)
+    => text[index] == '\r' && index + 1 < text.Length && text[index + 1] == '\n';
+
+  /// <summary>
+  /// Takes the first line of a word-wrapped comment off the front of it: the words that fit before
+  /// chopBeyond, or else up to the first blank beyond it, or else the whole of it. The blank it
+  /// breaks at belongs to neither line.
+  /// </summary>
+  private static string ChopCommentLine(ref string comment, int chopBeyond)
+  {
+    if (comment.Length > chopBeyond)
+    {
+      var idxChop = comment.LastIndexOf(' ', chopBeyond);
+      if (idxChop == -1)
+        idxChop = comment.IndexOf(' ', chopBeyond);
+
+      if (idxChop != -1)
+      {
+        var line = comment[..idxChop];
+        comment = comment[(idxChop + 1)..];
+        return line;
+      }
+    }
+
+    var whole = comment;
+    comment = string.Empty;
+    return whole;
   }
 
   /// <summary>
@@ -292,28 +299,32 @@ internal class Serializer
       return;
     }
 
-    var len = text.Length;
-    if (len > 0)
-    {
-      if (linePos <= 0 && fAutoIndent)
-      {
-        text = Indentation + text;
-        len += writeIndent;
-      }
-      textWriter.Write(text);
-      linePos += len;
-      // wordwrap required?
-      if (linePos > lineBreakBeyond)
-      {
-        fLineBreak = true;
-      }
-    }
+    if (text.Length > 0 && WriteOnLine(text, fAutoIndent))
+      fLineBreak = true;
 
     if (!fLineBreak)
       return;
 
     textWriter.WriteLine(string.Empty);  // what a line break is may depend on encoding
     linePos = 0;
+  }
+
+  /// <summary>
+  /// Writes text on the current line, indented when it starts the line. Answers whether the line
+  /// is now long enough to need a line break.
+  /// </summary>
+  private bool WriteOnLine(string text, bool fAutoIndent)
+  {
+    var len = text.Length;
+    if (linePos <= 0 && fAutoIndent)
+    {
+      text = Indentation + text;
+      len += writeIndent;
+    }
+    textWriter.Write(text);
+    linePos += len;
+    // wordwrap required?
+    return linePos > lineBreakBeyond;
   }
 
   /// <summary>
@@ -387,44 +398,70 @@ internal class Serializer
       value = ival.GetValue();
 
     var type = value.GetType();
-
-    if (type == typeof(Unit))
-    {
-      var strUnit = value.ToString();
-      if (((Unit)value).Type == UnitType.Point)
-        WriteLine(valueName + " = " + strUnit);
-      else
-        WriteLine(valueName + " = \"" + strUnit + "\"");
-    }
-    else if (type == typeof(float))
-    {
-      WriteLine(valueName + " = " + ((float)value).ToString(System.Globalization.CultureInfo.InvariantCulture));
-    }
-    else if (type == typeof(double))
-    {
-      WriteLine(valueName + " = " + ((double)value).ToString(System.Globalization.CultureInfo.InvariantCulture));
-    }
-    else if (type == typeof(bool))
-    {
-      // ReSharper disable once PossibleNullReferenceException
-      WriteLine(valueName + " = " + value.ToString().ToLower());
-    }
-    else if (type == typeof(string))
-    {
-      var sb = new StringBuilder(value.ToString());
-      sb.Replace("\\", "\\\\");
-      sb.Replace("\"", "\\\"");
-      WriteLine(valueName + " = \"" + sb + "\"");
-    }
-    else if (type == typeof(int) || type.GetTypeInfo().BaseType == typeof(Enum) || type == typeof(Color))
-    {
-      WriteLine(valueName + " = " + value);
-    }
-    else
+    var text = SimpleAttributeText(value);
+    if (text == null)
     {
       var message = $"Type '{type}' of value '{valueName}' not supported";
       Debug.Assert(false, message);
+      return;
     }
+
+    WriteLine(valueName + " = " + text);
+  }
+
+  /// <summary>
+  /// Writes a simple attribute held in a nullable field, or nothing when the field holds no value.
+  /// </summary>
+  internal void WriteSimpleAttributeIfSet<T>(string valueName, T? value) where T : struct
+  {
+    if (value.HasValue)
+      WriteSimpleAttribute(valueName, value.Value);
+  }
+
+  /// <summary>
+  /// Serializes the child object an owner holds under a name, unless the owner says it is null.
+  /// </summary>
+  internal void SerializeUnlessNull(DocumentObject owner, string name, DocumentObject child)
+  {
+    if (!owner.IsNull(name))
+      child.Serialize(this);
+  }
+
+  /// <summary>
+  /// The DDL a simple attribute's value is written as, or null for a type that has none.
+  /// </summary>
+  private static string SimpleAttributeText(object value)
+  {
+    return value switch
+    {
+      Unit unit => UnitText(unit),
+      float single => single.ToString(System.Globalization.CultureInfo.InvariantCulture),
+      double real => real.ToString(System.Globalization.CultureInfo.InvariantCulture),
+      bool => value.ToString().ToLower(),
+      string text => StringLiteral(text),
+      int or Enum or Color => value.ToString(),
+      _ => null
+    };
+  }
+
+  /// <summary>
+  /// A unit in points as a bare number, any other in quotes.
+  /// </summary>
+  private static string UnitText(Unit unit)
+  {
+    var strUnit = unit.ToString();
+    return unit.Type == UnitType.Point ? strUnit : "\"" + strUnit + "\"";
+  }
+
+  /// <summary>
+  /// A string as a quoted DDL literal, with its backslashes and quotes escaped.
+  /// </summary>
+  private static string StringLiteral(string value)
+  {
+    var sb = new StringBuilder(value);
+    sb.Replace("\\", "\\\\");
+    sb.Replace("\"", "\\\"");
+    return "\"" + sb + "\"";
   }
 
   /// <summary>

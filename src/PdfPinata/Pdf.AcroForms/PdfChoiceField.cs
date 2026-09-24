@@ -161,23 +161,20 @@ public abstract class PdfChoiceField : PdfAcroField
     protected string ValueInOptArray(int index)
     {
         var opt = Elements.GetArray(Keys.Opt);
-        if (opt != null)
+        if (opt == null)
+            return "";
+
+        var count = opt.Elements.Count;
+        if (index < 0 || index >= count)
+            throw new ArgumentOutOfRangeException(nameof(index));
+
+        var item = opt.Elements[index];
+        return item switch
         {
-            var count = opt.Elements.Count;
-            if (index < 0 || index >= count)
-                throw new ArgumentOutOfRangeException(nameof(index));
-
-            var item = opt.Elements[index];
-            if (item is PdfString)
-                return TextOfOption(item);
-
-            if (item is PdfArray array)
-            {
-                if (array.Elements.Count != 0)
-                    return TextOfOption(array.Elements[0]);
-            }
-        }
-        return "";
+            PdfString => TextOfOption(item),
+            PdfArray { Elements.Count: not 0 } array => TextOfOption(array.Elements[0]),
+            _ => ""
+        };
     }
 
     /// <summary>
@@ -200,18 +197,30 @@ public abstract class PdfChoiceField : PdfAcroField
         if (value is null or PdfNull)
             return [];
 
-        // The export values /V names, in the order it names them.
+        var chosenTexts = ChosenTexts(value);
+
+        return SelectedIndicesFromIndexEntry(chosenTexts) ?? SelectedIndicesFromTexts(chosenTexts);
+    }
+
+    /// <summary>
+    /// The export values <c>/V</c> names, in the order it names them.
+    /// </summary>
+    private static List<string> ChosenTexts(PdfItem value)
+    {
         var chosenTexts = new List<string>();
         if (value is PdfArray chosen)
             foreach (var item in chosen.Elements)
                 chosenTexts.Add(TextOfOption(item));
         else
             chosenTexts.Add(TextOfOption(value));
+        return chosenTexts;
+    }
 
-        var disambiguated = SelectedIndicesFromIndexEntry(chosenTexts);
-        if (disambiguated != null)
-            return disambiguated;
-
+    /// <summary>
+    /// The options exporting the values <c>/V</c> names, found by searching <c>/Opt</c>.
+    /// </summary>
+    private int[] SelectedIndicesFromTexts(List<string> chosenTexts)
+    {
         // Each named export value takes the first option offering it that an earlier one has not
         // already taken, so that two options exporting the same text account for two entries in /V
         // rather than both collapsing onto the first. /I says which two where it is there and
@@ -251,12 +260,8 @@ public abstract class PdfChoiceField : PdfAcroField
         var unaccountedFor = new List<string>(chosenTexts);
         foreach (var item in entry.Elements)
         {
-            var resolved = item is Advanced.PdfReference reference ? reference.Value : item;
-            if (!(resolved is PdfInteger number))
-                return null;
-
-            var index = number.Value;
-            if (index < 0 || index >= opt.Elements.Count || indices.Contains(index))
+            var index = IndexEntry(item, opt.Elements.Count, indices);
+            if (index < 0)
                 return null;
 
             // Removing rather than searching, so that two options exporting the same text account
@@ -269,6 +274,20 @@ public abstract class PdfChoiceField : PdfAcroField
 
         indices.Sort();
         return [..indices];
+    }
+
+    /// <summary>
+    /// The option an entry of <c>/I</c> names, or -1 when it is not an integer, names no option or
+    /// names one an earlier entry already did.
+    /// </summary>
+    private static int IndexEntry(PdfItem item, int optionCount, List<int> indices)
+    {
+        var resolved = item is Advanced.PdfReference reference ? reference.Value : item;
+        if (resolved is not PdfInteger number)
+            return -1;
+
+        var index = number.Value;
+        return index < 0 || index >= optionCount || indices.Contains(index) ? -1 : index;
     }
 
     /// <summary>

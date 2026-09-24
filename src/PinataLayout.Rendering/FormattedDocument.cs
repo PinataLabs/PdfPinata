@@ -270,30 +270,31 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     /// <param name="page">The page the header shall appear on.</param>
     /// <returns>The required header, null if none exists to render.</returns>
     internal FormattedHeaderFooter GetFormattedHeader(int page)
+        => formattedHeaders.TryGetValue(HeaderFooterPositionOf(page), out var header) ? header : null;
+
+    /// <summary>
+    /// The section and page position whose header and footer the given page shows.
+    /// </summary>
+    private HeaderFooterPosition HeaderFooterPositionOf(int page)
     {
-        var pagePos = page % 2 == 0 ? PagePosition.Even : PagePosition.Odd;
-
         var fieldInfos = pageFieldInfos[page];
+        var pagePos = IsFirstPageOfSection(page, fieldInfos)
+            ? PagePosition.First
+            : page % 2 == 0 ? PagePosition.Even : PagePosition.Odd;
+        return new HeaderFooterPosition(fieldInfos.section, pagePos);
+    }
 
+    private bool IsFirstPageOfSection(int page, FieldInfos fieldInfos)
+    {
         if (page == 1)
-        {
-            pagePos = PagePosition.First;
-        }
-        else //page > 1
-        {
-            if (IsEmptyPage(page - 1)) // these empty pages only occur between sections.
-            {
-                pagePos = PagePosition.First;
-            }
-            else
-            {
-                var prevFieldInfos = pageFieldInfos[page - 1];
-                if (fieldInfos.section != prevFieldInfos.section)
-                    pagePos = PagePosition.First;
-            }
-        }
-        var hfp = new HeaderFooterPosition(fieldInfos.section, pagePos);
-        return formattedHeaders.TryGetValue(hfp, out var header) ? header : null;
+            return true;
+
+        //page > 1
+        if (IsEmptyPage(page - 1)) // these empty pages only occur between sections.
+            return true;
+
+        var prevFieldInfos = pageFieldInfos[page - 1];
+        return fieldInfos.section != prevFieldInfos.section;
     }
 
     /// <summary>
@@ -302,32 +303,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     /// <param name="page">The page the footer shall appear on.</param>
     /// <returns>The required footer, null if none exists to render.</returns>
     internal FormattedHeaderFooter GetFormattedFooter(int page)
-    {
-        var pagePos = page % 2 == 0 ? PagePosition.Even : PagePosition.Odd;
-
-        var fieldInfos = pageFieldInfos[page];
-
-        if (page == 1)
-        {
-            pagePos = PagePosition.First;
-        }
-
-        else //page > 1
-        {
-            if (IsEmptyPage(page - 1)) // these empty pages only occur between sections.
-            {
-                pagePos = PagePosition.First;
-            }
-            else
-            {
-                var prevFieldInfos = pageFieldInfos[page - 1];
-                if (fieldInfos.section != prevFieldInfos.section)
-                    pagePos = PagePosition.First;
-            }
-        }
-        var hfp = new HeaderFooterPosition(fieldInfos.section, pagePos);
-        return formattedFooters.TryGetValue(hfp, out var footer) ? footer : null;
-    }
+        => formattedFooters.TryGetValue(HeaderFooterPositionOf(page), out var footer) ? footer : null;
 
     private static Rectangle GetHeaderArea(Section section, int page)
     {

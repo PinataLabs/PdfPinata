@@ -597,31 +597,36 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         // The item can be indirect. If so, replace it by its value.
         if (item is PdfReference reference)
             item = reference.Value;
-        if (item is PdfObject root)
-        {
-            if (deepcopy)
-            {
-                Debug.Assert(root.Owner != null, "See 'else' case for details");
-                root = DeepCopyClosure(_document, root);
-            }
-            else
-            {
-                // The owner can be null if the item is not a reference.
-                if (root.Owner == null)
-                    root.Document = importPage.Owner;
-                root = ImportClosure(importedObjectTable, page.Owner, root);
-            }
-
-            if (root.Reference == null)
-                page.Elements[key] = root;
-            else
-                page.Elements[key] = root.Reference;
-        }
-        else
+        if (item is not PdfObject root)
         {
             // Simple items are just cloned.
             page.Elements[key] = item.Clone();
+            return;
         }
+
+        if (deepcopy)
+        {
+            Debug.Assert(root.Owner != null, "See 'else' case for details");
+            root = DeepCopyClosure(_document, root);
+        }
+        else
+        {
+            root = ImportRoot(importedObjectTable, page, importPage, root);
+        }
+
+        if (root.Reference == null)
+            page.Elements[key] = root;
+        else
+            page.Elements[key] = root.Reference;
+    }
+
+    private static PdfObject ImportRoot(PdfImportedObjectTable importedObjectTable, PdfPage page,
+        PdfPage importPage, PdfObject root)
+    {
+        // The owner can be null if the item is not a reference.
+        if (root.Owner == null)
+            root.Document = importPage.Owner;
+        return ImportClosure(importedObjectTable, page.Owner, root);
     }
 
     /// <summary>
@@ -648,28 +653,36 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         {
             var imported = importedAnnotations.Elements.GetDictionary(idx);
             var external = externalAnnotations.Elements.GetDictionary(idx);
-            if (imported == null || external == null)
-                continue;
-
-            // A link either carries its destination directly or performs a go-to action.
-            DetachDestination(imported, imported, external, PdfLinkAnnotation.Keys.Dest,
-                importedObjectTable, externalDocument);
-
-            var importedAction = imported.Elements.GetDictionary(PdfAnnotation.Keys.A);
-            var externalAction = external.Elements.GetDictionary(PdfAnnotation.Keys.A);
-            if (importedAction == null || externalAction == null)
-                continue;
-
-            // Only a go-to action goes to a page of the document the annotation is part of.
-            // /GoToR and friends go into another file, where a page number means what it says
-            // and a name is for that file to resolve, so their destination is left alone. An
-            // action that does not say what it is is taken to be a go-to, which is what it was
-            // taken to be before any of them were told apart.
-            var subtype = externalAction.Elements.GetName("/S");
-            if (subtype.Length == 0 || subtype == "/GoTo")
-                DetachDestination(imported, importedAction, externalAction, "/D",
-                    importedObjectTable, externalDocument);
+            if (imported != null && external != null)
+                DetachAnnotationDestinations(imported, external, importedObjectTable, externalDocument);
         }
+    }
+
+    /// <summary>
+    /// Helper function for DetachImportedDestinations. Detaches the destinations of one imported
+    /// annotation, reading what they went to from the annotation it was copied from.
+    /// </summary>
+    private void DetachAnnotationDestinations(PdfDictionary imported, PdfDictionary external,
+        PdfImportedObjectTable importedObjectTable, PdfDocument externalDocument)
+    {
+        // A link either carries its destination directly or performs a go-to action.
+        DetachDestination(imported, imported, external, PdfLinkAnnotation.Keys.Dest,
+            importedObjectTable, externalDocument);
+
+        var importedAction = imported.Elements.GetDictionary(PdfAnnotation.Keys.A);
+        var externalAction = external.Elements.GetDictionary(PdfAnnotation.Keys.A);
+        if (importedAction == null || externalAction == null)
+            return;
+
+        // Only a go-to action goes to a page of the document the annotation is part of.
+        // /GoToR and friends go into another file, where a page number means what it says
+        // and a name is for that file to resolve, so their destination is left alone. An
+        // action that does not say what it is is taken to be a go-to, which is what it was
+        // taken to be before any of them were told apart.
+        var subtype = externalAction.Elements.GetName("/S");
+        if (subtype.Length == 0 || subtype == "/GoTo")
+            DetachDestination(imported, importedAction, externalAction, "/D",
+                importedObjectTable, externalDocument);
     }
 
     /// <summary>
@@ -699,24 +712,27 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         if (externalDestination.Elements[0] is not PdfReference externalPage)
             return;
 
-        PdfArray destination;
-        if (named)
-        {
-            destination = ExplicitDestination(externalDestination);
-            if (destination == null)
-                return;
-            holder.Elements[key] = destination;
-        }
-        else
-        {
-            destination = holder.Elements.GetArray(key);
-            if (destination == null || destination.Elements.Count == 0)
-                return;
-        }
+        var destination = named
+            ? ReplaceNamedDestination(holder, key, externalDestination)
+            : holder.Elements.GetArray(key);
+        if (destination == null || destination.Elements.Count == 0)
+            return;
 
         destination.Elements[0] = PdfNull.Value;
         _importedDestinations.Add(new ImportedDestination(annotation, holder, key, destination,
             importedObjectTable, externalPage.ObjectID));
+    }
+
+    /// <summary>
+    /// Writes the explicit form of a named destination under <paramref name="key"/> in place of
+    /// its name, and answers it — or null, writing nothing, when it cannot be carried over.
+    /// </summary>
+    private PdfArray ReplaceNamedDestination(PdfDictionary holder, string key, PdfArray externalDestination)
+    {
+        var destination = ExplicitDestination(externalDestination);
+        if (destination != null)
+            holder.Elements[key] = destination;
+        return destination;
     }
 
     /// <summary>
@@ -765,27 +781,30 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         }
 
         foreach (var destination in _importedDestinations)
-        {
-            // The page substitute overwrites whatever the import left under this identifier, so
-            // the entry is the imported page itself as soon as the page was imported as a page.
-            var page = destination.ImportedObjectTable.Contains(destination.ExternalPageID)
-                ? destination.ImportedObjectTable[destination.ExternalPageID]
-                : null;
-
-            if (page != null && ownPages.ContainsKey(page))
-            {
-                destination.Destination.Elements[0] = page;
-            }
-            else
-            {
-                // There is no page in this document to go to, so the link stays without an aim.
-                destination.Holder.Elements.Remove(destination.Key);
-                if (!ReferenceEquals(destination.Holder, destination.Annotation))
-                    destination.Annotation.Elements.Remove(PdfAnnotation.Keys.A);
-            }
-        }
+            ResolveImportedDestination(destination, ownPages);
 
         _importedDestinations.Clear();
+    }
+
+    private static void ResolveImportedDestination(ImportedDestination destination,
+        Dictionary<PdfReference, object> ownPages)
+    {
+        // The page substitute overwrites whatever the import left under this identifier, so
+        // the entry is the imported page itself as soon as the page was imported as a page.
+        var page = destination.ImportedObjectTable.Contains(destination.ExternalPageID)
+            ? destination.ImportedObjectTable[destination.ExternalPageID]
+            : null;
+
+        if (page != null && ownPages.ContainsKey(page))
+        {
+            destination.Destination.Elements[0] = page;
+            return;
+        }
+
+        // There is no page in this document to go to, so the link stays without an aim.
+        destination.Holder.Elements.Remove(destination.Key);
+        if (!ReferenceEquals(destination.Holder, destination.Annotation))
+            destination.Annotation.Elements.Remove(PdfAnnotation.Keys.A);
     }
 
     /// <summary>
@@ -900,31 +919,12 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     private static PdfDictionary[] GetKids(PdfReference iref, PdfPage.InheritedValues values,
         HashSet<PdfObjectID> ancestors, ref int budget)
     {
-        if (--budget < 0)
-        {
-            throw new PdfReaderException(
-                $"The page tree has been entered more than twice as many times as the file has " +
-                $"objects, reaching node {iref.ObjectID}, so it lists the same subtrees over and over " +
-                "rather than each once as a tree does.");
-        }
-
-        if (iref.Value is not PdfDictionary kid)
-        {
-            throw new PdfReaderException(
-                $"Object {iref.ObjectID} stands in a page tree but is a " +
-                $"{TypeNameOf(iref.Value)} rather than a dictionary.");
-        }
+        var kid = PageTreeNode(iref, ref budget);
 
         var type = kid.Elements.GetName(Keys.Type);
-        if (type == "/Page")
+        // Type is required. If type is missing, assume it is "/Page" and hope it will work.
+        if (type == "/Page" || string.IsNullOrEmpty(type))
         {
-            PdfPage.InheritValues(kid, values);
-            return [kid];
-        }
-
-        if (string.IsNullOrEmpty(type))
-        {
-            // Type is required. If type is missing, assume it is "/Page" and hope it will work.
             PdfPage.InheritValues(kid, values);
             return [kid];
         }
@@ -932,51 +932,11 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         Debug.Assert(kid.Elements.GetName(Keys.Type) == "/Pages");
         PdfPage.InheritValues(kid, ref values);
 
-        // The array itself, or an indirect reference to it. Both are well-formed; a reference is
-        // resolved here so that what is reported below is what the entry came to rather than the
-        // reference that got there.
-        var entry = kid.Elements[Keys.Kids];
-        if (entry is PdfReference reference)
-            entry = reference.Value;
-
-        // A node that lists no children is read as a node with no children, which is the tolerant
-        // reading already taken a few lines above for a node with no /Type. /Kids is required of a
-        // page tree node by ISO 32000-1 Table 29, so this is already a file that does not say what it
-        // should. A reference the file never defines is the null object by 7.3.9 and a null entry is
-        // the same as no entry, which is how the rest of a page reads one - see DanglingReferenceTests.
-        if (entry is null or PdfNull)
+        var kids = KidsOf(kid, iref);
+        if (kids == null)
             return [];
 
-        // Anything else - a number, a name, a dictionary - is a page tree this method cannot walk, and
-        // saying which node it gave up on is worth more than the NullReferenceException it used to
-        // raise two lines later.
-        if (entry is not PdfArray kids)
-        {
-            throw new PdfReaderException(
-                $"The /Kids entry of page tree node {iref.ObjectID} is a {TypeNameOf(entry)} " +
-                "rather than an array.");
-        }
-
-        // Descending is the one thing that can fail to end, so this is where the walk is asked
-        // whether it is going anywhere new. A node that stands among its own ancestors is a loop
-        // rather than a deeper tree, and a tree deeper than any document builds is one the stack
-        // cannot hold. Both used to run until the stack ran out, which takes the process with it —
-        // an untrusted file killed the program that merely opened it. ISO 32000-1 7.7.3.2 has the
-        // pages of a document in a *tree*; empira/PDFsharp#361 is a file where they are not.
-        if (!ancestors.Add(iref.ObjectID))
-        {
-            throw new PdfReaderException(
-                $"Page tree node {iref.ObjectID} stands among its own descendants, so the /Kids " +
-                "of this document form a loop rather than a tree.");
-        }
-
-        if (ancestors.Count > MaxPageTreeDepth)
-        {
-            throw new PdfReaderException(
-                $"The page tree is nested more than {MaxPageTreeDepth} levels deep at node " +
-                $"{iref.ObjectID}, which is deeper than a tree of pages is ever built and deeper " +
-                "than this walk can go.");
-        }
+        EnterPageTreeNode(iref, ancestors);
 
         var list = new List<PdfDictionary>();
         foreach (var item in kids)
@@ -1002,6 +962,89 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         // two disagreeing - so the assertion that used to stand here could only fire on the files
         // this method now reads on purpose.
         return [.. list];
+    }
+
+    /// <summary>
+    /// The dictionary a page tree entry refers to, spending one entry of the walk's budget on it.
+    /// </summary>
+    private static PdfDictionary PageTreeNode(PdfReference iref, ref int budget)
+    {
+        if (--budget < 0)
+        {
+            throw new PdfReaderException(
+                $"The page tree has been entered more than twice as many times as the file has " +
+                $"objects, reaching node {iref.ObjectID}, so it lists the same subtrees over and over " +
+                "rather than each once as a tree does.");
+        }
+
+        if (iref.Value is not PdfDictionary kid)
+        {
+            throw new PdfReaderException(
+                $"Object {iref.ObjectID} stands in a page tree but is a " +
+                $"{TypeNameOf(iref.Value)} rather than a dictionary.");
+        }
+
+        return kid;
+    }
+
+    /// <summary>
+    /// The <c>/Kids</c> array of a page tree node, or null for a node that lists no children.
+    /// </summary>
+    private static PdfArray KidsOf(PdfDictionary kid, PdfReference iref)
+    {
+        // The array itself, or an indirect reference to it. Both are well-formed; a reference is
+        // resolved here so that what is reported below is what the entry came to rather than the
+        // reference that got there.
+        var entry = kid.Elements[Keys.Kids];
+        if (entry is PdfReference reference)
+            entry = reference.Value;
+
+        // A node that lists no children is read as a node with no children, which is the tolerant
+        // reading already taken a few lines above for a node with no /Type. /Kids is required of a
+        // page tree node by ISO 32000-1 Table 29, so this is already a file that does not say what it
+        // should. A reference the file never defines is the null object by 7.3.9 and a null entry is
+        // the same as no entry, which is how the rest of a page reads one - see DanglingReferenceTests.
+        if (entry is null or PdfNull)
+            return null;
+
+        // Anything else - a number, a name, a dictionary - is a page tree this method cannot walk, and
+        // saying which node it gave up on is worth more than the NullReferenceException it used to
+        // raise two lines later.
+        if (entry is not PdfArray kids)
+        {
+            throw new PdfReaderException(
+                $"The /Kids entry of page tree node {iref.ObjectID} is a {TypeNameOf(entry)} " +
+                "rather than an array.");
+        }
+
+        return kids;
+    }
+
+    /// <summary>
+    /// Puts a page tree node on the path the walk is inside, refusing a loop or a tree too deep.
+    /// </summary>
+    private static void EnterPageTreeNode(PdfReference iref, HashSet<PdfObjectID> ancestors)
+    {
+        // Descending is the one thing that can fail to end, so this is where the walk is asked
+        // whether it is going anywhere new. A node that stands among its own ancestors is a loop
+        // rather than a deeper tree, and a tree deeper than any document builds is one the stack
+        // cannot hold. Both used to run until the stack ran out, which takes the process with it —
+        // an untrusted file killed the program that merely opened it. ISO 32000-1 7.7.3.2 has the
+        // pages of a document in a *tree*; empira/PDFsharp#361 is a file where they are not.
+        if (!ancestors.Add(iref.ObjectID))
+        {
+            throw new PdfReaderException(
+                $"Page tree node {iref.ObjectID} stands among its own descendants, so the /Kids " +
+                "of this document form a loop rather than a tree.");
+        }
+
+        if (ancestors.Count > MaxPageTreeDepth)
+        {
+            throw new PdfReaderException(
+                $"The page tree is nested more than {MaxPageTreeDepth} levels deep at node " +
+                $"{iref.ObjectID}, which is deeper than a tree of pages is ever built and deeper " +
+                "than this walk can go.");
+        }
     }
 
     /// <summary>

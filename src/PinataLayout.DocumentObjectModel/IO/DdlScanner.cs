@@ -150,9 +150,9 @@ internal class DdlScanner
     {
       // Token is number literal.
       symbol = ScanNumber(false);
-      tokenType = symbol == Symbol.RealLiteral ? TokenType.RealLiteral : TokenType.IntegerLiteral;
+      tokenType = NumberTokenType(symbol);
     }
-    else if (currChar == '.' && IsDigit(nextChar))
+    else if (IsPointBeforeDigit)
     {
       // Token is real literal.
       symbol = ScanNumber(true);
@@ -163,9 +163,9 @@ internal class DdlScanner
       // Token is keyword.
       token = "\\";
       symbol = ScanKeyword();
-      tokenType = symbol != Symbol.None ? TokenType.KeyWord : TokenType.None;
+      tokenType = KeywordTokenType(symbol);
     }
-    else if (currChar == '@' && nextChar == '"')
+    else if (IsVerbatimStringStart)
     {
       // Token is verbatim string literal.
       ScanNextChar();
@@ -179,6 +179,22 @@ internal class DdlScanner
       symbol = ScanPunctuator();
     }
   }
+
+  /// <summary>
+  /// Whether the current character is a point that starts a real literal, such as «.5».
+  /// </summary>
+  private bool IsPointBeforeDigit => currChar == '.' && IsDigit(nextChar);
+
+  /// <summary>
+  /// Whether the current characters start a verbatim string literal, «@"».
+  /// </summary>
+  private bool IsVerbatimStringStart => currChar == '@' && nextChar == '"';
+
+  private static TokenType NumberTokenType(Symbol symbol)
+    => symbol == Symbol.RealLiteral ? TokenType.RealLiteral : TokenType.IntegerLiteral;
+
+  private static TokenType KeywordTokenType(Symbol symbol)
+    => symbol != Symbol.None ? TokenType.KeyWord : TokenType.None;
 
   /// <summary>
   /// Whether the current character starts a number: a digit, or a sign followed by one.
@@ -364,20 +380,7 @@ internal class DdlScanner
 
     // Check for keyword or escaped character.
     if (currChar == '\\')
-    {
-      switch (nextChar)
-      {
-        case '\\':
-        case '{':
-        case '}':
-        case '/':
-        case '-':
-          return ReadPlainText(rootLevel);
-      }
-      // Either key word or syntax error.
-      token = "\\";
-      return ScanKeyword();
-    }
+      return ReadEscapeOrKeyword(rootLevel);
 
     // Check for reserved terminal symbols in text.
     switch (currChar)
@@ -399,6 +402,35 @@ internal class DdlScanner
     if (currChar != Chars.LF)
       return ReadPlainText(rootLevel);
 
+    return ReadLineEnd(rootLevel);
+  }
+
+  /// <summary>
+  /// Reads from a backslash in text: an escaped character begins plain text, anything else is a
+  /// keyword or a syntax error.
+  /// </summary>
+  private Symbol ReadEscapeOrKeyword(bool rootLevel)
+  {
+    switch (nextChar)
+    {
+      case '\\':
+      case '{':
+      case '}':
+      case '/':
+      case '-':
+        return ReadPlainText(rootLevel);
+    }
+    // Either key word or syntax error.
+    token = "\\";
+    return ScanKeyword();
+  }
+
+  /// <summary>
+  /// Reads from the end of a line of text: a blank when the paragraph continues on the next line,
+  /// otherwise the empty line or closing brace that ends it.
+  /// </summary>
+  private Symbol ReadLineEnd(bool rootLevel)
+  {
     // The line ends here. See if the paragraph continues in the next line.
     if (MoveToNextParagraphContentLine(rootLevel))
     {
@@ -444,49 +476,63 @@ internal class DdlScanner
     var foundSpace = false;
     while (currChar != Chars.Null)
     {
-      // Check for escaped character or keyword.
-      if (currChar == '\\')
-      {
-        if (!ScanTextEscape())
-          break; // Keyword
-        continue;
-      }
-
-      // Check for reserved terminal symbols in text: '{' is a syntax error any way, '}' is the
-      // block end.
-      if (currChar is '{' or '}')
+      if (!ReadPlainTextStep(rootLevel, ref foundSpace))
         break;
-
-      // A comment runs to the end of the line, which is then handled as any other. A comment
-      // that runs to the end of the document leaves the end of the document as the current
-      // character, and that is appended like any other character below.
-      if (currChar == '/' && nextChar == '/')
-        ScanToEol();
-
-      // Check for end of line.
-      if (currChar == Chars.LF)
-      {
-        // The line ends here. See if the paragraph continues in the next line.
-        if (MoveToNextParagraphContentLine(rootLevel))
-        {
-          // Paragraph continues in next line. Add a blank to separate words.
-          if (!token.EndsWith(' '))
-            token += ' ';
-          continue;
-        }
-
-        // Paragraph ends here. Remember that for next call except the reason
-        // for end is '}'
-        emptyLine = currChar != Chars.BraceRight;
-        break;
-      }
-
-      foundSpace = AppendTextChar(foundSpace);
     }
 
     symbol = Symbol.Text;
     tokenType = TokenType.Text;
     return Symbol.Text;
+  }
+
+  /// <summary>
+  /// Reads the next piece of plain text: an escape, a comment, a line end or a character.
+  /// Returns false where the text ends instead.
+  /// </summary>
+  private bool ReadPlainTextStep(bool rootLevel, ref bool foundSpace)
+  {
+    // Check for escaped character or keyword.
+    if (currChar == '\\')
+      return ScanTextEscape(); // false: Keyword
+
+    // Check for reserved terminal symbols in text: '{' is a syntax error any way, '}' is the
+    // block end.
+    if (currChar is '{' or '}')
+      return false;
+
+    // A comment runs to the end of the line, which is then handled as any other. A comment
+    // that runs to the end of the document leaves the end of the document as the current
+    // character, and that is appended like any other character below.
+    if (currChar == '/' && nextChar == '/')
+      ScanToEol();
+
+    // Check for end of line.
+    if (currChar == Chars.LF)
+      return ContinuePlainTextOnNextLine(rootLevel);
+
+    foundSpace = AppendTextChar(foundSpace);
+    return true;
+  }
+
+  /// <summary>
+  /// At the end of a line of plain text, moves on to the next line when the paragraph continues
+  /// there, and answers whether it did.
+  /// </summary>
+  private bool ContinuePlainTextOnNextLine(bool rootLevel)
+  {
+    // The line ends here. See if the paragraph continues in the next line.
+    if (MoveToNextParagraphContentLine(rootLevel))
+    {
+      // Paragraph continues in next line. Add a blank to separate words.
+      if (!token.EndsWith(' '))
+        token += ' ';
+      return true;
+    }
+
+    // Paragraph ends here. Remember that for next call except the reason
+    // for end is '}'
+    emptyLine = currChar != Chars.BraceRight;
+    return false;
   }
 
   /// <summary>
@@ -569,51 +615,33 @@ internal class DdlScanner
   internal bool MoveToNextParagraphContentLine(bool rootLevel)
   {
     Debug.Assert(currChar == Chars.LF);
-    var loop = true;
     ScanNextChar();
-    while (loop)
+    while (true)
     {
       // Scan to next EOL and ignore any white space.
       MoveToNonWhiteSpaceOrEol();
       switch (currChar)
       {
         case Chars.Null:
-          loop = false;
-          break;
+          return false;
 
         case Chars.LF:
           ScanNextChar(); // read beyond EOL
-          if (rootLevel)
-          {
-            // At nesting level 0 (root level) a new line ends the paragraph content.
-            // Move to next content block or '}' respectively.
-            MoveToParagraphContent();
+          if (EndsParagraphAtEmptyLine(rootLevel))
             return false;
-          }
-
-          // Skip new lines at the end of the paragraph.
-          if (PeekSymbol() == Symbol.BraceRight)
-          {
-            MoveToNonWhiteSpace();
-            return false;
-          }
 
           // An empty line inside nested content is skipped, and scanning goes on with the
           // line after it.
           break;
 
         case Chars.Slash:
-          if (nextChar == Chars.Slash)
-          {
-            // A line with comment is not treated as empty.
-            // Skip this line.
-            MoveBeyondEol();
-          }
-          else
-          {
-            // Current character is a slash.
+          // Current character is a slash.
+          if (nextChar != Chars.Slash)
             return true;
-          }
+
+          // A line with comment is not treated as empty.
+          // Skip this line.
+          MoveBeyondEol();
           break;
 
         case Chars.BraceRight:
@@ -623,6 +651,29 @@ internal class DdlScanner
           return true;
       }
     }
+  }
+
+  /// <summary>
+  /// Whether the empty line just read beyond ends the paragraph, having moved to what follows
+  /// the paragraph when it does.
+  /// </summary>
+  private bool EndsParagraphAtEmptyLine(bool rootLevel)
+  {
+    if (rootLevel)
+    {
+      // At nesting level 0 (root level) a new line ends the paragraph content.
+      // Move to next content block or '}' respectively.
+      MoveToParagraphContent();
+      return true;
+    }
+
+    // Skip new lines at the end of the paragraph.
+    if (PeekSymbol() == Symbol.BraceRight)
+    {
+      MoveToNonWhiteSpace();
+      return true;
+    }
+
     return false;
   }
 
@@ -829,44 +880,48 @@ internal class DdlScanner
     {
       currChar = Chars.Null;
       nextChar = Chars.Null;
+      return currChar;
     }
-    else
+
+    // A CR before an LF is skipped, and the LF ends the line. A CR on its own ends the line
+    // too, as it does in a classic Mac OS file, and is read as an LF so that everything
+    // looking for the end of a line finds it.
+    ReadDocumentChar();
+    if (currChar == Chars.CR && nextChar == Chars.LF)
+      ReadDocumentChar();
+
+    switch (currChar)
     {
-      SkipChar:
-      currChar = m_strDocument[m_idx++];
-      if (ddlLength <= m_idx)
-        nextChar = Chars.Null;
-      else
-        nextChar = m_strDocument[m_idx];
+      case Chars.Null:  //???
+      case Chars.LF:
+        EndLine();
+        break;
 
-      ++m_idxLinePos;
-      switch (currChar)
-      {
-        case Chars.Null:  //???
-          ++m_idxLine;
-          m_idxLinePos = 0;
-          break;
-
-        // A CR before an LF is skipped, and the LF ends the line. A CR on its own ends the line
-        // too, as it does in a classic Mac OS file, and is read as an LF so that everything
-        // looking for the end of a line finds it.
-        case Chars.CR:
-          if (nextChar == Chars.LF)
-          {
-            goto SkipChar;
-          }
-          currChar = Chars.LF;
-          m_idxLine++;
-          m_idxLinePos = 0;
-          break;
-
-        case Chars.LF:
-          m_idxLine++;
-          m_idxLinePos = 0;
-          break;
-      }
+      case Chars.CR:
+        currChar = Chars.LF;
+        EndLine();
+        break;
     }
     return currChar;
+  }
+
+  /// <summary>
+  /// Makes the document's next character current, and the one after it the next.
+  /// </summary>
+  private void ReadDocumentChar()
+  {
+    currChar = m_strDocument[m_idx++];
+    nextChar = ddlLength <= m_idx ? Chars.Null : m_strDocument[m_idx];
+    ++m_idxLinePos;
+  }
+
+  /// <summary>
+  /// Counts a line ended at the current character.
+  /// </summary>
+  private void EndLine()
+  {
+    m_idxLine++;
+    m_idxLinePos = 0;
   }
 
   /// <summary>
@@ -1001,22 +1056,23 @@ internal class DdlScanner
     token += currChar;
 
     ScanNextChar();
-    if (!mantissa && ch == '0' && (currChar is 'x' or 'X'))
+    if (!mantissa && IsHexPrefix(ch))
       return ReadHexNumber();
 
-    while (currChar != Chars.Null)
-    {
-      if (IsDigit(currChar))
-        AppendAndScanNextChar();
-      else if (!mantissa && currChar == Chars.Period)
-      {
-        return ScanNumber(true);
-      }
-      else
-        break;
-    }
+    // The end of the document is no digit, so this stops there too.
+    while (IsDigit(currChar))
+      AppendAndScanNextChar();
+
+    if (!mantissa && currChar == Chars.Period)
+      return ScanNumber(true);
+
     return mantissa ? Symbol.RealLiteral : Symbol.IntegerLiteral;
   }
+
+  /// <summary>
+  /// Whether the character just scanned and the current one are «0x» or «0X».
+  /// </summary>
+  private bool IsHexPrefix(char first) => first == '0' && (currChar is 'x' or 'X');
 
   /// <summary>
   /// Scans an hexadecimal literal.

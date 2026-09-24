@@ -81,20 +81,31 @@ public partial class ParagraphElements : DocumentObjectCollection
         var lineCount = lines.Length;
         for (var line = 0; line < lineCount; line++)
         {
-            var tabParts = lines[line].Split('\t');
-            var count = tabParts.Length;
-            for (var idx = 0; idx < count; idx++)
-            {
-                if (tabParts[idx].Length != 0)
-                {
-                    txt = new Text(tabParts[idx]);
-                    Add(txt);
-                }
-                if (idx < count - 1)
-                    AddTab();
-            }
+            txt = AddTabSeparatedText(lines[line]) ?? txt;
             if (line < lineCount - 1)
                 AddLineBreak();
+        }
+        return txt;
+    }
+
+    /// <summary>
+    /// Adds one line of text, a Text object for each non-empty part and a tab between parts.
+    /// Returns the last Text object added, or null if every part was empty.
+    /// </summary>
+    private Text AddTabSeparatedText(string line)
+    {
+        Text txt = null;
+        var tabParts = line.Split('\t');
+        var count = tabParts.Length;
+        for (var idx = 0; idx < count; idx++)
+        {
+            if (tabParts[idx].Length != 0)
+            {
+                txt = new Text(tabParts[idx]);
+                Add(txt);
+            }
+            if (idx < count - 1)
+                AddTab();
         }
         return txt;
     }

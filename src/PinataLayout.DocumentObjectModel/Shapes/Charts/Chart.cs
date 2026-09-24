@@ -429,17 +429,21 @@ public partial class Chart : Shape, IVisitable
   /// </summary>
   internal string CheckTextArea(TextArea textArea)
   {
-    if (headerArea != null && textArea == headerArea)
+    // Past this guard, an area the text area is equal to is not null either.
+    if (textArea == null)
+      return "";
+
+    if (textArea == headerArea)
       return "headerarea";
-    if (footerArea != null && textArea == footerArea)
+    if (textArea == footerArea)
       return "footerarea";
-    if (leftArea != null && textArea == leftArea)
+    if (textArea == leftArea)
       return "leftarea";
-    if (rightArea != null && textArea == rightArea)
+    if (textArea == rightArea)
       return "rightarea";
-    if (topArea != null && textArea == topArea)
+    if (textArea == topArea)
       return "toparea";
-    if (bottomArea != null && textArea == bottomArea)
+    if (textArea == bottomArea)
       return "bottomarea";
 
     return "";

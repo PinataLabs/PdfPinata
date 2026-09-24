@@ -144,43 +144,45 @@ public sealed class ValueDescriptor
     if (!Enum.IsDefined(flags))
       throw new ArgumentException($@"'{flags}' is not a defined value of {nameof(GV)}.", nameof(flags));
 
-    switch (Kind)
+    return Kind switch
     {
-      case ValueKind.Leaf:
-      {
-        var value = getter(dom);
-        if (value == null)
-          return flags == GV.GetNull ? null : valueWhenNull;
-        return value;
-      }
+      ValueKind.Leaf => GetLeaf(dom, flags),
+      ValueKind.NullableValue => GetNullableValue(dom, flags),
+      ValueKind.PlainValue => getter(dom),
+      _ => GetDocumentObject(dom, flags)
+    };
+  }
 
-      case ValueKind.NullableValue:
-      {
-        var value = getter(dom);
-        if (value is INullableValue { IsNull: true } && flags == GV.GetNull)
-          return null;
-        return value;
-      }
+  private object GetLeaf(DocumentObject dom, GV flags)
+  {
+    var value = getter(dom);
+    if (value == null)
+      return flags == GV.GetNull ? null : valueWhenNull;
+    return value;
+  }
 
-      case ValueKind.PlainValue:
-        return getter(dom);
+  private object GetNullableValue(DocumentObject dom, GV flags)
+  {
+    var value = getter(dom);
+    if (value is INullableValue { IsNull: true } && flags == GV.GetNull)
+      return null;
+    return value;
+  }
 
-      default:
-      {
-        var value = getter(dom) as DocumentObject;
-        // Only a field is created on demand. A property has nowhere to put the new object.
-        if (isField && value == null && flags == GV.ReadWrite)
-        {
-          value = factory();
-          value.parent = dom;
-          setter(dom, value);
-          return value;
-        }
-        if (value != null && value.IsNull() && flags == GV.GetNull)
-          return null;
-        return value;
-      }
+  private DocumentObject GetDocumentObject(DocumentObject dom, GV flags)
+  {
+    var value = getter(dom) as DocumentObject;
+    // Only a field is created on demand. A property has nowhere to put the new object.
+    if (isField && value == null && flags == GV.ReadWrite)
+    {
+      value = factory();
+      value.parent = dom;
+      setter(dom, value);
+      return value;
     }
+    if (value != null && value.IsNull() && flags == GV.GetNull)
+      return null;
+    return value;
   }
 
   /// <summary>

@@ -250,30 +250,44 @@ internal class TableRenderer : Renderer
     var leftWidth = bordersRenderer.GetWidth(BorderType.Left);
     var topWidth = bordersRenderer.GetWidth(BorderType.Top);
     var rightWidth = bordersRenderer.GetWidth(BorderType.Right);
+    var corner = cell.RoundedCorner;
 
-    if (cell.RoundedCorner == RoundedCorner.TopLeft)
-      bordersRenderer.RenderRounded(cell.RoundedCorner, innerRect.X, innerRect.Y, innerRect.Width + rightWidth, innerRect.Height + bottomWidth);
-    else if (cell.RoundedCorner == RoundedCorner.TopRight)
-      bordersRenderer.RenderRounded(cell.RoundedCorner, innerRect.X - leftWidth, innerRect.Y, innerRect.Width + leftWidth, innerRect.Height + bottomWidth);
-    else if (cell.RoundedCorner == RoundedCorner.BottomLeft)
-      bordersRenderer.RenderRounded(cell.RoundedCorner, innerRect.X, innerRect.Y - topWidth, innerRect.Width + rightWidth, innerRect.Height + topWidth);
-    else if (cell.RoundedCorner == RoundedCorner.BottomRight)
-      bordersRenderer.RenderRounded(cell.RoundedCorner, innerRect.X - leftWidth, innerRect.Y - topWidth, innerRect.Width + leftWidth, innerRect.Height + topWidth);
+    RenderRoundedCorner(bordersRenderer, corner, innerRect, leftWidth, topWidth, rightWidth, bottomWidth);
 
     // Render horizontal and vertical borders only if touching no rounded corner.
-    if (cell.RoundedCorner != RoundedCorner.TopRight && cell.RoundedCorner != RoundedCorner.BottomRight)
+    if (corner is not (RoundedCorner.TopRight or RoundedCorner.BottomRight))
       bordersRenderer.RenderVertically(BorderType.Right, rightPos, topPos, bottomPos + bottomWidth - topPos);
 
-    if (cell.RoundedCorner != RoundedCorner.TopLeft && cell.RoundedCorner != RoundedCorner.BottomLeft)
+    if (corner is not (RoundedCorner.TopLeft or RoundedCorner.BottomLeft))
       bordersRenderer.RenderVertically(BorderType.Left, leftPos - leftWidth, topPos, bottomPos + bottomWidth - topPos);
 
-    if (cell.RoundedCorner != RoundedCorner.BottomLeft && cell.RoundedCorner != RoundedCorner.BottomRight)
+    if (corner is not (RoundedCorner.BottomLeft or RoundedCorner.BottomRight))
       bordersRenderer.RenderHorizontally(BorderType.Bottom, leftPos - leftWidth, bottomPos, rightPos + rightWidth + leftWidth - leftPos);
 
-    if (cell.RoundedCorner != RoundedCorner.TopLeft && cell.RoundedCorner != RoundedCorner.TopRight)
+    if (corner is not (RoundedCorner.TopLeft or RoundedCorner.TopRight))
       bordersRenderer.RenderHorizontally(BorderType.Top, leftPos - leftWidth, topPos - topWidth, rightPos + rightWidth + leftWidth - leftPos);
 
     RenderDiagonalBorders(mergedBorders, innerRect);
+  }
+
+  private static void RenderRoundedCorner(BordersRenderer bordersRenderer, RoundedCorner corner, Rectangle innerRect,
+    XUnit leftWidth, XUnit topWidth, XUnit rightWidth, XUnit bottomWidth)
+  {
+    switch (corner)
+    {
+      case RoundedCorner.TopLeft:
+        bordersRenderer.RenderRounded(corner, innerRect.X, innerRect.Y, innerRect.Width + rightWidth, innerRect.Height + bottomWidth);
+        break;
+      case RoundedCorner.TopRight:
+        bordersRenderer.RenderRounded(corner, innerRect.X - leftWidth, innerRect.Y, innerRect.Width + leftWidth, innerRect.Height + bottomWidth);
+        break;
+      case RoundedCorner.BottomLeft:
+        bordersRenderer.RenderRounded(corner, innerRect.X, innerRect.Y - topWidth, innerRect.Width + rightWidth, innerRect.Height + topWidth);
+        break;
+      case RoundedCorner.BottomRight:
+        bordersRenderer.RenderRounded(corner, innerRect.X - leftWidth, innerRect.Y - topWidth, innerRect.Width + leftWidth, innerRect.Height + topWidth);
+        break;
+    }
   }
 
   private void RenderDiagonalBorders(Borders mergedBorders, Rectangle innerRect)
@@ -476,28 +490,47 @@ internal class TableRenderer : Renderer
   /// <param name="previousFormatInfo"></param>
   internal override void Format(Area area, FormatInfo previousFormatInfo)
   {
-    if (DocumentRelations.GetParent(_table) is DocumentElements elements)
-    {
-      if (DocumentRelations.GetParent(elements) is Section section)
-        _doHorizontalBreak = section.PageSetup.HorizontalPageBreak;
-    }
+    if (DocumentRelations.GetParent(_table) is DocumentElements elements
+        && DocumentRelations.GetParent(elements) is Section section)
+      _doHorizontalBreak = section.PageSetup.HorizontalPageBreak;
 
     renderInfo = new TableRenderInfo();
     InitFormat(previousFormatInfo);
 
+    var isEmpty = ProbeRows(area, StartingOffset(), out var currentHeight, out var startingHeight);
+    if (!isEmpty)
+    {
+      var formatInfo = (TableFormatInfo)renderInfo.FormatInfo;
+      formatInfo.startRow = _startRow;
+      formatInfo.isEnding = _currRow >= _table.Rows.Count - 1;
+      formatInfo.endRow = _currRow;
+    }
+    FinishLayoutInfo(area, currentHeight, startingHeight);
+  }
+
+  /// <summary>
+  /// The offset the row bottoms are measured from: below the repeated header rows when the table
+  /// continues from a previous area, above the top border otherwise.
+  /// </summary>
+  private XUnit StartingOffset()
+  {
     // Don't take any Rows higher then MaxElementHeight
     var topHeight = CalcStartingHeight();
-    XUnit offset;
     if (_startRow > _lastHeaderRow + 1 &&
         _startRow < _table.Rows.Count)
-        offset = _bottomBorderMap[_startRow] - topHeight;
-    else
-      offset = -CalcMaxTopBorderWidth(0);
+      return _bottomBorderMap[_startRow] - topHeight;
+    return -CalcMaxTopBorderWidth(0);
+  }
 
+  /// <summary>
+  /// Advances <c>_currRow</c> over the rows that fit into the area, and answers whether not even
+  /// the first of them does.
+  /// </summary>
+  private bool ProbeRows(Area area, XUnit offset, out XUnit currentHeight, out XUnit startingHeight)
+  {
     var probeRow = _startRow;
-    XUnit currentHeight = 0;
-    XUnit startingHeight = 0;
-    var isEmpty = false;
+    currentHeight = 0;
+    startingHeight = 0;
 
     while (probeRow < _table.Rows.Count)
     {
@@ -508,32 +541,21 @@ internal class TableRenderer : Renderer
       if (firstProbe && probeHeight > MaxElementHeight - Tolerance)
         probeHeight = MaxElementHeight - Tolerance;
 
-      //The height for the first new row(s) + headerrows:
-      if (startingHeight == 0)
+      if (probeHeight > area.Height)
       {
-        if (probeHeight > area.Height)
-        {
-          isEmpty = true;
-          break;
-        }
-        startingHeight = probeHeight;
+        // The height for the first new row(s) + headerrows not fitting leaves the area empty.
+        return startingHeight == 0;
       }
 
-      if (probeHeight > area.Height)
-        break;
+      //The height for the first new row(s) + headerrows:
+      if (startingHeight == 0)
+        startingHeight = probeHeight;
 
       _currRow = probeRow;
       currentHeight = probeHeight;
       ++probeRow;
     }
-    if (!isEmpty)
-    {
-      var formatInfo = (TableFormatInfo)renderInfo.FormatInfo;
-      formatInfo.startRow = _startRow;
-      formatInfo.isEnding = _currRow >= _table.Rows.Count - 1;
-      formatInfo.endRow = _currRow;
-    }
-    FinishLayoutInfo(area, currentHeight, startingHeight);
+    return false;
   }
 
   private void FinishLayoutInfo(Area area, XUnit currentHeight, XUnit startingHeight)
@@ -814,24 +836,21 @@ internal class TableRenderer : Renderer
     foreach (var cell in _mergedCells)
     {
       var rowIndex = cell.Row.Index; // Note: Taking index only once speeds up large tables.
-      var lastRowIndex = cell.MergedBottomRowIndex;
-      if (rowIndex <= row && lastRowIndex >= row)
-      {
-        if (rowIndex == row && lastRowIndex == row)
-        {
-          // Perfect match: non-merged cell in the desired row.
-          minCell = cell;
-          break;
-        }
-        if (lastRowIndex - row < minMerge)
-        {
-          minMerge = lastRowIndex - row;
-          minCell = cell;
-        }
-      }
-      else if (rowIndex > row)
-      {
+      if (rowIndex > row)
         break;
+
+      var lastRowIndex = cell.MergedBottomRowIndex;
+      if (lastRowIndex < row)
+        continue;
+
+      // Perfect match: non-merged cell in the desired row.
+      if (rowIndex == row && lastRowIndex == row)
+        return cell;
+
+      if (lastRowIndex - row < minMerge)
+      {
+        minMerge = lastRowIndex - row;
+        minCell = cell;
       }
     }
     return minCell;

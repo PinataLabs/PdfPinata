@@ -230,22 +230,17 @@ public partial class Shape : DocumentObject
       serializer.WriteSimpleAttribute("Height", Height);
     if (!width.IsNull)
       serializer.WriteSimpleAttribute("Width", Width);
-    if (relativeHorizontal != null)
-      serializer.WriteSimpleAttribute("RelativeHorizontal", RelativeHorizontal);
-    if (relativeVertical != null)
-      serializer.WriteSimpleAttribute("RelativeVertical", RelativeVertical);
+    serializer.WriteSimpleAttributeIfSet("RelativeHorizontal", relativeHorizontal);
+    serializer.WriteSimpleAttributeIfSet("RelativeVertical", relativeVertical);
     if (alternativeText != null)
       serializer.WriteSimpleAttribute("AlternativeText", AlternativeText);
     if (!IsNull("Left"))
       left.Serialize(serializer);
     if (!IsNull("Top"))
       top.Serialize(serializer);
-    if (!IsNull("WrapFormat"))
-      wrapFormat.Serialize(serializer);
-    if (!IsNull("LineFormat"))
-      lineFormat.Serialize(serializer);
-    if (!IsNull("FillFormat"))
-      fillFormat.Serialize(serializer);
+    serializer.SerializeUnlessNull(this, "WrapFormat", wrapFormat);
+    serializer.SerializeUnlessNull(this, "LineFormat", lineFormat);
+    serializer.SerializeUnlessNull(this, "FillFormat", fillFormat);
   }
 
   #endregion

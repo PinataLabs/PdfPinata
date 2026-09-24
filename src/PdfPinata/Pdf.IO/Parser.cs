@@ -133,12 +133,8 @@ internal sealed class Parser
         bool fromObjecStream)
     {
         if (!fromObjecStream)
-        {
-            MoveToObject(objectID);
-            // The header's own numbers are read past and not used; see below.
-            ReadInteger();
-            ReadInteger();
-        }
+            ReadObjectHeader(objectID);
+
         // The object header can disagree with the iref table that led here, and the object ID from
         // the table is the one to believe. PDF4NET 2.6's 'unicode.pdf' sample, for one, gives
         // objects 84 to 87 the same offset in its iref table, so all four read back as the same
@@ -146,9 +142,6 @@ internal sealed class Parser
         // Always use object ID from iref table (see above).
         var objectNumber = objectID.ObjectNumber;
         var generationNumber = objectID.GenerationNumber;
-
-        if (!fromObjecStream)
-            ReadSymbol(Symbol.Obj);
 
         var symbol = ScanNextToken();
         var simpleObject = SimpleObjectFor(symbol);
@@ -160,32 +153,15 @@ internal sealed class Parser
             return simpleObject;
         }
 
-        var checkForStream = false;
-        switch (symbol)
+        if (symbol == Symbol.EndObj)
         {
-            case Symbol.BeginArray:
-                var array = pdfObject == null ? new PdfArray(_document) : (PdfArray)pdfObject;
-                pdfObject = ReadArray(array, includeReferences);
-                pdfObject.SetObjectID(objectNumber, generationNumber);
-                break;
-
-            case Symbol.BeginDictionary:
-                var dict = pdfObject == null ? new PdfDictionary(_document) : (PdfDictionary)pdfObject;
-                checkForStream = true;
-                pdfObject = ReadDictionary(dict, includeReferences);
-                pdfObject.SetObjectID(objectNumber, generationNumber);
-                break;
-
-            case Symbol.EndObj:
-                pdfObject = new PdfNullObject(_document);
-                pdfObject.SetObjectID(objectNumber, generationNumber);
-                return pdfObject;
-
-            default:
-                // Should not come here anymore.
-                ParserDiagnostics.HandleUnexpectedToken(_lexer.Token);
-                break;
+            var nullObject = new PdfNullObject(_document);
+            nullObject.SetObjectID(objectNumber, generationNumber);
+            return nullObject;
         }
+
+        pdfObject = ReadArrayOrDictionaryObject(symbol, pdfObject, includeReferences, objectID);
+        var checkForStream = symbol == Symbol.BeginDictionary;
 
         var endOfObject = _lexer.Position;
         symbol = ScanNextToken();
@@ -194,6 +170,47 @@ internal sealed class Parser
 
         if (!fromObjecStream && symbol != Symbol.EndObj)
             EndObject(symbol, endOfObject);
+        return pdfObject;
+    }
+
+    /// <summary>
+    ///   Moves to an indirect object and reads its header, "n g obj".
+    /// </summary>
+    private void ReadObjectHeader(PdfObjectID objectID)
+    {
+        MoveToObject(objectID);
+        // The header's own numbers are read past and not used; see ReadObject.
+        ReadInteger();
+        ReadInteger();
+        ReadSymbol(Symbol.Obj);
+    }
+
+    /// <summary>
+    ///   Reads an indirect object that is an array or a dictionary, into <paramref name="pdfObject"/>
+    ///   when one is given, and gives it the object ID from the iref table.
+    /// </summary>
+    private PdfObject ReadArrayOrDictionaryObject(Symbol symbol, PdfObject pdfObject, bool includeReferences,
+        PdfObjectID objectID)
+    {
+        switch (symbol)
+        {
+            case Symbol.BeginArray:
+                var array = pdfObject == null ? new PdfArray(_document) : (PdfArray)pdfObject;
+                pdfObject = ReadArray(array, includeReferences);
+                break;
+
+            case Symbol.BeginDictionary:
+                var dict = pdfObject == null ? new PdfDictionary(_document) : (PdfDictionary)pdfObject;
+                pdfObject = ReadDictionary(dict, includeReferences);
+                break;
+
+            default:
+                // Should not come here anymore.
+                ParserDiagnostics.HandleUnexpectedToken(_lexer.Token);
+                return pdfObject;
+        }
+
+        pdfObject.SetObjectID(objectID.ObjectNumber, objectID.GenerationNumber);
         return pdfObject;
     }
 
@@ -258,34 +275,40 @@ internal sealed class Parser
     private Symbol ReadStreamOfObject(PdfDictionary dict, bool checkForStream, out long endOfObject)
     {
         Debug.Assert(checkForStream, "Unexpected stream...");
-        var startOfStream = _lexer.Position;
-        var bytes = TheStreamTheDictionaryDescribes(dict, startOfStream);
+        ReadStreamData(dict, _lexer.Position);
 
+        endOfObject = _lexer.Position;
+        var symbol = ScanNextToken();
+        return symbol == Symbol.Eof ? Symbol.EndObj : symbol;
+    }
+
+    /// <summary>
+    ///   Reads the data of a stream beginning at <paramref name="startOfStream"/> and the
+    ///   "endstream" after it, by the length the dictionary gives or else by looking for the end.
+    /// </summary>
+    private void ReadStreamData(PdfDictionary dict, long startOfStream)
+    {
+        var bytes = TheStreamTheDictionaryDescribes(dict, startOfStream);
         if (bytes == null)
         {
             // The dictionary does not say how long its stream is, or says something the
             // file cannot hold.
             if (!TryReadStreamUpToEndOfStream(dict, startOfStream))
                 throw new InvalidOperationException("Cannot retrieve stream length.");
-        }
-        else
-        {
-            dict.Stream = new PdfDictionary.PdfStream(bytes, dict);
-            try
-            {
-                ReadSymbol(Symbol.EndStream);
-            }
-            catch (PdfReaderException)
-            {
-                // The stream length is incorrect, look for the end of the stream instead.
-                if (!TryReadStreamUpToEndOfStream(dict, startOfStream))
-                    throw;
-            }
+            return;
         }
 
-        endOfObject = _lexer.Position;
-        var symbol = ScanNextToken();
-        return symbol == Symbol.Eof ? Symbol.EndObj : symbol;
+        dict.Stream = new PdfDictionary.PdfStream(bytes, dict);
+        try
+        {
+            ReadSymbol(Symbol.EndStream);
+        }
+        catch (PdfReaderException)
+        {
+            // The stream length is incorrect, look for the end of the stream instead.
+            if (!TryReadStreamUpToEndOfStream(dict, startOfStream))
+                throw;
+        }
     }
 
     /// <summary>
@@ -1053,6 +1076,15 @@ internal sealed class Parser
         ReadSymbol(Symbol.StartXRef);
         _lexer.Position = ReadLong();
 
+        return ReadRevisions(accuracy);
+    }
+
+    /// <summary>
+    /// Reads every cross-reference section from the current position back along /Prev, and
+    /// answers the first trailer read.
+    /// </summary>
+    private PdfTrailer ReadRevisions(PdfReadAccuracy accuracy)
+    {
         // Read all trailers. The one to keep is decided here and handed back; the caller is what
         // puts it on the document, so that reading a trailer writes nothing behind its back.
         PdfTrailer firstTrailer = null;
@@ -1067,11 +1099,7 @@ internal sealed class Parser
         {
             if (!sectionsRead.Add(_lexer.Position))
             {
-                if (accuracy == PdfReadAccuracy.Strict)
-                    ParserDiagnostics.ThrowParserException(
-                        "The cross-reference section at position " + _lexer.Position +
-                        " is named by /Prev after it has already been read: the chain of revisions is a cycle.");
-
+                ReportRevisionCycle(accuracy);
                 break;
             }
 
@@ -1083,10 +1111,7 @@ internal sealed class Parser
             // Before /Prev, because the stream belongs to the revision just read rather than to the
             // one before it.
             ReadHybridCrossReferenceStream(trailer, accuracy);
-
-            var size = trailer != null ? trailer.Elements.GetInteger(PdfTrailer.Keys.Size) : 0;
-            if (size <= MaximumSize)
-                LargestSize = Math.Max(LargestSize, size);
+            RecordLargestSize(trailer);
 
             var prev = trailer != null ? trailer.Elements.GetInteger(PdfTrailer.Keys.Prev) : 0;
             if (prev == 0)
@@ -1096,6 +1121,27 @@ internal sealed class Parser
         }
 
         return firstTrailer;
+    }
+
+    /// <summary>
+    /// Reports, under Strict, a /Prev naming a cross-reference section already read.
+    /// </summary>
+    private void ReportRevisionCycle(PdfReadAccuracy accuracy)
+    {
+        if (accuracy == PdfReadAccuracy.Strict)
+            ParserDiagnostics.ThrowParserException(
+                "The cross-reference section at position " + _lexer.Position +
+                " is named by /Prev after it has already been read: the chain of revisions is a cycle.");
+    }
+
+    /// <summary>
+    /// Keeps the largest /Size any trailer read so far gives, ignoring one past what can be believed.
+    /// </summary>
+    private void RecordLargestSize(PdfTrailer trailer)
+    {
+        var size = trailer != null ? trailer.Elements.GetInteger(PdfTrailer.Keys.Size) : 0;
+        if (size <= MaximumSize)
+            LargestSize = Math.Max(LargestSize, size);
     }
 
     /// <summary>

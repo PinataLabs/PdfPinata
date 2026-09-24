@@ -119,99 +119,31 @@ internal class CoreGraphicsPath
             throw new ArgumentOutOfRangeException(nameof(height));
         #pragma warning restore CA1512
 
+        // Which way from the centre the quadrant lies. Multiplying by these is exact, so x + sx * width
+        // is the same number as x - width where the quadrant lies to the left.
+        var (sx, sy) = quadrant switch
+        {
+            1 => (1.0, -1.0),
+            2 => (-1.0, -1.0),
+            3 => (-1.0, 1.0),
+            4 => (1.0, 1.0),
+            _ => throw new ArgumentOutOfRangeException(nameof(quadrant))
+        };
+
         var w = Const.κ * width;
         var h = Const.κ * height;
-        double x1, y1, x2, y2, x3, y3;
-        switch (quadrant)
-        {
-            case 1:
-                if (clockwise)
-                {
-                    x1 = x + w;
-                    y1 = y - height;
-                    x2 = x + width;
-                    y2 = y - h;
-                    x3 = x + width;
-                    y3 = y;
-                }
-                else
-                {
-                    x1 = x + width;
-                    y1 = y - h;
-                    x2 = x + w;
-                    y2 = y - height;
-                    x3 = x;
-                    y3 = y - height;
-                }
-                break;
+        var farX = x + sx * width;
+        var nearX = x + sx * w;
+        var farY = y + sy * height;
+        var nearY = y + sy * h;
 
-            case 2:
-                if (clockwise)
-                {
-                    x1 = x - width;
-                    y1 = y - h;
-                    x2 = x - w;
-                    y2 = y - height;
-                    x3 = x;
-                    y3 = y - height;
-                }
-                else
-                {
-                    x1 = x - w;
-                    y1 = y - height;
-                    x2 = x - width;
-                    y2 = y - h;
-                    x3 = x - width;
-                    y3 = y;
-                }
-                break;
-
-            case 3:
-                if (clockwise)
-                {
-                    x1 = x - w;
-                    y1 = y + height;
-                    x2 = x - width;
-                    y2 = y + h;
-                    x3 = x - width;
-                    y3 = y;
-                }
-                else
-                {
-                    x1 = x - width;
-                    y1 = y + h;
-                    x2 = x - w;
-                    y2 = y + height;
-                    x3 = x;
-                    y3 = y + height;
-                }
-                break;
-
-            case 4:
-                if (clockwise)
-                {
-                    x1 = x + width;
-                    y1 = y + h;
-                    x2 = x + w;
-                    y2 = y + height;
-                    x3 = x;
-                    y3 = y + height;
-                }
-                else
-                {
-                    x1 = x + w;
-                    y1 = y + height;
-                    x2 = x + width;
-                    y2 = y + h;
-                    x3 = x + width;
-                    y3 = y;
-                }
-                break;
-
-            default:
-                throw new ArgumentOutOfRangeException(nameof(quadrant));
-        }
-        BezierTo(x1, y1, x2, y2, x3, y3, false);
+        // The arc runs from one axis to the other, and which one it ends on depends on the quadrant
+        // and on the direction it is drawn in.
+        var endsOnHorizontalAxis = clockwise == (quadrant % 2 == 1);
+        if (endsOnHorizontalAxis)
+            BezierTo(nearX, farY, farX, nearY, farX, y, false);
+        else
+            BezierTo(farX, nearY, nearX, farY, x, farY, false);
     }
 
     /// <summary>

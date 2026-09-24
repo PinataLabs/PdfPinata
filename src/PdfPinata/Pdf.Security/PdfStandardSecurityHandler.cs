@@ -157,6 +157,15 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
             || dict.ObjectNumber == ObjectNumber)
             return;
 
+        EncryptElements(dict);
+        EncryptStream(dict);
+    }
+
+    /// <summary>
+    /// Encrypts every string of a dictionary, and walks into the dictionaries and arrays it holds.
+    /// </summary>
+    private void EncryptElements(PdfDictionary dict)
+    {
         // A PdfString is immutable, so a string this walk decrypts has to be put back where the old
         // one was rather than written into. The replacements are collected here and applied below,
         // after the enumeration has finished. Writing them as they are found would be fine on the
@@ -167,32 +176,38 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
 
         foreach (var item in dict.Elements)
         {
-            PdfString value1;
-            PdfDictionary value2;
-            PdfArray value3;
-            if ((value1 = item.Value as PdfString) != null)
+            switch (item.Value)
             {
-                decrypted ??= [];
-                decrypted.Add(new KeyValuePair<string, PdfString>(item.Key, EncryptString(value1)));
-            }
-            else if ((value2 = item.Value as PdfDictionary) != null)
-            {
-                EncryptDictionary(value2);
-            }
-            else if ((value3 = item.Value as PdfArray) != null)
-            {
-                EncryptArray(value3);
+                case PdfString value1:
+                    decrypted ??= [];
+                    decrypted.Add(new KeyValuePair<string, PdfString>(item.Key, EncryptString(value1)));
+                    break;
+
+                case PdfDictionary value2:
+                    EncryptDictionary(value2);
+                    break;
+
+                case PdfArray value3:
+                    EncryptArray(value3);
+                    break;
             }
         }
 
-        if (decrypted != null)
-        {
-            // Through the indexer, which is the one path that tells the owning object it changed.
-            // The old setter reached past it and mutated the string the dictionary was still
-            // holding, which is what made the replacement invisible to everything watching.
-            foreach (var replacement in decrypted)
-                dict.Elements[replacement.Key] = replacement.Value;
-        }
+        if (decrypted == null)
+            return;
+
+        // Through the indexer, which is the one path that tells the owning object it changed.
+        // The old setter reached past it and mutated the string the dictionary was still
+        // holding, which is what made the replacement invisible to everything watching.
+        foreach (var replacement in decrypted)
+            dict.Elements[replacement.Key] = replacement.Value;
+    }
+
+    /// <summary>
+    /// Encrypts the stream of a dictionary, if it has one with anything in it.
+    /// </summary>
+    private void EncryptStream(PdfDictionary dict)
+    {
         if (dict.Stream == null)
             return;
 

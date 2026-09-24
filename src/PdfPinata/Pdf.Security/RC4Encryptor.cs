@@ -70,41 +70,64 @@ internal class RC4Encryptor : EncryptorBase, IEncryptor
     private void ValidateOwnerPassword(string password)
     {
         var pwdPad = PadPassword(password);
+        var rc4Input = OwnerPasswordKey(pwdPad, keyLength);
+
+        var ov = new byte[ownerValue.Length];
+        Array.Copy(ownerValue, ov, ov.Length);
+        DecryptOwnerValue(ov, rc4Input);
+
+        var userPass = PdfEncoders.RawEncoding.GetString(ov);
+        ValidateUserPassword(userPass);
+        if (PasswordValid)
+            HaveOwnerPermission = true;
+    }
+
+    /// <summary>
+    /// Decrypts a copy of the /O value with the key made from the owner password, which gives back
+    /// the padded user password.
+    /// </summary>
+    private void DecryptOwnerValue(byte[] ov, byte[] rc4Input)
+    {
+        var n = rc4Input.Length;
+        if (rValue < 3)
+        {
+            PrepareRC4Key(rc4Input, 0, n);
+            EncryptRC4(ov);
+            return;
+        }
+
+        var xor = new byte[n];
+        for (var i = 0; i < 20; i++)
+        {
+            for (var j = 0; j < n; j++)
+                xor[j] = (byte)(rc4Input[j] ^ (19 - i));
+            PrepareRC4Key(xor, 0, n);
+            EncryptRC4(ov);
+        }
+    }
+
+    /// <summary>
+    /// The RC4 key made from the padded owner password: its MD5 hash, rehashed 50 times from
+    /// revision 3 on, and cut to the key length.
+    /// </summary>
+    /// <param name="pwdPad">The padded owner password.</param>
+    /// <param name="rehashedLength">
+    /// How many bytes of the hash each rehash reads. Validating a password reads the key length and
+    /// creating the key reads the whole 16-byte hash, as each always has.
+    /// </param>
+    private byte[] OwnerPasswordKey(byte[] pwdPad, int rehashedLength)
+    {
         md5.Initialize();
         var pwdKey = md5.ComputeHash(pwdPad);
         if (rValue >= 3)
         {
             for (var i = 0; i < 50; i++)
-            {
-                pwdKey = md5.ComputeHash(pwdKey, 0, keyLength);
-            }
+                pwdKey = md5.ComputeHash(pwdKey, 0, rehashedLength);
         }
         var n = rValue <= 2 ? 5 : keyLength;
         var rc4Input = new byte[n];
         Array.Copy(pwdKey, rc4Input, n);
-
-        var ov = new byte[ownerValue.Length];
-        Array.Copy(ownerValue, ov, ov.Length);
-        if (rValue < 3)
-        {
-            PrepareRC4Key(rc4Input, 0, n);
-            EncryptRC4(ov);
-        }
-        else
-        {
-            var xor = new byte[n];
-            for (var i = 0; i < 20; i++)
-            {
-                for (var j = 0; j < n; j++)
-                    xor[j] = (byte)(rc4Input[j] ^ (19 - i));
-                PrepareRC4Key(xor, 0, n);
-                EncryptRC4(ov);
-            }
-        }
-        var userPass = PdfEncoders.RawEncoding.GetString(ov);
-        ValidateUserPassword(userPass);
-        if (PasswordValid)
-            HaveOwnerPermission = true;
+        return rc4Input;
     }
 
     /// <summary>
@@ -113,16 +136,8 @@ internal class RC4Encryptor : EncryptorBase, IEncryptor
     public void CreateOwnerKey(string password)
     {
         var pwdPad = PadPassword(password);
-        md5.Initialize();
-        var pwdKey = md5.ComputeHash(pwdPad);
-        if (rValue >= 3)
-        {
-            for (var i = 0; i < 50; i++)
-                pwdKey = md5.ComputeHash(pwdKey);
-        }
-        var n = rValue <= 2 ? 5 : keyLength;
-        var rc4Input = new byte[n];
-        Array.Copy(pwdKey, rc4Input, n);
+        var rc4Input = OwnerPasswordKey(pwdPad, 16);
+        var n = rc4Input.Length;
         if (rValue >= 3)
         {
             for (var i = 0; i < 20; i++)

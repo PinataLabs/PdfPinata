@@ -163,15 +163,19 @@ public class Ascii85Decode : Filter
     /// </summary>
     private static int CompactSignificantCharacters(byte[] data, out int zCount)
     {
-        int idx;
-        var length = data.Length;
         zCount = 0;
         var idxOut = 0;
         // How far into a five-character group the characters kept so far reach.
         var groupLength = 0;
-        for (idx = 0; idx < length; idx++)
+        for (var idx = 0; idx < data.Length; idx++)
         {
             var ch = (char)data[idx];
+            if (ch == '~')
+            {
+                RequireEndMarkerAt(data, idx);
+                return idxOut;
+            }
+
             if (ch is >= '!' and <= 'u')
             {
                 data[idxOut++] = (byte)ch;
@@ -179,30 +183,40 @@ public class Ascii85Decode : Filter
             }
             else if (ch == 'z')
             {
-                // A z stands for a whole group of zeros, so it can only come where a group would
-                // begin. Inside one it would be read as a digit worth 89, which no digit is, and
-                // every group after it would be read out of step.
-                if (groupLength != 0)
-                    throw new ArgumentException("Illegal character 'z' inside a group.", nameof(data));
+                RequireGroupBoundary(groupLength);
                 data[idxOut++] = (byte)ch;
                 zCount++;
             }
-            else if (ch == '~')
-            {
-                // The end marker is two characters, and data that stops between them is as
-                // malformed as data that spells them wrongly. Reading the second one without
-                // checking there is one turns a truncated stream into an index out of range.
-                if (idx + 1 >= length || (char)data[idx + 1] != '>')
-                    throw new ArgumentException("Illegal character.", nameof(data));
-                break;
-            }
             // ignore unknown character
         }
-        // Loop not ended with break?
-        if (idx == length)
-            throw new ArgumentException("Illegal character.", nameof(data));
 
-        return idxOut;
+        // The loop ended without reaching the end marker.
+        throw new ArgumentException("Illegal character.", nameof(data));
+    }
+
+    /// <summary>
+    /// Refuses a z that does not come where a group would begin.
+    /// </summary>
+    private static void RequireGroupBoundary(int groupLength)
+    {
+        // A z stands for a whole group of zeros, so it can only come where a group would
+        // begin. Inside one it would be read as a digit worth 89, which no digit is, and
+        // every group after it would be read out of step.
+        if (groupLength != 0)
+            throw new ArgumentException("Illegal character 'z' inside a group.", "data");
+    }
+
+    /// <summary>
+    /// Refuses a '~' at <paramref name="idx"/> that is not followed by the '&gt;' completing the
+    /// end marker.
+    /// </summary>
+    private static void RequireEndMarkerAt(byte[] data, int idx)
+    {
+        // The end marker is two characters, and data that stops between them is as
+        // malformed as data that spells them wrongly. Reading the second one without
+        // checking there is one turns a truncated stream into an index out of range.
+        if (idx + 1 >= data.Length || (char)data[idx + 1] != '>')
+            throw new ArgumentException("Illegal character.", nameof(data));
     }
 
     /// <summary>

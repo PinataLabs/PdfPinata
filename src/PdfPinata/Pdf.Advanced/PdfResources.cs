@@ -322,29 +322,33 @@ public sealed class PdfResources : PdfDictionary
         if (_importedResourceNames == null)
         {
             _importedResourceNames = new Dictionary<string, object>();
-
-            if (Elements[Keys.Font] != null)
-                Fonts.CollectResourceNames(_importedResourceNames);
-
-            if (Elements[Keys.XObject] != null)
-                XObjects.CollectResourceNames(_importedResourceNames);
-
-            if (Elements[Keys.ExtGState] != null)
-                ExtGStates.CollectResourceNames(_importedResourceNames);
-
-            if (Elements[Keys.ColorSpace] != null)
-                ColorSpaces.CollectResourceNames(_importedResourceNames);
-
-            if (Elements[Keys.Pattern] != null)
-                Patterns.CollectResourceNames(_importedResourceNames);
-
-            if (Elements[Keys.Shading] != null)
-                Shadings.CollectResourceNames(_importedResourceNames);
-
-            if (Elements[Keys.Properties] != null)
-                Properties.CollectResourceNames(_importedResourceNames);
+            CollectResourceNames(_importedResourceNames);
         }
         return _importedResourceNames.ContainsKey(name);
+    }
+
+    private void CollectResourceNames(Dictionary<string, object> names)
+    {
+        if (Elements[Keys.Font] != null)
+            Fonts.CollectResourceNames(names);
+
+        if (Elements[Keys.XObject] != null)
+            XObjects.CollectResourceNames(names);
+
+        if (Elements[Keys.ExtGState] != null)
+            ExtGStates.CollectResourceNames(names);
+
+        if (Elements[Keys.ColorSpace] != null)
+            ColorSpaces.CollectResourceNames(names);
+
+        if (Elements[Keys.Pattern] != null)
+            Patterns.CollectResourceNames(names);
+
+        if (Elements[Keys.Shading] != null)
+            Shadings.CollectResourceNames(names);
+
+        if (Elements[Keys.Properties] != null)
+            Properties.CollectResourceNames(names);
     }
 
     /// <summary>

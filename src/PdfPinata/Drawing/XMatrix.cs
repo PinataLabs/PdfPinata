@@ -1133,20 +1133,19 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
         if (_m12 != 0 || _m21 != 0)
         {
             _type = XMatrixTypes.Unknown;
+            return;
         }
-        else
-        {
-            #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
-            if (_m11 != 1 || _m22 != 1)
-                _type = XMatrixTypes.Scaling;
-            #pragma warning restore S1244
 
-            if (_offsetX != 0 || _offsetY != 0)
-                _type |= XMatrixTypes.Translation;
+        #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
+        if (_m11 != 1 || _m22 != 1)
+            _type = XMatrixTypes.Scaling;
+        #pragma warning restore S1244
 
-            if ((_type & (XMatrixTypes.Scaling | XMatrixTypes.Translation)) == XMatrixTypes.Identity)
-                _type = XMatrixTypes.Identity;
-        }
+        if (_offsetX != 0 || _offsetY != 0)
+            _type |= XMatrixTypes.Translation;
+
+        if ((_type & (XMatrixTypes.Scaling | XMatrixTypes.Translation)) == XMatrixTypes.Identity)
+            _type = XMatrixTypes.Identity;
         // ReSharper restore CompareOfFloatsByEqualityOperator
     }
 

@@ -277,37 +277,20 @@ public partial class Axis : ChartObject
     serializer.WriteLine("\\" + chartObject.CheckAxis(this));
     var pos = serializer.BeginAttributes();
 
-    if (minimumScale != null)
-      serializer.WriteSimpleAttribute("MinimumScale", MinimumScale);
-    if (maximumScale != null)
-      serializer.WriteSimpleAttribute("MaximumScale", MaximumScale);
-    if (majorTick != null)
-      serializer.WriteSimpleAttribute("MajorTick", MajorTick);
-    if (minorTick != null)
-      serializer.WriteSimpleAttribute("MinorTick", MinorTick);
-    if (hasMajorGridlines != null)
-      serializer.WriteSimpleAttribute("HasMajorGridLines", HasMajorGridlines);
-    if (hasMinorGridlines != null)
-      serializer.WriteSimpleAttribute("HasMinorGridLines", HasMinorGridlines);
-    if (majorTickMark != null)
-      serializer.WriteSimpleAttribute("MajorTickMark", MajorTickMark);
-    if (minorTickMark != null)
-      serializer.WriteSimpleAttribute("MinorTickMark", MinorTickMark);
+    serializer.WriteSimpleAttributeIfSet("MinimumScale", minimumScale);
+    serializer.WriteSimpleAttributeIfSet("MaximumScale", maximumScale);
+    serializer.WriteSimpleAttributeIfSet("MajorTick", majorTick);
+    serializer.WriteSimpleAttributeIfSet("MinorTick", minorTick);
+    serializer.WriteSimpleAttributeIfSet("HasMajorGridLines", hasMajorGridlines);
+    serializer.WriteSimpleAttributeIfSet("HasMinorGridLines", hasMinorGridlines);
+    serializer.WriteSimpleAttributeIfSet("MajorTickMark", majorTickMark);
+    serializer.WriteSimpleAttributeIfSet("MinorTickMark", minorTickMark);
 
-    if (!IsNull("Title"))
-      title.Serialize(serializer);
-
-    if (!IsNull("LineFormat"))
-      lineFormat.Serialize(serializer);
-
-    if (!IsNull("MajorGridlines"))
-      majorGridlines.Serialize(serializer);
-
-    if (!IsNull("MinorGridlines"))
-      minorGridlines.Serialize(serializer);
-
-    if (!IsNull("TickLabels"))
-      tickLabels.Serialize(serializer);
+    serializer.SerializeUnlessNull(this, "Title", title);
+    serializer.SerializeUnlessNull(this, "LineFormat", lineFormat);
+    serializer.SerializeUnlessNull(this, "MajorGridlines", majorGridlines);
+    serializer.SerializeUnlessNull(this, "MinorGridlines", minorGridlines);
+    serializer.SerializeUnlessNull(this, "TickLabels", tickLabels);
 
     serializer.EndAttributes(pos);
   }

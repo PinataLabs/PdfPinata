@@ -32,6 +32,7 @@
 
 #endregion
 
+using System;
 using PinataLayout.DocumentObjectModel.Internals;
 using PinataLayout.DocumentObjectModel.Tables;
 using PinataLayout.DocumentObjectModel.Shapes;
@@ -95,33 +96,8 @@ public abstract class VisitorBase : DocumentObjectVisitor
     protected void FlattenParagraphFormat(ParagraphFormat format, ParagraphFormat refFormat)
     {
         FlattenSimpleValues(format, refFormat);
-
-        if (format.font == null)
-        {
-            if (refFormat.font != null)
-            {
-                //The font is cloned here to avoid parent problems
-                format.font = refFormat.font.Clone();
-                format.font.parent = format;
-            }
-        }
-        else if (refFormat.font != null)
-        {
-            FlattenFont(format.font, refFormat.font);
-        }
-
-        if (format.shading == null)
-        {
-            if (refFormat.shading != null)
-            {
-                format.shading = refFormat.shading.Clone();
-                format.shading.parent = format;
-            }
-        }
-        else if (refFormat.shading != null)
-        {
-            FlattenShading(format.shading, refFormat.shading);
-        }
+        FlattenParagraphFont(format, refFormat);
+        FlattenParagraphShading(format, refFormat);
 
         // Copied rather than shared, as the font and the shading above are: a format is flattened
         // more than once, and the second pass would otherwise write what it inherits back into the
@@ -136,6 +112,47 @@ public abstract class VisitorBase : DocumentObjectVisitor
 
         if (refFormat.listInfo != null)
             FlattenListInfo(format.ListInfo, refFormat.listInfo);
+    }
+
+    /// <summary>
+    /// Gives a paragraph format a copy of the font it inherits when it has none of its own, and
+    /// otherwise fills in its font's unset values.
+    /// </summary>
+    private void FlattenParagraphFont(ParagraphFormat format, ParagraphFormat refFormat)
+    {
+        if (refFormat.font == null)
+            return;
+
+        if (format.font == null)
+        {
+            //The font is cloned here to avoid parent problems
+            format.font = refFormat.font.Clone();
+            format.font.parent = format;
+        }
+        else
+        {
+            FlattenFont(format.font, refFormat.font);
+        }
+    }
+
+    /// <summary>
+    /// Gives a paragraph format a copy of the shading it inherits when it has none of its own, and
+    /// otherwise fills in its shading's unset values.
+    /// </summary>
+    private void FlattenParagraphShading(ParagraphFormat format, ParagraphFormat refFormat)
+    {
+        if (refFormat.shading == null)
+            return;
+
+        if (format.shading == null)
+        {
+            format.shading = refFormat.shading.Clone();
+            format.shading.parent = format;
+        }
+        else
+        {
+            FlattenShading(format.shading, refFormat.shading);
+        }
     }
 
 #pragma warning disable CA1822 // Protected on an unsealed public visitor: making it static would change the public API.
@@ -246,13 +263,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
     protected void FlattenTabStops(TabStops tabStops, TabStops refTabStops)
     {
         if (!tabStops.fClearAll)
-        {
-            foreach (TabStop refTabStop in refTabStops)
-            {
-                if (tabStops.GetTabStopAt(refTabStop.Position) == null && refTabStop.AddTab)
-                    tabStops.AddTabStop(refTabStop.Position, refTabStop.Alignment, refTabStop.Leader);
-            }
-        }
+            InheritTabStops(tabStops, refTabStops);
 
         for (var i = 0; i < tabStops.Count; i++)
         {
@@ -264,6 +275,18 @@ public abstract class VisitorBase : DocumentObjectVisitor
         // The TabStopCollection is complete as it is now.
         // Therefore, it must not inherit anything, i.e.:
         tabStops.fClearAll = true;
+    }
+
+    /// <summary>
+    /// Adds each inherited tab stop that is to be added and is at a position not yet taken.
+    /// </summary>
+    private static void InheritTabStops(TabStops tabStops, TabStops refTabStops)
+    {
+        foreach (TabStop refTabStop in refTabStops)
+        {
+            if (tabStops.GetTabStopAt(refTabStop.Position) == null && refTabStop.AddTab)
+                tabStops.AddTabStop(refTabStop.Position, refTabStop.Alignment, refTabStop.Leader);
+        }
     }
 
     /// <summary>Fills in every page setup value left unset from <paramref name="refPageSetup"/>.</summary>
@@ -287,18 +310,11 @@ public abstract class VisitorBase : DocumentObjectVisitor
     /// </summary>
     private static void FlattenPageSize(PageSetup pageSetup, PageSetup refPageSetup)
     {
-        var hasFormat = pageSetup.pageFormat != null;
         if (pageSetup.pageWidth.IsNull && pageSetup.pageHeight.IsNull)
         {
-            if (hasFormat)
-            {
-                PageSetup.GetPageSize(pageSetup.PageFormat, out pageSetup.pageWidth, out pageSetup.pageHeight);
-                return;
-            }
-
-            pageSetup.pageWidth = refPageSetup.pageWidth;
-            pageSetup.pageHeight = refPageSetup.pageHeight;
-            pageSetup.pageFormat = refPageSetup.pageFormat;
+            (pageSetup.pageWidth, pageSetup.pageHeight) = FormatOrInheritedPageSize(pageSetup, refPageSetup);
+            // A page naming no format of its own takes the inherited one along with its lengths.
+            pageSetup.pageFormat ??= refPageSetup.pageFormat;
         }
         // Otherwise fill in the one that is missing. The two arms used to fill in the other one: a
         // section given a height and no width had its height overwritten and its width left unset,
@@ -306,18 +322,25 @@ public abstract class VisitorBase : DocumentObjectVisitor
         // that was thrown away.
         else if (pageSetup.pageWidth.IsNull)
         {
-            if (hasFormat)
-                PageSetup.GetPageSize(pageSetup.PageFormat, out pageSetup.pageWidth, out _);
-            else
-                pageSetup.pageWidth = refPageSetup.pageWidth;
+            pageSetup.pageWidth = FormatOrInheritedPageSize(pageSetup, refPageSetup).Width;
         }
         else if (pageSetup.pageHeight.IsNull)
         {
-            if (hasFormat)
-                PageSetup.GetPageSize(pageSetup.PageFormat, out _, out pageSetup.pageHeight);
-            else
-                pageSetup.pageHeight = refPageSetup.pageHeight;
+            pageSetup.pageHeight = FormatOrInheritedPageSize(pageSetup, refPageSetup).Height;
         }
+    }
+
+    /// <summary>
+    /// The page size of the page's own format when it names one, and otherwise the inherited
+    /// page's lengths.
+    /// </summary>
+    private static (Unit Width, Unit Height) FormatOrInheritedPageSize(PageSetup pageSetup, PageSetup refPageSetup)
+    {
+        if (pageSetup.pageFormat == null)
+            return (refPageSetup.pageWidth, refPageSetup.pageHeight);
+
+        PageSetup.GetPageSize(pageSetup.PageFormat, out var width, out var height);
+        return (width, height);
     }
 
     /// <summary>
@@ -516,54 +539,11 @@ public abstract class VisitorBase : DocumentObjectVisitor
     {
         var document = paragraph.Document;
 
-        ParagraphFormat format;
-
         var currentElementHolder = GetDocumentElementHolder(paragraph);
         var style = document.styles[paragraph.style ?? ""];
-        if (style != null)
-        {
-            format = ParagraphFormatFromStyle(style);
-        }
-
-        else if (currentElementHolder is Cell cell)
-        {
-            paragraph.style = cell.style;
-            format = cell.format;
-        }
-        else if (currentElementHolder is HeaderFooter currHeaderFooter)
-        {
-            if (currHeaderFooter.IsHeader)
-            {
-                paragraph.Style = "Header";
-                format = document.styles["Header"].paragraphFormat;
-            }
-            else
-            {
-                paragraph.Style = "Footer";
-                format = document.styles["Footer"].paragraphFormat;
-            }
-
-            if (currHeaderFooter.format != null)
-                FlattenParagraphFormat(paragraph.Format, currHeaderFooter.format);
-        }
-        else if (currentElementHolder is Footnote)
-        {
-            paragraph.Style = "Footnote";
-            format = document.styles["Footnote"].paragraphFormat;
-        }
-        else if (currentElementHolder is TextArea textArea)
-        {
-            paragraph.style = textArea.style;
-            format = textArea.format;
-        }
-        else
-        {
-            if ((paragraph.style ?? "") != "")
-                paragraph.Style = "InvalidStyleName";
-            else
-                paragraph.Style = "Normal";
-            format = document.styles[paragraph.Style].paragraphFormat;
-        }
+        var format = style != null
+            ? ParagraphFormatFromStyle(style)
+            : ParagraphFormatFromHolder(paragraph, currentElementHolder, document);
 
         if (paragraph.format == null)
         {
@@ -574,6 +554,51 @@ public abstract class VisitorBase : DocumentObjectVisitor
         {
             FlattenParagraphFormat(paragraph.format, format);
         }
+    }
+
+    /// <summary>
+    /// The format a paragraph naming no existing style inherits from what holds it, giving the
+    /// paragraph the style that goes with that format.
+    /// </summary>
+    private ParagraphFormat ParagraphFormatFromHolder(Paragraph paragraph, DocumentObject currentElementHolder, Document document)
+    {
+        switch (currentElementHolder)
+        {
+            case Cell cell:
+                paragraph.style = cell.style;
+                return cell.format;
+
+            case HeaderFooter currHeaderFooter:
+                return HeaderFooterParagraphFormat(paragraph, currHeaderFooter, document);
+
+            case Footnote:
+                paragraph.Style = "Footnote";
+                return document.styles["Footnote"].paragraphFormat;
+
+            case TextArea textArea:
+                paragraph.style = textArea.style;
+                return textArea.format;
+
+            default:
+                paragraph.Style = (paragraph.style ?? "") != "" ? "InvalidStyleName" : "Normal";
+                return document.styles[paragraph.Style].paragraphFormat;
+        }
+    }
+
+    /// <summary>
+    /// Gives a paragraph in a header or footer the Header or Footer style, fills in its own format
+    /// from the header's or footer's, and returns the style's format.
+    /// </summary>
+    private ParagraphFormat HeaderFooterParagraphFormat(Paragraph paragraph, HeaderFooter headerFooter, Document document)
+    {
+        var styleName = headerFooter.IsHeader ? "Header" : "Footer";
+        paragraph.Style = styleName;
+        var format = document.styles[styleName].paragraphFormat;
+
+        if (headerFooter.format != null)
+            FlattenParagraphFormat(paragraph.Format, headerFooter.format);
+
+        return format;
     }
 
     #endregion
@@ -623,26 +648,29 @@ public abstract class VisitorBase : DocumentObjectVisitor
         if (prevSec != null)
         {
             prevPageSetup = prevSec.pageSetup;
-
-            if (!section.Headers.HasHeaderFooter(HeaderFooterIndex.Primary))
-                section.Headers.primary = prevSec.Headers.primary;
-            if (!section.Headers.HasHeaderFooter(HeaderFooterIndex.EvenPage))
-                section.Headers.evenPage = prevSec.Headers.evenPage;
-            if (!section.Headers.HasHeaderFooter(HeaderFooterIndex.FirstPage))
-                section.Headers.firstPage = prevSec.Headers.firstPage;
-
-            if (!section.Footers.HasHeaderFooter(HeaderFooterIndex.Primary))
-                section.Footers.primary = prevSec.Footers.primary;
-            if (!section.Footers.HasHeaderFooter(HeaderFooterIndex.EvenPage))
-                section.Footers.evenPage = prevSec.Footers.evenPage;
-            if (!section.Footers.HasHeaderFooter(HeaderFooterIndex.FirstPage))
-                section.Footers.firstPage = prevSec.Footers.firstPage;
+            // The previous section's collection is asked for only when something is taken from it:
+            // asking creates one, empty, on a section that had none.
+            InheritHeadersFooters(section.Headers, () => prevSec.Headers);
+            InheritHeadersFooters(section.Footers, () => prevSec.Footers);
         }
 
         if (section.pageSetup == null)
             section.pageSetup = prevPageSetup;
         else
             FlattenPageSetup(section.pageSetup, prevPageSetup);
+    }
+
+    /// <summary>
+    /// Takes on each of the previous section's headers, or footers, that this section does not set.
+    /// </summary>
+    private static void InheritHeadersFooters(HeadersFooters headersFooters, Func<HeadersFooters> previous)
+    {
+        if (!headersFooters.HasHeaderFooter(HeaderFooterIndex.Primary))
+            headersFooters.primary = previous().primary;
+        if (!headersFooters.HasHeaderFooter(HeaderFooterIndex.EvenPage))
+            headersFooters.evenPage = previous().evenPage;
+        if (!headersFooters.HasHeaderFooter(HeaderFooterIndex.FirstPage))
+            headersFooters.firstPage = previous().firstPage;
     }
 
     internal override void VisitSections(Sections sections)
@@ -799,19 +827,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
         }
         else
         {
-            if (row.format != null)
-                FlattenParagraphFormat(cell.Format, row.format);
-
-            if (rowHasStyle)
-            {
-                cell.style = row.style;
-                FlattenParagraphFormat(cell.Format, rowFormat);
-            }
-            else
-            {
-                cell.style = column.style;
-                FlattenParagraphFormat(cell.Format, column.format);
-            }
+            FlattenUnstyledCellFormat(row, rowHasStyle, rowFormat, column, cell);
         }
 
         cell.format.shading ??= table.format.shading;
@@ -823,6 +839,27 @@ public abstract class VisitorBase : DocumentObjectVisitor
         cell.shading = MergedShading(cell.shading, column.shading, cell);
         cell.borders = MergedBorders(cell.borders, row.borders, cell);
         cell.borders = MergedBorders(cell.borders, column.borders, cell);
+    }
+
+    /// <summary>
+    /// Fills in the format of a cell naming no existing style: from the row's own format, then from
+    /// the row's style when it has one and otherwise from the column, whose style the cell takes.
+    /// </summary>
+    private void FlattenUnstyledCellFormat(Row row, bool rowHasStyle, ParagraphFormat rowFormat, Column column, Cell cell)
+    {
+        if (row.format != null)
+            FlattenParagraphFormat(cell.Format, row.format);
+
+        if (rowHasStyle)
+        {
+            cell.style = row.style;
+            FlattenParagraphFormat(cell.Format, rowFormat);
+        }
+        else
+        {
+            cell.style = column.style;
+            FlattenParagraphFormat(cell.Format, column.format);
+        }
     }
 
     /// <summary>

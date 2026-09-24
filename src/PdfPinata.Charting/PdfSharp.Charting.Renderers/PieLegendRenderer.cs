@@ -28,7 +28,6 @@
 #endregion
 
 using System.Globalization;
-using PdfPinata.Drawing;
 
 namespace PdfPinata.Charting.Renderers;
 
@@ -55,13 +54,7 @@ internal class PieLegendRenderer : LegendRenderer
     if (cri.Chart.legend == null)
       return null;
 
-    var lri = new LegendRendererInfo { Legend = cri.Chart.legend };
-
-    lri.Font = Converter.ToXFont(lri.Legend.font, cri.DefaultFont);
-    lri.FontColor = Converter.ToXBrush(lri.Legend.font, cri.DefaultFontColor);
-
-    if (lri.Legend.lineFormat != null)
-      lri.BorderPen = Converter.ToXPen(lri.Legend.lineFormat, XColors.Black, DefaultLineWidth, XDashStyle.Solid);
+    var lri = NewLegendRendererInfo(cri);
 
     XSeries xseries = null;
     if (cri.Chart.xValues != null)
@@ -76,22 +69,25 @@ internal class PieLegendRenderer : LegendRenderer
       {
         SeriesRendererInfo = sri,
         LegendRendererInfo = lri,
-        EntryText = string.Empty
+        EntryText = EntryText(xseries, index)
       };
-      if (xseries != null)
-      {
-        if (xseries.Count > index)
-          leri.EntryText = xseries[index].Value;
-      }
-      else
-      {
-        leri.EntryText = (index + 1).ToString(CultureInfo.InvariantCulture); // create default/dummy entry
-      }
       leri.MarkerPen = pri.LineFormat;
       leri.MarkerBrush = pri.FillFormat;
 
       lri.Entries[index++] = leri;
     }
     return lri;
+  }
+
+  /// <summary>
+  /// The text of the entry for the point at the index given: its category, or its number when
+  /// the chart has no categories.
+  /// </summary>
+  private static string EntryText(XSeries xseries, int index)
+  {
+    if (xseries == null)
+      return (index + 1).ToString(CultureInfo.InvariantCulture); // create default/dummy entry
+
+    return xseries.Count > index ? xseries[index].Value : string.Empty;
   }
 }

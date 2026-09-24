@@ -31,6 +31,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -186,49 +187,11 @@ internal class DdlParser
         try
         {
             var styleName = scanner.Token;
-            string baseStyleName = null;
-
-            if (Symbol != Symbol.Identifier && Symbol != Symbol.StringLiteral)
-                ThrowParserException(DomMsgID.StyleNameExpected, styleName);
-
+            AssertStyleName(styleName);
             ReadCode();
 
-            if (Symbol == Symbol.Colon)
-            {
-                ReadCode();
-                if (Symbol != Symbol.Identifier && Symbol != Symbol.StringLiteral)
-                    ThrowParserException(DomMsgID.StyleNameExpected, styleName);
-
-                // If baseStyle is not valid, choose InvalidStyleName by default.
-                baseStyleName = scanner.Token;
-                if (styles.GetIndex(baseStyleName) == -1)
-                {
-                    ReportParserInfo(DdlErrorLevel.Warning, DomMsgID.UseOfUndefinedBaseStyle, baseStyleName);
-                    baseStyleName = "InvalidStyleName";
-                }
-
-                ReadCode();
-            }
-
-            // Get or create style.
-            var style = styles[styleName];
-            if (style != null)
-            {
-                // Reset base style.
-                if (baseStyleName != null)
-                    style.BaseStyle = baseStyleName;
-            }
-            else
-            {
-                // Style does not exist and no base style is given, choose InvalidStyleName by default.
-                if (baseStyleName is null or "")
-                {
-                    baseStyleName = "InvalidStyleName";
-                    ReportParserInfo(DdlErrorLevel.Warning, DomMsgID.UseOfUndefinedStyle, styleName);
-                }
-
-                style = styles.AddStyle(styleName, baseStyleName);
-            }
+            var baseStyleName = ParseBaseStyleName(styles, styleName);
+            var style = GetOrAddStyle(styles, styleName, baseStyleName);
 
             // Parse definition (if any).
 
@@ -242,6 +205,62 @@ internal class DdlParser
             ReportParserException(ex);
             AdjustToNextBlock();
         }
+    }
+
+    /// <summary>
+    /// Throws unless the current symbol can name a style: an identifier or a string literal.
+    /// </summary>
+    private void AssertStyleName(string styleName)
+    {
+        if (Symbol != Symbol.Identifier && Symbol != Symbol.StringLiteral)
+            ThrowParserException(DomMsgID.StyleNameExpected, styleName);
+    }
+
+    /// <summary>
+    /// Parses the optional «: BaseStyleName» of a style definition. Answers null when there is none.
+    /// </summary>
+    private string ParseBaseStyleName(Styles styles, string styleName)
+    {
+        if (Symbol != Symbol.Colon)
+            return null;
+
+        ReadCode();
+        AssertStyleName(styleName);
+
+        // If baseStyle is not valid, choose InvalidStyleName by default.
+        var baseStyleName = scanner.Token;
+        if (styles.GetIndex(baseStyleName) == -1)
+        {
+            ReportParserInfo(DdlErrorLevel.Warning, DomMsgID.UseOfUndefinedBaseStyle, baseStyleName);
+            baseStyleName = "InvalidStyleName";
+        }
+
+        ReadCode();
+        return baseStyleName;
+    }
+
+    /// <summary>
+    /// Gets or creates the style a style definition names.
+    /// </summary>
+    private Style GetOrAddStyle(Styles styles, string styleName, string baseStyleName)
+    {
+        var style = styles[styleName];
+        if (style != null)
+        {
+            // Reset base style.
+            if (baseStyleName != null)
+                style.BaseStyle = baseStyleName;
+            return style;
+        }
+
+        // Style does not exist and no base style is given, choose InvalidStyleName by default.
+        if (baseStyleName is null or "")
+        {
+            baseStyleName = "InvalidStyleName";
+            ReportParserInfo(DdlErrorLevel.Warning, DomMsgID.UseOfUndefinedStyle, styleName);
+        }
+
+        return styles.AddStyle(styleName, baseStyleName);
     }
 
     /// <summary>
@@ -831,39 +850,12 @@ internal class DdlParser
         AssertSymbol(Symbol.ParenLeft);
 
         var ch = (char)0;
-        SymbolName symtype = 0;
-        var count = 1;
 
         ReadCode();  // read name
-        if (TokenType == TokenType.Identifier)
-        {
-            try
-            {
-                if (Enum.IsDefined(typeof(SymbolName), Token))
-                {
-                    AssertCondition(IsSymbolType(Token), DomMsgID.InvalidSymbolType, Token);
-                    symtype = Enum.Parse<SymbolName>(Token, true);
-                }
-            }
-            catch (Exception ex) when (ex is not DdlParserException && !Unrecoverable.Is(ex))
-            {
-                // Not the parser's own error: wrapping "Symbol not valid" in this would bury it.
-                ThrowParserException(ex, DomMsgID.InvalidEnum, Token, GetSymbolText(Symbol.Symbol));
-            }
-        }
-        else
-        {
-            ThrowParserException(DomMsgID.UnexpectedSymbol, Token);
-        }
+        var symtype = ParseSymbolName();
 
         ReadCode();  // read integer or identifier
-        if (Symbol == Symbol.Comma)
-        {
-            ReadCode();  // read integer
-            if (TokenType == TokenType.IntegerLiteral)
-                count = scanner.GetTokenValueAsInt();
-            ReadCode();
-        }
+        var count = ParseSymbolCount();
 
         AssertSymbol(Symbol.ParenRight);
 
@@ -871,6 +863,49 @@ internal class DdlParser
             elements.AddCharacter(symtype, count);
         else
             elements.AddCharacter(ch, count);
+    }
+
+    /// <summary>
+    /// Parses the name inside «\symbol(...)». Answers 0 for an identifier that names no symbol.
+    /// </summary>
+    private SymbolName ParseSymbolName()
+    {
+        if (TokenType != TokenType.Identifier)
+        {
+            ThrowParserException(DomMsgID.UnexpectedSymbol, Token);
+            return 0;
+        }
+
+        try
+        {
+            if (!Enum.IsDefined(typeof(SymbolName), Token))
+                return 0;
+
+            AssertCondition(IsSymbolType(Token), DomMsgID.InvalidSymbolType, Token);
+            return Enum.Parse<SymbolName>(Token, true);
+        }
+        catch (Exception ex) when (ex is not DdlParserException && !Unrecoverable.Is(ex))
+        {
+            // Not the parser's own error: wrapping "Symbol not valid" in this would bury it.
+            ThrowParserException(ex, DomMsgID.InvalidEnum, Token, GetSymbolText(Symbol.Symbol));
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// Parses the optional «, count» inside «\symbol(...)». Answers 1 when there is none.
+    /// </summary>
+    private int ParseSymbolCount()
+    {
+        if (Symbol != Symbol.Comma)
+            return 1;
+
+        var count = 1;
+        ReadCode();  // read integer
+        if (TokenType == TokenType.IntegerLiteral)
+            count = scanner.GetTokenValueAsInt();
+        ReadCode();
+        return count;
     }
 
     /// <summary>
@@ -1589,42 +1624,8 @@ internal class DdlParser
             else
             {
                 ReadCode(); // read beyond '{'
-                var fContinue = true;
-                while (fContinue)
-                {
-                    switch (Symbol)
-                    {
-                        case Symbol.BraceRight:
-                            fContinue = false;
-                            break;
-
-                        case Symbol.Legend:
-                            ParseLegend(area.AddLegend());
-                            break;
-
-                        case Symbol.Paragraph:
-                            ParseParagraph(area.Elements);
-                            break;
-
-                        case Symbol.Table:
-                            ParseTable(null, area.AddTable());
-                            break;
-
-                        case Symbol.TextFrame:
-                            ParseTextFrame(area.Elements);
-                            break;
-
-                        case Symbol.Image:
-                            var image = new Image();
-                            ParseImage(image, false);
-                            area.Elements.Add(image);
-                            break;
-
-                        default:
-                            ThrowParserException(DomMsgID.UnexpectedSymbol, Token);
-                            break;
-                    }
-                }
+                while (Symbol != Symbol.BraceRight)
+                    ParseAreaElement(area);
             }
             AssertSymbol(Symbol.BraceRight);
             ReadCode(); // read beyond '}'
@@ -1633,6 +1634,41 @@ internal class DdlParser
         {
             ReportParserException(pe);
             AdjustToNextBlock();
+        }
+    }
+
+    /// <summary>
+    /// Parses one element inside a chart's text area block.
+    /// </summary>
+    private void ParseAreaElement(TextArea area)
+    {
+        switch (Symbol)
+        {
+            case Symbol.Legend:
+                ParseLegend(area.AddLegend());
+                break;
+
+            case Symbol.Paragraph:
+                ParseParagraph(area.Elements);
+                break;
+
+            case Symbol.Table:
+                ParseTable(null, area.AddTable());
+                break;
+
+            case Symbol.TextFrame:
+                ParseTextFrame(area.Elements);
+                break;
+
+            case Symbol.Image:
+                var image = new Image();
+                ParseImage(image, false);
+                area.Elements.Add(image);
+                break;
+
+            default:
+                ThrowParserException(DomMsgID.UnexpectedSymbol, Token);
+                break;
         }
     }
 
@@ -2080,54 +2116,49 @@ internal class DdlParser
         if (Symbol == Symbol.Assign)
             ReadCode();
 
-        var valType = vd.ValueType;
         try
         {
-            if (valType == typeof(string))
-            {
-                ParseStringAssignment(dom, vd);
-            }
-            else if (valType == typeof(int))
-            {
-                ParseIntegerAssignment(dom, vd);
-            }
-            else if (valType == typeof(Unit))
-            {
-                ParseUnitAssignment(dom, vd);
-            }
-            else if (valType == typeof(double) || valType == typeof(float))
-            {
-                ParseRealAssignment(dom, vd);
-            }
-            else if (valType == typeof(bool))
-            {
-                ParseBoolAssignment(dom, vd);
-            }
-            else if (typeof(Enum).GetTypeInfo().IsAssignableFrom(valType.GetTypeInfo()))
-            {
-                ParseEnumAssignment(dom, vd);
-            }
-            else if (valType == typeof(Color))
-            {
-                ParseColorAssignment(dom, vd);
-            }
-            else if (typeof(ValueType).IsAssignableFrom(valType))
-            {
-                ParseValueTypeAssignment(dom, vd);
-            }
-            else if (typeof(DocumentObject).IsAssignableFrom(valType))
-            {
-                ParseDocumentObjectAssignment(dom, vd);
-            }
-            else
-            {
-                AdjustToNextStatement();
-                ThrowParserException(DomMsgID.InvalidType, vd.ValueType.Name, vd.ValueName);
-            }
+            ParseAssignmentByType(dom, vd);
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
         {
             ReportParserException(ex, DomMsgID.InvalidAssignment, vd.ValueName);
+        }
+    }
+
+    /// <summary>
+    /// The assignment parsers for the value types matched exactly. None of them is an enum, so
+    /// looking these up before the enum test below picks the same parser the type tests always did.
+    /// </summary>
+    private static readonly Dictionary<Type, Action<DdlParser, DocumentObject, ValueDescriptor>> ExactTypeAssignments = new()
+    {
+        [typeof(string)] = (parser, dom, vd) => parser.ParseStringAssignment(dom, vd),
+        [typeof(int)] = (parser, dom, vd) => parser.ParseIntegerAssignment(dom, vd),
+        [typeof(Unit)] = (parser, dom, vd) => parser.ParseUnitAssignment(dom, vd),
+        [typeof(double)] = (parser, dom, vd) => parser.ParseRealAssignment(dom, vd),
+        [typeof(float)] = (parser, dom, vd) => parser.ParseRealAssignment(dom, vd),
+        [typeof(bool)] = (parser, dom, vd) => parser.ParseBoolAssignment(dom, vd),
+        [typeof(Color)] = (parser, dom, vd) => parser.ParseColorAssignment(dom, vd),
+    };
+
+    /// <summary>
+    /// Parses the right-hand side of an assignment with the parser for the l-value's type.
+    /// </summary>
+    private void ParseAssignmentByType(DocumentObject dom, ValueDescriptor vd)
+    {
+        var valType = vd.ValueType;
+        if (ExactTypeAssignments.TryGetValue(valType, out var parse))
+            parse(this, dom, vd);
+        else if (typeof(Enum).GetTypeInfo().IsAssignableFrom(valType.GetTypeInfo()))
+            ParseEnumAssignment(dom, vd);
+        else if (typeof(ValueType).IsAssignableFrom(valType))
+            ParseValueTypeAssignment(dom, vd);
+        else if (typeof(DocumentObject).IsAssignableFrom(valType))
+            ParseDocumentObjectAssignment(dom, vd);
+        else
+        {
+            AdjustToNextStatement();
+            ThrowParserException(DomMsgID.InvalidType, vd.ValueType.Name, vd.ValueName);
         }
     }
 

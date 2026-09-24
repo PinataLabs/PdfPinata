@@ -163,21 +163,26 @@ internal class AreaChartRenderer : ColumnLikeChartRenderer
 
       sri.PointRendererInfos = new PointRendererInfo[sri.Series.Elements.Count];
       for (var pointIdx = 0; pointIdx < sri.PointRendererInfos.Length; ++pointIdx)
-      {
-        var pri = new PointRendererInfo();
-        var point = sri.Series.Elements[pointIdx];
-        pri.Point = point;
-        if (point != null)
-        {
-          pri.LineFormat = sri.LineFormat;
-          pri.FillFormat = sri.FillFormat;
-          if (point.lineFormat is { color.IsEmpty: false })
-            pri.LineFormat = new XPen(point.lineFormat.color, point.lineFormat.width);
-          if (point.fillFormat != null && point.lineFormat is { color.IsEmpty: false })
-            pri.FillFormat = new XSolidBrush(point.fillFormat.color);
-        }
-        sri.PointRendererInfos[pointIdx] = pri;
-      }
+        sri.PointRendererInfos[pointIdx] = InitPoint(sri, sri.Series.Elements[pointIdx]);
     }
+  }
+
+  /// <summary>
+  /// Initializes the data to draw one point, which takes the series' formats unless it has its own.
+  /// </summary>
+  private static PointRendererInfo InitPoint(SeriesRendererInfo sri, Point point)
+  {
+    var pri = new PointRendererInfo();
+    pri.Point = point;
+    if (point == null)
+      return pri;
+
+    pri.LineFormat = sri.LineFormat;
+    pri.FillFormat = sri.FillFormat;
+    if (point.lineFormat is { color.IsEmpty: false })
+      pri.LineFormat = new XPen(point.lineFormat.color, point.lineFormat.width);
+    if (point.fillFormat != null && point.lineFormat is { color.IsEmpty: false })
+      pri.FillFormat = new XSolidBrush(point.fillFormat.color);
+    return pri;
   }
 }

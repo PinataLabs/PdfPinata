@@ -61,11 +61,7 @@ internal static class ScriptItemizer
     /// <param name="length">How many characters of <paramref name="text"/> it covers.</param>
     public static IReadOnlyList<ScriptRun> Itemize(string text, int start, int length)
     {
-        ArgumentNullException.ThrowIfNull(text);
-        if (start < 0 || start > text.Length)
-            throw new ArgumentOutOfRangeException(nameof(start));
-        if (length < 0 || length > text.Length - start)
-            throw new ArgumentOutOfRangeException(nameof(length));
+        ValidateWindow(text, start, length);
 
         var runs = new List<ScriptRun>();
         if (length == 0)
@@ -77,41 +73,25 @@ internal static class ScriptItemizer
 
         for (var idx = start; idx < end;)
         {
-            // The pair is looked for inside the window, so a window ending between the halves of a
-            // surrogate pair reads what is left of it as itself rather than reaching past its own
-            // end. char.ConvertToUtf32 throws on a lone surrogate, which is not an answer a layout
-            // path can use.
-            var width = char.IsHighSurrogate(text[idx]) && idx + 1 < end
-                                                        && char.IsLowSurrogate(text[idx + 1])
-                ? 2
-                : 1;
+            var here = UnicodeProperties.ScriptOf(CodePointAt(text, idx, end, out var width));
 
-            var codePoint = width == 2 ? char.ConvertToUtf32(text[idx], text[idx + 1]) : text[idx];
-            var here = UnicodeProperties.ScriptOf(codePoint);
-
-            if (here is UnicodeScript.Inherited or UnicodeScript.Common)
+            // Inherited and Common are carried by whatever they are next to. If the run has no
+            // script yet, such a character does not give it one either - it waits for the first
+            // character that does, which then takes the punctuation before it with it.
+            if (here is not (UnicodeScript.Inherited or UnicodeScript.Common))
             {
-                // Carried by whatever it is next to. If the run has no script yet, this character
-                // does not give it one either - it waits for the first character that does, which
-                // then takes the punctuation before it with it.
-                idx += width;
-                continue;
-            }
-
-            if (script == UnicodeScript.Common)
-            {
-                // The run had nothing but Common and Inherited so far, so it becomes this script
-                // retroactively rather than starting a new one here.
-                script = here;
-                idx += width;
-                continue;
-            }
-
-            if (here != script)
-            {
-                runs.Add(new ScriptRun(from, idx - from, script));
-                from = idx;
-                script = here;
+                if (script == UnicodeScript.Common)
+                {
+                    // The run had nothing but Common and Inherited so far, so it becomes this
+                    // script retroactively rather than starting a new one here.
+                    script = here;
+                }
+                else if (here != script)
+                {
+                    runs.Add(new ScriptRun(from, idx - from, script));
+                    from = idx;
+                    script = here;
+                }
             }
 
             idx += width;
@@ -119,6 +99,30 @@ internal static class ScriptItemizer
 
         runs.Add(new ScriptRun(from, end - from, script));
         return runs;
+    }
+
+    private static void ValidateWindow(string text, int start, int length)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        if (start < 0 || start > text.Length)
+            throw new ArgumentOutOfRangeException(nameof(start));
+        if (length < 0 || length > text.Length - start)
+            throw new ArgumentOutOfRangeException(nameof(length));
+    }
+
+    /// <summary>
+    /// The code point at <paramref name="idx"/>, and in <paramref name="width"/> how many chars it
+    /// takes: two for a surrogate pair, one for anything else.
+    /// </summary>
+    private static int CodePointAt(string text, int idx, int end, out int width)
+    {
+        // The pair is looked for inside the window, so a window ending between the halves of a
+        // surrogate pair reads what is left of it as itself rather than reaching past its own
+        // end. char.ConvertToUtf32 throws on a lone surrogate, which is not an answer a layout
+        // path can use.
+        var isPair = char.IsHighSurrogate(text[idx]) && idx + 1 < end && char.IsLowSurrogate(text[idx + 1]);
+        width = isPair ? 2 : 1;
+        return isPair ? char.ConvertToUtf32(text[idx], text[idx + 1]) : text[idx];
     }
 }
 

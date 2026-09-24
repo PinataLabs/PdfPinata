@@ -290,24 +290,15 @@ internal class ParagraphRenderer : Renderer
         while (iter != null)
         {
             var current = iter.Current;
-            if (!ignoreBlank && (IsBlank(current) || IsTab(current) || IsLineBreak(current)))
+            var isSpacing = IsBlank(current) || IsTab(current) || IsLineBreak(current);
+            if (!ignoreBlank && isSpacing)
             {
                 title += " ";
                 ignoreBlank = true;
             }
-            else if (current is Text text)
+            else if (TryGetOutlineText(current, out var part))
             {
-                title += text.Content;
-                ignoreBlank = false;
-            }
-            else if (FieldEvaluator.IsField(current))
-            {
-                title += GetFieldValue(current);
-                ignoreBlank = false;
-            }
-            else if (IsSymbol(current))
-            {
-                title += GetSymbol((Character)current);
+                title += part;
                 ignoreBlank = false;
             }
 
@@ -316,6 +307,25 @@ internal class ParagraphRenderer : Renderer
             iter = iter.GetNextLeaf();
         }
         return title;
+    }
+
+    /// <summary>
+    /// The text a leaf contributes to the outline title: its content, its field value or its symbol.
+    /// </summary>
+    private bool TryGetOutlineText(DocumentObject current, out string part)
+    {
+        if (current is Text text)
+            part = text.Content;
+        else if (FieldEvaluator.IsField(current))
+            part = GetFieldValue(current);
+        else if (IsSymbol(current))
+            part = GetSymbol((Character)current);
+        else
+        {
+            part = null;
+            return false;
+        }
+        return true;
     }
 
     /// <summary>
@@ -656,8 +666,18 @@ internal class ParagraphRenderer : Renderer
     private TabStop GetNextTabStop()
     {
         var format = paragraph.Format;
-        var tabStops = format.TabStops;
-        XUnit lastPosition = 0;
+        return ExplicitTabStop(format.TabStops, out var lastPosition)
+            ?? AutomaticTabStop(format)
+            ?? DefaultTabStopAfter(lastPosition);
+    }
+
+    /// <summary>
+    /// The first of the paragraph's own tab stops past the current x position, if any fits, and
+    /// the position of the last one passed over.
+    /// </summary>
+    private TabStop ExplicitTabStop(TabStops tabStops, out XUnit lastPosition)
+    {
+        lastPosition = 0;
 
         foreach (TabStop tabStop in tabStops)
         {
@@ -669,14 +689,25 @@ internal class ParagraphRenderer : Renderer
 
             lastPosition = tabStop.Position.Point;
         }
-        //Automatic tab stop: FirstLineIndent < 0 => automatic tab stop at LeftIndent.
+        return null;
+    }
 
-        if (format.FirstLineIndent < 0 || (!format.IsNull("ListInfo") && format.ListInfo.NumberPosition < format.LeftIndent))
-        {
-            XUnit leftIndent = format.LeftIndent.Point;
-            if (isFirstLine && currentXPosition < leftIndent + formattingArea.X)
-                return new TabStop(leftIndent.Point);
-        }
+    private TabStop AutomaticTabStop(ParagraphFormat format)
+    {
+        //Automatic tab stop: FirstLineIndent < 0 => automatic tab stop at LeftIndent.
+        var hasAutomaticTabStop = format.FirstLineIndent < 0
+            || (!format.IsNull("ListInfo") && format.ListInfo.NumberPosition < format.LeftIndent);
+        if (!hasAutomaticTabStop)
+            return null;
+
+        XUnit leftIndent = format.LeftIndent.Point;
+        if (isFirstLine && currentXPosition < leftIndent + formattingArea.X)
+            return new TabStop(leftIndent.Point);
+        return null;
+    }
+
+    private TabStop DefaultTabStopAfter(XUnit lastPosition)
+    {
         XUnit defaultTabStop = "1.25cm";
         if (!paragraph.Document.IsNull("DefaultTabstop"))
             defaultTabStop = paragraph.Document.DefaultTabStop.Point;
@@ -1026,18 +1057,7 @@ internal class ParagraphRenderer : Renderer
         while (leaf != null)
         {
             if (!found && leaf.Current is Text { Content: not null } text)
-            {
-                foreach (var ch in text.Content)
-                {
-                    // Nothing below the Hebrew block is written right to left, so a string made
-                    // only of characters below it can only be read the way it was written.
-                    if (ch >= '\u0590')
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-            }
+                found = MayBeRightToLeft(text.Content);
 
             if (leaf.Current == lineInfo.endIter.Current)
                 break;
@@ -1046,6 +1066,18 @@ internal class ParagraphRenderer : Renderer
         }
 
         return found;
+    }
+
+    private static bool MayBeRightToLeft(string content)
+    {
+        foreach (var ch in content)
+        {
+            // Nothing below the Hebrew block is written right to left, so a string made
+            // only of characters below it can only be read the way it was written.
+            if (ch >= '֐')
+                return true;
+        }
+        return false;
     }
 
     /// <summary>
@@ -1329,26 +1361,7 @@ internal class ParagraphRenderer : Renderer
         {
             currentXPosition = fittingRect.X + LeftIndent;
             FormatListSymbol();
-            var goOn = true;
-            while (goOn && currentLeaf != null)
-            {
-                if (currentLeaf.Current == lineInfo.lastTab)
-                    lastTabPassed = true;
-
-                var result = FormatElement(currentLeaf.Current);
-
-                // Where this line breaks was settled while the paragraph was formatted; this pass
-                // only measures it again, and must not break it a second time. An element that
-                // says it no longer fits moves currentLeaf back to the break it wants, and the
-                // step forward below moved it straight back to where it had just been, so a line
-                // ending in a soft hyphen was measured for ever and no document ever came out.
-                if (result != FormatResult.Continue && result != FormatResult.Ignore)
-                    break;
-
-                goOn = currentLeaf != null && currentLeaf.Current != endLeaf.Current;
-                if (goOn)
-                    currentLeaf = currentLeaf.GetNextLeaf();
-            }
+            MeasureLeavesUpToEndLeaf(lineInfo.lastTab);
             lineInfo.lineWidth = currentLineWidth;
             lineInfo.wordsWidth = currentWordsWidth;
             lineInfo.blankCount = currentBlankCount;
@@ -1357,6 +1370,34 @@ internal class ParagraphRenderer : Renderer
             lastTabPassed = origLastTabPassed;
         }
         RestoreAfterProbing(iter, blankCount, wordsWidth, xPosition, lineWidth, blankWidth);
+    }
+
+    /// <summary>
+    /// Formats the leaves from <c>currentLeaf</c> through <c>endLeaf</c> again, for their widths,
+    /// noting when the line's last tab is passed.
+    /// </summary>
+    private void MeasureLeavesUpToEndLeaf(DocumentObject lastTab)
+    {
+        var goOn = true;
+        while (goOn && currentLeaf != null)
+        {
+            if (currentLeaf.Current == lastTab)
+                lastTabPassed = true;
+
+            var result = FormatElement(currentLeaf.Current);
+
+            // Where this line breaks was settled while the paragraph was formatted; this pass
+            // only measures it again, and must not break it a second time. An element that
+            // says it no longer fits moves currentLeaf back to the break it wants, and the
+            // step forward below moved it straight back to where it had just been, so a line
+            // ending in a soft hyphen was measured for ever and no document ever came out.
+            if (result != FormatResult.Continue && result != FormatResult.Ignore)
+                break;
+
+            goOn = currentLeaf != null && currentLeaf.Current != endLeaf.Current;
+            if (goOn)
+                currentLeaf = currentLeaf.GetNextLeaf();
+        }
     }
 
     private XUnit CurrentWordDistance
@@ -1653,32 +1694,47 @@ internal class ParagraphRenderer : Renderer
         if (endLeaf != null && currentLeaf.Current == endLeaf.Current)
             return true;
 
-        var nextIter = currentLeaf.GetNextLeaf();
-        while (nextIter != null && (IsBlank(nextIter.Current) || nextIter.Current is BookmarkField))
-        {
-            nextIter = nextIter.GetNextLeaf();
-        }
+        var nextIter = NextLeafPastBlanks();
         if (nextIter == null)
             return true;
 
         if (IsTab(nextIter.Current))
             return true;
 
-        var prevIter = currentLeaf.GetPreviousLeaf();
-        // Can be null if currentLeaf is the first leaf
-        var obj = prevIter != null ? prevIter.Current : null;
-        while (obj is BookmarkField)
-        {
-            prevIter = prevIter.GetPreviousLeaf();
-            if (prevIter != null)
-                obj = prevIter.Current;
-            else
-                obj = null;
-        }
+        var obj = PreviousLeafPastBookmarks();
         if (obj == null)
             return true;
 
         return IsBlank(obj) || IsTab(obj);
+    }
+
+    /// <summary>
+    /// The first leaf after the current one that is neither a blank nor a bookmark, or null.
+    /// </summary>
+    private ParagraphIterator NextLeafPastBlanks()
+    {
+        var nextIter = currentLeaf.GetNextLeaf();
+        while (nextIter != null && (IsBlank(nextIter.Current) || nextIter.Current is BookmarkField))
+        {
+            nextIter = nextIter.GetNextLeaf();
+        }
+        return nextIter;
+    }
+
+    /// <summary>
+    /// The first object before the current leaf that is not a bookmark, or null.
+    /// </summary>
+    private DocumentObject PreviousLeafPastBookmarks()
+    {
+        var prevIter = currentLeaf.GetPreviousLeaf();
+        // Can be null if currentLeaf is the first leaf
+        var obj = prevIter?.Current;
+        while (obj is BookmarkField)
+        {
+            prevIter = prevIter.GetPreviousLeaf();
+            obj = prevIter?.Current;
+        }
+        return obj;
     }
 
     private void RenderBlank()
@@ -2067,31 +2123,12 @@ internal class ParagraphRenderer : Renderer
         var lastResult = FormatResult.Continue;
         while (currentLeaf != null)
         {
-            var result = FormatElement(currentLeaf.Current);
-            switch (result)
-            {
-                case FormatResult.Ignore:
-                    currentLeaf = currentLeaf.GetNextLeaf();
-                    break;
+            var result = FormatCurrentLeaf();
+            if (result != FormatResult.Ignore)
+                lastResult = result;
 
-                case FormatResult.Continue:
-                    lastResult = result;
-                    currentLeaf = currentLeaf.GetNextLeaf();
-                    break;
-
-                case FormatResult.NewLine:
-                    lastResult = result;
-                    StoreLineInformation();
-                    if (!StartNewLine())
-                    {
-                        result = FormatResult.NewArea;
-                        formatInfo.isEnding = false;
-                    }
-                    break;
-            }
             if (result == FormatResult.NewArea)
             {
-                lastResult = result;
                 formatInfo.isEnding = false;
                 break;
             }
@@ -2104,6 +2141,29 @@ internal class ParagraphRenderer : Renderer
     }
 
     /// <summary>
+    /// Formats the current leaf and moves on: to the next leaf, or to a new line - which answers
+    /// <see cref="FormatResult.NewArea"/> when the area has no room left for one.
+    /// </summary>
+    private FormatResult FormatCurrentLeaf()
+    {
+        var result = FormatElement(currentLeaf.Current);
+        switch (result)
+        {
+            case FormatResult.Ignore:
+            case FormatResult.Continue:
+                currentLeaf = currentLeaf.GetNextLeaf();
+                break;
+
+            case FormatResult.NewLine:
+                StoreLineInformation();
+                if (!StartNewLine())
+                    result = FormatResult.NewArea;
+                break;
+        }
+        return result;
+    }
+
+    /// <summary>
     /// Finishes the layout info by calculating starting and trailing heights.
     /// </summary>
     private void FinishLayoutInfo()
@@ -2112,17 +2172,8 @@ internal class ParagraphRenderer : Renderer
         var format = paragraph.Format;
         var parInfo = (ParagraphFormatInfo)renderInfo.FormatInfo;
         layoutInfo.MinWidth = minWidth;
-        layoutInfo.KeepTogether = format.KeepTogether;
+        layoutInfo.KeepTogether = format.KeepTogether || IsTooShortToSplit(parInfo);
 
-        if (parInfo.IsComplete)
-        {
-            var limitOfLines = 1;
-            if (parInfo.widowControl)
-                limitOfLines = 3;
-
-            if (parInfo.LineCount <= limitOfLines)
-                layoutInfo.KeepTogether = true;
-        }
         if (parInfo.IsStarting)
         {
             layoutInfo.MarginTop = format.SpaceBefore.Point;
@@ -2147,6 +2198,23 @@ internal class ParagraphRenderer : Renderer
         if (parInfo.LineCount <= 0)
             return;
 
+        SetStartingAndTrailingHeights(layoutInfo, parInfo);
+    }
+
+    /// <summary>
+    /// Whether a complete paragraph has too few lines to be split: one, or three under widow control.
+    /// </summary>
+    private static bool IsTooShortToSplit(ParagraphFormatInfo parInfo)
+    {
+        if (!parInfo.IsComplete)
+            return false;
+
+        var limitOfLines = parInfo.widowControl ? 3 : 1;
+        return parInfo.LineCount <= limitOfLines;
+    }
+
+    private void SetStartingAndTrailingHeights(LayoutInfo layoutInfo, ParagraphFormatInfo parInfo)
+    {
         var startingHeight = parInfo.GetFirstLineInfo().vertical.height;
         if (parInfo.isStarting && paragraph.Format.WidowControl && parInfo.LineCount >= 2)
             startingHeight += parInfo.GetLineInfo(1).vertical.height;
@@ -2212,22 +2280,40 @@ internal class ParagraphRenderer : Renderer
     /// </remarks>
     private bool JoinedRunBreaksBeforeCurrentLeaf()
     {
+        if (!JoinedRunStartsAtCurrentLeaf())
+            return false;
+
+        return ProbeJoinedRun(currentLeaf) == FormatResult.NewLine;
+    }
+
+    /// <summary>
+    /// Whether the current leaf, while formatting and not first on the line, is the first of a run
+    /// of leaves joined by non-breakable blanks.
+    /// </summary>
+    private bool JoinedRunStartsAtCurrentLeaf()
+    {
         if (probingJoinedRun || phase != Phase.Formatting || currentLeaf == null || startLeaf == null
             || currentLeaf.Current == startLeaf.Current)
             return false;
 
-        var first = currentLeaf;
-        var previous = first.GetPreviousLeaf();
-        if (previous != null && IsJoinedTo(previous.Current, first.Current))
+        var previous = currentLeaf.GetPreviousLeaf();
+        if (previous != null && IsJoinedTo(previous.Current, currentLeaf.Current))
             return false;
-        var next = first.GetNextLeaf();
-        if (next == null || !IsJoinedTo(first.Current, next.Current))
-            return false;
+        var next = currentLeaf.GetNextLeaf();
+        return next != null && IsJoinedTo(currentLeaf.Current, next.Current);
+    }
 
+    /// <summary>
+    /// Formats the joined run starting at <paramref name="first"/> without keeping anything it
+    /// changed, and answers how the last leaf formatted came out.
+    /// </summary>
+    private FormatResult ProbeJoinedRun(ParagraphIterator first)
+    {
         SaveBeforeProbing(out var iter, out var blankCount, out var wordsWidth, out var xPosition, out var lineWidth, out var blankWidth);
         var wordWidth = savedWordWidth;
         var verticalInfo = currentVerticalInfo;
         FormatResult result;
+        ParagraphIterator next;
         probingJoinedRun = true;
         try
         {
@@ -2250,7 +2336,7 @@ internal class ParagraphRenderer : Renderer
             savedWordWidth = wordWidth;
             currentVerticalInfo = verticalInfo;
         }
-        return result == FormatResult.NewLine;
+        return result;
     }
 
     private FormatResult FormatLeaf(DocumentObject docObj)
@@ -2513,29 +2599,24 @@ internal class ParagraphRenderer : Renderer
         if (rect == null)
             return FormatResult.NewArea;
 
-        if (currentXPosition + width <= rect.X + rect.Width - RightIndent + Tolerance)
-        {
-            savedWordWidth = width;
-            currentXPosition += width;
-            // For Tabs in justified context
-            if (!IgnoreHorizontalGrowth)
-                currentWordsWidth += width;
-            if (savedBlankWidth > 0)
-            {
-                // For Tabs in justified context
-                if (!IgnoreHorizontalGrowth)
-                    ++currentBlankCount;
-            }
-            // For Tabs in justified context
-            if (!IgnoreHorizontalGrowth)
-                currentLineWidth += width + PopSavedBlankWidth();
-            currentVerticalInfo = newVertInfo;
-            minWidth = Math.Max(minWidth, width);
-            return FormatResult.Continue;
-        }
-
         savedWordWidth = width;
-        return FormatResult.NewLine;
+        var fits = currentXPosition + width <= rect.X + rect.Width - RightIndent + Tolerance;
+        if (!fits)
+            return FormatResult.NewLine;
+
+        currentXPosition += width;
+        // For Tabs in justified context
+        if (!IgnoreHorizontalGrowth)
+            currentWordsWidth += width;
+        // For Tabs in justified context
+        if (savedBlankWidth > 0 && !IgnoreHorizontalGrowth)
+            ++currentBlankCount;
+        // For Tabs in justified context
+        if (!IgnoreHorizontalGrowth)
+            currentLineWidth += width + PopSavedBlankWidth();
+        currentVerticalInfo = newVertInfo;
+        minWidth = Math.Max(minWidth, width);
+        return FormatResult.Continue;
     }
 
     private FormatResult FormatDateField(DateField dateField)

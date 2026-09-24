@@ -202,31 +202,34 @@ public static partial class BidiAlgorithm
 
             for (var idx = 0; idx < _length; idx++)
             {
-                if (!IsIsolateInitiator(_initial[idx]))
-                    continue;
-
-                var depth = 1;
-                var scan = idx + 1;
-                for (; scan < _length; scan++)
-                {
-                    var type = _initial[scan];
-                    if (IsIsolateInitiator(type))
-                    {
-                        depth++;
-                    }
-                    else if (type == BidiClass.PDI)
-                    {
-                        if (--depth == 0)
-                        {
-                            _matchingInitiator[scan] = idx;
-                            break;
-                        }
-                    }
-                }
-
-                // An initiator with nothing to close it runs to the end of the paragraph.
-                _matchingPdi[idx] = scan < _length ? scan : _length;
+                if (IsIsolateInitiator(_initial[idx]))
+                    _matchingPdi[idx] = MatchPdi(idx);
             }
+        }
+
+        /// <summary>
+        /// Finds the PDI that closes the isolate opened at <paramref name="initiator"/>, records the
+        /// initiator against it, and answers its position.
+        /// </summary>
+        private int MatchPdi(int initiator)
+        {
+            var depth = 1;
+            for (var scan = initiator + 1; scan < _length; scan++)
+            {
+                var type = _initial[scan];
+                if (IsIsolateInitiator(type))
+                {
+                    depth++;
+                }
+                else if (type == BidiClass.PDI && --depth == 0)
+                {
+                    _matchingInitiator[scan] = initiator;
+                    return scan;
+                }
+            }
+
+            // An initiator with nothing to close it runs to the end of the paragraph.
+            return _length;
         }
 
         // ----- P2, P3: the level of a paragraph, or of the inside of an FSI -----------------------
@@ -238,19 +241,12 @@ public static partial class BidiAlgorithm
                 var type = _initial[idx];
 
                 // P2 looks past the whole of an isolate: what is inside it says nothing about
-                // which way the text around it runs.
+                // which way the text around it runs. A PDI at or past the end ends the loop.
                 if (IsIsolateInitiator(type))
-                {
                     idx = _matchingPdi[idx];
-                    if (idx >= end)
-                        break;
-                    continue;
-                }
-
-                if (type == BidiClass.L)
+                else if (type == BidiClass.L)
                     return 0;
-
-                if (type is BidiClass.R or BidiClass.AL)
+                else if (type is BidiClass.R or BidiClass.AL)
                     return 1;
             }
 
@@ -547,34 +543,31 @@ public static partial class BidiAlgorithm
             // sos: the higher of this sequence's level and the level of whatever precedes it,
             // read as a direction. eos: the same looking forward, except that a sequence ending in
             // an isolate initiator with nothing to close it looks at the paragraph instead.
-            var before = _paragraphLevel;
-            for (var idx = indices[0] - 1; idx >= 0; idx--)
-            {
-                if (IsRemovedByX9(_initial[idx]))
-                    continue;
-
-                before = _levels[idx];
-                break;
-            }
+            var before = RetainedLevelFrom(indices[0] - 1, -1);
 
             var lastIndex = indices[^1];
-            var after = _paragraphLevel;
-            if (!(IsIsolateInitiator(_initial[lastIndex]) && _matchingPdi[lastIndex] >= _length))
-            {
-                for (var idx = lastIndex + 1; idx < _length; idx++)
-                {
-                    if (IsRemovedByX9(_initial[idx]))
-                        continue;
-
-                    after = _levels[idx];
-                    break;
-                }
-            }
+            var endsInUnclosedIsolate = IsIsolateInitiator(_initial[lastIndex]) && _matchingPdi[lastIndex] >= _length;
+            var after = endsInUnclosedIsolate ? _paragraphLevel : RetainedLevelFrom(lastIndex + 1, 1);
 
             var lastLevel = _levels[lastIndex];
             return new Sequence(this, indices, level,
                 DirectionOf(Math.Max(level, before)),
                 DirectionOf(Math.Max(lastLevel, after)));
+        }
+
+        /// <summary>
+        /// The level of the first character from <paramref name="start"/> on, stepping by
+        /// <paramref name="step"/>, that X9 did not remove; the paragraph's level if there is none.
+        /// </summary>
+        private byte RetainedLevelFrom(int start, int step)
+        {
+            for (var idx = start; idx >= 0 && idx < _length; idx += step)
+            {
+                if (!IsRemovedByX9(_initial[idx]))
+                    return _levels[idx];
+            }
+
+            return _paragraphLevel;
         }
 
         private static BidiClass DirectionOf(int level) => (level & 1) == 0 ? BidiClass.L : BidiClass.R;
@@ -620,8 +613,21 @@ public static partial class BidiAlgorithm
             if (order.Count == 0)
                 return [];
 
-            byte highest = 0;
-            byte lowestOdd = MaxDepth + 1;
+            var array = order.ToArray();
+            LevelRange(array, out var highest, out var lowestOdd);
+            for (int level = highest; level >= lowestOdd; level--)
+                ReverseRunsAtOrAbove(array, level);
+
+            return array;
+        }
+
+        /// <summary>
+        /// The highest level among <paramref name="order"/>, and the lowest odd one.
+        /// </summary>
+        private void LevelRange(int[] order, out byte highest, out byte lowestOdd)
+        {
+            highest = 0;
+            lowestOdd = MaxDepth + 1;
             foreach (var idx in order)
             {
                 var level = _levels[idx];
@@ -631,25 +637,26 @@ public static partial class BidiAlgorithm
                 if ((level & 1) != 0 && level < lowestOdd)
                     lowestOdd = level;
             }
+        }
 
-            var array = order.ToArray();
-            for (int level = highest; level >= lowestOdd; level--)
+        /// <summary>
+        /// Reverses, in place, every maximal stretch of <paramref name="order"/> whose characters are
+        /// at <paramref name="level"/> or higher.
+        /// </summary>
+        private void ReverseRunsAtOrAbove(int[] order, int level)
+        {
+            for (var start = 0; start < order.Length; start++)
             {
-                for (var start = 0; start < array.Length; start++)
-                {
-                    if (_levels[array[start]] < level)
-                        continue;
+                if (_levels[order[start]] < level)
+                    continue;
 
-                    var end = start;
-                    while (end + 1 < array.Length && _levels[array[end + 1]] >= level)
-                        end++;
+                var end = start;
+                while (end + 1 < order.Length && _levels[order[end + 1]] >= level)
+                    end++;
 
-                    Array.Reverse(array, start, end - start + 1);
-                    start = end;
-                }
+                Array.Reverse(order, start, end - start + 1);
+                start = end;
             }
-
-            return array;
         }
 
         internal BidiClass[] Types => _types;

@@ -74,12 +74,6 @@ internal sealed class PdfToUnicodeMap : PdfDictionary
         var suffix = "endcmap CMapName currentdict /CMap defineresource pop end end";
 
         var meanings = CMapInfo.GlyphMeanings();
-        int lowIndex = 65536, hiIndex = -1;
-        foreach (var index in meanings.Keys)
-        {
-            lowIndex = Math.Min(lowIndex, index);
-            hiIndex = Math.Max(hiIndex, index);
-        }
 
         // A glyph standing for exactly one character can go in a bfrange, which is how every
         // entry was written before there was anything else to write. One standing for several -
@@ -92,12 +86,7 @@ internal sealed class PdfToUnicodeMap : PdfDictionary
         var wrt = new StreamWriter(ms, Encoding.UTF8);
         wrt.Write(prefix);
 
-        if (hiIndex >= lowIndex)
-        {
-            wrt.WriteLine("1 begincodespacerange");
-            wrt.WriteLine($"<{lowIndex:X4}><{hiIndex:X4}>");
-            wrt.WriteLine("endcodespacerange");
-        }
+        WriteCodespaceRange(wrt, meanings.Keys);
 
         // "shall not exceed 100" - ISO 32000-1 section 9.10.3, of both kinds of block. A document
         // of any size has more glyphs than that, so this is not a limit that only exotic files
@@ -121,9 +110,37 @@ internal sealed class PdfToUnicodeMap : PdfDictionary
         wrt.Write(suffix);
         wrt.Dispose();
 
-        // Compress like content streams
         var bytes = ms.ToArray();
         ms.Dispose();
+        SetContent(bytes);
+    }
+
+    /// <summary>
+    /// Writes the one range the glyphs fall in, from the lowest to the highest, or nothing when
+    /// there are no glyphs.
+    /// </summary>
+    private static void WriteCodespaceRange(StreamWriter wrt, IEnumerable<int> glyphs)
+    {
+        int lowIndex = 65536, hiIndex = -1;
+        foreach (var index in glyphs)
+        {
+            lowIndex = Math.Min(lowIndex, index);
+            hiIndex = Math.Max(hiIndex, index);
+        }
+
+        if (hiIndex < lowIndex)
+            return;
+
+        wrt.WriteLine("1 begincodespacerange");
+        wrt.WriteLine($"<{lowIndex:X4}><{hiIndex:X4}>");
+        wrt.WriteLine("endcodespacerange");
+    }
+
+    /// <summary>
+    /// Makes the bytes the stream's data, compressed like content streams.
+    /// </summary>
+    private void SetContent(byte[] bytes)
+    {
         if (Owner.Options.CompressContentStreams)
         {
             Elements.SetName("/Filter", "/FlateDecode");
@@ -137,12 +154,11 @@ internal sealed class PdfToUnicodeMap : PdfDictionary
         if (Stream == null)
         {
             CreateStream(bytes);
+            return;
         }
-        else
-        {
-            Stream.Value = bytes;
-            Elements.SetInteger(PdfStream.Keys.Length, Stream.Length);
-        }
+
+        Stream.Value = bytes;
+        Elements.SetInteger(PdfStream.Keys.Length, Stream.Length);
     }
 
     /// <summary>

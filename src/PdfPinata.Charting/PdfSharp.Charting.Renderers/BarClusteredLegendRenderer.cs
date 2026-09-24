@@ -60,9 +60,7 @@ internal class BarClusteredLegendRenderer : ColumnLikeLegendRenderer
     var ler = new LegendEntryRenderer(parms);
 
     var verticalLegend = lri.Legend.docking is DockingType.Left or DockingType.Right;
-    var paddingFactor = 1;
-    if (lri.BorderPen != null)
-      paddingFactor = 2;
+    var paddingFactor = PaddingFactor(lri);
     var legendRect = lri.Rect;
     legendRect.X += LeftPadding * paddingFactor;
     if (verticalLegend)
@@ -75,32 +73,12 @@ internal class BarClusteredLegendRenderer : ColumnLikeLegendRenderer
       if (verticalLegend)
         legendRect.Y -= leri.Height;
 
-      var entryRect = legendRect;
-      if (!verticalLegend)
-      {
-        entryRect.X += leri.Offset.X;
-        entryRect.Y += leri.Offset.Y;
-      }
-      entryRect.Width = leri.Width;
-      entryRect.Height = leri.Height;
-
-      leri.Rect = entryRect;
-      parms.RendererInfo = leri;
-      ler.Draw();
+      DrawEntry(ler, parms, leri, legendRect, verticalLegend);
 
       if (verticalLegend)
         legendRect.Y -= EntrySpacing;
     }
 
-    // Draw border around legend
-    if (lri.BorderPen != null)
-    {
-      var borderRect = lri.Rect;
-      borderRect.X += LeftPadding;
-      borderRect.Y += TopPadding;
-      borderRect.Width -= LeftPadding + RightPadding;
-      borderRect.Height -= TopPadding + BottomPadding;
-      gfx.DrawRectangle(lri.BorderPen, borderRect);
-    }
+    DrawBorder(gfx, lri);
   }
 }

@@ -65,17 +65,8 @@ internal static class PdfNameTree
         if (node == null || depth > MaxDepth || !seen.Add(node))
             yield break;
 
-        var leaves = node.Elements.GetArray("/Names");
-        if (leaves != null)
-        {
-            var count = leaves.Elements.Count;
-            for (var idx = 0; idx + 1 < count; idx += 2)
-            {
-                var name = TextOf(leaves.Elements[idx]);
-                if (name != null)
-                    yield return new KeyValuePair<string, PdfItem>(name, leaves.Elements[idx + 1]);
-            }
-        }
+        foreach (var entry in LeavesOf(node))
+            yield return entry;
 
         var kids = node.Elements.GetArray("/Kids");
         if (kids == null)
@@ -85,6 +76,25 @@ internal static class PdfNameTree
         {
             foreach (var entry in Walk(kids.Elements.GetDictionary(idx), depth + 1, seen))
                 yield return entry;
+        }
+    }
+
+    /// <summary>
+    /// The names a node holds itself, in the order written. An odd one at the end has no value,
+    /// and a key that is not a string names nothing.
+    /// </summary>
+    private static IEnumerable<KeyValuePair<string, PdfItem>> LeavesOf(PdfDictionary node)
+    {
+        var leaves = node.Elements.GetArray("/Names");
+        if (leaves == null)
+            yield break;
+
+        var count = leaves.Elements.Count;
+        for (var idx = 0; idx + 1 < count; idx += 2)
+        {
+            var name = TextOf(leaves.Elements[idx]);
+            if (name != null)
+                yield return new KeyValuePair<string, PdfItem>(name, leaves.Elements[idx + 1]);
         }
     }
 

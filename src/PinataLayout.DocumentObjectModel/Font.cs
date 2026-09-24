@@ -299,10 +299,11 @@ public sealed partial class Font : DocumentObject
 
         // Don't write null values if font is null.
         // Do write null values if font is not null!
-        if (name != null && Name != string.Empty && (refFont == null || Name != refFont.Name))
+        // Each comparison with refFont is lifted: with no font to compare with, it always differs.
+        if (name != null && Name != string.Empty && Name != refFont?.Name)
             serializer.WriteSimpleAttribute("Name", Name);
 
-        if (!size.IsNull && (refFont == null || Size != refFont.Size))
+        if (!size.IsNull && Size != refFont?.Size)
             serializer.WriteSimpleAttribute("Size", Size);
 
         // NBool and NEnum have to be compared directly to check whether the value Null is
@@ -313,7 +314,7 @@ public sealed partial class Font : DocumentObject
         WriteIfDifferent(serializer, "Superscript", superscript, refFont?.superscript);
         WriteIfDifferent(serializer, "Subscript", subscript, refFont?.subscript);
 
-        if (!color.IsNull && (refFont == null || Color.Argb != refFont.Color.Argb))// && this.Color.RGB != Color.Transparent.RGB)
+        if (!color.IsNull && Color.Argb != refFont?.Color.Argb)// && this.Color.RGB != Color.Transparent.RGB)
             serializer.WriteSimpleAttribute("Color", Color);
 
         EndFont(serializer, formattedText, pos);

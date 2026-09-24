@@ -55,35 +55,15 @@ internal static class PdfCrossReferenceStreamWriter
         // because the entries cannot be written until every offset is known, and the offsets are
         // not known until everything has been written.
         var placements = new Dictionary<int, (int ObjectStreamNumber, int Index)>();
-        var objectStreams = new List<PdfReference>();
-
-        var perStream = document.Options.MaxObjectsPerObjectStream;
-        for (var start = 0; start < compressible.Count; start += perStream)
-        {
-            var members = compressible.GetRange(start, System.Math.Min(perStream, compressible.Count - start));
-            var objectStream = PdfObjectStreamWriter.Build(document, members);
-            irefTable.Add(objectStream);
-            objectStreams.Add(objectStream.Reference);
-
-            for (var index = 0; index < members.Count; index++)
-                placements[members[index].ObjectNumber] = (objectStream.ObjectNumber, index);
-        }
+        var objectStreams = BuildObjectStreams(document, compressible, placements);
 
         // The cross-reference stream is an object like any other and needs a number of its own, and
         // an entry of its own pointing at where it is about to be written.
         var xrefStream = new PdfCrossReferenceStream(document);
         irefTable.Add(xrefStream);
 
-        foreach (var iref in uncompressed)
-        {
-            iref.Position = writer.Position;
-            iref.Value.WriteObject(writer);
-        }
-        foreach (var iref in objectStreams)
-        {
-            iref.Position = writer.Position;
-            iref.Value.WriteObject(writer);
-        }
+        WriteObjects(writer, uncompressed);
+        WriteObjects(writer, objectStreams);
 
         var startxref = writer.Position;
         xrefStream.Reference.Position = startxref;
@@ -100,46 +80,21 @@ internal static class PdfCrossReferenceStreamWriter
             Field3 = 65535
         };
 
-        foreach (var iref in uncompressed)
-            entries[iref.ObjectNumber] = InUse(iref);
-        foreach (var iref in objectStreams)
-            entries[iref.ObjectNumber] = InUse(iref);
+        AddInUseEntries(entries, uncompressed);
+        AddInUseEntries(entries, objectStreams);
         entries[xrefStream.ObjectNumber] = InUse(xrefStream.Reference);
-
-        foreach (var iref in compressible)
-        {
-            var placement = placements[iref.ObjectNumber];
-            entries[iref.ObjectNumber] = new PdfCrossReferenceStream.CrossReferenceStreamEntry
-            {
-                Type = 2,
-                Field2 = (uint)placement.ObjectStreamNumber,
-                Field3 = (uint)placement.Index
-            };
-        }
+        AddCompressedEntries(entries, compressible, placements);
 
         CopyTrailerElements(document._trailer, xrefStream);
         xrefStream.Elements.SetName(PdfCrossReferenceStream.Keys.Type, "/XRef");
         xrefStream.Elements.SetInteger(PdfCrossReferenceStream.Keys.Size, size);
-
-        var widths = new PdfArray(document);
-        foreach (var width in FieldWidths)
-            widths.Elements.Add(new PdfInteger(width));
-        xrefStream.Elements[PdfCrossReferenceStream.Keys.W] = widths;
+        SetFieldWidths(document, xrefStream);
 
         // /Index is omitted deliberately. Its default is [0 Size], and PrepareForSave renumbers the
         // objects from 1 with no gaps, so that default is exactly right and saying so again would
         // only be another thing that could disagree with the entries.
 
-        var content = Encode(entries);
-        if (document.Options.NoCompression)
-        {
-            xrefStream.CreateStream(content);
-        }
-        else
-        {
-            xrefStream.CreateStream(Filtering.FlateDecode.Encode(content, document.Options.FlateEncodeMode));
-            xrefStream.Elements.SetName(PdfDictionary.PdfStream.Keys.Filter, "/FlateDecode");
-        }
+        SetEntries(document, xrefStream, entries);
 
         // PdfTrailer.WriteObject turns encryption off around itself, which a cross-reference stream
         // inherits and requires: it is never encrypted, because a reader has to read it before it
@@ -214,26 +169,91 @@ internal static class PdfCrossReferenceStreamWriter
         // before int.MaxValue.
         xrefStream.Elements.SetInteger(PdfCrossReferenceStream.Keys.Prev, checked((int)previousStartXref));
 
-        var widths = new PdfArray(document);
-        foreach (var width in FieldWidths)
-            widths.Elements.Add(new PdfInteger(width));
-        xrefStream.Elements[PdfCrossReferenceStream.Keys.W] = widths;
-
-        var content = Encode(entries);
-        if (document.Options.NoCompression)
-        {
-            xrefStream.CreateStream(content);
-        }
-        else
-        {
-            xrefStream.CreateStream(Filtering.FlateDecode.Encode(content, document.Options.FlateEncodeMode));
-            xrefStream.Elements.SetName(PdfDictionary.PdfStream.Keys.Filter, "/FlateDecode");
-        }
+        SetFieldWidths(document, xrefStream);
+        SetEntries(document, xrefStream, entries);
 
         // Never encrypted, for the reason WriteBody gives.
         xrefStream.WriteObject(writer);
 
         return startxref;
+    }
+
+    /// <summary>
+    /// Packs the compressible objects into object streams of at most the configured size, adds
+    /// each stream to the table, and records where every member ended up.
+    /// </summary>
+    private static List<PdfReference> BuildObjectStreams(PdfDocument document, List<PdfReference> compressible,
+        Dictionary<int, (int ObjectStreamNumber, int Index)> placements)
+    {
+        var objectStreams = new List<PdfReference>();
+        var perStream = document.Options.MaxObjectsPerObjectStream;
+        for (var start = 0; start < compressible.Count; start += perStream)
+        {
+            var members = compressible.GetRange(start, System.Math.Min(perStream, compressible.Count - start));
+            var objectStream = PdfObjectStreamWriter.Build(document, members);
+            document._irefTable.Add(objectStream);
+            objectStreams.Add(objectStream.Reference);
+
+            for (var index = 0; index < members.Count; index++)
+                placements[members[index].ObjectNumber] = (objectStream.ObjectNumber, index);
+        }
+
+        return objectStreams;
+    }
+
+    private static void WriteObjects(PdfWriter writer, List<PdfReference> irefs)
+    {
+        foreach (var iref in irefs)
+        {
+            iref.Position = writer.Position;
+            iref.Value.WriteObject(writer);
+        }
+    }
+
+    private static void AddInUseEntries(PdfCrossReferenceStream.CrossReferenceStreamEntry[] entries, List<PdfReference> irefs)
+    {
+        foreach (var iref in irefs)
+            entries[iref.ObjectNumber] = InUse(iref);
+    }
+
+    private static void AddCompressedEntries(PdfCrossReferenceStream.CrossReferenceStreamEntry[] entries,
+        List<PdfReference> compressible, Dictionary<int, (int ObjectStreamNumber, int Index)> placements)
+    {
+        foreach (var iref in compressible)
+        {
+            var placement = placements[iref.ObjectNumber];
+            entries[iref.ObjectNumber] = new PdfCrossReferenceStream.CrossReferenceStreamEntry
+            {
+                Type = 2,
+                Field2 = (uint)placement.ObjectStreamNumber,
+                Field3 = (uint)placement.Index
+            };
+        }
+    }
+
+    private static void SetFieldWidths(PdfDocument document, PdfCrossReferenceStream xrefStream)
+    {
+        var widths = new PdfArray(document);
+        foreach (var width in FieldWidths)
+            widths.Elements.Add(new PdfInteger(width));
+        xrefStream.Elements[PdfCrossReferenceStream.Keys.W] = widths;
+    }
+
+    /// <summary>
+    /// Encodes the entries as the stream's data, compressed unless the document says not to.
+    /// </summary>
+    private static void SetEntries(PdfDocument document, PdfCrossReferenceStream xrefStream,
+        PdfCrossReferenceStream.CrossReferenceStreamEntry[] entries)
+    {
+        var content = Encode(entries);
+        if (document.Options.NoCompression)
+        {
+            xrefStream.CreateStream(content);
+            return;
+        }
+
+        xrefStream.CreateStream(Filtering.FlateDecode.Encode(content, document.Options.FlateEncodeMode));
+        xrefStream.Elements.SetName(PdfDictionary.PdfStream.Keys.Filter, "/FlateDecode");
     }
 
     private static PdfCrossReferenceStream.CrossReferenceStreamEntry InUse(PdfReference iref) =>

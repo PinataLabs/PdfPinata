@@ -788,18 +788,12 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             if (obj is PdfDate date)
                 return date.Value;
 
-            string strDate;
-            if (obj is PdfString pdfString)
+            var strDate = obj switch
             {
-                strDate = pdfString.Value;
-            }
-            else
-            {
-                if (obj is PdfStringObject stringObject)
-                    strDate = stringObject.Value;
-                else
-                    throw new InvalidCastException("GetName: Object is not a name.");
-            }
+                PdfString pdfString => pdfString.Value,
+                PdfStringObject stringObject => stringObject.Value,
+                _ => throw new InvalidCastException("GetName: Object is not a name.")
+            };
 
             if (strDate != "" && Parser.TryParseDateTime(strDate, out var parsed))
                 return parsed;
@@ -985,71 +979,41 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
 
         private PdfArray CreateArray([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]Type type, PdfArray oldArray)
         {
-            PdfArray array = null;
-            if (oldArray == null)
-            {
-                // Use constructor with signature 'Ctor(PdfDocument owner)'.
-                var ctorInfos = type.GetTypeInfo().DeclaredConstructors;
-                foreach (var ctorInfo in ctorInfos)
-                {
-                    var parameters = ctorInfo.GetParameters();
-                    if (parameters.Length == 1 && parameters[0].ParameterType == typeof(PdfDocument))
-                    {
-                        array = ctorInfo.Invoke([_ownerDictionary.Owner]) as PdfArray;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                // Use contstructor with signature 'Ctor(PdfDictionary dict)'.
-                var ctorInfos = type.GetTypeInfo().DeclaredConstructors;
-                foreach (var ctorInfo in ctorInfos)
-                {
-                    var parameters = ctorInfo.GetParameters();
-                    if (parameters.Length == 1 && parameters[0].ParameterType == typeof(PdfArray))
-                    {
-                        array = ctorInfo.Invoke([oldArray]) as PdfArray;
-                        break;
-                    }
-                }
-            }
+            // Use constructor with signature 'Ctor(PdfDocument owner)', or with signature
+            // 'Ctor(PdfArray array)' when there is an array to wrap.
+            var array = (oldArray == null
+                ? Construct(type, typeof(PdfDocument), _ownerDictionary.Owner)
+                : Construct(type, typeof(PdfArray), oldArray)) as PdfArray;
 
             Debug.Assert(array != null, "No appropriate constructor found for type: " + type.Name);
             return array;
         }
 
+        /// <summary>
+        /// Invokes the first constructor of <paramref name="type"/> taking one parameter of type
+        /// <paramref name="parameterType"/>, or answers null when it has none.
+        /// </summary>
+        private static object Construct([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
+            Type type, Type parameterType, object argument)
+        {
+            foreach (var ctorInfo in type.GetTypeInfo().DeclaredConstructors)
+            {
+                var parameters = ctorInfo.GetParameters();
+                if (parameters.Length == 1 && parameters[0].ParameterType == parameterType)
+                    return ctorInfo.Invoke([argument]);
+            }
+
+            return null;
+        }
+
         private PdfDictionary CreateDictionary([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
             Type type, PdfDictionary oldDictionary)
         {
-            PdfDictionary dict = null;
-            if (oldDictionary == null)
-            {
-                // Use constructor with signature 'Ctor(PdfDocument owner)'.
-                var ctorInfos = type.GetTypeInfo().DeclaredConstructors;
-                foreach (var ctorInfo in ctorInfos)
-                {
-                    var parameters = ctorInfo.GetParameters();
-                    if (parameters.Length == 1 && parameters[0].ParameterType == typeof(PdfDocument))
-                    {
-                        dict = ctorInfo.Invoke([_ownerDictionary.Owner]) as PdfDictionary;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                var ctorInfos = type.GetTypeInfo().DeclaredConstructors;
-                foreach (var ctorInfo in ctorInfos)
-                {
-                    var parameters = ctorInfo.GetParameters();
-                    if (parameters.Length == 1 && parameters[0].ParameterType == typeof(PdfDictionary))
-                    {
-                        dict = ctorInfo.Invoke([oldDictionary]) as PdfDictionary;
-                        break;
-                    }
-                }
-            }
+            // Use constructor with signature 'Ctor(PdfDocument owner)', or with signature
+            // 'Ctor(PdfDictionary dict)' when there is a dictionary to wrap.
+            var dict = (oldDictionary == null
+                ? Construct(type, typeof(PdfDocument), _ownerDictionary.Owner)
+                : Construct(type, typeof(PdfDictionary), oldDictionary)) as PdfDictionary;
 
             Debug.Assert(dict != null, "No appropriate constructor found for type: " + type.Name);
             return dict;

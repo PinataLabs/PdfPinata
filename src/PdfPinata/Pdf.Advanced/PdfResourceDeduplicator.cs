@@ -68,21 +68,7 @@ internal static class PdfResourceDeduplicator
         if (graph.Count < 2)
             return 0;
 
-        var classes = graph.Partition();
-
-        // The first object found of each class stands for all of it, which keeps the one a
-        // reader meets first and makes the outcome independent of how the classes are numbered.
-        var representatives = new Dictionary<int, PdfReference>();
-        var replacements = new Dictionary<PdfReference, PdfReference>();
-        for (var i = 0; i < graph.Count; i++)
-        {
-            var reference = graph.Objects[i].Reference;
-            if (representatives.TryGetValue(classes[i], out var representative))
-                replacements[reference] = representative;
-            else
-                representatives[classes[i]] = reference;
-        }
-
+        var replacements = Replacements(graph, graph.Partition());
         if (replacements.Count == 0)
             return 0;
 
@@ -101,6 +87,27 @@ internal static class PdfResourceDeduplicator
     }
 
     /// <summary>
+    /// The reference each merged object is to be replaced by, keyed by its own reference.
+    /// </summary>
+    private static Dictionary<PdfReference, PdfReference> Replacements(CandidateGraph graph, int[] classes)
+    {
+        // The first object found of each class stands for all of it, which keeps the one a
+        // reader meets first and makes the outcome independent of how the classes are numbered.
+        var representatives = new Dictionary<int, PdfReference>();
+        var replacements = new Dictionary<PdfReference, PdfReference>();
+        for (var i = 0; i < graph.Count; i++)
+        {
+            var reference = graph.Objects[i].Reference;
+            if (representatives.TryGetValue(classes[i], out var representative))
+                replacements[reference] = representative;
+            else
+                representatives[classes[i]] = reference;
+        }
+
+        return replacements;
+    }
+
+    /// <summary>
     /// Replaces the references of a dictionary or array, and of the direct ones nested in it.
     /// </summary>
     private static void Redirect(PdfItem item, Dictionary<PdfReference, PdfReference> replacements, int depth)
@@ -111,20 +118,30 @@ internal static class PdfResourceDeduplicator
         switch (item)
         {
             case PdfDictionary dictionary:
-                foreach (var key in dictionary.Elements.Keys.ToList())
-                {
-                    if (Redirected(dictionary.Elements[key], replacements, depth) is { } replacement)
-                        dictionary.Elements[key] = replacement;
-                }
+                RedirectEntries(dictionary, replacements, depth);
                 break;
 
             case PdfArray array:
-                for (var i = 0; i < array.Elements.Count; i++)
-                {
-                    if (Redirected(array.Elements[i], replacements, depth) is { } replacement)
-                        array.Elements[i] = replacement;
-                }
+                RedirectElements(array, replacements, depth);
                 break;
+        }
+    }
+
+    private static void RedirectEntries(PdfDictionary dictionary, Dictionary<PdfReference, PdfReference> replacements, int depth)
+    {
+        foreach (var key in dictionary.Elements.Keys.ToList())
+        {
+            if (Redirected(dictionary.Elements[key], replacements, depth) is { } replacement)
+                dictionary.Elements[key] = replacement;
+        }
+    }
+
+    private static void RedirectElements(PdfArray array, Dictionary<PdfReference, PdfReference> replacements, int depth)
+    {
+        for (var i = 0; i < array.Elements.Count; i++)
+        {
+            if (Redirected(array.Elements[i], replacements, depth) is { } replacement)
+                array.Elements[i] = replacement;
         }
     }
 
@@ -196,13 +213,21 @@ internal static class PdfResourceDeduplicator
                         AddResources(stream.Elements["/Resources"]);
                         break;
                     case PdfDictionary states:
-                        foreach (var state in states.Elements.Values)
-                        {
-                            if (Resolve(state) is PdfDictionary { Stream: not null } stateStream)
-                                AddResources(stateStream.Elements["/Resources"]);
-                        }
+                        AddStateResources(states);
                         break;
                 }
+            }
+        }
+
+        /// <summary>
+        /// The resources of each appearance stream of a dictionary of appearance states.
+        /// </summary>
+        private void AddStateResources(PdfDictionary states)
+        {
+            foreach (var state in states.Elements.Values)
+            {
+                if (Resolve(state) is PdfDictionary { Stream: not null } stateStream)
+                    AddResources(stateStream.Elements["/Resources"]);
             }
         }
 
@@ -240,14 +265,18 @@ internal static class PdfResourceDeduplicator
                         _pending.Enqueue(value);
                     break;
                 case PdfDictionary dictionary:
-                    foreach (var value in dictionary.Elements.Values)
-                        AddItem(value, depth + 1);
+                    AddItems(dictionary.Elements.Values, depth + 1);
                     break;
                 case PdfArray array:
-                    foreach (var value in array.Elements)
-                        AddItem(value, depth + 1);
+                    AddItems(array.Elements, depth + 1);
                     break;
             }
+        }
+
+        private void AddItems(IEnumerable<PdfItem> items, int depth)
+        {
+            foreach (var item in items)
+                AddItem(item, depth);
         }
 
         private void Drain()

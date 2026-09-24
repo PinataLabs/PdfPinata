@@ -80,27 +80,18 @@ public class AsciiHexDecode : Filter
             if (ch == '>')
                 break;
 
-            int digit;
-            if (ch >= '0' && ch <= '9')
-                digit = ch - '0';
-            else if (ch >= 'A' && ch <= 'F')
-                digit = ch - 'A' + 10;
-            else if (ch >= 'a' && ch <= 'f')
-                digit = ch - 'a' + 10;
-            else if (IsWhiteSpace(ch))
+            var digit = DigitValue(ch);
+            if (digit < 0)
                 continue;
-            else
-                throw new ArgumentException($"Illegal character 0x{ch:X2} in ASCIIHexDecode data.", nameof(data));
 
             if (hi < 0)
             {
                 hi = digit;
+                continue;
             }
-            else
-            {
-                bytes[count++] = (byte)(hi << 4 | digit);
-                hi = -1;
-            }
+
+            bytes[count++] = (byte)(hi << 4 | digit);
+            hi = -1;
         }
 
         // "If the filter encounters the EOD marker after reading an odd number of hexadecimal
@@ -113,6 +104,20 @@ public class AsciiHexDecode : Filter
             Array.Resize(ref bytes, count);
         return bytes;
     }
+
+    /// <summary>
+    /// The value of a hexadecimal digit, or -1 for white space, which is skipped.
+    /// </summary>
+    /// <exception cref="ArgumentException">Any other character.</exception>
+    private static int DigitValue(byte ch) => ch switch
+    {
+        >= (byte)'0' and <= (byte)'9' => ch - '0',
+        >= (byte)'A' and <= (byte)'F' => ch - 'A' + 10,
+        >= (byte)'a' and <= (byte)'f' => ch - 'a' + 10,
+        _ when IsWhiteSpace(ch) => -1,
+        // Named after Decode's parameter, which is where the character came from.
+        _ => throw new ArgumentException($"Illegal character 0x{ch:X2} in ASCIIHexDecode data.", "data")
+    };
 
     // The six characters ISO 32000-1 Table 1 calls white space.
     private static bool IsWhiteSpace(byte ch) =>

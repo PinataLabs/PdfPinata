@@ -55,24 +55,30 @@ public class PredictorTests
             var filterType = filterTypeOfRow(rowIndex);
             output[pos++] = filterType;
             for (var idx = 0; idx < stride; idx++)
-            {
-                var left = idx < bpp ? 0 : row[idx - bpp];
-                var above = previous[idx];
-                var aboveLeft = idx < bpp ? 0 : previous[idx - bpp];
-                var predicted = filterType switch
-                {
-                    0 => 0,
-                    1 => left,
-                    2 => above,
-                    3 => (left + above) / 2,
-                    4 => Paeth(left, above, aboveLeft),
-                    _ => throw new ArgumentOutOfRangeException(nameof(filterTypeOfRow), filterType, "PNG defines filter types 0 to 4.")
-                };
-                output[pos++] = (byte)(row[idx] - predicted);
-            }
+                output[pos++] = (byte)(row[idx] - Predicted(filterType, row, previous, idx, bpp));
             previous = row;
         }
         return output;
+    }
+
+    /// <summary>
+    ///   What PNG filter <paramref name="filterType"/> predicts the byte at <paramref name="idx"/>
+    ///   of <paramref name="row"/> to be, from its neighbours to the left and in the row above.
+    /// </summary>
+    private static int Predicted(byte filterType, byte[] row, byte[] previous, int idx, int bpp)
+    {
+        var left = idx < bpp ? 0 : row[idx - bpp];
+        var above = previous[idx];
+        var aboveLeft = idx < bpp ? 0 : previous[idx - bpp];
+        return filterType switch
+        {
+            0 => 0,
+            1 => left,
+            2 => above,
+            3 => (left + above) / 2,
+            4 => Paeth(left, above, aboveLeft),
+            _ => throw new ArgumentOutOfRangeException(nameof(filterType), filterType, "PNG defines filter types 0 to 4.")
+        };
     }
 
     private static int Paeth(int a, int b, int c)

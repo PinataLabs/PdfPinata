@@ -495,20 +495,7 @@ public class FootnoteTests
     {
         for (var at = runs.Count - 1; at >= 0; at--)
         {
-            if (runs[at].Count != wanted.Count)
-                continue;
-
-            var matches = true;
-            for (var idx = 0; idx < wanted.Count; idx++)
-            {
-                if (runs[at][idx] != wanted[idx])
-                {
-                    matches = false;
-                    break;
-                }
-            }
-
-            if (matches)
+            if (runs[at].SequenceEqual(wanted))
                 return at;
         }
 

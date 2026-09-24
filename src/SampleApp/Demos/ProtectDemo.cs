@@ -47,9 +47,9 @@ internal sealed class ProtectDemo : PdfDemo
 
     public override int PageCount => 2;
 
+    #region example
     protected override PdfDocument Build(DemoContext context)
     {
-        #region example
         var document = new PdfDocument();
         document.Info.Title = "Protect";
 
@@ -241,39 +241,43 @@ internal sealed class ProtectDemo : PdfDemo
         document.SecuritySettings.OwnerPassword = OwnerPassword;
 
         foreach (var permission in permissions)
-        {
-            switch (permission.Name)
-            {
-                case "PermitPrint":
-                    document.SecuritySettings.PermitPrint = permission.Allowed;
-                    break;
-                case "PermitFullQualityPrint":
-                    document.SecuritySettings.PermitFullQualityPrint = permission.Allowed;
-                    break;
-                case "PermitExtractContent":
-                    document.SecuritySettings.PermitExtractContent = permission.Allowed;
-                    break;
-                case "PermitAccessibilityExtractContent":
-                    document.SecuritySettings.PermitAccessibilityExtractContent = permission.Allowed;
-                    break;
-                case "PermitModifyDocument":
-                    document.SecuritySettings.PermitModifyDocument = permission.Allowed;
-                    break;
-                case "PermitAssembleDocument":
-                    document.SecuritySettings.PermitAssembleDocument = permission.Allowed;
-                    break;
-                case "PermitAnnotations":
-                    document.SecuritySettings.PermitAnnotations = permission.Allowed;
-                    break;
-                case "PermitFormsFill":
-                    document.SecuritySettings.PermitFormsFill = permission.Allowed;
-                    break;
-                default:
-                    throw new InvalidOperationException($"No setter for {permission.Name}.");
-            }
-        }
-        #endregion
+            Permit(document.SecuritySettings, permission.Name, permission.Allowed);
 
         return document;
     }
+
+    // The table on page one names each flag by its property, so the same table is what sets them.
+    private static void Permit(PdfSecuritySettings settings, string name, bool allowed)
+    {
+        switch (name)
+        {
+            case "PermitPrint":
+                settings.PermitPrint = allowed;
+                break;
+            case "PermitFullQualityPrint":
+                settings.PermitFullQualityPrint = allowed;
+                break;
+            case "PermitExtractContent":
+                settings.PermitExtractContent = allowed;
+                break;
+            case "PermitAccessibilityExtractContent":
+                settings.PermitAccessibilityExtractContent = allowed;
+                break;
+            case "PermitModifyDocument":
+                settings.PermitModifyDocument = allowed;
+                break;
+            case "PermitAssembleDocument":
+                settings.PermitAssembleDocument = allowed;
+                break;
+            case "PermitAnnotations":
+                settings.PermitAnnotations = allowed;
+                break;
+            case "PermitFormsFill":
+                settings.PermitFormsFill = allowed;
+                break;
+            default:
+                throw new InvalidOperationException($"No setter for {name}.");
+        }
+    }
+    #endregion
 }

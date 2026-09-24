@@ -101,14 +101,8 @@ internal sealed class PdfResourcePruner : PdfPageWalk
                 continue;
             }
 
-            var kept = new PdfDictionary(page.Owner);
-            foreach (var name in entries.Elements.KeyNames)
-            {
-                if (IsUsed(key.Value, name.Value))
-                    kept.Elements[name.Value] = entries.Elements[name.Value];
-                else
-                    anythingDropped = true;
-            }
+            var kept = Used(page.Owner, key.Value, entries, out var dropped);
+            anythingDropped |= dropped;
 
             if (kept.Elements.Count > 0)
                 pruned.Elements[key.Value] = kept;
@@ -123,6 +117,25 @@ internal sealed class PdfResourcePruner : PdfPageWalk
         // other pages carry as well, and must be left as it is for them.
         page.Owner._irefTable.Add(pruned);
         page.ReplaceResources(pruned);
+    }
+
+    /// <summary>
+    /// A copy of one category of resources holding only the entries the page draws with, and
+    /// whether any entry was left out of it.
+    /// </summary>
+    private PdfDictionary Used(PdfDocument owner, string category, PdfDictionary entries, out bool anythingDropped)
+    {
+        anythingDropped = false;
+        var kept = new PdfDictionary(owner);
+        foreach (var name in entries.Elements.KeyNames)
+        {
+            if (IsUsed(category, name.Value))
+                kept.Elements[name.Value] = entries.Elements[name.Value];
+            else
+                anythingDropped = true;
+        }
+
+        return kept;
     }
 
     #endregion

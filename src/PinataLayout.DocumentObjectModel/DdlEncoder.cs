@@ -136,23 +136,18 @@ public static class DdlEncoder
 
     for (var index = 0; index < len; index++)
     {
-      var ch = name[index];
-      if (ch == ' ')
+      if (!IsIdentifierChar(name[index], index == 0))
         return false;
-
-      if (index == 0)
-      {
-        if (!char.IsLetter(ch) && ch != '_')
-          return false;
-      }
-      else
-      {
-        if (!char.IsLetterOrDigit(ch) && ch != '_')
-          return false;
-      }
     }
     return true;
   }
+
+  /// <summary>
+  /// Whether an identifier may hold the character: a letter or an underscore anywhere, a digit
+  /// anywhere but first. A blank is none of these.
+  /// </summary>
+  private static bool IsIdentifierChar(char ch, bool first)
+    => ch == '_' || (first ? char.IsLetter(ch) : char.IsLetterOrDigit(ch));
 
   /// <summary>
   /// Quotes the given name, if it contains characters which are invalid for identifiers.

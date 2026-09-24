@@ -398,9 +398,16 @@ public static class PdfSigner
         AddReference(document, signature, reference);
 
         var form = document.Catalog.AcroForm;
-        if (form == null)
-            return;
+        if (form != null)
+            MakeLockedFieldsReadOnly(form, field);
+    }
 
+    /// <summary>
+    /// Sets the read-only flag on every field of the form the signature field's lock covers,
+    /// other than the signature field itself.
+    /// </summary>
+    private static void MakeLockedFieldsReadOnly(PdfAcroForm form, PdfSignatureField field)
+    {
         var own = field.Elements.GetString(PdfAcroField.Keys.T);
         foreach (var name in form.Fields.DescendantNames)
         {

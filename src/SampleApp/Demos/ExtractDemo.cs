@@ -269,11 +269,7 @@ internal sealed class ExtractDemo : PdfDemo
             var scaled = SizeOfScaledRun(runs);
 
             prose.DrawString(
-                (scaled.HasValue
-                    ? "The line drawn under a twofold scale reports a size of "
-                      + Number(scaled.Value).Trim() + " rather than 9, and a width to match. "
-                    : "The line drawn under a twofold scale is not among the runs above, so the "
-                      + "measurement this paragraph was going to quote is not there to quote. ")
+                ScaledRunSentence(scaled)
                 + "Both are measured through the same matrix, and they have to be: the run is "
                 + "reported in user space, so leaving the current transformation out of one of them "
                 + "would give a width in text space and a size in user space, which disagree with "
@@ -308,6 +304,17 @@ internal sealed class ExtractDemo : PdfDemo
 
         return null;
     }
+
+    /// <summary>
+    ///   What the scaled run measured, or that it could not be found - never a nought standing in
+    ///   for a measurement.
+    /// </summary>
+    private static string ScaledRunSentence(double? scaled) =>
+        scaled.HasValue
+            ? "The line drawn under a twofold scale reports a size of "
+              + Number(scaled.Value).Trim() + " rather than 9, and a width to match. "
+            : "The line drawn under a twofold scale is not among the runs above, so the "
+              + "measurement this paragraph was going to quote is not there to quote. ";
 
     private static string Number(double value) =>
         value.ToString("0.0", CultureInfo.InvariantCulture).PadLeft(6);

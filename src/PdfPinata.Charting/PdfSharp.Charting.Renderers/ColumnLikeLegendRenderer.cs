@@ -56,36 +56,13 @@ internal class ColumnLikeLegendRenderer : LegendRenderer
     if (cri.Chart.legend == null)
       return null;
 
-    var lri = new LegendRendererInfo { Legend = cri.Chart.legend };
-
-    lri.Font = Converter.ToXFont(lri.Legend.font, cri.DefaultFont);
-    lri.FontColor = Converter.ToXBrush(lri.Legend.font, cri.DefaultFontColor);
-
-    if (lri.Legend.lineFormat != null)
-      lri.BorderPen = Converter.ToXPen(lri.Legend.lineFormat, XColors.Black, DefaultLineWidth, XDashStyle.Solid);
+    var lri = NewLegendRendererInfo(cri);
 
     lri.Entries = new LegendEntryRendererInfo[cri.SeriesRendererInfos.Length];
     var index = 0;
     foreach (var sri in cri.SeriesRendererInfos)
     {
-      var leri = new LegendEntryRendererInfo
-      {
-        SeriesRendererInfo = sri,
-        LegendRendererInfo = lri,
-        EntryText = sri.Series.name
-      };
-      if (sri.MarkerRendererInfo != null)
-      {
-        leri.MarkerSize.Width = leri.MarkerSize.Height = sri.MarkerRendererInfo.MarkerSize.Point;
-        leri.MarkerPen = new XPen(sri.MarkerRendererInfo.MarkerForegroundColor);
-        leri.MarkerBrush = new XSolidBrush(sri.MarkerRendererInfo.MarkerBackgroundColor);
-      }
-      else
-      {
-        leri.MarkerPen = sri.LineFormat;
-        leri.MarkerBrush = sri.FillFormat;
-      }
-
+      var leri = NewEntry(lri, sri);
       if (cri.Chart.type == ChartType.ColumnStacked2D)
         // stacked columns are revers ordered
         lri.Entries[cri.SeriesRendererInfos.Length - index++ - 1] = leri;
@@ -96,6 +73,32 @@ internal class ColumnLikeLegendRenderer : LegendRenderer
     if (cri is CombinationRendererInfo { ColumnsStacked: true })
       ReverseStackedEntries(lri.Entries);
     return lri;
+  }
+
+  /// <summary>
+  /// The legend entry of one series, keyed by its markers when it has them and by its line and
+  /// fill when not.
+  /// </summary>
+  private static LegendEntryRendererInfo NewEntry(LegendRendererInfo lri, SeriesRendererInfo sri)
+  {
+    var leri = new LegendEntryRendererInfo
+    {
+      SeriesRendererInfo = sri,
+      LegendRendererInfo = lri,
+      EntryText = sri.Series.name
+    };
+    if (sri.MarkerRendererInfo != null)
+    {
+      leri.MarkerSize.Width = leri.MarkerSize.Height = sri.MarkerRendererInfo.MarkerSize.Point;
+      leri.MarkerPen = new XPen(sri.MarkerRendererInfo.MarkerForegroundColor);
+      leri.MarkerBrush = new XSolidBrush(sri.MarkerRendererInfo.MarkerBackgroundColor);
+    }
+    else
+    {
+      leri.MarkerPen = sri.LineFormat;
+      leri.MarkerBrush = sri.FillFormat;
+    }
+    return leri;
   }
 
   /// <summary>

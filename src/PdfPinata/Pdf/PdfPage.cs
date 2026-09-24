@@ -217,23 +217,20 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     {
         foreach (var element in array.Elements)
         {
-            var item = element;
-            if (item is PdfReference reference)
-                item = reference.Value;
-
-            if (item is PdfDictionary dictionary)
-            {
-                if (dictionary.Stream is { Length: > 0 })
-                    return true;
-            }
-            else if (item != null && item is not PdfNull)
-            {
+            if (ElementHoldsBytes(element is PdfReference reference ? reference.Value : element))
                 return true;
-            }
         }
 
         return false;
     }
+
+    private static bool ElementHoldsBytes(PdfItem item) =>
+        item switch
+        {
+            PdfDictionary dictionary => dictionary.Stream is { Length: > 0 },
+            null or PdfNull => false,
+            _ => true
+        };
 
     /// <summary>
     /// Throws when the page has content, because setting its size writes a new media box and

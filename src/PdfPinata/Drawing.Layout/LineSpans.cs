@@ -80,7 +80,18 @@ public static class LineSpans
         width = 0;
 
         ArgumentNullException.ThrowIfNull(blocked);
+        ValidateLine(left, right, tolerance);
 
+        if (!IntervalSet.Of(left, right).Subtract(TakenIntervals(blocked)).TryWidest(tolerance, out var widest))
+            return false;
+
+        start = widest.Start;
+        width = widest.Width;
+        return true;
+    }
+
+    private static void ValidateLine(double left, double right, double tolerance)
+    {
         // A line may have no width - that is an ordinary answer of "no room", and there is a test
         // for it - but it cannot end to the left of where it began. Left unchecked the scan walks
         // a negative line and reports no room, which is the right answer arrived at by accident
@@ -115,7 +126,10 @@ public static class LineSpans
             throw new ArgumentOutOfRangeException(nameof(tolerance), tolerance,
                 "A tolerance narrower than nothing would make a run of no width count as room.");
         }
+    }
 
+    private static List<XInterval> TakenIntervals(List<(double Start, double End)> blocked)
+    {
         var taken = new List<XInterval>(blocked.Count);
         foreach (var span in blocked)
         {
@@ -126,11 +140,6 @@ public static class LineSpans
                 : new XInterval(span.Start, span.End));
         }
 
-        if (!IntervalSet.Of(left, right).Subtract(taken).TryWidest(tolerance, out var widest))
-            return false;
-
-        start = widest.Start;
-        width = widest.Width;
-        return true;
+        return taken;
     }
 }
