@@ -1179,72 +1179,109 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
             if (type1 == XMatrixTypes.Identity)
             {
                 matrix1 = matrix2;
+                return;
             }
-            else if (type2 == XMatrixTypes.Translation)
+
+            if (type2 == XMatrixTypes.Translation)
             {
-                matrix1._offsetX += matrix2._offsetX;
-                matrix1._offsetY += matrix2._offsetY;
-                if (type1 != XMatrixTypes.Unknown)
-                    matrix1._type |= XMatrixTypes.Translation;
+                AppendTranslation(ref matrix1, ref matrix2, type1);
+                return;
             }
-            else if (type1 == XMatrixTypes.Translation)
+
+            if (type1 == XMatrixTypes.Translation)
             {
-                var num = matrix1._offsetX;
-                var num2 = matrix1._offsetY;
-                matrix1 = matrix2;
-                matrix1._offsetX = num * matrix2._m11 + num2 * matrix2._m21 + matrix2._offsetX;
-                matrix1._offsetY = num * matrix2._m12 + num2 * matrix2._m22 + matrix2._offsetY;
-                if (type2 == XMatrixTypes.Unknown)
-                    matrix1._type = XMatrixTypes.Unknown;
-                else
+                TranslateThenMultiply(ref matrix1, ref matrix2, type2);
+                return;
+            }
+
+            MultiplyScalingOrGeneral(ref matrix1, ref matrix2, type1, type2);
+        }
+
+        /// <summary>
+        /// The second matrix is a pure translation, so only the offsets of the first move.
+        /// </summary>
+        private static void AppendTranslation(ref XMatrix matrix1, ref XMatrix matrix2, XMatrixTypes type1)
+        {
+            matrix1._offsetX += matrix2._offsetX;
+            matrix1._offsetY += matrix2._offsetY;
+            if (type1 != XMatrixTypes.Unknown)
+                matrix1._type |= XMatrixTypes.Translation;
+        }
+
+        /// <summary>
+        /// The first matrix is a pure translation, so the product is the second matrix with the
+        /// first's offset carried through it.
+        /// </summary>
+        private static void TranslateThenMultiply(ref XMatrix matrix1, ref XMatrix matrix2, XMatrixTypes type2)
+        {
+            var num = matrix1._offsetX;
+            var num2 = matrix1._offsetY;
+            matrix1 = matrix2;
+            matrix1._offsetX = num * matrix2._m11 + num2 * matrix2._m21 + matrix2._offsetX;
+            matrix1._offsetY = num * matrix2._m12 + num2 * matrix2._m22 + matrix2._offsetY;
+            matrix1._type = type2 == XMatrixTypes.Unknown
+                ? XMatrixTypes.Unknown
+                : XMatrixTypes.Scaling | XMatrixTypes.Translation;
+        }
+
+        /// <summary>
+        /// Neither matrix is the identity or a pure translation: each is a scale, a scale and a
+        /// translation, or something more general. Only a general matrix on either side needs the
+        /// whole multiplication.
+        /// </summary>
+        private static void MultiplyScalingOrGeneral(ref XMatrix matrix1, ref XMatrix matrix2, XMatrixTypes type1,
+            XMatrixTypes type2)
+        {
+            switch (((int)type1 << 4) | (int)type2)
+            {
+                case 0x22:
+                    MultiplyScales(ref matrix1, ref matrix2);
+                    return;
+
+                case 0x23:
+                    MultiplyScales(ref matrix1, ref matrix2);
+                    matrix1._offsetX = matrix2._offsetX;
+                    matrix1._offsetY = matrix2._offsetY;
                     matrix1._type = XMatrixTypes.Scaling | XMatrixTypes.Translation;
+                    return;
+
+                case 0x24:
+                case 0x34:
+                case 0x42:
+                case 0x43:
+                case 0x44:
+                    MultiplyGeneral(ref matrix1, ref matrix2);
+                    return;
+
+                case 0x32:
+                    MultiplyScales(ref matrix1, ref matrix2);
+                    matrix1._offsetX *= matrix2._m11;
+                    matrix1._offsetY *= matrix2._m22;
+                    return;
+
+                case 0x33:
+                    MultiplyScales(ref matrix1, ref matrix2);
+                    matrix1._offsetX = matrix2._m11 * matrix1._offsetX + matrix2._offsetX;
+                    matrix1._offsetY = matrix2._m22 * matrix1._offsetY + matrix2._offsetY;
+                    return;
             }
-            else
-            {
-                switch (((int)type1 << 4) | (int)type2)
-                {
-                    case 0x22:
-                        matrix1._m11 *= matrix2._m11;
-                        matrix1._m22 *= matrix2._m22;
-                        return;
+        }
 
-                    case 0x23:
-                        matrix1._m11 *= matrix2._m11;
-                        matrix1._m22 *= matrix2._m22;
-                        matrix1._offsetX = matrix2._offsetX;
-                        matrix1._offsetY = matrix2._offsetY;
-                        matrix1._type = XMatrixTypes.Scaling | XMatrixTypes.Translation;
-                        return;
+        private static void MultiplyScales(ref XMatrix matrix1, ref XMatrix matrix2)
+        {
+            matrix1._m11 *= matrix2._m11;
+            matrix1._m22 *= matrix2._m22;
+        }
 
-                    case 0x24:
-                    case 0x34:
-                    case 0x42:
-                    case 0x43:
-                    case 0x44:
-                        matrix1 = new XMatrix(
-                            matrix1._m11 * matrix2._m11 + matrix1._m12 * matrix2._m21,
-                            matrix1._m11 * matrix2._m12 + matrix1._m12 * matrix2._m22,
-                            matrix1._m21 * matrix2._m11 + matrix1._m22 * matrix2._m21,
-                            matrix1._m21 * matrix2._m12 + matrix1._m22 * matrix2._m22,
-                            matrix1._offsetX * matrix2._m11 + matrix1._offsetY * matrix2._m21 + matrix2._offsetX,
-                            matrix1._offsetX * matrix2._m12 + matrix1._offsetY * matrix2._m22 + matrix2._offsetY);
-                        return;
-
-                    case 50:
-                        matrix1._m11 *= matrix2._m11;
-                        matrix1._m22 *= matrix2._m22;
-                        matrix1._offsetX *= matrix2._m11;
-                        matrix1._offsetY *= matrix2._m22;
-                        return;
-
-                    case 0x33:
-                        matrix1._m11 *= matrix2._m11;
-                        matrix1._m22 *= matrix2._m22;
-                        matrix1._offsetX = matrix2._m11 * matrix1._offsetX + matrix2._offsetX;
-                        matrix1._offsetY = matrix2._m22 * matrix1._offsetY + matrix2._offsetY;
-                        return;
-                }
-            }
+        private static void MultiplyGeneral(ref XMatrix matrix1, ref XMatrix matrix2)
+        {
+            matrix1 = new XMatrix(
+                matrix1._m11 * matrix2._m11 + matrix1._m12 * matrix2._m21,
+                matrix1._m11 * matrix2._m12 + matrix1._m12 * matrix2._m22,
+                matrix1._m21 * matrix2._m11 + matrix1._m22 * matrix2._m21,
+                matrix1._m21 * matrix2._m12 + matrix1._m22 * matrix2._m22,
+                matrix1._offsetX * matrix2._m11 + matrix1._offsetY * matrix2._m21 + matrix2._offsetX,
+                matrix1._offsetX * matrix2._m12 + matrix1._offsetY * matrix2._m22 + matrix2._offsetY);
         }
 
         internal static void PrependOffset(ref XMatrix matrix, double offsetX, double offsetY)

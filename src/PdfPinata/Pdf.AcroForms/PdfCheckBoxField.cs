@@ -92,156 +92,79 @@ public sealed class PdfCheckBoxField : PdfButtonField
             EnsureCanBeFilled();
 
             if (!HasKids)
-            {
-                var name = value ? GetNonOffValue() : "/Off";
-                Elements.SetName(PdfAcroField.Keys.V, name);
-                Elements.SetName(PdfAnnotation.Keys.AS, name);
-            }
+                SetOwnState(value);
             else if (Fields.Elements.Items.Length == 1)
-            {
-                // One widget of its own is the ordinary shape of a tick box whose annotation was
-                // not merged into the field, and it is a tick box rather than half of a pair: the
-                // state asked for is the state it takes. The names come from the child, because
-                // the child is what carries the appearances.
-                var child = ChildAt(0);
-                var name = value ? OnStateOf(child) : OffStateOf(child);
-                if (child != null && name.Length != 0)
-                {
-                    child.Elements.SetName(PdfAcroField.Keys.V, name);
-                    child.Elements.SetName(PdfAnnotation.Keys.AS, name);
-                    Elements.SetName(PdfAcroField.Keys.V, name);
-                }
-            }
-            else
-            {
-                // Here we have to handle fields that exist twice with the same name.
-                // Checked must be set for both fields, using /Off for one field and skipping /Off for the other,
-                // to have only one field with a check mark.
-                // Finding this took me two working days.
-                if (Fields.Elements.Items.Length == 2)
-                {
-                    if (value)
-                    {
-                        // Element 0: set it to its on state.
-                        var name1 = "";
-                        var o =
-                            ((PdfDictionary)((PdfReference)Fields.Elements.Items[0]).Value).Elements["/AP"] as
-                            PdfDictionary;
-                        if (o != null)
-                        {
-                            if (o.Elements["/N"] is PdfDictionary n)
-                            {
-                                foreach (var name in n.Elements.Keys)
-                                {
-                                    if (name != "/Off")
-                                    {
-                                        name1 = name;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-
-                        if (name1.Length != 0)
-                        {
-                            ((PdfDictionary)((PdfReference)Fields.Elements.Items[0]).Value).Elements.SetName(
-                                PdfAcroField.Keys.V, name1);
-                            ((PdfDictionary)((PdfReference)Fields.Elements.Items[0]).Value).Elements.SetName(
-                                PdfAnnotation.Keys.AS, name1);
-                        }
-
-                        // Element 1: set it to /Off.
-                        // Cleared first: name1 still holds the on state found for element 0, and
-                        // if element 1 offers no /Off state the search below leaves it untouched -
-                        // so without this the second element was set to the first one's on state
-                        // and both were ticked.
-                        name1 = "";
-                        o = ((PdfDictionary)((PdfReference)Fields.Elements.Items[1]).Value).Elements["/AP"] as
-                            PdfDictionary;
-                        if (o != null)
-                        {
-                            if (o.Elements["/N"] is PdfDictionary n)
-                            {
-                                foreach (var name in n.Elements.Keys)
-                                {
-                                    if (name == "/Off")
-                                    {
-                                        name1 = name;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-
-                        if (name1.Length != 0)
-                        {
-                            ((PdfDictionary)((PdfReference)Fields.Elements.Items[1]).Value).Elements.SetName(
-                                PdfAcroField.Keys.V, name1);
-                            ((PdfDictionary)((PdfReference)Fields.Elements.Items[1]).Value).Elements.SetName(
-                                PdfAnnotation.Keys.AS, name1);
-                        }
-                    }
-                    else
-                    {
-                        // Element 1: set it to its on state.
-                        var name1 = "";
-                        var o =
-                            ((PdfDictionary)((PdfReference)Fields.Elements.Items[1]).Value).Elements["/AP"] as
-                            PdfDictionary;
-                        if (o != null)
-                        {
-                            if (o.Elements["/N"] is PdfDictionary n)
-                            {
-                                foreach (var name in n.Elements.Keys)
-                                {
-                                    if (name != "/Off")
-                                    {
-                                        name1 = name;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-
-                        if (name1.Length != 0)
-                        {
-                            ((PdfDictionary)((PdfReference)Fields.Elements.Items[1]).Value).Elements.SetName(
-                                PdfAcroField.Keys.V, name1);
-                            ((PdfDictionary)((PdfReference)Fields.Elements.Items[1]).Value).Elements.SetName(
-                                PdfAnnotation.Keys.AS, name1);
-                        }
-
-                        // Element 0: set it to /Off.
-                        // Cleared first, for the same reason as the branch above.
-                        name1 = "";
-                        o = ((PdfDictionary)((PdfReference)Fields.Elements.Items[0]).Value).Elements["/AP"] as
-                            PdfDictionary;
-                        if (o != null)
-                        {
-                            if (o.Elements["/N"] is PdfDictionary n)
-                            {
-                                foreach (var name in n.Elements.Keys)
-                                {
-                                    if (name == "/Off")
-                                    {
-                                        name1 = name;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-
-                        if (name1.Length != 0)
-                        {
-                            ((PdfDictionary)((PdfReference)Fields.Elements.Items[0]).Value).Elements.SetName(
-                                PdfAcroField.Keys.V, name1);
-                            ((PdfDictionary)((PdfReference)Fields.Elements.Items[0]).Value).Elements.SetName(
-                                PdfAnnotation.Keys.AS, name1);
-                        }
-                    }
-                }
-            }
+                SetSingleChildState(value);
+            else if (Fields.Elements.Items.Length == 2)
+                SetTwinChildStates(value);
         }
+    }
+
+    /// <summary>
+    /// A field that is its own widget takes the state in its own <c>/V</c> and <c>/AS</c>.
+    /// </summary>
+    private void SetOwnState(bool value)
+    {
+        var name = value ? GetNonOffValue() : "/Off";
+        Elements.SetName(PdfAcroField.Keys.V, name);
+        Elements.SetName(PdfAnnotation.Keys.AS, name);
+    }
+
+    /// <summary>
+    /// One widget of its own is the ordinary shape of a tick box whose annotation was not merged
+    /// into the field, and it is a tick box rather than half of a pair: the state asked for is the
+    /// state it takes. The names come from the child, because the child is what carries the
+    /// appearances.
+    /// </summary>
+    private void SetSingleChildState(bool value)
+    {
+        var child = ChildAt(0);
+        var name = value ? OnStateOf(child) : OffStateOf(child);
+        if (child != null && name.Length != 0)
+        {
+            child.Elements.SetName(PdfAcroField.Keys.V, name);
+            child.Elements.SetName(PdfAnnotation.Keys.AS, name);
+            Elements.SetName(PdfAcroField.Keys.V, name);
+        }
+    }
+
+    /// <summary>
+    /// Here we have to handle fields that exist twice with the same name. Checked must be set for
+    /// both fields, using /Off for one field and skipping /Off for the other, to have only one field
+    /// with a check mark. Finding this took me two working days.
+    /// </summary>
+    /// <remarks>
+    /// Ticked, the first child takes its on state and the second its off state; unticked, the
+    /// second takes its on state and the first its off state. Either way the child taking the on
+    /// state is written first. Each child's name is looked up on its own, so a child that offers no
+    /// such state is left untouched - carrying one name over from the other child is how both
+    /// were once ticked.
+    /// </remarks>
+    private void SetTwinChildStates(bool value)
+    {
+        SetTwinChildState(ReferencedChildAt(value ? 0 : 1), on: true);
+        SetTwinChildState(ReferencedChildAt(value ? 1 : 0), on: false);
+    }
+
+    /// <summary>
+    /// The child at the given position, which the twin-widget path takes to be an indirect
+    /// reference to a dictionary - anything else fails the cast.
+    /// </summary>
+    private PdfDictionary ReferencedChildAt(int index) =>
+        (PdfDictionary)((PdfReference)Fields.Elements.Items[index]).Value;
+
+    /// <summary>
+    /// Writes the child's on or off state into its <c>/V</c> and <c>/AS</c>, unless its appearances
+    /// name no such state.
+    /// </summary>
+    private static void SetTwinChildState(PdfDictionary child, bool on)
+    {
+        var name = StateIn(child.Elements, wanted: !on);
+        if (name.Length == 0)
+            return;
+
+        child.Elements.SetName(PdfAcroField.Keys.V, name);
+        child.Elements.SetName(PdfAnnotation.Keys.AS, name);
     }
 
     /// <summary>
@@ -271,9 +194,16 @@ public sealed class PdfCheckBoxField : PdfButtonField
     /// </summary>
     private static string OffStateOf(PdfDictionary child) => StateOf(child, wanted: true);
 
-    private static string StateOf(PdfDictionary child, bool wanted)
+    private static string StateOf(PdfDictionary child, bool wanted) =>
+        child == null ? "" : StateIn(child.Elements, wanted);
+
+    /// <summary>
+    /// The first normal appearance state that is "/Off" when <paramref name="wanted"/> is true, or
+    /// that is not when it is false; "" when there is no such state or no appearances at all.
+    /// </summary>
+    private static string StateIn(PdfDictionary.DictionaryElements elements, bool wanted)
     {
-        var appearances = child?.Elements["/AP"] as PdfDictionary;
+        var appearances = elements["/AP"] as PdfDictionary;
         if (appearances?.Elements["/N"] is not PdfDictionary normal)
             return "";
 

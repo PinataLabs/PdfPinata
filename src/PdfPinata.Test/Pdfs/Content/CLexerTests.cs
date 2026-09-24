@@ -300,6 +300,21 @@ public class CLexerTests
     }
 
     /// <summary>
+    /// Only one line ending is swallowed: a second one after it is part of the string. A CR LF is
+    /// one line ending, so the LF of a second pair survives but not the LF of the first.
+    /// </summary>
+    [Theory(Timeout = 5000)]
+    [InlineData("\r\n\n", "a\nb")]
+    [InlineData("\n\n", "a\nb")]
+    [InlineData("\r\r", "a\rb")]
+    public async Task ScanLiteralString_keepsALineEndingAfterTheOneABackslashContinues(string lineEndings, string expected)
+    {
+        var tokens = await ScanAll(new CLexer(Encoding.ASCII.GetBytes("(a\\" + lineEndings + "b)")));
+
+        TokensOf(tokens, CSymbol.String).Should().Equal(expected);
+    }
+
+    /// <summary>
     /// A backslash before anything else is dropped and the character is kept, which is how a
     /// string carrying an escape the specification does not define still scans.
     /// </summary>
@@ -454,12 +469,11 @@ public class CLexerTests
     [Theory(Timeout = 5000)]
     [InlineData("(a\\\nb)", "ab")]
     [InlineData("(a\\\rb)", "ab")]
-    // Both bytes of a CR LF pair are read raw here, matching the document lexer's own
-    // ScanLiteralString: the CR after the backslash continues the line, but the LF that follows
-    // it is not itself escaped, so it lands in the string as an ordinary character rather than
-    // being swallowed along with the CR. Lexer does the same - LexerLiteralStringTests would pin
-    // it there too, but no such test existed before this one for either lexer.
-    [InlineData("(a\\\r\nb)", "a\nb")]
+    // A CR LF is one end-of-line marker (ISO 32000-1 7.2.3), and a backslash before one is
+    // ignored along with all of it (7.3.4.2). Both lexers used to swallow the CR alone and keep
+    // the LF as the first character of the next line, and this case pinned that; the document
+    // lexer's side is LexerLineContinuationTests.
+    [InlineData("(a\\\r\nb)", "ab")]
     public async Task ScanLiteralString_treatsABackslashBeforeAnEndOfLineAsAContinuation(
         string content, string expected)
     {

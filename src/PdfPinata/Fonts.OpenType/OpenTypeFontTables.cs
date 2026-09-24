@@ -348,21 +348,10 @@ internal class CMapTable : OpenTypeFontTable
                 int encodingId = _fontData.ReadUShort();
                 var offset = _fontData.ReadLong();
 
-                if (cmap4Offset < 0)
+                if (cmap4Offset < 0 && IsBmpSubtable(platformId, encodingId, out var isSymbol))
                 {
-                    // Just read Windows stuff.
-                    if (platformId == PlatformId.Win && ((WinEncodingId)encodingId == WinEncodingId.Symbol ||
-                                                         (WinEncodingId)encodingId == WinEncodingId.Unicode))
-                    {
-                        cmap4Offset = offset;
-                        cmap4IsSymbol = (WinEncodingId)encodingId == WinEncodingId.Symbol;
-                    }
-                    else if (platformId == PlatformId.Apple &&
-                             (AppleEncodingId)encodingId == AppleEncodingId.Unicode20BmpOnly)
-                    {
-                        cmap4Offset = offset;
-                        cmap4IsSymbol = false;
-                    }
+                    cmap4Offset = offset;
+                    cmap4IsSymbol = isSymbol;
                 }
 
                 if (cmap12Offset < 0 && IsFullUnicode(platformId, encodingId))
@@ -377,24 +366,51 @@ internal class CMapTable : OpenTypeFontTable
             _fontData.Position = tableOffset + cmap4Offset;
             cmap4 = new CMap4(_fontData, cmap4IsSymbol ? WinEncodingId.Symbol : WinEncodingId.Unicode);
 
-            // The encoding identifier says a subtable reaches past U+FFFF; it does not say the
-            // subtable is format 12. Checking the format itself rather than trusting the record is
-            // what keeps a face that files something else under that encoding from being read as a
-            // format 12 table and answering nonsense.
-            if (cmap12Offset < 0)
-                return;
-
-            _fontData.Position = tableOffset + cmap12Offset;
-            if (_fontData.ReadUShort() != 12)
-                return;
-
-            _fontData.Position = tableOffset + cmap12Offset;
-            cmap12 = new CMap12(_fontData);
+            if (cmap12Offset >= 0)
+                ReadCMap12IfFormat12(tableOffset + cmap12Offset);
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
         {
             throw new InvalidOperationException(PSSR.ErrorReadingFontData, ex);
         }
+    }
+
+    /// <summary>
+    /// Whether a subtable record is one the format 4 subtable may be taken from - a Windows symbol
+    /// or Unicode one, or Apple's Unicode 2.0 for the basic multilingual plane alone - and if so,
+    /// whether it is the symbol encoding.
+    /// </summary>
+    private static bool IsBmpSubtable(PlatformId platformId, int encodingId, out bool isSymbol)
+    {
+        isSymbol = false;
+
+        // Just read Windows stuff.
+        if (platformId == PlatformId.Win)
+        {
+            var win = (WinEncodingId)encodingId;
+            isSymbol = win == WinEncodingId.Symbol;
+            return win is WinEncodingId.Symbol or WinEncodingId.Unicode;
+        }
+
+        return platformId == PlatformId.Apple && (AppleEncodingId)encodingId == AppleEncodingId.Unicode20BmpOnly;
+    }
+
+    /// <summary>
+    /// Reads the subtable at <paramref name="position"/> into <see cref="cmap12"/> when it is
+    /// format 12, and leaves it null when it is not.
+    /// </summary>
+    private void ReadCMap12IfFormat12(int position)
+    {
+        // The encoding identifier says a subtable reaches past U+FFFF; it does not say the
+        // subtable is format 12. Checking the format itself rather than trusting the record is
+        // what keeps a face that files something else under that encoding from being read as a
+        // format 12 table and answering nonsense.
+        _fontData.Position = position;
+        if (_fontData.ReadUShort() != 12)
+            return;
+
+        _fontData.Position = position;
+        cmap12 = new CMap12(_fontData);
     }
 
     /// <summary>
@@ -888,62 +904,36 @@ internal class NameTable : OpenTypeFontTable
             for (var idx = 0; idx < count; idx++)
             {
                 var nrec = ReadNameRecord();
-                var value = new byte[nrec.length];
-                Buffer.BlockCopy(_fontData.FontSource.Bytes, DirectoryEntry.Offset + stringOffset + nrec.offset, value,
-                    0, nrec.length);
+                var value = ReadNameValue(nrec);
 
-                if (nrec.platformID == 1)
-                {
-                    if (nrec.nameID == 1)
-                    {
-                        if (string.IsNullOrEmpty(Name))
-                            Name = Encoding.UTF8.GetString(value, 0, value.Length);
-                    }
-
-                    if (nrec.nameID == 2)
-                    {
-                        if (string.IsNullOrEmpty(Style))
-                            Style = Encoding.UTF8.GetString(value, 0, value.Length);
-                    }
-
-                    if (nrec.nameID == 4)
-                    {
-                        if (string.IsNullOrEmpty(FullFontName))
-                            FullFontName = Encoding.UTF8.GetString(value, 0, value.Length);
-                    }
-                }
-
-                // Read font name and style in US english.
-                if (nrec.platformID is not (0 or 3))
+                var encoding = EncodingOf(nrec);
+                if (encoding == null)
                     continue;
 
-                // Font Family name. Up to four fonts can share the Font Family name,
-                // forming a font style linking group (regular, italic, bold, bold italic -
-                // as defined by OS/2.fsSelection bit settings).
-                if (nrec.nameID == 1 && nrec.languageID == 0x0409)
+                switch (nrec.nameID)
                 {
-                    if (string.IsNullOrEmpty(Name))
-                        Name = Encoding.BigEndianUnicode.GetString(value, 0, value.Length);
-                }
+                    // Font Family name. Up to four fonts can share the Font Family name,
+                    // forming a font style linking group (regular, italic, bold, bold italic -
+                    // as defined by OS/2.fsSelection bit settings).
+                    case 1:
+                        Name = KeepFirst(Name, value, encoding);
+                        break;
 
-                // Font Subfamily name. The Font Subfamily name distiguishes the font in a
-                // group with the same Font Family name (name ID 1). This is assumed to
-                // address style (italic, oblique) and weight (light, bold, black, etc.).
-                // A font with no particular differences in weight or style (e.g. medium weight,
-                // not italic and fsSelection bit 6 set) should have the string “Regular” stored in
-                // this position.
-                if (nrec.nameID == 2 && nrec.languageID == 0x0409)
-                {
-                    if (string.IsNullOrEmpty(Style))
-                        Style = Encoding.BigEndianUnicode.GetString(value, 0, value.Length);
-                }
+                    // Font Subfamily name. The Font Subfamily name distiguishes the font in a
+                    // group with the same Font Family name (name ID 1). This is assumed to
+                    // address style (italic, oblique) and weight (light, bold, black, etc.).
+                    // A font with no particular differences in weight or style (e.g. medium weight,
+                    // not italic and fsSelection bit 6 set) should have the string “Regular” stored in
+                    // this position.
+                    case 2:
+                        Style = KeepFirst(Style, value, encoding);
+                        break;
 
-                // Full font name; a combination of strings 1 and 2, or a similar human-readable
-                // variant. If string 2 is "Regular", it is sometimes omitted from name ID 4.
-                if (nrec.nameID == 4 && nrec.languageID == 0x0409)
-                {
-                    if (string.IsNullOrEmpty(FullFontName))
-                        FullFontName = Encoding.BigEndianUnicode.GetString(value, 0, value.Length);
+                    // Full font name; a combination of strings 1 and 2, or a similar human-readable
+                    // variant. If string 2 is "Regular", it is sometimes omitted from name ID 4.
+                    case 4:
+                        FullFontName = KeepFirst(FullFontName, value, encoding);
+                        break;
                 }
             }
 
@@ -954,6 +944,38 @@ internal class NameTable : OpenTypeFontTable
             throw new InvalidOperationException(PSSR.ErrorReadingFontData, ex);
         }
     }
+
+    private byte[] ReadNameValue(NameRecord nrec)
+    {
+        var value = new byte[nrec.length];
+        Buffer.BlockCopy(_fontData.FontSource.Bytes, DirectoryEntry.Offset + stringOffset + nrec.offset, value,
+            0, nrec.length);
+        return value;
+    }
+
+    /// <summary>
+    /// How a record's string is to be decoded, or null when the record is not one this table
+    /// reads: a Macintosh string in any language, or a Unicode or Windows string in US English.
+    /// </summary>
+    private static Encoding EncodingOf(NameRecord nrec)
+    {
+        const ushort macintosh = 1, unicode = 0, windows = 3, usEnglish = 0x0409;
+
+        if (nrec.platformID == macintosh)
+            return Encoding.UTF8;
+
+        if (nrec.platformID is (unicode or windows) && nrec.languageID == usEnglish)
+            return Encoding.BigEndianUnicode;
+
+        return null;
+    }
+
+    /// <summary>
+    /// The first name a face gives for something is the one kept; a later record is decoded only
+    /// while nothing has been found.
+    /// </summary>
+    private static string KeepFirst(string current, byte[] value, Encoding encoding)
+        => string.IsNullOrEmpty(current) ? encoding.GetString(value, 0, value.Length) : current;
 
     private NameRecord ReadNameRecord()
     {

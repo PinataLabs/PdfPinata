@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### PDF Reader & Writer
+
+#### Fixed
+
+- **A literal string continued onto the next line with a backslash before CR LF no longer keeps the LF.** A CR LF is one end-of-line marker (ISO 32000-1 7.2.3), and the backslash is ignored together with the whole of it (7.3.4.2). Both the document lexer and the content-stream lexer dropped the CR and kept the LF as the first character of the next line. A backslash before a lone CR or a lone LF was already read correctly. (#131)
+
 ### Pages & Documents
 
 #### Added
@@ -19,6 +25,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 #### Breaking
 
 - **`Unit` implements `IEquatable<Unit>` (source).** Comparing units no longer boxes or uses reflection, and `GetHashCode` now hashes all three things `Equals` compares. Because `Unit` converts implicitly from `string`, `int` and `double`, `unit.Equals("3")` now parses the string and answers true for 3pt, as `==` always did. `unit.Equals(null)` now throws `ArgumentNullException`, as `unit == null` already did. Cast to `object` to keep the old answer, or test `IsEmpty`. `==` and `Equals` now always agree, so a unit holding NaN equals itself.
+
+#### Fixed
+
+- **A PinataLayout image whose source fails to open with anything but an `InvalidOperationException` gets a placeholder.** The exception used to escape formatting and end the whole render. It is now reported through `ImageFailed` as `ImageFailure.NotRead` and a placeholder is drawn, as it already was for the same exception thrown while the image was drawn. An `InvalidOperationException` is still reported as `InvalidType`. (#131)
 
 ### API & Packaging
 

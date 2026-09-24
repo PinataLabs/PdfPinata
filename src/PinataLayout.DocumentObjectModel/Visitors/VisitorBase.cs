@@ -269,60 +269,71 @@ public abstract class VisitorBase : DocumentObjectVisitor
     /// <summary>Fills in every page setup value left unset from <paramref name="refPageSetup"/>.</summary>
     protected void FlattenPageSetup(PageSetup pageSetup, PageSetup refPageSetup)
     {
-        if (pageSetup.pageWidth.IsNull && pageSetup.pageHeight.IsNull)
-        {
-            if (pageSetup.pageFormat == null)
-            {
-                pageSetup.pageWidth = refPageSetup.pageWidth;
-                pageSetup.pageHeight = refPageSetup.pageHeight;
-                pageSetup.pageFormat = refPageSetup.pageFormat;
-            }
-            else
-            {
-                PageSetup.GetPageSize(pageSetup.PageFormat, out pageSetup.pageWidth, out pageSetup.pageHeight);
-            }
-        }
-        else
-        {
-            // Fill in the one that is missing. The two arms used to fill in the other one: a
-            // section given a height and no width had its height overwritten and its width left
-            // unset, so the page came out no width at all - and the length the caller did set was
-            // the one that was thrown away.
-            if (pageSetup.pageWidth.IsNull)
-            {
-                if (pageSetup.pageFormat == null)
-                    pageSetup.pageWidth = refPageSetup.pageWidth;
-                else
-                    PageSetup.GetPageSize(pageSetup.PageFormat, out pageSetup.pageWidth, out _);
-            }
-            else if (pageSetup.pageHeight.IsNull)
-            {
-                if (pageSetup.pageFormat == null)
-                    pageSetup.pageHeight = refPageSetup.pageHeight;
-                else
-                    PageSetup.GetPageSize(pageSetup.PageFormat, out _, out pageSetup.pageHeight);
-            }
-        }
+        FlattenPageSize(pageSetup, refPageSetup);
 
         pageSetup.sectionStart ??= refPageSetup.sectionStart;
         pageSetup.orientation ??= refPageSetup.orientation;
-        if (pageSetup.topMargin.IsNull)
-            pageSetup.topMargin = refPageSetup.topMargin;
-        if (pageSetup.bottomMargin.IsNull)
-            pageSetup.bottomMargin = refPageSetup.bottomMargin;
-        if (pageSetup.leftMargin.IsNull)
-            pageSetup.leftMargin = refPageSetup.leftMargin;
-        if (pageSetup.rightMargin.IsNull)
-            pageSetup.rightMargin = refPageSetup.rightMargin;
-        if (pageSetup.headerDistance.IsNull)
-            pageSetup.headerDistance = refPageSetup.headerDistance;
-        if (pageSetup.footerDistance.IsNull)
-            pageSetup.footerDistance = refPageSetup.footerDistance;
+        FlattenMargins(pageSetup, refPageSetup);
         pageSetup.oddAndEvenPagesHeaderFooter ??= refPageSetup.oddAndEvenPagesHeaderFooter;
         pageSetup.differentFirstPageHeaderFooter ??= refPageSetup.differentFirstPageHeaderFooter;
         pageSetup.mirrorMargins ??= refPageSetup.mirrorMargins;
         pageSetup.horizontalPageBreak ??= refPageSetup.horizontalPageBreak;
     }
+
+    /// <summary>
+    /// Fills in the page width and height, whichever of them is unset: from the page's own format
+    /// when it names one, and otherwise from <paramref name="refPageSetup"/>, which then also gives
+    /// the format when both lengths are unset.
+    /// </summary>
+    private static void FlattenPageSize(PageSetup pageSetup, PageSetup refPageSetup)
+    {
+        var hasFormat = pageSetup.pageFormat != null;
+        if (pageSetup.pageWidth.IsNull && pageSetup.pageHeight.IsNull)
+        {
+            if (hasFormat)
+            {
+                PageSetup.GetPageSize(pageSetup.PageFormat, out pageSetup.pageWidth, out pageSetup.pageHeight);
+                return;
+            }
+
+            pageSetup.pageWidth = refPageSetup.pageWidth;
+            pageSetup.pageHeight = refPageSetup.pageHeight;
+            pageSetup.pageFormat = refPageSetup.pageFormat;
+        }
+        // Otherwise fill in the one that is missing. The two arms used to fill in the other one: a
+        // section given a height and no width had its height overwritten and its width left unset,
+        // so the page came out no width at all - and the length the caller did set was the one
+        // that was thrown away.
+        else if (pageSetup.pageWidth.IsNull)
+        {
+            if (hasFormat)
+                PageSetup.GetPageSize(pageSetup.PageFormat, out pageSetup.pageWidth, out _);
+            else
+                pageSetup.pageWidth = refPageSetup.pageWidth;
+        }
+        else if (pageSetup.pageHeight.IsNull)
+        {
+            if (hasFormat)
+                PageSetup.GetPageSize(pageSetup.PageFormat, out _, out pageSetup.pageHeight);
+            else
+                pageSetup.pageHeight = refPageSetup.pageHeight;
+        }
+    }
+
+    /// <summary>
+    /// Fills in each margin and the header and footer distances that are unset.
+    /// </summary>
+    private static void FlattenMargins(PageSetup pageSetup, PageSetup refPageSetup)
+    {
+        pageSetup.topMargin = SetOrInherited(pageSetup.topMargin, refPageSetup.topMargin);
+        pageSetup.bottomMargin = SetOrInherited(pageSetup.bottomMargin, refPageSetup.bottomMargin);
+        pageSetup.leftMargin = SetOrInherited(pageSetup.leftMargin, refPageSetup.leftMargin);
+        pageSetup.rightMargin = SetOrInherited(pageSetup.rightMargin, refPageSetup.rightMargin);
+        pageSetup.headerDistance = SetOrInherited(pageSetup.headerDistance, refPageSetup.headerDistance);
+        pageSetup.footerDistance = SetOrInherited(pageSetup.footerDistance, refPageSetup.footerDistance);
+    }
+
+    private static Unit SetOrInherited(Unit own, Unit inherited) => own.IsNull ? inherited : own;
 
     /// <summary>
     /// Flattens a header or footer. Empty: a header or footer inherits nothing of its own, its

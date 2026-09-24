@@ -43,58 +43,54 @@ public static class CSharpHighlighter
 
         while (index < line.Length)
         {
-            var current = line[index];
-
-            if (current == '/' && index + 1 < line.Length && line[index + 1] == '/')
-            {
-                Append(markup, line[index..], CommentStyle);
-                break;
-            }
-
-            if (current == '"' || (current == '@' && index + 1 < line.Length && line[index + 1] == '"'))
-            {
-                var end = EndOfString(line, index);
-                Append(markup, line.Substring(index, end - index), StringStyle);
-                index = end;
-                continue;
-            }
-
-            if (current == '\'')
-            {
-                var end = EndOfChar(line, index);
-                Append(markup, line.Substring(index, end - index), StringStyle);
-                index = end;
-                continue;
-            }
-
-            if (char.IsLetter(current) || current == '_')
-            {
-                var end = index;
-                while (end < line.Length && (char.IsLetterOrDigit(line[end]) || line[end] == '_'))
-                    end++;
-
-                var word = line.Substring(index, end - index);
-                Append(markup, word, Keywords.Contains(word) ? KeywordStyle : null);
-                index = end;
-                continue;
-            }
-
-            if (char.IsDigit(current))
-            {
-                var end = index;
-                while (end < line.Length && (char.IsLetterOrDigit(line[end]) || line[end] == '.'))
-                    end++;
-
-                Append(markup, line.Substring(index, end - index), NumberStyle);
-                index = end;
-                continue;
-            }
-
-            Append(markup, current.ToString(), null);
-            index++;
+            var (end, style) = NextToken(line, index);
+            Append(markup, line.Substring(index, end - index), style);
+            index = end;
         }
 
         return markup.ToString();
+    }
+
+    /// <summary>
+    ///   The token that begins at <paramref name="index"/>: where it ends, and the style it is
+    ///   coloured in, or null for text left as it is. Anything unrecognised is one character long.
+    /// </summary>
+    private static (int End, string? Style) NextToken(string line, int index)
+    {
+        var current = line[index];
+
+        // A comment runs to the end of the line.
+        if (current == '/' && NextIs(line, index, '/'))
+            return (line.Length, CommentStyle);
+
+        if (current == '"' || (current == '@' && NextIs(line, index, '"')))
+            return (EndOfString(line, index), StringStyle);
+
+        if (current == '\'')
+            return (EndOfChar(line, index), StringStyle);
+
+        if (char.IsLetter(current) || current == '_')
+        {
+            var end = EndOf(line, index, c => char.IsLetterOrDigit(c) || c == '_');
+            return (end, Keywords.Contains(line.Substring(index, end - index)) ? KeywordStyle : null);
+        }
+
+        if (char.IsDigit(current))
+            return (EndOf(line, index, c => char.IsLetterOrDigit(c) || c == '.'), NumberStyle);
+
+        return (index + 1, null);
+    }
+
+    private static bool NextIs(string line, int index, char expected) =>
+        index + 1 < line.Length && line[index + 1] == expected;
+
+    /// <summary>Where the run of characters that <paramref name="belongs"/> accepts, starting at <paramref name="start"/>, ends.</summary>
+    private static int EndOf(string line, int start, Func<char, bool> belongs)
+    {
+        var end = start;
+        while (end < line.Length && belongs(line[end]))
+            end++;
+        return end;
     }
 
     private static void Append(StringBuilder markup, string text, string? style)

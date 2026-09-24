@@ -193,17 +193,7 @@ internal class TableRenderer : Renderer
     if (roundedCorner == RoundedCorner.None)
       return;
 
-    BorderType primaryBorderType = BorderType.Top, secondaryBorderType = BorderType.Top;
-
-    if (roundedCorner is RoundedCorner.TopLeft or RoundedCorner.BottomLeft)
-      primaryBorderType = BorderType.Left;
-    if (roundedCorner is RoundedCorner.TopRight or RoundedCorner.BottomRight)
-      primaryBorderType = BorderType.Right;
-
-    if (roundedCorner is RoundedCorner.TopLeft or RoundedCorner.TopRight)
-      secondaryBorderType = BorderType.Top;
-    if (roundedCorner is RoundedCorner.BottomLeft or RoundedCorner.BottomRight)
-      secondaryBorderType = BorderType.Bottom;
+    var (primaryBorderType, secondaryBorderType) = CornerBorderTypes(roundedCorner);
 
     // If both borders don't exist, there's nothing to do and we should not create one by accessing it.
     if (!cell.Borders.HasBorder(primaryBorderType) && !cell.Borders.HasBorder(secondaryBorderType))
@@ -213,12 +203,28 @@ internal class TableRenderer : Renderer
     var primaryBorder = (Border) cell.Borders.GetValue(primaryBorderType.ToString(), GV.ReadWrite);
     var secondaryBorder = (Border) cell.Borders.GetValue(secondaryBorderType.ToString(), GV.ReadWrite);
 
-    var source = primaryBorder.Visible ? primaryBorder : secondaryBorder.Visible ? secondaryBorder : null;
-    var target = primaryBorder.Visible ? secondaryBorder : secondaryBorder.Visible ? primaryBorder : null;
+    if (primaryBorder.Visible)
+      CopyBorder(primaryBorder, secondaryBorder);
+    else if (secondaryBorder.Visible)
+      CopyBorder(secondaryBorder, primaryBorder);
+  }
 
-    if (source == null || target == null)
-      return;
+  /// <summary>
+  /// The two borders that meet at a rounded corner: the vertical one first, since it is the one
+  /// the values are taken from when both are set, then the horizontal one.
+  /// </summary>
+  private static (BorderType Primary, BorderType Secondary) CornerBorderTypes(RoundedCorner roundedCorner) =>
+    roundedCorner switch
+    {
+      RoundedCorner.TopLeft => (BorderType.Left, BorderType.Top),
+      RoundedCorner.TopRight => (BorderType.Right, BorderType.Top),
+      RoundedCorner.BottomLeft => (BorderType.Left, BorderType.Bottom),
+      RoundedCorner.BottomRight => (BorderType.Right, BorderType.Bottom),
+      _ => (BorderType.Top, BorderType.Top)
+    };
 
+  private static void CopyBorder(Border source, Border target)
+  {
     target.Visible = source.Visible;
     target.Width = source.Width;
     target.Style = source.Style;

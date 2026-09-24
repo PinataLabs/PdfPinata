@@ -182,39 +182,23 @@ internal sealed class StandardSecurity
             return FromHex(Regex.Replace(hex.Groups[1].Value, @"\s", ""));
 
         var literal = Regex.Match(dictionary, Regex.Escape(key) + @"\s*\(", RegexOptions.Singleline);
-        if (!literal.Success)
-            return null;
+        return literal.Success ? LiteralBytes(dictionary, literal.Index + literal.Length) : null;
+    }
 
+    /// <summary>
+    ///   The bytes of a literal string, read from just after its opening parenthesis up to the one
+    ///   that balances it. Parentheses nested inside it are part of its value.
+    /// </summary>
+    private static byte[] LiteralBytes(string text, int start)
+    {
         var bytes = new List<byte>();
         var depth = 1;
-        for (var i = literal.Index + literal.Length; i < dictionary.Length; i++)
+        for (var i = start; i < text.Length; i++)
         {
-            var c = dictionary[i];
+            var c = text[i];
             if (c == '\\')
             {
-                var escaped = dictionary[++i];
-                switch (escaped)
-                {
-                    case 'n': bytes.Add((byte)'\n'); break;
-                    case 'r': bytes.Add((byte)'\r'); break;
-                    case 't': bytes.Add((byte)'\t'); break;
-                    case 'b': bytes.Add(8); break;
-                    case 'f': bytes.Add(12); break;
-                    default:
-                        if (escaped is >= '0' and <= '7')
-                        {
-                            var value = escaped - '0';
-                            for (var digit = 0; digit < 2 && i + 1 < dictionary.Length
-                                                          && dictionary[i + 1] >= '0' && dictionary[i + 1] <= '7'; digit++)
-                                value = value * 8 + (dictionary[++i] - '0');
-                            bytes.Add((byte)value);
-                        }
-                        else
-                        {
-                            bytes.Add((byte)escaped);
-                        }
-                        break;
-                }
+                bytes.Add(EscapedByte(text, ref i));
                 continue;
             }
             if (c == '(') depth++;
@@ -223,6 +207,35 @@ internal sealed class StandardSecurity
         }
         return [..bytes];
     }
+
+    /// <summary>
+    ///   The byte a backslash escape stands for. <paramref name="i"/> is on the backslash and is
+    ///   left on the last character of the escape.
+    /// </summary>
+    private static byte EscapedByte(string text, ref int i)
+    {
+        var escaped = text[++i];
+        switch (escaped)
+        {
+            case 'n': return (byte)'\n';
+            case 'r': return (byte)'\r';
+            case 't': return (byte)'\t';
+            case 'b': return 8;
+            case 'f': return 12;
+            default: return IsOctalDigit(escaped) ? OctalByte(text, ref i) : (byte)escaped;
+        }
+    }
+
+    /// <summary>An octal escape of up to three digits, the first of which <paramref name="i"/> is on.</summary>
+    private static byte OctalByte(string text, ref int i)
+    {
+        var value = text[i] - '0';
+        for (var digit = 0; digit < 2 && i + 1 < text.Length && IsOctalDigit(text[i + 1]); digit++)
+            value = value * 8 + (text[++i] - '0');
+        return (byte)value;
+    }
+
+    private static bool IsOctalDigit(char c) => c is >= '0' and <= '7';
 
     private static bool StartsWith(byte[] actual, byte[] expected, int count)
     {

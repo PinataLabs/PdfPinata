@@ -186,44 +186,14 @@ public class XTextSegmentFormatter
             return;
         }
 
-        if (segments.Any(ts => ts.Font == default))
-        {
-            throw new ArgumentNullException(nameof(textSegments), "Every text segment needs a font.");
-        }
-
-        if (segments.Any(ts => ts.Brush == default))
-        {
-            throw new ArgumentNullException(nameof(textSegments), "Every text segment needs a brush.");
-        }
-
-        if (format.Alignment != XStringAlignment.Near || format.LineAlignment != XLineAlignment.Near)
-        {
-            throw new ArgumentException("Only TopLeft alignment is currently implemented.");
-        }
+        Validate(segments, format);
 
         foreach (var segment in segments)
         {
             SetFontSpacings(segment);
         }
 
-        var blocks = CreateBlocks(segments);
-        var blockUnits = new List<List<Block>>();
-        var currentBlockUnit = new List<Block>();
-        foreach (var block in blocks)
-        {
-            currentBlockUnit.Add(block);
-
-            if (!block.Stop && block.Type != BlockType.LineBreak)
-                continue;
-
-            blockUnits.Add(currentBlockUnit);
-            currentBlockUnit = [];
-        }
-
-        if (!blocks.Last().Stop && blocks.Last().Type != BlockType.LineBreak)
-        {
-            blockUnits.Add(currentBlockUnit);
-        }
+        var blockUnits = GroupIntoBlockUnits(CreateBlocks(segments));
 
         CreateLayout(blockUnits, layoutRectangle);
 
@@ -234,19 +204,7 @@ public class XTextSegmentFormatter
             var dx = layoutRectangle.Location.X;
             var dy = layoutRectangle.Location.Y + maxCyAscend;
 
-            // Check all blocks of the current line in order to move all blocks of the next lines down,
-            // ReSharper disable once CompareOfFloatsByEqualityOperator
-            // when the first block of the current line has not the max cy ascent of the whole line
-#pragma warning disable S1244 // Exact on purpose: compared with a maximum or minimum taken from these same values.
-            if (blockUnit.Any(b => b.Environment.CyAscent != maxCyAscend))
-#pragma warning restore S1244
-            {
-                for (var indexSiblings = index + 1; indexSiblings < blockUnits.Count; indexSiblings++)
-                {
-                    blockUnits[indexSiblings].ForEach(b =>
-                        b.Location += new XVector(0, maxCyAscend - blockUnit.First().Environment.CyAscent));
-                }
-            }
+            ShiftLaterBlockUnitsDown(blockUnits, index, maxCyAscend);
 
             foreach (var block in blockUnit)
             {
@@ -265,252 +223,396 @@ public class XTextSegmentFormatter
         }
     }
 
+    private static void Validate(TextSegment[] textSegments, XStringFormat format)
+    {
+        if (textSegments.Any(ts => ts.Font == default))
+        {
+            throw new ArgumentNullException(nameof(textSegments), "Every text segment needs a font.");
+        }
+
+        if (textSegments.Any(ts => ts.Brush == default))
+        {
+            throw new ArgumentNullException(nameof(textSegments), "Every text segment needs a brush.");
+        }
+
+        if (format.Alignment != XStringAlignment.Near || format.LineAlignment != XLineAlignment.Near)
+        {
+            throw new ArgumentException("Only TopLeft alignment is currently implemented.");
+        }
+    }
+
+    /// <summary>
+    /// Cuts the blocks into units, each ending at a line break the text itself asked for.
+    /// </summary>
+    private static List<List<Block>> GroupIntoBlockUnits(List<Block> blocks)
+    {
+        var blockUnits = new List<List<Block>>();
+        var currentBlockUnit = new List<Block>();
+        foreach (var block in blocks)
+        {
+            currentBlockUnit.Add(block);
+
+            if (!EndsBlockUnit(block))
+                continue;
+
+            blockUnits.Add(currentBlockUnit);
+            currentBlockUnit = [];
+        }
+
+        if (!EndsBlockUnit(blocks.Last()))
+        {
+            blockUnits.Add(currentBlockUnit);
+        }
+
+        return blockUnits;
+    }
+
+    private static bool EndsBlockUnit(Block block) => block.Stop || block.Type == BlockType.LineBreak;
+
+    /// <summary>
+    /// Moves every later unit down when the first block of this one does not have the largest
+    /// ascent on its line.
+    /// </summary>
+    private static void ShiftLaterBlockUnitsDown(List<List<Block>> blockUnits, int index, double maxCyAscend)
+    {
+        var blockUnit = blockUnits[index];
+
+        // Check all blocks of the current line in order to move all blocks of the next lines down,
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
+        // when the first block of the current line has not the max cy ascent of the whole line
+#pragma warning disable S1244 // Exact on purpose: compared with a maximum or minimum taken from these same values.
+        if (!blockUnit.Any(b => b.Environment.CyAscent != maxCyAscend))
+#pragma warning restore S1244
+            return;
+
+        for (var indexSiblings = index + 1; indexSiblings < blockUnits.Count; indexSiblings++)
+        {
+            blockUnits[indexSiblings].ForEach(b =>
+                b.Location += new XVector(0, maxCyAscend - blockUnit.First().Environment.CyAscent));
+        }
+    }
+
     private List<Block> CreateBlocks(IEnumerable<TextSegment> textSegments)
     {
         var blocks = new List<Block>();
 
         foreach (var textSegment in textSegments)
         {
-            if (string.IsNullOrEmpty(textSegment.Text) && !(textSegment.Text ?? "").Contains(Chars.LF))
+            if (string.IsNullOrEmpty(textSegment.Text))
             {
                 continue;
             }
 
             // Check whether the current block belongs to the last block
-            // ReSharper disable PossibleNullReferenceException
             if (blocks.Count > 0 && !textSegment.Text.StartsWith(' '))
             {
-                // ReSharper restore PossibleNullReferenceException
                 blocks.Last().NextBlockBelongsToMe = true;
             }
 
-            // ReSharper disable once PossibleNullReferenceException
-            var length = textSegment.Text.Length;
-            var inNonWhiteSpace = false;
-            var startIndex = 0;
-            var blockLength = 0;
-
-            for (var idx = 0; idx < length; idx++)
-            {
-                var ch = textSegment.Text[idx];
-
-                // Treat CR and CRLF as LF
-                if (ch == Chars.CR)
-                {
-                    if (idx < length - 1 && textSegment.Text[idx + 1] == Chars.LF)
-                    {
-                        idx++;
-                    }
-
-                    ch = Chars.LF;
-                }
-
-                if (ch == Chars.LF)
-                {
-                    if (blockLength != 0)
-                    {
-                        var token = textSegment.Text.Substring(startIndex, blockLength);
-                        var block = new Block(token, BlockType.Text, _gfx.MeasureString(token, textSegment.Font).Width);
-                        SetFormatterEnvironment(block, textSegment);
-                        block.LineIndent = textSegment.LineIndent;
-                        block.SkipParagraphAlignment = textSegment.SkipParagraphAlignment;
-                        blocks.Add(block);
-                    }
-
-                    startIndex = idx + 1;
-                    blockLength = 0;
-
-                    var lineBreakBlock = new Block(BlockType.LineBreak);
-                    SetFormatterEnvironment(lineBreakBlock, textSegment);
-                    blocks.Add(lineBreakBlock);
-                }
-                else if (char.IsWhiteSpace(ch))
-                {
-                    if (inNonWhiteSpace)
-                    {
-                        var token = textSegment.Text.Substring(startIndex, blockLength).Trim();
-                        var block = new Block(token, BlockType.Text, _gfx.MeasureString(token, textSegment.Font).Width);
-                        SetFormatterEnvironment(block, textSegment);
-                        block.LineIndent = textSegment.LineIndent;
-                        block.SkipParagraphAlignment = textSegment.SkipParagraphAlignment;
-                        blocks.Add(block);
-                        startIndex = idx + 1;
-                        blockLength = 0;
-                    }
-                    else
-                    {
-                        blockLength++;
-                    }
-                }
-                else
-                {
-                    inNonWhiteSpace = true;
-                    blockLength++;
-                }
-            }
-
-            if (blockLength != 0)
-            {
-                var token = textSegment.Text.Substring(startIndex, blockLength);
-                var block = new Block(token, BlockType.Text, _gfx.MeasureString(token, textSegment.Font).Width)
-                {
-                    LineIndent = textSegment.LineIndent,
-                    SkipParagraphAlignment = textSegment.SkipParagraphAlignment
-                };
-                SetFormatterEnvironment(block, textSegment);
-                blocks.Add(block);
-            }
+            AddBlocksOf(textSegment, blocks);
         }
 
         return blocks;
     }
 
+    /// <summary>
+    /// Cuts one segment into words and line breaks. A run of white space at the start of the
+    /// segment is kept at the front of the first word rather than dropped.
+    /// </summary>
+    private void AddBlocksOf(TextSegment textSegment, List<Block> blocks)
+    {
+        var text = textSegment.Text;
+        var length = text.Length;
+        var inNonWhiteSpace = false;
+        var startIndex = 0;
+        var blockLength = 0;
+
+        for (var idx = 0; idx < length; idx++)
+        {
+            var ch = ReadCharacter(text, ref idx);
+
+            if (ch == Chars.LF)
+            {
+                if (blockLength != 0)
+                {
+                    blocks.Add(TextBlock(text.Substring(startIndex, blockLength), textSegment));
+                }
+
+                startIndex = idx + 1;
+                blockLength = 0;
+
+                blocks.Add(LineBreakBlock(textSegment));
+            }
+            else if (!char.IsWhiteSpace(ch))
+            {
+                inNonWhiteSpace = true;
+                blockLength++;
+            }
+            else if (inNonWhiteSpace)
+            {
+                blocks.Add(TextBlock(text.Substring(startIndex, blockLength).Trim(), textSegment));
+                startIndex = idx + 1;
+                blockLength = 0;
+            }
+            else
+            {
+                blockLength++;
+            }
+        }
+
+        if (blockLength != 0)
+        {
+            blocks.Add(TextBlock(text.Substring(startIndex, blockLength), textSegment));
+        }
+    }
+
+    /// <summary>
+    /// The character at <paramref name="idx"/>, with CR and CRLF read as LF - a CRLF moving the
+    /// index on past its LF.
+    /// </summary>
+    private static char ReadCharacter(string text, ref int idx)
+    {
+        var ch = text[idx];
+        if (ch != Chars.CR)
+            return ch;
+
+        if (idx < text.Length - 1 && text[idx + 1] == Chars.LF)
+        {
+            idx++;
+        }
+
+        return Chars.LF;
+    }
+
+    private Block TextBlock(string token, TextSegment textSegment)
+    {
+        var block = new Block(token, BlockType.Text, _gfx.MeasureString(token, textSegment.Font).Width)
+        {
+            LineIndent = textSegment.LineIndent,
+            SkipParagraphAlignment = textSegment.SkipParagraphAlignment
+        };
+        SetFormatterEnvironment(block, textSegment);
+        return block;
+    }
+
+    private Block LineBreakBlock(TextSegment textSegment)
+    {
+        var lineBreakBlock = new Block(BlockType.LineBreak);
+        SetFormatterEnvironment(lineBreakBlock, textSegment);
+        return lineBreakBlock;
+    }
+
+    /// <summary>
+    /// Where the pen is while the lines are being laid out. The position runs on from one block
+    /// unit to the next; the rest is started afresh for each unit.
+    /// </summary>
+    private sealed class LayoutState
+    {
+        internal LayoutState(double rectWidth, double rectHeight)
+        {
+            RectWidth = rectWidth;
+            RectHeight = rectHeight;
+        }
+
+        internal double RectWidth { get; }
+        internal double RectHeight { get; }
+
+        internal double X { get; set; }
+        internal double Y { get; set; }
+
+        /// <summary>The index of the first block of the line being built.</summary>
+        internal int FirstIndex { get; set; }
+
+        internal double StartLineSpace { get; set; }
+        internal double CurrentMaxLineSpace { get; set; }
+        internal double CurrentMaxCyDescent { get; set; }
+        internal List<Block> CurrentLineBlocks { get; private set; }
+
+        internal void StartBlockUnit(double startLineSpace)
+        {
+            FirstIndex = 0;
+            CurrentMaxLineSpace = 0.0;
+            CurrentMaxCyDescent = 0.0;
+            CurrentLineBlocks = [];
+            StartLineSpace = startLineSpace;
+        }
+    }
+
     private void CreateLayout(List<List<Block>> blockUnits, XRect layoutRectangle)
     {
-        var rectWidth = layoutRectangle.Width;
-        var rectHeight = layoutRectangle.Height - blockUnits.First().First().Environment.CyAscent -
-                         blockUnits.Last().Last().Environment.CyDescent;
-        var x = 0.0;
-        var y = 0.0;
+        var state = new LayoutState(
+            layoutRectangle.Width,
+            layoutRectangle.Height - blockUnits.First().First().Environment.CyAscent -
+            blockUnits.Last().Last().Environment.CyDescent);
 
         foreach (var blockUnit in blockUnits)
         {
-            var count = blockUnit.Count;
-            var firstIndex = 0;
-            var currentMaxLineSpace = 0.0;
-            var currentMaxCyDescent = 0.0;
-            var currentLineBlocks = new List<Block>();
-            var startLineSpace = blockUnit[0].Environment.LineSpace;
-            double startCyDescent;
+            LayOutBlockUnit(blockUnit, state);
+        }
+    }
 
-            for (var idx = 0; idx < count; idx++)
+    private void LayOutBlockUnit(List<Block> blockUnit, LayoutState state)
+    {
+        var count = blockUnit.Count;
+        state.StartBlockUnit(blockUnit[0].Environment.LineSpace);
+
+        for (var idx = 0; idx < count; idx++)
+        {
+            var block = blockUnit[idx];
+            var stopped = block.Type == BlockType.LineBreak
+                ? BreakLine(blockUnit, idx, state)
+                : PlaceTextBlock(blockUnit, ref idx, state);
+
+            if (stopped)
             {
-                var block = blockUnit[idx];
-                if (block.Type == BlockType.LineBreak)
-                {
-                    if (Alignment == XParagraphAlignment.Justify)
-                    {
-                        blockUnit[firstIndex].Alignment = XParagraphAlignment.Left;
-                    }
+                break;
+            }
+        }
 
-                    AlignLine(blockUnit, firstIndex, idx - 1, rectWidth);
-                    firstIndex = idx + 1;
-                    x = 0;
+        if (state.FirstIndex < count && Alignment != XParagraphAlignment.Justify)
+        {
+            AlignLine(blockUnit, state.FirstIndex, count - 1, state.RectWidth);
+        }
+    }
 
-                    startLineSpace = idx + 1 < count
-                        ? blockUnit[idx + 1].Environment.LineSpace
-                        : block.Environment.LineSpace;
-                    startCyDescent = idx + 1 < count
-                        ? blockUnit[idx + 1].Environment.CyDescent
-                        : block.Environment.CyDescent;
+    /// <summary>
+    /// Ends the line at a line break the text asked for. Answers true when the next line would
+    /// not fit in the rectangle, having marked the break as where drawing stops.
+    /// </summary>
+    private bool BreakLine(List<Block> blockUnit, int idx, LayoutState state)
+    {
+        var block = blockUnit[idx];
 
-                    currentMaxLineSpace = startLineSpace;
-                    currentMaxCyDescent = startCyDescent;
+        if (Alignment == XParagraphAlignment.Justify)
+        {
+            blockUnit[state.FirstIndex].Alignment = XParagraphAlignment.Left;
+        }
 
-                    y += currentMaxLineSpace;
-                    currentLineBlocks.Clear();
+        AlignLine(blockUnit, state.FirstIndex, idx - 1, state.RectWidth);
+        state.FirstIndex = idx + 1;
+        state.X = 0;
 
-                    if (y > rectHeight)
-                    {
-                        block.Stop = true;
+        var nextLineStartsWith = idx + 1 < blockUnit.Count ? blockUnit[idx + 1] : block;
+        state.StartLineSpace = nextLineStartsWith.Environment.LineSpace;
+        var startCyDescent = nextLineStartsWith.Environment.CyDescent;
 
-                        break;
-                    }
+        state.CurrentMaxLineSpace = state.StartLineSpace;
+        state.CurrentMaxCyDescent = startCyDescent;
 
-                    // necessary to correctly calculate closing line breaks
-                    block.Location = new XPoint(0, y);
-                }
-                else
-                {
-                    var width = block.Width;
+        state.Y += state.CurrentMaxLineSpace;
+        state.CurrentLineBlocks.Clear();
 
-                    if (x == 0.0)
-                    {
-                        x += block.LineIndent;
-                    }
+        if (state.Y > state.RectHeight)
+        {
+            block.Stop = true;
 
-                    if (x + width <= rectWidth || x == 0.0)
-                    {
-                        // if the font style is set to "underline", we don't want a underlined space character
-                        width = RemovedLeadingSpace(block, width);
-                        block.Location = new XPoint(x, y);
-                        x += width;
-                        if (!block.NextBlockBelongsToMe)
-                        {
-                            // The current and the next block are treated as one unit, so there is no space between them
-                            x += block.Environment.SpaceWidth;
-                        }
+            return true;
+        }
 
-                        currentLineBlocks.Add(block);
+        // necessary to correctly calculate closing line breaks
+        block.Location = new XPoint(0, state.Y);
+        return false;
+    }
 
-                        currentMaxLineSpace = Math.Max(block.Environment.LineSpace, currentMaxLineSpace);
-                        currentMaxCyDescent = Math.Max(block.Environment.CyDescent, currentMaxCyDescent);
-                    }
-                    else
-                    {
-                        // if the previous blocks are linked to the current block, all linked blocks have to be moved to the next line
-                        while (idx > 0 && blockUnit[idx - 1].NextBlockBelongsToMe)
-                        {
-                            idx--;
-                            currentLineBlocks.RemoveAt(currentLineBlocks.Count - 1);
-                            block = blockUnit[idx];
-                            width = block.Width;
-                        }
+    /// <summary>
+    /// Puts a word on the current line if it fits, and on a new one if it does not. Answers true
+    /// when the new line would not fit in the rectangle.
+    /// </summary>
+    private bool PlaceTextBlock(List<Block> blockUnit, ref int idx, LayoutState state)
+    {
+        var block = blockUnit[idx];
+        var width = block.Width;
 
-                        AlignLine(blockUnit, firstIndex, idx - 1, rectWidth);
-                        firstIndex = idx;
+        if (state.X == 0.0)
+        {
+            state.X += block.LineIndent;
+        }
+
+        var fitsOnThisLine = state.X + width <= state.RectWidth || state.X == 0.0;
+        if (!fitsOnThisLine)
+        {
+            return WrapLine(blockUnit, ref idx, state);
+        }
+
+        // if the font style is set to "underline", we don't want a underlined space character
+        PlaceOnLine(block, state.X, width, state);
+
+        state.CurrentMaxLineSpace = Math.Max(block.Environment.LineSpace, state.CurrentMaxLineSpace);
+        state.CurrentMaxCyDescent = Math.Max(block.Environment.CyDescent, state.CurrentMaxCyDescent);
+        return false;
+    }
+
+    /// <summary>
+    /// Starts a new line with the word at <paramref name="idx"/>, or with the first of the words
+    /// linked to it. Answers true when the new line would not fit in the rectangle.
+    /// </summary>
+    private bool WrapLine(List<Block> blockUnit, ref int idx, LayoutState state)
+    {
+        // if the previous blocks are linked to the current block, all linked blocks have to be moved to the next line
+        while (idx > 0 && blockUnit[idx - 1].NextBlockBelongsToMe)
+        {
+            idx--;
+            state.CurrentLineBlocks.RemoveAt(state.CurrentLineBlocks.Count - 1);
+        }
+
+        var block = blockUnit[idx];
+
+        AlignLine(blockUnit, state.FirstIndex, idx - 1, state.RectWidth);
+        state.FirstIndex = idx;
 // ReSharper disable once CompareOfFloatsByEqualityOperator
 
 #pragma warning disable S1244 // Exact on purpose: unchanged unless a larger value replaced it.
-                        if (currentMaxLineSpace != startLineSpace)
+        if (state.CurrentMaxLineSpace != state.StartLineSpace)
 #pragma warning restore S1244
-                        {
-                            y += -startLineSpace + currentMaxLineSpace;
-                            currentLineBlocks.ForEach(b => b.Location = new XPoint(b.Location.X, y));
-                        }
-
-                        startLineSpace = block.Environment.LineSpace;
-                        startCyDescent = block.Environment.CyDescent;
-
-                        if (startLineSpace < currentMaxLineSpace)
-                        {
-                            var cyDescentDiff = currentMaxCyDescent - startCyDescent;
-                            y += cyDescentDiff;
-                        }
-
-                        currentMaxLineSpace = startLineSpace;
-                        currentMaxCyDescent = startCyDescent;
-
-                        y += currentMaxLineSpace;
-                        currentLineBlocks.Clear();
-
-                        if (y > rectHeight)
-                        {
-                            block.Stop = true;
-
-                            break;
-                        }
-
-                        // A new line must not start with a space character
-                        width = RemovedLeadingSpace(block, width);
-                        block.Location = new XPoint(block.LineIndent, y);
-                        x = block.LineIndent + width;
-                        if (!block.NextBlockBelongsToMe)
-                        {
-                            // The current and the next block are treated as one unit, so there is no space between them
-                            x += block.Environment.SpaceWidth;
-                        }
-
-                        currentLineBlocks.Add(block);
-                    }
-                }
-            }
-
-            if (firstIndex < count && Alignment != XParagraphAlignment.Justify)
-            {
-                AlignLine(blockUnit, firstIndex, count - 1, rectWidth);
-            }
+        {
+            state.Y += -state.StartLineSpace + state.CurrentMaxLineSpace;
+            state.CurrentLineBlocks.ForEach(b => b.Location = new XPoint(b.Location.X, state.Y));
         }
+
+        state.StartLineSpace = block.Environment.LineSpace;
+        var startCyDescent = block.Environment.CyDescent;
+
+        if (state.StartLineSpace < state.CurrentMaxLineSpace)
+        {
+            var cyDescentDiff = state.CurrentMaxCyDescent - startCyDescent;
+            state.Y += cyDescentDiff;
+        }
+
+        state.CurrentMaxLineSpace = state.StartLineSpace;
+        state.CurrentMaxCyDescent = startCyDescent;
+
+        state.Y += state.CurrentMaxLineSpace;
+        state.CurrentLineBlocks.Clear();
+
+        if (state.Y > state.RectHeight)
+        {
+            block.Stop = true;
+
+            return true;
+        }
+
+        // A new line must not start with a space character
+        PlaceOnLine(block, block.LineIndent, block.Width, state);
+        return false;
+    }
+
+    /// <summary>
+    /// Puts a block on the current line at <paramref name="x"/>, without any space it starts
+    /// with, and moves the pen past it - and past the space after it, unless the next block is
+    /// joined to it.
+    /// </summary>
+    private static void PlaceOnLine(Block block, double x, double width, LayoutState state)
+    {
+        width = RemovedLeadingSpace(block, width);
+        block.Location = new XPoint(x, state.Y);
+        state.X = x + width;
+        if (!block.NextBlockBelongsToMe)
+        {
+            // The current and the next block are treated as one unit, so there is no space between them
+            state.X += block.Environment.SpaceWidth;
+        }
+
+        state.CurrentLineBlocks.Add(block);
     }
 
     private static double RemovedLeadingSpace(Block block, double width)
@@ -547,68 +649,115 @@ public class XTextSegmentFormatter
         var totalWidth = firstBlock.LineIndent;
         if (Alignment == XParagraphAlignment.Justify)
         {
-            // Skip not movable leading blocks
-            for (var idx = firstIndex; idx <= lastIndex; idx++)
-            {
-                if (!blockUnit[idx].SkipParagraphAlignment && !blockUnit[idx].NextBlockBelongsToMe)
-                {
-                    firstIndex = idx;
-
-                    break;
-                }
-
-                count--;
-                layoutWidth -= blockUnit[idx].Width +
-                               (blockUnit[idx].NextBlockBelongsToMe ? 0 : blockUnit[idx].Environment.SpaceWidth);
-            }
+            int skipped;
+            (firstIndex, skipped, layoutWidth) = SkipUnmovableLeadingBlocks(blockUnit, firstIndex, lastIndex, layoutWidth);
+            count -= skipped;
         }
 
         // Remove not movable blocks from space calculation
-        for (var idx = firstIndex; idx <= lastIndex; idx++)
-        {
-            totalWidth += blockUnit[idx].Width +
-                          (blockUnit[idx].NextBlockBelongsToMe ? 0 : blockUnit[idx].Environment.SpaceWidth);
-            if (idx == lastIndex)
-            {
-                totalWidth -= blockUnit[idx].NextBlockBelongsToMe ? 0 : blockUnit[idx].Environment.SpaceWidth;
-            }
-
-            if (blockUnit[idx].NextBlockBelongsToMe)
-            {
-                count--;
-            }
-        }
+        totalWidth = LineWidth(blockUnit, firstIndex, lastIndex, totalWidth);
+        count -= CountLinked(blockUnit, firstIndex, lastIndex);
 
         var dx = Math.Max(layoutWidth - totalWidth, 0);
 
         if (Alignment != XParagraphAlignment.Justify)
         {
             // right or center
-
-            if (Alignment == XParagraphAlignment.Center)
-            {
-                dx /= 2;
-            }
-
-            for (var idx = firstIndex; idx <= lastIndex; idx++)
-            {
-                var block = blockUnit[idx];
-                block.Location += new XVector(dx, 0);
-            }
+            ShiftLine(blockUnit, firstIndex, lastIndex, Alignment == XParagraphAlignment.Center ? dx / 2 : dx);
         }
         else if (count > 1) // case: justify
         {
-            dx /= count - 1;
-            var spaceCounter = 1;
+            SpreadLine(blockUnit, firstIndex, lastIndex, dx / (count - 1));
+        }
+    }
 
-            for (var idx = firstIndex + 1; idx <= lastIndex; idx++)
+    /// <summary>
+    /// The width a block takes on its line: itself, and the space after it unless the next block
+    /// is joined to it.
+    /// </summary>
+    private static double AdvanceOf(Block block) => block.Width + SpaceAfter(block);
+
+    private static double SpaceAfter(Block block) => block.NextBlockBelongsToMe ? 0 : block.Environment.SpaceWidth;
+
+    /// <summary>
+    /// Skips the blocks at the start of a justified line that must not move, and takes their
+    /// width off what there is to spread across.
+    /// </summary>
+    private static (int FirstIndex, int Skipped, double LayoutWidth) SkipUnmovableLeadingBlocks(
+        List<Block> blockUnit, int firstIndex, int lastIndex, double layoutWidth)
+    {
+        var skipped = 0;
+        for (var idx = firstIndex; idx <= lastIndex; idx++)
+        {
+            var block = blockUnit[idx];
+            if (!block.SkipParagraphAlignment && !block.NextBlockBelongsToMe)
             {
-                var block = blockUnit[idx];
-                block.Location += new XVector(dx * spaceCounter, 0);
-                if (!block.NextBlockBelongsToMe)
-                {
-                    spaceCounter++;
-                }
+                return (idx, skipped, layoutWidth);
+            }
+
+            skipped++;
+            layoutWidth -= AdvanceOf(block);
+        }
+
+        return (firstIndex, skipped, layoutWidth);
+    }
+
+    /// <summary>
+    /// The width of the blocks from <paramref name="firstIndex"/> to <paramref name="lastIndex"/>,
+    /// added to <paramref name="totalWidth"/>, without the space after the last of them.
+    /// </summary>
+    private static double LineWidth(List<Block> blockUnit, int firstIndex, int lastIndex, double totalWidth)
+    {
+        for (var idx = firstIndex; idx <= lastIndex; idx++)
+        {
+            totalWidth += AdvanceOf(blockUnit[idx]);
+            if (idx == lastIndex)
+            {
+                totalWidth -= SpaceAfter(blockUnit[idx]);
+            }
+        }
+
+        return totalWidth;
+    }
+
+    private static int CountLinked(List<Block> blockUnit, int firstIndex, int lastIndex)
+    {
+        var linked = 0;
+        for (var idx = firstIndex; idx <= lastIndex; idx++)
+        {
+            if (blockUnit[idx].NextBlockBelongsToMe)
+            {
+                linked++;
+            }
+        }
+
+        return linked;
+    }
+
+    private static void ShiftLine(List<Block> blockUnit, int firstIndex, int lastIndex, double dx)
+    {
+        for (var idx = firstIndex; idx <= lastIndex; idx++)
+        {
+            var block = blockUnit[idx];
+            block.Location += new XVector(dx, 0);
+        }
+    }
+
+    /// <summary>
+    /// Justifies a line: every gap between words, but not between joined blocks, gets the same
+    /// share of <paramref name="gap"/>.
+    /// </summary>
+    private static void SpreadLine(List<Block> blockUnit, int firstIndex, int lastIndex, double gap)
+    {
+        var spaceCounter = 1;
+
+        for (var idx = firstIndex + 1; idx <= lastIndex; idx++)
+        {
+            var block = blockUnit[idx];
+            block.Location += new XVector(gap * spaceCounter, 0);
+            if (!block.NextBlockBelongsToMe)
+            {
+                spaceCounter++;
             }
         }
     }

@@ -102,18 +102,38 @@ internal sealed class PdfGraphicsState : ICloneable
 
     public void RealizePen(XPen pen, PdfColorMode colorMode)
     {
-        const string format = Config.SignificantFigures3;
-        var color = pen.Color;
-        var overPrint = pen.Overprint;
+        var patternBrush = StrokePaintOf(pen, colorMode, out var color, out var overPrint);
+
+        RealizeLineWidth(pen);
+        RealizeLineCap(pen);
+        RealizeLineJoin(pen);
+        RealizeMiterLimit(pen);
+        RealizeDashPattern(pen);
+        RealizeStrokeColor(patternBrush, color, colorMode);
+        RealizeStrokeAlpha(color, overPrint);
+
+        _realizedStrokeColor = color;
+        _realizedStrokeOverPrint = overPrint;
+        _realizedStrokePattern = patternBrush != null;
+    }
+
+    /// <summary>
+    /// What a pen strokes with: the colour and overprint it strokes in, and the brush whose pattern
+    /// it strokes with, which is null for a pen that strokes in a plain colour.
+    /// </summary>
+    private static XBrush StrokePaintOf(XPen pen, PdfColorMode colorMode, out XColor color, out bool overPrint)
+    {
+        color = pen.Color;
+        overPrint = pen.Overprint;
         var penBrush = pen.Brush;
 
         // A pen built from a brush has no Color of its own - the constructor never sets one - so
         // pen.Color is XColor.Empty, whose alpha is zero. Left as it stands that reaches the stroke
-        // alpha at the foot of this method and paints the stroke completely transparent, which is
-        // why a pen made from a brush drew nothing at all.
+        // alpha written by RealizeStrokeAlpha and paints the stroke completely transparent, which
+        // is why a pen made from a brush drew nothing at all.
         //
         // A solid brush is simply a colour, and is treated as one from here on: it wants "RG" like
-        // any other pen, where handing it to RealizeBrush below would set the *fill* colour instead.
+        // any other pen, where handing it to RealizeBrush would set the *fill* colour instead.
         // A gradient really does need the pattern, and carries its own transparency through the soft
         // mask RealizeBrush installs, so the stroke stays opaque rather than taking an alpha from a
         // colour the pen never had.
@@ -132,100 +152,158 @@ internal sealed class PdfGraphicsState : ICloneable
         if (color.Spot == null)
             color = ColorSpaceHelper.EnsureColorMode(colorMode, color);
 
+        return penBrush;
+    }
+
+    private void RealizeLineWidth(XPen pen)
+    {
         #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
-        if (_realizedLineWith != pen._width)
+        if (_realizedLineWith == pen._width)
         #pragma warning restore S1244
-        {
-            _renderer.AppendFormatArgs("{0:" + format + "} w\n", pen._width);
-            _realizedLineWith = pen._width;
-        }
+            return;
 
-        if (_realizedLineCap != (int)pen._lineCap)
-        {
-            _renderer.AppendFormatArgs("{0} J\n", (int)pen._lineCap);
-            _realizedLineCap = (int)pen._lineCap;
-        }
+        const string format = Config.SignificantFigures3;
+        _renderer.AppendFormatArgs("{0:" + format + "} w\n", pen._width);
+        _realizedLineWith = pen._width;
+    }
 
-        if (_realizedLineJoin != (int)pen._lineJoin)
-        {
-            _renderer.AppendFormatArgs("{0} j\n", (int)pen._lineJoin);
-            _realizedLineJoin = (int)pen._lineJoin;
-        }
+    private void RealizeLineCap(XPen pen)
+    {
+        if (_realizedLineCap == (int)pen._lineCap)
+            return;
 
+        _renderer.AppendFormatArgs("{0} J\n", (int)pen._lineCap);
+        _realizedLineCap = (int)pen._lineCap;
+    }
+
+    private void RealizeLineJoin(XPen pen)
+    {
+        if (_realizedLineJoin == (int)pen._lineJoin)
+            return;
+
+        _renderer.AppendFormatArgs("{0} j\n", (int)pen._lineJoin);
+        _realizedLineJoin = (int)pen._lineJoin;
+    }
+
+    private void RealizeMiterLimit(XPen pen)
+    {
         // The join, not the cap. This tested _realizedLineCap against a value of XLineJoin, which
         // agreed with itself only because XLineCap.Flat and XLineJoin.Miter are both zero: a pen
         // that mitred its joins and rounded its ends never wrote its miter limit at all, and one
         // with flat ends wrote it whatever its join was.
-        if (_realizedLineJoin == (int)XLineJoin.Miter)
-        {
-            // Written as a real rather than truncated to an integer. A limit is a ratio of the
-            // mitre's length to the pen's width, 1.5 is a perfectly ordinary value for it, and
-            // rounding that to 1 asks for a bevel on every join that is not perfectly straight.
-            #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
-            if (_realizedMiterLimit != pen._miterLimit && pen._miterLimit > 0)
-            #pragma warning restore S1244
-            {
-                _renderer.AppendFormatArgs("{0:" + format + "} M\n", pen._miterLimit);
-                _realizedMiterLimit = pen._miterLimit;
-            }
-        }
+        if (_realizedLineJoin != (int)XLineJoin.Miter)
+            return;
 
+        // Written as a real rather than truncated to an integer. A limit is a ratio of the
+        // mitre's length to the pen's width, 1.5 is a perfectly ordinary value for it, and
+        // rounding that to 1 asks for a bevel on every join that is not perfectly straight.
+        #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
+        var writeLimit = _realizedMiterLimit != pen._miterLimit && pen._miterLimit > 0;
+        #pragma warning restore S1244
+        if (!writeLimit)
+            return;
+
+        const string format = Config.SignificantFigures3;
+        _renderer.AppendFormatArgs("{0:" + format + "} M\n", pen._miterLimit);
+        _realizedMiterLimit = pen._miterLimit;
+    }
+
+    private void RealizeDashPattern(XPen pen)
+    {
         // Compared as the operator it writes rather than by style. A standard style is measured in
         // the pen's width, so the same style at another width is another pattern, and one custom
         // pattern cannot be told from another by its style at all - which is why every custom
         // pattern used to be written again for every stroke. The pattern belongs to the state
         // saved by q, so Q puts the one remembered here back with the one the reader restores.
         var pattern = DashPatternOf(pen);
-        if (_realizedDashPattern != pattern)
+        if (_realizedDashPattern == pattern)
+            return;
+
+        _renderer.Append(pattern);
+        _realizedDashPattern = pattern;
+    }
+
+    /// <summary>
+    /// Writes the stroking colour, or the stroking pattern when there is a brush to stroke with.
+    /// </summary>
+    private void RealizeStrokeColor(XBrush patternBrush, XColor color, PdfColorMode colorMode)
+    {
+        // The brush the pen was built from only when it is a pattern: a solid one was turned into
+        // a colour by StrokePaintOf and takes the ordinary stroke-colour path below.
+        if (patternBrush != null)
         {
-            _renderer.Append(pattern);
-            _realizedDashPattern = pattern;
+            RealizeBrush(patternBrush, colorMode, 0, 0, true);
+            return;
         }
 
-        // penBrush rather than pen.Brush: a solid one was turned into a colour above and takes the
-        // ordinary stroke-colour path below.
-        if (penBrush != null)
-        {
-            RealizeBrush(penBrush, colorMode, 0, 0, true);
-        }
-        else if (color.Spot != null)
+        if (color.Spot != null)
         {
             RealizeSpotColor(color, _realizedStrokePattern ? null : _realizedStrokeColor, true);
+            return;
         }
-        else if (colorMode != PdfColorMode.Cmyk)
+
+        if (colorMode != PdfColorMode.Cmyk)
         {
-            // Null still stands for the default black here, so only a spot colour realized last
-            // forces "RG" - it left the Separation space selected, whatever its components say.
-            if (_realizedStrokePattern || _realizedStrokeColor?.Spot != null || (_realizedStrokeColor ?? XColor.Empty).Rgb != color.Rgb)
-            {
-                _renderer.Append(PdfEncoders.ToString(color, PdfColorMode.Rgb));
-                _renderer.Append(" RG\n");
-            }
+            if (!StrokeRgbDiffersFrom(color))
+                return;
+
+            _renderer.Append(PdfEncoders.ToString(color, PdfColorMode.Rgb));
+            _renderer.Append(" RG\n");
+            return;
         }
-        else
-        {
-            if (_realizedStrokePattern || _realizedStrokeColor is not { } realizedCmyk || realizedCmyk.Spot != null || !ColorSpaceHelper.IsEqualCmyk(realizedCmyk, color))
-            {
-                _renderer.Append(PdfEncoders.ToString(color, PdfColorMode.Cmyk));
-                _renderer.Append(" K\n");
-            }
-        }
+
+        if (!StrokeCmykDiffersFrom(color))
+            return;
+
+        _renderer.Append(PdfEncoders.ToString(color, PdfColorMode.Cmyk));
+        _renderer.Append(" K\n");
+    }
+
+    /// <summary>
+    /// Whether "RG" has to be written to stroke in the colour.
+    /// </summary>
+    private bool StrokeRgbDiffersFrom(XColor color)
+    {
+        // Null still stands for the default black here, so only a spot colour realized last
+        // forces "RG" - it left the Separation space selected, whatever its components say.
+        return _realizedStrokePattern
+            || _realizedStrokeColor?.Spot != null
+            || (_realizedStrokeColor ?? XColor.Empty).Rgb != color.Rgb;
+    }
+
+    /// <summary>
+    /// Whether "K" has to be written to stroke in the colour.
+    /// </summary>
+    private bool StrokeCmykDiffersFrom(XColor color)
+    {
+        return _realizedStrokePattern
+            || _realizedStrokeColor is not { } realizedCmyk
+            || realizedCmyk.Spot != null
+            || !ColorSpaceHelper.IsEqualCmyk(realizedCmyk, color);
+    }
+
+    /// <summary>
+    /// Writes the stroking alpha and overprint, where the document is new enough to carry them
+    /// and they differ from what was written last.
+    /// </summary>
+    private void RealizeStrokeAlpha(XColor color, bool overPrint)
+    {
+        if (_renderer.Owner.Version < 14)
+            return;
 
         #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
-        if (_renderer.Owner.Version >= 14 && (_realizedStrokeColor is not { } realized || realized.A != color.A || _realizedStrokeOverPrint != overPrint))
+        var unchanged = _realizedStrokeColor is { } realized && realized.A == color.A && _realizedStrokeOverPrint == overPrint;
         #pragma warning restore S1244
-        {
-            var extGState = _renderer.Owner.ExtGStateTable.GetExtGStateStroke(color.A, overPrint);
-            var gs = _renderer.Resources.AddExtGState(extGState);
-            _renderer.AppendFormatString("{0} gs\n", gs);
+        if (unchanged)
+            return;
 
-            // Must create transparency group.
-            if (_renderer.Page != null && color.A < 1)
-                _renderer.Page.TransparencyUsed = true;
-        }
-        _realizedStrokeColor = color;
-        _realizedStrokeOverPrint = overPrint;
-        _realizedStrokePattern = penBrush != null;
+        var extGState = _renderer.Owner.ExtGStateTable.GetExtGStateStroke(color.A, overPrint);
+        var gs = _renderer.Resources.AddExtGState(extGState);
+        _renderer.AppendFormatString("{0} gs\n", gs);
+
+        // Must create transparency group.
+        if (_renderer.Page != null && color.A < 1)
+            _renderer.Page.TransparencyUsed = true;
     }
 
     /// <summary>
@@ -359,65 +437,86 @@ internal sealed class PdfGraphicsState : ICloneable
 
         if (haveStroke || haveFill)
         {
-            if (fills && solidBrush == null)
-                throw new InvalidOperationException("A filling text rendering mode needs a solid color brush to fill with.");
+            RealizeSolidPaint(solidBrush, textPen, fills, strokes, colorMode, fontEmSize);
+            return;
+        }
 
-            // Nothing here is a gradient, so a mask left over from one that was is taken off.
-            RealizeGradientSoftMask(null);
+        if (renderingMode != 0)
+            throw new InvalidOperationException("Rendering modes other than 0 can only be used with solid color brushes.");
 
-            if (haveFill)
-            {
-                // Overprint is dropped when the same glyphs are stroked over the fill, as it was
-                // when bold simulation was the only thing that ever stroked them.
-                RealizeFillColor(solidBrush.Color, strokes ? false : solidBrush.Overprint, colorMode);
-            }
+        if (brush is XBaseGradientBrush gradientBrush)
+            RealizeGradientPattern(gradientBrush, isForPen);
+    }
 
-            if (haveStroke)
-            {
-                // Come here for a caller who asked to stroke the text, or for bold simulation,
-                // which fattens a face with no bold of its own by stroking it in its own colour.
-                RealizePen(textPen ?? new XPen(solidBrush.Color, fontEmSize * Const.BoldEmphasis), colorMode);
-            }
+    /// <summary>
+    /// Realizes the colours text is filled or stroked in, or both, which are plain colours rather
+    /// than patterns.
+    /// </summary>
+    /// <remarks>
+    /// Reached only when the rendering mode can be answered: a stroking mode by the caller's pen or
+    /// the brush, a filling one by the brush. So once a filling mode has been checked for a brush,
+    /// <paramref name="fills"/> and <paramref name="strokes"/> say exactly what is to be painted.
+    /// </remarks>
+    private void RealizeSolidPaint(XSolidBrush solidBrush, XPen textPen, bool fills, bool strokes,
+        PdfColorMode colorMode, double fontEmSize)
+    {
+        if (fills && solidBrush == null)
+            throw new InvalidOperationException("A filling text rendering mode needs a solid color brush to fill with.");
+
+        // Nothing here is a gradient, so a mask left over from one that was is taken off.
+        RealizeGradientSoftMask(null);
+
+        if (fills)
+        {
+            // Overprint is dropped when the same glyphs are stroked over the fill, as it was
+            // when bold simulation was the only thing that ever stroked them.
+            RealizeFillColor(solidBrush.Color, strokes ? false : solidBrush.Overprint, colorMode);
+        }
+
+        if (strokes)
+        {
+            // Come here for a caller who asked to stroke the text, or for bold simulation,
+            // which fattens a face with no bold of its own by stroking it in its own colour.
+            RealizePen(textPen ?? new XPen(solidBrush.Color, fontEmSize * Const.BoldEmphasis), colorMode);
+        }
+    }
+
+    /// <summary>
+    /// Realizes a gradient as the pattern the fill, or with <paramref name="isForPen"/> the stroke,
+    /// is painted with, under the soft mask a translucent gradient needs.
+    /// </summary>
+    private void RealizeGradientPattern(XBaseGradientBrush gradientBrush, bool isForPen)
+    {
+        Debug.Assert(UnrealizedCtm.IsIdentity, "Must realize ctm first.");
+        var matrix = _renderer.DefaultViewMatrix;
+        matrix.Prepend(EffectiveCtm);
+        var pattern = new PdfShadingPattern(_renderer.Owner);
+        pattern.SetupFromBrush(gradientBrush, matrix, _renderer);
+        var name = _renderer.Resources.AddPattern(pattern);
+
+        // A shading carries colour and no alpha, so a gradient between translucent
+        // colours is painted under a mask built from the same geometry. A gradient whose
+        // colours are both opaque takes this branch and writes nothing.
+        RealizeGradientSoftMask(PdfGradientSoftMask.ForBrush(gradientBrush, matrix, _renderer));
+
+        if (isForPen)
+        {
+            _renderer.AppendFormatString("/Pattern CS\n", name);
+            _renderer.AppendFormatString("{0} SCN\n", name);
         }
         else
         {
-            if (renderingMode != 0)
-                throw new InvalidOperationException("Rendering modes other than 0 can only be used with solid color brushes.");
-
-            if (brush is not XBaseGradientBrush gradientBrush)
-                return;
-
-            Debug.Assert(UnrealizedCtm.IsIdentity, "Must realize ctm first.");
-            var matrix = _renderer.DefaultViewMatrix;
-            matrix.Prepend(EffectiveCtm);
-            var pattern = new PdfShadingPattern(_renderer.Owner);
-            pattern.SetupFromBrush(gradientBrush, matrix, _renderer);
-            var name = _renderer.Resources.AddPattern(pattern);
-
-            // A shading carries colour and no alpha, so a gradient between translucent
-            // colours is painted under a mask built from the same geometry. A gradient whose
-            // colours are both opaque takes this branch and writes nothing.
-            RealizeGradientSoftMask(PdfGradientSoftMask.ForBrush(gradientBrush, matrix, _renderer));
-
-            if (isForPen)
-            {
-                _renderer.AppendFormatString("/Pattern CS\n", name);
-                _renderer.AppendFormatString("{0} SCN\n", name);
-            }
-            else
-            {
-                _renderer.AppendFormatString("/Pattern cs\n", name);
-                _renderer.AppendFormatString("{0} scn\n", name);
-            }
-            // Invalidate fill color.
-            _realizedFillColor = null;
-
-            // "SCN" replaced the *stroking* colour space, which the line above does not record
-            // - so the pen path says so separately. RealizePen reaches this method only for a
-            // pattern pen, and sets the flag back to false for every other kind.
-            if (isForPen)
-                _realizedStrokePattern = true;
+            _renderer.AppendFormatString("/Pattern cs\n", name);
+            _renderer.AppendFormatString("{0} scn\n", name);
         }
+        // Invalidate fill color.
+        _realizedFillColor = null;
+
+        // "SCN" replaced the *stroking* colour space, which the line above does not record
+        // - so the pen path says so separately. RealizePen reaches this method only for a
+        // pattern pen, and sets the flag back to false for every other kind.
+        if (isForPen)
+            _realizedStrokePattern = true;
     }
 
     /// <summary>

@@ -101,32 +101,43 @@ internal class DdlScanner
   /// </returns>
   internal Symbol ReadCode()
   {
-    Again:
-    symbol = Symbol.None;
-    tokenType = TokenType.None;
-    token = "";
-
-    MoveToNonWhiteSpace();
-    SaveCurDocumentPos();
-
-    if (currChar == Chars.Null)
+    while (true)
     {
-      symbol = Symbol.Eof;
-      return Symbol.Eof;
-    }
+      symbol = Symbol.None;
+      tokenType = TokenType.None;
+      token = "";
 
+      MoveToNonWhiteSpace();
+      SaveCurDocumentPos();
+
+      if (currChar == Chars.Null)
+      {
+        symbol = Symbol.Eof;
+        return Symbol.Eof;
+      }
+
+      // Token is comment. In code comments are ignored. No other token starts with '/', so
+      // testing for one first takes nothing from the tests in ScanCodeToken.
+      if (currChar == '/' && nextChar == '/')
+      {
+        ScanSingleLineComment();
+        continue;
+      }
+
+      ScanCodeToken();
+      return symbol;
+    }
+  }
+
+  /// <summary>
+  /// Scans the token of code starting at the current character, which is neither the end of the
+  /// document nor the start of a comment, and sets symbol and tokenType to what it is.
+  /// </summary>
+  private void ScanCodeToken()
+  {
     if (IsIdentifierChar(currChar, true))
     {
-      // Token is identifier.
-      symbol = ScanIdentifier();
-      tokenType = TokenType.Identifier;
-      // Some keywords do not start with a backslash: true, false, and null.
-      var sym = KeyWords.SymbolFromName(token);
-      if (sym != Symbol.None)
-      {
-        symbol = sym;
-        tokenType = TokenType.KeyWord;
-      }
+      ScanIdentifierOrKeyword();
     }
     else if (currChar == '"')
     {
@@ -135,9 +146,7 @@ internal class DdlScanner
       symbol = Symbol.StringLiteral;
       tokenType = TokenType.StringLiteral;
     }
-    else if (IsDigit(currChar) ||
-             currChar == '-' && IsDigit(nextChar) ||
-             currChar == '+' && IsDigit(nextChar))
+    else if (IsNumberStart)
     {
       // Token is number literal.
       symbol = ScanNumber(false);
@@ -156,26 +165,42 @@ internal class DdlScanner
       symbol = ScanKeyword();
       tokenType = symbol != Symbol.None ? TokenType.KeyWord : TokenType.None;
     }
-    else if (currChar == '/' && nextChar == '/')
-    {
-      // Token is comment. In code comments are ignored.
-      ScanSingleLineComment();
-      goto Again;
-    }
     else if (currChar == '@' && nextChar == '"')
     {
       // Token is verbatim string literal.
       ScanNextChar();
       token += ScanVerbatimStringLiteral();
       symbol = Symbol.StringLiteral;
-      tokenType = symbol != Symbol.None ? TokenType.StringLiteral : TokenType.None;
+      tokenType = TokenType.StringLiteral;
     }
     else
     {
       // Punctuator or syntax error.
       symbol = ScanPunctuator();
     }
-    return symbol;
+  }
+
+  /// <summary>
+  /// Whether the current character starts a number: a digit, or a sign followed by one.
+  /// </summary>
+  private bool IsNumberStart =>
+    IsDigit(currChar) || currChar is '-' or '+' && IsDigit(nextChar);
+
+  /// <summary>
+  /// Scans an identifier, which is a keyword instead when it is one of the keywords that do not
+  /// start with a backslash.
+  /// </summary>
+  private void ScanIdentifierOrKeyword()
+  {
+    symbol = ScanIdentifier();
+    tokenType = TokenType.Identifier;
+    // Some keywords do not start with a backslash: true, false, and null.
+    var sym = KeyWords.SymbolFromName(token);
+    if (sym != Symbol.None)
+    {
+      symbol = sym;
+      tokenType = TokenType.KeyWord;
+    }
   }
 
   /// <summary>
@@ -228,118 +253,58 @@ internal class DdlScanner
   /// </summary>
   protected Symbol PeekPunctuator(int index)
   {
-    var sym = Symbol.None;
     var ch = m_strDocument[index];
-    switch (ch)
+    return ch switch
     {
-      case '{':
-        sym = Symbol.BraceLeft;
-        break;
-
-      case '}':
-        sym = Symbol.BraceRight;
-        break;
-
-      case '[':
-        sym = Symbol.BracketLeft;
-        break;
-
-      case ']':
-        sym = Symbol.BracketRight;
-        break;
-
-      case '(':
-        sym = Symbol.ParenLeft;
-        break;
-
-      case ')':
-        sym = Symbol.ParenRight;
-        break;
-
-      case ':':
-        sym = Symbol.Colon;
-        break;
-
-      case ';':
-        sym = Symbol.Semicolon;
-        break;
-
-      case '.':
-        sym = Symbol.Dot;
-        break;
-
-      case ',':
-        sym = Symbol.Comma;
-        break;
-
-      case '%':
-        sym = Symbol.Percent;
-        break;
-
-      case '$':
-        sym = Symbol.Dollar;
-        break;
-
-      case '@':
-        sym = Symbol.At;
-        break;
-
-      case '#':
-        sym = Symbol.Hash;
-        break;
-
-      case '¤':
-        sym = Symbol.Currency; //??? used in DDL?
-        break;
-
-      case '=':
-        sym = Symbol.Assign;
-        break;
-
-      case '/':
-        sym = Symbol.Slash;
-        break;
-
-      case '\\':
-        sym = Symbol.BackSlash;
-        break;
-
-      // The bound is "there is a character after this one", so it is > rather than >=: with >=,
-      // a '+' or '-' as the last character of the document read one past the end. ScanPunctuator
-      // has the same two arms and gets this right because it looks at nextChar, which is null at
-      // the end of the buffer rather than out of it.
-      case '+':
-        if (ddlLength > index + 1 && m_strDocument[index + 1] == '=')
-          sym = Symbol.PlusAssign;
-        else
-          sym = Symbol.Plus;
-        break;
-
-      case '-':
-        if (ddlLength > index + 1 && m_strDocument[index + 1] == '=')
-          sym = Symbol.MinusAssign;
-        else
-          sym = Symbol.Minus;
-        break;
-
-      case Chars.CR:
-        sym = Symbol.CR;
-        break;
-
-      case Chars.LF:
-        sym = Symbol.LF;
-        break;
-
-      case Chars.Space:
-        sym = Symbol.Blank;
-        break;
-
-      case Chars.Null:
-        sym = Symbol.Eof;
-        break;
-    }
-    return sym;
+      '+' => IsAssignAfter(index) ? Symbol.PlusAssign : Symbol.Plus,
+      '-' => IsAssignAfter(index) ? Symbol.MinusAssign : Symbol.Minus,
+      _ => SingleCharPunctuator(ch)
+    };
   }
+
+  /// <summary>
+  /// Whether the character after the one at the given index is '='.
+  /// </summary>
+  /// <remarks>
+  /// The bound is "there is a character after this one", so it is > rather than >=: with >=,
+  /// a '+' or '-' as the last character of the document read one past the end. ScanPunctuator
+  /// has the same two arms and gets this right because it looks at nextChar, which is null at
+  /// the end of the buffer rather than out of it.
+  /// </remarks>
+  private bool IsAssignAfter(int index) =>
+    ddlLength > index + 1 && m_strDocument[index + 1] == '=';
+
+  /// <summary>
+  /// The punctuator terminal symbol a character is on its own, or Symbol.None if it is none.
+  /// '+' and '-' are left to the callers, because whether they are one depends on what follows.
+  /// </summary>
+  private static Symbol SingleCharPunctuator(char ch) =>
+    ch switch
+    {
+      '{' => Symbol.BraceLeft,
+      '}' => Symbol.BraceRight,
+      '[' => Symbol.BracketLeft,
+      ']' => Symbol.BracketRight,
+      '(' => Symbol.ParenLeft,
+      ')' => Symbol.ParenRight,
+      ':' => Symbol.Colon,
+      ';' => Symbol.Semicolon,
+      '.' => Symbol.Dot,
+      ',' => Symbol.Comma,
+      '%' => Symbol.Percent,
+      '$' => Symbol.Dollar,
+      '@' => Symbol.At,
+      '#' => Symbol.Hash,
+      '¤' => Symbol.Currency, //??? used in DDL?
+      '=' => Symbol.Assign,
+      '/' => Symbol.Slash,
+      '\\' => Symbol.BackSlash,
+      Chars.CR => Symbol.CR,
+      Chars.LF => Symbol.LF,
+      Chars.Space => Symbol.Blank,
+      Chars.Null => Symbol.Eof,
+      _ => Symbol.None
+    };
 
   /// <summary>
   /// Gets the next symbol without touching the DDL cursor.
@@ -477,56 +442,26 @@ internal class DdlScanner
   private Symbol ReadPlainText(bool rootLevel)
   {
     var foundSpace = false;
-    var loop = true;
-    while (loop && currChar != Chars.Null)
+    while (currChar != Chars.Null)
     {
       // Check for escaped character or keyword.
       if (currChar == '\\')
       {
-        switch (nextChar)
-        {
-          case '\\':
-          case '{':
-          case '}':
-          case '/':
-            ScanNextChar();
-            AppendAndScanNextChar();
-            break;
-
-          case '-':
-            // Treat \- as soft hyphen.
-            ScanNextChar();
-            // Fake soft hyphen and go on as usual.
-            currChar = Chars.SoftHyphen;
-            break;
-
-          // Keyword
-          default:
-            loop = false;
-            break;
-        }
+        if (!ScanTextEscape())
+          break; // Keyword
         continue;
       }
 
-      // Check for reserved terminal symbols in text
-      switch (currChar)
-      {
-        case '{':
-          // Syntax error any way
-          loop = false;
-          continue;
+      // Check for reserved terminal symbols in text: '{' is a syntax error any way, '}' is the
+      // block end.
+      if (currChar is '{' or '}')
+        break;
 
-        case '}':
-          // Block end
-          loop = false;
-          continue;
-
-        case '/':
-          if (nextChar != '/')
-            goto ValidCharacter;
-          ScanToEol();
-          break;
-      }
+      // A comment runs to the end of the line, which is then handled as any other. A comment
+      // that runs to the end of the document leaves the end of the document as the current
+      // character, and that is appended like any other character below.
+      if (currChar == '/' && nextChar == '/')
+        ScanToEol();
 
       // Check for end of line.
       if (currChar == Chars.LF)
@@ -546,28 +481,55 @@ internal class DdlScanner
         break;
       }
 
-      ValidCharacter:
-      // Compress multiple blanks to one
-      if (currChar == ' ')
-      {
-        if (foundSpace)
-        {
-          ScanNextChar();
-          continue;
-        }
-        foundSpace = true;
-      }
-      else
-      {
-        foundSpace = false;
-      }
-
-      AppendAndScanNextChar();
+      foundSpace = AppendTextChar(foundSpace);
     }
 
     symbol = Symbol.Text;
     tokenType = TokenType.Text;
     return Symbol.Text;
+  }
+
+  /// <summary>
+  /// Reads the escape a backslash in text starts, if it is one: an escaped '\', '{', '}' or
+  /// '/' is appended to the token, and \- becomes the soft hyphen that is then the current
+  /// character. Returns false, having read nothing, when the backslash starts a keyword instead.
+  /// </summary>
+  private bool ScanTextEscape()
+  {
+    switch (nextChar)
+    {
+      case '\\':
+      case '{':
+      case '}':
+      case '/':
+        ScanNextChar();
+        AppendAndScanNextChar();
+        return true;
+
+      case '-':
+        // Treat \- as soft hyphen.
+        ScanNextChar();
+        // Fake soft hyphen and go on as usual.
+        currChar = Chars.SoftHyphen;
+        return true;
+
+      default:
+        return false;
+    }
+  }
+
+  /// <summary>
+  /// Appends the current character of text to the token, compressing multiple blanks to one:
+  /// a blank following a blank is skipped. Returns whether the character was a blank.
+  /// </summary>
+  private bool AppendTextChar(bool afterSpace)
+  {
+    var isSpace = currChar == ' ';
+    if (isSpace && afterSpace)
+      ScanNextChar();
+    else
+      AppendAndScanNextChar();
+    return isSpace;
   }
 
   /// <summary>
@@ -1110,126 +1072,33 @@ internal class DdlScanner
   /// </summary>
   protected Symbol ScanPunctuator()
   {
-    var sym = Symbol.None;
-    switch (currChar)
+    // The end of the document is not appended to the token.
+    if (currChar == Chars.Null)
+      return Symbol.Eof;
+
+    var sym = currChar switch
     {
-      case '{':
-        sym = Symbol.BraceLeft;
-        break;
-
-      case '}':
-        sym = Symbol.BraceRight;
-        break;
-
-      case '[':
-        sym = Symbol.BracketLeft;
-        break;
-
-      case ']':
-        sym = Symbol.BracketRight;
-        break;
-
-      case '(':
-        sym = Symbol.ParenLeft;
-        break;
-
-      case ')':
-        sym = Symbol.ParenRight;
-        break;
-
-      case ':':
-        sym = Symbol.Colon;
-        break;
-
-      case ';':
-        sym = Symbol.Semicolon;
-        break;
-
-      case '.':
-        sym = Symbol.Dot;
-        break;
-
-      case ',':
-        sym = Symbol.Comma;
-        break;
-
-      case '%':
-        sym = Symbol.Percent;
-        break;
-
-      case '$':
-        sym = Symbol.Dollar;
-        break;
-
-      case '@':
-        sym = Symbol.At;
-        break;
-
-      case '#':
-        sym = Symbol.Hash;
-        break;
-
-      case '¤':
-        sym = Symbol.Currency; //??? used in DDL?
-        break;
-
-      case '=':
-        sym = Symbol.Assign;
-        break;
-
-      case '/':
-        sym = Symbol.Slash;
-        break;
-
-      case '\\':
-        sym = Symbol.BackSlash;
-        break;
-
-      case '+':
-        if (nextChar == '=')
-        {
-          token += currChar;
-          ScanNextChar();
-          sym = Symbol.PlusAssign;
-        }
-        else
-        {
-          sym = Symbol.Plus;
-        }
-        break;
-
-      case '-':
-        if (nextChar == '=')
-        {
-          token += currChar;
-          ScanNextChar();
-          sym = Symbol.MinusAssign;
-        }
-        else
-        {
-          sym = Symbol.Minus;
-        }
-        break;
-
-      case Chars.CR:
-        sym = Symbol.CR;
-        break;
-
-      case Chars.LF:
-        sym = Symbol.LF;
-        break;
-
-      case Chars.Space:
-        sym = Symbol.Blank;
-        break;
-
-      case Chars.Null:
-        sym = Symbol.Eof;
-        return sym;
-    }
+      '+' => ScanCompoundAssign(Symbol.Plus, Symbol.PlusAssign),
+      '-' => ScanCompoundAssign(Symbol.Minus, Symbol.MinusAssign),
+      _ => SingleCharPunctuator(currChar)
+    };
     token += currChar;
     ScanNextChar();
     return sym;
+  }
+
+  /// <summary>
+  /// For a '+' or '-': when '=' follows, appends the operator to the token and moves on to the
+  /// '=', answering the compound assignment; otherwise answers the operator alone.
+  /// </summary>
+  private Symbol ScanCompoundAssign(Symbol alone, Symbol withAssign)
+  {
+    if (nextChar != '=')
+      return alone;
+
+    token += currChar;
+    ScanNextChar();
+    return withAssign;
   }
 
   /// <summary>
@@ -1270,73 +1139,17 @@ internal class DdlScanner
       if (currChar == '\\')
       {
         ScanNextChar(); // read escaped characters
-        switch (currChar)
+        if (currChar == 'x')
         {
-          case 'a':
-            str += '\a';
-            break;
-
-          case 'b':
-            str += '\b';
-            break;
-
-          case 'f':
-            str += '\f';
-            break;
-
-          case 'n':
-            str += '\n';
-            break;
-
-          case 'r':
-            str += '\r';
-            break;
-
-          case 't':
-            str += '\t';
-            break;
-
-          case 'v':
-            str += '\v';
-            break;
-
-          case '\'':
-            str += '\'';
-            break;
-
-          case '\"':
-            str += '\"';
-            break;
-
-          case '\\':
-            str += '\\';
-            break;
-
-          case 'x':
-          {
-            // One or two hex digits name the character. Reading them leaves the scanner on the
-            // character after the last one, which is the next character of the string and must
-            // not be stepped over by the ScanNextChar at the bottom of the loop - so this case
-            // continues rather than breaks. Stepping over it lost that character, and when it
-            // was the closing quote the string ran on into whatever followed it.
-            ScanNextChar();
-            var hexDigits = "";
-            while (IsHexDigit(currChar))
-            {
-              hexDigits += currChar;
-              ScanNextChar();
-            }
-            if (hexDigits.Length is 0 or > 2)
-              throw new DdlParserException(DdlErrorLevel.Error,
-                DomSR.GetString(DomMsgID.EscapeSequenceNotAllowed), DomMsgID.EscapeSequenceNotAllowed);
-            str += (char)Convert.ToInt32(hexDigits, 16);
-            continue;
-          }
-
-          default:
-            throw new DdlParserException(DdlErrorLevel.Error,
-              DomSR.GetString(DomMsgID.EscapeSequenceNotAllowed), DomMsgID.EscapeSequenceNotAllowed);
+          // Reading the hex digits leaves the scanner on the character after the last one, which
+          // is the next character of the string and must not be stepped over by the ScanNextChar
+          // at the bottom of the loop - so this continues rather than falls through. Stepping
+          // over it lost that character, and when it was the closing quote the string ran on
+          // into whatever followed it.
+          str += ScanHexEscape();
+          continue;
         }
+        str += SimpleEscape(currChar);
       }
       else if (currChar is Chars.Null or Chars.CR or Chars.LF)
       {
@@ -1353,6 +1166,48 @@ internal class DdlScanner
     ScanNextChar();  // read '"'
     return str;
   }
+
+  /// <summary>
+  /// The character a single-letter escape in a string literal names, the letter being the one
+  /// after the backslash. Throws for a letter that names none.
+  /// </summary>
+  private static char SimpleEscape(char ch) =>
+    ch switch
+    {
+      'a' => '\a',
+      'b' => '\b',
+      'f' => '\f',
+      'n' => '\n',
+      'r' => '\r',
+      't' => '\t',
+      'v' => '\v',
+      '\'' => '\'',
+      '\"' => '\"',
+      '\\' => '\\',
+      _ => throw EscapeSequenceNotAllowed()
+    };
+
+  /// <summary>
+  /// Reads the \x escape in a string literal, the scanner being on the 'x': one or two hex digits
+  /// name the character. Leaves the scanner on the character after the last digit.
+  /// </summary>
+  private char ScanHexEscape()
+  {
+    ScanNextChar();
+    var hexDigits = "";
+    while (IsHexDigit(currChar))
+    {
+      hexDigits += currChar;
+      ScanNextChar();
+    }
+    if (hexDigits.Length is 0 or > 2)
+      throw EscapeSequenceNotAllowed();
+    return (char)Convert.ToInt32(hexDigits, 16);
+  }
+
+  private static DdlParserException EscapeSequenceNotAllowed() =>
+    new(DdlErrorLevel.Error,
+      DomSR.GetString(DomMsgID.EscapeSequenceNotAllowed), DomMsgID.EscapeSequenceNotAllowed);
 
   /// <summary>
   /// Save the current scanner location in the document for error handling.

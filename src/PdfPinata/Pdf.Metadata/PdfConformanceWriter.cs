@@ -277,42 +277,68 @@ internal static class PdfConformanceWriter
         for (var index = 0; index < document.PageCount; index++)
         {
             var page = document.Pages[index];
+            var pageNumber = index + 1;
 
             // The page's own group needs no walk of its content to be seen, so it is refused
             // whether or not the content was understood.
-            if (IsPart1(conformance) && PdfResourceConformanceRules.DeclaresTransparencyGroup(page))
-                throw new InvalidOperationException(
-                    "PDF/A-1 forbids transparency, and page " + (index + 1) + " declares a "
-                    + "transparency group, as a page imported from another document can. Claim "
-                    + "PDF/A-2 or later, which permits it, or remove the page's /Group.");
+            if (IsPart1(conformance))
+                CheckPageGroupForPart1(page, pageNumber);
 
             var usage = PdfPageResourceUsage.Walk(page);
             if (!usage.Understood)
                 continue;
 
             if (IsPart1(conformance))
-            {
-                if (PdfResourceConformanceRules.UsesTransparency(usage))
-                    throw new InvalidOperationException(
-                        "PDF/A-1 forbids transparency, and page " + (index + 1) + " paints with it "
-                        + "— found by walking every resource the page reaches, not only what its "
-                        + "content names outright. Claim PDF/A-2 or later, which permits it, or "
-                        + "remove the transparency.");
-
-                if (PdfResourceConformanceRules.UsesJpxImage(usage))
-                    throw new InvalidOperationException(
-                        "PDF/A-1 forbids a JPEG 2000 image, and page " + (index + 1) + " carries "
-                        + "one. Claim PDF/A-2 or later, which permits it, or re-encode the image.");
-            }
+                CheckUsageForPart1(usage, pageNumber);
 
             if (PdfResourceConformanceRules.UsesInterpolatedImage(usage))
                 throw new InvalidOperationException(
-                    conformance + " forbids an image set to interpolate, and page " + (index + 1)
+                    conformance + " forbids an image set to interpolate, and page " + pageNumber
                     + " carries one. Clear XImage.Interpolate before saving.");
 
             PdfResourceConformanceRules.CollectDeviceColorFamilies(usage, families);
         }
 
+        CheckDeviceColorFamilies(document, conformance, families);
+    }
+
+    /// <summary>
+    /// Refuses a page that declares a transparency group of its own, which PDF/A-1 forbids.
+    /// </summary>
+    private static void CheckPageGroupForPart1(PdfPage page, int pageNumber)
+    {
+        if (PdfResourceConformanceRules.DeclaresTransparencyGroup(page))
+            throw new InvalidOperationException(
+                "PDF/A-1 forbids transparency, and page " + pageNumber + " declares a "
+                + "transparency group, as a page imported from another document can. Claim "
+                + "PDF/A-2 or later, which permits it, or remove the page's /Group.");
+    }
+
+    /// <summary>
+    /// Refuses what PDF/A-1 alone forbids a page's resources to use: transparency, and a JPEG 2000
+    /// image.
+    /// </summary>
+    private static void CheckUsageForPart1(PdfPageResourceUsage usage, int pageNumber)
+    {
+        if (PdfResourceConformanceRules.UsesTransparency(usage))
+            throw new InvalidOperationException(
+                "PDF/A-1 forbids transparency, and page " + pageNumber + " paints with it "
+                + "— found by walking every resource the page reaches, not only what its "
+                + "content names outright. Claim PDF/A-2 or later, which permits it, or "
+                + "remove the transparency.");
+
+        if (PdfResourceConformanceRules.UsesJpxImage(usage))
+            throw new InvalidOperationException(
+                "PDF/A-1 forbids a JPEG 2000 image, and page " + pageNumber + " carries "
+                + "one. Claim PDF/A-2 or later, which permits it, or re-encode the image.");
+    }
+
+    /// <summary>
+    /// Refuses a device colour family the output intent's profile does not describe.
+    /// </summary>
+    private static void CheckDeviceColorFamilies(PdfDocument document, PdfAConformance conformance,
+        HashSet<int> families)
+    {
         if (families.Count == 0)
             return;
 
@@ -464,46 +490,73 @@ internal static class PdfConformanceWriter
     /// </remarks>
     private static int ComponentsOf(byte[] profile, PdfColorMode mode)
     {
+        var space = DataColorSpaceOf(profile);
+        var components = space == null ? null : ComponentsOfSpace(space);
+        return components ?? (mode == PdfColorMode.Cmyk ? 4 : 3);
+    }
+
+    /// <summary>
+    /// The four-character data colour space signature at byte 16 of an ICC profile header, or
+    /// null when the profile is too short to have one.
+    /// </summary>
+    private static string DataColorSpaceOf(byte[] profile)
+    {
         const int SpaceAt = 16;
 
-        if (profile is { Length: >= SpaceAt + 4 })
+        if (profile is not { Length: >= SpaceAt + 4 })
+            return null;
+
+        return new string(new[]
         {
-            var space = new string(new[]
-            {
-                (char)profile[SpaceAt], (char)profile[SpaceAt + 1],
-                (char)profile[SpaceAt + 2], (char)profile[SpaceAt + 3]
-            });
+            (char)profile[SpaceAt], (char)profile[SpaceAt + 1],
+            (char)profile[SpaceAt + 2], (char)profile[SpaceAt + 3]
+        });
+    }
 
-            switch (space)
-            {
-                case "GRAY": return 1;
-                case "CMYK": return 4;
+    /// <summary>
+    /// How many components a data colour space signature names, or null for one this does not know.
+    /// </summary>
+    private static int? ComponentsOfSpace(string space)
+    {
+        switch (space)
+        {
+            case "GRAY": return 1;
+            case "CMYK": return 4;
 
-                // The three-component spaces a PDF output intent can plausibly carry. Lab, XYZ,
-                // Luv and CMY are not device spaces and will not appear here from this library, but
-                // a caller's profile is a caller's profile and answering 3 for them is right.
-                case "RGB ":
-                case "Lab ":
-                case "XYZ ":
-                case "Luv ":
-                case "CMY ": return 3;
-            }
+            // The three-component spaces a PDF output intent can plausibly carry. Lab, XYZ,
+            // Luv and CMY are not device spaces and will not appear here from this library, but
+            // a caller's profile is a caller's profile and answering 3 for them is right.
+            case "RGB ":
+            case "Lab ":
+            case "XYZ ":
+            case "Luv ":
+            case "CMY ": return 3;
 
-            // ICC.1:2010 Table 19 also names an nCLR family for multi-channel devices: '2CLR'
-            // through '9CLR' and then 'ACLR' through 'FCLR', the leading character spelling the
-            // channel count in hex from 2 to 15. Falling back to the colour mode's 3-or-4 guess for
-            // one of these is exactly the wrong /N this method exists to stop writing.
-            if (space[1] == 'C' && space[2] == 'L' && space[3] == 'R')
-            {
-                var digit = space[0];
-                if (digit is >= '2' and <= '9')
-                    return digit - '0';
-                if (digit is >= 'A' and <= 'F')
-                    return digit - 'A' + 10;
-            }
+            default: return MultiChannelComponents(space);
         }
+    }
 
-        return mode == PdfColorMode.Cmyk ? 4 : 3;
+    /// <summary>
+    /// The channel count of an nCLR signature, or null for anything else.
+    /// </summary>
+    /// <remarks>
+    /// ICC.1:2010 Table 19 also names an nCLR family for multi-channel devices: '2CLR' through
+    /// '9CLR' and then 'ACLR' through 'FCLR', the leading character spelling the channel count in
+    /// hex from 2 to 15. Falling back to the colour mode's 3-or-4 guess for one of these is exactly
+    /// the wrong /N <see cref="ComponentsOf"/> exists to stop writing.
+    /// </remarks>
+    private static int? MultiChannelComponents(string space)
+    {
+        if (space[1] != 'C' || space[2] != 'L' || space[3] != 'R')
+            return null;
+
+        var digit = space[0];
+        return digit switch
+        {
+            >= '2' and <= '9' => digit - '0',
+            >= 'A' and <= 'F' => digit - 'A' + 10,
+            _ => null
+        };
     }
 
     /// <summary>Whether the caller supplied a profile of their own.</summary>

@@ -137,9 +137,35 @@ public class Ascii85Decode : Filter
     {
         ArgumentNullException.ThrowIfNull(data);
 
+        var length = CompactSignificantCharacters(data, out var zCount);
+
+        var nonZero = length - zCount;
+        var byteCount = 4 * (zCount + nonZero / 5); // full 4 byte blocks
+
+        var remainder = nonZero % 5;
+        if (remainder == 1)
+            throw new InvalidOperationException("Illegal character.");
+
+        if (remainder != 0)
+            byteCount += remainder - 1;
+
+        var output = new byte[byteCount];
+
+        var (idx, idxOut) = DecodeWholeGroups(data, length, output);
+        DecodeTrailingGroup(data, idx, output, idxOut, remainder);
+        return output;
+    }
+
+    /// <summary>
+    /// Moves the characters that carry data - the digits and z - to the front of the array, in
+    /// place, dropping everything else, and answers how many there are. Stops at the end marker
+    /// and refuses data that has none.
+    /// </summary>
+    private static int CompactSignificantCharacters(byte[] data, out int zCount)
+    {
         int idx;
         var length = data.Length;
-        var zCount = 0;
+        zCount = 0;
         var idxOut = 0;
         // How far into a five-character group the characters kept so far reach.
         var groupLength = 0;
@@ -176,21 +202,17 @@ public class Ascii85Decode : Filter
         if (idx == length)
             throw new ArgumentException("Illegal character.", nameof(data));
 
-        length = idxOut;
-        var nonZero = length - zCount;
-        var byteCount = 4 * (zCount + nonZero / 5); // full 4 byte blocks
+        return idxOut;
+    }
 
-        var remainder = nonZero % 5;
-        if (remainder == 1)
-            throw new InvalidOperationException("Illegal character.");
-
-        if (remainder != 0)
-            byteCount += remainder - 1;
-
-        var output = new byte[byteCount];
-
-        idxOut = 0;
-        idx = 0;
+    /// <summary>
+    /// Decodes every z and every whole group of five, and answers where the trailing partial group
+    /// begins in the input and where its bytes go in the output.
+    /// </summary>
+    private static (int Idx, int IdxOut) DecodeWholeGroups(byte[] data, int length, byte[] output)
+    {
+        var idxOut = 0;
+        var idx = 0;
         while (idx < length)
         {
             if ((char)data[idx] == 'z')
@@ -204,7 +226,7 @@ public class Ascii85Decode : Filter
             }
 
             // Fewer than five characters left, so what remains is the trailing partial group,
-            // which the code below the loop reads.
+            // which DecodeTrailingGroup reads.
             if (length - idx < 5)
                 break;
 
@@ -225,76 +247,98 @@ public class Ascii85Decode : Filter
             output[idxOut++] = (byte)(value >> 8);
             output[idxOut++] = (byte)value;
         }
+        return (idx, idxOut);
+    }
 
+    /// <summary>
+    /// Decodes the partial group left at the end, which is <paramref name="remainder"/> characters
+    /// standing for one byte fewer than that. A remainder of nought leaves nothing to do.
+    /// </summary>
+    private static void DecodeTrailingGroup(byte[] data, int idx, byte[] output, int idxOut, int remainder)
+    {
         // I have found no appropriate algorithm, so I write my own. In some rare cases the value must not
         // be increased by one, but I cannot found a general formula or a proof.
         // All possible cases are tested programmatically.
-        if (remainder == 2) // one byte
+        switch (remainder)
         {
-            var value =
-                (uint)(data[idx++] - '!') * (85 * 85 * 85 * 85) +
-                (uint)(data[idx] - '!') * (85 * 85 * 85);
-
-            // Always increase if not zero (tried out).
-            if (value != 0)
-                value += 0x01000000;
-
-            output[idxOut] = (byte)(value >> 24);
+            case 2:
+                DecodeTrailingOneByte(data, idx, output, idxOut);
+                break;
+            case 3:
+                DecodeTrailingTwoBytes(data, idx, output, idxOut);
+                break;
+            case 4:
+                DecodeTrailingThreeBytes(data, idx, output, idxOut);
+                break;
         }
-        else if (remainder == 3) // two bytes
-        {
-            var idxIn = idx;
-            var value =
-                (uint)(data[idx++] - '!') * (85 * 85 * 85 * 85) +
-                (uint)(data[idx++] - '!') * (85 * 85 * 85) +
-                (uint)(data[idx] - '!') * (85 * 85);
+    }
 
-            if (value != 0)
+    private static void DecodeTrailingOneByte(byte[] data, int idx, byte[] output, int idxOut)
+    {
+        var value =
+            (uint)(data[idx++] - '!') * (85 * 85 * 85 * 85) +
+            (uint)(data[idx] - '!') * (85 * 85 * 85);
+
+        // Always increase if not zero (tried out).
+        if (value != 0)
+            value += 0x01000000;
+
+        output[idxOut] = (byte)(value >> 24);
+    }
+
+    private static void DecodeTrailingTwoBytes(byte[] data, int idx, byte[] output, int idxOut)
+    {
+        var idxIn = idx;
+        var value =
+            (uint)(data[idx++] - '!') * (85 * 85 * 85 * 85) +
+            (uint)(data[idx++] - '!') * (85 * 85 * 85) +
+            (uint)(data[idx] - '!') * (85 * 85);
+
+        if (value != 0)
+        {
+            value &= 0xFFFF0000;
+            var val = value / (85 * 85);
+            var c3 = (byte)(val % 85 + '!');
+            val /= 85;
+            var c2 = (byte)(val % 85 + '!');
+            val /= 85;
+            var c1 = (byte)(val + '!');
+            if (c1 != data[idxIn] || c2 != data[idxIn + 1] || c3 != data[idxIn + 2])
             {
-                value &= 0xFFFF0000;
-                var val = value / (85 * 85);
-                var c3 = (byte)(val % 85 + '!');
-                val /= 85;
-                var c2 = (byte)(val % 85 + '!');
-                val /= 85;
-                var c1 = (byte)(val + '!');
-                if (c1 != data[idxIn] || c2 != data[idxIn + 1] || c3 != data[idxIn + 2])
-                {
-                    value += 0x00010000;
-                }
+                value += 0x00010000;
             }
-            output[idxOut++] = (byte)(value >> 24);
-            output[idxOut] = (byte)(value >> 16);
         }
-        else if (remainder == 4) // three bytes
-        {
-            var idxIn = idx;
-            var value =
-                (uint)(data[idx++] - '!') * (85 * 85 * 85 * 85) +
-                (uint)(data[idx++] - '!') * (85 * 85 * 85) +
-                (uint)(data[idx++] - '!') * (85 * 85) +
-                (uint)(data[idx] - '!') * 85;
+        output[idxOut++] = (byte)(value >> 24);
+        output[idxOut] = (byte)(value >> 16);
+    }
 
-            if (value != 0)
+    private static void DecodeTrailingThreeBytes(byte[] data, int idx, byte[] output, int idxOut)
+    {
+        var idxIn = idx;
+        var value =
+            (uint)(data[idx++] - '!') * (85 * 85 * 85 * 85) +
+            (uint)(data[idx++] - '!') * (85 * 85 * 85) +
+            (uint)(data[idx++] - '!') * (85 * 85) +
+            (uint)(data[idx] - '!') * 85;
+
+        if (value != 0)
+        {
+            value &= 0xFFFFFF00;
+            var val = value / 85;
+            var c4 = (byte)(val % 85 + '!');
+            val /= 85;
+            var c3 = (byte)(val % 85 + '!');
+            val /= 85;
+            var c2 = (byte)(val % 85 + '!');
+            val /= 85;
+            var c1 = (byte)(val + '!');
+            if (c1 != data[idxIn] || c2 != data[idxIn + 1] || c3 != data[idxIn + 2] || c4 != data[idxIn + 3])
             {
-                value &= 0xFFFFFF00;
-                var val = value / 85;
-                var c4 = (byte)(val % 85 + '!');
-                val /= 85;
-                var c3 = (byte)(val % 85 + '!');
-                val /= 85;
-                var c2 = (byte)(val % 85 + '!');
-                val /= 85;
-                var c1 = (byte)(val + '!');
-                if (c1 != data[idxIn] || c2 != data[idxIn + 1] || c3 != data[idxIn + 2] || c4 != data[idxIn + 3])
-                {
-                    value += 0x00000100;
-                }
+                value += 0x00000100;
             }
-            output[idxOut++] = (byte)(value >> 24);
-            output[idxOut++] = (byte)(value >> 16);
-            output[idxOut] = (byte)(value >> 8);
         }
-        return output;
+        output[idxOut++] = (byte)(value >> 24);
+        output[idxOut++] = (byte)(value >> 16);
+        output[idxOut] = (byte)(value >> 8);
     }
 }

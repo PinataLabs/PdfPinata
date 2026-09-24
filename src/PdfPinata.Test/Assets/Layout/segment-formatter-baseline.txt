@@ -1,0 +1,910 @@
+--- mixed, Default ---
+size 260 x 114.728515625
+q
+q
+BT
+0 0 0 rg
+/GS0 gs
+/F0 12 Tf
+56.8125 774.6953 Td (Mixed) Tj
+/F0 20 Tf
+32.0098 0 Td (sizes) Tj
+/F1 12 Tf
+51.123 0 Td (run) Tj
+22.6641 0 Td (on) Tj
+/F0 12 Tf
+17.9941 0 Td (as) Tj
+16.0078 0 Td (one) Tj
+23.3555 0 Td (flow,) Tj
+28.0078 0 Td (The) Tj
+24.0117 0 Td (quick) Tj
+-219.4629 -15.4941 Td (brown) Tj
+36.0176 0 Td (fox) Tj
+19.3418 0 Td (jumps) Tj
+35.3438 0 Td (over) Tj
+26.6777 0 Td (the) Tj
+20.0156 0 Td (lazy) Tj
+24.6738 0 Td (dog,) Tj
+26.6895 0 Td (and) Tj
+23.3555 0 Td (having) Tj
+-216.1172 -13.7988 Td (jumped) Tj
+42.6914 0 Td (it) Tj
+9.334 0 Td (lands) Tj
+32.0215 0 Td (and) Tj
+23.3555 0 Td (looks) Tj
+31.3477 0 Td (about) Tj
+33.3633 0 Td (for) Tj
+17.3379 0 Td (somewhere) Tj
+-156.543 -13.7988 Td (else) Tj
+25.3477 0 Td (to) Tj
+13.3418 0 Td (be.) Tj
+/F2 8 Tf
+16.6816 0 Td (tiny) Tj
+/F1 12 Tf
+12.4492 0 Td (joined) Tj
+/F0 12 Tf
+38.666 0 Td (and) Tj
+23.3555 0 Td (then) Tj
+26.6895 0 Td (a) Tj
+10.0078 0 Td (line) Tj
+22.0137 0 Td (break) Tj
+-126.7207 -13.7988 Td (after) Tj
+27.3457 0 Td (which) Tj
+34.0137 0 Td (the) Tj
+20.0156 0 Td (text) Tj
+22.6758 0 Td (carries) Tj
+39.3398 0 Td (on) Tj
+-66.6738 -13.7988 Td (across) Tj
+38.6777 0 Td (a) Tj
+10.0078 0 Td (CRLF) Tj
+-22.6934 -13.7988 Td (and) Tj
+23.3555 0 Td (a) Tj
+10.0078 0 Td (CR.) Tj
+ET
+Q
+Q
+
+--- indented and skipped, Default ---
+size 260 x 96.591796875
+q
+q
+BT
+0 0 0 rg
+/GS0 gs
+/F0 12 Tf
+45.873 791.1367 Td (1.) Tj
+/F1 12 Tf
+13.3418 0 Td (The) Tj
+24.0117 0 Td (quick) Tj
+31.3477 0 Td (brown) Tj
+36.0176 0 Td (fox) Tj
+19.3418 0 Td (jumps) Tj
+35.3438 0 Td (over) Tj
+26.6777 0 Td (the) Tj
+20.0156 0 Td (lazy) Tj
+24.6738 0 Td (dog,) Tj
+-207.4746 -13.7988 Td (and) Tj
+23.3555 0 Td (having) Tj
+38.6953 0 Td (jumped) Tj
+42.6914 0 Td (it) Tj
+9.334 0 Td (lands) Tj
+32.0215 0 Td (and) Tj
+23.3555 0 Td (looks) Tj
+31.3477 0 Td (about) Tj
+-108.041 -13.7988 Td (for) Tj
+17.3379 0 Td (somewhere) Tj
+65.3613 0 Td (else) Tj
+25.3477 0 Td (to) Tj
+13.3418 0 Td (be.) Tj
+-220.7754 -27.5977 Td (A) Tj
+11.3379 0 Td (new) Tj
+25.3477 0 Td (paragraph) Tj
+58.043 0 Td (The) Tj
+24.0117 0 Td (quick) Tj
+31.3477 0 Td (brown) Tj
+36.0176 0 Td (fox) Tj
+19.3418 0 Td (jumps) Tj
+-208.8105 -13.7988 Td (over) Tj
+26.6777 0 Td (the) Tj
+20.0156 0 Td (lazy) Tj
+24.6738 0 Td (dog,) Tj
+26.6895 0 Td (and) Tj
+23.3555 0 Td (having) Tj
+38.6953 0 Td (jumped) Tj
+42.6914 0 Td (it) Tj
+9.334 0 Td (lands) Tj
+-197.4492 -13.7988 Td (and) Tj
+23.3555 0 Td (looks) Tj
+31.3477 0 Td (about) Tj
+33.3633 0 Td (for) Tj
+17.3379 0 Td (somewhere) Tj
+65.3613 0 Td (else) Tj
+25.3477 0 Td (to) Tj
+13.3418 0 Td (be.) Tj
+ET
+Q
+Q
+
+--- narrow, Default ---
+size 60 x 38.4921875
+q
+q
+BT
+0 0 0 rg
+/GS0 gs
+/F0 20 Tf
+10 813.8945 Td (Incomprehensibilities) Tj
+/F0 12 Tf
+53.3262 -15.4941 Td (a) Tj
+ET
+Q
+Q
+
+--- overflowing, Default ---
+size 200 x 128.52734375
+q
+q
+BT
+0 0 0 rg
+/GS0 gs
+/F0 12 Tf
+52.1719 774.6953 Td (Mixed) Tj
+/F0 20 Tf
+32.0098 0 Td (sizes) Tj
+/F1 12 Tf
+51.123 0 Td (run) Tj
+22.6641 0 Td (on) Tj
+/F0 12 Tf
+17.9941 0 Td (as) Tj
+16.0078 0 Td (one) Tj
+23.3555 0 Td (flow,) Tj
+-164.748 -15.4941 Td (The) Tj
+24.0117 0 Td (quick) Tj
+31.3477 0 Td (brown) Tj
+36.0176 0 Td (fox) Tj
+19.3418 0 Td (jumps) Tj
+35.3438 0 Td (over) Tj
+26.6777 0 Td (the) Tj
+-177.4453 -13.7988 Td (lazy) Tj
+24.6738 0 Td (dog,) Tj
+26.6895 0 Td (and) Tj
+23.3555 0 Td (having) Tj
+38.6953 0 Td (jumped) Tj
+42.6914 0 Td (it) Tj
+9.334 0 Td (lands) Tj
+ET
+Q
+Q
+
+--- mixed, Left ---
+size 251.478515625 x 114.728515625
+q
+q
+BT
+0 0 0 rg
+/GS0 gs
+/F0 12 Tf
+40 774.6953 Td (Mixed) Tj
+/F0 20 Tf
+32.0098 0 Td (sizes) Tj
+/F1 12 Tf
+51.123 0 Td (run) Tj
+22.6641 0 Td (on) Tj
+/F0 12 Tf
+17.9941 0 Td (as) Tj
+16.0078 0 Td (one) Tj
+23.3555 0 Td (flow,) Tj
+28.0078 0 Td (The) Tj
+24.0117 0 Td (quick) Tj
+-215.1738 -15.4941 Td (brown) Tj
+36.0176 0 Td (fox) Tj
+19.3418 0 Td (jumps) Tj
+35.3438 0 Td (over) Tj
+26.6777 0 Td (the) Tj
+20.0156 0 Td (lazy) Tj
+24.6738 0 Td (dog,) Tj
+26.6895 0 Td (and) Tj
+23.3555 0 Td (having) Tj
+-212.1152 -13.7988 Td (jumped) Tj
+42.6914 0 Td (it) Tj
+9.334 0 Td (lands) Tj
+32.0215 0 Td (and) Tj
+23.3555 0 Td (looks) Tj
+31.3477 0 Td (about) Tj
+33.3633 0 Td (for) Tj
+17.3379 0 Td (somewhere) Tj
+-189.4512 -13.7988 Td (else) Tj
+25.3477 0 Td (to) Tj
+13.3418 0 Td (be.) Tj
+/F2 8 Tf
+16.6816 0 Td (tiny) Tj
+/F1 12 Tf
+12.4492 0 Td (joined) Tj
+/F0 12 Tf
+38.666 0 Td (and) Tj
+23.3555 0 Td (then) Tj
+26.6895 0 Td (a) Tj
+10.0078 0 Td (line) Tj
+22.0137 0 Td (break) Tj
+-188.5527 -13.7988 Td (after) Tj
+27.3457 0 Td (which) Tj
+34.0137 0 Td (the) Tj
+20.0156 0 Td (text) Tj
+22.6758 0 Td (carries) Tj
+39.3398 0 Td (on) Tj
+-143.3906 -13.7988 Td (across) Tj
+38.6777 0 Td (a) Tj
+10.0078 0 Td (CRLF) Tj
+-48.6855 -13.7988 Td (and) Tj
+23.3555 0 Td (a) Tj
+10.0078 0 Td (CR.) Tj
+ET
+Q
+Q
+
+--- indented and skipped, Left ---
+size 254.126953125 x 96.591796875
+q
+q
+BT
+0 0 0 rg
+/GS0 gs
+/F0 12 Tf
+40 791.1367 Td (1.) Tj
+/F1 12 Tf
+13.3418 0 Td (The) Tj
+24.0117 0 Td (quick) Tj
+31.3477 0 Td (brown) Tj
+36.0176 0 Td (fox) Tj
+19.3418 0 Td (jumps) Tj
+35.3438 0 Td (over) Tj
+26.6777 0 Td (the) Tj
+20.0156 0 Td (lazy) Tj
+24.6738 0 Td (dog,) Tj
+-216.7715 -13.7988 Td (and) Tj
+23.3555 0 Td (having) Tj
+38.6953 0 Td (jumped) Tj
+42.6914 0 Td (it) Tj
+9.334 0 Td (lands) Tj
+32.0215 0 Td (and) Tj
+23.3555 0 Td (looks) Tj
+31.3477 0 Td (about) Tj
+-200.8008 -13.7988 Td (for) Tj
+17.3379 0 Td (somewhere) Tj
+65.3613 0 Td (else) Tj
+25.3477 0 Td (to) Tj
+13.3418 0 Td (be.) Tj
+-129.3887 -27.5977 Td (A) Tj
+11.3379 0 Td (new) Tj
+25.3477 0 Td (paragraph) Tj
+58.043 0 Td (The) Tj
+24.0117 0 Td (quick) Tj
+31.3477 0 Td (brown) Tj
+36.0176 0 Td (fox) Tj
+19.3418 0 Td (jumps) Tj
+-205.4473 -13.7988 Td (over) Tj
+26.6777 0 Td (the) Tj
+20.0156 0 Td (lazy) Tj
+24.6738 0 Td (dog,) Tj
+26.6895 0 Td (and) Tj
+23.3555 0 Td (having) Tj
+38.6953 0 Td (jumped) Tj
+42.6914 0 Td (it) Tj
+9.334 0 Td (lands) Tj
+-212.1328 -13.7988 Td (and) Tj
+23.3555 0 Td (looks) Tj
+31.3477 0 Td (about) Tj
+33.3633 0 Td (for) Tj
+17.3379 0 Td (somewhere) Tj
+65.3613 0 Td (else) Tj
+25.3477 0 Td (to) Tj
+13.3418 0 Td (be.) Tj
+ET
+Q
+Q
+
+--- narrow, Left ---
+size 60 x 38.4921875
+q
+q
+BT
+0 0 0 rg
+/GS0 gs
+/F0 20 Tf
+10 813.8945 Td (Incomprehensibilities) Tj
+/F0 12 Tf
+0 -15.4941 Td (a) Tj
+ET
+Q
+Q
+
+--- overflowing, Left ---
+size 194.126953125 x 128.52734375
+q
+q
+BT
+0 0 0 rg
+/GS0 gs
+/F0 12 Tf
+40 774.6953 Td (Mixed) Tj
+/F0 20 Tf
+32.0098 0 Td (sizes) Tj
+/F1 12 Tf
+51.123 0 Td (run) Tj
+22.6641 0 Td (on) Tj
+/F0 12 Tf
+17.9941 0 Td (as) Tj
+16.0078 0 Td (one) Tj
+23.3555 0 Td (flow,) Tj
+-163.1543 -15.4941 Td (The) Tj
+24.0117 0 Td (quick) Tj
+31.3477 0 Td (brown) Tj
+36.0176 0 Td (fox) Tj
+19.3418 0 Td (jumps) Tj
+35.3438 0 Td (over) Tj
+26.6777 0 Td (the) Tj
+-172.7402 -13.7988 Td (lazy) Tj
+24.6738 0 Td (dog,) Tj
+26.6895 0 Td (and) Tj
+23.3555 0 Td (having) Tj
+38.6953 0 Td (jumped) Tj
+42.6914 0 Td (it) Tj
+9.334 0 Td (lands) Tj
+ET
+Q
+Q
+
+--- mixed, Center ---
+size 255.7392578125 x 114.728515625
+q
+q
+BT
+0 0 0 rg
+/GS0 gs
+/F0 12 Tf
+48.4063 774.6953 Td (Mixed) Tj
+/F0 20 Tf
+32.0098 0 Td (sizes) Tj
+/F1 12 Tf
+51.123 0 Td (run) Tj
+22.6641 0 Td (on) Tj
+/F0 12 Tf
+17.9941 0 Td (as) Tj
+16.0078 0 Td (one) Tj
+23.3555 0 Td (flow,) Tj
+28.0078 0 Td (The) Tj
+24.0117 0 Td (quick) Tj
+-217.3184 -15.4941 Td (brown) Tj
+36.0176 0 Td (fox) Tj
+19.3418 0 Td (jumps) Tj
+35.3438 0 Td (over) Tj
+26.6777 0 Td (the) Tj
+20.0156 0 Td (lazy) Tj
+24.6738 0 Td (dog,) Tj
+26.6895 0 Td (and) Tj
+23.3555 0 Td (having) Tj
+-214.1162 -13.7988 Td (jumped) Tj
+42.6914 0 Td (it) Tj
+9.334 0 Td (lands) Tj
+32.0215 0 Td (and) Tj
+23.3555 0 Td (looks) Tj
+31.3477 0 Td (about) Tj
+33.3633 0 Td (for) Tj
+17.3379 0 Td (somewhere) Tj
+-172.9971 -13.7988 Td (else) Tj
+25.3477 0 Td (to) Tj
+13.3418 0 Td (be.) Tj
+/F2 8 Tf
+16.6816 0 Td (tiny) Tj
+/F1 12 Tf
+12.4492 0 Td (joined) Tj
+/F0 12 Tf
+38.666 0 Td (and) Tj
+23.3555 0 Td (then) Tj
+26.6895 0 Td (a) Tj
+10.0078 0 Td (line) Tj
+22.0137 0 Td (break) Tj
+-157.6367 -13.7988 Td (after) Tj
+27.3457 0 Td (which) Tj
+34.0137 0 Td (the) Tj
+20.0156 0 Td (text) Tj
+22.6758 0 Td (carries) Tj
+39.3398 0 Td (on) Tj
+-105.0322 -13.7988 Td (across) Tj
+38.6777 0 Td (a) Tj
+10.0078 0 Td (CRLF) Tj
+-35.6895 -13.7988 Td (and) Tj
+23.3555 0 Td (a) Tj
+10.0078 0 Td (CR.) Tj
+ET
+Q
+Q
+
+--- indented and skipped, Center ---
+size 257.0634765625 x 96.591796875
+q
+q
+BT
+0 0 0 rg
+/GS0 gs
+/F0 12 Tf
+42.9365 791.1367 Td (1.) Tj
+/F1 12 Tf
+13.3418 0 Td (The) Tj
+24.0117 0 Td (quick) Tj
+31.3477 0 Td (brown) Tj
+36.0176 0 Td (fox) Tj
+19.3418 0 Td (jumps) Tj
+35.3438 0 Td (over) Tj
+26.6777 0 Td (the) Tj
+20.0156 0 Td (lazy) Tj
+24.6738 0 Td (dog,) Tj
+-212.123 -13.7988 Td (and) Tj
+23.3555 0 Td (having) Tj
+38.6953 0 Td (jumped) Tj
+42.6914 0 Td (it) Tj
+9.334 0 Td (lands) Tj
+32.0215 0 Td (and) Tj
+23.3555 0 Td (looks) Tj
+31.3477 0 Td (about) Tj
+-154.4209 -13.7988 Td (for) Tj
+17.3379 0 Td (somewhere) Tj
+65.3613 0 Td (else) Tj
+25.3477 0 Td (to) Tj
+13.3418 0 Td (be.) Tj
+-175.082 -27.5977 Td (A) Tj
+11.3379 0 Td (new) Tj
+25.3477 0 Td (paragraph) Tj
+58.043 0 Td (The) Tj
+24.0117 0 Td (quick) Tj
+31.3477 0 Td (brown) Tj
+36.0176 0 Td (fox) Tj
+19.3418 0 Td (jumps) Tj
+-207.1289 -13.7988 Td (over) Tj
+26.6777 0 Td (the) Tj
+20.0156 0 Td (lazy) Tj
+24.6738 0 Td (dog,) Tj
+26.6895 0 Td (and) Tj
+23.3555 0 Td (having) Tj
+38.6953 0 Td (jumped) Tj
+42.6914 0 Td (it) Tj
+9.334 0 Td (lands) Tj
+-204.791 -13.7988 Td (and) Tj
+23.3555 0 Td (looks) Tj
+31.3477 0 Td (about) Tj
+33.3633 0 Td (for) Tj
+17.3379 0 Td (somewhere) Tj
+65.3613 0 Td (else) Tj
+25.3477 0 Td (to) Tj
+13.3418 0 Td (be.) Tj
+ET
+Q
+Q
+
+--- narrow, Center ---
+size 60 x 38.4921875
+q
+q
+BT
+0 0 0 rg
+/GS0 gs
+/F0 20 Tf
+10 813.8945 Td (Incomprehensibilities) Tj
+/F0 12 Tf
+26.6631 -15.4941 Td (a) Tj
+ET
+Q
+Q
+
+--- overflowing, Center ---
+size 197.0634765625 x 128.52734375
+q
+q
+BT
+0 0 0 rg
+/GS0 gs
+/F0 12 Tf
+46.0859 774.6953 Td (Mixed) Tj
+/F0 20 Tf
+32.0098 0 Td (sizes) Tj
+/F1 12 Tf
+51.123 0 Td (run) Tj
+22.6641 0 Td (on) Tj
+/F0 12 Tf
+17.9941 0 Td (as) Tj
+16.0078 0 Td (one) Tj
+23.3555 0 Td (flow,) Tj
+-163.9512 -15.4941 Td (The) Tj
+24.0117 0 Td (quick) Tj
+31.3477 0 Td (brown) Tj
+36.0176 0 Td (fox) Tj
+19.3418 0 Td (jumps) Tj
+35.3438 0 Td (over) Tj
+26.6777 0 Td (the) Tj
+-175.0928 -13.7988 Td (lazy) Tj
+24.6738 0 Td (dog,) Tj
+26.6895 0 Td (and) Tj
+23.3555 0 Td (having) Tj
+38.6953 0 Td (jumped) Tj
+42.6914 0 Td (it) Tj
+9.334 0 Td (lands) Tj
+ET
+Q
+Q
+
+--- mixed, Right ---
+size 260 x 114.728515625
+q
+q
+BT
+0 0 0 rg
+/GS0 gs
+/F0 12 Tf
+56.8125 774.6953 Td (Mixed) Tj
+/F0 20 Tf
+32.0098 0 Td (sizes) Tj
+/F1 12 Tf
+51.123 0 Td (run) Tj
+22.6641 0 Td (on) Tj
+/F0 12 Tf
+17.9941 0 Td (as) Tj
+16.0078 0 Td (one) Tj
+23.3555 0 Td (flow,) Tj
+28.0078 0 Td (The) Tj
+24.0117 0 Td (quick) Tj
+-219.4629 -15.4941 Td (brown) Tj
+36.0176 0 Td (fox) Tj
+19.3418 0 Td (jumps) Tj
+35.3438 0 Td (over) Tj
+26.6777 0 Td (the) Tj
+20.0156 0 Td (lazy) Tj
+24.6738 0 Td (dog,) Tj
+26.6895 0 Td (and) Tj
+23.3555 0 Td (having) Tj
+-216.1172 -13.7988 Td (jumped) Tj
+42.6914 0 Td (it) Tj
+9.334 0 Td (lands) Tj
+32.0215 0 Td (and) Tj
+23.3555 0 Td (looks) Tj
+31.3477 0 Td (about) Tj
+33.3633 0 Td (for) Tj
+17.3379 0 Td (somewhere) Tj
+-156.543 -13.7988 Td (else) Tj
+25.3477 0 Td (to) Tj
+13.3418 0 Td (be.) Tj
+/F2 8 Tf
+16.6816 0 Td (tiny) Tj
+/F1 12 Tf
+12.4492 0 Td (joined) Tj
+/F0 12 Tf
+38.666 0 Td (and) Tj
+23.3555 0 Td (then) Tj
+26.6895 0 Td (a) Tj
+10.0078 0 Td (line) Tj
+22.0137 0 Td (break) Tj
+-126.7207 -13.7988 Td (after) Tj
+27.3457 0 Td (which) Tj
+34.0137 0 Td (the) Tj
+20.0156 0 Td (text) Tj
+22.6758 0 Td (carries) Tj
+39.3398 0 Td (on) Tj
+-66.6738 -13.7988 Td (across) Tj
+38.6777 0 Td (a) Tj
+10.0078 0 Td (CRLF) Tj
+-22.6934 -13.7988 Td (and) Tj
+23.3555 0 Td (a) Tj
+10.0078 0 Td (CR.) Tj
+ET
+Q
+Q
+
+--- indented and skipped, Right ---
+size 260 x 96.591796875
+q
+q
+BT
+0 0 0 rg
+/GS0 gs
+/F0 12 Tf
+45.873 791.1367 Td (1.) Tj
+/F1 12 Tf
+13.3418 0 Td (The) Tj
+24.0117 0 Td (quick) Tj
+31.3477 0 Td (brown) Tj
+36.0176 0 Td (fox) Tj
+19.3418 0 Td (jumps) Tj
+35.3438 0 Td (over) Tj
+26.6777 0 Td (the) Tj
+20.0156 0 Td (lazy) Tj
+24.6738 0 Td (dog,) Tj
+-207.4746 -13.7988 Td (and) Tj
+23.3555 0 Td (having) Tj
+38.6953 0 Td (jumped) Tj
+42.6914 0 Td (it) Tj
+9.334 0 Td (lands) Tj
+32.0215 0 Td (and) Tj
+23.3555 0 Td (looks) Tj
+31.3477 0 Td (about) Tj
+-108.041 -13.7988 Td (for) Tj
+17.3379 0 Td (somewhere) Tj
+65.3613 0 Td (else) Tj
+25.3477 0 Td (to) Tj
+13.3418 0 Td (be.) Tj
+-220.7754 -27.5977 Td (A) Tj
+11.3379 0 Td (new) Tj
+25.3477 0 Td (paragraph) Tj
+58.043 0 Td (The) Tj
+24.0117 0 Td (quick) Tj
+31.3477 0 Td (brown) Tj
+36.0176 0 Td (fox) Tj
+19.3418 0 Td (jumps) Tj
+-208.8105 -13.7988 Td (over) Tj
+26.6777 0 Td (the) Tj
+20.0156 0 Td (lazy) Tj
+24.6738 0 Td (dog,) Tj
+26.6895 0 Td (and) Tj
+23.3555 0 Td (having) Tj
+38.6953 0 Td (jumped) Tj
+42.6914 0 Td (it) Tj
+9.334 0 Td (lands) Tj
+-197.4492 -13.7988 Td (and) Tj
+23.3555 0 Td (looks) Tj
+31.3477 0 Td (about) Tj
+33.3633 0 Td (for) Tj
+17.3379 0 Td (somewhere) Tj
+65.3613 0 Td (else) Tj
+25.3477 0 Td (to) Tj
+13.3418 0 Td (be.) Tj
+ET
+Q
+Q
+
+--- narrow, Right ---
+size 60 x 38.4921875
+q
+q
+BT
+0 0 0 rg
+/GS0 gs
+/F0 20 Tf
+10 813.8945 Td (Incomprehensibilities) Tj
+/F0 12 Tf
+53.3262 -15.4941 Td (a) Tj
+ET
+Q
+Q
+
+--- overflowing, Right ---
+size 200 x 128.52734375
+q
+q
+BT
+0 0 0 rg
+/GS0 gs
+/F0 12 Tf
+52.1719 774.6953 Td (Mixed) Tj
+/F0 20 Tf
+32.0098 0 Td (sizes) Tj
+/F1 12 Tf
+51.123 0 Td (run) Tj
+22.6641 0 Td (on) Tj
+/F0 12 Tf
+17.9941 0 Td (as) Tj
+16.0078 0 Td (one) Tj
+23.3555 0 Td (flow,) Tj
+-164.748 -15.4941 Td (The) Tj
+24.0117 0 Td (quick) Tj
+31.3477 0 Td (brown) Tj
+36.0176 0 Td (fox) Tj
+19.3418 0 Td (jumps) Tj
+35.3438 0 Td (over) Tj
+26.6777 0 Td (the) Tj
+-177.4453 -13.7988 Td (lazy) Tj
+24.6738 0 Td (dog,) Tj
+26.6895 0 Td (and) Tj
+23.3555 0 Td (having) Tj
+38.6953 0 Td (jumped) Tj
+42.6914 0 Td (it) Tj
+9.334 0 Td (lands) Tj
+ET
+Q
+Q
+
+--- mixed, Justify ---
+size 260 x 114.728515625
+q
+q
+BT
+0 0 0 rg
+/GS0 gs
+/F0 12 Tf
+40 774.6953 Td (Mixed) Tj
+/F0 20 Tf
+32.0098 0 Td (sizes) Tj
+/F1 12 Tf
+53.5248 0 Td (run) Tj
+25.0658 0 Td (on) Tj
+/F0 12 Tf
+20.3959 0 Td (as) Tj
+18.4096 0 Td (one) Tj
+25.7573 0 Td (flow,) Tj
+30.4096 0 Td (The) Tj
+26.4135 0 Td (quick) Tj
+-231.9863 -15.4941 Td (brown) Tj
+37.583 0 Td (fox) Tj
+20.9072 0 Td (jumps) Tj
+36.9092 0 Td (over) Tj
+28.2432 0 Td (the) Tj
+21.5811 0 Td (lazy) Tj
+26.2393 0 Td (dog,) Tj
+28.2549 0 Td (and) Tj
+24.9209 0 Td (having) Tj
+-224.6387 -13.7988 Td (jumped) Tj
+43.9088 0 Td (it) Tj
+10.5513 0 Td (lands) Tj
+33.2388 0 Td (and) Tj
+24.5728 0 Td (looks) Tj
+32.565 0 Td (about) Tj
+34.5806 0 Td (for) Tj
+18.5552 0 Td (somewhere) Tj
+-197.9727 -13.7988 Td (else) Tj
+25.3477 0 Td (to) Tj
+13.3418 0 Td (be.) Tj
+/F2 8 Tf
+16.6816 0 Td (tiny) Tj
+/F1 12 Tf
+12.4492 0 Td (joined) Tj
+/F0 12 Tf
+38.666 0 Td (and) Tj
+23.3555 0 Td (then) Tj
+26.6895 0 Td (a) Tj
+10.0078 0 Td (line) Tj
+22.0137 0 Td (break) Tj
+-188.5527 -13.7988 Td (after) Tj
+27.3457 0 Td (which) Tj
+34.0137 0 Td (the) Tj
+20.0156 0 Td (text) Tj
+22.6758 0 Td (carries) Tj
+39.3398 0 Td (on) Tj
+-143.3906 -13.7988 Td (across) Tj
+38.6777 0 Td (a) Tj
+10.0078 0 Td (CRLF) Tj
+-48.6855 -13.7988 Td (and) Tj
+23.3555 0 Td (a) Tj
+10.0078 0 Td (CR.) Tj
+ET
+Q
+Q
+
+--- indented and skipped, Justify ---
+size 260 x 96.591796875
+q
+q
+BT
+0 0 0 rg
+/GS0 gs
+/F0 12 Tf
+40 791.1367 Td (1.) Tj
+/F1 12 Tf
+13.3418 0 Td (The) Tj
+24.7458 0 Td (quick) Tj
+32.0818 0 Td (brown) Tj
+36.7517 0 Td (fox) Tj
+20.0759 0 Td (jumps) Tj
+36.0779 0 Td (over) Tj
+27.4119 0 Td (the) Tj
+20.7498 0 Td (lazy) Tj
+25.408 0 Td (dog,) Tj
+-222.6445 -13.7988 Td (and) Tj
+25.5226 0 Td (having) Tj
+40.8624 0 Td (jumped) Tj
+44.8585 0 Td (it) Tj
+11.5011 0 Td (lands) Tj
+34.1886 0 Td (and) Tj
+25.5226 0 Td (looks) Tj
+33.5148 0 Td (about) Tj
+-215.9707 -13.7988 Td (for) Tj
+17.3379 0 Td (somewhere) Tj
+65.3613 0 Td (else) Tj
+25.3477 0 Td (to) Tj
+13.3418 0 Td (be.) Tj
+-129.3887 -27.5977 Td (A) Tj
+13.7012 0 Td (new) Tj
+27.7109 0 Td (paragraph) Tj
+60.4063 0 Td (The) Tj
+26.375 0 Td (quick) Tj
+33.7109 0 Td (brown) Tj
+38.3809 0 Td (fox) Tj
+21.7051 0 Td (jumps) Tj
+-221.9902 -13.7988 Td (over) Tj
+28.3252 0 Td (the) Tj
+21.6631 0 Td (lazy) Tj
+26.3213 0 Td (dog,) Tj
+28.3369 0 Td (and) Tj
+25.0029 0 Td (having) Tj
+40.3428 0 Td (jumped) Tj
+44.3389 0 Td (it) Tj
+10.9814 0 Td (lands) Tj
+-225.3125 -13.7988 Td (and) Tj
+23.3555 0 Td (looks) Tj
+31.3477 0 Td (about) Tj
+33.3633 0 Td (for) Tj
+17.3379 0 Td (somewhere) Tj
+65.3613 0 Td (else) Tj
+25.3477 0 Td (to) Tj
+13.3418 0 Td (be.) Tj
+ET
+Q
+Q
+
+--- narrow, Justify ---
+size 60 x 38.4921875
+q
+q
+BT
+0 0 0 rg
+/GS0 gs
+/F0 20 Tf
+10 813.8945 Td (Incomprehensibilities) Tj
+/F0 12 Tf
+0 -15.4941 Td (a) Tj
+ET
+Q
+Q
+
+--- overflowing, Justify ---
+size 200 x 128.52734375
+q
+q
+BT
+0 0 0 rg
+/GS0 gs
+/F0 12 Tf
+40 774.6953 Td (Mixed) Tj
+/F0 20 Tf
+32.0098 0 Td (sizes) Tj
+/F1 12 Tf
+53.5574 0 Td (run) Tj
+25.0984 0 Td (on) Tj
+/F0 12 Tf
+20.4285 0 Td (as) Tj
+18.4422 0 Td (one) Tj
+25.7898 0 Td (flow,) Tj
+-175.3262 -15.4941 Td (The) Tj
+25.7747 0 Td (quick) Tj
+33.1107 0 Td (brown) Tj
+37.7806 0 Td (fox) Tj
+21.1048 0 Td (jumps) Tj
+37.1068 0 Td (over) Tj
+28.4408 0 Td (the) Tj
+-183.3184 -13.7988 Td (lazy) Tj
+25.6527 0 Td (dog,) Tj
+27.6683 0 Td (and) Tj
+24.3343 0 Td (having) Tj
+39.6742 0 Td (jumped) Tj
+43.6702 0 Td (it) Tj
+10.3128 0 Td (lands) Tj
+ET
+Q
+Q
+
+--- trailing breaks ---
+size 179.013671875 x 36.796875
+q
+q
+BT
+0 0 0 rg
+/GS0 gs
+/F0 12 Tf
+40 791.1367 Td (Ends) Tj
+30.6855 0 Td (with) Tj
+24.6738 0 Td (line) Tj
+22.0137 0 Td (breaks) Tj
+/F0 20 Tf
+-77.373 -34.8398 Td (leading) Tj
+70.0586 0 Td (spaces) Tj
+68.9258 0 Td (here) Tj
+ET
+Q
+Q
+

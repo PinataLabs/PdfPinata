@@ -410,18 +410,8 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         var italicSimulation = (font.GlyphTypeface.StyleSimulations & XStyleSimulations.ItalicSimulation) != 0;
         var boldSimulation = FontHelper.SimulatesBold(font);
-        // The format's decoration wins; leaving it at None keeps whatever the font's style asks
-        // for, which is where underlining lived before the format could carry it.
-        var underline = format.Underline != XTextDecoration.None
-            ? format.Underline
-            : (font.Style & XFontStyle.Underline) != 0
-                ? XTextDecoration.Single
-                : XTextDecoration.None;
-        var strikeout = format.Strikeout != XTextDecoration.None
-            ? format.Strikeout
-            : (font.Style & XFontStyle.Strikeout) != 0
-                ? XTextDecoration.Single
-                : XTextDecoration.None;
+        var underline = DecorationOf(format.Underline, font.Style, XFontStyle.Underline);
+        var strikeout = DecorationOf(format.Strikeout, font.Style, XFontStyle.Strikeout);
 
         // Shaped before the font is realized rather than after, because what the text state has to
         // be set up for depends on every face the string is drawn with and not only on the one that
@@ -437,9 +427,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         {
             var shapingDescriptor = FontDescriptorCache.GetOrCreateDescriptorFor(font) as OpenTypeDescriptor;
             shaped = TextShaping.ShapeText(s.AsSpan(), font, shapingDescriptor, format.TextDirection);
-
-            for (var idx = 0; idx < shaped.Segments.Count && !anySimulatesBold; idx++)
-                anySimulatesBold = FontHelper.SimulatesBold(shaped.Segments[idx].Font);
+            anySimulatesBold = anySimulatesBold || AnySegmentSimulatesBold(shaped);
         }
 
         // Identical to boldSimulation whenever the string is all one face, which is every string
@@ -449,62 +437,99 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         // The same arithmetic XGraphicsPath.AddString places its glyphs by, so that a string added
         // to a path lands where the same string drawn here lands.
         var origin = TextOrigin.For(rect, width, font, format, Gfx.PageDirection == XPageDirection.Downwards);
-        var x = origin.X;
-        var y = origin.Y;
 
         var realizedFont = _gfxState.RealizedFont;
         Debug.Assert(realizedFont != null);
 
-        const string format2 = Config.SignificantFigures4;
-
-        // The whole show-text operation, its operator included: usually a Tj, but a TJ array when
-        // the words have to be spaced out by hand. See PdfGraphicsState.NeedsWordSpacingByHand.
-        string text;
-        if (font.Unicode)
-        {
-            // Shaped above, before the font was realized. Asked of the shaping seam rather than
-            // looked up one character at a time, so that the glyphs drawn are the glyphs
-            // MeasureString measured. With no shaper registered this is the same cmap lookup per
-            // character it has always been - except that a right-to-left run comes back in the
-            // order it is drawn rather than the order it was written.
-#pragma warning disable S2259 // shaped is set exactly when font.Unicode is true, which is the branch this is in.
-            // ReSharper disable PossibleNullReferenceException
-            if (shaped.IsAllOneFont(font))
-#pragma warning restore S2259
-            {
-                // ReSharper restore PossibleNullReferenceException
-                // The glyphs the run really drew, rather than the ones the characters would have
-                // been looked up as. This is what decides both which glyphs are embedded and what
-                // /ToUnicode says they mean, and a shaper's choices have to reach it or the page
-                // draws a glyph the file neither carries nor describes.
-                foreach (var segment in shaped.Segments)
-                    realizedFont.AddShapedRun(segment.Run, segment.TextIn(s));
-
-                text = ShowTextOperators(s, shaped, font, format);
-            }
-            else
-            {
-                text = FallenBackTextOperators(s, shaped, font, brush, pen, format);
-            }
-        }
-        else
-        {
-            realizedFont.AddChars(s);
-            var bytes = PdfEncoders.WinAnsiEncoding.GetBytes(s);
-            text = PdfEncoders.ToStringLiteral(bytes, false, null) + " Tj";
-        }
+        var text = ShowTextOperation(s, shaped, font, brush, pen, format, realizedFont);
 
         // Map absolute position to PDF world space.
-        var pos = new XPoint(x, y);
-        pos = WorldToView(pos);
-
-        // Not adjusted for bold simulation, because that would change the center of the glyphs.
-        double verticalOffset = 0;
+        var pos = WorldToView(origin);
 
         // How far the glyphs lean, as the tangent of the angle. Italic simulation contributes a
         // fixed lean and the caller may ask for one of their own; two shears compose by adding
         // their tangents, so the two are one number from here on.
-        var skew = SkewOf(italicSimulation, format.ObliqueAngle);
+        AppendShowText(pos, SkewOf(italicSimulation, format.ObliqueAngle), text);
+
+        DrawTextRules(s, font, pen, brush, format, underline, strikeout, origin, width, lineSpace, realizedFont);
+    }
+
+    /// <summary>
+    /// The decoration a string is drawn with. The format's decoration wins; leaving it at None
+    /// keeps whatever the font's style asks for, which is where underlining lived before the
+    /// format could carry it.
+    /// </summary>
+    private static XTextDecoration DecorationOf(XTextDecoration asked, XFontStyle style, XFontStyle styleFlag)
+    {
+        if (asked != XTextDecoration.None)
+            return asked;
+
+        return (style & styleFlag) != 0 ? XTextDecoration.Single : XTextDecoration.None;
+    }
+
+    /// <summary>
+    /// Whether any face a shaped string is drawn in has its boldness simulated by stroking.
+    /// </summary>
+    private static bool AnySegmentSimulatesBold(ShapedText shaped)
+    {
+        for (var idx = 0; idx < shaped.Segments.Count; idx++)
+        {
+            if (FontHelper.SimulatesBold(shaped.Segments[idx].Font))
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// The whole show-text operation, its operator included: usually a Tj, but a TJ array when
+    /// the words have to be spaced out by hand. See PdfGraphicsState.NeedsWordSpacingByHand.
+    /// </summary>
+    /// <remarks>
+    /// Also records on the realized font which glyphs are drawn, so that they are embedded and
+    /// described by /ToUnicode.
+    /// </remarks>
+    private string ShowTextOperation(string s, ShapedText shaped, XFont font, XBrush brush, XPen pen,
+        XStringFormat format, PdfFont realizedFont)
+    {
+        if (!font.Unicode)
+        {
+            realizedFont.AddChars(s);
+            var bytes = PdfEncoders.WinAnsiEncoding.GetBytes(s);
+            return PdfEncoders.ToStringLiteral(bytes, false, null) + " Tj";
+        }
+
+        // Shaped before the font was realized. Asked of the shaping seam rather than looked up
+        // one character at a time, so that the glyphs drawn are the glyphs MeasureString
+        // measured. With no shaper registered this is the same cmap lookup per character it has
+        // always been - except that a right-to-left run comes back in the order it is drawn
+        // rather than the order it was written.
+        if (!shaped.IsAllOneFont(font))
+            return FallenBackTextOperators(s, shaped, font, brush, pen, format);
+
+        // The glyphs the run really drew, rather than the ones the characters would have been
+        // looked up as. This is what decides both which glyphs are embedded and what /ToUnicode
+        // says they mean, and a shaper's choices have to reach it or the page draws a glyph the
+        // file neither carries nor describes.
+        foreach (var segment in shaped.Segments)
+            realizedFont.AddShapedRun(segment.Run, segment.TextIn(s));
+
+        return ShowTextOperators(s, shaped, font, format);
+    }
+
+    /// <summary>
+    /// Moves to where the text starts, leaning the text matrix as far as it has to, and writes the
+    /// show-text operation there.
+    /// </summary>
+    /// <param name="pos">Where the text starts, in PDF world space.</param>
+    /// <param name="skew">How far the glyphs lean, as the tangent of the angle.</param>
+    /// <param name="text">The show-text operation, its operator included.</param>
+    private void AppendShowText(XPoint pos, double skew, string text)
+    {
+        const string format2 = Config.SignificantFigures4;
+
+        // Not adjusted for bold simulation, because that would change the center of the glyphs.
+        const double verticalOffset = 0;
 
 #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         if (skew == _gfxState.RealizedTextSkew)
@@ -514,52 +539,66 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             // all that is needed - and Td is shorter than Tm.
             AdjustTdOffset(ref pos, verticalOffset, _gfxState.RealizedTextSkew);
             AppendFormatArgs("{0:" + format2 + "} {1:" + format2 + "} Td {2}\n", pos.X, pos.Y, text);
-        }
-        else
-        {
-            // Only Tm can set the lean, and it sets the position absolutely while it is there.
-            var m = new XMatrix(1, 0, skew, 1, pos.X, pos.Y);
-            AppendFormatArgs(
-                "{0:" + format2 + "} {1:" + format2 + "} {2:" + format2 + "} {3:" + format2 + "} {4:" + format2 +
-                "} {5:" + format2 + "} Tm\n{6}\n",
-                m.M11, m.M12, m.M21, m.M22, m.OffsetX, m.OffsetY, text);
-            _gfxState.RealizedTextSkew = skew;
-            AdjustTdOffset(ref pos, verticalOffset, 0);
+            return;
         }
 
-        // The rules below are rectangles drawn in graphics mode, so they do not go through the
-        // text matrix and have to be moved by the text rise themselves. Raising text moves it up
-        // the page, which is towards smaller y only when y runs downwards.
+        // Only Tm can set the lean, and it sets the position absolutely while it is there.
+        var m = new XMatrix(1, 0, skew, 1, pos.X, pos.Y);
+        AppendFormatArgs(
+            "{0:" + format2 + "} {1:" + format2 + "} {2:" + format2 + "} {3:" + format2 + "} {4:" + format2 +
+            "} {5:" + format2 + "} Tm\n{6}\n",
+            m.M11, m.M12, m.M21, m.M22, m.OffsetX, m.OffsetY, text);
+        _gfxState.RealizedTextSkew = skew;
+        AdjustTdOffset(ref pos, verticalOffset, 0);
+    }
+
+    /// <summary>
+    /// Draws the underline and the strikeout rule of a string just drawn, whichever it has, from
+    /// the <paramref name="origin"/> the string starts at in world coordinates.
+    /// </summary>
+    private void DrawTextRules(string s, XFont font, XPen pen, XBrush brush, XStringFormat format,
+        XTextDecoration underline, XTextDecoration strikeout, XPoint origin, double width, double lineSpace,
+        PdfFont realizedFont)
+    {
+        if (underline == XTextDecoration.None && strikeout == XTextDecoration.None)
+            return;
+
+        // The rules are rectangles drawn in graphics mode, so they do not go through the text
+        // matrix and have to be moved by the text rise themselves. Raising text moves it up the
+        // page, which is towards smaller y only when y runs downwards.
         var rise = Gfx.PageDirection == XPageDirection.Downwards ? -format.TextRise : format.TextRise;
 
         // Built only where there is a rule to draw, which is almost never - every string drawn
         // otherwise paid for a brush nothing used.
-        var ruleBrush = underline == XTextDecoration.None && strikeout == XTextDecoration.None
-            ? null
-            : RuleBrushFor(brush, pen, format);
+        var ruleBrush = RuleBrushFor(brush, pen, format);
+        var metrics = realizedFont.FontDescriptor.Descriptor;
 
         if (underline != XTextDecoration.None)
         {
-            var underlinePosition =
-                lineSpace * realizedFont.FontDescriptor.Descriptor.UnderlinePosition / font.CellSpace;
-            var underlineThickness =
-                lineSpace * realizedFont.FontDescriptor.Descriptor.UnderlineThickness / font.CellSpace;
-            var underlineRectY = Gfx.PageDirection == XPageDirection.Downwards
-                ? y - underlinePosition
-                : y + underlinePosition - underlineThickness;
-            DrawTextRule(underline, s, font, format, ruleBrush, x, underlineRectY + rise, width, underlineThickness);
+            var underlinePosition = lineSpace * metrics.UnderlinePosition / font.CellSpace;
+            var underlineThickness = lineSpace * metrics.UnderlineThickness / font.CellSpace;
+            var underlineRectY = RuleTop(origin.Y, underlinePosition, underlineThickness);
+            DrawTextRule(underline, s, font, format, ruleBrush, origin.X, underlineRectY + rise, width, underlineThickness);
         }
 
         if (strikeout == XTextDecoration.None)
             return;
 
-        var strikeoutPosition =
-            lineSpace * realizedFont.FontDescriptor.Descriptor.StrikeoutPosition / font.CellSpace;
-        var strikeoutSize = lineSpace * realizedFont.FontDescriptor.Descriptor.StrikeoutSize / font.CellSpace;
-        var strikeoutRectY = Gfx.PageDirection == XPageDirection.Downwards
-            ? y - strikeoutPosition
-            : y + strikeoutPosition - strikeoutSize;
-        DrawTextRule(strikeout, s, font, format, ruleBrush, x, strikeoutRectY + rise, width, strikeoutSize);
+        var strikeoutPosition = lineSpace * metrics.StrikeoutPosition / font.CellSpace;
+        var strikeoutSize = lineSpace * metrics.StrikeoutSize / font.CellSpace;
+        var strikeoutRectY = RuleTop(origin.Y, strikeoutPosition, strikeoutSize);
+        DrawTextRule(strikeout, s, font, format, ruleBrush, origin.X, strikeoutRectY + rise, width, strikeoutSize);
+    }
+
+    /// <summary>
+    /// Where the top of a rule lies, given the baseline and the font's position and thickness for
+    /// the rule, which are measured up from the baseline.
+    /// </summary>
+    private double RuleTop(double baseline, double position, double thickness)
+    {
+        return Gfx.PageDirection == XPageDirection.Downwards
+            ? baseline - position
+            : baseline + position - thickness;
     }
 
     /// <summary>
@@ -1013,105 +1052,10 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     private void AppendPartialArc(double x, double y, double width, double height, double startAngle, double sweepAngle,
         PathStart pathStart, XMatrix matrix)
     {
-        // Normalize the angles
-        var α = startAngle;
-        if (α < 0)
-            α += (1 + Math.Floor(Math.Abs(α) / 360)) * 360;
-        else if (α > 360)
-            α -= Math.Floor(α / 360) * 360;
-        Debug.Assert(α is >= 0 and <= 360);
-
-        var β = sweepAngle;
-        if (β < -360)
-            β = -360;
-        else if (β > 360)
-            β = 360;
-
-        if (α == 0 && β < 0)
-            α = 360;
-#pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
-        else if (α == 360 && β > 0)
-            α = 0;
-#pragma warning restore S1244
-
-        // Is it possible that the arc is small starts and ends in same quadrant?
-        var smallAngle = Math.Abs(β) <= 90;
-
-        β = α + β;
-        if (β < 0)
-            β += (1 + Math.Floor(Math.Abs(β) / 360)) * 360;
-
-        var clockwise = sweepAngle > 0;
-        var startQuadrant = Quadrant(α, true, clockwise);
-        var endQuadrant = Quadrant(β, false, clockwise);
-
-        if (startQuadrant == endQuadrant && smallAngle)
-        {
-            AppendPartialArcQuadrant(x, y, width, height, α, β, pathStart, matrix);
-        }
-        else
-        {
-            var currentQuadrant = startQuadrant;
-            var firstLoop = true;
-            do
-            {
-                if (currentQuadrant == startQuadrant && firstLoop)
-                {
-                    double ξ = currentQuadrant * 90 + (clockwise ? 90 : 0);
-                    AppendPartialArcQuadrant(x, y, width, height, α, ξ, pathStart, matrix);
-                }
-                else if (currentQuadrant == endQuadrant)
-                {
-                    double ξ = currentQuadrant * 90 + (clockwise ? 0 : 90);
-                    AppendPartialArcQuadrant(x, y, width, height, ξ, β, PathStart.Ignore1st, matrix);
-                }
-                else
-                {
-                    double ξ1 = currentQuadrant * 90 + (clockwise ? 0 : 90);
-                    double ξ2 = currentQuadrant * 90 + (clockwise ? 90 : 0);
-                    AppendPartialArcQuadrant(x, y, width, height, ξ1, ξ2, PathStart.Ignore1st, matrix);
-                }
-
-                // Don't stop immediately if arc is greater than 270 degrees
-                if (currentQuadrant == endQuadrant && smallAngle)
-                    break;
-
-                smallAngle = true;
-
-                if (clockwise)
-                    currentQuadrant = currentQuadrant == 3 ? 0 : currentQuadrant + 1;
-                else
-                    currentQuadrant = currentQuadrant == 0 ? 3 : currentQuadrant - 1;
-
-                firstLoop = false;
-            } while (true);
-        }
-    }
-
-    /// <summary>
-    /// Gets the quadrant (0 through 3) of the specified angle. If the angle lies on an edge
-    /// (0, 90, 180, etc.) the result depends on the details how the angle is used.
-    /// </summary>
-    private static int Quadrant(double φ, bool start, bool clockwise)
-    {
-        Debug.Assert(φ >= 0);
-        if (φ > 360)
-            φ -= Math.Floor(φ / 360) * 360;
-
-        var quadrant = (int)(φ / 90);
-#pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
-        if (quadrant * 90 == φ)
-#pragma warning restore S1244
-        {
-            if ((start && !clockwise) || (!start && clockwise))
-                quadrant = quadrant == 0 ? 3 : quadrant - 1;
-        }
-        else
-        {
-            quadrant = clockwise ? (int)Math.Floor(φ / 90) % 4 : (int)Math.Floor(φ / 90);
-        }
-
-        return quadrant;
+        // Cut into quadrants exactly as the path geometry cuts an arc, so that an arc drawn here
+        // and the same arc added to a path are the same curves.
+        foreach (var segment in new GeometryHelper.ArcSegments(startAngle, sweepAngle, pathStart))
+            AppendPartialArcQuadrant(x, y, width, height, segment.From, segment.To, segment.PathStart, matrix);
     }
 
     /// <summary>
@@ -1521,106 +1465,112 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         DefaultViewMatrix = new XMatrix();
         if (_gfx.PageDirection == XPageDirection.Downwards)
-        {
-            // Take TrimBox into account.
-            PageHeightPt = VisiblePageSize.Height;
-            var trimOffset = new XPoint();
-            if (Page != null && Page.TrimMargins.AreSet)
-            {
-                // The sheet is the page plus the bleed plus the room for printer's marks, and
-                // the origin is the corner of the page rather than of the sheet. Both come
-                // from the page so that this and XGraphics.Initialize cannot disagree.
-                PageHeightPt += Page.SheetExtraHeight;
-                trimOffset = Page.SheetOffset;
-            }
-
-            // Scale with page units.
-            switch (_gfx.PageUnit)
-            {
-                case XGraphicsUnit.Point:
-                    // Factor is 1.
-                    break;
-
-                case XGraphicsUnit.Presentation:
-                    DefaultViewMatrix.ScalePrepend(XUnit.PresentationFactor);
-                    break;
-
-                case XGraphicsUnit.Inch:
-                    DefaultViewMatrix.ScalePrepend(XUnit.InchFactor);
-                    break;
-
-                case XGraphicsUnit.Millimeter:
-                    DefaultViewMatrix.ScalePrepend(XUnit.MillimeterFactor);
-                    break;
-
-                case XGraphicsUnit.Centimeter:
-                    DefaultViewMatrix.ScalePrepend(XUnit.CentimeterFactor);
-                    break;
-            }
-
-            if (trimOffset != new XPoint())
-            {
-                Debug.Assert(_gfx.PageUnit == XGraphicsUnit.Point,
-                    "With TrimMargins set the page units must be Point. Ohter cases nyi.");
-                DefaultViewMatrix.TranslatePrepend(trimOffset.X, -trimOffset.Y);
-            }
-
-            // Save initial graphic state.
-            SaveState();
-
-            // Turn the page the way the viewer will show it, so that the origin is the
-            // corner the reader sees first. It has to be concatenated before the matrix
-            // below, because that one still works in the units of the caller.
-            AppendPageRotation();
-
-            // Set default page transformation, if any.
-            if (!DefaultViewMatrix.IsIdentity)
-            {
-                Debug.Assert(_gfxState.RealizedCtm.IsIdentity);
-                const string format = Config.SignificantFigures7;
-                var cm = DefaultViewMatrix.GetElements();
-                AppendFormatArgs(
-                    "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format +
-                    "} {5:" + format + "} cm ",
-                    cm[0], cm[1], cm[2], cm[3], cm[4], cm[5]);
-            }
-        }
+            BeginPageDownwards();
         else
+            BeginPageUpwards();
+    }
+
+    /// <summary>
+    /// The cm operator the default view transformation is written with.
+    /// </summary>
+    private const string DefaultViewCmFormat =
+        "{0:" + Config.SignificantFigures7 + "} {1:" + Config.SignificantFigures7 + "} {2:" + Config.SignificantFigures7 +
+        "} {3:" + Config.SignificantFigures7 + "} {4:" + Config.SignificantFigures7 + "} {5:" + Config.SignificantFigures7 +
+        "} cm ";
+
+    /// <summary>
+    /// Sets up a page whose y axis runs down it, which is the flipped one and the one that has to
+    /// allow for the sheet around a trimmed page.
+    /// </summary>
+    private void BeginPageDownwards()
+    {
+        var trimOffset = TakeSheetIntoAccount();
+        ScaleDefaultViewToPageUnit();
+
+        if (trimOffset != new XPoint())
         {
-            // Scale with page units.
-            switch (_gfx.PageUnit)
-            {
-                case XGraphicsUnit.Point:
-                    // Factor is 1.
-                    break;
+            Debug.Assert(_gfx.PageUnit == XGraphicsUnit.Point,
+                "With TrimMargins set the page units must be Point. Ohter cases nyi.");
+            DefaultViewMatrix.TranslatePrepend(trimOffset.X, -trimOffset.Y);
+        }
 
-                case XGraphicsUnit.Presentation:
-                    DefaultViewMatrix.ScalePrepend(XUnit.PresentationFactor);
-                    break;
+        // Save initial graphic state.
+        SaveState();
 
-                case XGraphicsUnit.Inch:
-                    DefaultViewMatrix.ScalePrepend(XUnit.InchFactor);
-                    break;
+        // Turn the page the way the viewer will show it, so that the origin is the
+        // corner the reader sees first. It has to be concatenated before the matrix
+        // below, because that one still works in the units of the caller.
+        AppendPageRotation();
 
-                case XGraphicsUnit.Millimeter:
-                    DefaultViewMatrix.ScalePrepend(XUnit.MillimeterFactor);
-                    break;
+        // Set default page transformation, if any.
+        if (DefaultViewMatrix.IsIdentity)
+            return;
 
-                case XGraphicsUnit.Centimeter:
-                    DefaultViewMatrix.ScalePrepend(XUnit.CentimeterFactor);
-                    break;
-            }
+        Debug.Assert(_gfxState.RealizedCtm.IsIdentity);
+        var cm = DefaultViewMatrix.GetElements();
+        AppendFormatArgs(DefaultViewCmFormat, cm[0], cm[1], cm[2], cm[3], cm[4], cm[5]);
+    }
 
-            // Save initial graphic state.
-            SaveState();
-            AppendPageRotation();
-            // Set page transformation.
-            const string format = Config.SignificantFigures7;
-            var cm = DefaultViewMatrix.GetElements();
-            AppendFormat3Points(
-                "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format +
-                "} {5:" + format + "} cm ",
-                cm[0], cm[1], cm[2], cm[3], cm[4], cm[5]);
+    /// <summary>
+    /// Sets up a page whose y axis runs up it, as PDF's own does. The transformation is written
+    /// even when it is the identity.
+    /// </summary>
+    private void BeginPageUpwards()
+    {
+        ScaleDefaultViewToPageUnit();
+
+        // Save initial graphic state.
+        SaveState();
+        AppendPageRotation();
+        // Set page transformation.
+        var cm = DefaultViewMatrix.GetElements();
+        AppendFormat3Points(DefaultViewCmFormat, cm[0], cm[1], cm[2], cm[3], cm[4], cm[5]);
+    }
+
+    /// <summary>
+    /// Takes the trim box into account: sets the page height the y axis is flipped about and
+    /// answers how far the page's corner lies from the sheet's, which is nothing for a page with
+    /// no trim margins.
+    /// </summary>
+    private XPoint TakeSheetIntoAccount()
+    {
+        PageHeightPt = VisiblePageSize.Height;
+        if (Page == null || !Page.TrimMargins.AreSet)
+            return new XPoint();
+
+        // The sheet is the page plus the bleed plus the room for printer's marks, and
+        // the origin is the corner of the page rather than of the sheet. Both come
+        // from the page so that this and XGraphics.Initialize cannot disagree.
+        PageHeightPt += Page.SheetExtraHeight;
+        return Page.SheetOffset;
+    }
+
+    /// <summary>
+    /// Scales the default view transformation from the caller's page units to points.
+    /// </summary>
+    private void ScaleDefaultViewToPageUnit()
+    {
+        switch (_gfx.PageUnit)
+        {
+            case XGraphicsUnit.Point:
+                // Factor is 1.
+                break;
+
+            case XGraphicsUnit.Presentation:
+                DefaultViewMatrix.ScalePrepend(XUnit.PresentationFactor);
+                break;
+
+            case XGraphicsUnit.Inch:
+                DefaultViewMatrix.ScalePrepend(XUnit.InchFactor);
+                break;
+
+            case XGraphicsUnit.Millimeter:
+                DefaultViewMatrix.ScalePrepend(XUnit.MillimeterFactor);
+                break;
+
+            case XGraphicsUnit.Centimeter:
+                DefaultViewMatrix.ScalePrepend(XUnit.CentimeterFactor);
+                break;
         }
     }
 

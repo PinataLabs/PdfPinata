@@ -259,128 +259,166 @@ public static partial class BidiAlgorithm
 
         // ----- X1 to X8: explicit embeddings, overrides and isolates ------------------------------
 
+        // The directional status stack and its three counters, as X1 names them. They live only
+        // for the length of ResolveExplicitLevels, and are fields so that each rule can be a method.
+        private Stack<Status> _statusStack;
+        private int _overflowIsolates;
+        private int _overflowEmbeddings;
+        private int _validIsolates;
+
+        private Status Current => _statusStack.Peek();
+
         private void ResolveExplicitLevels()
         {
-            var stack = new Stack<Status>();
-            stack.Push(new Status(_paragraphLevel, BidiClass.ON, false));
-
-            int overflowIsolate = 0, overflowEmbedding = 0, validIsolate = 0;
+            // X1.
+            _statusStack = new Stack<Status>();
+            _statusStack.Push(new Status(_paragraphLevel, BidiClass.ON, false));
+            _overflowIsolates = _overflowEmbeddings = _validIsolates = 0;
 
             for (var idx = 0; idx < _length; idx++)
             {
                 var type = _initial[idx];
                 switch (type)
                 {
-                    // X2 to X5: the embeddings and overrides.
                     case BidiClass.RLE:
                     case BidiClass.LRE:
                     case BidiClass.RLO:
                     case BidiClass.LRO:
-                    {
-                        _levels[idx] = stack.Peek().Level;
-
-                        var rightToLeft = type is BidiClass.RLE or BidiClass.RLO;
-                        var next = NextLevel(stack.Peek().Level, rightToLeft);
-                        var over = type == BidiClass.RLO ? BidiClass.R
-                            : type == BidiClass.LRO ? BidiClass.L
-                            : BidiClass.ON;
-
-                        if (next <= MaxDepth && overflowIsolate == 0 && overflowEmbedding == 0)
-                            stack.Push(new Status((byte)next, over, false));
-                        else if (overflowIsolate == 0)
-                            overflowEmbedding++;
-
+                        ResolveX2ToX5EmbeddingOrOverride(idx, type);
                         break;
-                    }
 
-                    // X5a, X5b, X5c: the isolates. An FSI is whichever of the two the text inside
-                    // it turns out to be, which is P2 and P3 applied to that stretch alone.
                     case BidiClass.RLI:
                     case BidiClass.LRI:
                     case BidiClass.FSI:
-                    {
-                        var rightToLeft = type == BidiClass.RLI
-                                          || (type == BidiClass.FSI
-                                              && ParagraphLevelOf(idx + 1, Math.Min(_matchingPdi[idx], _length)) == 1);
-
-                        _levels[idx] = stack.Peek().Level;
-                        Override(idx, stack.Peek().Override);
-
-                        var next = NextLevel(stack.Peek().Level, rightToLeft);
-                        if (next <= MaxDepth && overflowIsolate == 0 && overflowEmbedding == 0)
-                        {
-                            validIsolate++;
-                            stack.Push(new Status((byte)next, BidiClass.ON, true));
-                        }
-                        else
-                        {
-                            overflowIsolate++;
-                        }
-
+                        ResolveX5aToX5cIsolate(idx, type);
                         break;
-                    }
 
-                    // X6a: a PDI closes the nearest valid isolate, and any embeddings opened
-                    // inside it go with it.
                     case BidiClass.PDI:
-                    {
-                        if (overflowIsolate > 0)
-                        {
-                            overflowIsolate--;
-                        }
-                        else if (validIsolate > 0)
-                        {
-                            overflowEmbedding = 0;
-                            while (!stack.Peek().Isolate)
-                                stack.Pop();
-
-                            stack.Pop();
-                            validIsolate--;
-                        }
-
-                        _levels[idx] = stack.Peek().Level;
-                        Override(idx, stack.Peek().Override);
+                        ResolveX6aPopDirectionalIsolate(idx);
                         break;
-                    }
 
-                    // X7: a PDF closes the nearest embedding, but never reaches past an isolate.
                     case BidiClass.PDF:
-                    {
-                        _levels[idx] = stack.Peek().Level;
-
-                        if (overflowIsolate > 0)
-                        {
-                            // Nothing: the isolate it is inside never opened.
-                        }
-                        else if (overflowEmbedding > 0)
-                        {
-                            overflowEmbedding--;
-                        }
-                        else if (!stack.Peek().Isolate && stack.Count >= 2)
-                        {
-                            stack.Pop();
-                        }
-
+                        ResolveX7PopDirectionalFormatting(idx);
                         break;
-                    }
 
-                    // X8: a paragraph separator belongs to the paragraph, not to anything open
-                    // inside it.
                     case BidiClass.B:
-                    {
-                        _levels[idx] = _paragraphLevel;
+                        ResolveX8ParagraphSeparator(idx);
                         break;
-                    }
 
                     default:
-                    {
-                        _levels[idx] = stack.Peek().Level;
-                        Override(idx, stack.Peek().Override);
+                        ResolveX6Other(idx);
                         break;
-                    }
                 }
             }
         }
+
+        /// <summary>
+        /// Whether an embedding, override or isolate opening at this level is valid - deep enough
+        /// to fit, and not inside anything that has already overflowed.
+        /// </summary>
+        private bool CanOpen(int next)
+            => next <= MaxDepth && _overflowIsolates == 0 && _overflowEmbeddings == 0;
+
+        /// <summary>
+        /// Gives a character the level of the innermost open embedding, and its override if it has
+        /// one.
+        /// </summary>
+        private void TakeCurrentLevelAndOverride(int index)
+        {
+            _levels[index] = Current.Level;
+            Override(index, Current.Override);
+        }
+
+        /// <summary>X2 to X5: the embeddings and overrides.</summary>
+        private void ResolveX2ToX5EmbeddingOrOverride(int index, BidiClass type)
+        {
+            _levels[index] = Current.Level;
+
+            var rightToLeft = type is BidiClass.RLE or BidiClass.RLO;
+            var next = NextLevel(Current.Level, rightToLeft);
+            var over = type == BidiClass.RLO ? BidiClass.R
+                : type == BidiClass.LRO ? BidiClass.L
+                : BidiClass.ON;
+
+            if (CanOpen(next))
+                _statusStack.Push(new Status((byte)next, over, false));
+            else if (_overflowIsolates == 0)
+                _overflowEmbeddings++;
+        }
+
+        /// <summary>
+        /// X5a, X5b, X5c: the isolates. An FSI is whichever of the two the text inside it turns out
+        /// to be, which is P2 and P3 applied to that stretch alone.
+        /// </summary>
+        private void ResolveX5aToX5cIsolate(int index, BidiClass type)
+        {
+            var rightToLeft = type == BidiClass.RLI
+                              || (type == BidiClass.FSI
+                                  && ParagraphLevelOf(index + 1, Math.Min(_matchingPdi[index], _length)) == 1);
+
+            TakeCurrentLevelAndOverride(index);
+
+            var next = NextLevel(Current.Level, rightToLeft);
+            if (CanOpen(next))
+            {
+                _validIsolates++;
+                _statusStack.Push(new Status((byte)next, BidiClass.ON, true));
+            }
+            else
+            {
+                _overflowIsolates++;
+            }
+        }
+
+        /// <summary>
+        /// X6a: a PDI closes the nearest valid isolate, and any embeddings opened inside it go with
+        /// it.
+        /// </summary>
+        private void ResolveX6aPopDirectionalIsolate(int index)
+        {
+            if (_overflowIsolates > 0)
+            {
+                _overflowIsolates--;
+            }
+            else if (_validIsolates > 0)
+            {
+                _overflowEmbeddings = 0;
+                while (!Current.Isolate)
+                    _statusStack.Pop();
+
+                _statusStack.Pop();
+                _validIsolates--;
+            }
+
+            TakeCurrentLevelAndOverride(index);
+        }
+
+        /// <summary>X7: a PDF closes the nearest embedding, but never reaches past an isolate.</summary>
+        private void ResolveX7PopDirectionalFormatting(int index)
+        {
+            _levels[index] = Current.Level;
+
+            if (_overflowIsolates > 0)
+            {
+                // Nothing: the isolate it is inside never opened.
+            }
+            else if (_overflowEmbeddings > 0)
+            {
+                _overflowEmbeddings--;
+            }
+            else if (!Current.Isolate && _statusStack.Count >= 2)
+            {
+                _statusStack.Pop();
+            }
+        }
+
+        /// <summary>
+        /// X8: a paragraph separator belongs to the paragraph, not to anything open inside it.
+        /// </summary>
+        private void ResolveX8ParagraphSeparator(int index) => _levels[index] = _paragraphLevel;
+
+        /// <summary>X6: everything else takes the level and override of what it is inside.</summary>
+        private void ResolveX6Other(int index) => TakeCurrentLevelAndOverride(index);
 
         private void Override(int index, BidiClass over)
         {

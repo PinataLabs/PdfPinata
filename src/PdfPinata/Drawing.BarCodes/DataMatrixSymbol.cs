@@ -221,47 +221,71 @@ internal static class DataMatrixSymbol
 
             do
             {
-                if (row == _height && column == 0)
-                    Corner1(codeword++);
-                if (row == _height - 2 && column == 0 && _width % 4 != 0)
-                    Corner2(codeword++);
-                if (row == _height - 2 && column == 0 && _width % 8 == 4)
-                    Corner3(codeword++);
-                if (row == _height + 4 && column == 2 && _width % 8 == 0)
-                    Corner4(codeword++);
+                PlaceCorners(row, column, ref codeword);
 
-                // Up and to the right.
-                do
-                {
-                    if (row < _height && column >= 0 && !_filled[row * _width + column])
-                        Shape(row, column, codeword++);
-
-                    row -= 2;
-                    column += 2;
-                }
-                while (row >= 0 && column < _width);
-
+                SweepUpAndRight(ref row, ref column, ref codeword);
                 row += 1;
                 column += 3;
 
-                // Down and to the left.
-                do
-                {
-                    if (row >= 0 && column < _width && !_filled[row * _width + column])
-                        Shape(row, column, codeword++);
-
-                    row += 2;
-                    column -= 2;
-                }
-                while (row < _height && column >= 0);
-
+                SweepDownAndLeft(ref row, ref column, ref codeword);
                 row += 3;
                 column += 1;
             }
             while (row < _height || column < _width);
 
-            // The two modules of the bottom right corner go unused by some symbol sizes, and
-            // carry a fixed pattern rather than nothing.
+            FillUnusedCorner();
+        }
+
+        /// <summary>
+        /// Places the codeword whose shape will not fit at a corner, where the path is about to
+        /// start a sweep from one. At most one of the four applies at any one position.
+        /// </summary>
+        private void PlaceCorners(int row, int column, ref int codeword)
+        {
+            if (row == _height && column == 0)
+                Corner1(codeword++);
+            if (row == _height - 2 && column == 0 && _width % 4 != 0)
+                Corner2(codeword++);
+            if (row == _height - 2 && column == 0 && _width % 8 == 4)
+                Corner3(codeword++);
+            if (row == _height + 4 && column == 2 && _width % 8 == 0)
+                Corner4(codeword++);
+        }
+
+        /// <summary>Steps diagonally up and to the right, placing a codeword wherever one fits.</summary>
+        private void SweepUpAndRight(ref int row, ref int column, ref int codeword)
+        {
+            do
+            {
+                if (row < _height && column >= 0 && !_filled[row * _width + column])
+                    Shape(row, column, codeword++);
+
+                row -= 2;
+                column += 2;
+            }
+            while (row >= 0 && column < _width);
+        }
+
+        /// <summary>Steps diagonally down and to the left, placing a codeword wherever one fits.</summary>
+        private void SweepDownAndLeft(ref int row, ref int column, ref int codeword)
+        {
+            do
+            {
+                if (row >= 0 && column < _width && !_filled[row * _width + column])
+                    Shape(row, column, codeword++);
+
+                row += 2;
+                column -= 2;
+            }
+            while (row < _height && column >= 0);
+        }
+
+        /// <summary>
+        /// The two modules of the bottom right corner go unused by some symbol sizes, and carry a
+        /// fixed pattern rather than nothing.
+        /// </summary>
+        private void FillUnusedCorner()
+        {
             if (_filled[_height * _width - 1])
                 return;
 

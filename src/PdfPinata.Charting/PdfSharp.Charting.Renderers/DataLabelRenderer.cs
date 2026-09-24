@@ -52,49 +52,78 @@ internal abstract class DataLabelRenderer : Renderer
     var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     foreach (var sri in cri.SeriesRendererInfos)
     {
-      if (!cri.Chart.hasDataLabel && cri.Chart.dataLabel == null && !sri.Series.hasDataLabel && sri.Series.dataLabel == null)
-        continue;
-
-      var dlri = new DataLabelRendererInfo();
-
-      // A series' data label answers what it sets and leaves the rest to the chart's, property by
-      // property, where it used to replace the chart's outright.
-      var own = sri.Series.dataLabel;
-      var shared = cri.Chart.dataLabel;
-
-      dlri.Format = !string.IsNullOrEmpty(own?.format) ? own.format
-        : !string.IsNullOrEmpty(shared?.format) ? shared.format
-        : "0";
-
-      // Two defaults, both from upstream and both kept so that no label moves unasked: inside
-      // the end when there is no data label object at all, outside it when there is one that
-      // does not say.
-      if (own is { PositionInitialized: true })
-        dlri.Position = own.position;
-      else if (shared is { PositionInitialized: true })
-        dlri.Position = shared.position;
-      else
-        dlri.Position = own == null && shared == null ? DataLabelPosition.InsideEnd : DataLabelPosition.OutsideEnd;
-
-      if (own is { TypeInitialized: true })
-        dlri.Type = own.type;
-      else if (shared is { TypeInitialized: true })
-        dlri.Type = shared.type;
-      else if (cri.Chart.type is ChartType.Pie2D or ChartType.PieExploded2D)
-        dlri.Type = DataLabelType.Percent;
-      else
-        dlri.Type = DataLabelType.Value;
-
-      // The series' font inherits from the chart's data label font itself (Font.ParentFont), so
-      // it is only when the series has none that the chart's is looked at here.
-      var font = own?.font ?? shared?.font;
-      dlri.Font = Converter.ToXFont(font, cri.DefaultDataLabelFont);
-      dlri.FontColor = Converter.ToXBrush(font, cri.DefaultFontColor);
-
-      sri.DataLabelRendererInfo = dlri;
+      if (IsLabelled(cri.Chart, sri.Series))
+        sri.DataLabelRendererInfo = CreateDataLabelRendererInfo(cri, sri.Series);
     }
 
     return null;
+  }
+
+  /// <summary>
+  /// Whether a series is to be labelled at all: when either it or the chart asked for data labels,
+  /// or has a data label object to describe them.
+  /// </summary>
+  private static bool IsLabelled(Chart chart, Series series) =>
+    chart.hasDataLabel || chart.dataLabel != null ||
+    series.hasDataLabel || series.dataLabel != null;
+
+  /// <summary>
+  /// Resolves how a series' data labels are drawn.
+  /// </summary>
+  /// <remarks>
+  /// A series' data label answers what it sets and leaves the rest to the chart's, property by
+  /// property, where it used to replace the chart's outright.
+  /// </remarks>
+  private static DataLabelRendererInfo CreateDataLabelRendererInfo(ChartRendererInfo cri, Series series)
+  {
+    var own = series.dataLabel;
+    var shared = cri.Chart.dataLabel;
+
+    // The series' font inherits from the chart's data label font itself (Font.ParentFont), so
+    // it is only when the series has none that the chart's is looked at here.
+    var font = own?.font ?? shared?.font;
+
+    return new DataLabelRendererInfo
+    {
+      Format = ResolveFormat(own, shared),
+      Position = ResolvePosition(own, shared),
+      Type = ResolveType(own, shared, cri.Chart.type),
+      Font = Converter.ToXFont(font, cri.DefaultDataLabelFont),
+      FontColor = Converter.ToXBrush(font, cri.DefaultFontColor)
+    };
+  }
+
+  private static string ResolveFormat(DataLabel own, DataLabel shared) =>
+    !string.IsNullOrEmpty(own?.format) ? own.format
+      : !string.IsNullOrEmpty(shared?.format) ? shared.format
+      : "0";
+
+  /// <remarks>
+  /// Two defaults, both from upstream and both kept so that no label moves unasked: inside the
+  /// end when there is no data label object at all, outside it when there is one that does not
+  /// say.
+  /// </remarks>
+  private static DataLabelPosition ResolvePosition(DataLabel own, DataLabel shared)
+  {
+    if (own is { PositionInitialized: true })
+      return own.position;
+    if (shared is { PositionInitialized: true })
+      return shared.position;
+
+    return own == null && shared == null ? DataLabelPosition.InsideEnd : DataLabelPosition.OutsideEnd;
+  }
+
+  /// <remarks>
+  /// A pie is labelled with percentages unless told otherwise, and everything else with values.
+  /// </remarks>
+  private static DataLabelType ResolveType(DataLabel own, DataLabel shared, ChartType chartType)
+  {
+    if (own is { TypeInitialized: true })
+      return own.type;
+    if (shared is { TypeInitialized: true })
+      return shared.type;
+
+    return chartType is ChartType.Pie2D or ChartType.PieExploded2D ? DataLabelType.Percent : DataLabelType.Value;
   }
 
   /// <summary>

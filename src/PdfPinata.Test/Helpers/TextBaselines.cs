@@ -30,74 +30,105 @@ internal static class TextBaselines
     /// </summary>
     internal static IReadOnlyList<(double X, double Y)> PositionsOf(PdfPage page)
     {
-        var baselines = new List<(double X, double Y)>();
-
-        // The text line matrix, which Td moves and every run of text is drawn against. Only
-        // the translation is tracked: nothing here draws text turned or scaled.
-        double x = 0, y = 0;
-
-        // The distance from one line to the next, which T* and the quote operators move by.
-        double leading = 0;
-
+        var reader = new PositionReader();
         foreach (var item in ContentReader.ReadContent(ContentOf(page)))
         {
-            if (item is not COperator op)
-                continue;
+            if (item is COperator op)
+                reader.Read(op);
+        }
 
+        return reader.Baselines;
+    }
+
+    /// <summary>Follows one page's text, one operator at a time.</summary>
+    private sealed class PositionReader
+    {
+        // The text line matrix, which Td moves and every run of text is drawn against. Only
+        // the translation is tracked: nothing here draws text turned or scaled.
+        private double _x, _y;
+
+        // The distance from one line to the next, which T* and the quote operators move by.
+        private double _leading;
+
+        internal List<(double X, double Y)> Baselines { get; } = [];
+
+        internal void Read(COperator op)
+        {
+            if (!FollowTextPosition(op))
+                ShowText(op.OpCode.OpCodeName);
+        }
+
+        private bool FollowTextPosition(COperator op)
+        {
             switch (op.OpCode.OpCodeName)
             {
                 case OpCodeName.BT:
-                    x = y = 0;
-                    break;
+                    _x = _y = 0;
+                    return true;
 
                 case OpCodeName.Td:
                 case OpCodeName.TD:
-                    if (op.Operands.Count >= 2)
-                    {
-                        x += Number(op.Operands[0]);
-                        y += Number(op.Operands[1]);
-
-                        // TD sets the leading to the distance it moved down by, as well.
-                        if (op.OpCode.OpCodeName == OpCodeName.TD)
-                            leading = -Number(op.Operands[1]);
-                    }
-
-                    break;
+                    MoveLine(op);
+                    return true;
 
                 case OpCodeName.TL:
                     if (op.Operands.Count >= 1)
-                        leading = Number(op.Operands[0]);
-                    break;
+                        _leading = Number(op.Operands[0]);
+                    return true;
 
                 case OpCodeName.Tx:
                     // T* is 0 -TL Td: down one line, and back to where this line began.
-                    y -= leading;
-                    break;
+                    _y -= _leading;
+                    return true;
 
                 case OpCodeName.Tm:
-                    if (op.Operands.Count >= 6)
-                    {
-                        x = Number(op.Operands[4]);
-                        y = Number(op.Operands[5]);
-                    }
+                    SetLine(op.Operands);
+                    return true;
 
-                    break;
+                default:
+                    return false;
+            }
+        }
 
+        private void MoveLine(COperator op)
+        {
+            if (op.Operands.Count < 2)
+                return;
+
+            _x += Number(op.Operands[0]);
+            _y += Number(op.Operands[1]);
+
+            // TD sets the leading to the distance it moved down by, as well.
+            if (op.OpCode.OpCodeName == OpCodeName.TD)
+                _leading = -Number(op.Operands[1]);
+        }
+
+        private void SetLine(CSequence operands)
+        {
+            if (operands.Count < 6)
+                return;
+
+            _x = Number(operands[4]);
+            _y = Number(operands[5]);
+        }
+
+        private void ShowText(OpCodeName name)
+        {
+            switch (name)
+            {
                 case OpCodeName.Tj:
                 case OpCodeName.TJ:
-                    baselines.Add((x, y));
+                    Baselines.Add((_x, _y));
                     break;
 
                 case OpCodeName.QuoteSingle:
                 case OpCodeName.QuoteDbl:
                     // Both move down a line before showing the text, as T* does.
-                    y -= leading;
-                    baselines.Add((x, y));
+                    _y -= _leading;
+                    Baselines.Add((_x, _y));
                     break;
             }
         }
-
-        return baselines;
     }
 
     /// <summary>

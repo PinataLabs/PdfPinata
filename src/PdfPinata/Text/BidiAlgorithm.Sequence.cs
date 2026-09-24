@@ -49,9 +49,22 @@ public static partial class BidiAlgorithm
 
         private void ResolveWeakTypes()
         {
-            // W1. A non-spacing mark takes the type of what it is attached to, and ON when what it
-            // is attached to is an isolate initiator or a PDI - because those are about to become
-            // neutrals and a mark must not inherit a direction from one.
+            ResolveW1NonSpacingMarks();
+            ResolveW2EuropeanNumbersAfterArabicLetters();
+            ResolveW3ArabicLetters();
+            ResolveW4SingleSeparators();
+            ResolveW5Terminators();
+            ResolveW6RemainingSeparatorsAndTerminators();
+            ResolveW7EuropeanNumbersInLeftToRightContext();
+        }
+
+        /// <summary>
+        /// W1. A non-spacing mark takes the type of what it is attached to, and ON when what it is
+        /// attached to is an isolate initiator or a PDI - because those are about to become
+        /// neutrals and a mark must not inherit a direction from one.
+        /// </summary>
+        private void ResolveW1NonSpacingMarks()
+        {
             var previous = _sos;
             for (var idx = 0; idx < Count; idx++)
             {
@@ -71,8 +84,13 @@ public static partial class BidiAlgorithm
                 // to a mark, which is nothing at all.
                 previous = type;
             }
+        }
 
-            // W2. A European number after an Arabic letter is an Arabic number.
+        /// <summary>
+        /// W2. A European number after an Arabic letter is an Arabic number.
+        /// </summary>
+        private void ResolveW2EuropeanNumbersAfterArabicLetters()
+        {
             var strong = _sos;
             for (var idx = 0; idx < Count; idx++)
             {
@@ -82,15 +100,25 @@ public static partial class BidiAlgorithm
                 else if (type == BidiClass.EN && strong == BidiClass.AL)
                     SetType(idx, BidiClass.AN);
             }
+        }
 
-            // W3. Arabic letters are simply strong right-to-left from here on.
+        /// <summary>
+        /// W3. Arabic letters are simply strong right-to-left from here on.
+        /// </summary>
+        private void ResolveW3ArabicLetters()
+        {
             for (var idx = 0; idx < Count; idx++)
             {
                 if (TypeAt(idx) == BidiClass.AL)
                     SetType(idx, BidiClass.R);
             }
+        }
 
-            // W4. A single separator between two numbers of the same kind joins them.
+        /// <summary>
+        /// W4. A single separator between two numbers of the same kind joins them.
+        /// </summary>
+        private void ResolveW4SingleSeparators()
+        {
             for (var idx = 1; idx < Count - 1; idx++)
             {
                 var type = TypeAt(idx);
@@ -105,9 +133,14 @@ public static partial class BidiAlgorithm
                 else if (type == BidiClass.CS && before == BidiClass.AN && after == BidiClass.AN)
                     SetType(idx, BidiClass.AN);
             }
+        }
 
-            // W5. A run of terminators touching a European number joins it - "$1" and "1%" alike,
-            // so the run has to be looked at from both ends.
+        /// <summary>
+        /// W5. A run of terminators touching a European number joins it - "$1" and "1%" alike, so
+        /// the run has to be looked at from both ends.
+        /// </summary>
+        private void ResolveW5Terminators()
+        {
             for (var idx = 0; idx < Count; idx++)
             {
                 if (TypeAt(idx) != BidiClass.ET)
@@ -128,17 +161,27 @@ public static partial class BidiAlgorithm
 
                 idx = end;
             }
+        }
 
-            // W6. Whatever separators and terminators are left are neutral.
+        /// <summary>
+        /// W6. Whatever separators and terminators are left are neutral.
+        /// </summary>
+        private void ResolveW6RemainingSeparatorsAndTerminators()
+        {
             for (var idx = 0; idx < Count; idx++)
             {
                 var type = TypeAt(idx);
                 if (type is BidiClass.ET or BidiClass.ES or BidiClass.CS)
                     SetType(idx, BidiClass.ON);
             }
+        }
 
-            // W7. A European number in left-to-right context is simply left-to-right.
-            strong = _sos;
+        /// <summary>
+        /// W7. A European number in left-to-right context is simply left-to-right.
+        /// </summary>
+        private void ResolveW7EuropeanNumbersInLeftToRightContext()
+        {
+            var strong = _sos;
             for (var idx = 0; idx < Count; idx++)
             {
                 var type = TypeAt(idx);

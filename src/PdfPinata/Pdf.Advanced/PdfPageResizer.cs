@@ -284,15 +284,7 @@ internal static class PdfPageResizer
         already = XMatrix.Identity;
 
         var content = SingleContentStreamOf(page);
-        if (content?.Stream == null)
-            return false;
-
-        // Measure before decoding. UnfilteredValue runs the filters and hands back a whole copy
-        // of the content, and on an ordinary page that is megabytes of work to discover that the
-        // page is not a wrapper. A wrapper is a couple of hundred bytes at the outside, so
-        // anything larger cannot be one and need not be decoded to prove it. Stream.Value is the
-        // bytes as stored, which costs nothing to measure.
-        if (content.Stream.Value == null || content.Stream.Value.Length > LongestWrapper)
+        if (!IsShortEnoughToBeWrapper(content))
             return false;
 
         if (!TryReadWrapperName(content.Stream.UnfilteredValue, out name, out already))
@@ -303,27 +295,8 @@ internal static class PdfPageResizer
         if (!already.HasInverse)
             return false;
 
-        // The name has to lead to a form this made. Read the resources through the element
-        // rather than the property so that a page without any does not get given some.
-        var resourcesItem = page.Elements[PdfPage.InheritablePageKeys.Resources];
-        if (resourcesItem is PdfReference resourcesReference)
-            resourcesItem = resourcesReference.Value;
-        if (resourcesItem is not PdfDictionary resources)
-            return false;
-
-        var xObjectsItem = resources.Elements["/XObject"];
-        if (xObjectsItem is PdfReference xObjectsReference)
-            xObjectsItem = xObjectsReference.Value;
-        if (xObjectsItem is not PdfDictionary xObjects)
-            return false;
-
-        var formItem = xObjects.Elements[name];
-        if (formItem is PdfReference formReference)
-            formItem = formReference.Value;
-        if (formItem is not PdfDictionary form)
-            return false;
-
-        if (!form.Elements.GetBoolean(PdfFormXObject.ResizeWrapperKey))
+        var form = WrapperFormNamed(page, name);
+        if (form == null)
             return false;
 
         // The rectangle the content occupied when it was first wrapped is the form's bounding
@@ -335,6 +308,52 @@ internal static class PdfPageResizer
 
         wrapped = Normalized(box);
         return true;
+    }
+
+    /// <summary>
+    /// Whether a content stream is one short enough, as stored, to be a wrapper at all.
+    /// </summary>
+    /// <remarks>
+    /// Measure before decoding. UnfilteredValue runs the filters and hands back a whole copy
+    /// of the content, and on an ordinary page that is megabytes of work to discover that the
+    /// page is not a wrapper. A wrapper is a couple of hundred bytes at the outside, so
+    /// anything larger cannot be one and need not be decoded to prove it. Stream.Value is the
+    /// bytes as stored, which costs nothing to measure.
+    /// </remarks>
+    private static bool IsShortEnoughToBeWrapper(PdfDictionary content)
+    {
+        if (content?.Stream == null)
+            return false;
+
+        return content.Stream.Value != null && content.Stream.Value.Length <= LongestWrapper;
+    }
+
+    /// <summary>
+    /// The form the page's resources hold under the name, provided it is one this made; null
+    /// otherwise.
+    /// </summary>
+    private static PdfDictionary WrapperFormNamed(PdfPage page, string name)
+    {
+        // The name has to lead to a form this made. Read the resources through the element
+        // rather than the property so that a page without any does not get given some.
+        if (Dereferenced(page.Elements[PdfPage.InheritablePageKeys.Resources]) is not PdfDictionary resources)
+            return null;
+
+        if (Dereferenced(resources.Elements["/XObject"]) is not PdfDictionary xObjects)
+            return null;
+
+        if (Dereferenced(xObjects.Elements[name]) is not PdfDictionary form)
+            return null;
+
+        return form.Elements.GetBoolean(PdfFormXObject.ResizeWrapperKey) ? form : null;
+    }
+
+    /// <summary>
+    /// The object a reference leads to, or the item itself where it is not a reference.
+    /// </summary>
+    private static PdfItem Dereferenced(PdfItem item)
+    {
+        return item is PdfReference reference ? reference.Value : item;
     }
 
     /// <summary>

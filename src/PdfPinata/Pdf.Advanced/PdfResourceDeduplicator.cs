@@ -393,64 +393,77 @@ internal static class PdfResourceDeduplicator
             switch (item)
             {
                 case PdfReference reference:
-                    if (reference.Value != null && _index.TryGetValue(reference.Value, out var target))
-                    {
-                        text.Append("@;");
-                        targets.Add(target);
-                    }
-                    else
-                    {
-                        // Something that is not merged is equal only to itself.
-                        text.Append('R').Append(reference.ObjectNumber).Append(',')
-                            .Append(reference.GenerationNumber).Append(';');
-                    }
+                    DescribeReference(reference, text, targets);
                     return true;
-
                 case PdfDictionary dictionary:
-                    var isStream = top && dictionary.Stream != null;
-                    text.Append("<<");
-                    foreach (var key in dictionary.Elements.Keys.OrderBy(k => k, StringComparer.Ordinal))
-                    {
-                        // The writer states a stream's length from its bytes, which are compared
-                        // outright; a /Length held as a reference would otherwise keep two equal
-                        // streams apart.
-                        if (isStream && key == "/Length")
-                            continue;
-                        AppendString(text, 'k', key);
-                        if (!Describe(dictionary.Elements[key], text, targets, depth + 1, false))
-                            return false;
-                    }
-                    text.Append(">>");
-                    return true;
-
+                    return DescribeDictionary(dictionary, text, targets, depth, top);
                 case PdfArray array:
-                    text.Append('[');
-                    foreach (var element in array.Elements)
-                    {
-                        if (!Describe(element, text, targets, depth + 1, false))
-                            return false;
-                    }
-                    text.Append(']');
-                    return true;
+                    return DescribeArray(array, text, targets, depth);
+                default:
+                    return DescribeScalar(item, text);
+            }
+        }
 
+        private void DescribeReference(PdfReference reference, StringBuilder text, List<int> targets)
+        {
+            if (reference.Value != null && _index.TryGetValue(reference.Value, out var target))
+            {
+                text.Append("@;");
+                targets.Add(target);
+            }
+            else
+            {
+                // Something that is not merged is equal only to itself.
+                text.Append('R').Append(reference.ObjectNumber).Append(',')
+                    .Append(reference.GenerationNumber).Append(';');
+            }
+        }
+
+        private bool DescribeDictionary(PdfDictionary dictionary, StringBuilder text, List<int> targets, int depth, bool top)
+        {
+            var isStream = top && dictionary.Stream != null;
+            text.Append("<<");
+            foreach (var key in dictionary.Elements.Keys.OrderBy(k => k, StringComparer.Ordinal))
+            {
+                // The writer states a stream's length from its bytes, which are compared
+                // outright; a /Length held as a reference would otherwise keep two equal
+                // streams apart.
+                if (isStream && key == "/Length")
+                    continue;
+                AppendString(text, 'k', key);
+                if (!Describe(dictionary.Elements[key], text, targets, depth + 1, false))
+                    return false;
+            }
+            text.Append(">>");
+            return true;
+        }
+
+        private bool DescribeArray(PdfArray array, StringBuilder text, List<int> targets, int depth)
+        {
+            text.Append('[');
+            foreach (var element in array.Elements)
+            {
+                if (!Describe(element, text, targets, depth + 1, false))
+                    return false;
+            }
+            text.Append(']');
+            return true;
+        }
+
+        /// <summary>
+        /// Writes out an item that holds no other items. False for one this does not know how to
+        /// compare.
+        /// </summary>
+        private static bool DescribeScalar(PdfItem item, StringBuilder text)
+        {
+            switch (item)
+            {
                 case PdfName name:
                     AppendString(text, 'n', name.Value);
                     return true;
                 case PdfString str:
                     text.Append('s').Append((int)str.Flags);
                     AppendString(text, ':', str.Value);
-                    return true;
-                case PdfInteger integer:
-                    text.Append('i').Append(integer.Value.ToString(CultureInfo.InvariantCulture)).Append(';');
-                    return true;
-                case PdfLong integer:
-                    text.Append('l').Append(integer.Value.ToString(CultureInfo.InvariantCulture)).Append(';');
-                    return true;
-                case PdfUInteger integer:
-                    text.Append('u').Append(integer.Value.ToString(CultureInfo.InvariantCulture)).Append(';');
-                    return true;
-                case PdfReal real:
-                    text.Append('r').Append(real.Value.ToString("R", CultureInfo.InvariantCulture)).Append(';');
                     return true;
                 case PdfBoolean boolean:
                     text.Append(boolean.Value ? "b1;" : "b0;");
@@ -469,8 +482,30 @@ internal static class PdfResourceDeduplicator
                         .Append(rectangle.Y2.ToString("R", CultureInfo.InvariantCulture)).Append(';');
                     return true;
                 default:
-                    return false;
+                    return DescribeNumber(item, text);
             }
+        }
+
+        /// <summary>
+        /// Writes out a number, tagged by its kind so that an integer and a real of the same value
+        /// stay apart. False for anything that is not a number this knows.
+        /// </summary>
+        private static bool DescribeNumber(PdfItem item, StringBuilder text)
+        {
+            var (tag, value) = item switch
+            {
+                PdfInteger integer => ('i', integer.Value.ToString(CultureInfo.InvariantCulture)),
+                PdfLong integer => ('l', integer.Value.ToString(CultureInfo.InvariantCulture)),
+                PdfUInteger integer => ('u', integer.Value.ToString(CultureInfo.InvariantCulture)),
+                PdfReal real => ('r', real.Value.ToString("R", CultureInfo.InvariantCulture)),
+                _ => ('\0', null)
+            };
+
+            if (value == null)
+                return false;
+
+            text.Append(tag).Append(value).Append(';');
+            return true;
         }
 
         /// <summary>

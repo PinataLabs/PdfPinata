@@ -567,94 +567,9 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
             return;
 
         if (Parent == null)
-        {
-            // Case: This is the outline dictionary (the root).
-            // Reference: TABLE 8.3  Entries in the outline dictionary / Page 585
-            Debug.Assert(_outlines is { Count: > 0 } && _outlines[0] != null);
-            Elements[Keys.First] = _outlines[0].Reference;
-            Elements[Keys.Last] = _outlines[^1].Reference;
-
-            // Table 152: the outline dictionary's /Count is the number of rows a reader shows
-            // with nothing expanded by hand - every top-level entry, plus what the open ones
-            // bring with them. Always non-negative; the root is not something that closes.
-            Elements[Keys.Count] = new PdfInteger(_visibleDescendants);
-        }
+            PrepareRootForSave();
         else
-        {
-            // Case: This is an outline item dictionary.
-            // Reference: TABLE 8.4  Entries in the outline item dictionary / Page 585
-            Elements[Keys.Parent] = Parent.Reference;
-
-            var count = Parent._outlines.Count;
-            var index = Parent._outlines.IndexOf(this);
-            Debug.Assert(index != -1);
-
-            // Has destination? Where an entry goes that this library cannot describe keeps
-            // what the document was read with, which still says it; describing it from the
-            // properties above would turn it into something else.
-            if (DestinationPage != null && !_keepDestinationAsFound)
-            {
-                Elements[Keys.Dest] = CreateDestArray();
-                // An entry given a destination goes there rather than wherever its action led,
-                // and the specification has one of the two entries, not both.
-                Elements.Remove(Keys.A);
-            }
-
-            // Each link is written or taken away, never left as it was: an entry that was
-            // read in, or saved once already, carries the links it had then, and one that has
-            // since become the first or the last of its list, or lost its children, would
-            // otherwise still point at an entry that was removed - which the save then finds
-            // through that link and writes back into the file.
-            if (index > 0)
-                Elements[Keys.Prev] = Parent._outlines[index - 1].Reference;
-            else
-                Elements.Remove(Keys.Prev);
-
-            if (index < count - 1)
-                Elements[Keys.Next] = Parent._outlines[index + 1].Reference;
-            else
-                Elements.Remove(Keys.Next);
-
-            if (hasKids)
-            {
-                Elements[Keys.First] = _outlines[0].Reference;
-                Elements[Keys.Last] = _outlines[^1].Reference;
-            }
-            else
-            {
-                Elements.Remove(Keys.First);
-                Elements.Remove(Keys.Last);
-            }
-
-            // Table 153: an entry with descendants carries how many would become visible if it
-            // were expanded, signed by whether it already is. An entry with none carries no
-            // /Count at all - and must not keep one it was read in with, since its children
-            // may since have been removed.
-            //
-            // This is what Opened is written as, and until it was written a reader had nothing
-            // to expand a branch from: every tree arrived collapsed however it was built, and
-            // the flag read back exactly as it had been set.
-            if (hasKids)
-                Elements[Keys.Count] = new PdfInteger(Opened ? _visibleDescendants : -_visibleDescendants);
-            else
-                Elements.Remove(Keys.Count);
-
-            // Table 153: /C is new in PDF 1.4 and defaults to black. Taken away otherwise, so an
-            // entry read with a colour and saved into an older document does not keep a key that
-            // version has no such thing as.
-            if (TextColor != XColor.Empty && Owner.Version >= 14)
-                Elements[Keys.C] = new PdfLiteral("[{0}]", PdfEncoders.ToString(TextColor, PdfColorMode.Rgb));
-            else
-                Elements.Remove(Keys.C);
-
-            // Table 153: /F is new in PDF 1.4 and defaults to 0, so a regular entry carries none
-            // and an older document has no such key. Taken away otherwise, so an entry read with
-            // a style and made regular since does not keep it.
-            if (Style != PdfOutlineStyle.Regular && Owner.Version >= 14)
-                Elements.SetInteger(Keys.F, (int)Style);
-            else
-                Elements.Remove(Keys.F);
-        }
+            PrepareItemForSave(hasKids);
 
         // Prepare child elements.
         if (!hasKids)
@@ -662,6 +577,146 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
 
         foreach (var outline in _outlines)
             outline.PrepareForSave();
+    }
+
+    /// <summary>
+    /// Writes the entries of the outline dictionary, the root of the tree.
+    /// </summary>
+    private void PrepareRootForSave()
+    {
+        // Case: This is the outline dictionary (the root).
+        // Reference: TABLE 8.3  Entries in the outline dictionary / Page 585
+        Debug.Assert(_outlines is { Count: > 0 } && _outlines[0] != null);
+        SetChildLinks();
+
+        // Table 152: the outline dictionary's /Count is the number of rows a reader shows
+        // with nothing expanded by hand - every top-level entry, plus what the open ones
+        // bring with them. Always non-negative; the root is not something that closes.
+        Elements[Keys.Count] = new PdfInteger(_visibleDescendants);
+    }
+
+    /// <summary>
+    /// Writes the entries of an outline item dictionary, in the order they have always been
+    /// written.
+    /// </summary>
+    private void PrepareItemForSave(bool hasKids)
+    {
+        // Case: This is an outline item dictionary.
+        // Reference: TABLE 8.4  Entries in the outline item dictionary / Page 585
+        Elements[Keys.Parent] = Parent.Reference;
+
+        WriteDestination();
+
+        // Each link is written or taken away, never left as it was: an entry that was
+        // read in, or saved once already, carries the links it had then, and one that has
+        // since become the first or the last of its list, or lost its children, would
+        // otherwise still point at an entry that was removed - which the save then finds
+        // through that link and writes back into the file.
+        WriteSiblingLinks();
+        if (hasKids)
+        {
+            SetChildLinks();
+        }
+        else
+        {
+            Elements.Remove(Keys.First);
+            Elements.Remove(Keys.Last);
+        }
+
+        WriteItemCount(hasKids);
+        WriteTextColor();
+        WriteStyle();
+    }
+
+    /// <summary>
+    /// Has destination? Where an entry goes that this library cannot describe keeps what the
+    /// document was read with, which still says it; describing it from the properties above
+    /// would turn it into something else.
+    /// </summary>
+    private void WriteDestination()
+    {
+        if (DestinationPage == null || _keepDestinationAsFound)
+            return;
+
+        Elements[Keys.Dest] = CreateDestArray();
+        // An entry given a destination goes there rather than wherever its action led,
+        // and the specification has one of the two entries, not both.
+        Elements.Remove(Keys.A);
+    }
+
+    /// <summary>
+    /// Links an item to the items either side of it under the same parent, and takes away a link
+    /// to a side that has no item.
+    /// </summary>
+    private void WriteSiblingLinks()
+    {
+        var count = Parent._outlines.Count;
+        var index = Parent._outlines.IndexOf(this);
+        Debug.Assert(index != -1);
+
+        if (index > 0)
+            Elements[Keys.Prev] = Parent._outlines[index - 1].Reference;
+        else
+            Elements.Remove(Keys.Prev);
+
+        if (index < count - 1)
+            Elements[Keys.Next] = Parent._outlines[index + 1].Reference;
+        else
+            Elements.Remove(Keys.Next);
+    }
+
+    /// <summary>
+    /// Links an entry to the first and last of its children.
+    /// </summary>
+    private void SetChildLinks()
+    {
+        Elements[Keys.First] = _outlines[0].Reference;
+        Elements[Keys.Last] = _outlines[^1].Reference;
+    }
+
+    /// <summary>
+    /// Table 153: an entry with descendants carries how many would become visible if it
+    /// were expanded, signed by whether it already is. An entry with none carries no
+    /// /Count at all - and must not keep one it was read in with, since its children
+    /// may since have been removed.
+    /// </summary>
+    /// <remarks>
+    /// This is what Opened is written as, and until it was written a reader had nothing
+    /// to expand a branch from: every tree arrived collapsed however it was built, and
+    /// the flag read back exactly as it had been set.
+    /// </remarks>
+    private void WriteItemCount(bool hasKids)
+    {
+        if (hasKids)
+            Elements[Keys.Count] = new PdfInteger(Opened ? _visibleDescendants : -_visibleDescendants);
+        else
+            Elements.Remove(Keys.Count);
+    }
+
+    /// <summary>
+    /// Table 153: /C is new in PDF 1.4 and defaults to black. Taken away otherwise, so an
+    /// entry read with a colour and saved into an older document does not keep a key that
+    /// version has no such thing as.
+    /// </summary>
+    private void WriteTextColor()
+    {
+        if (TextColor != XColor.Empty && Owner.Version >= 14)
+            Elements[Keys.C] = new PdfLiteral("[{0}]", PdfEncoders.ToString(TextColor, PdfColorMode.Rgb));
+        else
+            Elements.Remove(Keys.C);
+    }
+
+    /// <summary>
+    /// Table 153: /F is new in PDF 1.4 and defaults to 0, so a regular entry carries none
+    /// and an older document has no such key. Taken away otherwise, so an entry read with
+    /// a style and made regular since does not keep it.
+    /// </summary>
+    private void WriteStyle()
+    {
+        if (Style != PdfOutlineStyle.Regular && Owner.Version >= 14)
+            Elements.SetInteger(Keys.F, (int)Style);
+        else
+            Elements.Remove(Keys.F);
     }
 
     private PdfArray CreateDestArray()

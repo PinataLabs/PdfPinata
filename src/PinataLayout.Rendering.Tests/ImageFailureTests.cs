@@ -64,6 +64,19 @@ public class ImageFailureTests
     }
 
     [Fact]
+    public void AnImageThatThrowsSomethingElseWhileBeingOpenedIsReportedAsNotRead()
+    {
+        // Only an InvalidOperationException from there says the type is unreadable. Anything else
+        // used to escape Format altogether and end the render, where the same exception thrown
+        // while drawing came out as a placeholder.
+        var failures = Render(Failing.WhenOpened());
+
+        failures.Should().ContainSingle();
+        failures[0].Failure.Should().Be(ImageFailure.NotRead);
+        failures[0].Exception.Should().BeOfType<IOException>();
+    }
+
+    [Fact]
     public void AnImageThatThrowsWhileBeingMeasuredIsReportedAsNotRead()
     {
         var failures = Render(Failing.WhenMeasured());
@@ -195,6 +208,14 @@ public class ImageFailureTests
         internal static IImageSource OfAnUnreadableType() => new Failing(
             "unsupported.xyz", () => 64,
             () => throw new InvalidOperationException("no decoder"), () => { });
+
+        /// <summary>
+        ///   Throws while XImage is being built, as OfAnUnreadableType does, but not with the
+        ///   exception that means the type cannot be read.
+        /// </summary>
+        internal static IImageSource WhenOpened() => new Failing(
+            "vanished.png", () => 64,
+            () => throw new IOException("the file went away"), () => { });
 
         /// <summary>Throws while being measured - XImage.PixelWidth reads through to Width.</summary>
         internal static IImageSource WhenMeasured(Exception thrown = null) => new Failing(

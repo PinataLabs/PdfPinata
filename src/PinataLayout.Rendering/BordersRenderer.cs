@@ -85,32 +85,54 @@ internal class BordersRenderer
       return 0;
 
     var border = GetBorder(type);
-
     if (border != null)
-    {
-      if (!border.IsNull("Visible") && !border.Visible)
-        return 0;
+      return GetOwnWidth(border);
 
-      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-      if (border != null && !border.IsNull("Width"))
-        return border.Width.Point;
+    // A diagonal is drawn only where it has been described for itself; the settings the
+    // collection gives every edge are not meant for it.
+    if (type is BorderType.DiagonalDown or BorderType.DiagonalUp)
+      return 0;
 
-      if (!border.IsNull("Color") || !border.IsNull("Style") || border.Visible)
-      {
-        return !borders.IsNull("Width") ? borders.Width.Point : 0.5;
-      }
-    }
-    else if (!(type is BorderType.DiagonalDown or BorderType.DiagonalUp))
-    {
-      if (!borders.IsNull("Visible") && !borders.Visible)
-        return 0;
+    return GetSharedWidth();
+  }
 
-      if (!borders.IsNull("Width"))
-        return borders.Width.Point;
+  /// <summary>
+  /// The width of a border described for itself: its own width, or - where it asks to be drawn
+  /// without saying how wide - the collection's width, or half a point.
+  /// </summary>
+  private XUnit GetOwnWidth(Border border)
+  {
+    var hidden = !border.IsNull("Visible") && !border.Visible;
+    if (hidden)
+      return 0;
 
-      if (!borders.IsNull("Color") || !borders.IsNull("Style") || borders.Visible)
-        return 0.5;
-    }
+    if (!border.IsNull("Width"))
+      return border.Width.Point;
+
+    var asksToBeDrawn = !border.IsNull("Color") || !border.IsNull("Style") || border.Visible;
+    if (asksToBeDrawn)
+      return !borders.IsNull("Width") ? borders.Width.Point : 0.5;
+
+    return 0;
+  }
+
+  /// <summary>
+  /// The width of an edge with no border of its own, from what the collection says of every edge:
+  /// its width, or half a point where it asks for borders without saying how wide.
+  /// </summary>
+  private XUnit GetSharedWidth()
+  {
+    var hidden = !borders.IsNull("Visible") && !borders.Visible;
+    if (hidden)
+      return 0;
+
+    if (!borders.IsNull("Width"))
+      return borders.Width.Point;
+
+    var asksToBeDrawn = !borders.IsNull("Color") || !borders.IsNull("Style") || borders.Visible;
+    if (asksToBeDrawn)
+      return 0.5;
+
     return 0;
   }
 

@@ -93,68 +93,81 @@ public class Lexer
     // /// <param name="testReference">Indicates whether to test the next token if it is a reference.</param>
     public Symbol ScanNextToken()
     {
-        Again:
-        _token = new StringBuilder();
+        while (true)
+        {
+            _token = new StringBuilder();
 
-        var ch = MoveToNonWhiteSpace();
+            var ch = MoveToNonWhiteSpace();
+            if (ch != '%')
+                return Symbol = ScanTokenStartingWith(ch);
+
+            // Eat comments, the parser doesn't handle them
+            ScanComment();
+        }
+    }
+
+    /// <summary>
+    /// Scans the token the character given begins, which is the current one and not white space
+    /// or the start of a comment.
+    /// </summary>
+    private Symbol ScanTokenStartingWith(char ch)
+    {
         switch (ch)
         {
-            case '%':
-                // Eat comments, the parser doesn't handle them
-                ScanComment();
-                goto Again;
-
             case '/':
-                return Symbol = ScanName();
+                return ScanName();
 
             case '+':
             case '-':
-                return Symbol = ScanNumber();
+            case '.':
+                return ScanNumber();
 
             case '(':
-                return Symbol = ScanLiteralString();
+                return ScanLiteralString();
 
             case '[':
-                ScanNextChar(true);
-                return Symbol = Symbol.BeginArray;
+                return StepOverDelimiter(Symbol.BeginArray);
 
             case ']':
-                ScanNextChar(true);
-                return Symbol = Symbol.EndArray;
+                return StepOverDelimiter(Symbol.EndArray);
 
             case '<':
-                if (_nextChar == '<')
-                {
-                    ScanNextChar(true);
-                    ScanNextChar(true);
-                    return Symbol = Symbol.BeginDictionary;
-                }
-                return Symbol = ScanHexadecimalString();
+                return _nextChar == '<'
+                    ? StepOverDoubleDelimiter(Symbol.BeginDictionary)
+                    : ScanHexadecimalString();
 
             case '>':
                 if (_nextChar == '>')
-                {
-                    ScanNextChar(true);
-                    ScanNextChar(true);
-                    return Symbol = Symbol.EndDictionary;
-                }
+                    return StepOverDoubleDelimiter(Symbol.EndDictionary);
                 ParserDiagnostics.HandleUnexpectedCharacter(_nextChar);
                 break;
-
-            case '.':
-                return Symbol = ScanNumber();
         }
         if (char.IsDigit(ch))
-            return Symbol = ScanNumber();
+            return ScanNumber();
 
         if (char.IsLetter(ch))
-            return Symbol = ScanKeyword();
+            return ScanKeyword();
 
         if (ch == Chars.EOF)
-            return Symbol = Symbol.Eof;
+            return Symbol.Eof;
 
         ParserDiagnostics.HandleUnexpectedCharacter(ch);
-        return Symbol = Symbol.None;
+        return Symbol.None;
+    }
+
+    /// <summary>Steps over a delimiter that is a token on its own, such as '['.</summary>
+    private Symbol StepOverDelimiter(Symbol symbol)
+    {
+        ScanNextChar(true);
+        return symbol;
+    }
+
+    /// <summary>Steps over a delimiter two characters long, '&lt;&lt;' or '&gt;&gt;'.</summary>
+    private Symbol StepOverDoubleDelimiter(Symbol symbol)
+    {
+        ScanNextChar(true);
+        ScanNextChar(true);
+        return symbol;
     }
 
     /// <summary>
@@ -455,10 +468,22 @@ public class Lexer
 
         Debug.Assert(_currChar == Chars.ParenLeft);
         _token = new StringBuilder();
-        var parenLevel = 0;
-        var ch = ScanNextChar(false);
 
         // Phase 1: deal with escape characters.
+        ScanLiteralStringBytes();
+
+        // Phase 2: deal with UTF-16 if necessary.
+        return Symbol = DecodeLiteralString();
+    }
+
+    /// <summary>
+    /// Reads the bytes of a literal string into the token, resolving its escapes, up to and past the
+    /// parenthesis that closes it or to the end of the file.
+    /// </summary>
+    private void ScanLiteralStringBytes()
+    {
+        var parenLevel = 0;
+        var ch = ScanNextChar(false);
         while (ch != Chars.EOF)
         {
             switch (ch)
@@ -471,146 +496,189 @@ public class Lexer
                     if (parenLevel == 0)
                     {
                         ScanNextChar(false);
-                        // Is goto evil? We could move Phase 2 code here or create a subroutine for Phase 1.
-                        goto Phase2;
+                        return;
                     }
                     parenLevel--;
                     break;
 
                 case '\\':
-                {
-                    ch = ScanNextChar(false);
-                    switch (ch)
-                    {
-                        case 'n':
-                            ch = Chars.LF;
-                            break;
-
-                        case 'r':
-                            ch = Chars.CR;
-                            break;
-
-                        case 't':
-                            ch = Chars.HT;
-                            break;
-
-                        case 'b':
-                            ch = Chars.BS;
-                            break;
-
-                        case 'f':
-                            ch = Chars.FF;
-                            break;
-
-                        case '(':
-                            ch = Chars.ParenLeft;
-                            break;
-
-                        case ')':
-                            ch = Chars.ParenRight;
-                            break;
-
-                        case '\\':
-                            ch = Chars.BackSlash;
-                            break;
-
-                        // AutoCAD PDFs my contain such strings: (\ )
-                        case ' ':
-                            ch = ' ';
-                            break;
-
-                        case Chars.CR:
-                        case Chars.LF:
-                            ch = ScanNextChar(false);
-                            continue;
-
-                        default:
-                            if (char.IsDigit(ch))  // First octal character.
-                            {
-                                // Octal character code.
-                                if (ch >= '8')
-                                    break; // Since the first possible octal character is not valid,
-                                // the backslash is ignored.
-
-                                var n = ch - '0';
-                                if (char.IsDigit(_nextChar))  // Second octal character.
-                                {
-                                    ch = ScanNextChar(false);
-                                    if (ch >= '8')
-                                        ParserDiagnostics.HandleUnexpectedCharacter(ch);
-
-                                    n = n * 8 + ch - '0';
-                                    if (char.IsDigit(_nextChar))  // Third octal character.
-                                    {
-                                        ch = ScanNextChar(false);
-                                        if (ch >= '8')
-                                            ParserDiagnostics.HandleUnexpectedCharacter(ch);
-
-                                        n = n * 8 + ch - '0';
-                                    }
-                                }
-                                ch = (char)n;
-                            }
-                            break;
-                    }
+                    // A backslash before an end of line continues the string onto the next line,
+                    // and neither of them is part of it; ch is then what follows the line ending.
+                    if (!TryReadEscapedChar(out ch))
+                        continue;
                     break;
-                }
             }
 
             _token.Append(ch);
             ch = ScanNextChar(false);
         }
+    }
 
-        // Phase 2: deal with UTF-16BE if necessary.
-        // UTF-16BE Unicode strings start with U+FEFF ("��"). There can be empty strings with UTF-16BE prefix.
-        Phase2:
-        if (_token.Length >= 2 && _token[0] == '\xFE' && _token[1] == '\xFF')
+    /// <summary>
+    /// Reads what follows a backslash in a literal string, the backslash being the current
+    /// character, and resolves it to the character it stands for.
+    /// </summary>
+    /// <returns>
+    /// False when the backslash continues the line instead, in which case <paramref name="ch"/> is
+    /// the character after the line ending and still to be read as part of the string.
+    /// </returns>
+    private bool TryReadEscapedChar(out char ch)
+    {
+        ch = ScanNextChar(false);
+        if (ch is Chars.CR or Chars.LF)
         {
-            // Combine two ANSI characters to get one Unicode character.
-            var temp = _token;
-            var length = temp.Length;
-            if ((length & 1) == 1)
-            {
-                // A UTF-16 string with an odd number of bytes is short of the low byte of its last
-                // character. The reference says nothing about it, so the missing byte is taken to
-                // be a zero - the same reading ScanHexadecimalString gives a hex string missing
-                // its final digit, which the reference does specify.
-                //
-                // '\0' and not 0: the latter binds to Append(int), which appends the digit zero
-                // rather than the character. See LexerUnicodeStringTests.
-                temp.Append('\0');
-                ++length;
-            }
-            _token = new StringBuilder();
-            for (var i = 2; i < length; i += 2)
-            {
-                _token.Append((char)(256 * temp[i] + temp[i + 1]));
-            }
-            return Symbol = Symbol.UnicodeString;
+            // CR LF is one line ending, not a CR ending the line and an LF opening the next.
+            var lineEnding = ch;
+            ch = ScanNextChar(false);
+            if (lineEnding == Chars.CR && ch == Chars.LF)
+                ch = ScanNextChar(false);
+            return false;
+        }
+
+        if (TryResolveSimpleEscape(ch, out var resolved))
+            ch = resolved;
+        else if (char.IsDigit(ch))  // First octal character.
+            ch = ReadOctalEscape(ch);
+
+        // Anything else stands for itself, and the backslash is ignored.
+        return true;
+    }
+
+    /// <summary>
+    /// Resolves the escapes a literal string writes as a backslash and one character.
+    /// </summary>
+    private static bool TryResolveSimpleEscape(char ch, out char resolved)
+    {
+        switch (ch)
+        {
+            case 'n':
+                resolved = Chars.LF;
+                return true;
+
+            case 'r':
+                resolved = Chars.CR;
+                return true;
+
+            case 't':
+                resolved = Chars.HT;
+                return true;
+
+            case 'b':
+                resolved = Chars.BS;
+                return true;
+
+            case 'f':
+                resolved = Chars.FF;
+                return true;
+
+            case '(':
+                resolved = Chars.ParenLeft;
+                return true;
+
+            case ')':
+                resolved = Chars.ParenRight;
+                return true;
+
+            case '\\':
+                resolved = Chars.BackSlash;
+                return true;
+
+            // AutoCAD PDFs my contain such strings: (\ )
+            case ' ':
+                resolved = ' ';
+                return true;
+
+            default:
+                resolved = ch;
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// Reads an octal character code of up to three digits, the first of which has just been read.
+    /// </summary>
+    private char ReadOctalEscape(char first)
+    {
+        // Since the first possible octal character is not valid, the backslash is ignored.
+        if (first >= '8')
+            return first;
+
+        var n = first - '0';
+        if (char.IsDigit(_nextChar))  // Second octal character.
+        {
+            n = n * 8 + ReadOctalDigit();
+            if (char.IsDigit(_nextChar))  // Third octal character.
+                n = n * 8 + ReadOctalDigit();
+        }
+        return (char)n;
+    }
+
+    /// <summary>
+    /// Reads the next digit of an octal character code, which the caller has seen is a digit.
+    /// </summary>
+    private int ReadOctalDigit()
+    {
+        var ch = ScanNextChar(false);
+        if (ch >= '8')
+            ParserDiagnostics.HandleUnexpectedCharacter(ch);
+
+        return ch - '0';
+    }
+
+    /// <summary>
+    /// Decodes the bytes <see cref="ScanLiteralStringBytes"/> has gathered in the token as UTF-16
+    /// when they open with a byte order mark, and says which kind of string they turned out to be.
+    /// UTF-16BE Unicode strings start with U+FEFF. There can be empty strings with UTF-16BE prefix.
+    /// </summary>
+    private Symbol DecodeLiteralString()
+    {
+        if (TokenStartsWith('\xFE', '\xFF'))
+        {
+            DecodeUtf16Token(bigEndian: true);
+            return Symbol.UnicodeString;
         }
         // Adobe Reader also supports UTF-16LE.
-        if (_token.Length >= 2 && _token[0] == '\xFF' && _token[1] == '\xFE')
+        if (TokenStartsWith('\xFF', '\xFE'))
         {
-            // Combine two ANSI characters to get one Unicode character.
-            var temp = _token;
-            var length = temp.Length;
-            if ((length & 1) == 1)
-            {
-                // As above, for the little endian order Adobe Reader also accepts. The digit this
-                // used to append did more damage here than in the big endian case: it landed in
-                // the *high* half of the last character, so a byte short of "I" read as U+3049
-                // rather than as the "I" that was all but complete.
-                temp.Append('\0');
-                ++length;
-            }
-            _token = new StringBuilder();
-            for (var i = 2; i < length; i += 2)
-            {
-                _token.Append((char)(256 * temp[i + 1] + temp[i]));
-            }
-            return Symbol = Symbol.UnicodeString;
+            DecodeUtf16Token(bigEndian: false);
+            return Symbol.UnicodeString;
         }
-        return Symbol = Symbol.String;
+        return Symbol.String;
+    }
+
+    private bool TokenStartsWith(char first, char second) =>
+        _token.Length >= 2 && _token[0] == first && _token[1] == second;
+
+    /// <summary>
+    /// Combines each two ANSI characters of the token after its byte order mark into one Unicode
+    /// character, in the byte order given.
+    /// </summary>
+    private void DecodeUtf16Token(bool bigEndian)
+    {
+        var temp = _token;
+        var length = temp.Length;
+        if ((length & 1) == 1)
+        {
+            // A UTF-16 string with an odd number of bytes is short of the low byte of its last
+            // character. The reference says nothing about it, so the missing byte is taken to
+            // be a zero - the same reading ScanHexadecimalString gives a hex string missing
+            // its final digit, which the reference does specify. The digit this used to append
+            // did more damage in the little endian order Adobe Reader also accepts: it landed in
+            // the *high* half of the last character, so a byte short of "I" read as U+3049
+            // rather than as the "I" that was all but complete.
+            //
+            // '\0' and not 0: the latter binds to Append(int), which appends the digit zero
+            // rather than the character. See LexerUnicodeStringTests.
+            temp.Append('\0');
+            ++length;
+        }
+        _token = new StringBuilder();
+        for (var i = 2; i < length; i += 2)
+        {
+            _token.Append(bigEndian
+                ? (char)(256 * temp[i] + temp[i + 1])
+                : (char)(256 * temp[i + 1] + temp[i]));
+        }
     }
 
     /// <summary>Scans a string written in angle brackets as pairs of hexadecimal digits.</summary>

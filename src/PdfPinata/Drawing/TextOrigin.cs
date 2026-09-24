@@ -25,10 +25,21 @@ internal static class TextOrigin
     /// </param>
     internal static XPoint For(XRect rect, double textWidth, XFont font, XStringFormat format, bool downwards)
     {
-        var x = rect.X;
-        var y = rect.Y;
+        var x = AlignedX(rect, textWidth, format.Alignment);
 
-        switch (format.Alignment)
+        var metrics = new VerticalMetrics(font);
+        var y = downwards
+            ? BaselineDownwards(rect, metrics, format.LineAlignment)
+            : BaselineUpwards(rect, metrics, format.LineAlignment);
+
+        return new XPoint(x, y);
+    }
+
+    private static double AlignedX(XRect rect, double textWidth, XStringAlignment alignment)
+    {
+        var x = rect.X;
+
+        switch (alignment)
         {
             case XStringAlignment.Near:
                 // nothing to do
@@ -43,84 +54,113 @@ internal static class TextOrigin
                 break;
         }
 
-        var lineSpace = font.GetHeight();
-        var cyAscent = lineSpace * font.CellAscent / font.CellSpace;
-        var cyDescent = lineSpace * font.CellDescent / font.CellSpace;
-        // Half the height of a lowercase x, for the one alignment that is measured against it.
-        var cyXHeight = lineSpace * font.Metrics.XHeight / font.CellSpace;
+        return x;
+    }
 
-        if (downwards)
+    /// <summary>
+    /// Where the baseline sits on a page whose y increases downwards.
+    /// </summary>
+    private static double BaselineDownwards(XRect rect, VerticalMetrics metrics, XLineAlignment alignment)
+    {
+        var y = rect.Y;
+
+        switch (alignment)
         {
-            switch (format.LineAlignment)
-            {
-                case XLineAlignment.Near:
-                    y += cyAscent;
-                    break;
+            case XLineAlignment.Near:
+                y += metrics.Ascent;
+                break;
 
-                case XLineAlignment.Center:
-                    // Three quarters of the ascent stands in for the cap height, as it does in PDFlib.
-                    // Deliberately: the font's own CapHeight would move every vertically centred string.
-                    y += cyAscent * 3 / 4 / 2 + rect.Height / 2;
-                    break;
+            case XLineAlignment.Center:
+                // Three quarters of the ascent stands in for the cap height, as it does in PDFlib.
+                // Deliberately: the font's own CapHeight would move every vertically centred string.
+                y += metrics.Ascent * 3 / 4 / 2 + rect.Height / 2;
+                break;
 
-                case XLineAlignment.Far:
-                    y += -cyDescent + rect.Height;
-                    break;
+            case XLineAlignment.Far:
+                y += -metrics.Descent + rect.Height;
+                break;
 
-                case XLineAlignment.BaseLine:
-                    // Nothing to do. The baseline is the top edge, and the height is unread -
-                    // which is why a height is surplus information rather than a contradiction.
-                    break;
+            case XLineAlignment.BaseLine:
+                // Nothing to do. The baseline is the top edge, and the height is unread -
+                // which is why a height is surplus information rather than a contradiction.
+                break;
 
-                case XLineAlignment.Hanging:
-                    // As Near, but hung off the position rather than off the top of the rectangle.
-                    y += cyAscent;
-                    break;
+            case XLineAlignment.Hanging:
+                // As Near, but hung off the position rather than off the top of the rectangle.
+                y += metrics.Ascent;
+                break;
 
-                case XLineAlignment.Ideographic:
-                    y += -cyDescent;
-                    break;
+            case XLineAlignment.Ideographic:
+                y += -metrics.Descent;
+                break;
 
-                case XLineAlignment.SvgMiddle:
-                    y += cyXHeight / 2;
-                    break;
-            }
-        }
-        else
-        {
-            switch (format.LineAlignment)
-            {
-                case XLineAlignment.Near:
-                    y += cyDescent;
-                    break;
-
-                case XLineAlignment.Center:
-                    // Three quarters of the ascent, deliberately, as above.
-                    y += -(cyAscent * 3 / 4) / 2 + rect.Height / 2;
-                    break;
-
-                case XLineAlignment.Far:
-                    y += -cyAscent + rect.Height;
-                    break;
-
-                case XLineAlignment.BaseLine:
-                    // Nothing to do.
-                    break;
-
-                case XLineAlignment.Hanging:
-                    y += -cyAscent;
-                    break;
-
-                case XLineAlignment.Ideographic:
-                    y += cyDescent;
-                    break;
-
-                case XLineAlignment.SvgMiddle:
-                    y += -cyXHeight / 2;
-                    break;
-            }
+            case XLineAlignment.SvgMiddle:
+                y += metrics.XHeight / 2;
+                break;
         }
 
-        return new XPoint(x, y);
+        return y;
+    }
+
+    /// <summary>
+    /// Where the baseline sits on a page whose y increases upwards: <see cref="BaselineDownwards"/>
+    /// mirrored.
+    /// </summary>
+    private static double BaselineUpwards(XRect rect, VerticalMetrics metrics, XLineAlignment alignment)
+    {
+        var y = rect.Y;
+
+        switch (alignment)
+        {
+            case XLineAlignment.Near:
+                y += metrics.Descent;
+                break;
+
+            case XLineAlignment.Center:
+                // Three quarters of the ascent, deliberately, as above.
+                y += -(metrics.Ascent * 3 / 4) / 2 + rect.Height / 2;
+                break;
+
+            case XLineAlignment.Far:
+                y += -metrics.Ascent + rect.Height;
+                break;
+
+            case XLineAlignment.BaseLine:
+                // Nothing to do.
+                break;
+
+            case XLineAlignment.Hanging:
+                y += -metrics.Ascent;
+                break;
+
+            case XLineAlignment.Ideographic:
+                y += metrics.Descent;
+                break;
+
+            case XLineAlignment.SvgMiddle:
+                y += -metrics.XHeight / 2;
+                break;
+        }
+
+        return y;
+    }
+
+    /// <summary>
+    /// The font's ascent, descent and x-height, scaled to its line spacing.
+    /// </summary>
+    private readonly struct VerticalMetrics
+    {
+        internal VerticalMetrics(XFont font)
+        {
+            var lineSpace = font.GetHeight();
+            Ascent = lineSpace * font.CellAscent / font.CellSpace;
+            Descent = lineSpace * font.CellDescent / font.CellSpace;
+            // Half the height of a lowercase x, for the one alignment that is measured against it.
+            XHeight = lineSpace * font.Metrics.XHeight / font.CellSpace;
+        }
+
+        internal double Ascent { get; }
+        internal double Descent { get; }
+        internal double XHeight { get; }
     }
 }

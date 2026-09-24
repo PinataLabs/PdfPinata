@@ -226,4 +226,112 @@ public class PageSetupTests
         document.DefaultPageSetup.Should().NotBeNull();
         document.DefaultPageSetup.PageFormat.Should().Be(PageFormat.A4, "which is the DOM's default");
     }
+
+    /// <summary>
+    ///   Every size stated outright, with the unit it is built in. The relationships above would
+    ///   pass on a table that moved every sheet by the same amount, and a sheet built in points
+    ///   rather than millimetres serializes differently even where it measures the same, so this
+    ///   pins the lookup exactly: the value and the unit of both sides of every format.
+    /// </summary>
+    [Theory]
+    [InlineData(PageFormat.A0, "mm", 841, 1189)]
+    [InlineData(PageFormat.A1, "mm", 594, 841)]
+    [InlineData(PageFormat.A2, "mm", 420, 594)]
+    [InlineData(PageFormat.A3, "mm", 297, 420)]
+    [InlineData(PageFormat.A4, "mm", 210, 297)]
+    [InlineData(PageFormat.A5, "mm", 148, 210)]
+    [InlineData(PageFormat.A6, "mm", 105, 148)]
+    [InlineData(PageFormat.A7, "mm", 74, 105)]
+    [InlineData(PageFormat.A8, "mm", 52, 74)]
+    [InlineData(PageFormat.A9, "mm", 37, 52)]
+    [InlineData(PageFormat.A10, "mm", 26, 37)]
+    [InlineData(PageFormat.TwoA0, "mm", 1189, 1682)]
+    [InlineData(PageFormat.FourA0, "mm", 1682, 2378)]
+    [InlineData(PageFormat.B0, "mm", 1000, 1414)]
+    [InlineData(PageFormat.B1, "mm", 707, 1000)]
+    [InlineData(PageFormat.B2, "mm", 500, 707)]
+    [InlineData(PageFormat.B3, "mm", 353, 500)]
+    [InlineData(PageFormat.B4, "mm", 250, 353)]
+    [InlineData(PageFormat.B5, "mm", 176, 250)]
+    [InlineData(PageFormat.B6, "mm", 125, 176)]
+    [InlineData(PageFormat.B7, "mm", 88, 125)]
+    [InlineData(PageFormat.B8, "mm", 62, 88)]
+    [InlineData(PageFormat.B9, "mm", 44, 62)]
+    [InlineData(PageFormat.B10, "mm", 31, 44)]
+    [InlineData(PageFormat.JISB5, "mm", 182, 257)]
+    [InlineData(PageFormat.C0, "mm", 917, 1297)]
+    [InlineData(PageFormat.C1, "mm", 648, 917)]
+    [InlineData(PageFormat.C2, "mm", 458, 648)]
+    [InlineData(PageFormat.C3, "mm", 324, 458)]
+    [InlineData(PageFormat.C4, "mm", 229, 324)]
+    [InlineData(PageFormat.C5, "mm", 162, 229)]
+    [InlineData(PageFormat.C6, "mm", 114, 162)]
+    [InlineData(PageFormat.C7, "mm", 81, 114)]
+    [InlineData(PageFormat.C8, "mm", 57, 81)]
+    [InlineData(PageFormat.C9, "mm", 40, 57)]
+    [InlineData(PageFormat.C10, "mm", 28, 40)]
+    [InlineData(PageFormat.RA0, "mm", 860, 1220)]
+    [InlineData(PageFormat.RA1, "mm", 610, 860)]
+    [InlineData(PageFormat.RA2, "mm", 430, 610)]
+    [InlineData(PageFormat.RA3, "mm", 305, 430)]
+    [InlineData(PageFormat.RA4, "mm", 215, 305)]
+    [InlineData(PageFormat.RA5, "mm", 153, 215)]
+    [InlineData(PageFormat.SRA0, "mm", 900, 1280)]
+    [InlineData(PageFormat.SRA1, "mm", 640, 900)]
+    [InlineData(PageFormat.SRA2, "mm", 450, 640)]
+    [InlineData(PageFormat.SRA3, "mm", 320, 450)]
+    [InlineData(PageFormat.SRA4, "mm", 225, 320)]
+    [InlineData(PageFormat.Letter, "in", 8.5, 11)]
+    [InlineData(PageFormat.Legal, "in", 8.5, 14)]
+    [InlineData(PageFormat.Ledger, "in", 17, 11)]
+    [InlineData(PageFormat.Tabloid, "in", 11, 17)]
+    [InlineData(PageFormat.P11x17, "in", 11, 17)]
+    [InlineData(PageFormat.Executive, "in", 7.25, 10.5)]
+    [InlineData(PageFormat.GovernmentLetter, "in", 8, 10.5)]
+    [InlineData(PageFormat.Statement, "in", 5.5, 8.5)]
+    [InlineData(PageFormat.STMT, "in", 5.5, 8.5)]
+    [InlineData(PageFormat.Folio, "in", 8.5, 13)]
+    [InlineData(PageFormat.Size10x14, "in", 10, 14)]
+    [InlineData(PageFormat.Quarto, "in", 8, 10)]
+    [InlineData(PageFormat.Foolscap, "in", 8, 13)]
+    [InlineData(PageFormat.Post, "in", 15.5, 19.25)]
+    [InlineData(PageFormat.Crown, "in", 20, 15)]
+    [InlineData(PageFormat.LargePost, "in", 16.5, 21)]
+    [InlineData(PageFormat.Demy, "in", 17.5, 22)]
+    [InlineData(PageFormat.Medium, "in", 18, 23)]
+    [InlineData(PageFormat.Royal, "in", 20, 25)]
+    [InlineData(PageFormat.Elephant, "in", 23, 28)]
+    [InlineData(PageFormat.DoubleDemy, "in", 23.5, 35)]
+    [InlineData(PageFormat.QuadDemy, "in", 35, 45)]
+    public void EveryNamedFormatIsExactlyTheSizeItHasAlwaysBeen(PageFormat format, string unit, double width, double height)
+    {
+        PageSetup.GetPageSize(format, out var pageWidth, out var pageHeight);
+
+        if (unit == "mm")
+        {
+            pageWidth.Type.Should().Be(UnitType.Millimeter);
+            pageHeight.Type.Should().Be(UnitType.Millimeter);
+            pageWidth.Value.Should().Be(width);
+            pageHeight.Value.Should().Be(height);
+        }
+        else
+        {
+            // An inch size goes in as points, 72 to the inch, so that Letter serializes as 612.
+            pageWidth.Type.Should().Be(UnitType.Point);
+            pageHeight.Type.Should().Be(UnitType.Point);
+            pageWidth.Value.Should().Be(width * 72);
+            pageHeight.Value.Should().Be(height * 72);
+        }
+    }
+
+    [Fact]
+    public void TheExactTableNamesEveryFormat()
+    {
+        var method = typeof(PageSetupTests).GetMethod(nameof(EveryNamedFormatIsExactlyTheSizeItHasAlwaysBeen))!;
+        var pinned = method.GetCustomAttributes(typeof(InlineDataAttribute), false)
+            .Cast<InlineDataAttribute>()
+            .Select(data => (PageFormat)data.GetData(method).Single()[0]);
+
+        pinned.Should().BeEquivalentTo(Enum.GetValues<PageFormat>());
+    }
 }

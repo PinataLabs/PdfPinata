@@ -79,36 +79,78 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
         var tokens = appearance.Split([' ', '\t', '\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
         for (var index = 0; index < tokens.Length; index++)
         {
-            switch (tokens[index])
-            {
-                case "Tf" when index >= 1 && TryNumber(tokens[index - 1], out var size) && size > 0:
-                    _readFontSize = size;
-                    break;
+            if (TryReadFontSize(tokens, index, out var size))
+                _readFontSize = size;
+            else if (TryReadColor(tokens, index, out var color))
+                _textColor = color;
+        }
+    }
 
-                case "g" when index >= 1 && TryNumber(tokens[index - 1], out var grey):
-                    _textColor = XColor.FromArgb(Component(grey), Component(grey), Component(grey));
-                    break;
+    /// <summary>
+    /// Whether the token at <paramref name="index"/> is a <c>Tf</c> whose size operand reads as a
+    /// positive number.
+    /// </summary>
+    private static bool TryReadFontSize(string[] tokens, int index, out double size)
+    {
+        size = 0;
+        if (tokens[index] != "Tf" || !TryOperands(tokens, index, 1, out var operands))
+            return false;
 
-                case "rg" when index >= 3 && TryNumber(tokens[index - 3], out var r)
-                                         && TryNumber(tokens[index - 2], out var g)
-                                         && TryNumber(tokens[index - 1], out var b):
-                    _textColor = XColor.FromArgb(Component(r), Component(g), Component(b));
-                    break;
+        size = operands[0];
+        return size > 0;
+    }
 
-                case "k" when index >= 4 && TryNumber(tokens[index - 4], out var c)
-                                        && TryNumber(tokens[index - 3], out var m)
-                                        && TryNumber(tokens[index - 2], out var y)
-                                        && TryNumber(tokens[index - 1], out var k):
-                    _textColor = XColor.FromCmyk(c, m, y, k);
-                    break;
-            }
+    /// <summary>
+    /// Whether the token at <paramref name="index"/> is a <c>g</c>, <c>rg</c> or <c>k</c> whose
+    /// operands all read as numbers, and the colour they make.
+    /// </summary>
+    private static bool TryReadColor(string[] tokens, int index, out XColor color)
+    {
+        color = default;
+        double[] operands;
+        switch (tokens[index])
+        {
+            case "g" when TryOperands(tokens, index, 1, out operands):
+                var grey = Component(operands[0]);
+                color = XColor.FromArgb(grey, grey, grey);
+                return true;
+
+            case "rg" when TryOperands(tokens, index, 3, out operands):
+                color = XColor.FromArgb(Component(operands[0]), Component(operands[1]), Component(operands[2]));
+                return true;
+
+            case "k" when TryOperands(tokens, index, 4, out operands):
+                color = XColor.FromCmyk(operands[0], operands[1], operands[2], operands[3]);
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// The <paramref name="count"/> tokens before the operator at <paramref name="index"/>, read
+    /// as numbers - or false when there are not that many, or one of them is not a number.
+    /// </summary>
+    private static bool TryOperands(string[] tokens, int index, int count, out double[] operands)
+    {
+        operands = null;
+        if (index < count)
+            return false;
+
+        var values = new double[count];
+        for (var operand = 0; operand < count; operand++)
+        {
+            if (!double.TryParse(tokens[index - count + operand], NumberStyles.Float,
+                    CultureInfo.InvariantCulture, out values[operand]))
+                return false;
         }
 
-        static bool TryNumber(string token, out double value) =>
-            double.TryParse(token, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
-
-        static int Component(double value) => (int)Math.Round(Math.Clamp(value, 0, 1) * 255);
+        operands = values;
+        return true;
     }
+
+    private static int Component(double value) => (int)Math.Round(Math.Clamp(value, 0, 1) * 255);
 
     private void Initialize()
     {
@@ -293,13 +335,13 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
         // what it is being asked for now - text cleared away would stay on the page.
         // Measured against 1 rather than against 0 because that is XForm's floor: a rectangle
         // under a point in either direction is one no appearance can be made of.
-        if (width < 1 || height < 1 || (text.Length == 0 && border <= 0 && !hasBackground))
+        var tooSmallForAnAppearance = width < 1 || height < 1;
+        var nothingAskedFor = text.Length == 0 && border <= 0 && !hasBackground;
+        if (tooSmallForAnAppearance || nothingAskedFor)
         {
-            Elements.Remove(PdfAnnotation.Keys.AP);
-
-            // /AS names one of a set of appearances, so leaving it behind would point at a state
-            // in an /AP that is no longer there. SetAppearance clears it for the same reason.
-            Elements.Remove(PdfAnnotation.Keys.AS);
+            // /AS goes with /AP, as SetAppearance clears it for the same reason, and /RD describes
+            // the layout of an appearance that is no longer there.
+            RemoveAppearance();
             Elements.Remove(Keys.RD);
             return;
         }
@@ -315,24 +357,8 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
             if (hasBackground)
                 gfx.DrawRectangle(new XSolidBrush(Color), new XRect(0, 0, width, height));
 
-            if (border > 0 && width > border && height > border)
-            {
-                gfx.DrawRectangle(new XPen(_textColor, border),
-                    new XRect(border / 2, border / 2, width - border, height - border));
-            }
-
-            var textWidth = width - 2 * inset;
-            var textHeight = height - 2 * inset;
-            if (text.Length > 0 && textWidth > 0 && textHeight > 0)
-            {
-                var formatter = new XTextFormatter(gfx)
-                {
-                    Alignment = Alignment
-                };
-
-                formatter.DrawString(text, Font, new XSolidBrush(_textColor),
-                    new XRect(inset, inset, textWidth, textHeight));
-            }
+            DrawBorder(gfx, width, height, border);
+            DrawText(gfx, text, inset, width - 2 * inset, height - 2 * inset);
         }
 
         SetAppearance(form);
@@ -341,6 +367,37 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
         // difference at the left, top, right and bottom between /Rect and the box laid out in.
         Elements[Keys.RD] = new PdfArray(Owner,
             new PdfReal(inset), new PdfReal(inset), new PdfReal(inset), new PdfReal(inset));
+    }
+
+    /// <summary>
+    /// Strokes the border inside the box, when there is one and the box is wider and taller than it.
+    /// </summary>
+    private void DrawBorder(XGraphics gfx, double width, double height, double border)
+    {
+        var borderFits = border > 0 && width > border && height > border;
+        if (!borderFits)
+            return;
+
+        gfx.DrawRectangle(new XPen(_textColor, border),
+            new XRect(border / 2, border / 2, width - border, height - border));
+    }
+
+    /// <summary>
+    /// Lays the text out in the box left inside the inset, when there is text and room for it.
+    /// </summary>
+    private void DrawText(XGraphics gfx, string text, double inset, double textWidth, double textHeight)
+    {
+        var textFits = text.Length > 0 && textWidth > 0 && textHeight > 0;
+        if (!textFits)
+            return;
+
+        var formatter = new XTextFormatter(gfx)
+        {
+            Alignment = Alignment
+        };
+
+        formatter.DrawString(text, Font, new XSolidBrush(_textColor),
+            new XRect(inset, inset, textWidth, textHeight));
     }
 
     /// <summary>

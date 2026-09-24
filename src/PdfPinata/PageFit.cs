@@ -86,29 +86,14 @@ public static class PageFit
         // nor less than anything - and comes out the far end as a transform made of NaNs, which
         // draws a page holding nothing at all and says nothing about why. Refuse it here, where
         // there is still something to say.
-        if (!IsFinite(source.X) || !IsFinite(source.Y) || !IsFinite(source.Width) ||
-            !IsFinite(source.Height) || source.Width <= 0 || source.Height <= 0)
+        if (!HasFiniteArea(source))
             throw new ArgumentException("The source rectangle has no area to scale from.", nameof(source));
 
-        if (!IsFinite(target.X) || !IsFinite(target.Y) || !IsFinite(target.Width) ||
-            !IsFinite(target.Height) || target.Width <= 0 || target.Height <= 0)
+        if (!HasFiniteArea(target))
             throw new ArgumentException("The target rectangle has no area to scale into.", nameof(target));
 
         // Take the margin off the target first: everything below fits into what is left of it.
-        var margin = options.Margin.Point;
-        if (!IsFinite(margin) || margin < 0)
-            throw new ArgumentException("The margin is not a length.", nameof(options));
-
-        var boxWidth = target.Width - 2 * margin;
-        var boxHeight = target.Height - 2 * margin;
-        if (boxWidth <= 0 || boxHeight <= 0)
-        {
-            throw new ArgumentException(
-                "The margin leaves no room in the target rectangle for the content to go.", nameof(options));
-        }
-
-        var boxX = target.X + margin;
-        var boxY = target.Y + margin;
+        GetMarginBox(target, options, out var boxX, out var boxY, out var boxWidth, out var boxHeight);
 
         // A quarter turn is worth making only when the two boxes are of opposite shape. A square
         // is of neither shape, so it never provokes one.
@@ -132,21 +117,35 @@ public static class PageFit
         var placedX = boxX + offsetX;
         var placedY = boxY + offsetY;
 
+        return turned
+            ? TurnedPlacement(source, scaleX, scaleY, placedX, placedY)
+            : Placement(source, scaleX, scaleY, placedX, placedY);
+    }
+
+    /// <summary>
+    /// The transform that scales the content and puts its corner at the place given.
+    /// </summary>
+    private static XMatrix Placement(XRect source, double scaleX, double scaleY, double placedX, double placedY)
+    {
         // A point of the content at (x, y) is to end up at
         //     (placedX + scaleX * (x - source.X), placedY + scaleY * (y - source.Y))
         // and XMatrix multiplies row vectors, so that
         //     x' = x * M11 + y * M21 + OffsetX
         //     y' = x * M12 + y * M22 + OffsetY
         // which is the same order the six numbers of a PDF cm operator go in.
-        if (!turned)
-        {
-            return new XMatrix(
-                scaleX, 0,
-                0, scaleY,
-                placedX - scaleX * source.X,
-                placedY - scaleY * source.Y);
-        }
+        return new XMatrix(
+            scaleX, 0,
+            0, scaleY,
+            placedX - scaleX * source.X,
+            placedY - scaleY * source.Y);
+    }
 
+    /// <summary>
+    /// The transform that turns the content a quarter clockwise, scales it and puts its corner at
+    /// the place given.
+    /// </summary>
+    private static XMatrix TurnedPlacement(XRect source, double scaleX, double scaleY, double placedX, double placedY)
+    {
         // Turned a quarter clockwise: the corner that was at the top left ends up at the top
         // right, which is where a /Rotate entry of 90 puts it too. Working the composition
         // through - move the source to the origin, turn, push the turned content back into the
@@ -158,6 +157,40 @@ public static class PageFit
             scaleX, 0,
             placedX - scaleX * source.Y,
             placedY + scaleY * (source.Width + source.X));
+    }
+
+    /// <summary>
+    /// Whether the rectangle is made of real lengths and encloses some area.
+    /// </summary>
+    private static bool HasFiniteArea(XRect rect)
+    {
+        return IsFinite(rect.X) && IsFinite(rect.Y) && IsFinite(rect.Width) && IsFinite(rect.Height) &&
+               rect.Width > 0 && rect.Height > 0;
+    }
+
+    /// <summary>
+    /// What is left of the target once the margin is taken off every side of it.
+    /// </summary>
+    /// <exception cref="ArgumentException">
+    /// The margin is not a length, or leaves no room in the target.
+    /// </exception>
+    private static void GetMarginBox(XRect target, PageResizeOptions options,
+        out double boxX, out double boxY, out double boxWidth, out double boxHeight)
+    {
+        var margin = options.Margin.Point;
+        if (!IsFinite(margin) || margin < 0)
+            throw new ArgumentException("The margin is not a length.", nameof(options));
+
+        boxWidth = target.Width - 2 * margin;
+        boxHeight = target.Height - 2 * margin;
+        if (boxWidth <= 0 || boxHeight <= 0)
+        {
+            throw new ArgumentException(
+                "The margin leaves no room in the target rectangle for the content to go.", nameof(options));
+        }
+
+        boxX = target.X + margin;
+        boxY = target.Y + margin;
     }
 
     /// <summary>

@@ -853,107 +853,112 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         {
             var value = ValueOf(key);
             if (value == null)
+                return options == VCF.None ? null : CreateValue(key, options);
+
+            // The value exists and can be returned. But for imported documents check for necessary
+            // object type transformation.
+            if (value is PdfReference iref)
+                return TypedReferencedValue(key, iref);
+
+            // Transformation is only possible after PDF import.
+            return value switch
             {
-                if (options != VCF.None)
-                {
-                    var type = GetValueType(key);
-                    if (type != null)
-                    {
-                        var typeInfo = type.GetTypeInfo();
-                        Debug.Assert(typeof(PdfItem).GetTypeInfo().IsAssignableFrom(typeInfo), "Type not allowed.");
-                        PdfObject obj;
-                        if (typeof(PdfDictionary).GetTypeInfo().IsAssignableFrom(typeInfo))
-                        {
-                            value = obj = CreateDictionary(type, null);
-                        }
-                        else if (typeof(PdfArray).GetTypeInfo().IsAssignableFrom(typeInfo))
-                        {
-                            value = obj = CreateArray(type, null);
-                        }
-                        else
-                            throw new NotImplementedException("Type other than array or dictionary.");
-                        if (options == VCF.CreateIndirect)
-                        {
-                            _ownerDictionary.Owner._irefTable.Add(obj);
-                            this[key] = obj.Reference;
-                        }
-                        else
-                        {
-                            this[key] = obj;
-                        }
-                    }
-                    else
-                    {
-                        throw new NotImplementedException("Cannot create value for key: " + key);
-                    }
-                }
+                PdfDictionary dict => TypedDirectDictionary(key, dict),
+                PdfArray array => TypedDirectArray(key, array),
+                _ => value
+            };
+        }
+
+        /// <summary>
+        /// Creates the value the meta information says the key holds, and stores it under the key,
+        /// directly or as a new indirect object as <paramref name="options"/> asks.
+        /// </summary>
+        private PdfObject CreateValue(string key, VCF options)
+        {
+            var type = GetValueType(key);
+            if (type == null)
+                throw new NotImplementedException("Cannot create value for key: " + key);
+
+            var typeInfo = type.GetTypeInfo();
+            Debug.Assert(typeof(PdfItem).GetTypeInfo().IsAssignableFrom(typeInfo), "Type not allowed.");
+            var obj = CreateTypedValue(type, typeInfo, null);
+            if (options == VCF.CreateIndirect)
+            {
+                _ownerDictionary.Owner._irefTable.Add(obj);
+                this[key] = obj.Reference;
             }
             else
             {
-                // The value exists and can be returned. But for imported documents check for necessary
-                // object type transformation.
-                PdfReference iref;
-                if ((iref = value as PdfReference) != null)
-                {
-                    // Case: value is an indirect reference.
-                    value = iref.Value;
-                    if (value == null)
-                    {
-                        // If we come here PDF file is corrupted.
-                        throw new InvalidOperationException("Indirect reference without value.");
-                    }
-
-                    if (true) // || _owner.Document.IsImported)
-                    {
-                        var type = GetValueType(key);
-                        var typeInfo = type.GetTypeInfo();
-                        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-                        if (type != null && type != value.GetType())
-                        {
-                            if (typeof(PdfDictionary).GetTypeInfo().IsAssignableFrom(typeInfo))
-                            {
-                                value = CreateDictionary(type, (PdfDictionary)value);
-                            }
-                            else if (typeof(PdfArray).GetTypeInfo().IsAssignableFrom(typeInfo))
-                            {
-                                value = CreateArray(type, (PdfArray)value);
-                            }
-                            else
-                                throw new NotImplementedException("Type other than array or dictionary.");
-                        }
-                    }
-                    return value;
-                }
-
-                // Transformation is only possible after PDF import.
-                if (true) // || _owner.Document.IsImported)
-                {
-                    // Case: value is a direct object
-                    PdfDictionary dict;
-                    if ((dict = value as PdfDictionary) != null)
-                    {
-                        Debug.Assert(!dict.IsIndirect);
-
-                        var type = GetValueType(key);
-                        if (dict.GetType() != type)
-                            dict = CreateDictionary(type, dict);
-                        return dict;
-                    }
-
-                    PdfArray array;
-                    if ((array = value as PdfArray) != null)
-                    {
-                        Debug.Assert(!array.IsIndirect);
-
-                        var type = GetValueType(key);
-                        // This is more complicated. If type is null do nothing
-                        if (type != null && type != array.GetType())
-                            array = CreateArray(type, array);
-                        return array;
-                    }
-                }
+                this[key] = obj;
             }
+            return obj;
+        }
+
+        /// <summary>
+        /// The value an indirect reference leads to, as the type the meta information says the key
+        /// holds.
+        /// </summary>
+        private PdfItem TypedReferencedValue(string key, PdfReference iref)
+        {
+            // Case: value is an indirect reference.
+            var value = iref.Value;
+            if (value == null)
+            {
+                // If we come here PDF file is corrupted.
+                throw new InvalidOperationException("Indirect reference without value.");
+            }
+
+            var type = GetValueType(key);
+            // GetTypeInfo refuses a null type, so past it there is one.
+            var typeInfo = type.GetTypeInfo();
+            if (type != value.GetType())
+                value = CreateTypedValue(type, typeInfo, value);
             return value;
+        }
+
+        /// <summary>
+        /// A new dictionary or array of the type given, wrapping <paramref name="source"/> where
+        /// there is one and empty where it is null.
+        /// </summary>
+        private PdfObject CreateTypedValue([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
+            Type type, TypeInfo typeInfo, PdfItem source)
+        {
+            if (typeof(PdfDictionary).GetTypeInfo().IsAssignableFrom(typeInfo))
+                return CreateDictionary(type, (PdfDictionary)source);
+
+            if (typeof(PdfArray).GetTypeInfo().IsAssignableFrom(typeInfo))
+                return CreateArray(type, (PdfArray)source);
+
+            throw new NotImplementedException("Type other than array or dictionary.");
+        }
+
+        /// <summary>
+        /// A direct dictionary as the type the meta information says the key holds.
+        /// </summary>
+        private PdfDictionary TypedDirectDictionary(string key, PdfDictionary dict)
+        {
+            // Case: value is a direct object
+            Debug.Assert(!dict.IsIndirect);
+
+            var type = GetValueType(key);
+            if (dict.GetType() != type)
+                dict = CreateDictionary(type, dict);
+            return dict;
+        }
+
+        /// <summary>
+        /// A direct array as the type the meta information says the key holds, or as it is where
+        /// the meta information says nothing.
+        /// </summary>
+        private PdfArray TypedDirectArray(string key, PdfArray array)
+        {
+            Debug.Assert(!array.IsIndirect);
+
+            var type = GetValueType(key);
+            // This is more complicated. If type is null do nothing
+            if (type != null && type != array.GetType())
+                array = CreateArray(type, array);
+            return array;
         }
 
         /// <summary>

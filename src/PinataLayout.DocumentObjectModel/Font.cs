@@ -287,107 +287,109 @@ public sealed partial class Font : DocumentObject
     /// </summary>
     internal void Serialize(Serializer serializer, Font font)
     {
-        if (Parent is FormattedText formattedText)
-        {
-            var fontStyle = "";
-            if (formattedText.style == null)
-            {
-                // Check if we can use a DDL keyword.
-                var notNull = CheckWhatIsNotNull();
-                if (notNull == FontProperties.Size)
-                {
-                    serializer.Write("\\fontsize(" + size.ToString() + ")");
-                    return;
-                }
-                if (notNull == FontProperties.Bold && (bold ?? false))
-                {
-                    serializer.Write("\\bold");
-                    return;
-                }
-                if (notNull == FontProperties.Italic && (italic ?? false))
-                {
-                    serializer.Write("\\italic");
-                    return;
-                }
-                if (notNull == FontProperties.Color)
-                {
-                    serializer.Write("\\fontcolor(" + color.ToString() + ")");
-                    return;
-                }
-            }
-            else
-            {
-                fontStyle = "(\"" + formattedText.Style + "\")";
-            }
+        // A formatted text's font is written inline, and whole: a DDL keyword where one says all of
+        // it, and otherwise \font[...]. Any other font is a Font block of its own, leaving out what
+        // it shares with the font it is compared with.
+        var formattedText = Parent as FormattedText;
+        if (formattedText != null && TryWriteKeyword(serializer, formattedText))
+            return;
 
-            serializer.Write("\\font" + fontStyle + "[");
+        var refFont = formattedText == null ? font : null;
+        var pos = BeginFont(serializer, formattedText);
 
-            if (name != null && (name ?? "") != "")
-                serializer.WriteSimpleAttribute("Name", Name);
+        // Don't write null values if font is null.
+        // Do write null values if font is not null!
+        if (name != null && Name != string.Empty && (refFont == null || Name != refFont.Name))
+            serializer.WriteSimpleAttribute("Name", Name);
 
-            if (!size.IsNull)
-                serializer.WriteSimpleAttribute("Size", Size);
+        if (!size.IsNull && (refFont == null || Size != refFont.Size))
+            serializer.WriteSimpleAttribute("Size", Size);
 
-            if (bold != null)
-                serializer.WriteSimpleAttribute("Bold", Bold);
+        // NBool and NEnum have to be compared directly to check whether the value Null is
+        WriteIfDifferent(serializer, "Bold", bold, refFont?.bold);
+        WriteIfDifferent(serializer, "Italic", italic, refFont?.italic);
+        WriteIfDifferent(serializer, "Underline", underline, refFont?.underline);
+        WriteIfDifferent(serializer, "Strikethrough", strikethrough, refFont?.strikethrough);
+        WriteIfDifferent(serializer, "Superscript", superscript, refFont?.superscript);
+        WriteIfDifferent(serializer, "Subscript", subscript, refFont?.subscript);
 
-            if (italic != null)
-                serializer.WriteSimpleAttribute("Italic", Italic);
+        if (!color.IsNull && (refFont == null || Color.Argb != refFont.Color.Argb))// && this.Color.RGB != Color.Transparent.RGB)
+            serializer.WriteSimpleAttribute("Color", Color);
 
-            if (underline != null)
-                serializer.WriteSimpleAttribute("Underline", Underline);
+        EndFont(serializer, formattedText, pos);
+    }
 
-            if (strikethrough != null)
-                serializer.WriteSimpleAttribute("Strikethrough", Strikethrough);
+    /// <summary>
+    /// Writes a formatted text's font as a DDL keyword - \fontsize, \bold, \italic or \fontcolor -
+    /// when the text names no style and the font sets exactly the one thing the keyword says.
+    /// Answers whether it did.
+    /// </summary>
+    private bool TryWriteKeyword(Serializer serializer, FormattedText formattedText)
+    {
+        if (formattedText.style != null)
+            return false;
 
-            if (superscript != null)
-                serializer.WriteSimpleAttribute("Superscript", Superscript);
+        var keyword = DdlKeyword();
+        if (keyword == null)
+            return false;
 
-            if (subscript != null)
-                serializer.WriteSimpleAttribute("Subscript", Subscript);
+        serializer.Write(keyword);
+        return true;
+    }
 
-            if (!color.IsNull)
-                serializer.WriteSimpleAttribute("Color", Color);
+    /// <summary>
+    /// The DDL keyword that says everything this font sets, or null when there is none: a size, a
+    /// colour, or bold or italic switched on, each alone.
+    /// </summary>
+    private string DdlKeyword()
+    {
+        var notNull = CheckWhatIsNotNull();
+        if (notNull == FontProperties.Size)
+            return "\\fontsize(" + size.ToString() + ")";
+        if (notNull == FontProperties.Bold && (bold ?? false))
+            return "\\bold";
+        if (notNull == FontProperties.Italic && (italic ?? false))
+            return "\\italic";
+        if (notNull == FontProperties.Color)
+            return "\\fontcolor(" + color.ToString() + ")";
+        return null;
+    }
 
-            serializer.Write("]");
-        }
-        else
-        {
-            var pos = serializer.BeginContent("Font");
+    /// <summary>
+    /// Opens what the font's values are written into: \font[, after the formatted text's style
+    /// where it names one, or a Font block. Answers the position the block ends at, or 0 inline.
+    /// </summary>
+    private static int BeginFont(Serializer serializer, FormattedText formattedText)
+    {
+        if (formattedText == null)
+            return serializer.BeginContent("Font");
 
-            // Don't write null values if font is null.
-            // Do write null values if font is not null!
-            if ((name != null && Name != string.Empty && font == null) ||
-                (font != null && name != null && Name != string.Empty && Name != font.Name))
-                serializer.WriteSimpleAttribute("Name", Name);
+        var fontStyle = formattedText.style == null ? "" : "(\"" + formattedText.Style + "\")";
+        serializer.Write("\\font" + fontStyle + "[");
+        return 0;
+    }
 
-            if (!size.IsNull &&
-                (font == null || Size != font.Size))
-                serializer.WriteSimpleAttribute("Size", Size);
-            // NBool and NEnum have to be compared directly to check whether the value Null is
-            if (bold != null && (font == null || Bold != font.Bold || font.bold == null))
-                serializer.WriteSimpleAttribute("Bold", Bold);
-
-            if (italic != null && (font == null || Italic != font.Italic || font.italic == null))
-                serializer.WriteSimpleAttribute("Italic", Italic);
-
-            if (underline != null && (font == null || Underline != font.Underline || font.underline == null))
-                serializer.WriteSimpleAttribute("Underline", Underline);
-
-            if (strikethrough != null && (font == null || Strikethrough != font.Strikethrough || font.strikethrough == null))
-                serializer.WriteSimpleAttribute("Strikethrough", Strikethrough);
-
-            if (superscript != null && (font == null || Superscript != font.Superscript || font.superscript == null))
-                serializer.WriteSimpleAttribute("Superscript", Superscript);
-
-            if (subscript != null && (font == null || Subscript != font.Subscript || font.subscript == null))
-                serializer.WriteSimpleAttribute("Subscript", Subscript);
-
-            if (!color.IsNull && (font == null || Color.Argb != font.Color.Argb))// && this.Color.RGB != Color.Transparent.RGB)
-                serializer.WriteSimpleAttribute("Color", Color);
-
+    /// <summary>
+    /// Closes what <see cref="BeginFont"/> opened.
+    /// </summary>
+    private static void EndFont(Serializer serializer, FormattedText formattedText, int pos)
+    {
+        if (formattedText == null)
             serializer.EndContent(pos);
-        }
+        else
+            serializer.Write("]");
+    }
+
+    /// <summary>
+    /// Writes a value this font sets unless the font it is compared with sets it to the same
+    /// thing. There being no such font, or that font leaving the value unset, is never a match,
+    /// whatever its default would be.
+    /// </summary>
+    private static void WriteIfDifferent<T>(Serializer serializer, string valueName, T? value, T? refValue)
+        where T : struct
+    {
+        if (value != null && !Nullable.Equals(value, refValue))
+            serializer.WriteSimpleAttribute(valueName, value.Value);
     }
 
     #endregion

@@ -30,53 +30,48 @@ internal sealed class VectorsDemo : PdfDemo
 
     public override int PageCount => 4;
 
+    #region example
     protected override PdfDocument Build(DemoContext context)
     {
-        #region example
         var document = new PdfDocument();
         document.Info.Title = "Vectors";
 
-        var heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
-        var label = new XFont("Liberation Sans", 8);
-        var note = new XFont("Liberation Sans", 7, XFontStyle.Italic);
+        var fonts = new Fonts(
+            Heading: new XFont("Liberation Sans", 16, XFontStyle.Bold),
+            Label: new XFont("Liberation Sans", 8),
+            Note: new XFont("Liberation Sans", 7, XFontStyle.Italic));
 
-        // Every panel on every page is a titled box in a grid, so the drawing inside one can be
-        // read against the label under it without any of them being positioned by hand.
-        void Panel(XGraphics gfx, XRect cell, string title, Action<XGraphics, XRect> draw)
-        {
-            gfx.DrawRectangle(new XPen(XColors.Gainsboro, 0.5), cell);
+        ClosedShapes(document, fonts);
+        OpenPathsAndCurves(document, fonts);
+        PensAndBrushes(document, fonts);
+        TransformsStateAndClipping(document, fonts);
 
-            var inside = new XRect(cell.X + 8, cell.Y + 8, cell.Width - 16, cell.Height - 30);
-            draw(gfx, inside);
+        return document;
+    }
 
-            gfx.DrawString(title, label, XBrushes.Black,
-                new XRect(cell.X, cell.Bottom - 20, cell.Width, 14), XStringFormats.Center);
-        }
+    /// <summary>The three faces every page uses: its heading, a panel's title, and a note inside a panel.</summary>
+    private sealed record Fonts(XFont Heading, XFont Label, XFont Note);
 
-        XRect Cell(int column, int row, int columns = 3, int rows = 4) =>
-            new(50 + column * (495.0 / columns), 90 + row * (680.0 / rows),
-                495.0 / columns - 10, 680.0 / rows - 10);
+    // ----- page 1: shapes that enclose an area -----
 
-        // ----- page 1: shapes that enclose an area -----
-
-        var page1 = document.AddPage();
-        var gfx1 = XGraphics.FromPdfPage(page1);
-        gfx1.DrawString("Closed shapes", heading, XBrushes.Black, new XPoint(50, 60));
+    private static void ClosedShapes(PdfDocument document, Fonts fonts)
+    {
+        var sheet = NewPage(document, fonts, "Closed shapes");
 
         // docs:begin pen-and-brush
         var outline = new XPen(XColors.MidnightBlue, 1.2);
         var fill = new XSolidBrush(XColor.FromArgb(80, 100, 149, 237));
 
-        Panel(gfx1, Cell(0, 0), "DrawEllipse", (gfx, r) =>
+        Panel(sheet, fonts, Cell(0, 0), "DrawEllipse", (gfx, r) =>
             gfx.DrawEllipse(outline, fill, r));
 
-        Panel(gfx1, Cell(1, 0), "DrawRoundedRectangle", (gfx, r) =>
+        Panel(sheet, fonts, Cell(1, 0), "DrawRoundedRectangle", (gfx, r) =>
             // The last argument is the size of the ellipse the corner is a quarter of, not a
             // radius - so a corner as round as it can be is the full height, not half of it.
             gfx.DrawRoundedRectangle(outline, fill, r, new XSize(30, 30)));
         // docs:end pen-and-brush
 
-        Panel(gfx1, Cell(2, 0), "DrawRectangles - one call", (gfx, r) =>
+        Panel(sheet, fonts, Cell(2, 0), "DrawRectangles - one call", (gfx, r) =>
         {
             // One call, one path, one fill. Three DrawRectangle calls would be three paths, and
             // three times the operators in the content stream.
@@ -88,27 +83,8 @@ internal sealed class VectorsDemo : PdfDemo
             ]);
         });
 
-        // A five-pointed star drawn as one self-intersecting outline, which is the shape that
-        // makes the two fill rules disagree.
-        XPoint[] Star(XRect r)
-        {
-            var centre = new XPoint(r.X + r.Width / 2, r.Y + r.Height / 2);
-            var radius = Math.Min(r.Width, r.Height) / 2;
-            var points = new XPoint[5];
-            for (var index = 0; index < 5; index++)
-            {
-                // Two fifths of a turn between consecutive points is what makes the outline cross
-                // itself; one fifth would draw a pentagon.
-                var angle = -Math.PI / 2 + index * 4 * Math.PI / 5;
-                points[index] = new XPoint(
-                    centre.X + radius * Math.Cos(angle), centre.Y + radius * Math.Sin(angle));
-            }
-
-            return points;
-        }
-
         // docs:begin fill-modes
-        Panel(gfx1, Cell(0, 1), "DrawPolygon - Alternate", (gfx, r) =>
+        Panel(sheet, fonts, Cell(0, 1), "DrawPolygon - Alternate", (gfx, r) =>
         {
             // The middle of the star is enclosed twice, so an even number of crossings reaches it
             // and the alternate rule calls it outside. This is the even-odd rule, PDF's f*.
@@ -116,7 +92,7 @@ internal sealed class VectorsDemo : PdfDemo
             gfx.DrawPolygon(outline, Star(r));
         });
 
-        Panel(gfx1, Cell(1, 1), "DrawPolygon - Winding", (gfx, r) =>
+        Panel(sheet, fonts, Cell(1, 1), "DrawPolygon - Winding", (gfx, r) =>
         {
             // The same outline, wound consistently, so the non-zero rule fills the middle in.
             // PDF's f. Nothing about the points changed; only the rule reading them.
@@ -125,7 +101,7 @@ internal sealed class VectorsDemo : PdfDemo
         });
         // docs:end fill-modes
 
-        Panel(gfx1, Cell(2, 1), "DrawPie", (gfx, r) =>
+        Panel(sheet, fonts, Cell(2, 1), "DrawPie", (gfx, r) =>
         {
             gfx.DrawPie(outline, new XSolidBrush(XColor.FromArgb(120, 70, 130, 180)),
                 r, startAngle: -30, sweepAngle: 120);
@@ -133,21 +109,7 @@ internal sealed class VectorsDemo : PdfDemo
                 r, startAngle: 90, sweepAngle: 90);
         });
 
-        XPoint[] Wave(XRect r, int count)
-        {
-            var points = new XPoint[count];
-            for (var index = 0; index < count; index++)
-            {
-                var t = (double)index / (count - 1);
-                points[index] = new XPoint(
-                    r.X + t * r.Width,
-                    r.Y + r.Height / 2 - Math.Sin(t * Math.PI * 2) * r.Height * 0.35);
-            }
-
-            return points;
-        }
-
-        Panel(gfx1, Cell(0, 2), "DrawClosedCurve", (gfx, r) =>
+        Panel(sheet, fonts, Cell(0, 2), "DrawClosedCurve", (gfx, r) =>
         {
             // A closed cardinal spline: the last point is joined back to the first with the same
             // smoothing as every other join, which is what makes it a curve rather than a polygon.
@@ -155,16 +117,16 @@ internal sealed class VectorsDemo : PdfDemo
             gfx.DrawPolygon(new XPen(XColors.Silver, 0.4) { DashStyle = XDashStyle.Dot }, Star(r));
         });
 
-        Panel(gfx1, Cell(1, 2), "DrawEllipse - no pen", (gfx, r) =>
+        Panel(sheet, fonts, Cell(1, 2), "DrawEllipse - no pen", (gfx, r) =>
             // Either argument may be null. A brush and no pen fills without an outline; a pen and
             // no brush outlines without a fill.
             gfx.DrawEllipse(null, new XSolidBrush(XColors.DarkOrange), r));
 
-        Panel(gfx1, Cell(2, 2), "DrawEllipse - no brush", (gfx, r) =>
+        Panel(sheet, fonts, Cell(2, 2), "DrawEllipse - no brush", (gfx, r) =>
             gfx.DrawEllipse(new XPen(XColors.DarkOrange, 2), null, r));
 
         // docs:begin path-with-hole
-        Panel(gfx1, Cell(0, 3), "XGraphicsPath - one shape", (gfx, r) =>
+        Panel(sheet, fonts, Cell(0, 3), "XGraphicsPath - one shape", (gfx, r) =>
         {
             // A path collects segments and is drawn once, which is how a shape with a hole is made:
             // two figures in one path, filled under the alternate rule.
@@ -175,7 +137,7 @@ internal sealed class VectorsDemo : PdfDemo
         });
         // docs:end path-with-hole
 
-        Panel(gfx1, Cell(1, 3), "Path - Winding, same figures", (gfx, r) =>
+        Panel(sheet, fonts, Cell(1, 3), "Path - Winding, same figures", (gfx, r) =>
         {
             // The identical path under the other rule: both ellipses wind the same way, so the
             // inner one does not cancel the outer and there is no hole.
@@ -185,24 +147,29 @@ internal sealed class VectorsDemo : PdfDemo
             gfx.DrawPath(outline, new XSolidBrush(XColors.SlateBlue), path);
         });
 
-        Panel(gfx1, Cell(2, 3), "AddPie and AddRoundedRectangle", (gfx, r) =>
+        Panel(sheet, fonts, Cell(2, 3), "AddPie and AddRoundedRectangle", (gfx, r) =>
         {
             var path = new XGraphicsPath();
             path.AddPie(r.X, r.Y, r.Width, r.Height * 0.9, 200, 140);
             path.AddRoundedRectangle(r.X + 6, r.Y + r.Height * 0.55, r.Width - 12, r.Height * 0.35, 8, 8);
             gfx.DrawPath(outline, fill, path);
         });
+    }
 
-        // ----- page 2: open paths and curves -----
+    // ----- page 2: open paths and curves -----
 
-        var page2 = document.AddPage();
-        var gfx2 = XGraphics.FromPdfPage(page2);
-        gfx2.DrawString("Open paths and curves", heading, XBrushes.Black, new XPoint(50, 60));
+    private static void OpenPathsAndCurves(PdfDocument document, Fonts fonts)
+    {
+        var sheet = NewPage(document, fonts, "Open paths and curves");
 
-        Panel(gfx2, Cell(0, 0), "DrawLines - one polyline", (gfx, r) =>
+        // The pen and brush the closed shapes were drawn with, so the paths below read against them.
+        var outline = new XPen(XColors.MidnightBlue, 1.2);
+        var fill = new XSolidBrush(XColor.FromArgb(80, 100, 149, 237));
+
+        Panel(sheet, fonts, Cell(0, 0), "DrawLines - one polyline", (gfx, r) =>
             gfx.DrawLines(new XPen(XColors.MidnightBlue, 1.5), Wave(r, 9)));
 
-        Panel(gfx2, Cell(1, 0), "DrawCurve - tension 0", (gfx, r) =>
+        Panel(sheet, fonts, Cell(1, 0), "DrawCurve - tension 0", (gfx, r) =>
         {
             // Tension zero is straight between the points: the same polyline as its neighbour.
             gfx.DrawCurve(new XPen(XColors.MidnightBlue, 1.5), Wave(r, 5), 0);
@@ -210,7 +177,7 @@ internal sealed class VectorsDemo : PdfDemo
                 gfx.DrawEllipse(XBrushes.Firebrick, point.X - 1.5, point.Y - 1.5, 3, 3);
         });
 
-        Panel(gfx2, Cell(2, 0), "DrawCurve - tension 1", (gfx, r) =>
+        Panel(sheet, fonts, Cell(2, 0), "DrawCurve - tension 1", (gfx, r) =>
         {
             // The same five points. Only the smoothing changed, and it overshoots them.
             gfx.DrawCurve(new XPen(XColors.MidnightBlue, 1.5), Wave(r, 5), 1);
@@ -219,7 +186,7 @@ internal sealed class VectorsDemo : PdfDemo
         });
 
         // docs:begin bezier
-        Panel(gfx2, Cell(0, 1), "DrawBezier - control points shown", (gfx, r) =>
+        Panel(sheet, fonts, Cell(0, 1), "DrawBezier - control points shown", (gfx, r) =>
         {
             var p1 = new XPoint(r.X, r.Bottom);
             var c1 = new XPoint(r.X + r.Width * 0.1, r.Y);
@@ -240,7 +207,7 @@ internal sealed class VectorsDemo : PdfDemo
         });
         // docs:end bezier
 
-        Panel(gfx2, Cell(1, 1), "DrawBeziers - chained", (gfx, r) =>
+        Panel(sheet, fonts, Cell(1, 1), "DrawBeziers - chained", (gfx, r) =>
         {
             // Every curve after the first reuses the previous end point, so the array is
             // 1 + 3n long rather than 4n. Getting that wrong is the usual reason this throws.
@@ -256,7 +223,7 @@ internal sealed class VectorsDemo : PdfDemo
         });
 
         // docs:begin arc
-        Panel(gfx2, Cell(2, 1), "DrawArc - 0 degrees is 3 o'clock", (gfx, r) =>
+        Panel(sheet, fonts, Cell(2, 1), "DrawArc - 0 degrees is 3 o'clock", (gfx, r) =>
         {
             var box = new XRect(r.X + 5, r.Y + 5, r.Width - 10, r.Height - 10);
             gfx.DrawRectangle(new XPen(XColors.Gainsboro, 0.4) { DashStyle = XDashStyle.Dot }, box);
@@ -267,14 +234,14 @@ internal sealed class VectorsDemo : PdfDemo
             gfx.DrawArc(new XPen(XColors.Firebrick, 2), box.X, box.Y, box.Width, box.Height, 0, 90);
             gfx.DrawArc(new XPen(XColors.SeaGreen, 2), box.X, box.Y, box.Width, box.Height, 180, -60);
 
-            gfx.DrawString("0 to +90", note, XBrushes.Firebrick,
+            gfx.DrawString("0 to +90", fonts.Note, XBrushes.Firebrick,
                 new XPoint(box.X + box.Width * 0.55, box.Bottom + 8));
-            gfx.DrawString("180 to -60", note, XBrushes.SeaGreen,
+            gfx.DrawString("180 to -60", fonts.Note, XBrushes.SeaGreen,
                 new XPoint(box.X, box.Y - 2));
         });
         // docs:end arc
 
-        Panel(gfx2, Cell(0, 2), "AddArc between two points", (gfx, r) =>
+        Panel(sheet, fonts, Cell(0, 2), "AddArc between two points", (gfx, r) =>
         {
             // The other AddArc, and the one SVG and WPF use: given where to start, where to finish
             // and the radii, it works out the centre for itself. Four arcs fit any such pair, and
@@ -294,7 +261,7 @@ internal sealed class VectorsDemo : PdfDemo
             gfx.DrawPath(new XPen(XColors.Firebrick, 1.5) { DashStyle = XDashStyle.Dash }, otherWay);
         });
 
-        Panel(gfx2, Cell(1, 2), "A path built segment by segment", (gfx, r) =>
+        Panel(sheet, fonts, Cell(1, 2), "A path built segment by segment", (gfx, r) =>
         {
             var path = new XGraphicsPath();
             path.AddLine(r.X, r.Bottom, r.X + r.Width * 0.25, r.Y);
@@ -304,7 +271,7 @@ internal sealed class VectorsDemo : PdfDemo
             gfx.DrawPath(new XPen(XColors.MidnightBlue, 1.5), path);
         });
 
-        Panel(gfx2, Cell(2, 2), "The same path, closed and filled", (gfx, r) =>
+        Panel(sheet, fonts, Cell(2, 2), "The same path, closed and filled", (gfx, r) =>
         {
             var path = new XGraphicsPath();
             path.AddLine(r.X, r.Bottom, r.X + r.Width * 0.25, r.Y);
@@ -315,7 +282,7 @@ internal sealed class VectorsDemo : PdfDemo
             gfx.DrawPath(outline, fill, path);
         });
 
-        Panel(gfx2, Cell(0, 3), "AddPath - connect: false", (gfx, r) =>
+        Panel(sheet, fonts, Cell(0, 3), "AddPath - connect: false", (gfx, r) =>
         {
             // Two figures kept apart. The appended path starts where it says it starts.
             var arch = new XGraphicsPath();
@@ -327,7 +294,7 @@ internal sealed class VectorsDemo : PdfDemo
             gfx.DrawPath(new XPen(XColors.MidnightBlue, 1.5), whole);
         });
 
-        Panel(gfx2, Cell(1, 3), "AddPath - connect: true", (gfx, r) =>
+        Panel(sheet, fonts, Cell(1, 3), "AddPath - connect: true", (gfx, r) =>
         {
             // The same two paths joined into one figure: the arch's first point becomes a line
             // from where the previous figure had got to, so the shape can be filled as one.
@@ -340,7 +307,7 @@ internal sealed class VectorsDemo : PdfDemo
             gfx.DrawPath(outline, fill, whole);
         });
 
-        Panel(gfx2, Cell(2, 3), "AddClosedCurve", (gfx, r) =>
+        Panel(sheet, fonts, Cell(2, 3), "AddClosedCurve", (gfx, r) =>
         {
             // A closed spline joins the last point back to the first with the same smoothing as
             // every other join, where AddCurve plus CloseFigure would join them with a straight
@@ -349,14 +316,15 @@ internal sealed class VectorsDemo : PdfDemo
             path.AddClosedCurve(Star(r), 0.5);
             gfx.DrawPath(outline, fill, path);
         });
+    }
 
-        // ----- page 3: pens and brushes -----
+    // ----- page 3: pens and brushes -----
 
-        var page3 = document.AddPage();
-        var gfx3 = XGraphics.FromPdfPage(page3);
-        gfx3.DrawString("Pens and brushes", heading, XBrushes.Black, new XPoint(50, 60));
+    private static void PensAndBrushes(PdfDocument document, Fonts fonts)
+    {
+        var sheet = NewPage(document, fonts, "Pens and brushes");
 
-        Panel(gfx3, Cell(0, 0), "Width", (gfx, r) =>
+        Panel(sheet, fonts, Cell(0, 0), "Width", (gfx, r) =>
         {
             var y = r.Y + 6;
             #pragma warning disable CA1861 // The demo prints only its example region, so the values stay beside what they draw.
@@ -369,7 +337,7 @@ internal sealed class VectorsDemo : PdfDemo
         });
 
         // docs:begin line-caps
-        Panel(gfx3, Cell(1, 0), "LineCap - Flat, Round, Square", (gfx, r) =>
+        Panel(sheet, fonts, Cell(1, 0), "LineCap - Flat, Round, Square", (gfx, r) =>
         {
             var y = r.Y + 10;
             foreach (var cap in new[] { XLineCap.Flat, XLineCap.Round, XLineCap.Square })
@@ -385,7 +353,7 @@ internal sealed class VectorsDemo : PdfDemo
         });
         // docs:end line-caps
 
-        Panel(gfx3, Cell(2, 0), "LineJoin - Miter, Round, Bevel", (gfx, r) =>
+        Panel(sheet, fonts, Cell(2, 0), "LineJoin - Miter, Round, Bevel", (gfx, r) =>
         {
             var y = r.Y + 6;
             foreach (var join in new[] { XLineJoin.Miter, XLineJoin.Round, XLineJoin.Bevel })
@@ -399,7 +367,7 @@ internal sealed class VectorsDemo : PdfDemo
             }
         });
 
-        Panel(gfx3, Cell(0, 1), "MiterLimit", (gfx, r) =>
+        Panel(sheet, fonts, Cell(0, 1), "MiterLimit", (gfx, r) =>
         {
             // A mitre on a sharp corner runs a long way past it - the spike below would reach
             // about six times the pen's width - so there is a limit past which the join is
@@ -420,14 +388,14 @@ internal sealed class VectorsDemo : PdfDemo
                     new XPoint(r.X + r.Width / 2 + 8, y + 40)
                 ]);
 
-                gfx.DrawString($"MiterLimit = {limit:0}", note, XBrushes.Gray,
+                gfx.DrawString($"MiterLimit = {limit:0}", fonts.Note, XBrushes.Gray,
                     new XPoint(r.X, y + 38));
                 y += r.Height / 2;
             }
             #pragma warning restore CA1861
         });
 
-        Panel(gfx3, Cell(1, 1), "DashStyle", (gfx, r) =>
+        Panel(sheet, fonts, Cell(1, 1), "DashStyle", (gfx, r) =>
         {
             var y = r.Y + 4;
             foreach (var style in new[]
@@ -442,7 +410,7 @@ internal sealed class VectorsDemo : PdfDemo
             }
         });
 
-        Panel(gfx3, Cell(2, 1), "DashPattern and DashOffset", (gfx, r) =>
+        Panel(sheet, fonts, Cell(2, 1), "DashPattern and DashOffset", (gfx, r) =>
         {
             // The pattern is in multiples of the pen's width, on then off, and setting it puts the
             // style on Custom. The offset slides the whole pattern along the line.
@@ -462,7 +430,7 @@ internal sealed class VectorsDemo : PdfDemo
             #pragma warning restore CA1861
         });
 
-        Panel(gfx3, Cell(0, 2), "XSolidBrush with alpha", (gfx, r) =>
+        Panel(sheet, fonts, Cell(0, 2), "XSolidBrush with alpha", (gfx, r) =>
         {
             gfx.DrawRectangle(new XSolidBrush(XColors.Gold), r);
             for (var index = 0; index < 4; index++)
@@ -473,11 +441,11 @@ internal sealed class VectorsDemo : PdfDemo
         });
 
         // docs:begin gradients
-        Panel(gfx3, Cell(1, 2), "XLinearGradientBrush", (gfx, r) =>
+        Panel(sheet, fonts, Cell(1, 2), "XLinearGradientBrush", (gfx, r) =>
             gfx.DrawRectangle(new XLinearGradientBrush(r,
                 XColors.MidnightBlue, XColors.Gold, XLinearGradientMode.ForwardDiagonal), r));
 
-        Panel(gfx3, Cell(2, 2), "XRadialGradientBrush", (gfx, r) =>
+        Panel(sheet, fonts, Cell(2, 2), "XRadialGradientBrush", (gfx, r) =>
         {
             var centre = new XPoint(r.X + r.Width / 2, r.Y + r.Height / 2);
             gfx.DrawRectangle(new XRadialGradientBrush(centre, 0,
@@ -485,7 +453,7 @@ internal sealed class VectorsDemo : PdfDemo
         });
         // docs:end gradients
 
-        Panel(gfx3, Cell(0, 3), "A gradient into transparency", (gfx, r) =>
+        Panel(sheet, fonts, Cell(0, 3), "A gradient into transparency", (gfx, r) =>
         {
             // A gradient one of whose ends is transparent needs a soft mask as well as a colour
             // ramp. It is drawn over a chequer here so that the transparency is visible as
@@ -507,7 +475,7 @@ internal sealed class VectorsDemo : PdfDemo
         });
 
         // docs:begin pen-from-brush
-        Panel(gfx3, Cell(1, 3), "A pen made from a brush", (gfx, r) =>
+        Panel(sheet, fonts, Cell(1, 3), "A pen made from a brush", (gfx, r) =>
         {
             // XPen takes a brush as well as a colour, so a stroke can carry a gradient.
             var gradient = new XPen(new XLinearGradientBrush(r,
@@ -516,40 +484,24 @@ internal sealed class VectorsDemo : PdfDemo
         });
         // docs:end pen-from-brush
 
-        Panel(gfx3, Cell(2, 3), "Overprint", (gfx, r) =>
+        Panel(sheet, fonts, Cell(2, 3), "Overprint", (gfx, r) =>
         {
             // Written into the graphics state for a press to read. It changes nothing on screen,
             // which is exactly why it is worth a panel that says so.
             gfx.DrawLine(new XPen(XColors.MidnightBlue, 6) { Overprint = true },
                 r.X, r.Y + r.Height / 2, r.Right, r.Y + r.Height / 2);
-            gfx.DrawString("no effect on screen", note, XBrushes.Gray,
+            gfx.DrawString("no effect on screen", fonts.Note, XBrushes.Gray,
                 new XRect(r.X, r.Y + r.Height * 0.6, r.Width, 10), XStringFormats.TopCenter);
         });
+    }
 
-        // ----- page 4: transforms, state and clipping -----
+    // ----- page 4: transforms, state and clipping -----
 
-        var page4 = document.AddPage();
-        var gfx4 = XGraphics.FromPdfPage(page4);
-        gfx4.DrawString("Transforms, state and clipping", heading, XBrushes.Black, new XPoint(50, 60));
+    private static void TransformsStateAndClipping(PdfDocument document, Fonts fonts)
+    {
+        var sheet = NewPage(document, fonts, "Transforms, state and clipping");
 
-        // One shape, drawn under every transform below, so that what differs between the panels is
-        // the matrix rather than the drawing.
-        void Arrow(XGraphics gfx)
-        {
-            var path = new XGraphicsPath();
-            path.AddPolygon([
-                new XPoint(0, 8), new XPoint(30, 8), new XPoint(30, 0),
-                new XPoint(45, 15), new XPoint(30, 30), new XPoint(30, 22), new XPoint(0, 22)
-            ]);
-            gfx.DrawPath(new XPen(XColors.MidnightBlue, 1), new XSolidBrush(
-                XColor.FromArgb(120, 100, 149, 237)), path);
-        }
-
-        // Two across and two down for the transforms, then one wide panel for the clip - a
-        // different grid from the pages above, because a transform needs room to be seen moving.
-        XRect Wide(int column, int row) => new(50 + column * 250, 90 + row * 200, 240, 190);
-
-        Panel(gfx4, Wide(0, 0), "TranslateTransform", (gfx, r) =>
+        Panel(sheet, fonts, Wide(0, 0), "TranslateTransform", (gfx, r) =>
         {
             var state = gfx.Save();
             gfx.TranslateTransform(r.X, r.Y + 10);
@@ -564,7 +516,7 @@ internal sealed class VectorsDemo : PdfDemo
         });
 
         // docs:begin rotate
-        Panel(gfx4, Wide(1, 0), "ScaleTransform and RotateTransform", (gfx, r) =>
+        Panel(sheet, fonts, Wide(1, 0), "ScaleTransform and RotateTransform", (gfx, r) =>
         {
             var state = gfx.Save();
 
@@ -590,7 +542,7 @@ internal sealed class VectorsDemo : PdfDemo
         });
         // docs:end rotate
 
-        Panel(gfx4, Wide(0, 1), "MultiplyTransform - a shear", (gfx, r) =>
+        Panel(sheet, fonts, Wide(0, 1), "MultiplyTransform - a shear", (gfx, r) =>
         {
             var state = gfx.Save();
             gfx.TranslateTransform(r.X + 20, r.Y + 20);
@@ -609,7 +561,7 @@ internal sealed class VectorsDemo : PdfDemo
             gfx.Restore(state);
         });
 
-        Panel(gfx4, Wide(1, 1), "Save/Restore against BeginContainer", (gfx, r) =>
+        Panel(sheet, fonts, Wide(1, 1), "Save/Restore against BeginContainer", (gfx, r) =>
         {
             // Save and Restore are a stack of graphics states: everything set between them is
             // undone, and Restore takes a token so the pairs cannot be crossed by accident.
@@ -636,7 +588,7 @@ internal sealed class VectorsDemo : PdfDemo
         });
 
         // docs:begin clip
-        Panel(gfx4, new XRect(50, 490, 495, 190), "IntersectClip", (gfx, r) =>
+        Panel(sheet, fonts, new XRect(50, 490, 495, 190), "IntersectClip", (gfx, r) =>
         {
             var state = gfx.Save();
 
@@ -659,8 +611,82 @@ internal sealed class VectorsDemo : PdfDemo
             gfx.DrawEllipse(new XPen(XColors.Firebrick, 0.8), r);
         });
         // docs:end clip
-        #endregion
-
-        return document;
     }
+
+    // Every panel on every page is a titled box in a grid, so the drawing inside one can be
+    // read against the label under it without any of them being positioned by hand.
+    private static void Panel(XGraphics gfx, Fonts fonts, XRect cell, string title, Action<XGraphics, XRect> draw)
+    {
+        gfx.DrawRectangle(new XPen(XColors.Gainsboro, 0.5), cell);
+
+        var inside = new XRect(cell.X + 8, cell.Y + 8, cell.Width - 16, cell.Height - 30);
+        draw(gfx, inside);
+
+        gfx.DrawString(title, fonts.Label, XBrushes.Black,
+            new XRect(cell.X, cell.Bottom - 20, cell.Width, 14), XStringFormats.Center);
+    }
+
+    /// <summary>Adds a page to the document, heads it, and hands back the surface to draw on it.</summary>
+    private static XGraphics NewPage(PdfDocument document, Fonts fonts, string heading)
+    {
+        var gfx = XGraphics.FromPdfPage(document.AddPage());
+        gfx.DrawString(heading, fonts.Heading, XBrushes.Black, new XPoint(50, 60));
+        return gfx;
+    }
+
+    private static XRect Cell(int column, int row, int columns = 3, int rows = 4) =>
+        new(50 + column * (495.0 / columns), 90 + row * (680.0 / rows),
+            495.0 / columns - 10, 680.0 / rows - 10);
+
+    // Two across and two down for the transforms, then one wide panel for the clip - a
+    // different grid from the pages above, because a transform needs room to be seen moving.
+    private static XRect Wide(int column, int row) => new(50 + column * 250, 90 + row * 200, 240, 190);
+
+    // A five-pointed star drawn as one self-intersecting outline, which is the shape that
+    // makes the two fill rules disagree.
+    private static XPoint[] Star(XRect r)
+    {
+        var centre = new XPoint(r.X + r.Width / 2, r.Y + r.Height / 2);
+        var radius = Math.Min(r.Width, r.Height) / 2;
+        var points = new XPoint[5];
+        for (var index = 0; index < 5; index++)
+        {
+            // Two fifths of a turn between consecutive points is what makes the outline cross
+            // itself; one fifth would draw a pentagon.
+            var angle = -Math.PI / 2 + index * 4 * Math.PI / 5;
+            points[index] = new XPoint(
+                centre.X + radius * Math.Cos(angle), centre.Y + radius * Math.Sin(angle));
+        }
+
+        return points;
+    }
+
+    private static XPoint[] Wave(XRect r, int count)
+    {
+        var points = new XPoint[count];
+        for (var index = 0; index < count; index++)
+        {
+            var t = (double)index / (count - 1);
+            points[index] = new XPoint(
+                r.X + t * r.Width,
+                r.Y + r.Height / 2 - Math.Sin(t * Math.PI * 2) * r.Height * 0.35);
+        }
+
+        return points;
+    }
+
+    // One shape, drawn under every transform on the last page, so that what differs between the
+    // panels is the matrix rather than the drawing.
+    private static void Arrow(XGraphics gfx)
+    {
+        var path = new XGraphicsPath();
+        path.AddPolygon([
+            new XPoint(0, 8), new XPoint(30, 8), new XPoint(30, 0),
+            new XPoint(45, 15), new XPoint(30, 30), new XPoint(30, 22), new XPoint(0, 22)
+        ]);
+        gfx.DrawPath(new XPen(XColors.MidnightBlue, 1), new XSolidBrush(
+            XColor.FromArgb(120, 100, 149, 237)), path);
+    }
+
+    #endregion
 }

@@ -339,61 +339,73 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
                 return;
             }
 
-            IEnumerable enumerable = null; //(IEnumerator)pdfObject;
-            PdfDictionary dict;
-            PdfArray array;
-            if ((dict = pdfObject as PdfDictionary) != null)
-                enumerable = dict.Elements.Values;
-            else if ((array = pdfObject as PdfArray) != null)
-                enumerable = array.Elements;
-            else
-                Debug.Assert(false, "Should not come here.");
-
+            var enumerable = ElementsOf(pdfObject);
             if (enumerable == null)
                 return;
 
             foreach (PdfItem item in enumerable)
             {
                 if (item is PdfReference iref)
-                {
-                    if (!ReferenceEquals(iref.Document, _document))
-                        Debug.WriteLine($"Bad iref: {iref.ObjectID.ToString()}");
-
-                    Debug.Assert(ReferenceEquals(iref.Document, _document) || iref.Document == null,
-                        "External object detected!");
-                    if (!objects.ContainsKey(iref))
-                    {
-                        var value = iref.Value;
-
-                        // Ignore unreachable objets.
-                        if (iref.Document != null)
-                        {
-                            // ... from trailer hack
-                            if (value == null)
-                            {
-                                iref = ObjectTable[iref.ObjectID];
-                                Debug.Assert(iref.Value != null);
-                                value = iref.Value;
-                            }
-
-                            Debug.Assert(ReferenceEquals(iref.Document, _document));
-                            objects.Add(iref, null);
-                            if (value is PdfArray or PdfDictionary)
-                                TransitiveClosureImplementation(objects, value /*, ref depth*/);
-                        }
-                    }
-                }
-                else
-                {
-                    if (item is PdfObject pdfObject28 and (PdfDictionary or PdfArray))
-                        TransitiveClosureImplementation(objects, pdfObject28 /*, ref depth*/);
-                }
+                    AddReferenceToClosure(objects, iref);
+                else if (item is PdfObject pdfObject28 and (PdfDictionary or PdfArray))
+                    TransitiveClosureImplementation(objects, pdfObject28 /*, ref depth*/);
             }
         }
         finally
         {
             _nestingLevel--;
         }
+    }
+
+    /// <summary>
+    /// The items of a dictionary or an array, which are what the closure walks through.
+    /// </summary>
+    private static IEnumerable ElementsOf(PdfObject pdfObject)
+    {
+        switch (pdfObject)
+        {
+            case PdfDictionary dict:
+                return dict.Elements.Values;
+            case PdfArray array:
+                return array.Elements;
+            default:
+                Debug.Assert(false, "Should not come here.");
+                return null;
+        }
+    }
+
+    /// <summary>
+    /// Adds the object a reference leads to, and everything it leads to in turn, unless it is in
+    /// the closure already or is unreachable.
+    /// </summary>
+    private void AddReferenceToClosure(Dictionary<PdfItem, object> objects, PdfReference iref)
+    {
+        if (!ReferenceEquals(iref.Document, _document))
+            Debug.WriteLine($"Bad iref: {iref.ObjectID.ToString()}");
+
+        Debug.Assert(ReferenceEquals(iref.Document, _document) || iref.Document == null,
+            "External object detected!");
+        if (objects.ContainsKey(iref))
+            return;
+
+        var value = iref.Value;
+
+        // Ignore unreachable objets.
+        if (iref.Document == null)
+            return;
+
+        // ... from trailer hack
+        if (value == null)
+        {
+            iref = ObjectTable[iref.ObjectID];
+            Debug.Assert(iref.Value != null);
+            value = iref.Value;
+        }
+
+        Debug.Assert(ReferenceEquals(iref.Document, _document));
+        objects.Add(iref, null);
+        if (value is PdfArray or PdfDictionary)
+            TransitiveClosureImplementation(objects, value /*, ref depth*/);
     }
 
     /// <summary>

@@ -30,6 +30,7 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System;
 using PinataLayout.DocumentObjectModel.Internals;
 using PdfPinata.Text;
 
@@ -426,47 +427,20 @@ public partial class ParagraphFormat : DocumentObject
     // Efw.Application framework the nullable values and all the meta stuff is kept internal to
     // give the user the illusion of simplicity.
 
-    if (alignment != null && (refFormat == null || alignment != refFormat.alignment))
-      serializer.WriteSimpleAttribute("Alignment", Alignment);
-
-    if (!leftIndent.IsNull && (refFormat == null || leftIndent != refFormat.leftIndent))
-      serializer.WriteSimpleAttribute("LeftIndent", LeftIndent);
-
-    if (!firstLineIndent.IsNull && (refFormat == null || firstLineIndent != refFormat.firstLineIndent))
-      serializer.WriteSimpleAttribute("FirstLineIndent", FirstLineIndent);
-
-    if (!rightIndent.IsNull && (refFormat == null || rightIndent != refFormat.rightIndent))
-      serializer.WriteSimpleAttribute("RightIndent", RightIndent);
-
-    if (!spaceBefore.IsNull && (refFormat == null || spaceBefore != refFormat.spaceBefore))
-      serializer.WriteSimpleAttribute("SpaceBefore", SpaceBefore);
-
-    if (!spaceAfter.IsNull && (refFormat == null || spaceAfter != refFormat.spaceAfter))
-      serializer.WriteSimpleAttribute("SpaceAfter", SpaceAfter);
-
-    if (lineSpacingRule != null && (refFormat == null || lineSpacingRule != refFormat.lineSpacingRule))
-      serializer.WriteSimpleAttribute("LineSpacingRule", LineSpacingRule);
-
-    if (!lineSpacing.IsNull && (refFormat == null || lineSpacing != refFormat.lineSpacing))
-      serializer.WriteSimpleAttribute("LineSpacing", LineSpacing);
-
-    if (keepTogether != null && (refFormat == null || keepTogether != refFormat.keepTogether))
-      serializer.WriteSimpleAttribute("KeepTogether", KeepTogether);
-
-    if (keepWithNext != null && (refFormat == null || keepWithNext != refFormat.keepWithNext))
-      serializer.WriteSimpleAttribute("KeepWithNext", KeepWithNext);
-
-    if (textDirection != null && (refFormat == null || textDirection != refFormat.textDirection))
-      serializer.WriteSimpleAttribute("TextDirection", TextDirection);
-
-    if (widowControl != null && (refFormat == null || widowControl != refFormat.widowControl))
-      serializer.WriteSimpleAttribute("WidowControl", WidowControl);
-
-    if (pageBreakBefore != null && (refFormat == null || pageBreakBefore != refFormat.pageBreakBefore))
-      serializer.WriteSimpleAttribute("PageBreakBefore", PageBreakBefore);
-
-    if (outlineLevel != null && (refFormat == null || outlineLevel != refFormat.outlineLevel))
-      serializer.WriteSimpleAttribute("OutlineLevel", OutlineLevel);
+    WriteIfDifferent(serializer, "Alignment", alignment, refFormat?.alignment);
+    WriteLengthIfDifferent(serializer, "LeftIndent", leftIndent, refFormat?.leftIndent);
+    WriteLengthIfDifferent(serializer, "FirstLineIndent", firstLineIndent, refFormat?.firstLineIndent);
+    WriteLengthIfDifferent(serializer, "RightIndent", rightIndent, refFormat?.rightIndent);
+    WriteLengthIfDifferent(serializer, "SpaceBefore", spaceBefore, refFormat?.spaceBefore);
+    WriteLengthIfDifferent(serializer, "SpaceAfter", spaceAfter, refFormat?.spaceAfter);
+    WriteIfDifferent(serializer, "LineSpacingRule", lineSpacingRule, refFormat?.lineSpacingRule);
+    WriteLengthIfDifferent(serializer, "LineSpacing", lineSpacing, refFormat?.lineSpacing);
+    WriteIfDifferent(serializer, "KeepTogether", keepTogether, refFormat?.keepTogether);
+    WriteIfDifferent(serializer, "KeepWithNext", keepWithNext, refFormat?.keepWithNext);
+    WriteIfDifferent(serializer, "TextDirection", textDirection, refFormat?.textDirection);
+    WriteIfDifferent(serializer, "WidowControl", widowControl, refFormat?.widowControl);
+    WriteIfDifferent(serializer, "PageBreakBefore", pageBreakBefore, refFormat?.pageBreakBefore);
+    WriteIfDifferent(serializer, "OutlineLevel", outlineLevel, refFormat?.outlineLevel);
 
     if (!IsNull("ListInfo"))
       ListInfo.Serialize(serializer);
@@ -475,17 +449,32 @@ public partial class ParagraphFormat : DocumentObject
       tabStops.Serialize(serializer);
 
     if (!IsNull("Borders"))
-    {
-      if (refFormat != null)
-        borders.Serialize(serializer, refFormat.Borders);
-      else
-        borders.Serialize(serializer, null);
-    }
+      borders.Serialize(serializer, refFormat?.Borders);
 
     if (!IsNull("Shading"))
       shading.Serialize(serializer);
 
     serializer.EndContent(pos);
+  }
+
+  /// <summary>
+  /// Writes a value that is set, unless the format it is compared with holds the same value. There
+  /// being no such format, or that format leaving the value unset, is never a match.
+  /// </summary>
+  private static void WriteIfDifferent<T>(Serializer serializer, string valueName, T? value, T? refValue)
+    where T : struct
+  {
+    if (value != null && !Nullable.Equals(value, refValue))
+      serializer.WriteSimpleAttribute(valueName, value.Value);
+  }
+
+  /// <summary>
+  /// Writes a length that is set, unless there is a reference length and it is equal to it.
+  /// </summary>
+  private static void WriteLengthIfDifferent(Serializer serializer, string valueName, Unit value, Unit? refValue)
+  {
+    if (!value.IsNull && (refValue == null || value != refValue.Value))
+      serializer.WriteSimpleAttribute(valueName, value);
   }
 
   #endregion

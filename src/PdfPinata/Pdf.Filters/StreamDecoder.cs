@@ -19,20 +19,11 @@ internal static class StreamDecoder
         if (decodeParms == null)
             return data;
 
-        var predictor = decodeParms.Elements.GetInteger("/Predictor");
-        var colors = decodeParms.Elements.GetInteger("/Colors");
-        var bpc = decodeParms.Elements.GetInteger("/BitsPerComponent");
-        var columns = decodeParms.Elements.GetInteger("/Columns");
-
         // set up defaults according to the spec
-        if (predictor < 1)
-            predictor = 1;
-        if (colors < 1)
-            colors = 1;
-        if (bpc < 1)
-            bpc = 8;
-        if (columns < 1)
-            columns = 1;
+        var predictor = PositiveOrDefault(decodeParms, "/Predictor", 1);
+        var colors = PositiveOrDefault(decodeParms, "/Colors", 1);
+        var bpc = PositiveOrDefault(decodeParms, "/BitsPerComponent", 8);
+        var columns = PositiveOrDefault(decodeParms, "/Columns", 1);
 
         if (predictor == 1)     // no prediction, return data as is
             return data;
@@ -40,8 +31,7 @@ internal static class StreamDecoder
         // TIFF predictor
         if (predictor == 2)
         {
-            if (bpc != 1 && bpc != 2 && bpc != 4 && bpc != 8 && bpc != 16)
-                throw new PdfReaderException("Invalid number of bits per component");
+            EnsureValidBitsPerComponent(bpc);
             return UndoTiffPredictor(data, colors, bpc, columns);
         }
 
@@ -49,8 +39,31 @@ internal static class StreamDecoder
         if (predictor is < 10 or > 15)
             throw new PdfReaderException("Invalid predictor " + predictor);
 
-        if (bpc != 1 && bpc != 2 && bpc != 4 && bpc != 8 && bpc != 16)
+        EnsureValidBitsPerComponent(bpc);
+        return UndoPngPredictor(data, colors, bpc, columns);
+    }
+
+    /// <summary>
+    /// The integer under the key, or the default the specification gives where it is absent or
+    /// not positive.
+    /// </summary>
+    private static int PositiveOrDefault(PdfDictionary decodeParms, string key, int defaultValue)
+    {
+        var value = decodeParms.Elements.GetInteger(key);
+        return value < 1 ? defaultValue : value;
+    }
+
+    private static void EnsureValidBitsPerComponent(int bpc)
+    {
+        if (bpc is not (1 or 2 or 4 or 8 or 16))
             throw new PdfReaderException("Invalid number of bits per component");
+    }
+
+    /// <summary>
+    /// Undoes a PNG predictor, which puts a byte naming the filter in front of every row.
+    /// </summary>
+    private static byte[] UndoPngPredictor(byte[] data, int colors, int bpc, int columns)
+    {
         var stride = (bpc * colors * columns + 7) / 8;
         var rows = data.Length / (stride + 1);
         var unfilteredData = new byte[rows * stride];

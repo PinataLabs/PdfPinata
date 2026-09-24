@@ -95,146 +95,14 @@ internal static class PaintedPaths
     /// <summary>Every path the page paints, in the order it paints them.</summary>
     internal static IReadOnlyList<Path> On(PdfPage page)
     {
-        var painted = new List<Path>();
-
-        var points = new List<(double X, double Y)>();
-        var curves = 0;
-        (double X, double Y) current;
-
-        var fill = PaintedRectangles.Black;
-        var stroke = PaintedRectangles.Black;
-        double width = 1;
-        var saved = new Stack<(string Fill, string Stroke, double Width)>();
-
+        var reader = new PathReader();
         foreach (var item in ContentReader.ReadContent(PageContent.Of(page)))
         {
-            if (item is not COperator op)
-                continue;
-
-            var operands = op.Operands;
-            switch (op.OpCode.OpCodeName)
-            {
-                case OpCodeName.q:
-                    saved.Push((fill, stroke, width));
-                    break;
-
-                case OpCodeName.Q:
-                    // A Q with nothing put away is malformed content; read on rather than throw.
-                    if (saved.Count > 0)
-                        (fill, stroke, width) = saved.Pop();
-                    break;
-
-                case OpCodeName.w:
-                    if (operands.Count >= 1)
-                        width = Number(operands[0]);
-                    break;
-
-                case OpCodeName.rg:
-                    if (operands.Count >= 3)
-                        fill = Rgb(Number(operands[0]), Number(operands[1]), Number(operands[2]));
-                    break;
-
-                case OpCodeName.g:
-                    if (operands.Count >= 1)
-                        fill = Rgb(Number(operands[0]), Number(operands[0]), Number(operands[0]));
-                    break;
-
-                case OpCodeName.RG:
-                    if (operands.Count >= 3)
-                        stroke = Rgb(Number(operands[0]), Number(operands[1]), Number(operands[2]));
-                    break;
-
-                case OpCodeName.G:
-                    if (operands.Count >= 1)
-                        stroke = Rgb(Number(operands[0]), Number(operands[0]), Number(operands[0]));
-                    break;
-
-                case OpCodeName.m:
-                case OpCodeName.l:
-                    if (operands.Count >= 2)
-                        Add(Number(operands[0]), Number(operands[1]));
-                    break;
-
-                case OpCodeName.c:
-                    if (operands.Count >= 6)
-                    {
-                        Add(Number(operands[0]), Number(operands[1]));
-                        Add(Number(operands[2]), Number(operands[3]));
-                        Add(Number(operands[4]), Number(operands[5]));
-                        curves++;
-                    }
-                    break;
-
-                // The two curve forms that borrow a control point from an end point.
-                case OpCodeName.v:
-                case OpCodeName.y:
-                    if (operands.Count >= 4)
-                    {
-                        Add(Number(operands[0]), Number(operands[1]));
-                        Add(Number(operands[2]), Number(operands[3]));
-                        curves++;
-                    }
-                    break;
-
-                case OpCodeName.re:
-                    if (operands.Count >= 4)
-                    {
-                        var x = Number(operands[0]);
-                        var y = Number(operands[1]);
-                        var w = Number(operands[2]);
-                        var h = Number(operands[3]);
-                        Add(x, y);
-                        Add(x + w, y);
-                        Add(x + w, y + h);
-                        Add(x, y + h);
-                    }
-                    break;
-
-                case OpCodeName.f:
-                case OpCodeName.F:
-                case OpCodeName.fx:
-                    Paint(filled: true, stroked: false);
-                    break;
-
-                case OpCodeName.S:
-                case OpCodeName.s:
-                    Paint(filled: false, stroked: true);
-                    break;
-
-                case OpCodeName.B:
-                case OpCodeName.Bx:
-                case OpCodeName.b:
-                case OpCodeName.bx:
-                    Paint(filled: true, stroked: true);
-                    break;
-
-                // Painted with nothing, which a clipping path is.
-                case OpCodeName.n:
-                    Discard();
-                    break;
-            }
+            if (item is COperator op)
+                reader.Read(op);
         }
 
-        return painted;
-
-        void Paint(bool filled, bool stroked)
-        {
-            if (points.Count > 0)
-                painted.Add(new Path([..points], curves, filled, stroked, fill, stroke, width));
-            Discard();
-        }
-
-        void Discard()
-        {
-            points.Clear();
-            curves = 0;
-        }
-
-        void Add(double x, double y)
-        {
-            current = (x, y);
-            points.Add(current);
-        }
+        return reader.Painted;
     }
 
     /// <summary>The paths the page fills in the given colour, in the order it fills them.</summary>
@@ -244,6 +112,158 @@ internal static class PaintedPaths
     /// <summary>The paths the page strokes in the given colour, in the order it strokes them.</summary>
     internal static IReadOnlyList<Path> StrokedIn(PdfPage page, string colour) =>
         [..On(page).Where(path => path.Stroked && path.StrokeColour == colour)];
+
+    /// <summary>Follows one page's content, one operator at a time.</summary>
+    private sealed class PathReader
+    {
+        // The path being built. It is not painted until its operator says how.
+        private readonly List<(double X, double Y)> _points = [];
+        private int _curves;
+
+        private readonly Stack<(string Fill, string Stroke, double Width)> _saved = new();
+        private string _fill = PaintedRectangles.Black;
+        private string _stroke = PaintedRectangles.Black;
+        private double _width = 1;
+
+        internal List<Path> Painted { get; } = [];
+
+        internal void Read(COperator op)
+        {
+            var name = op.OpCode.OpCodeName;
+            if (FollowGraphicsState(name, op.Operands) || SetColour(name, op.Operands) || BuildPath(name, op.Operands))
+                return;
+
+            PaintPath(name);
+        }
+
+        private bool FollowGraphicsState(OpCodeName name, CSequence operands)
+        {
+            switch (name)
+            {
+                case OpCodeName.q:
+                    _saved.Push((_fill, _stroke, _width));
+                    return true;
+
+                case OpCodeName.Q:
+                    // A Q with nothing put away is malformed content; read on rather than throw.
+                    if (_saved.Count > 0)
+                        (_fill, _stroke, _width) = _saved.Pop();
+                    return true;
+
+                case OpCodeName.w:
+                    if (operands.Count >= 1)
+                        _width = Number(operands[0]);
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        private bool SetColour(OpCodeName name, CSequence operands)
+        {
+            switch (name)
+            {
+                case OpCodeName.rg: SetFill(RgbIn(operands)); return true;
+                case OpCodeName.g: SetFill(GreyIn(operands)); return true;
+                case OpCodeName.RG: SetStroke(RgbIn(operands)); return true;
+                case OpCodeName.G: SetStroke(GreyIn(operands)); return true;
+                default: return false;
+            }
+        }
+
+        // A colour operator with too few operands is malformed and changes nothing.
+        private void SetFill(string colour) => _fill = colour ?? _fill;
+        private void SetStroke(string colour) => _stroke = colour ?? _stroke;
+
+        private bool BuildPath(OpCodeName name, CSequence operands)
+        {
+            switch (name)
+            {
+                case OpCodeName.m:
+                case OpCodeName.l:
+                    AddPoints(operands, 1);
+                    return true;
+
+                case OpCodeName.c:
+                    if (AddPoints(operands, 3))
+                        _curves++;
+                    return true;
+
+                // The two curve forms that borrow a control point from an end point.
+                case OpCodeName.v:
+                case OpCodeName.y:
+                    if (AddPoints(operands, 2))
+                        _curves++;
+                    return true;
+
+                case OpCodeName.re:
+                    AddRectangle(operands);
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        ///   Adds the first <paramref name="count"/> points the operands name, if there are enough
+        ///   of them; an operator with too few is malformed and adds nothing.
+        /// </summary>
+        private bool AddPoints(CSequence operands, int count)
+        {
+            if (operands.Count < count * 2)
+                return false;
+
+            for (var idx = 0; idx < count * 2; idx += 2)
+                _points.Add((Number(operands[idx]), Number(operands[idx + 1])));
+            return true;
+        }
+
+        private void AddRectangle(CSequence operands)
+        {
+            if (operands.Count < 4)
+                return;
+
+            var x = Number(operands[0]);
+            var y = Number(operands[1]);
+            var w = Number(operands[2]);
+            var h = Number(operands[3]);
+            _points.Add((x, y));
+            _points.Add((x + w, y));
+            _points.Add((x + w, y + h));
+            _points.Add((x, y + h));
+        }
+
+        private void PaintPath(OpCodeName name)
+        {
+            // Painted with nothing, which a clipping path is.
+            if (name == OpCodeName.n)
+            {
+                Discard();
+                return;
+            }
+
+            if (!PaintedRectangles.Painting.TryGetValue(name, out var paint))
+                return;
+
+            if (_points.Count > 0)
+                Painted.Add(new Path([.. _points], _curves, paint.Filled, paint.Stroked, _fill, _stroke, _width));
+            Discard();
+        }
+
+        private void Discard()
+        {
+            _points.Clear();
+            _curves = 0;
+        }
+    }
+
+    private static string RgbIn(CSequence operands) =>
+        operands.Count >= 3 ? Rgb(Number(operands[0]), Number(operands[1]), Number(operands[2])) : null;
+
+    private static string GreyIn(CSequence operands) =>
+        operands.Count >= 1 ? Rgb(Number(operands[0]), Number(operands[0]), Number(operands[0])) : null;
 
     // Written exactly as PaintedRectangles writes a colour, so that its ColourOf names one here too.
     private static string Rgb(double r, double g, double b) =>

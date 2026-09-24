@@ -380,58 +380,74 @@ public partial class Borders : DocumentObject, IEnumerable
 
         var pos = serializer.BeginContent("Borders");
 
-        if (visible != null && (refBorders == null || refBorders.visible == null || Visible != refBorders.Visible))
-            serializer.WriteSimpleAttribute("Visible", Visible);
+        WriteIfDifferent(serializer, "Visible", visible, refBorders?.visible);
+        // Compared with the style the reference answers, which is the default where it sets none.
+        WriteIfDifferent(serializer, "Style", style, refBorders?.Style);
 
-        if (style != null && (refBorders == null || Style != refBorders.Style))
-            serializer.WriteSimpleAttribute("Style", Style);
-
-        #pragma warning disable S1244 // Exact on purpose: a value is written unless it is exactly the one it inherits.
-        // ReSharper disable once CompareOfFloatsByEqualityOperator
-        if (!width.IsNull && (refBorders == null || width.Value != refBorders.width.Value))
+        if (!width.IsNull && WidthDiffersFrom(refBorders))
             serializer.WriteSimpleAttribute("Width", Width);
-        #pragma warning restore S1244
 
         if (!color.IsNull && (refBorders == null || Color.Argb != refBorders.Color.Argb))
             serializer.WriteSimpleAttribute("Color", Color);
 
-        #pragma warning disable S1244 // Exact on purpose: a value is written unless it is exactly the one it inherits.
-        // ReSharper disable once CompareOfFloatsByEqualityOperator
-        if (!distanceFromTop.IsNull && (refBorders == null || DistanceFromTop.Point != refBorders.DistanceFromTop.Point))
-            serializer.WriteSimpleAttribute("DistanceFromTop", DistanceFromTop);
+        WriteDistanceIfDifferent(serializer, "DistanceFromTop", distanceFromTop, refBorders?.distanceFromTop);
+        WriteDistanceIfDifferent(serializer, "DistanceFromBottom", distanceFromBottom, refBorders?.distanceFromBottom);
+        WriteDistanceIfDifferent(serializer, "DistanceFromLeft", distanceFromLeft, refBorders?.distanceFromLeft);
+        WriteDistanceIfDifferent(serializer, "DistanceFromRight", distanceFromRight, refBorders?.distanceFromRight);
 
-        // ReSharper disable once CompareOfFloatsByEqualityOperator
-        if (!distanceFromBottom.IsNull && (refBorders == null || DistanceFromBottom.Point != refBorders.DistanceFromBottom.Point))
-            serializer.WriteSimpleAttribute("DistanceFromBottom", DistanceFromBottom);
-
-        // ReSharper disable once CompareOfFloatsByEqualityOperator
-        if (!distanceFromLeft.IsNull && (refBorders == null || DistanceFromLeft.Point != refBorders.DistanceFromLeft.Point))
-            serializer.WriteSimpleAttribute("DistanceFromLeft", DistanceFromLeft);
-
-        // ReSharper disable once CompareOfFloatsByEqualityOperator
-        if (!distanceFromRight.IsNull && (refBorders == null || DistanceFromRight.Point != refBorders.DistanceFromRight.Point))
-            serializer.WriteSimpleAttribute("DistanceFromRight", DistanceFromRight);
-        #pragma warning restore S1244
-
-        if (!IsNull("Top"))
-            top.Serialize(serializer, "Top", null);
-
-        if (!IsNull("Left"))
-            left.Serialize(serializer, "Left", null);
-
-        if (!IsNull("Bottom"))
-            bottom.Serialize(serializer, "Bottom", null);
-
-        if (!IsNull("Right"))
-            right.Serialize(serializer, "Right", null);
-
-        if (!IsNull("DiagonalDown"))
-            diagonalDown.Serialize(serializer, "DiagonalDown", null);
-
-        if (!IsNull("DiagonalUp"))
-            diagonalUp.Serialize(serializer, "DiagonalUp", null);
+        SerializeBorder(serializer, "Top", top);
+        SerializeBorder(serializer, "Left", left);
+        SerializeBorder(serializer, "Bottom", bottom);
+        SerializeBorder(serializer, "Right", right);
+        SerializeBorder(serializer, "DiagonalDown", diagonalDown);
+        SerializeBorder(serializer, "DiagonalUp", diagonalUp);
 
         serializer.EndContent(pos);
+    }
+
+    /// <summary>
+    /// Writes a value that is set, unless the borders it is compared with hold the same value.
+    /// There being no such borders, or their leaving the value unset, is never a match.
+    /// </summary>
+    private static void WriteIfDifferent<T>(Serializer serializer, string valueName, T? value, T? refValue)
+        where T : struct
+    {
+        if (value != null && !Nullable.Equals(value, refValue))
+            serializer.WriteSimpleAttribute(valueName, value.Value);
+    }
+
+    /// <summary>
+    /// Whether the width is not the one <paramref name="refBorders"/> has, compared by number alone
+    /// rather than as a length.
+    /// </summary>
+    private bool WidthDiffersFrom(Borders refBorders)
+    {
+        #pragma warning disable S1244 // Exact on purpose: a value is written unless it is exactly the one it inherits.
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
+        return refBorders == null || width.Value != refBorders.width.Value;
+        #pragma warning restore S1244
+    }
+
+    /// <summary>
+    /// Writes a distance that is set, unless there is a reference distance and it is the same
+    /// number of points.
+    /// </summary>
+    private static void WriteDistanceIfDifferent(Serializer serializer, string valueName, Unit distance, Unit? refDistance)
+    {
+        #pragma warning disable S1244 // Exact on purpose: a value is written unless it is exactly the one it inherits.
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
+        if (!distance.IsNull && (refDistance == null || distance.Point != refDistance.Value.Point))
+            serializer.WriteSimpleAttribute(valueName, distance);
+        #pragma warning restore S1244
+    }
+
+    /// <summary>
+    /// Writes the border held under <paramref name="borderName"/> unless it is null.
+    /// </summary>
+    private void SerializeBorder(Serializer serializer, string borderName, Border border)
+    {
+        if (!IsNull(borderName))
+            border.Serialize(serializer, borderName, null);
     }
 
     /// <summary>

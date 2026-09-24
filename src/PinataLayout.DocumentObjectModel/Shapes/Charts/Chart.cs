@@ -455,51 +455,53 @@ public partial class Chart : Shape, IVisitable
     var pos = serializer.BeginAttributes();
 
     base.Serialize(serializer);
-    if (displayBlanksAs != null)
-      serializer.WriteSimpleAttribute("DisplayBlanksAs", DisplayBlanksAs);
-    if (pivotChart != null)
-      serializer.WriteSimpleAttribute("PivotChart", PivotChart);
-    if (hasDataLabel != null)
-      serializer.WriteSimpleAttribute("HasDataLabel", HasDataLabel);
+    WriteIfSet(serializer, "DisplayBlanksAs", displayBlanksAs);
+    WriteIfSet(serializer, "PivotChart", pivotChart);
+    WriteIfSet(serializer, "HasDataLabel", hasDataLabel);
 
     if (style != null)
       serializer.WriteSimpleAttribute("Style", Style);
     if (!IsNull("Format"))
       format.Serialize(serializer, "Format", null);
-    if (!IsNull("DataLabel"))
-      dataLabel.Serialize(serializer);
+    SerializeIfSet(serializer, "DataLabel", dataLabel);
     serializer.EndAttributes(pos);
 
     serializer.BeginContent();
 
-    if (!IsNull("PlotArea"))
-      plotArea.Serialize(serializer);
-    if (!IsNull("HeaderArea"))
-      headerArea.Serialize(serializer);
-    if (!IsNull("FooterArea"))
-      footerArea.Serialize(serializer);
-    if (!IsNull("TopArea"))
-      topArea.Serialize(serializer);
-    if (!IsNull("BottomArea"))
-      bottomArea.Serialize(serializer);
-    if (!IsNull("LeftArea"))
-      leftArea.Serialize(serializer);
-    if (!IsNull("RightArea"))
-      rightArea.Serialize(serializer);
+    SerializeIfSet(serializer, "PlotArea", plotArea);
+    SerializeIfSet(serializer, "HeaderArea", headerArea);
+    SerializeIfSet(serializer, "FooterArea", footerArea);
+    SerializeIfSet(serializer, "TopArea", topArea);
+    SerializeIfSet(serializer, "BottomArea", bottomArea);
+    SerializeIfSet(serializer, "LeftArea", leftArea);
+    SerializeIfSet(serializer, "RightArea", rightArea);
 
-    if (!IsNull("XAxis"))
-      xAxis.Serialize(serializer);
-    if (!IsNull("YAxis"))
-      yAxis.Serialize(serializer);
-    if (!IsNull("ZAxis"))
-      zAxis.Serialize(serializer);
+    SerializeIfSet(serializer, "XAxis", xAxis);
+    SerializeIfSet(serializer, "YAxis", yAxis);
+    SerializeIfSet(serializer, "ZAxis", zAxis);
 
-    if (!IsNull("SeriesCollection"))
-      seriesCollection.Serialize(serializer);
-    if (!IsNull("XValues"))
-      xValues.Serialize(serializer);
+    SerializeIfSet(serializer, "SeriesCollection", seriesCollection);
+    SerializeIfSet(serializer, "XValues", xValues);
 
     serializer.EndContent();
+  }
+
+  /// <summary>
+  /// Writes a value unless it was left unset.
+  /// </summary>
+  private static void WriteIfSet<T>(Serializer serializer, string valueName, T? value) where T : struct
+  {
+    if (value != null)
+      serializer.WriteSimpleAttribute(valueName, value.Value);
+  }
+
+  /// <summary>
+  /// Writes the child object held under <paramref name="name"/> unless it is null.
+  /// </summary>
+  private void SerializeIfSet(Serializer serializer, string name, DocumentObject child)
+  {
+    if (!IsNull(name))
+      child.Serialize(serializer);
   }
 
   /// <summary>

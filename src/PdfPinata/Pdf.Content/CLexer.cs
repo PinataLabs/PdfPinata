@@ -66,58 +66,64 @@ public class CLexer
     /// </summary>
     public CSymbol ScanNextToken()
     {
-        Again:
-        ClearToken();
-        var ch = MoveToNonWhiteSpace();
-        _tokenStart = CurrentCharIndex;
+        while (true)
+        {
+            ClearToken();
+            var ch = MoveToNonWhiteSpace();
+            _tokenStart = CurrentCharIndex;
+            if (ch != '%')
+                return Symbol = ScanTokenStartingWith(ch);
+
+            // Eat comments, the parser doesn't handle them
+            ScanComment();
+        }
+    }
+
+    /// <summary>
+    /// Scans the token the character given begins, which is the current one and not white space
+    /// or the start of a comment.
+    /// </summary>
+    private CSymbol ScanTokenStartingWith(char ch)
+    {
         switch (ch)
         {
-            case '%':
-                // Eat comments, the parser doesn't handle them
-                ScanComment();
-                goto Again;
-
             case '/':
-                return Symbol = ScanName();
+                return ScanName();
 
             case '+':
             case '-':
-                return Symbol = ScanNumber();
+            case '.':
+                return ScanNumber();
 
             case '[':
                 ScanNextChar();
-                return Symbol = CSymbol.BeginArray;
+                return CSymbol.BeginArray;
 
             case ']':
                 ScanNextChar();
-                return Symbol = CSymbol.EndArray;
+                return CSymbol.EndArray;
 
             case '(':
-                return Symbol = ScanLiteralString();
+                return ScanLiteralString();
 
             case '<':
-                if (_nextChar == '<')
-                    return Symbol = ScanDictionary();
-                return Symbol = ScanHexadecimalString();
-
-            case '.':
-                return Symbol = ScanNumber();
+                return _nextChar == '<' ? ScanDictionary() : ScanHexadecimalString();
 
             case '"':
             case '\'':
-                return Symbol = ScanOperator();
+                return ScanOperator();
         }
         if (char.IsDigit(ch))
-            return Symbol = ScanNumber();
+            return ScanNumber();
 
         if (char.IsLetter(ch))
-            return Symbol = ScanOperator();
+            return ScanOperator();
 
         if (ch == Chars.EOF)
-            return Symbol = CSymbol.Eof;
+            return CSymbol.Eof;
 
         ContentReaderDiagnostics.HandleUnexpectedCharacter(ch);
-        return Symbol = CSymbol.None;
+        return CSymbol.None;
     }
 
     /// <summary>
@@ -153,56 +159,20 @@ public class CLexer
     public CSymbol ScanInlineImage()
     {
         var dictionaryStart = CurrentCharIndex;
-        var dictionaryEnd = ContLength;
-        var foundData = false;
-        var ascii85 = false;
-        while (ScanNextToken() != CSymbol.Eof)
-        {
-            // HACK: Is image ASCII85 decoded?
-            if (!ascii85 && Symbol == CSymbol.Name && (Token is "/ASCII85Decode" or "/A85"))
-                ascii85 = true;
-
-            if (Symbol == CSymbol.Operator && Token == "ID")
-            {
-                dictionaryEnd = _tokenStart;
-                foundData = true;
-                break;
-            }
-        }
+        var foundData = ScanToImageData(out var dictionaryEnd, out var ascii85);
         InlineImageDictionary = RawText(dictionaryStart, dictionaryEnd).Trim(WhiteSpaceCharacters);
 
-        // ID is followed by a single white-space character, which separates it from the data
-        // rather than belonging to it.
-        var dataStart = ContLength;
-        if (foundData)
-        {
-            dataStart = dictionaryEnd + 2;
-            if (dataStart < ContLength && IsWhiteSpace((char)_content[dataStart]))
-                dataStart++;
-        }
+        var dataStart = foundData ? StartOfImageData(dictionaryEnd) : ContLength;
 
+        // Look for '~>' because 'EI' may be part of the encoded image.
         if (ascii85)
-        {
-            // Look for '~>' because 'EI' may be part of the encoded image.
-            // currChar != Chars.EOF: Addresses issue #354 - malformed PDF that ends without closing an inline image
-            while (_currChar != Chars.EOF && ( _currChar != '~' || _nextChar != '>'))
-                ScanNextChar();
-        }
+            SkipToPair('~', '>');
 
         // Look for 'EI'.
-        // currChar != Chars.EOF: Addresses issue #354 - malformed PDF that ends without closing an inline image
-        while (_currChar != Chars.EOF && (_currChar != 'E' || _nextChar != 'I'))
-            ScanNextChar();
+        SkipToPair('E', 'I');
 
-        // The white space before EI separates it from the data, as the one after ID does, and is
-        // not kept: CInlineImage writes a separator of its own, so keeping this one too would
-        // add a byte to the data every time the content was read and written back.
-        var dataEnd = CurrentCharIndex;
-        if (foundData && _currChar != Chars.EOF && dataEnd > dataStart && IsWhiteSpace((char)_content[dataEnd - 1]))
-            dataEnd--;
-        InlineImageData = new byte[Math.Max(0, dataEnd - dataStart)];
-        if (InlineImageData.Length > 0)
-            Array.Copy(_content, dataStart, InlineImageData, 0, InlineImageData.Length);
+        var dataEnd = EndOfImageData(foundData, dataStart);
+        InlineImageData = ContentBetween(dataStart, dataEnd);
 
         // Step over the EI itself, so that it is not read again as an operator of its own.
         if (_currChar != Chars.EOF)
@@ -212,6 +182,79 @@ public class CLexer
         }
 
         return CSymbol.None;
+    }
+
+    /// <summary>
+    /// Reads the entries of an inline image up to and including its <c>ID</c>, and says whether
+    /// there was one. Where the entries end is where the <c>ID</c> begins, or the end of the
+    /// content when there is none.
+    /// </summary>
+    private bool ScanToImageData(out int dictionaryEnd, out bool ascii85)
+    {
+        dictionaryEnd = ContLength;
+        ascii85 = false;
+        while (ScanNextToken() != CSymbol.Eof)
+        {
+            // HACK: Is image ASCII85 decoded?
+            if (!ascii85 && NamesAscii85Filter())
+                ascii85 = true;
+
+            if (Symbol == CSymbol.Operator && Token == "ID")
+            {
+                dictionaryEnd = _tokenStart;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private bool NamesAscii85Filter() => Symbol == CSymbol.Name && (Token is "/ASCII85Decode" or "/A85");
+
+    /// <summary>
+    /// Where the data of an inline image begins, given where its <c>ID</c> does. ID is followed by
+    /// a single white-space character, which separates it from the data rather than belonging to it.
+    /// </summary>
+    private int StartOfImageData(int dictionaryEnd)
+    {
+        var dataStart = dictionaryEnd + 2;
+        if (dataStart < ContLength && IsWhiteSpace((char)_content[dataStart]))
+            dataStart++;
+        return dataStart;
+    }
+
+    /// <summary>
+    /// Where the data of an inline image ends, the reader standing on its <c>EI</c> or at the end of
+    /// the content. The white space before EI separates it from the data, as the one after ID does,
+    /// and is not kept: CInlineImage writes a separator of its own, so keeping this one too would
+    /// add a byte to the data every time the content was read and written back.
+    /// </summary>
+    private int EndOfImageData(bool foundData, int dataStart)
+    {
+        var dataEnd = CurrentCharIndex;
+        var foundEndOfImage = foundData && _currChar != Chars.EOF;
+        if (foundEndOfImage && dataEnd > dataStart && IsWhiteSpace((char)_content[dataEnd - 1]))
+            dataEnd--;
+        return dataEnd;
+    }
+
+    /// <summary>
+    /// Moves on until the current character and the one after it are the pair given, or to the end
+    /// of the content. Stopping at the end addresses issue #354 - malformed PDF that ends without
+    /// closing an inline image.
+    /// </summary>
+    private void SkipToPair(char first, char second)
+    {
+        while (_currChar != Chars.EOF && (_currChar != first || _nextChar != second))
+            ScanNextChar();
+    }
+
+    /// <summary>A copy of the bytes of the content from one index up to another.</summary>
+    private byte[] ContentBetween(int start, int end)
+    {
+        var bytes = new byte[Math.Max(0, end - start)];
+        if (bytes.Length > 0)
+            Array.Copy(_content, start, bytes, 0, bytes.Length);
+        return bytes;
     }
 
     /// <summary>
@@ -335,58 +378,19 @@ public class CLexer
                         _token.Append(ScanNextChar());
                         depth++;
                     }
-                    else
+                    else if (!TryAppendHexStringInDictionary())
                     {
-                        // A hex string. Its '>' is not this dictionary's, so read past it.
-                        while (true)
-                        {
-                            ch = ScanNextChar();
-                            if (ch == Chars.EOF)
-                                return CSymbol.Dictionary;
-
-                            _token.Append(ch);
-                            if (ch == '>')
-                                break;
-                        }
+                        return CSymbol.Dictionary;
                     }
                     break;
 
                 case '(':
-                    // A literal string, which ends at the parenthesis that balances this one -
-                    // counting the nested pairs it is allowed to hold, and skipping whatever a
-                    // backslash escapes so that an escaped parenthesis does not close it.
-                    var parentheses = 1;
-                    while (parentheses > 0)
-                    {
-                        ch = ScanNextChar();
-                        if (ch == Chars.EOF)
-                            return CSymbol.Dictionary;
-
-                        _token.Append(ch);
-
-                        if (ch == '\\')
-                        {
-                            ch = ScanNextChar();
-                            if (ch == Chars.EOF)
-                                return CSymbol.Dictionary;
-                            _token.Append(ch);
-                        }
-                        else if (ch == '(')
-                        {
-                            parentheses++;
-                        }
-                        else if (ch == ')')
-                        {
-                            parentheses--;
-                        }
-                    }
+                    if (!TryAppendLiteralStringInDictionary())
+                        return CSymbol.Dictionary;
                     break;
 
                 case '%':
-                    // A comment, which runs to the end of the line. Whatever it says is not syntax,
-                    // so a '>>' inside one closes nothing.
-                    while (_nextChar != Chars.CR && _nextChar != Chars.LF && _nextChar != Chars.EOF)
-                        _token.Append(ScanNextChar());
+                    AppendCommentInDictionary();
                     break;
 
                 case '>':
@@ -407,58 +411,78 @@ public class CLexer
     }
 
     /// <summary>
+    /// Appends a hex string inside a dictionary to the token, its '&lt;' already appended. Its
+    /// '&gt;' is not the dictionary's, so it is read past.
+    /// </summary>
+    /// <returns>False when the content ends first.</returns>
+    private bool TryAppendHexStringInDictionary()
+    {
+        while (true)
+        {
+            var ch = ScanNextChar();
+            if (ch == Chars.EOF)
+                return false;
+
+            _token.Append(ch);
+            if (ch == '>')
+                return true;
+        }
+    }
+
+    /// <summary>
+    /// Appends a literal string inside a dictionary to the token, its '(' already appended. It ends
+    /// at the parenthesis that balances that one - counting the nested pairs it is allowed to hold,
+    /// and skipping whatever a backslash escapes so that an escaped parenthesis does not close it.
+    /// </summary>
+    /// <returns>False when the content ends first.</returns>
+    private bool TryAppendLiteralStringInDictionary()
+    {
+        var parentheses = 1;
+        while (parentheses > 0)
+        {
+            var ch = ScanNextChar();
+            if (ch == Chars.EOF)
+                return false;
+
+            _token.Append(ch);
+
+            if (ch == '\\')
+            {
+                ch = ScanNextChar();
+                if (ch == Chars.EOF)
+                    return false;
+                _token.Append(ch);
+            }
+            else if (ch == '(')
+            {
+                parentheses++;
+            }
+            else if (ch == ')')
+            {
+                parentheses--;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Appends a comment inside a dictionary to the token, its '%' already appended. It runs to the
+    /// end of the line. Whatever it says is not syntax, so a '&gt;&gt;' inside one closes nothing.
+    /// </summary>
+    private void AppendCommentInDictionary()
+    {
+        while (_nextChar != Chars.CR && _nextChar != Chars.LF && _nextChar != Chars.EOF)
+            _token.Append(ScanNextChar());
+    }
+
+    /// <summary>
     /// Scans an integer or real number.
     /// </summary>
     public CSymbol ScanNumber()
     {
-        long value = 0;
-        var decimalDigits = 0;
-        var period = false;
-        var negative = false;
-        // Set once the integer part alone would no longer fit in a long - a nineteen-or-more
-        // digit token, which unchecked arithmetic would otherwise wrap silently rather than
-        // report. Once set, value is no longer trustworthy and the token text is read directly
-        // instead, the same way a real with more than ten decimal digits already is below.
-        var overflow = false;
-
         ClearToken();
-        var ch = _currChar;
-        if (ch is '+' or '-')
-        {
-            if (ch == '-')
-                negative = true;
-            _token.Append(ch);
-            ch = ScanNextChar();
-        }
-        while (true)
-        {
-            if (char.IsDigit(ch))
-            {
-                _token.Append(ch);
-                if (decimalDigits < 10)
-                {
-                    if (!period && value > (long.MaxValue - 9) / 10)
-                        overflow = true;
-                    else
-                        value = 10 * value + ch - '0';
-                    if (period)
-                        decimalDigits++;
-                }
-            }
-            else if (ch == '.')
-            {
-                if (period)
-                    ContentReaderDiagnostics.ThrowContentReaderException("More than one period in number.");
-
-                period = true;
-                _token.Append(ch);
-            }
-            else
-            {
-                break;
-            }
-            ch = ScanNextChar();
-        }
+        var negative = ScanSign();
+        var value = ScanDigits(out var period, out var decimalDigits, out var overflow);
 
         if (negative)
             value = -value;
@@ -491,6 +515,90 @@ public class CLexer
             return CSymbol.Real;
         }
 
+        return ScannedInteger(value);
+    }
+
+    /// <summary>
+    /// Appends the sign a number may begin with to the token and steps over it, and says whether
+    /// it was a minus.
+    /// </summary>
+    private bool ScanSign()
+    {
+        var ch = _currChar;
+        if (ch is not ('+' or '-'))
+            return false;
+
+        _token.Append(ch);
+        ScanNextChar();
+        return ch == '-';
+    }
+
+    /// <summary>
+    /// Appends the digits of a number and its decimal point to the token, and works out the value
+    /// they spell as far as a long and ten decimal places will hold it, the decimal point left out.
+    /// </summary>
+    /// <param name="period">Whether the number has a decimal point.</param>
+    /// <param name="decimalDigits">How many of the digits after it are in the value.</param>
+    /// <param name="overflow">
+    /// Set once the integer part alone would no longer fit in a long - a nineteen-or-more
+    /// digit token, which unchecked arithmetic would otherwise wrap silently rather than
+    /// report. Once set, the value is no longer trustworthy and the token text is read directly
+    /// instead, the same way a real with more than ten decimal digits already is.
+    /// </param>
+    private long ScanDigits(out bool period, out int decimalDigits, out bool overflow)
+    {
+        long value = 0;
+        period = false;
+        decimalDigits = 0;
+        overflow = false;
+
+        var ch = _currChar;
+        while (true)
+        {
+            if (char.IsDigit(ch))
+            {
+                _token.Append(ch);
+                AccumulateDigit(ch, period, ref value, ref decimalDigits, ref overflow);
+            }
+            else if (ch == '.')
+            {
+                if (period)
+                    ContentReaderDiagnostics.ThrowContentReaderException("More than one period in number.");
+
+                period = true;
+                _token.Append(ch);
+            }
+            else
+            {
+                return value;
+            }
+            ch = ScanNextChar();
+        }
+    }
+
+    /// <summary>
+    /// Adds a digit to the value <see cref="ScanDigits"/> is working out. Digits beyond the tenth
+    /// decimal place are left to the token alone.
+    /// </summary>
+    private static void AccumulateDigit(char digit, bool period, ref long value, ref int decimalDigits, ref bool overflow)
+    {
+        if (decimalDigits >= 10)
+            return;
+
+        if (!period && value > (long.MaxValue - 9) / 10)
+            overflow = true;
+        else
+            value = 10 * value + digit - '0';
+        if (period)
+            decimalDigits++;
+    }
+
+    /// <summary>
+    /// Keeps the value of a number with no decimal point that fits in a long, and says which
+    /// symbol it is.
+    /// </summary>
+    private CSymbol ScannedInteger(long value)
+    {
         _tokenAsLong = value;
         _tokenAsReal = Convert.ToDouble(value);
 
@@ -557,7 +665,6 @@ public class CLexer
         var ch = ScanNextChar(false);
         while (true)
         {
-            SkipChar:
             // An unterminated string never sees its closing ')', so give up at the end
             // of the content rather than appending Chars.EOF for ever.
             if (ch == Chars.EOF)
@@ -579,67 +686,12 @@ public class CLexer
                     break;
 
                 case '\\':
-                {
-                    ch = ScanNextChar(false);
-                    switch (ch)
-                    {
-                        case 'n':
-                            ch = Chars.LF;
-                            break;
-
-                        case 'r':
-                            ch = Chars.CR;
-                            break;
-
-                        case 't':
-                            ch = Chars.HT;
-                            break;
-
-                        case 'b':
-                            ch = Chars.BS;
-                            break;
-
-                        case 'f':
-                            ch = Chars.FF;
-                            break;
-
-                        case '(':
-                            ch = Chars.ParenLeft;
-                            break;
-
-                        case ')':
-                            ch = Chars.ParenRight;
-                            break;
-
-                        case '\\':
-                            ch = Chars.BackSlash;
-                            break;
-
-                        // A backslash right before either spelling of an end of line
-                        // continues the string onto the next one; neither the backslash nor
-                        // the line ending becomes part of it.
-                        case Chars.CR:
-                        case Chars.LF:
-                            ch = ScanNextChar(false);
-                            goto SkipChar;
-
-                        default:
-                            if (IsOctalDigit(ch))
-                            {
-                                // Octal character code.
-                                var n = ch - '0';
-                                if (IsOctalDigit(_nextChar))
-                                {
-                                    n = n * 8 + ScanNextChar(false) - '0';
-                                    if (IsOctalDigit(_nextChar))
-                                        n = n * 8 + ScanNextChar(false) - '0';
-                                }
-                                ch = (char)n;
-                            }
-                            break;
-                    }
+                    // A backslash right before either spelling of an end of line continues the
+                    // string onto the next one; neither the backslash nor the line ending becomes
+                    // part of it, and ch is then what follows the line ending.
+                    if (!TryReadEscapedChar(out ch))
+                        continue;
                     break;
-                }
             }
 
             // The end-of-file marker is not a character of the string. It reaches here when
@@ -652,6 +704,96 @@ public class CLexer
             _token.Append(ch);
             ch = ScanNextChar(false);
         }
+    }
+
+    /// <summary>
+    /// Reads what follows a backslash in a literal string, the backslash being the current
+    /// character, and resolves it to the character it stands for.
+    /// </summary>
+    /// <returns>
+    /// False when the backslash continues the line instead, in which case <paramref name="ch"/> is
+    /// the character after the line ending and still to be read as part of the string.
+    /// </returns>
+    private bool TryReadEscapedChar(out char ch)
+    {
+        ch = ScanNextChar(false);
+        if (ch is Chars.CR or Chars.LF)
+        {
+            // CR LF is one line ending, not a CR ending the line and an LF opening the next.
+            var lineEnding = ch;
+            ch = ScanNextChar(false);
+            if (lineEnding == Chars.CR && ch == Chars.LF)
+                ch = ScanNextChar(false);
+            return false;
+        }
+
+        if (TryResolveSimpleEscape(ch, out var resolved))
+            ch = resolved;
+        else if (IsOctalDigit(ch))
+            ch = ReadOctalEscape(ch);
+
+        // Anything else stands for itself, and the backslash is dropped.
+        return true;
+    }
+
+    /// <summary>
+    /// Resolves the escapes a literal string writes as a backslash and one character.
+    /// </summary>
+    private static bool TryResolveSimpleEscape(char ch, out char resolved)
+    {
+        switch (ch)
+        {
+            case 'n':
+                resolved = Chars.LF;
+                return true;
+
+            case 'r':
+                resolved = Chars.CR;
+                return true;
+
+            case 't':
+                resolved = Chars.HT;
+                return true;
+
+            case 'b':
+                resolved = Chars.BS;
+                return true;
+
+            case 'f':
+                resolved = Chars.FF;
+                return true;
+
+            case '(':
+                resolved = Chars.ParenLeft;
+                return true;
+
+            case ')':
+                resolved = Chars.ParenRight;
+                return true;
+
+            case '\\':
+                resolved = Chars.BackSlash;
+                return true;
+
+            default:
+                resolved = ch;
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// Reads an octal character code of up to three digits, the first of which has just been read.
+    /// </summary>
+    private char ReadOctalEscape(char first)
+    {
+        var n = first - '0';
+        if (IsOctalDigit(_nextChar))
+        {
+            n = n * 8 + ScanNextChar(false) - '0';
+            if (IsOctalDigit(_nextChar))
+                n = n * 8 + ScanNextChar(false) - '0';
+        }
+        return (char)n;
     }
 
     /// <summary>

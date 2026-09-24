@@ -25,43 +25,79 @@ internal static class PngFilter
             var filterType = inData[pos];
             if (filterType > 4)
                 throw new PdfReaderException($"Unexpected Png-Predictor {filterType} in Xref Stream. Expected 0 to 4.");
-            switch (filterType)
-            {
-                case 0:         // None
-                    foreach (var value in row)
-                        outData[outIndex++] = value;
-                    break;
-                case 1:         // Sub
-                    for (var i = 0; i < row.Length; i++)
-                    {
-                        var left = i < bpp ? 0 : outData[outIndex - bpp];
-                        outData[outIndex++] = (byte)(row[i] + left);
-                    }
-                    break;
-                case 2:         // Up
-                    for (var i = 0; i < row.Length; i++)
-                        outData[outIndex++] = (byte)(row[i] + prevRow[i]);
-                    break;
-                case 3:         // Average
-                    for (var i = 0; i < row.Length; i++)
-                    {
-                        var left = i < bpp ? 0 : outData[outIndex - bpp];
-                        outData[outIndex++] = (byte)(row[i] + (byte)((left + prevRow[i]) / 2));
-                    }
-                    break;
-                case 4:         // Paeth
-                    for (var i = 0; i < row.Length; i++)
-                    {
-                        var left = i < bpp ? (byte)0 : outData[outIndex - bpp];
-                        var above = prevRow[i];
-                        var aboveLeft = i < bpp ? (byte)0 : prevRow[i - bpp];
-                        outData[outIndex++] = (byte)(row[i] + PaethPredictor(left, above, aboveLeft));
-                    }
-                    break;
-            }
+            UnfilterRow(filterType, row, prevRow, bpp, outData, outIndex);
+            outIndex += row.Length;
             // remember current scanline
             Array.Copy(outData, outIndex - stride, prevRow, 0, stride);
             pos += stride + 1;    // each scanline is preceded by a predictor-byte
+        }
+    }
+
+    /// <summary>
+    /// Undoes one row's filter, writing the row's bytes to <paramref name="outData"/> from
+    /// <paramref name="outIndex"/> on. The bytes to the left of a pixel are read back out of
+    /// <paramref name="outData"/>, which is where the row being undone already is.
+    /// </summary>
+    private static void UnfilterRow(byte filterType, byte[] row, byte[] prevRow, int bpp, byte[] outData, int outIndex)
+    {
+        switch (filterType)
+        {
+            case 0:         // None
+                UnfilterNone(row, outData, outIndex);
+                break;
+            case 1:         // Sub
+                UnfilterSub(row, bpp, outData, outIndex);
+                break;
+            case 2:         // Up
+                UnfilterUp(row, prevRow, outData, outIndex);
+                break;
+            case 3:         // Average
+                UnfilterAverage(row, prevRow, bpp, outData, outIndex);
+                break;
+            case 4:         // Paeth
+                UnfilterPaeth(row, prevRow, bpp, outData, outIndex);
+                break;
+        }
+    }
+
+    private static void UnfilterNone(byte[] row, byte[] outData, int outIndex)
+    {
+        foreach (var value in row)
+            outData[outIndex++] = value;
+    }
+
+    private static void UnfilterSub(byte[] row, int bpp, byte[] outData, int outIndex)
+    {
+        for (var i = 0; i < row.Length; i++)
+        {
+            var left = i < bpp ? 0 : outData[outIndex - bpp];
+            outData[outIndex++] = (byte)(row[i] + left);
+        }
+    }
+
+    private static void UnfilterUp(byte[] row, byte[] prevRow, byte[] outData, int outIndex)
+    {
+        for (var i = 0; i < row.Length; i++)
+            outData[outIndex++] = (byte)(row[i] + prevRow[i]);
+    }
+
+    private static void UnfilterAverage(byte[] row, byte[] prevRow, int bpp, byte[] outData, int outIndex)
+    {
+        for (var i = 0; i < row.Length; i++)
+        {
+            var left = i < bpp ? 0 : outData[outIndex - bpp];
+            outData[outIndex++] = (byte)(row[i] + (byte)((left + prevRow[i]) / 2));
+        }
+    }
+
+    private static void UnfilterPaeth(byte[] row, byte[] prevRow, int bpp, byte[] outData, int outIndex)
+    {
+        for (var i = 0; i < row.Length; i++)
+        {
+            var left = i < bpp ? (byte)0 : outData[outIndex - bpp];
+            var above = prevRow[i];
+            var aboveLeft = i < bpp ? (byte)0 : prevRow[i - bpp];
+            outData[outIndex++] = (byte)(row[i] + PaethPredictor(left, above, aboveLeft));
         }
     }
 

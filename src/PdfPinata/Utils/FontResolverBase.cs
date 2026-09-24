@@ -224,78 +224,122 @@ public abstract class FontResolverBase
         var tempFontInfoList = new List<FontFileInfo>();
 
         foreach (var fontPathFile in sSupportedFonts)
+            AddFacesOfFile(fontPathFile, facePaths, tempFontInfoList);
+
+        var installedFonts = BuildFamilies(tempFontInfoList);
+
+        lock (_initLock)
         {
-            var fileName = System.IO.Path.GetFileName(fontPathFile);
+            _facePaths = facePaths;
+            // Written last: its volatile write publishes _facePaths to EnsureInitialized,
+            // which reads that field to decide whether both are ready.
+            _installedFonts = installedFonts;
+        }
+    }
 
-            int faceCount;
-            bool isCollection;
-            try
-            {
-                isCollection = TrueTypeCollection.TryGetFaceCount(fontPathFile, out faceCount);
-            }
-            catch (System.Exception e) when (!Unrecoverable.Is(e))
-            {
-                LogError(e.ToString());
-                continue;
-            }
 
-            Debug.WriteLine(fontPathFile);
+    /// <summary>
+    /// Reads every face of one font file into the lookups being built, logging and skipping
+    /// whatever cannot be read.
+    /// </summary>
+    private void AddFacesOfFile(string fontPathFile, Dictionary<string, FaceLocation> facePaths,
+        List<FontFileInfo> fontInfoList)
+    {
+        var fileName = System.IO.Path.GetFileName(fontPathFile);
 
-            // Read a collection in one go where the backend can, so that a file holding a dozen
-            // faces is opened once rather than a dozen times.
-            FontMetadata[] collectionMetadata = null;
-            if (isCollection)
-            {
-                try
-                {
-                    collectionMetadata = ReadCollectionMetadata(fontPathFile, faceCount);
-                }
-                catch (System.Exception e) when (!Unrecoverable.Is(e))
-                {
-                    // One unreadable face must not cost the rest of the collection, so fall
-                    // back to reading them one at a time, where a failure stays with the face
-                    // that caused it.
-                    LogError(e.ToString());
-                }
-            }
-
-            for (var face = 0; face < faceCount; face++)
-            {
-                // Only a member of a collection carries an index; a single font keeps the plain
-                // file name it has always been known by.
-                var faceIndex = isCollection ? face : -1;
-                var faceName = isCollection ? TrueTypeCollection.FaceName(fileName, face) : fileName;
-
-                // Two font directories habitually hold a file of the same name - on Windows the
-                // system one and the per-user one. The first found wins, so that the face name a
-                // family points at and the file it is read from cannot drift apart. Checked
-                // before the metadata is read, so that a file the derived class cannot parse
-                // does not reserve a name a readable one could have used.
-                if (facePaths.ContainsKey(faceName))
-                    continue;
-
-                FontMetadata metadata;
-                try
-                {
-                    metadata = collectionMetadata != null
-                        ? collectionMetadata[face]
-                        : ReadFontMetadata(fontPathFile, faceIndex);
-                }
-                catch (System.Exception e) when (!Unrecoverable.Is(e))
-                {
-                    LogError(e.ToString());
-                    continue;
-                }
-
-                facePaths.Add(faceName, new FaceLocation(fontPathFile, faceIndex));
-                tempFontInfoList.Add(new FontFileInfo(faceName, metadata));
-            }
+        int faceCount;
+        bool isCollection;
+        try
+        {
+            isCollection = TrueTypeCollection.TryGetFaceCount(fontPathFile, out faceCount);
+        }
+        catch (System.Exception e) when (!Unrecoverable.Is(e))
+        {
+            LogError(e.ToString());
+            return;
         }
 
+        Debug.WriteLine(fontPathFile);
+
+        var collectionMetadata = isCollection ? TryReadCollectionMetadata(fontPathFile, faceCount) : null;
+
+        for (var face = 0; face < faceCount; face++)
+        {
+            // Only a member of a collection carries an index; a single font keeps the plain
+            // file name it has always been known by.
+            var faceIndex = isCollection ? face : -1;
+            var faceName = isCollection ? TrueTypeCollection.FaceName(fileName, face) : fileName;
+
+            // Two font directories habitually hold a file of the same name - on Windows the
+            // system one and the per-user one. The first found wins, so that the face name a
+            // family points at and the file it is read from cannot drift apart. Checked
+            // before the metadata is read, so that a file the derived class cannot parse
+            // does not reserve a name a readable one could have used.
+            if (facePaths.ContainsKey(faceName))
+                continue;
+
+            if (!TryReadFaceMetadata(fontPathFile, face, faceIndex, collectionMetadata, out var metadata))
+                continue;
+
+            facePaths.Add(faceName, new FaceLocation(fontPathFile, faceIndex));
+            fontInfoList.Add(new FontFileInfo(faceName, metadata));
+        }
+    }
+
+
+    /// <summary>
+    /// Reads a collection in one go where the backend can, so that a file holding a dozen faces
+    /// is opened once rather than a dozen times. Answers null when that fails.
+    /// </summary>
+    private FontMetadata[] TryReadCollectionMetadata(string fontPathFile, int faceCount)
+    {
+        try
+        {
+            return ReadCollectionMetadata(fontPathFile, faceCount);
+        }
+        catch (System.Exception e) when (!Unrecoverable.Is(e))
+        {
+            // One unreadable face must not cost the rest of the collection, so fall back to
+            // reading them one at a time, where a failure stays with the face that caused it.
+            LogError(e.ToString());
+            return null;
+        }
+    }
+
+
+    /// <summary>
+    /// One face's metadata: taken from the collection's where that was read in one go, and read
+    /// on its own otherwise. A face that cannot be read is logged and answers false.
+    /// </summary>
+    private bool TryReadFaceMetadata(string fontPathFile, int face, int faceIndex,
+        FontMetadata[] collectionMetadata, out FontMetadata metadata)
+    {
+        try
+        {
+            metadata = collectionMetadata != null
+                ? collectionMetadata[face]
+                : ReadFontMetadata(fontPathFile, faceIndex);
+            return true;
+        }
+        catch (System.Exception e) when (!Unrecoverable.Is(e))
+        {
+            LogError(e.ToString());
+            metadata = default;
+            return false;
+        }
+    }
+
+
+    /// <summary>
+    /// Groups the faces found into families, keyed by lower-cased family name. A family that
+    /// cannot be built is logged and left out.
+    /// </summary>
+    private static Dictionary<string, FontFamilyModel> BuildFamilies(List<FontFileInfo> fontInfoList)
+    {
         var installedFonts = new Dictionary<string, FontFamilyModel>();
 
         // Deserialize all font families
-        foreach (var familyGroup in tempFontInfoList.GroupBy(info => info.FamilyName))
+        foreach (var familyGroup in fontInfoList.GroupBy(info => info.FamilyName))
             try
             {
                 var familyName = familyGroup.Key;
@@ -307,13 +351,7 @@ public abstract class FontResolverBase
                 LogError(e.ToString());
             }
 
-        lock (_initLock)
-        {
-            _facePaths = facePaths;
-            // Written last: its volatile write publishes _facePaths to EnsureInitialized,
-            // which reads that field to decide whether both are ready.
-            _installedFonts = installedFonts;
-        }
+        return installedFonts;
     }
 
 

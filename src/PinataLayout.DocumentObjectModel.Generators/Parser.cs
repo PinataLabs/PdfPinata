@@ -37,47 +37,14 @@ internal static class Parser
         var ownerFqn = owner.ToDisplayString(Fqn);
         var location = LocationInfo.From(symbol.Locations.FirstOrDefault());
 
-        if (symbol.IsStatic)
-        {
-            return (null, DiagnosticInfo.Create(Diagnostics.NotAnInstanceMember, location,
-                owner.Name, symbol.Name, "static"));
-        }
+        if (DeclarationError(symbol, owner, location) is { } declarationError)
+            return (null, declarationError);
 
-        if (symbol.DeclaredAccessibility == Accessibility.Private)
-        {
-            return (null, DiagnosticInfo.Create(Diagnostics.NotAnInstanceMember, location,
-                owner.Name, symbol.Name, "private"));
-        }
+        var shape = ReadShape(symbol);
+        if (shape is null)
+            return (null, null);
 
-        if (!DerivesFrom(owner, DocumentObject))
-        {
-            return (null, DiagnosticInfo.Create(Diagnostics.NotADocumentObject, location,
-                owner.Name, symbol.Name));
-        }
-
-        if (!IsPartial(owner))
-        {
-            return (null, DiagnosticInfo.Create(Diagnostics.NotPartial, location, owner.Name));
-        }
-
-        ITypeSymbol memberType;
-        bool isField;
-        bool isWritable;
-        switch (symbol)
-        {
-            case IFieldSymbol field:
-                memberType = field.Type;
-                isField = true;
-                isWritable = !field.IsReadOnly;
-                break;
-            case IPropertySymbol property:
-                memberType = property.Type;
-                isField = false;
-                isWritable = property.SetMethod is not null;
-                break;
-            default:
-                return (null, null);
-        }
+        (var memberType, var isField, var isWritable) = shape.Value;
 
         (MemberKind kind, ITypeSymbol valueType)? classified = Classify(memberType);
         if (classified is null)
@@ -95,11 +62,11 @@ internal static class Parser
                 owner.Name, symbol.Name));
         }
 
+        var holdsObject = HoldsDocumentObject(kind);
+
         // A DocumentObject member is only assignable through the model when it is a field. The
         // descriptor class this replaces threw "This value cannot be set." for every property.
-        var settable = kind is MemberKind.DocumentObject or MemberKind.Collection
-            ? isField
-            : isWritable;
+        var settable = holdsObject ? isField : isWritable;
 
         var member = new DomMemberModel(
             Name: symbol.Name,
@@ -110,8 +77,7 @@ internal static class Parser
             IsRefOnly: isRefOnly,
             IsField: isField,
             IsWritable: settable,
-            CanConstruct: kind is MemberKind.DocumentObject or MemberKind.Collection
-                          && HasAccessibleParameterlessConstructor(memberType),
+            CanConstruct: holdsObject && HasAccessibleParameterlessConstructor(memberType),
             IsEnum: valueTypeSymbol.TypeKind == TypeKind.Enum,
             BoxedDefaultExpression: kind == MemberKind.Leaf
                 ? BoxedDefault(valueTypeSymbol)
@@ -119,6 +85,54 @@ internal static class Parser
 
         return (new ParsedMember(member, ownerFqn, order, location), null);
     }
+
+    /// <summary>
+    /// Why a [DV] member cannot be in the model for where it is declared, or null if it can be:
+    /// it must be an instance member that is not private, of a partial DocumentObject class.
+    /// </summary>
+    private static DiagnosticInfo? DeclarationError(ISymbol symbol, INamedTypeSymbol owner, LocationInfo? location)
+    {
+        if (symbol.IsStatic)
+        {
+            return DiagnosticInfo.Create(Diagnostics.NotAnInstanceMember, location,
+                owner.Name, symbol.Name, "static");
+        }
+
+        if (symbol.DeclaredAccessibility == Accessibility.Private)
+        {
+            return DiagnosticInfo.Create(Diagnostics.NotAnInstanceMember, location,
+                owner.Name, symbol.Name, "private");
+        }
+
+        if (!DerivesFrom(owner, DocumentObject))
+        {
+            return DiagnosticInfo.Create(Diagnostics.NotADocumentObject, location,
+                owner.Name, symbol.Name);
+        }
+
+        if (!IsPartial(owner))
+            return DiagnosticInfo.Create(Diagnostics.NotPartial, location, owner.Name);
+
+        return null;
+    }
+
+    /// <summary>
+    /// A member's type, whether it is a field, and whether it can be written to; or null if the
+    /// symbol is neither a field nor a property.
+    /// </summary>
+    private static (ITypeSymbol Type, bool IsField, bool IsWritable)? ReadShape(ISymbol symbol) =>
+        symbol switch
+        {
+            IFieldSymbol field => (field.Type, true, !field.IsReadOnly),
+            IPropertySymbol property => (property.Type, false, property.SetMethod is not null),
+            _ => null
+        };
+
+    /// <summary>
+    /// Whether a member of this kind holds a DocumentObject, a collection being one.
+    /// </summary>
+    private static bool HoldsDocumentObject(MemberKind kind) =>
+        kind is MemberKind.DocumentObject or MemberKind.Collection;
 
     /// <summary>
     /// A DocumentObject class declaration, or null if the syntax node is not one.
@@ -297,56 +311,14 @@ internal static class Parser
             // whether the type is abstract, and independent of the base chain the table below
             // closes, since a member declared here is this type's responsibility to serialize,
             // not a descendant's.
-            if (type.SerializeLiterals is { } literals && byType.TryGetValue(type.Fqn, out var ownMembers))
-            {
-                var written = new HashSet<string>(literals, System.StringComparer.OrdinalIgnoreCase);
-                foreach (var member in ownMembers)
-                {
-                    if (!member.Member.IsRefOnly && !written.Contains(member.Member.Name))
-                    {
-                        context.ReportDiagnostic(Diagnostic.Create(
-                            Diagnostics.MemberMissingFromSerialize, member.Location?.ToLocation(),
-                            type.Name, member.Member.Name));
-                    }
-                }
-            }
+            ReportMembersMissingFromSerialize(type, byType, context);
 
             // An abstract class needs no table of its own - it cannot be instantiated, and its
             // members are picked up by every concrete type below it.
             if (type.IsAbstract)
                 continue;
 
-            // Base first, so the order is deterministic. Reflection's own order never was.
-            var chain = new List<string>();
-            for (var t = type.Fqn; t is not null; )
-            {
-                chain.Insert(0, t);
-                t = declarations.TryGetValue(t, out var found) ? found.BaseFqn : null;
-            }
-
-            var collected = new List<DomMemberModel>();
-            var seen = new Dictionary<string, string>(System.StringComparer.OrdinalIgnoreCase);
-            foreach (var owner in chain)
-            {
-                if (!byType.TryGetValue(owner, out var declared))
-                    continue;
-                foreach (var member in declared)
-                {
-                    if (seen.ContainsKey(member.Member.Name))
-                    {
-                        // Points at the later of the two declarations - the base chain is walked
-                        // base first, so that is the one the collision is attributable to. Raising
-                        // a real Diagnostic here rather than a DiagnosticInfo is fine: grouping
-                        // runs inside the source-output stage, downstream of every cache.
-                        context.ReportDiagnostic(Diagnostic.Create(
-                            Diagnostics.DuplicateValueName, member.Location?.ToLocation(),
-                            type.Name, member.Member.Name));
-                        continue;
-                    }
-                    seen.Add(member.Member.Name, owner);
-                    collected.Add(member.Member);
-                }
-            }
+            var collected = CollectMembers(type, BaseFirstChain(type.Fqn, declarations), byType, context);
 
             yield return new DomTypeModel(
                 Namespace: type.Namespace,
@@ -354,5 +326,80 @@ internal static class Parser
                 HintName: type.Fqn.Replace("global::", "").Replace('.', '_'),
                 Members: new EquatableArray<DomMemberModel>(collected));
         }
+    }
+
+    /// <summary>
+    /// Reports MDG007 for each of a type's own [DV] members that is not RefOnly and is not
+    /// mentioned in the type's own Serialize. Reports nothing for a type with no Serialize.
+    /// </summary>
+    private static void ReportMembersMissingFromSerialize(
+        ParsedType type,
+        Dictionary<string, List<ParsedMember>> byType,
+        SourceProductionContext context)
+    {
+        if (type.SerializeLiterals is not { } literals || !byType.TryGetValue(type.Fqn, out var ownMembers))
+            return;
+
+        var written = new HashSet<string>(literals, System.StringComparer.OrdinalIgnoreCase);
+        foreach (var member in ownMembers)
+        {
+            if (!member.Member.IsRefOnly && !written.Contains(member.Member.Name))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    Diagnostics.MemberMissingFromSerialize, member.Location?.ToLocation(),
+                    type.Name, member.Member.Name));
+            }
+        }
+    }
+
+    /// <summary>
+    /// The type and every base of it declared in this compilation, base first, so the order is
+    /// deterministic. Reflection's own order never was.
+    /// </summary>
+    private static List<string> BaseFirstChain(string fqn, Dictionary<string, ParsedType> declarations)
+    {
+        var chain = new List<string>();
+        for (var t = fqn; t is not null; )
+        {
+            chain.Insert(0, t);
+            t = declarations.TryGetValue(t, out var found) ? found.BaseFqn : null;
+        }
+        return chain;
+    }
+
+    /// <summary>
+    /// The [DV] members the types of the chain declare, in chain order, reporting MDG004 for each
+    /// that has the name of one already collected and leaving it out.
+    /// </summary>
+    private static List<DomMemberModel> CollectMembers(
+        ParsedType type,
+        List<string> chain,
+        Dictionary<string, List<ParsedMember>> byType,
+        SourceProductionContext context)
+    {
+        var collected = new List<DomMemberModel>();
+        var seen = new Dictionary<string, string>(System.StringComparer.OrdinalIgnoreCase);
+        foreach (var owner in chain)
+        {
+            if (!byType.TryGetValue(owner, out var declared))
+                continue;
+            foreach (var member in declared)
+            {
+                if (seen.ContainsKey(member.Member.Name))
+                {
+                    // Points at the later of the two declarations - the base chain is walked
+                    // base first, so that is the one the collision is attributable to. Raising
+                    // a real Diagnostic here rather than a DiagnosticInfo is fine: grouping
+                    // runs inside the source-output stage, downstream of every cache.
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        Diagnostics.DuplicateValueName, member.Location?.ToLocation(),
+                        type.Name, member.Member.Name));
+                    continue;
+                }
+                seen.Add(member.Member.Name, owner);
+                collected.Add(member.Member);
+            }
+        }
+        return collected;
     }
 }
