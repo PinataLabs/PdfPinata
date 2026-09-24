@@ -352,7 +352,7 @@ public abstract class PdfAcroField : PdfDictionary
     /// A <c>/Parent</c> chain that comes back on itself is malformed but possible in a file read
     /// from disk, and is treated as ending where it first repeats rather than walked for ever.
     /// </remarks>
-    private static PdfDictionary InheritedFrom(PdfDictionary field, string key)
+    private protected static PdfDictionary InheritedFrom(PdfDictionary field, string key)
     {
         HashSet<PdfDictionary> visited = null;
         for (var dict = field; dict != null; dict = dict.Elements.GetDictionary(Keys.Parent))
@@ -391,6 +391,14 @@ public abstract class PdfAcroField : PdfDictionary
     /// otherwise have to know that the first one changes shape when they do.
     /// </para>
     /// <para>
+    /// A field read from a file may be merged with its one widget, and a second widget cannot be
+    /// added beside it: a field that is also an annotation and has widget kids is not valid PDF.
+    /// So the first widget is separated out first, as iText's <c>separateWidgetAndField</c> does -
+    /// the annotation's entries move into a dictionary of their own under <c>/Kids</c>, which takes
+    /// the field's place in the page's <c>/Annots</c>. The widget object a caller already held,
+    /// from <see cref="Widgets"/> or <c>page.Annotations</c>, is that separated widget from then on.
+    /// </para>
+    /// <para>
     /// The widget is marked as printing. A form field that is not is one that vanishes when the
     /// page is put on paper, which is almost never what an author means and is invisible until
     /// somebody prints.
@@ -405,6 +413,14 @@ public abstract class PdfAcroField : PdfDictionary
             throw new InvalidOperationException(
                 "The field does not belong to a form yet. Add it - form.Fields.Add(field) - "
                 + "before putting it on a page, or the widget has no parent to point at.");
+        }
+
+        if (IsOwnWidget)
+        {
+            // Asked here as well as by Annotations.Add, because separating the widget changes the
+            // document before that is reached.
+            Owner.EnsureCanModify("adding an annotation", PdfChangeKind.Annotations);
+            SeparateOwnWidget();
         }
 
         var widget = new PdfWidgetAnnotation(Owner);
@@ -424,6 +440,46 @@ public abstract class PdfAcroField : PdfDictionary
         OnWidgetAdded();
         return widget;
     }
+
+    /// <summary>
+    /// Moves the widget this field is merged with into a dictionary of its own, under
+    /// <c>/Kids</c> and in the field's place on the page.
+    /// </summary>
+    private void SeparateOwnWidget()
+    {
+        var widget = WidgetView;
+        var fieldReference = Reference;
+
+        widget.SeparateFrom(this, FieldKeys.Contains);
+        _widgetView = null;
+        Fields.GetOrCreateEntries().Elements.Add(widget.Reference);
+
+        foreach (var page in Owner.Pages)
+        {
+            var annotations = page.Elements.GetArray(PdfPage.Keys.Annots);
+            if (annotations == null)
+                continue;
+
+            for (var idx = 0; idx < annotations.Elements.Count; idx++)
+            {
+                if (ReferenceEquals(annotations.Elements[idx], fieldReference))
+                    annotations.Elements[idx] = widget.Reference;
+            }
+        }
+    }
+
+    /// <summary>
+    /// The entries that belong to the field when a field and its widget are separated, everything
+    /// else going to the widget: those of every field (ISO 32000-1 Table 220), of variable text
+    /// (Table 222) and of each kind of field, and <c>/Lock</c> and <c>/SV</c> of a signature field.
+    /// It is the list iText separates by. <c>/AA</c> stays, since a field's actions are the ones a
+    /// field has and a widget's own are rarer.
+    /// </summary>
+    private static readonly HashSet<string> FieldKeys =
+    [
+        Keys.FT, Keys.Parent, Keys.Kids, Keys.T, Keys.TU, Keys.TM, Keys.Ff, Keys.V, Keys.DV, Keys.AA,
+        Keys.DA, Keys.Q, Keys.DR, "/DS", "/RV", "/Opt", "/MaxLen", "/TI", "/I", "/Lock", "/SV",
+    ];
 
     /// <summary>
     /// Called once a widget has been added, and so once the field has somewhere to be drawn.

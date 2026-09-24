@@ -27,6 +27,9 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System;
+using System.Diagnostics;
+using System.Linq;
 using PdfPinata.Pdf.AcroForms;
 
 namespace PdfPinata.Pdf.Annotations;
@@ -92,7 +95,39 @@ public sealed class PdfWidgetAnnotation : PdfAnnotation
     /// </summary>
     internal static PdfWidgetAnnotation ViewOf(PdfAcroField field) => new(field);
 
-    private readonly PdfAcroField _viewOf;
+    private PdfAcroField _viewOf;
+
+    /// <summary>
+    /// Turns this view of a merged field into a widget annotation of its own: a new indirect
+    /// object holding every entry of the field's dictionary that <paramref name="staysWithField"/>
+    /// does not claim, with a <c>/Parent</c> back to the field.
+    /// </summary>
+    /// <remarks>
+    /// The object is kept rather than replaced, so a caller who already held the field's widget
+    /// holds it still - now as a dictionary of its own. Putting it in the field's <c>/Kids</c>
+    /// and on the page in the field's place is the caller's part.
+    /// </remarks>
+    internal void SeparateFrom(PdfAcroField field, Func<string, bool> staysWithField)
+    {
+        Debug.Assert(ReferenceEquals(_viewOf, field), "Only the view of this field can be separated from it.");
+
+        var shared = field.Elements;
+        var own = new DictionaryElements(this);
+        foreach (var key in shared.Keys.ToArray())
+        {
+            if (staysWithField(key))
+                continue;
+
+            own[key] = shared[key];
+            shared.Remove(key);
+        }
+
+        _elements = own;
+        _viewOf = null;
+        Reference = null;
+        Owner.Internals.AddObject(this);
+        Elements.SetReference(PdfAcroField.Keys.Parent, field);
+    }
 
     /// <summary>
     /// Gets the form field this widget draws: the field that is its <c>/Parent</c>, or, when the

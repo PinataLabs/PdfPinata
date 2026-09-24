@@ -288,4 +288,79 @@ public class FieldAndWidgetTests
         reread.Pages[0].Annotations[0].Flags
             .Should().Be(PdfAnnotationFlags.Print | PdfAnnotationFlags.ReadOnly);
     }
+
+    [Fact]
+    public void ASecondWidgetOnAMergedFieldSeparatesTheFirst()
+    {
+        var document = AMergedFieldAndWidget();
+        var page = document.Pages[0];
+        var field = document.AcroForm.Fields[0];
+        var first = (PdfWidgetAnnotation)page.Annotations[0];
+
+        var second = field.AddWidget(page, new PdfRectangle(new XRect(60, 660, 200, 20)));
+
+        field.Widgets.Should().Equal(first, second);
+        first.Reference.Should().NotBeSameAs(field.Reference, "the first widget is a dictionary of its own now");
+        first.Field.Should().BeSameAs(field);
+        first.Rectangle.Should().Be(Box);
+        page.Annotations.Should().Equal(first, second);
+        field.Fields.Should().BeEmpty();
+        field.Name.Should().Be("merged");
+        field.Elements.ContainsKey(PdfAnnotation.Keys.Rect).Should().BeFalse();
+        field.Elements.ContainsKey(PdfAnnotation.Keys.Subtype).Should().BeFalse();
+        first.Elements.ContainsKey(PdfAcroField.Keys.T).Should().BeFalse();
+    }
+
+    [Fact]
+    public void ASeparatedFieldIsWrittenAsAFieldWithTwoWidgets()
+    {
+        var document = AMergedFieldAndWidget();
+        var field = (PdfTextField)document.AcroForm.Fields[0];
+        field.AddWidget(document.Pages[0], new PdfRectangle(new XRect(60, 660, 200, 20)));
+        field.Text = "twice";
+
+        var reopened = Reopened(document);
+        var read = (PdfTextField)reopened.AcroForm.Fields["merged"];
+
+        read.Text.Should().Be("twice");
+        read.Widgets.Should().HaveCount(2);
+        read.Widgets.Should().OnlyContain(widget => widget.Elements.ContainsKey(PdfAnnotation.Keys.AP));
+        reopened.Pages[0].Annotations.Should().Equal(read.Widgets);
+        read.Elements.ContainsKey(PdfAnnotation.Keys.Rect).Should().BeFalse();
+    }
+
+    [Fact]
+    public void AMergedFieldThatCannotBeChangedIsLeftMerged()
+    {
+        var stream = new MemoryStream();
+        AMergedFieldAndWidget().Save(stream, false);
+        stream.Position = 0;
+        var document = Reader.Open(stream, PdfDocumentOpenMode.Import);
+        var field = document.AcroForm.Fields[0];
+
+        var act = () => field.AddWidget(document.Pages[0], new PdfRectangle(new XRect(60, 660, 200, 20)));
+
+        act.Should().Throw<System.InvalidOperationException>();
+        field.Elements.ContainsKey(PdfAnnotation.Keys.Rect).Should().BeTrue();
+        field.Widgets.Should().ContainSingle().Which.Should().BeSameAs(document.Pages[0].Annotations[0]);
+    }
+
+    [Fact]
+    public void AMergedTickBoxStaysTickedWhenItGainsAWidget()
+    {
+        // /V is the field's and stays with it, and /AS is the widget's and goes with it, so the
+        // state has to be read from the field once it has a widget of its own.
+        var document = new AcroFormBuilder()
+            .With("/Btn", "agree", field => AcroFormBuilder.WithOnAndOffAppearances(field, "/Yes"))
+            .Build();
+        var box = (PdfCheckBoxField)document.AcroForm.Fields["agree"];
+        box.Checked = true;
+
+        box.AddWidget(document.Pages[0], new PdfRectangle(new XRect(60, 660, 20, 20)));
+
+        box.Checked.Should().BeTrue();
+        box.Elements.GetName(PdfAcroField.Keys.V).Should().Be("/Yes");
+        box.Widgets[0].Elements.GetName(PdfAnnotation.Keys.AS).Should().Be("/Yes");
+        box.Elements.ContainsKey(PdfAnnotation.Keys.AS).Should().BeFalse();
+    }
 }
