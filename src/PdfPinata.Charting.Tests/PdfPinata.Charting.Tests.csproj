@@ -78,7 +78,7 @@
       project one more compiled copy of a small pure-arithmetic file and nothing else. The renderer
       it serves, AxisTitleRenderer.Draw, calls the same file.
     -->
-    <Compile Include="..\PdfPinata.Charting\PdfSharp.Charting.Renderers\AxisTitleGeometry.cs" Link="Renderers\Linked\AxisTitleGeometry.cs" />
+    <Compile Include="..\PdfPinata.Charting\Renderers\AxisTitleGeometry.cs" Link="Renderers\Linked\AxisTitleGeometry.cs" />
   </ItemGroup>
 
   <ItemGroup>

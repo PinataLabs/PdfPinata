@@ -152,7 +152,7 @@ are worth having: a geometry test that does not rasterize cannot take the host d
 - **Making the renderers public.** Not proposed, and the seam is designed to avoid it.
 - **The rest of the renderer family's duplication.** Column, bar, line, pie and area renderers have
   their own; `axis-renderer-duplication.md` covers the axes only.
-- **`PdfSharp.Charting.Font`, the hand-mirrored second `Font` type.** Different problem.
+- **`PdfPinata.Charting.Font`, the hand-mirrored second `Font` type.** Different problem.
 - **New charting features.** Nothing here changes what a chart can do.
 - **Sharing the test helpers as a package rather than by link.** The link mechanism is established
   and works; changing it is `docs/specs/font-seam-contracts.md`'s neighbourhood, not this.

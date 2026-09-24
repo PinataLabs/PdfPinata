@@ -47,9 +47,9 @@ Grouped by what the migration costs, not by where the code lives.
 | `src/PinataLayout.Rendering/ParagraphFormatInfo.cs:64` | `LineInfo.tabOffsets` | `TabOffset` (**struct**) | `List<TabOffset>` |
 | `src/PinataLayout.Rendering/ParagraphRenderer.cs:2617` | `tabOffsets` | `TabOffset` (**struct**) | `List<TabOffset>` |
 | `src/PinataLayout.Rendering/ParagraphIterator.cs:281` | `positionIndices` | boxed `int` | `List<int>` |
-| `PdfSharp.Charting/ChartFrame.cs:227` | `chartList` | `Chart` | `List<Chart>` |
-| `PdfSharp.Charting/DocumentObjectCollection.cs:244` | `elements` | `ChartObject` | `List<ChartObject>` |
-| `PdfSharp.Charting.Renderers/CombinationChartRenderer.cs:253-255` | three locals | `Series` | `List<Series>` |
+| `src/PdfPinata.Charting/ChartFrame.cs:227` | `chartList` | `Chart` | `List<Chart>` |
+| `src/PdfPinata.Charting/DocumentObjectCollection.cs:244` | `elements` | `ChartObject` | `List<ChartObject>` |
+| `src/PdfPinata.Charting/Renderers/CombinationChartRenderer.cs:253-255` | three locals | `Series` | `List<Series>` |
 
 `Hashtable`, same category:
 
@@ -230,7 +230,7 @@ last deliberately: it is the least covered code and the most likely to need a go
 |---|---|---|
 | 1 | `Symbols`, `Styles.visitedStyles`, `DdlReaderErrors`, `Paragraph.SplitOnParaBreak`, `PdfFlattenVisitor` | Self-contained, well covered by the DDL round-trip tests, no signature changes |
 | 2 | `DocumentObjectCollection` (DOM) | One class, but it is public and carries §3.1 — its own review |
-| 3 | `PdfSharp.Charting` — `DocumentObjectCollection`, `ChartFrame`, `CombinationChartRenderer` | Same shape as 2, separate assembly, separate risk |
+| 3 | `PdfPinata.Charting` — `DocumentObjectCollection`, `ChartFrame`, `CombinationChartRenderer` | Same shape as 2, separate assembly, separate risk |
 | 4 | `IAreaProvider.StoreRenderInfos` and its five implementers, plus `TopDownFormatter` | One signature, six call sites, must move together |
 | 5 | `ParagraphFormatInfo` (`lineInfos`, `tabOffsets`, `imageRenderInfos`), `ParagraphRenderer`, `ParagraphIterator` | The hot path and the boxing; the largest single review |
 | 6 | `DocumentRenderer.previousListNumbers` | Trivial, but it is the last one and closes the count |

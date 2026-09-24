@@ -1593,8 +1593,8 @@ harness for an unreachable method, a host-dependent assertion, and a font-image 
 
 | # | target | CC | cov | retires | status |
 |---|---|---|---|---|---|
-| 13.1 | `Chart.DeepCopy()` — `PdfSharp.Charting/Chart.cs:70` | 14 | 0% | 196 | **done** |
-| 13.2 | `Chart.CheckAxis(Axis)` — `PdfSharp.Charting/Chart.cs:114` | 12 | 0% | 144 | **left**, unreachable |
+| 13.1 | `Chart.DeepCopy()` — `src/PdfPinata.Charting/Chart.cs:70` | 14 | 0% | 196 | **done** |
+| 13.2 | `Chart.CheckAxis(Axis)` — `src/PdfPinata.Charting/Chart.cs:114` | 12 | 0% | 144 | **left**, unreachable |
 | 13.3 | `LineFormatRenderer..ctor(XGraphics, LineFormat, double)` — `Renderers/LineFormatRenderer.cs:44` | 12 | 0% | 144 | **done** |
 | 13.4 | `BarDataLabelRenderer.CalcPositions()` — `Renderers/BarDataLabelRenderer.cs:115` | 17 | 26% | 118 | **done** |
 
