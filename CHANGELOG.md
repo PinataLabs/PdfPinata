@@ -42,6 +42,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **LINQ over a form's fields, or a field's kids, now yields the typed `PdfAcroField` objects instead of `PdfReference`s.** The collection's indexer returned `PdfTextField`, `PdfCheckBoxField` and the rest, but every enumeration yielded the references underneath, so `OfType<PdfAcroField>()` was empty and `Cast<PdfAcroField>()` threw. Enumeration as a `PdfArray`, through `IEnumerable<PdfItem>` or through plain `IEnumerable` now yields the same objects the indexer does, typing each field on the way as the indexer always has.
 - **`PdfDocument.MakeAcroFormsReadOnly` walks the form's fields once.** It counted them with LINQ's `Count()` in its loop condition, enumerating the whole collection again on every iteration.
+- **`PdfOutlineCollection.Insert` accepts an index equal to `Count` and appends the outline.** `IList<T>.Insert` requires this, but the collection threw `ArgumentOutOfRangeException`, including for `Insert(0, outline)` on an empty collection. The outline is now placed in the tree exactly as `Add` places it, and is saved at the end of its list.
+
+### Charts
+
+#### Fixed
+
+- **The charting `XSeries` implements `IEnumerable`, so LINQ can be used over it.** It had a public `GetEnumerator` and no interface, so `foreach` compiled and every LINQ operator, `Cast` included, did not. It is non-generic like the package's other collections: `Cast<XValue>()` yields a blank as null and `OfType<XValue>()` leaves it out.
 
 ### PinataLayout & DDL
 
