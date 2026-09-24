@@ -243,9 +243,13 @@ internal class ImageRenderer : ShapeRenderer
 
     /// <summary>
     /// Loads the image to measure it, recording an image of a type there is no decoder for as a
-    /// failure of its own.
+    /// failure of its own and one that fails to load for any other reason as not read.
     /// </summary>
-    private static bool TryLoadImage(ImageFormatInfo formatInfo, out XImage xImage)
+    /// <remarks>
+    /// Anything but an InvalidOperationException used to escape Format and end the whole render,
+    /// where the same exception thrown while drawing the image came out as a placeholder.
+    /// </remarks>
+    private bool TryLoadImage(ImageFormatInfo formatInfo, out XImage xImage)
     {
         try
         {
@@ -257,9 +261,16 @@ internal class ImageRenderer : ShapeRenderer
             Debug.WriteLine(string.Format(AppResources.InvalidImageType, ex.Message));
             formatInfo.Failure = ImageFailure.InvalidType;
             formatInfo.FailureException = ex;
-            xImage = null;
-            return false;
         }
+        catch (Exception ex) when (!IsUnrecoverable(ex))
+        {
+            Debug.WriteLine(AppResources.ImageNotReadable, image.Source, ex.Message);
+            formatInfo.Failure = ImageFailure.NotRead;
+            formatInfo.FailureException = ex;
+        }
+
+        xImage = null;
+        return false;
     }
 
     /// <summary>
