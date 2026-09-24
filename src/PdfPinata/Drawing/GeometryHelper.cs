@@ -99,13 +99,27 @@ internal static class GeometryHelper
             _smallAngle = Math.Abs(sweep) <= 90;
 
             _end = _start + sweep;
+
+            // Decided before the end is brought back into range: a whole turn backwards ends a
+            // whole turn below its start, and brought back that end is the start again.
+            #pragma warning disable S1244 // Exact on purpose: an end that differs from the start by any amount is placed in its quadrant correctly by the walk.
+            var goesNowhere = _end == _start;
+            #pragma warning restore S1244
+
             if (_end < 0)
                 _end += (1 + Math.Floor(Math.Abs(_end) / 360)) * 360;
 
             _clockwise = sweepAngle > 0;
             var startQuadrant = Quadrant(_start, true, _clockwise);
             _endQuadrant = Quadrant(_end, false, _clockwise);
-            _withinOneQuadrant = startQuadrant == _endQuadrant && _smallAngle;
+
+            // An arc that ends where it starts goes nowhere, so it is one piece from its start back
+            // to its start. Left to the walk, a start on a quadrant edge is placed in the quadrant
+            // before the edge and its end in the quadrant after it, as though the arc crossed the
+            // edge - so the walk went the whole way round to get from one to the other (#129). That
+            // is a sweep of 0, and also a sweep too small to move the angle it is added to, such as
+            // float cancellation leaves behind: 90 + 1e-15 is 90.
+            _withinOneQuadrant = goesNowhere || (startQuadrant == _endQuadrant && _smallAngle);
             _pathStart = pathStart;
 
             _quadrant = startQuadrant;
@@ -239,8 +253,31 @@ internal static class GeometryHelper
             {
                 quadrant = clockwise ? (int)Math.Floor(φ / 90) % 4 : (int)Math.Floor(φ / 90);
             }
-            return quadrant;
+
+            // Exactly 360 is on the edge of quadrant 3 and, taken the other way, would be quadrant
+            // 4, which a walk through 0 to 3 never reaches and so never stops looking for (#129).
+            // It is where quadrant 0 begins.
+            return quadrant % 4;
         }
+    }
+
+    /// <summary>
+    /// How far along its tangent each control point of the Bézier curve for an arc from
+    /// <paramref name="α"/> to <paramref name="β"/> lies, as a fraction of the radius. Both angles are
+    /// in radians and at most a quadrant apart.
+    /// </summary>
+    /// <remarks>
+    /// An arc of no length is 0/0 by the formula, which is NaN, and would make both control points
+    /// NaN (#130). It is a curve that never leaves its start, so its control points lie there too.
+    /// </remarks>
+    internal static double ArcKappa(double α, double β)
+    {
+        var sinHalfSweep = Math.Sin((β - α) / 2);
+        #pragma warning disable S1244 // Exact on purpose: only a zero is 0/0, and anything near it divides correctly.
+        if (sinHalfSweep == 0)
+        #pragma warning restore S1244
+            return 0;
+        return 4 * (1 - Math.Cos((α - β) / 2)) / (3 * sinHalfSweep);
     }
 
     /// <summary>
@@ -301,7 +338,7 @@ internal static class GeometryHelper
                 β = Math.PI / 2 - Math.Atan(δy * Math.Cos(β) / (δx * sinβ));
         }
 
-        var κ = 4 * (1 - Math.Cos((α - β) / 2)) / (3 * Math.Sin((β - α) / 2));
+        var κ = ArcKappa(α, β);
         sinα = Math.Sin(α);
         cosα = Math.Cos(α);
         sinβ = Math.Sin(β);

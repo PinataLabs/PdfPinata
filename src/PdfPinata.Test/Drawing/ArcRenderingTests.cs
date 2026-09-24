@@ -1,8 +1,10 @@
 using System;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
@@ -54,6 +56,11 @@ public class ArcRenderingTests
     [InlineData(405, 300)]
     [InlineData(-450, -271)]
     [InlineData(720, -350)]
+    // No sweep at all, off a quadrant edge.
+    [InlineData(45, 0)]
+    [InlineData(359, 0)]
+    [InlineData(-45, 0)]
+    [InlineData(405, 0)]
     // Nothing of a whole turn or more: XGraphics.DrawArc draws that as an ellipse instead.
     public void DrawArcAndAddArcCutTheArcTheSameWay(double startAngle, double sweepAngle)
     {
@@ -72,6 +79,152 @@ public class ArcRenderingTests
         addedNumbers.Length.Should().Be(drawnNumbers.Length);
         for (var idx = 0; idx < drawnNumbers.Length; idx++)
             addedNumbers[idx].Should().BeApproximately(drawnNumbers[idx], 0.001);
+    }
+
+    /// <summary>
+    ///   An arc with no sweep is a single curve that never leaves the point it starts from.
+    /// </summary>
+    /// <remarks>
+    ///   Off a quadrant edge its control points used to be 0/0, and the writer refused the NaN
+    ///   (#130). On an edge it was cut as though it ran from one quadrant into the next, so it went
+    ///   the whole way round instead; and from exactly 360, or -360, the quadrant it ends in came out
+    ///   as 4, which a walk through 0 to 3 never reaches, so it never returned (#129). A loop like
+    ///   that hangs the test host rather than failing a test, so this runs where a <c>Timeout</c>
+    ///   can interrupt it.
+    /// </remarks>
+    [Theory(Timeout = 30000)]
+    [InlineData(45, 0)]
+    [InlineData(359, 0)]
+    [InlineData(-45, 0)]
+    [InlineData(405, 0)]
+    [InlineData(0, 0)]
+    [InlineData(90, 0)]
+    [InlineData(360, 0)]
+    [InlineData(-360, 0)]
+    // Sweeps too small to move the angle they are added to, such as float cancellation leaves
+    // behind: 90 + 1e-15 is 90, so these go nowhere just as a sweep of 0 does. The last is the
+    // exception, since 0 + 5.55e-17 is not 0: it is an ordinary arc, too short to leave its start.
+    [InlineData(90, 1e-15)]
+    [InlineData(360, -1e-15)]
+    [InlineData(45, 1e-15)]
+    [InlineData(0, 0.1 + 0.2 - 0.3)]
+    public async Task DrawArcWithNoSweepDrawsOneDegenerateCurveAtTheStart(double startAngle, double sweepAngle)
+    {
+        var content = await Interruptibly.Run(() =>
+            ContentOf(gfx => gfx.DrawArc(XPens.Black, 10, 20, 100, 60, startAngle, sweepAngle)));
+
+        content.Should().NotContain("NaN");
+        ShouldBeOneCurveThatStaysAtItsStart(PathConstruction(content));
+    }
+
+    [Theory(Timeout = 30000)]
+    [InlineData(-360, 0)]
+    [InlineData(359, 0)]
+    [InlineData(45, 0)]
+    [InlineData(0, 0)]
+    [InlineData(90, 1e-15)]
+    [InlineData(360, -1e-15)]
+    public async Task AnArcWithNoSweepAddedToAPathIsDrawnAndSaved(double startAngle, double sweepAngle)
+    {
+        var (content, saved) = await Interruptibly.Run(() =>
+        {
+            var document = new PdfDocument();
+            document.Options.CompressContentStreams = false;
+            var page = document.AddPage();
+            using (var gfx = XGraphics.FromPdfPage(page))
+            {
+                var path = new XGraphicsPath();
+                path.AddArc(10, 20, 100, 60, startAngle, sweepAngle);
+                gfx.DrawPath(XPens.Black, path);
+            }
+
+            using var stream = new MemoryStream();
+            document.Save(stream);
+            return (Encoding.Latin1.GetString(PageContent.Of(page)), stream.Length);
+        });
+
+        content.Should().NotContain("NaN");
+        ShouldBeOneCurveThatStaysAtItsStart(PathConstruction(content));
+        saved.Should().BePositive();
+    }
+
+    /// <summary>
+    ///   A whole turn, either way and from anywhere, still goes the whole way round.
+    /// </summary>
+    /// <remarks>
+    ///   A turn backwards ends a whole turn below its start, and brought back into range that end
+    ///   is the start again - which is also what an arc that goes nowhere looks like, so the two
+    ///   must be told apart before the end is brought back. <see cref="XGraphics.DrawArc(XPen, double, double, double, double, double, double)"/>
+    ///   draws a whole turn as an ellipse and <see cref="XGraphicsPath.AddArc(double, double, double, double, double, double)"/>
+    ///   walks the quadrants for it, so the two are compared by what they draw: a figure that comes
+    ///   back to where it started and reaches every side of the box.
+    /// </remarks>
+    [Theory(Timeout = 30000)]
+    [InlineData(5, -360)]
+    [InlineData(90, -360)]
+    [InlineData(90, -720)]
+    [InlineData(5, 360)]
+    [InlineData(90, 360)]
+    [InlineData(0, -360)]
+    [InlineData(360, -360)]
+    public async Task AWholeTurnStillDrawsTheWholeEllipse(double startAngle, double sweepAngle)
+    {
+        var (drawn, added) = await Interruptibly.Run(() => (
+            ContentOf(gfx => gfx.DrawArc(XPens.Black, 10, 20, 100, 60, startAngle, sweepAngle)),
+            ContentOf(gfx =>
+            {
+                var path = new XGraphicsPath();
+                path.AddArc(10, 20, 100, 60, startAngle, sweepAngle);
+                gfx.DrawPath(XPens.Black, path);
+            })));
+
+        ShouldBeTheWholeEllipse(drawn);
+        ShouldBeTheWholeEllipse(added);
+    }
+
+    private static void ShouldBeTheWholeEllipse(string content)
+    {
+        content.Should().NotContain("NaN");
+        var lines = PathConstruction(content).Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        lines.Count(line => line.EndsWith(" c", StringComparison.Ordinal)).Should().BeGreaterThanOrEqualTo(4);
+
+        // Where each piece ends: the move's point and the last point of every curve. A quadrant's
+        // pieces end on its edges, which are the ellipse's extremes.
+        var ends = lines.Select(line =>
+        {
+            var numbers = NumbersOf(line);
+            return (X: numbers[^2], Y: numbers[^1]);
+        }).ToArray();
+
+        ends[^1].X.Should().BeApproximately(ends[0].X, 0.001);
+        ends[^1].Y.Should().BeApproximately(ends[0].Y, 0.001);
+        ends.Min(end => end.X).Should().BeApproximately(10, 0.001);
+        ends.Max(end => end.X).Should().BeApproximately(110, 0.001);
+        ends.Min(end => end.Y).Should().BeApproximately(762, 0.001);
+        ends.Max(end => end.Y).Should().BeApproximately(822, 0.001);
+    }
+
+    [Fact]
+    public void AnArcSweptFromAWholeTurnIsStillDrawnFromZero()
+    {
+        // Only a zero sweep from 360 changed: one swept forwards from there was always drawn from 0.
+        var fromAWholeTurn = ContentOf(gfx => gfx.DrawArc(XPens.Black, 10, 20, 100, 60, 360, 90));
+        var fromZero = ContentOf(gfx => gfx.DrawArc(XPens.Black, 10, 20, 100, 60, 0, 90));
+
+        PathConstruction(fromAWholeTurn).Should().Be("110 792 m\n110 775.431 87.614 762 60 762 c\n");
+        PathConstruction(fromAWholeTurn).Should().Be(PathConstruction(fromZero));
+    }
+
+    private static void ShouldBeOneCurveThatStaysAtItsStart(string construction)
+    {
+        construction.Should().MatchRegex(@"^[-0-9. ]+ m\n[-0-9. ]+ c\n$");
+
+        var numbers = NumbersOf(construction);
+        for (var idx = 2; idx < numbers.Length; idx += 2)
+        {
+            numbers[idx].Should().BeApproximately(numbers[0], 0.001);
+            numbers[idx + 1].Should().BeApproximately(numbers[1], 0.001);
+        }
     }
 
     private static string ContentOf(Action<XGraphics> draw)
