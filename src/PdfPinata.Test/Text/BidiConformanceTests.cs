@@ -123,16 +123,13 @@ public class BidiConformanceTests
 
             if (line.StartsWith("@Levels:", StringComparison.Ordinal))
             {
-                var fields = Fields(line["@Levels:".Length..]);
-                expectedLevels = [..fields.Select(f => f == "x" ? (byte)0 : byte.Parse(f, CultureInfo.InvariantCulture))];
-                levelIgnored = [..fields.Select(f => f == "x")];
+                (expectedLevels, levelIgnored) = Levels(Fields(line["@Levels:".Length..]));
                 continue;
             }
 
             if (line.StartsWith("@Reorder:", StringComparison.Ordinal))
             {
-                expectedOrder = [..Fields(line["@Reorder:".Length..])
-                    .Select(f => int.Parse(f, CultureInfo.InvariantCulture))];
+                expectedOrder = Order(Fields(line["@Reorder:".Length..]));
                 continue;
             }
 
@@ -140,29 +137,45 @@ public class BidiConformanceTests
             if (parts.Length < 2)
                 continue;
 
-            var classes = Fields(parts[0]);
-            var codePoints = classes.Select(name => Representative[name]).ToList();
-            var bitset = int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture);
-
-            foreach (var (bit, direction) in new[]
-                     {
-                         (1, BidiParagraphDirection.Automatic),
-                         (2, BidiParagraphDirection.LeftToRight),
-                         (4, BidiParagraphDirection.RightToLeft)
-                     })
-            {
-                if ((bitset & bit) == 0)
-                    continue;
-
-                cases++;
-                var result = BidiAlgorithm.Resolve(codePoints, direction);
-                var complaint = Compare(result, expectedLevels, levelIgnored, expectedOrder);
-                if (complaint != null)
-                    failures.Add($"{string.Join(" ", classes)}; {direction}: {complaint}");
-            }
+            cases += RunBidiTestLine(parts, expectedLevels, levelIgnored, expectedOrder, failures);
         }
 
         Report(cases, failures, "BidiTest.txt");
+    }
+
+    // The bit in a BidiTest.txt line's bitset that asks for each paragraph direction.
+    private static readonly (int Bit, BidiParagraphDirection Direction)[] BitsetDirections =
+    [
+        (1, BidiParagraphDirection.Automatic),
+        (2, BidiParagraphDirection.LeftToRight),
+        (4, BidiParagraphDirection.RightToLeft)
+    ];
+
+    /// <summary>
+    ///   Runs one line of BidiTest.txt in every paragraph direction its bitset asks for, and answers
+    ///   how many cases that was.
+    /// </summary>
+    private static int RunBidiTestLine(string[] parts, byte[] expectedLevels, bool[] levelIgnored,
+        int[] expectedOrder, List<string> failures)
+    {
+        var classes = Fields(parts[0]);
+        var codePoints = classes.Select(name => Representative[name]).ToList();
+        var bitset = int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture);
+
+        var cases = 0;
+        foreach (var (bit, direction) in BitsetDirections)
+        {
+            if ((bitset & bit) == 0)
+                continue;
+
+            cases++;
+            var result = BidiAlgorithm.Resolve(codePoints, direction);
+            var complaint = Compare(result, expectedLevels, levelIgnored, expectedOrder);
+            if (complaint != null)
+                failures.Add($"{string.Join(" ", classes)}; {direction}: {complaint}");
+        }
+
+        return cases;
     }
 
     // ----- BidiCharacterTest.txt ----------------------------------------------------------------
@@ -196,12 +209,8 @@ public class BidiConformanceTests
             };
 
             var paragraphLevel = byte.Parse(parts[2].Trim(), CultureInfo.InvariantCulture);
-            var levelFields = Fields(parts[3]);
-            var expectedLevels = levelFields
-                .Select(f => f == "x" ? (byte)0 : byte.Parse(f, CultureInfo.InvariantCulture)).ToArray();
-            var levelIgnored = levelFields.Select(f => f == "x").ToArray();
-            var expectedOrder = Fields(parts[4])
-                .Select(f => int.Parse(f, CultureInfo.InvariantCulture)).ToArray();
+            var (expectedLevels, levelIgnored) = Levels(Fields(parts[3]));
+            var expectedOrder = Order(Fields(parts[4]));
 
             cases++;
             var result = BidiAlgorithm.Resolve(codePoints, direction);
@@ -221,6 +230,17 @@ public class BidiConformanceTests
 
     private static string[] Fields(string text)
         => text.Split([' ', '\t'], StringSplitOptions.RemoveEmptyEntries);
+
+    /// <summary>
+    ///   The expected levels, and which of them are an "x" - a character rule X9 removes, whose
+    ///   level is not compared and stands in the array as 0.
+    /// </summary>
+    private static (byte[] Levels, bool[] Ignored) Levels(string[] fields)
+        => ([..fields.Select(f => f == "x" ? (byte)0 : byte.Parse(f, CultureInfo.InvariantCulture))],
+            [..fields.Select(f => f == "x")]);
+
+    private static int[] Order(string[] fields)
+        => [..fields.Select(f => int.Parse(f, CultureInfo.InvariantCulture))];
 
     /// <summary>
     ///   What is wrong with a result, or null if nothing is. The suites mark a character the

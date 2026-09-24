@@ -222,44 +222,57 @@ public static partial class BidiAlgorithm
             foreach (var (open, close) in pairs)
             {
                 // N0 b and c: what is inside the brackets decides, and only strong types count.
-                bool foundEmbedding = false, foundOpposite = false;
-                for (var idx = open + 1; idx < close; idx++)
-                {
-                    var strong = StrongDirectionOf(TypeAt(idx));
-                    if (strong == BidiClass.ON)
-                        continue;
-
-                    if (strong == Embedding)
-                        foundEmbedding = true;
-                    else
-                        foundOpposite = true;
-                }
-
-                if (foundEmbedding)
+                var inside = StrongDirectionInside(open, close);
+                if (inside == Embedding)
                 {
                     // b. Something inside runs the way the brackets already do.
                     SetBracket(open, close, Embedding);
                 }
-                else if (foundOpposite)
+                else if (inside == Opposite)
                 {
                     // c. Something inside runs the other way, so what came before the brackets
                     // decides whether they follow it or stay with the embedding.
-                    var context = _sos;
-                    for (var idx = open - 1; idx >= 0; idx--)
-                    {
-                        var strong = StrongDirectionOf(TypeAt(idx));
-                        if (strong != BidiClass.ON)
-                        {
-                            context = strong;
-                            break;
-                        }
-                    }
-
-                    SetBracket(open, close, context == Opposite ? Opposite : Embedding);
+                    SetBracket(open, close, StrongDirectionBefore(open) == Opposite ? Opposite : Embedding);
                 }
 
                 // d. Nothing strong inside: the brackets are left to the N1 and N2 rules.
             }
+        }
+
+        /// <summary>
+        /// The embedding direction when any strong type between the brackets matches it, else the
+        /// opposite direction when there is a strong type at all, else <see cref="BidiClass.ON"/>.
+        /// </summary>
+        private BidiClass StrongDirectionInside(int open, int close)
+        {
+            var result = BidiClass.ON;
+            for (var idx = open + 1; idx < close; idx++)
+            {
+                var strong = StrongDirectionOf(TypeAt(idx));
+                if (strong == Embedding)
+                    return Embedding;
+
+                if (strong != BidiClass.ON)
+                    result = Opposite;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// The nearest strong direction before <paramref name="position"/>, or the start of the
+        /// sequence's when there is none.
+        /// </summary>
+        private BidiClass StrongDirectionBefore(int position)
+        {
+            for (var idx = position - 1; idx >= 0; idx--)
+            {
+                var strong = StrongDirectionOf(TypeAt(idx));
+                if (strong != BidiClass.ON)
+                    return strong;
+            }
+
+            return _sos;
         }
 
         /// <summary>

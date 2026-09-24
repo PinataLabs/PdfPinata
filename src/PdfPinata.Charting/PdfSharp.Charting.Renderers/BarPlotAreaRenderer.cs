@@ -93,59 +93,42 @@ internal abstract class BarPlotAreaRenderer : PlotAreaRenderer
     var yMin = cri.YAxisRendererInfo.MinimumScale;
     var yMax = cri.YAxisRendererInfo.MaximumScale;
 
-    LineFormatRenderer lineFormatRenderer;
-
     // Under some circumstances it is possible that no zero base line will be drawn,
     // e. g. because of unfavourable minimum/maximum scale and/or major tick, so force to draw
     // a zero base line if necessary.
-    if (cri.YAxisRendererInfo.MajorGridlinesLineFormat != null ||
-        cri.YAxisRendererInfo.MinorGridlinesLineFormat != null)
-    {
-      if (yMin < 0 && yMax > 0)
-      {
-        var points = new XPoint[2];
-        points[0].X = 0;
-        points[0].Y = xMin;
-        points[1].X = 0;
-        points[1].Y = xMax;
-        cri.PlotAreaRendererInfo.Matrix.TransformPoints(points);
+    DrawZeroBaseLine(cri, gfx, new XPoint(0, xMin), new XPoint(0, xMax));
 
-        if (cri.YAxisRendererInfo.MinorGridlinesLineFormat != null)
-          lineFormatRenderer = new LineFormatRenderer(gfx, cri.YAxisRendererInfo.MinorGridlinesLineFormat);
-        else
-          lineFormatRenderer = new LineFormatRenderer(gfx, cri.YAxisRendererInfo.MajorGridlinesLineFormat);
-
-        lineFormatRenderer.DrawLine(points[0], points[1]);
-      }
-    }
-
-    // Draw bars
     var state = gfx.Save();
-    foreach (var sri in cri.SeriesRendererInfos)
-    {
-      foreach (var column in sri.PointRendererInfos.Cast<ColumnRendererInfo>())
-      {
-        // Do not draw bar if value is outside yMin/yMax range. Clipping does not make sense.
-        if (IsDataInside(yMin, yMax, column.Value))
-          gfx.DrawRectangle(column.FillFormat, column.Rect);
-      }
-    }
+    var bars = cri.SeriesRendererInfos
+      .SelectMany(sri => sri.PointRendererInfos.Cast<ColumnRendererInfo>())
+      .ToList();
+
+    // Draw bars. Do not draw a bar if its value is outside yMin/yMax range. Clipping does not make sense.
+    foreach (var bar in bars.Where(bar => IsDataInside(yMin, yMax, bar.Value)))
+      gfx.DrawRectangle(bar.FillFormat, bar.Rect);
 
     // Draw borders around bar.
     // A border can overlap neighbor bars, so it is important to draw borders at the end.
-    foreach (var sri in cri.SeriesRendererInfos)
-    {
-      foreach (var column in sri.PointRendererInfos.Cast<ColumnRendererInfo>())
-      {
-        // Do not draw bar if value is outside yMin/yMax range. Clipping does not make sense.
-        if (!IsDataInside(yMin, yMax, column.Value) || column.LineFormat.Width is not > 0)
-          continue;
+    foreach (var bar in bars.Where(bar => IsDataInside(yMin, yMax, bar.Value) && bar.LineFormat.Width is > 0))
+      new LineFormatRenderer(gfx, bar.LineFormat).DrawRectangle(bar.Rect);
 
-        lineFormatRenderer = new LineFormatRenderer(gfx, column.LineFormat);
-        lineFormatRenderer.DrawRectangle(column.Rect);
-      }
-    }
     gfx.Restore(state);
+  }
+
+  /// <summary>
+  /// Draws the zero base line from one point to another, in chart coordinates, when the Y axis has
+  /// gridlines and its scale spans zero.
+  /// </summary>
+  private static void DrawZeroBaseLine(ChartRendererInfo cri, XGraphics gfx, XPoint from, XPoint to)
+  {
+    var yAxis = cri.YAxisRendererInfo;
+    var gridlines = yAxis.MinorGridlinesLineFormat ?? yAxis.MajorGridlinesLineFormat;
+    if (gridlines == null || yAxis.MinimumScale >= 0 || yAxis.MaximumScale <= 0)
+      return;
+
+    var points = new[] { from, to };
+    cri.PlotAreaRendererInfo.Matrix.TransformPoints(points);
+    new LineFormatRenderer(gfx, gridlines).DrawLine(points[0], points[1]);
   }
 
   /// <summary>

@@ -89,41 +89,53 @@ internal static class PdfTransparencyDetector
         if (resources == null)
             return false;
 
-        var states = resources.Elements.GetDictionary("/ExtGState");
-        if (states != null)
+        return AnyStatePaints(resources.Elements.GetDictionary("/ExtGState"))
+            || AnyXObjectPaints(resources.Elements.GetDictionary("/XObject"), seen, depth)
+            || AnyPatternPaints(resources.Elements.GetDictionary("/Pattern"), seen, depth);
+    }
+
+    private static bool AnyStatePaints(PdfDictionary states)
+    {
+        if (states == null)
+            return false;
+
+        foreach (var name in states.Elements.KeyNames)
         {
-            foreach (var name in states.Elements.KeyNames)
-            {
-                if (StatePaints(states.Elements.GetDictionary(name.Value)))
-                    return true;
-            }
+            if (StatePaints(states.Elements.GetDictionary(name.Value)))
+                return true;
         }
 
-        var xObjects = resources.Elements.GetDictionary("/XObject");
-        if (xObjects != null)
+        return false;
+    }
+
+    private static bool AnyXObjectPaints(PdfDictionary xObjects, Dictionary<string, object> seen, int depth)
+    {
+        if (xObjects == null)
+            return false;
+
+        foreach (var name in xObjects.Elements.KeyNames)
         {
-            foreach (var name in xObjects.Elements.KeyNames)
-            {
-                var nested = xObjects.Elements.GetDictionary(name.Value);
-                if (nested != null && Paints(nested, seen, depth + 1))
-                    return true;
-            }
+            var nested = xObjects.Elements.GetDictionary(name.Value);
+            if (nested != null && Paints(nested, seen, depth + 1))
+                return true;
         }
 
-        // A tiling pattern paints from a content stream of its own and carries its own resources.
-        // A shading pattern has none, so there is nothing under it to look at.
-        var patterns = resources.Elements.GetDictionary("/Pattern");
-        if (patterns != null)
-        {
-            foreach (var name in patterns.Elements.KeyNames)
-            {
-                var pattern = patterns.Elements.GetDictionary(name.Value);
-                if (pattern == null)
-                    continue;
+        return false;
+    }
 
-                if (ResourcesPaint(pattern.Elements.GetDictionary(PdfPage.InheritablePageKeys.Resources), seen, depth + 1))
-                    return true;
-            }
+    // A tiling pattern paints from a content stream of its own and carries its own resources.
+    // A shading pattern has none, so there is nothing under it to look at.
+    private static bool AnyPatternPaints(PdfDictionary patterns, Dictionary<string, object> seen, int depth)
+    {
+        if (patterns == null)
+            return false;
+
+        foreach (var name in patterns.Elements.KeyNames)
+        {
+            var pattern = patterns.Elements.GetDictionary(name.Value);
+            if (pattern != null
+                && ResourcesPaint(pattern.Elements.GetDictionary(PdfPage.InheritablePageKeys.Resources), seen, depth + 1))
+                return true;
         }
 
         return false;

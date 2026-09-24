@@ -32,58 +32,13 @@ internal sealed class CompressDemo : PdfDemo
 
     public override int PageCount => 3;
 
+    #region example
     protected override PdfDocument Build(DemoContext context)
     {
-        #region example
         var heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
         var label = new XFont("Liberation Sans", 9, XFontStyle.Bold);
         var body = new XFont("Liberation Sans", 9);
         var mono = new XFont("Source Code Pro", 8.5);
-
-        // One page of representative content - text, a long path, a photograph - built the same
-        // way every time so that the only thing that varies between the measurements below is the
-        // options the document was saved under.
-        void Representative(PdfDocument target)
-        {
-            var page = target.AddPage();
-            using var gfx = XGraphics.FromPdfPage(page);
-
-            gfx.DrawString("Representative content", heading, XBrushes.Black, new XPoint(50, 60));
-
-            var prose = new XTextFormatter(gfx);
-            for (var block = 0; block < 4; block++)
-            {
-                prose.DrawString(
-                    "Compression acts on the content stream, which is the list of drawing "
-                    + "operators a page is made of. Text is cheap, paths are dear, and an image is "
-                    + "usually already compressed by the time it arrives - which is why the "
-                    + "settings below move the total by wildly different amounts.",
-                    body, XBrushes.Black, new XRect(50, 90 + block * 60, 495, 55));
-            }
-
-            // A path with a great many segments. This is what compression has something to work
-            // on: a few hundred coordinates written out as text.
-            var path = new XGraphicsPath();
-            for (var step = 0; step < 400; step++)
-            {
-                var t = step / 400.0 * Math.PI * 8;
-                var point = new XPoint(
-                    50 + step * 495.0 / 400,
-                    500 + Math.Sin(t) * 60 * (1 - step / 400.0));
-
-                if (step == 0)
-                    path.AddLine(point, point);
-                else
-                    path.AddLine(new XPoint(50 + (step - 1) * 495.0 / 400,
-                        500 + Math.Sin((step - 1) / 400.0 * Math.PI * 8) * 60 * (1 - (step - 1) / 400.0)), point);
-            }
-
-            gfx.DrawPath(new XPen(XColors.MidnightBlue, 0.8), path);
-
-            using var photograph = XImage.FromStream(
-                () => Assets.Open(Assets.ImagePrefix + "pdf-pinata.jpg"));
-            gfx.DrawImage(photograph, 50, 580, 240, 180);
-        }
 
         // docs:begin measure
         // Saved under one arrangement of the options and measured. Nothing is written to disk.
@@ -91,7 +46,7 @@ internal sealed class CompressDemo : PdfDemo
         {
             using var probe = new PdfDocument();
             configure(probe.Options);
-            Representative(probe);
+            Representative(probe, heading, body);
 
             using var buffer = new MemoryStream();
             probe.Save(buffer, false);
@@ -188,7 +143,7 @@ internal sealed class CompressDemo : PdfDemo
 
         // Page one is the content itself, so the reader can see that every measurement above was
         // taken over this and that none of the settings changed how it looks.
-        Representative(document);
+        Representative(document, heading, body);
 
         var report = document.AddPage();
         using (var gfx = XGraphics.FromPdfPage(report))
@@ -228,9 +183,7 @@ internal sealed class CompressDemo : PdfDemo
                 var delta = row.Bytes - compressed;
                 gfx.DrawString(row.Setting, mono, XBrushes.Black, new XPoint(50, y));
                 gfx.DrawString($"{row.Bytes:N0}", body, XBrushes.Black, new XPoint(280, y));
-                gfx.DrawString(
-                    delta == 0 ? "-" : $"{(delta > 0 ? "+" : "")}{delta:N0}",
-                    body, delta > 0 ? XBrushes.Firebrick : XBrushes.SeaGreen, new XPoint(350, y));
+                gfx.DrawString(delta == 0 ? "-" : Signed(delta), body, DeltaBrush(delta), new XPoint(350, y));
                 gfx.DrawString(row.Note, body, XBrushes.DimGray, new XPoint(50, y + 11));
                 y += 28;
             }
@@ -313,15 +266,13 @@ internal sealed class CompressDemo : PdfDemo
 
             gfx.DrawString("Stream, 100 pages", mono, XBrushes.Black, new XPoint(50, 208));
             gfx.DrawString($"{manyStream:N0}", body, XBrushes.Black, new XPoint(280, 208));
-            gfx.DrawString(
-                $"{(manyStream > manyClassic ? "+" : "")}{manyStream - manyClassic:N0}",
-                body, manyStream > manyClassic ? XBrushes.Firebrick : XBrushes.SeaGreen,
+            gfx.DrawString(Signed(manyStream - manyClassic), body, DeltaBrush(manyStream - manyClassic),
                 new XPoint(350, 208));
 
             gfx.DrawString("The same page, measured twice", mono, XBrushes.Black, new XPoint(50, 226));
             gfx.DrawString($"{compressed:N0} / {xrefStream:N0}", body, XBrushes.Black, new XPoint(280, 226));
-            gfx.DrawString($"{xrefStream - compressed:N0}", body,
-                xrefStream > compressed ? XBrushes.Firebrick : XBrushes.SeaGreen, new XPoint(350, 226));
+            gfx.DrawString($"{xrefStream - compressed:N0}", body, DeltaBrush(xrefStream - compressed),
+                new XPoint(350, 226));
 
             gfx.DrawString("What it costs", label, XBrushes.Black, new XPoint(50, 265));
 
@@ -342,8 +293,64 @@ internal sealed class CompressDemo : PdfDemo
                 + "sort of option that is easy to set and hard to notice has done nothing.",
                 body, XBrushes.Black, new XRect(50, 360, 495, 58));
         }
-        #endregion
 
         return document;
     }
+
+    // One page of representative content - text, a long path, a photograph - built the same way
+    // every time so that the only thing that varies between the measurements is the options the
+    // document was saved under.
+    private static void Representative(PdfDocument target, XFont heading, XFont body)
+    {
+        var page = target.AddPage();
+        using var gfx = XGraphics.FromPdfPage(page);
+
+        gfx.DrawString("Representative content", heading, XBrushes.Black, new XPoint(50, 60));
+
+        var prose = new XTextFormatter(gfx);
+        for (var block = 0; block < 4; block++)
+        {
+            prose.DrawString(
+                "Compression acts on the content stream, which is the list of drawing "
+                + "operators a page is made of. Text is cheap, paths are dear, and an image is "
+                + "usually already compressed by the time it arrives - which is why the "
+                + "settings below move the total by wildly different amounts.",
+                body, XBrushes.Black, new XRect(50, 90 + block * 60, 495, 55));
+        }
+
+        gfx.DrawPath(new XPen(XColors.MidnightBlue, 0.8), DecayingWave());
+
+        using var photograph = XImage.FromStream(
+            () => Assets.Open(Assets.ImagePrefix + "pdf-pinata.jpg"));
+        gfx.DrawImage(photograph, 50, 580, 240, 180);
+    }
+
+    // A path with a great many segments. This is what compression has something to work on: a few
+    // hundred coordinates written out as text.
+    private static XGraphicsPath DecayingWave()
+    {
+        var path = new XGraphicsPath();
+        for (var step = 0; step < 400; step++)
+        {
+            var t = step / 400.0 * Math.PI * 8;
+            var point = new XPoint(
+                50 + step * 495.0 / 400,
+                500 + Math.Sin(t) * 60 * (1 - step / 400.0));
+
+            if (step == 0)
+                path.AddLine(point, point);
+            else
+                path.AddLine(new XPoint(50 + (step - 1) * 495.0 / 400,
+                    500 + Math.Sin((step - 1) / 400.0 * Math.PI * 8) * 60 * (1 - (step - 1) / 400.0)), point);
+        }
+
+        return path;
+    }
+
+    // A difference in bytes, with its sign whichever way it goes.
+    private static string Signed(long delta) => $"{(delta > 0 ? "+" : "")}{delta:N0}";
+
+    // Red for a file that grew, green for one that did not.
+    private static XBrush DeltaBrush(long delta) => delta > 0 ? XBrushes.Firebrick : XBrushes.SeaGreen;
+    #endregion
 }

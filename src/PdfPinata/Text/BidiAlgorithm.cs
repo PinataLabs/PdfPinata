@@ -475,46 +475,18 @@ public static partial class BidiAlgorithm
         private List<Sequence> IsolatingRunSequences()
         {
             var runs = LevelRuns();
-            var runOfCharacter = new Dictionary<int, int>();
-            for (var idx = 0; idx < runs.Count; idx++)
-            {
-                foreach (var character in runs[idx])
-                    runOfCharacter[character] = idx;
-            }
-
+            var runOfCharacter = RunOfCharacter(runs);
             var used = new bool[runs.Count];
             var sequences = new List<Sequence>();
 
             for (var idx = 0; idx < runs.Count; idx++)
             {
-                if (used[idx])
-                    continue;
-
                 // BD13: a sequence starts at a run whose first character is not a PDI that closes
                 // something. A PDI that does belongs to the sequence its initiator started.
-                var first = runs[idx][0];
-                if (_initial[first] == BidiClass.PDI && _matchingInitiator[first] != -1)
+                if (used[idx] || ClosesAnIsolate(runs[idx][0]))
                     continue;
 
-                var indices = new List<int>();
-                var run = idx;
-                while (true)
-                {
-                    used[run] = true;
-                    indices.AddRange(runs[run]);
-
-                    var last = runs[run][runs[run].Count - 1];
-                    if (!IsIsolateInitiator(_initial[last]))
-                        break;
-
-                    var pdi = _matchingPdi[last];
-                    if (pdi >= _length || !runOfCharacter.TryGetValue(pdi, out var next) || used[next])
-                        break;
-
-                    run = next;
-                }
-
-                sequences.Add(BuildSequence(indices));
+                sequences.Add(BuildSequence(ChainRuns(runs, idx, runOfCharacter, used)));
             }
 
             // A run whose first character is a matched PDI but whose initiator was never reached -
@@ -526,6 +498,46 @@ public static partial class BidiAlgorithm
             }
 
             return sequences;
+        }
+
+        private static Dictionary<int, int> RunOfCharacter(List<List<int>> runs)
+        {
+            var runOfCharacter = new Dictionary<int, int>();
+            for (var idx = 0; idx < runs.Count; idx++)
+            {
+                foreach (var character in runs[idx])
+                    runOfCharacter[character] = idx;
+            }
+
+            return runOfCharacter;
+        }
+
+        private bool ClosesAnIsolate(int character) =>
+            _initial[character] == BidiClass.PDI && _matchingInitiator[character] != -1;
+
+        /// <summary>
+        /// The characters of the run at <paramref name="start"/> and of every run its trailing
+        /// isolate initiator continues into, marking each run used on the way.
+        /// </summary>
+        private List<int> ChainRuns(List<List<int>> runs, int start, Dictionary<int, int> runOfCharacter, bool[] used)
+        {
+            var indices = new List<int>();
+            var run = start;
+            while (true)
+            {
+                used[run] = true;
+                indices.AddRange(runs[run]);
+
+                var last = runs[run][runs[run].Count - 1];
+                if (!IsIsolateInitiator(_initial[last]))
+                    return indices;
+
+                var pdi = _matchingPdi[last];
+                if (pdi >= _length || !runOfCharacter.TryGetValue(pdi, out var next) || used[next])
+                    return indices;
+
+                run = next;
+            }
         }
 
         private Sequence BuildSequence(List<int> indices)

@@ -1241,81 +1241,102 @@ internal sealed class Parser
         var startOfSection = _lexer.Position;
         var symbol = ScanNextToken();
 
-        if (symbol == Symbol.XRef) // Is it a cross-reference table?
+        return symbol switch
         {
-            // Reference: 3.4.3  Cross-Reference Table / Page 93
-            while (true)
+            // A cross-reference table.
+            Symbol.XRef => ReadXRefTable(xrefTable, accuracy),
+            // A cross-reference stream. Reference: 3.4.7  Cross-Reference Streams / Page 93
+            // The parsed integer is the object id of the cross-reference stream.
+            Symbol.Integer => ReadXRefStream(xrefTable, startOfSection),
+            _ => null
+        };
+    }
+
+    /// <summary>
+    /// Reads the subsections of a classic cross-reference table and the trailer that ends it.
+    /// </summary>
+    private PdfTrailer ReadXRefTable(PdfCrossReferenceTable xrefTable, PdfReadAccuracy accuracy)
+    {
+        // Reference: 3.4.3  Cross-Reference Table / Page 93
+        while (true)
+        {
+            var symbol = ScanNextToken();
+            if (symbol == Symbol.Integer)
             {
-                symbol = ScanNextToken();
-                if (symbol == Symbol.Integer)
-                {
-                    var start = _lexer.TokenToInteger;
-                    var length = ReadInteger();
-                    for (var id = start; id < start + length; id++)
-                    {
-                        var position = ReadLong();
-                        var generation = ReadInteger();
-                        ReadSymbol(Symbol.Keyword);
-                        var token = _lexer.Token;
-
-                        // Skip start entry
-                        if (id == 0)
-                            continue;
-
-                        // Skip unused entries.
-                        if (token != "n")
-                            continue;
-
-                        // Check if the object at the address has the correct ID and generation.
-                        var idToUse = id;
-                        if (!CheckXRefTableEntry(position, id, generation, out var idChecked, out var generationChecked))
-                        {
-                            // Found the keyword "obj", but ID or generation did not match.
-                            // There is a tool where ID is off by one. In this case we use the ID from the object, not the ID from the XRef table.
-                            if (generation == generationChecked && id == idChecked + 1)
-                                idToUse = idChecked;
-                            else if (accuracy == PdfReadAccuracy.Strict)
-                                ParserDiagnostics.ThrowParserException("Invalid entry in XRef table, ID=" + id +
-                                                                       ", Generation=" + generation +
-                                                                       ", Position=" + position +
-                                                                       ", ID of referenced object=" + idChecked +
-                                                                       ", Generation of referenced object=" +
-                                                                       generationChecked);
-                        }
-
-                        // Even it is restricted, an object can exists in more than one subsection.
-                        // (PDF Reference Implementation Notes 15).
-                        var objectID = new PdfObjectID(idToUse, generation);
-
-                        // Ignore the latter one.
-                        if (xrefTable.Contains(objectID))
-                            continue;
-                        xrefTable.Add(new PdfReference(objectID, position));
-                    }
-                }
-                else if (symbol == Symbol.Trailer)
-                {
-                    ReadSymbol(Symbol.BeginDictionary);
-                    var trailer = new PdfTrailer(_document);
-                    ReadDictionary(trailer, false);
-                    return trailer;
-                }
-                else
-                {
-                    ParserDiagnostics.HandleUnexpectedToken(_lexer.Token);
-                }
+                ReadXRefSubsection(xrefTable, accuracy);
+            }
+            else if (symbol == Symbol.Trailer)
+            {
+                ReadSymbol(Symbol.BeginDictionary);
+                var trailer = new PdfTrailer(_document);
+                ReadDictionary(trailer, false);
+                return trailer;
+            }
+            else
+            {
+                ParserDiagnostics.HandleUnexpectedToken(_lexer.Token);
             }
         }
-        // ReSharper disable once RedundantIfElseBlock because of code readability.
-        else if (symbol == Symbol.Integer) // Is it an cross-reference stream?
+    }
+
+    /// <summary>
+    /// Reads one subsection of a cross-reference table, whose first object number has just been read.
+    /// </summary>
+    private void ReadXRefSubsection(PdfCrossReferenceTable xrefTable, PdfReadAccuracy accuracy)
+    {
+        var start = _lexer.TokenToInteger;
+        var length = ReadInteger();
+        for (var id = start; id < start + length; id++)
         {
-            // Reference: 3.4.7  Cross-Reference Streams / Page 93
+            var position = ReadLong();
+            var generation = ReadInteger();
+            ReadSymbol(Symbol.Keyword);
+            var token = _lexer.Token;
 
-            // The parsed integer is the object id of the cross-refernece stream.
-            return ReadXRefStream(xrefTable, startOfSection);
+            // Skip start entry
+            if (id == 0)
+                continue;
+
+            // Skip unused entries.
+            if (token != "n")
+                continue;
+
+            var idToUse = VerifiedXRefTableId(position, id, generation, accuracy);
+
+            // Even it is restricted, an object can exists in more than one subsection.
+            // (PDF Reference Implementation Notes 15).
+            var objectID = new PdfObjectID(idToUse, generation);
+
+            // Ignore the latter one.
+            if (xrefTable.Contains(objectID))
+                continue;
+            xrefTable.Add(new PdfReference(objectID, position));
         }
+    }
 
-        return null;
+    /// <summary>
+    /// Answers the object number to file a table entry under, having checked that the object at its
+    /// position carries the ID and generation the table gives it.
+    /// </summary>
+    private int VerifiedXRefTableId(long position, int id, int generation, PdfReadAccuracy accuracy)
+    {
+        // Check if the object at the address has the correct ID and generation.
+        if (CheckXRefTableEntry(position, id, generation, out var idChecked, out var generationChecked))
+            return id;
+
+        // Found the keyword "obj", but ID or generation did not match.
+        // There is a tool where ID is off by one. In this case we use the ID from the object, not the ID from the XRef table.
+        if (generation == generationChecked && id == idChecked + 1)
+            return idChecked;
+
+        if (accuracy == PdfReadAccuracy.Strict)
+            ParserDiagnostics.ThrowParserException("Invalid entry in XRef table, ID=" + id +
+                                                   ", Generation=" + generation +
+                                                   ", Position=" + position +
+                                                   ", ID of referenced object=" + idChecked +
+                                                   ", Generation of referenced object=" +
+                                                   generationChecked);
+        return id;
     }
 
     /// <summary>
@@ -1415,26 +1436,43 @@ internal sealed class Parser
         // still finds it, for the compressed objects its revision indexes.
         xrefStream.StartOfSection = startOfSection;
         xrefStream.EndOfNumber = endOfNumber;
-        var iref = xrefTable[objectID];
-        if (iref != null)
-        {
-            if (iref.Value == null && PointsAtStream(iref, startOfSection, endOfNumber))
-            {
-                iref.Value = xrefStream;
-            }
-        }
-        else
-        {
-            iref = new PdfReference(xrefStream)
-            {
-                ObjectID = objectID,
-                Value = xrefStream
-            };
-            xrefTable.Add(iref);
-        }
+        RegisterXRefStream(xrefTable, xrefStream, objectID);
 
         CrossReferenceStreams.Add(xrefStream);
 
+        ReadXRefStreamEntries(xrefTable, xrefStream);
+
+        return xrefStream;
+    }
+
+    /// <summary>
+    /// Files a cross-reference stream in the table under its own number, unless a newer revision
+    /// has already given that number to a different object.
+    /// </summary>
+    private static void RegisterXRefStream(PdfCrossReferenceTable xrefTable, PdfCrossReferenceStream xrefStream,
+        PdfObjectID objectID)
+    {
+        var iref = xrefTable[objectID];
+        if (iref == null)
+        {
+            xrefTable.Add(new PdfReference(xrefStream)
+            {
+                ObjectID = objectID,
+                Value = xrefStream
+            });
+            return;
+        }
+
+        if (iref.Value == null && PointsAtStream(iref, xrefStream.StartOfSection, xrefStream.EndOfNumber))
+            iref.Value = xrefStream;
+    }
+
+    /// <summary>
+    /// Decodes the entries of a cross-reference stream, keeping each on the stream and claiming the
+    /// object numbers they give in the table.
+    /// </summary>
+    private void ReadXRefStreamEntries(PdfCrossReferenceTable xrefTable, PdfCrossReferenceStream xrefStream)
+    {
         Debug.Assert(xrefStream.Stream != null);
         var bytes = xrefStream.Stream.UnfilteredValue;
 
@@ -1444,30 +1482,7 @@ internal sealed class Parser
 
         // E.g.: W[1 2 1] ¤ Index[7 12] ¤ Size 19
 
-        // Setup subsections.
-        int subsectionCount;
-        int[][] subsections;
-        var subsectionEntryCount = 0;
-        if (index == null)
-        {
-            // Setup with default values.
-            subsectionCount = 1;
-            subsections = new int[subsectionCount][];
-            subsections[0] = [0, size]; // HACK: What is size? Contratiction in PDF reference.
-            subsectionEntryCount = size;
-        }
-        else
-        {
-            // Read subsections from array.
-            Debug.Assert(index.Elements.Count % 2 == 0);
-            subsectionCount = index.Elements.Count / 2;
-            subsections = new int[subsectionCount][];
-            for (var idx = 0; idx < subsectionCount; idx++)
-            {
-                subsections[idx] = [index.Elements.GetInteger(2 * idx), index.Elements.GetInteger(2 * idx + 1)];
-                subsectionEntryCount += subsections[idx][1];
-            }
-        }
+        var subsections = XRefStreamSubsections(index, size, out var subsectionEntryCount);
 
         // W key.
         Debug.Assert(w.Elements.Count == 3);
@@ -1476,10 +1491,9 @@ internal sealed class Parser
         Debug.Assert(wsum * subsectionEntryCount == bytes.Length, "Check implementation here.");
 
         var index2 = -1;
-        for (var ssc = 0; ssc < subsectionCount; ssc++)
+        foreach (var subsection in subsections)
         {
-            var abc = subsections[ssc][1];
-            for (var idx = 0; idx < abc; idx++)
+            for (var idx = 0; idx < subsection[1]; idx++)
             {
                 index2++;
 
@@ -1489,55 +1503,88 @@ internal sealed class Parser
                         Type = (uint)StreamHelper.ReadBytes(bytes, index2 * wsum, wsize[0]),
                         Field2 = (long)StreamHelper.ReadBytes(bytes, index2 * wsum + wsize[0], wsize[1]),
                         Field3 = (uint)StreamHelper.ReadBytes(bytes, index2 * wsum + wsize[0] + wsize[1], wsize[2]),
-                        ObjectNumber = subsections[ssc][0] + idx
+                        ObjectNumber = subsection[0] + idx
                     };
 
                 xrefStream.Entries.Add(item);
-
-                switch (item.Type)
-                {
-                    case 0:
-                        // Nothing to do, not needed.
-                        break;
-
-                    case 1: // offset / generation number
-                        //// Even it is restricted, an object can exists in more than one subsection.
-                        //// (PDF Reference Implementation Notes 15).
-
-                        // A byte offset, and so as wide as the file: a file past 2 GiB has
-                        // offsets an int cannot hold (implementation note 21 in Appendix H).
-                        var position = item.Field2;
-                        objectID = ReadObjectNumber(position);
-                        Debug.Assert(objectID.GenerationNumber == item.Field3);
-
-                        //// Ignore the latter one.
-                        if (!xrefTable.Contains(objectID))
-                        {
-                            // Add iref for all uncompressed objects.
-                            xrefTable.Add(new PdfReference(objectID, position));
-                        }
-
-                        break;
-
-                    case 2:
-                        // A compressed object is read later, once every object stream is known,
-                        // but its number is claimed now, while the revisions are still being read
-                        // newest first, so that an older revision's entry for the same number
-                        // cannot take it. A position of -1 says only "compressed", and it is also
-                        // what tells the reader later that an older revision's compressed copy of
-                        // an object a newer revision wrote out in full is not the one to read.
-                        // Object 0 is never an object, whatever a malformed stream says of it.
-                        if (item.ObjectNumber < 1)
-                            break;
-                        var compressedID = new PdfObjectID(item.ObjectNumber);
-                        if (!xrefTable.Contains(compressedID))
-                            xrefTable.Add(new PdfReference(compressedID, -1));
-                        break;
-                }
+                AddXRefStreamEntry(xrefTable, item);
             }
         }
+    }
 
-        return xrefStream;
+    /// <summary>
+    /// Answers the subsections a cross-reference stream's /Index describes, each as its first object
+    /// number and its entry count, and how many entries they hold between them.
+    /// </summary>
+    private static int[][] XRefStreamSubsections(PdfArray index, int size, out int entryCount)
+    {
+        if (index == null)
+        {
+            // Setup with default values.
+            entryCount = size;
+            return [[0, size]]; // HACK: What is size? Contratiction in PDF reference.
+        }
+
+        // Read subsections from array.
+        Debug.Assert(index.Elements.Count % 2 == 0);
+        var subsectionCount = index.Elements.Count / 2;
+        var subsections = new int[subsectionCount][];
+        entryCount = 0;
+        for (var idx = 0; idx < subsectionCount; idx++)
+        {
+            subsections[idx] = [index.Elements.GetInteger(2 * idx), index.Elements.GetInteger(2 * idx + 1)];
+            entryCount += subsections[idx][1];
+        }
+
+        return subsections;
+    }
+
+    /// <summary>
+    /// Claims in the table the object number one cross-reference stream entry gives.
+    /// </summary>
+    private void AddXRefStreamEntry(PdfCrossReferenceTable xrefTable,
+        PdfCrossReferenceStream.CrossReferenceStreamEntry item)
+    {
+        switch (item.Type)
+        {
+            case 0:
+                // Nothing to do, not needed.
+                break;
+
+            case 1: // offset / generation number
+                //// Even it is restricted, an object can exists in more than one subsection.
+                //// (PDF Reference Implementation Notes 15).
+
+                // A byte offset, and so as wide as the file: a file past 2 GiB has
+                // offsets an int cannot hold (implementation note 21 in Appendix H).
+                var position = item.Field2;
+                var objectID = ReadObjectNumber(position);
+                Debug.Assert(objectID.GenerationNumber == item.Field3);
+
+                //// Ignore the latter one.
+                if (!xrefTable.Contains(objectID))
+                {
+                    // Add iref for all uncompressed objects.
+                    xrefTable.Add(new PdfReference(objectID, position));
+                }
+
+                break;
+
+            case 2:
+                // A compressed object is read later, once every object stream is known,
+                // but its number is claimed now, while the revisions are still being read
+                // newest first, so that an older revision's entry for the same number
+                // cannot take it. A position of -1 says only "compressed", and it is also
+                // what tells the reader later that an older revision's compressed copy of
+                // an object a newer revision wrote out in full is not the one to read.
+                // Object 0 is never an object, whatever a malformed stream says of it.
+                if (item.ObjectNumber < 1)
+                    break;
+                var compressedID = new PdfObjectID(item.ObjectNumber);
+                if (!xrefTable.Contains(compressedID))
+                    xrefTable.Add(new PdfReference(compressedID, -1));
+                break;
+        }
     }
 
     /// <summary>

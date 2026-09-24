@@ -241,37 +241,42 @@ public class SerializeAndFlattenCharacterizationTests
         foreach (var width in new[] { false, true })
         foreach (var height in new[] { false, true })
         foreach (var format in new[] { false, true })
-        {
-            var document = new Document();
-            var first = document.AddSection();
-            first.PageSetup.PageFormat = PageFormat.A6;
-            first.PageSetup.PageWidth = "11cm";
-            first.PageSetup.PageHeight = "17cm";
-            first.PageSetup.TopMargin = "1cm";
-            first.PageSetup.MirrorMargins = true;
-            first.PageSetup.SectionStart = BreakType.BreakEvenPage;
-
-            var second = document.AddSection();
-            if (width)
-                second.PageSetup.PageWidth = "5cm";
-            if (height)
-                second.PageSetup.PageHeight = "6cm";
-            if (format)
-                second.PageSetup.PageFormat = PageFormat.Letter;
-            second.PageSetup.LeftMargin = "3cm";
-
-            new PdfFlattenVisitor().Visit(document);
-
-            var s = second.PageSetup;
-            results.Add($"{(width ? "w" : "-")}{(height ? "h" : "-")}{(format ? "f" : "-")}: "
-                        + $"{s.PageWidth} x {s.PageHeight} {(s.IsNull("PageFormat") ? "?" : s.PageFormat.ToString())}"
-                        + $" {s.SectionStart} {s.Orientation} {s.TopMargin} {s.BottomMargin} {s.LeftMargin} {s.RightMargin}"
-                        + $" {s.HeaderDistance} {s.FooterDistance} {s.OddAndEvenPagesHeaderFooter} {s.DifferentFirstPageHeaderFooter}"
-                        + $" {s.MirrorMargins} {s.HorizontalPageBreak}");
-        }
+            results.Add(FlattenedPageSetup(width, height, format));
 
         return string.Join("|", results);
     }
+
+    private static string FlattenedPageSetup(bool width, bool height, bool format)
+    {
+        var document = new Document();
+        var first = document.AddSection();
+        first.PageSetup.PageFormat = PageFormat.A6;
+        first.PageSetup.PageWidth = "11cm";
+        first.PageSetup.PageHeight = "17cm";
+        first.PageSetup.TopMargin = "1cm";
+        first.PageSetup.MirrorMargins = true;
+        first.PageSetup.SectionStart = BreakType.BreakEvenPage;
+
+        var second = document.AddSection();
+        if (width)
+            second.PageSetup.PageWidth = "5cm";
+        if (height)
+            second.PageSetup.PageHeight = "6cm";
+        if (format)
+            second.PageSetup.PageFormat = PageFormat.Letter;
+        second.PageSetup.LeftMargin = "3cm";
+
+        new PdfFlattenVisitor().Visit(document);
+
+        var s = second.PageSetup;
+        return $"{Flag(width, "w")}{Flag(height, "h")}{Flag(format, "f")}: "
+               + $"{s.PageWidth} x {s.PageHeight} {(s.IsNull("PageFormat") ? "?" : s.PageFormat.ToString())}"
+               + $" {s.SectionStart} {s.Orientation} {s.TopMargin} {s.BottomMargin} {s.LeftMargin} {s.RightMargin}"
+               + $" {s.HeaderDistance} {s.FooterDistance} {s.OddAndEvenPagesHeaderFooter} {s.DifferentFirstPageHeaderFooter}"
+               + $" {s.MirrorMargins} {s.HorizontalPageBreak}";
+    }
+
+    private static string Flag(bool set, string letter) => set ? letter : "-";
 
     [Fact]
     public void FlatteningFillsInAPageSetupTheWayItAlwaysHas() =>
@@ -303,36 +308,41 @@ public class SerializeAndFlattenCharacterizationTests
     {
         var both = new List<string>();
         foreach (var colour in new[] { Color.Empty, Colors.Red })
-        {
-            var document = new Document();
-            var table = document.AddSection().AddTable();
-            for (var c = 0; c < 4; c++)
-                table.AddColumn("2cm");
-            for (var r = 0; r < 4; r++)
-                table.AddRow();
-
-            table.SetEdge(1, 1, 2, 2, edge, BorderStyle.DashLargeGap, 2.5, colour);
-
-            var set = new StringBuilder();
-            for (var r = 0; r < 4; r++)
-            for (var c = 0; c < 4; c++)
-            {
-                var cell = table[r, c];
-                if (cell.IsNull("Borders"))
-                    continue;
-                foreach (var name in EdgeBorderNames)
-                {
-                    if (cell.Borders.IsNull(name))
-                        continue;
-                    var border = (Border)cell.Borders.GetValue(name, GV.ReadOnly);
-                    set.Append($"{r}{c}{name}:{border.Style}/{border.Width}/{(border.IsNull("Color") ? "-" : border.Color.RGB.ToString("X"))} ");
-                }
-            }
-
-            both.Add(set.ToString());
-        }
+            both.Add(EdgesSet(edge, colour));
 
         return string.Join("|", both);
+    }
+
+    private static string EdgesSet(Edge edge, Color colour)
+    {
+        var document = new Document();
+        var table = document.AddSection().AddTable();
+        for (var c = 0; c < 4; c++)
+            table.AddColumn("2cm");
+        for (var r = 0; r < 4; r++)
+            table.AddRow();
+
+        table.SetEdge(1, 1, 2, 2, edge, BorderStyle.DashLargeGap, 2.5, colour);
+
+        var set = new StringBuilder();
+        for (var r = 0; r < 4; r++)
+        for (var c = 0; c < 4; c++)
+            AppendBordersSet(set, table[r, c], r, c);
+
+        return set.ToString();
+    }
+
+    private static void AppendBordersSet(StringBuilder set, Cell cell, int r, int c)
+    {
+        if (cell.IsNull("Borders"))
+            return;
+        foreach (var name in EdgeBorderNames)
+        {
+            if (cell.Borders.IsNull(name))
+                continue;
+            var border = (Border)cell.Borders.GetValue(name, GV.ReadOnly);
+            set.Append($"{r}{c}{name}:{border.Style}/{border.Width}/{(border.IsNull("Color") ? "-" : border.Color.RGB.ToString("X"))} ");
+        }
     }
 
     [Theory]

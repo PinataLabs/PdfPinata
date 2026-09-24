@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
@@ -43,9 +44,9 @@ internal sealed class OutlineDemo : PdfDemo
 
     public override int PageCount => 5;
 
+    #region example
     protected override PdfDocument Build(DemoContext context)
     {
-        #region example
         const string Sans = "Liberation Sans";
 
         var document = new PdfDocument();
@@ -64,48 +65,6 @@ internal sealed class OutlineDemo : PdfDemo
         var body = new XFont(Sans, 9.5);
         var noteFont = new XFont(Sans, 7.5);
         var mono = new XFont("Source Code Pro", 8);
-
-        // docs:begin top-of
-        // An outline destination is a position in default page space, measured up from the foot
-        // of the page. Everything drawn below is placed in world space, measured down from the
-        // head of it, so every heading's position has to be converted on the way into the tree.
-        double TopOf(XGraphics on, double worldY)
-        {
-            return on.Transformer.WorldToDefaultPage(new XRect(0, worldY, 0, 0)).Y;
-        }
-        // docs:end top-of
-
-        // docs:begin heading
-        // Draws a heading and hands back the place an entry pointing at it should land: a little
-        // above the text, so the heading is not flush against the top edge of the window.
-        //
-        // The same place is also named here, after the heading's own text, so that the contents
-        // list on page one can link to it without knowing which page it ended up on. Naming it in
-        // the one place that knows where the heading went is what keeps the bookmark and the
-        // contents line pointing at the same spot.
-        double Heading(XGraphics on, string text, XFont font, double x, double baseline)
-        {
-            on.DrawString(text, font, XBrushes.Black, new XPoint(x, baseline));
-
-            var ascent = font.GetHeight() * font.CellAscent / font.CellSpace;
-            var landing = baseline - ascent - 10;
-
-            on.AddNamedDestination(text, new XPoint(x, landing));
-
-            return TopOf(on, landing);
-        }
-        // docs:end heading
-
-        void Paragraphs(XGraphics on, double x, double baseline, int count)
-        {
-            for (var line = 0; line < count; line++)
-            {
-                on.DrawString(
-                    "Body text, here only so that the headings are not adjacent and a bookmark "
-                    + "has somewhere to scroll to.",
-                    body, XBrushes.DimGray, new XPoint(x, baseline + line * 13));
-            }
-        }
 
         // ---- Page one: the title, and what an outline is -----------------------------
         var titlePage = document.AddPage();
@@ -198,7 +157,7 @@ internal sealed class OutlineDemo : PdfDemo
 
             var chapterTop = Heading(gfx, part.Chapter, chapterFont, 56, 96);
             gfx.DrawLine(new XPen(XColors.SteelBlue, 1.5), 56, 106, 539, 106);
-            Paragraphs(gfx, 56, 128, 2);
+            Paragraphs(gfx, body, 56, 128, 2);
 
             // docs:begin chapter
             // Add(title, page, opened, style, colour) is the widest overload. The colour and the
@@ -216,7 +175,7 @@ internal sealed class OutlineDemo : PdfDemo
             {
                 // docs:begin section
                 var sectionTop = Heading(gfx, title, sectionFont, 56, sectionY);
-                Paragraphs(gfx, 56, sectionY + 20, 2);
+                Paragraphs(gfx, body, 56, sectionY + 20, 2);
 
                 var section = chapter.Outlines.Add(title, page);
                 section.Top = sectionTop;
@@ -228,19 +187,8 @@ internal sealed class OutlineDemo : PdfDemo
                 // show that the tree keeps going, without three pages of scaffolding.
                 if (part.Chapter.StartsWith("1.") && title.StartsWith("1.1"))
                 {
-                    var subY = sectionY + 56;
-                    foreach (var leaf in new[] { "1.1.1 A subsection", "1.1.2 And another" })
-                    {
-                        var subTop = Heading(gfx, leaf, subFont, 76, subY);
-                        Paragraphs(gfx, 76, subY + 16, 1);
-
-                        var sub = section.Outlines.Add(leaf, page);
-                        sub.Top = subTop;
-
-                        ContentsLine(leaf, noteFont, XBrushes.Gray, 96, 12, null);
-
-                        subY += 44;
-                    }
+                    Subsections(gfx, page, section, subFont, body, sectionY + 56,
+                        leaf => ContentsLine(leaf, noteFont, XBrushes.Gray, 96, 12, null));
 
                     // Set after the entry was added rather than passed to Add, which is the case
                     // the old counting missed: it ran once, inside Add, and never looked again.
@@ -328,8 +276,69 @@ internal sealed class OutlineDemo : PdfDemo
         appendixGfx.DrawString(
             "Opened on each entry is what decided how much of the tree was already unfolded in it.",
             noteFont, XBrushes.DimGray, new XPoint(56, rowY));
-        #endregion
 
         return document;
     }
+
+    // docs:begin top-of
+    // An outline destination is a position in default page space, measured up from the foot
+    // of the page. Everything drawn below is placed in world space, measured down from the
+    // head of it, so every heading's position has to be converted on the way into the tree.
+    private static double TopOf(XGraphics on, double worldY)
+    {
+        return on.Transformer.WorldToDefaultPage(new XRect(0, worldY, 0, 0)).Y;
+    }
+    // docs:end top-of
+
+    // docs:begin heading
+    // Draws a heading and hands back the place an entry pointing at it should land: a little
+    // above the text, so the heading is not flush against the top edge of the window.
+    //
+    // The same place is also named here, after the heading's own text, so that the contents
+    // list on page one can link to it without knowing which page it ended up on. Naming it in
+    // the one place that knows where the heading went is what keeps the bookmark and the
+    // contents line pointing at the same spot.
+    private static double Heading(XGraphics on, string text, XFont font, double x, double baseline)
+    {
+        on.DrawString(text, font, XBrushes.Black, new XPoint(x, baseline));
+
+        var ascent = font.GetHeight() * font.CellAscent / font.CellSpace;
+        var landing = baseline - ascent - 10;
+
+        on.AddNamedDestination(text, new XPoint(x, landing));
+
+        return TopOf(on, landing);
+    }
+    // docs:end heading
+
+    private static void Paragraphs(XGraphics on, XFont body, double x, double baseline, int count)
+    {
+        for (var line = 0; line < count; line++)
+        {
+            on.DrawString(
+                "Body text, here only so that the headings are not adjacent and a bookmark "
+                + "has somewhere to scroll to.",
+                body, XBrushes.DimGray, new XPoint(x, baseline + line * 13));
+        }
+    }
+
+    // The third level, under one section: each subsection drawn, bookmarked and handed to the
+    // contents list.
+    private static void Subsections(XGraphics gfx, PdfPage page, PdfOutline section, XFont subFont,
+        XFont body, double subY, Action<string> addToContents)
+    {
+        foreach (var leaf in new[] { "1.1.1 A subsection", "1.1.2 And another" })
+        {
+            var subTop = Heading(gfx, leaf, subFont, 76, subY);
+            Paragraphs(gfx, body, 76, subY + 16, 1);
+
+            var sub = section.Outlines.Add(leaf, page);
+            sub.Top = subTop;
+
+            addToContents(leaf);
+
+            subY += 44;
+        }
+    }
+    #endregion
 }

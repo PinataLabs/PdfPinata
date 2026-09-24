@@ -48,60 +48,61 @@ public class SeriesCollectionMapper
   private static void MapObject(SeriesCollection seriesCollection, DocumentObjectModel.Shapes.Charts.SeriesCollection domSeriesCollection)
   {
     foreach (DocumentObjectModel.Shapes.Charts.Series domSeries in domSeriesCollection)
+      MapSeries(seriesCollection.AddSeries(), domSeries);
+  }
+
+  private static void MapSeries(Series series, DocumentObjectModel.Shapes.Charts.Series domSeries)
+  {
+    series.Name = domSeries.Name;
+    series.ChartType = ChartTypeOf(domSeries);
+
+    if (!domSeries.IsNull("DataLabel"))
+      DataLabelMapper.Map(series.DataLabel, domSeries.DataLabel);
+    if (!domSeries.IsNull("LineFormat"))
+      LineFormatMapper.Map(series.LineFormat, domSeries.LineFormat);
+    if (!domSeries.IsNull("FillFormat"))
+      FillFormatMapper.Map(series.FillFormat, domSeries.FillFormat);
+
+    series.HasDataLabel = domSeries.HasDataLabel;
+    series.MarkerBackgroundColor = ToXColorOrEmpty(domSeries.MarkerBackgroundColor, domSeries);
+    series.MarkerForegroundColor = ToXColorOrEmpty(domSeries.MarkerForegroundColor, domSeries);
+    series.MarkerSize = domSeries.MarkerSize.Point;
+    if (!domSeries.IsNull("MarkerStyle"))
+      series.MarkerStyle = (MarkerStyle)domSeries.MarkerStyle;
+
+    foreach (DocumentObjectModel.Shapes.Charts.Point domPoint in domSeries.Elements)
+      MapPoint(series, domPoint);
+  }
+
+  /// <summary>
+  /// The series' own chart type, or else the type of the chart it belongs to.
+  /// </summary>
+  private static ChartType ChartTypeOf(DocumentObjectModel.Shapes.Charts.Series domSeries)
+  {
+    if (!domSeries.IsNull("ChartType"))
+      return (ChartType)domSeries.ChartType;
+
+    var chart = (DocumentObjectModel.Shapes.Charts.Chart)DocumentObjectModel.DocumentRelations.GetParentOfType(domSeries, typeof(DocumentObjectModel.Shapes.Charts.Chart));
+    return (ChartType)chart.Type;
+  }
+
+  private static XColor ToXColorOrEmpty(DocumentObjectModel.Color color, DocumentObjectModel.Shapes.Charts.Series domSeries)
+    => color.IsEmpty ? XColor.Empty : ColorHelper.ToXColor(color, domSeries.Document.UseCmykColor);
+
+  /// <summary>
+  /// Adds one point to the series; a blank point is added as NaN.
+  /// </summary>
+  private static void MapPoint(Series series, DocumentObjectModel.Shapes.Charts.Point domPoint)
+  {
+    if (domPoint == null)
     {
-      var series = seriesCollection.AddSeries();
-      series.Name = domSeries.Name;
-
-      if (domSeries.IsNull("ChartType"))
-      {
-        var chart = (DocumentObjectModel.Shapes.Charts.Chart)DocumentObjectModel.DocumentRelations.GetParentOfType(domSeries, typeof(DocumentObjectModel.Shapes.Charts.Chart));
-        series.ChartType = (ChartType)chart.Type;
-      }
-      else
-      {
-        series.ChartType = (ChartType)domSeries.ChartType;
-      }
-
-      if (!domSeries.IsNull("DataLabel"))
-        DataLabelMapper.Map(series.DataLabel, domSeries.DataLabel);
-      if (!domSeries.IsNull("LineFormat"))
-        LineFormatMapper.Map(series.LineFormat, domSeries.LineFormat);
-      if (!domSeries.IsNull("FillFormat"))
-        FillFormatMapper.Map(series.FillFormat, domSeries.FillFormat);
-
-      series.HasDataLabel = domSeries.HasDataLabel;
-      if (domSeries.MarkerBackgroundColor.IsEmpty)
-        series.MarkerBackgroundColor = XColor.Empty;
-      else
-      {
-        series.MarkerBackgroundColor =
-          ColorHelper.ToXColor(domSeries.MarkerBackgroundColor, domSeries.Document.UseCmykColor);
-      }
-      if (domSeries.MarkerForegroundColor.IsEmpty)
-        series.MarkerForegroundColor = XColor.Empty;
-      else
-      {
-        series.MarkerForegroundColor =
-          ColorHelper.ToXColor(domSeries.MarkerForegroundColor, domSeries.Document.UseCmykColor);
-      }
-      series.MarkerSize = domSeries.MarkerSize.Point;
-      if (!domSeries.IsNull("MarkerStyle"))
-        series.MarkerStyle = (MarkerStyle)domSeries.MarkerStyle;
-
-      foreach (DocumentObjectModel.Shapes.Charts.Point domPoint in domSeries.Elements)
-      {
-        if (domPoint != null)
-        {
-          var point = series.Add(domPoint.Value);
-          FillFormatMapper.Map(point.FillFormat, domPoint.FillFormat);
-          LineFormatMapper.Map(point.LineFormat, domPoint.LineFormat);
-        }
-        else
-        {
-          series.Add(double.NaN);
-        }
-      }
+      series.Add(double.NaN);
+      return;
     }
+
+    var point = series.Add(domPoint.Value);
+    FillFormatMapper.Map(point.FillFormat, domPoint.FillFormat);
+    LineFormatMapper.Map(point.LineFormat, domPoint.LineFormat);
   }
 
   internal static void Map(SeriesCollection seriesCollection, DocumentObjectModel.Shapes.Charts.SeriesCollection domSeriesCollection)

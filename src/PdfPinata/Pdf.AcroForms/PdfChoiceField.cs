@@ -125,34 +125,34 @@ public abstract class PdfChoiceField : PdfAcroField
     private int IndexInOptArray(string value, List<int> taken)
     {
         var opt = Elements.GetArray(Keys.Opt);
+        if (opt == null)
+            return -1;
 
-        if (opt != null)
+        var count = opt.Elements.Count;
+        for (var idx = 0; idx < count; idx++)
         {
-            var count = opt.Elements.Count;
-            for (var idx = 0; idx < count; idx++)
-            {
-                if (taken != null && taken.Contains(idx))
-                    continue;
+            if (taken != null && taken.Contains(idx))
+                continue;
 
-                var item = opt.Elements[idx];
-                if (item is PdfString)
-                {
-                    if (TextOfOption(item) == value)
-                        return idx;
-                }
-                else if (item is PdfArray array)
-                {
-                    // An option may be an [exportValue displayText] pair, and it is the export
-                    // value that /V is meant to match.
-                    if (array.Elements.Count != 0)
-                    {
-                        if (TextOfOption(array.Elements[0]) == value)
-                            return idx;
-                    }
-                }
-            }
+            if (ExportsValue(opt.Elements[idx], value))
+                return idx;
         }
         return -1;
+    }
+
+    /// <summary>
+    /// Whether an entry of <c>/Opt</c> exports <paramref name="value"/>.
+    /// </summary>
+    private static bool ExportsValue(PdfItem item, string value)
+    {
+        return item switch
+        {
+            PdfString => TextOfOption(item) == value,
+            // An option may be an [exportValue displayText] pair, and it is the export
+            // value that /V is meant to match.
+            PdfArray array => array.Elements.Count != 0 && TextOfOption(array.Elements[0]) == value,
+            _ => false
+        };
     }
 
     /// <summary>

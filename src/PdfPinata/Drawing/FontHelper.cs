@@ -72,144 +72,154 @@ internal static class FontHelper
     /// </summary>
     public static XSize MeasureString(string text, XFont font, XStringFormat stringFormat)
     {
-        var size = new XSize();
-
-        var descriptor = FontDescriptorCache.GetOrCreateDescriptorFor(font) as OpenTypeDescriptor;
-        if (descriptor != null)
+        if (FontDescriptorCache.GetOrCreateDescriptorFor(font) is not OpenTypeDescriptor descriptor)
         {
-            // Height is the sum of ascender and descender.
-            var singleLineHeight = (descriptor.Ascender + descriptor.Descender) * font.Size / font.UnitsPerEm;
-            var lineGapHeight = (descriptor.LineSpacing - descriptor.Ascender - descriptor.Descender) * font.Size / font.UnitsPerEm;
+            Debug.Fail("No OpenTypeDescriptor.");
+            return new XSize();
+        }
 
-            Debug.Assert(descriptor.Ascender > 0);
+        // Height is the sum of ascender and descender.
+        var singleLineHeight = (descriptor.Ascender + descriptor.Descender) * font.Size / font.UnitsPerEm;
+        var lineGapHeight = (descriptor.LineSpacing - descriptor.Ascender - descriptor.Descender) * font.Size / font.UnitsPerEm;
 
-            var format = stringFormat ?? XStringFormats.Default;
+        Debug.Assert(descriptor.Ascender > 0);
 
-            // Unsure how to deal with white space. Currently count as regular character.
-            var wordSpacing = format.WordSpacing;
+        var format = stringFormat ?? XStringFormats.Default;
 
-            // A glyph advances by its own width plus the character spacing, and a space by the word
-            // spacing on top of that; the horizontal scaling then applies to the lot. PDF 32000-1
-            // section 9.4.4.
-            //
-            // The character spacing is asked per segment rather than once for the string, because
-            // bold simulation is a property of the face and a string that fell back is drawn out of
-            // more than one. Measuring the whole line at the first face's simulation would widen
-            // glyphs a fallback with a real bold is not widened by, and the line would be laid out
-            // at a width the page does not draw.
-            double SegmentWidth(ShapedSegment segment)
-                => segment.Run.WidthAt(segment.Font.Size)
-                   + segment.Run.Glyphs.Count
-                     * (format.CharacterSpacing + BoldSimulationSpacing(segment.Font));
+        // Nothing here needs rewriting before it can be shaped, so the string is shaped where
+        // it stands. Much the commonest case, and the one the layout engine measures every
+        // word of, so it is worth not copying for.
+        if (IsPlain(text, out var plainSpaces))
+        {
+            var width = MeasureLine(text.AsSpan(), plainSpaces, font, descriptor, format);
+            return new XSize(width * format.HorizontalScaling / 100, singleLineHeight);
+        }
 
-            double LineWidth(ShapedText shaped, int spaces)
-            {
-                double points = 0;
-                for (var idx = 0; idx < shaped.Segments.Count; idx++)
-                    points += SegmentWidth(shaped.Segments[idx]);
+        var height = singleLineHeight;
+        var maxWidth = MeasureLines(text, font, descriptor, format, lineGapHeight + singleLineHeight, ref height);
+        return new XSize(maxWidth * format.HorizontalScaling / 100, height);
+    }
 
-                return points + spaces * wordSpacing;
-            }
+    /// <summary>
+    /// Whether a string holds no control character, and so can be shaped as it stands, and how
+    /// many spaces it holds.
+    /// </summary>
+    private static bool IsPlain(string text, out int spaces)
+    {
+        spaces = 0;
+        foreach (var ch in text)
+        {
+            if (ch < 32)
+                return false;
+            if (ch == ' ')
+                spaces++;
+        }
 
-            // What the line is really as wide as, asked of the shaping seam rather than counted
-            // one character-width at a time. With no shaper registered the answer is the same sum
-            // it always was; with one, it is the sum after kerning and ligatures, which is the
-            // whole point - a measurement the drawing path would disagree with is worse than none.
-            // Asked of ShapeText rather than Shape so that a line changing script, direction or
-            // face part way is measured as the several runs it is drawn as, which is not the same
-            // width - and it comes back in points rather than design units because two faces need
-            // not share an em.
-            double MeasureLine(ReadOnlySpan<char> line, int spaces)
-            {
-                var shaped = TextShaping.ShapeText(line, font, descriptor, format.TextDirection);
-                return LineWidth(shaped, spaces);
-            }
+        return true;
+    }
 
-            var length = text.Length;
+    /// <summary>
+    /// Measures a string holding control characters line by line, answering the widest line and
+    /// adding <paramref name="lineAdvance"/> to <paramref name="height"/> for every line after the first.
+    /// </summary>
+    private static double MeasureLines(string text, XFont font, OpenTypeDescriptor descriptor,
+        XStringFormat format, double lineAdvance, ref double height)
+    {
+        var length = text.Length;
+        double maxWidth = 0;
 
-            // Nothing here needs rewriting before it can be shaped, so the string is shaped where
-            // it stands. Much the commonest case, and the one the layout engine measures every
-            // word of, so it is worth not copying for.
-            var plain = true;
-            var plainSpaces = 0;
+        // The line with its line feeds taken out, its tabs turned into spaces and its
+        // other control characters dropped - the three things the loop below used to do
+        // to a character on its way to the cmap, which a shaper must not be asked to do
+        // anything with.
+        var line = ArrayPool<char>.Shared.Rent(length);
+        try
+        {
+            var lineLength = 0;
+            var spaceCount = 0;
             for (var idx = 0; idx < length; idx++)
             {
                 var ch = text[idx];
-                if (ch < 32)
+
+                // Handle line feed ( \n); one that ends the string starts no new line.
+                if (ch == 10)
                 {
-                    plain = false;
-                    break;
-                }
-                if (ch == ' ')
-                    plainSpaces++;
-            }
+                    if (idx == length - 1)
+                        continue;
 
-            if (plain)
-            {
-                size.Width = MeasureLine(text.AsSpan(), plainSpaces) * format.HorizontalScaling / 100;
-                size.Height = singleLineHeight;
-            }
-            else
-            {
-                var height = singleLineHeight;
-                double maxWidth = 0;
-
-                // The line with its line feeds taken out, its tabs turned into spaces and its
-                // other control characters dropped - the three things the loop below used to do
-                // to a character on its way to the cmap, which a shaper must not be asked to do
-                // anything with.
-                var line = ArrayPool<char>.Shared.Rent(length);
-                try
-                {
-                    var lineLength = 0;
-                    var spaceCount = 0;
-                    for (var idx = 0; idx < length; idx++)
-                    {
-                        var ch = text[idx];
-
-                        // Handle line feed ( \n)
-                        if (ch == 10)
-                        {
-                            if (idx < length - 1)
-                            {
-                                maxWidth = Math.Max(maxWidth,
-                                    MeasureLine(new ReadOnlySpan<char>(line, 0, lineLength), spaceCount));
-                                lineLength = 0;
-                                spaceCount = 0;
-                                height += lineGapHeight + singleLineHeight;
-                            }
-
-                            continue;
-                        }
-
-                        // A tab becomes a space and every other control character is dropped -
-                        // the rule read from the one place that states it, because
-                        // XGraphicsPdfRenderer.DrawString now filters through the same call and
-                        // the two must not drift apart again.
-                        if (!TextNormalization.TryNormalize(ch, out ch))
-                            continue;
-
-                        if (ch == ' ')
-                            spaceCount++;
-
-                        line[lineLength++] = ch;
-                    }
                     maxWidth = Math.Max(maxWidth,
-                        MeasureLine(new ReadOnlySpan<char>(line, 0, lineLength), spaceCount));
-                }
-                finally
-                {
-                    ArrayPool<char>.Shared.Return(line);
+                        MeasureLine(new ReadOnlySpan<char>(line, 0, lineLength), spaceCount, font, descriptor, format));
+                    lineLength = 0;
+                    spaceCount = 0;
+                    height += lineAdvance;
+                    continue;
                 }
 
-                size.Width = maxWidth * format.HorizontalScaling / 100;
-                size.Height = height;
+                // A tab becomes a space and every other control character is dropped -
+                // the rule read from the one place that states it, because
+                // XGraphicsPdfRenderer.DrawString now filters through the same call and
+                // the two must not drift apart again.
+                if (!TextNormalization.TryNormalize(ch, out ch))
+                    continue;
+
+                if (ch == ' ')
+                    spaceCount++;
+
+                line[lineLength++] = ch;
             }
-        }
-        Debug.Assert(descriptor != null, "No OpenTypeDescriptor.");
 
-        return size;
+            return Math.Max(maxWidth,
+                MeasureLine(new ReadOnlySpan<char>(line, 0, lineLength), spaceCount, font, descriptor, format));
+        }
+        finally
+        {
+            ArrayPool<char>.Shared.Return(line);
+        }
     }
+
+    /// <summary>
+    /// What one line is really as wide as, before horizontal scaling.
+    /// </summary>
+    /// <remarks>
+    /// Asked of the shaping seam rather than counted one character-width at a time. With no shaper
+    /// registered the answer is the same sum it always was; with one, it is the sum after kerning
+    /// and ligatures, which is the whole point - a measurement the drawing path would disagree with
+    /// is worse than none. Asked of ShapeText rather than Shape so that a line changing script,
+    /// direction or face part way is measured as the several runs it is drawn as, which is not the
+    /// same width - and it comes back in points rather than design units because two faces need
+    /// not share an em.
+    /// </remarks>
+    private static double MeasureLine(ReadOnlySpan<char> line, int spaces, XFont font,
+        OpenTypeDescriptor descriptor, XStringFormat format)
+    {
+        var shaped = TextShaping.ShapeText(line, font, descriptor, format.TextDirection);
+
+        double points = 0;
+        for (var idx = 0; idx < shaped.Segments.Count; idx++)
+            points += SegmentWidth(shaped.Segments[idx], format);
+
+        // Unsure how to deal with white space. Currently count as regular character.
+        return points + spaces * format.WordSpacing;
+    }
+
+    /// <summary>
+    /// How far one shaped segment advances the pen.
+    /// </summary>
+    /// <remarks>
+    /// A glyph advances by its own width plus the character spacing, and a space by the word
+    /// spacing on top of that; the horizontal scaling then applies to the lot. PDF 32000-1
+    /// section 9.4.4.
+    ///
+    /// The character spacing is asked per segment rather than once for the string, because
+    /// bold simulation is a property of the face and a string that fell back is drawn out of
+    /// more than one. Measuring the whole line at the first face's simulation would widen
+    /// glyphs a fallback with a real bold is not widened by, and the line would be laid out
+    /// at a width the page does not draw.
+    /// </remarks>
+    private static double SegmentWidth(ShapedSegment segment, XStringFormat format)
+        => segment.Run.WidthAt(segment.Font.Size)
+           + segment.Run.Glyphs.Count
+             * (format.CharacterSpacing + BoldSimulationSpacing(segment.Font));
 
     /// <summary>
     /// Calculates an Adler32 checksum combined with the buffer length
