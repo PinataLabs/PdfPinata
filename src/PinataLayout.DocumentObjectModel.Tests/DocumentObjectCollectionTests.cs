@@ -115,6 +115,163 @@ public class DocumentObjectCollectionTests
         list.Contains(second).Should().BeFalse();
     }
 
+    // The untyped members go through the typed ones, so an object reaching the collection through
+    // an IList belongs to it exactly as one added directly does, and a collection that does more
+    // on Add or InsertObject - Rows giving a row its cells, Styles checking a style - does it here
+    // too. They used to go straight at the list underneath and did none of it.
+
+    [Fact]
+    public void AnObjectAddedThroughTheUntypedListBelongsToTheCollection()
+    {
+        var elements = AnEmptyCollection();
+        var paragraph = new Paragraph();
+
+        ((IList)elements).Add(paragraph);
+
+        paragraph.Document.Should().BeSameAs(elements.Document, "it hangs from the collection");
+    }
+
+    [Fact]
+    public void AnObjectInsertedThroughTheUntypedListBelongsToTheCollection()
+    {
+        var elements = ACollectionOf("one");
+        var paragraph = new Paragraph();
+
+        ((IList)elements).Insert(0, paragraph);
+
+        paragraph.Document.Should().BeSameAs(elements.Document, "it hangs from the collection");
+        elements[0].Should().BeSameAs(paragraph);
+    }
+
+    [Fact]
+    public void AnObjectSetByIndexThroughTheUntypedListBelongsToTheCollection()
+    {
+        var elements = ACollectionOf("one", "two");
+        var paragraph = new Paragraph();
+
+        ((IList)elements)[1] = paragraph;
+
+        paragraph.Document.Should().BeSameAs(elements.Document, "it hangs from the collection");
+        elements[1].Should().BeSameAs(paragraph);
+    }
+
+    [Fact]
+    public void TheUntypedListAnswersTheIndexOfWhatItAdded()
+    {
+        IList list = ACollectionOf("one", "two");
+
+        list.Add(new Paragraph()).Should().Be(2);
+        list.Add(new Paragraph()).Should().Be(3);
+    }
+
+    [Fact]
+    public void ARowAddedThroughTheUntypedListGetsACellForEveryColumn()
+    {
+        var table = new Document().AddSection().AddTable();
+        table.AddColumn("2cm");
+        table.AddColumn("2cm");
+        table.AddColumn("2cm");
+        var row = new Row();
+
+        ((IList)table.Rows).Add(row);
+
+        row.Cells.Count.Should().Be(3, "a row has as many cells as its table has columns");
+        row.Table.Should().BeSameAs(table);
+    }
+
+    [Fact]
+    public void ARowInsertedThroughTheUntypedListGetsACellForEveryColumn()
+    {
+        var table = new Document().AddSection().AddTable();
+        table.AddColumn("2cm");
+        table.AddColumn("2cm");
+        table.AddRow();
+        var row = new Row();
+
+        ((IList)table.Rows).Insert(0, row);
+
+        row.Cells.Count.Should().Be(2);
+        table.Rows[0].Should().BeSameAs(row);
+    }
+
+    [Fact]
+    public void AnObjectAlreadyOwnedElsewhereIsNotTakenOverThroughTheUntypedListEither()
+    {
+        var paragraph = new Document().AddSection().AddParagraph("x");
+        IList list = AnEmptyCollection();
+
+        list.Invoking(l => l.Add(paragraph)).Should().Throw<ArgumentException>();
+        list.Invoking(l => l.Insert(0, paragraph)).Should().Throw<ArgumentException>();
+        list.Count.Should().Be(0);
+    }
+
+    [Fact]
+    public void AStyleCollectionChecksWhatReachesItThroughTheUntypedList()
+    {
+        IList styles = new Document().Styles;
+
+        styles.Invoking(l => l.Add(new Paragraph())).Should().Throw<InvalidOperationException>(
+            "Styles.Add refuses anything that is not a style, whichever way it is reached");
+    }
+
+    /// <summary>
+    ///   Removing a cell moves the ones after it one column to the left, and a cell caches which
+    ///   column it is in. The typed removal tells the cells that moved to forget it.
+    /// </summary>
+    [Fact]
+    public void RemovingThroughTheUntypedListTellsTheObjectsAfterItThatTheyMoved()
+    {
+        var table = new Document().AddSection().AddTable();
+        table.AddColumn("1cm");
+        table.AddColumn("2cm");
+        table.AddColumn("3cm");
+        var cells = table.AddRow().Cells;
+        var first = cells[0];
+        var second = cells[1];
+        second.Column.Should().BeSameAs(table.Columns[1]);
+
+        ((IList)cells).Remove(first);
+
+        cells.Count.Should().Be(2);
+        ((IList)cells)[0].Should().BeSameAs(second);
+        second.Column.Should().BeSameAs(table.Columns[0], "it is in the first column now");
+    }
+
+    // ----- what an untyped list can be handed that the typed one cannot ------------------------------
+
+    [Fact]
+    public void SomethingThatIsNotADocumentObjectIsRefusedOnTheWayIn()
+    {
+        IList list = ACollectionOf("one");
+
+        list.Invoking(l => l.Add("text")).Should().Throw<ArgumentException>();
+        list.Invoking(l => l.Insert(0, 42)).Should().Throw<ArgumentException>();
+        list.Invoking(l => l[0] = "text").Should().Throw<ArgumentException>();
+        list.Count.Should().Be(1);
+        list[0].Should().BeOfType<Paragraph>();
+    }
+
+    [Fact]
+    public void SomethingThatIsNotADocumentObjectIsSimplyNotFound()
+    {
+        IList list = ACollectionOf("one");
+
+        list.Contains("one").Should().BeFalse();
+        list.IndexOf("one").Should().Be(-1);
+        list.Remove("one");
+        list.Count.Should().Be(1);
+    }
+
+    [Fact]
+    public void RemovingAnObjectTheCollectionDoesNotHoldChangesNothing()
+    {
+        IList list = ACollectionOf("one");
+
+        list.Remove(new Paragraph());
+
+        list.Count.Should().Be(1);
+    }
+
     [Fact]
     public void TheWholeCollectionCopiesIntoAnArrayOfItsOwn()
     {

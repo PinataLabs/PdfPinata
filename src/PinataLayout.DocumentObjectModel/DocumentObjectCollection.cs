@@ -138,7 +138,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList, IVisitab
     /// </summary>
     public void Clear()
     {
-        ((IList)this).Clear();
+        elements.Clear();
     }
 
     /// <summary>
@@ -147,15 +147,11 @@ public abstract class DocumentObjectCollection : DocumentObject, IList, IVisitab
     public virtual void InsertObject(int index, DocumentObject val)
     {
         SetParent(val);
-        ((IList)this).Insert(index, val);
+        elements.Insert(index, val);
         // Call ResetCachedValues for all objects moved by the Insert operation.
-        var count = ((IList)this).Count;
+        var count = elements.Count;
         for (var idx = index + 1; idx < count; ++idx)
-        {
-            var obj = (DocumentObject)((IList)this)[idx];
-            // ReSharper disable once PossibleNullReferenceException
-            obj.ResetCachedValues();
-        }
+            (elements[idx] as DocumentObject)?.ResetCachedValues();
     }
 
     /// <summary>
@@ -163,7 +159,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList, IVisitab
     /// </summary>
     public int IndexOf(DocumentObject val)
     {
-        return ((IList)this).IndexOf(val);
+        return elements.IndexOf(val);
     }
 
     /// <summary>
@@ -198,15 +194,11 @@ public abstract class DocumentObjectCollection : DocumentObject, IList, IVisitab
     /// </summary>
     public void RemoveObjectAt(int index)
     {
-        ((IList)this).RemoveAt(index);
+        elements.RemoveAt(index);
         // Call ResetCachedValues for all objects moved by the RemoveAt operation.
-        var count = ((IList)this).Count;
+        var count = elements.Count;
         for (var idx = index; idx < count; ++idx)
-        {
-            var obj = (DocumentObject)((IList)this)[idx];
-            // ReSharper disable once PossibleNullReferenceException
-            obj.ResetCachedValues();
-        }
+            (elements[idx] as DocumentObject)?.ResetCachedValues();
     }
 
     /// <summary>
@@ -261,69 +253,75 @@ public abstract class DocumentObjectCollection : DocumentObject, IList, IVisitab
 
     #region IList Members
 
+    // The non-generic members go through the typed ones, so that an object reaching the
+    // collection this way belongs to it exactly as one added directly does - its parent set, the
+    // cached values of whatever it moved reset - and a subclass overriding Add or InsertObject
+    // sees it: Rows gives the row its cells, Styles checks it is a style. They used to go
+    // straight at the list underneath and did none of that. A null is accepted, as the typed
+    // members accept it; anything that is not a DocumentObject is refused on the way in and
+    // simply not found on a search, which is what the ArrayList answered for it.
+
     /// <summary>
     /// Gets or sets the element at the specified index.
     /// </summary>
     object IList.this[int index]
     {
         get => elements[index];
-        set => elements[index] = value;
+        set => this[index] = AsDocumentObject(value);
     }
 
     /// <summary>
     /// Removes the item at the specified index from the Collection.
     /// </summary>
-    void IList.RemoveAt(int index)
-    {
-        elements.RemoveAt(index);
-    }
+    void IList.RemoveAt(int index) => RemoveObjectAt(index);
 
     /// <summary>
     /// Inserts an object at the specified index.
     /// </summary>
-    void IList.Insert(int index, object value)
-    {
-        elements.Insert(index, value);
-    }
+    void IList.Insert(int index, object value) => InsertObject(index, AsDocumentObject(value));
 
     /// <summary>
     /// Removes the first occurrence of the specific object.
     /// </summary>
     void IList.Remove(object value)
     {
-        elements.Remove(value);
+        var index = ((IList)this).IndexOf(value);
+        if (index >= 0)
+            RemoveObjectAt(index);
     }
 
     /// <summary>
     /// Determines whether an element exists.
     /// </summary>
-    bool IList.Contains(object value)
-    {
-        return elements.Contains(value);
-    }
+    bool IList.Contains(object value) => ((IList)this).IndexOf(value) >= 0;
 
     /// <summary>
     /// Determines the index of a specific item in the Collection.
     /// </summary>
-    int IList.IndexOf(object value)
-    {
-        return elements.IndexOf(value);
-    }
+    int IList.IndexOf(object value) => value is null or DocumentObject
+        ? IndexOf((DocumentObject)value)
+        : -1;
 
     /// <summary>
     /// Adds an item to the Collection.
     /// </summary>
     int IList.Add(object value)
     {
-        return elements.Add(value);
+        Add(AsDocumentObject(value));
+        return Count - 1;
     }
 
     /// <summary>
     /// Removes all items from the Collection.
     /// </summary>
-    void IList.Clear()
+    void IList.Clear() => Clear();
+
+    private static DocumentObject AsDocumentObject(object value)
     {
-        elements.Clear();
+        if (value is null or DocumentObject)
+            return (DocumentObject)value;
+        throw new ArgumentException(
+            $"A document object collection holds document objects, not {value.GetType().Name}.", nameof(value));
     }
 
     #endregion
