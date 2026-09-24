@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
@@ -387,6 +388,21 @@ public class TextExtractionTests
         PdfTextExtractor.ExtractRuns(page).Should().ContainSingle();
     }
 
+    [Theory(Timeout = 10_000)]
+    [InlineData(-1, int.MaxValue)] // the span overflows an int and slips under the length guard
+    [InlineData(int.MaxValue - 7, int.MaxValue)] // short, but a code counting up to it wraps before passing it
+    public async Task AWidthRunReachingTheLastCodeDoesNotHangExtraction(int first, int last)
+    {
+        // A /W run is read by counting from its first code to its last, and an int counter never
+        // passes int.MaxValue; it wraps, and the run is filled in until memory runs out.
+        var page = Reopen(WithWidths(Draw(gfx => gfx.DrawString("Hello", Font, XBrushes.Black, 40, 100)),
+            first, last));
+
+        var text = await Task.Run(() => PdfTextExtractor.ExtractText(page));
+
+        text.Should().Be("Hello");
+    }
+
     private static XFont Font => new("Arial", 12);
 
     /// <summary>
@@ -502,6 +518,24 @@ public class TextExtractionTests
         stream.Stream.Value = bytes;
         stream.Elements.Remove("/Filter");
         stream.Elements.SetInteger("/Length", bytes.Length);
+
+        using var output = new MemoryStream();
+        document.Save(output, false);
+        return output.ToArray();
+    }
+
+    /// <summary>
+    ///   Replaces the descendant font's <c>/W</c> array with the single run
+    ///   <c><paramref name="first"/> <paramref name="last"/> 500</c>.
+    /// </summary>
+    private static byte[] WithWidths(byte[] bytes, int first, int last)
+    {
+        var document = Reader.Open(new MemoryStream(bytes), PdfDocumentOpenMode.Modify);
+        var descendant = FontOf(document.Pages[0]).Elements.GetArray("/DescendantFonts").Elements.GetDictionary(0);
+
+        // Fully qualified: this test assembly has a PdfInteger of its own.
+        descendant.Elements["/W"] = new PdfArray(document, new PdfPinata.Pdf.PdfInteger(first),
+            new PdfPinata.Pdf.PdfInteger(last), new PdfPinata.Pdf.PdfInteger(500));
 
         using var output = new MemoryStream();
         document.Save(output, false);

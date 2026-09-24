@@ -139,12 +139,15 @@ internal sealed class FontInfo
         var width = w.Elements.GetReal(at++) / 1000.0;
 
         // A run may legitimately be long, but a malformed one may claim millions of codes;
-        // filling that in would be a denial of service by arithmetic.
-        if (last - first > 0xFFFF)
+        // filling that in would be a denial of service by arithmetic. The span is a long because
+        // an int one overflows for a run such as -1 to int.MaxValue and slips under the guard.
+        if ((long)last - first > 0xFFFF)
             return at;
 
-        for (var code = first; code <= last; code++)
-            _widths[code] = width;
+        // A long counter too: an int one never passes int.MaxValue, so a run ending there would
+        // wrap round and never finish.
+        for (long code = first; code <= last; code++)
+            _widths[(int)code] = width;
         return at;
     }
 }
