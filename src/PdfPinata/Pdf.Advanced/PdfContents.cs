@@ -206,11 +206,23 @@ public sealed class PdfContents : PdfArray
     }
 
     /// <summary>
-    /// Gets the enumerator.
+    /// Returns an enumerator over the content streams in this array.
     /// </summary>
+    /// <remarks>
+    /// Hides <see cref="PdfArray.GetEnumerator"/> rather than overriding it, so that
+    /// <c>foreach (var content in page.Contents)</c> is typed as <see cref="PdfContent"/>.
+    /// Enumerated as a <see cref="PdfArray"/>, or through <see cref="IEnumerable{T}"/> of
+    /// <see cref="PdfItem"/> - which is what LINQ sees - or plain <see cref="IEnumerable"/>, it
+    /// yields the same content streams rather than the references to them.
+    /// </remarks>
     public new IEnumerator<PdfContent> GetEnumerator()
     {
         return new PdfPageContentEnumerator(this);
+    }
+
+    private protected override IEnumerator<PdfItem> EnumerateItems()
+    {
+        return GetEnumerator();
     }
 
     private class PdfPageContentEnumerator : IEnumerator<PdfContent>

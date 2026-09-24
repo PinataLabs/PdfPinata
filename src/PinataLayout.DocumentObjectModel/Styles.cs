@@ -172,9 +172,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
 
         if (index >= 0)
         {
-            style = style.Clone();
-            style.parent = this;
-            ((IList)this)[index] = style;
+            base[index] = style.Clone();
         }
         else
         {

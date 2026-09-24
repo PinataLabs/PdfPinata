@@ -22,6 +22,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **`PdfDocument.CanSave()` returns a `PdfSaveCheck`.** Its `CanSave` says whether the document can be saved and its `Reason` says why not, or is null when it can. It replaces `CanSave(ref string message)`, which is now deprecated.
 
+#### Fixed
+
+- **LINQ over a page's `PdfContents` now yields the `PdfContent` streams instead of their `PdfReference`s.** `foreach` already gave `PdfContent`, but enumeration as a `PdfArray`, through `IEnumerable<PdfItem>` (what LINQ sees) or through plain `IEnumerable` gave the references underneath, so `page.Contents.OfType<PdfContent>()` was empty and `Cast<PdfContent>()` threw. Every way of enumerating the array now yields the same content streams, as `PdfAnnotations` has since #81.
+
 ### Drawing & Graphics
 
 #### Fixed
@@ -30,8 +34,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Annotations & Forms
 
+#### Added
+
+- **`PdfAcroField.PdfAcroFieldCollection` has a `Count` and a typed enumerator.** A form's `Fields` and a field's `Kids` can now be counted without LINQ, and `foreach (var field in form.Fields)` is typed as `PdfAcroField`, yielding exactly what the indexer returns. The collection does not implement `IEnumerable<PdfAcroField>`, which would make every LINQ call on it ambiguous; use `OfType<PdfAcroField>()` to query it.
+
 #### Fixed
 
+- **LINQ over a form's fields, or a field's kids, now yields the typed `PdfAcroField` objects instead of `PdfReference`s.** The collection's indexer returned `PdfTextField`, `PdfCheckBoxField` and the rest, but every enumeration yielded the references underneath, so `OfType<PdfAcroField>()` was empty and `Cast<PdfAcroField>()` threw. Enumeration as a `PdfArray`, through `IEnumerable<PdfItem>` or through plain `IEnumerable` now yields the same objects the indexer does, typing each field on the way as the indexer always has.
+- **`PdfDocument.MakeAcroFormsReadOnly` walks the form's fields once.** It counted them with LINQ's `Count()` in its loop condition, enumerating the whole collection again on every iteration.
 - **`PdfOutlineCollection.Insert` accepts an index equal to `Count` and appends the outline.** `IList<T>.Insert` requires this, but the collection threw `ArgumentOutOfRangeException`, including for `Insert(0, outline)` on an empty collection. The outline is now placed in the tree exactly as `Add` places it, and is saved at the end of its list.
 
 ### Charts
@@ -50,6 +60,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **A PinataLayout image whose source fails to open with anything but an `InvalidOperationException` gets a placeholder.** The exception used to escape formatting and end the whole render. It is now reported through `ImageFailed` as `ImageFailure.NotRead` and a placeholder is drawn, as it already was for the same exception thrown while the image was drawn. An `InvalidOperationException` is still reported as `InvalidType`. (#131)
 - **A list that starts a new section is tagged in that section.** When a section ended with a list and the next began with one of the same kind and level, the tagger saw that the list's parent had changed, closed the old list and opened a new one, but under the previous section's `/Sect`. So the new section's list appeared in the structure tree inside the section before it. It is now opened under its own section. (#137)
+- **An object added to a PinataLayout collection through its non-generic `IList` belongs to that collection.** `IList.Add`, `Insert`, `Remove` and the indexer setter on `DocumentObjectCollection` went straight to the list underneath. They set no parent, reset no cached values, and skipped what a collection does on `Add` or `InsertObject`. So `((IList)table.Rows).Add(row)` gave the row no cells, and `Styles` accepted a paragraph. They now go through the typed members, as the charting collections already did. One thing a caller can see: an argument that is not a `DocumentObject` now throws `ArgumentException` from `Add`, `Insert` and the indexer. It used to be stored and throw later, on read. `Contains`, `IndexOf` and `Remove` still answer false, -1 and nothing for one. A null is still accepted, as the typed members accept it.
 
 ### API & Packaging
 
