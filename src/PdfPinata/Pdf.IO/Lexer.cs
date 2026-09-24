@@ -527,7 +527,11 @@ public class Lexer
         ch = ScanNextChar(false);
         if (ch is Chars.CR or Chars.LF)
         {
+            // CR LF is one line ending, not a CR ending the line and an LF opening the next.
+            var lineEnding = ch;
             ch = ScanNextChar(false);
+            if (lineEnding == Chars.CR && ch == Chars.LF)
+                ch = ScanNextChar(false);
             return false;
         }
 
