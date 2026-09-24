@@ -99,6 +99,13 @@ internal static class GeometryHelper
             _smallAngle = Math.Abs(sweep) <= 90;
 
             _end = _start + sweep;
+
+            // Decided before the end is brought back into range: a whole turn backwards ends a
+            // whole turn below its start, and brought back that end is the start again.
+            #pragma warning disable S1244 // Exact on purpose: an end that differs from the start by any amount is placed in its quadrant correctly by the walk.
+            var goesNowhere = _end == _start;
+            #pragma warning restore S1244
+
             if (_end < 0)
                 _end += (1 + Math.Floor(Math.Abs(_end) / 360)) * 360;
 
@@ -112,9 +119,7 @@ internal static class GeometryHelper
             // edge - so the walk went the whole way round to get from one to the other (#129). That
             // is a sweep of 0, and also a sweep too small to move the angle it is added to, such as
             // float cancellation leaves behind: 90 + 1e-15 is 90.
-            #pragma warning disable S1244 // Exact on purpose: an end that differs from the start by any amount is placed in its quadrant correctly by the walk.
-            _withinOneQuadrant = _end == _start || (startQuadrant == _endQuadrant && _smallAngle);
-            #pragma warning restore S1244
+            _withinOneQuadrant = goesNowhere || (startQuadrant == _endQuadrant && _smallAngle);
             _pathStart = pathStart;
 
             _quadrant = startQuadrant;
