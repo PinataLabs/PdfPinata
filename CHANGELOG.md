@@ -22,6 +22,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### API & Packaging
 
+#### Changed
+
+- **The source is cleaned up against JetBrains InspectCode.** Backing fields are now auto-properties or use the `field` keyword. Switch statements are now switch expressions, and casts and null checks are now patterns. Unused usings, casts and assignments are removed, and fields that are never reassigned are `readonly`. Public types and members, and the documents they write, are unchanged. Each suggestion was judged on its own, and the pull requests list the ones left alone and why. (#116, #117, #118, #119, #121, #123, #124, #125, #126)
+
 #### Deprecated
 
 - **`PdfDocument.CanSave(ref string message)`.** Use `CanSave()`, which returns a `PdfSaveCheck` carrying the reason as well as the answer. It behaves as before and will be removed.
