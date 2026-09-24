@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.AcroForms;
@@ -291,6 +290,6 @@ public class AcroFormFieldTests
             .Build();
 
         document.AcroForm.Fields.Names.Should().Equal("text", "checkbox", "combo");
-        document.AcroForm.Fields.Cast<object>().Should().HaveCount(3);
+        document.AcroForm.Fields.Count.Should().Be(3);
     }
 }

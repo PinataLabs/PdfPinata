@@ -1494,10 +1494,12 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     public void MakeAcroFormsReadOnly()
     {
-        for (var i = 0; i < AcroForm?.Fields.Count(); i++)
-        {
-            AcroForm.Fields[i].ReadOnly = true;
-        }
+        var form = AcroForm;
+        if (form == null)
+            return;
+
+        foreach (var field in form.Fields)
+            field.ReadOnly = true;
     }
 
     /// <summary>

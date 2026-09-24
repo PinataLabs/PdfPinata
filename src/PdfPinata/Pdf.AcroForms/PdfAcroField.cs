@@ -28,6 +28,7 @@
 #endregion
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using PdfPinata.Pdf.Advanced;
@@ -586,6 +587,12 @@ public abstract class PdfAcroField : PdfDictionary
         }
 
         /// <summary>
+        /// Gets the number of entries in the collection, which is the range <see cref="this[int]"/>
+        /// accepts.
+        /// </summary>
+        public int Count => Elements.Count;
+
+        /// <summary>
         /// Gets the names of all fields in the collection.
         /// </summary>
         public string[] Names
@@ -652,6 +659,61 @@ public abstract class PdfAcroField : PdfDictionary
         /// Gets the field with the specified name.
         /// </summary>
         public PdfAcroField this[string name] => GetValue(name);
+
+        /// <summary>
+        /// Returns an enumerator over the fields in this collection, each given the class its
+        /// entries name, exactly as <see cref="this[int]"/> gives it.
+        /// </summary>
+        /// <remarks>
+        /// Hides <see cref="PdfArray.GetEnumerator"/> rather than overriding it, so that
+        /// <c>foreach (var field in form.Fields)</c> is typed as <see cref="PdfAcroField"/>.
+        /// Enumerated as a <see cref="PdfArray"/>, or through <see cref="IEnumerable{T}"/> of
+        /// <see cref="PdfItem"/> - which is what LINQ sees - or plain <see cref="IEnumerable"/>, it
+        /// yields the same fields rather than the references to them; LINQ reaches them typed
+        /// through <c>OfType&lt;PdfAcroField&gt;()</c>. The collection deliberately does not also
+        /// implement <see cref="IEnumerable{T}"/> of <see cref="PdfAcroField"/>, which would leave
+        /// LINQ two element types to choose between and every call ambiguous.
+        /// </remarks>
+        public new IEnumerator<PdfAcroField> GetEnumerator()
+        {
+            return new FieldsIterator(this);
+        }
+
+        private protected override IEnumerator<PdfItem> EnumerateItems()
+        {
+            return GetEnumerator();
+        }
+
+        private sealed class FieldsIterator : IEnumerator<PdfAcroField>
+        {
+            public FieldsIterator(PdfAcroFieldCollection fields)
+            {
+                _fields = fields;
+                _index = -1;
+            }
+
+            public PdfAcroField Current => _fields[_index];
+
+            object IEnumerator.Current => Current;
+
+            public bool MoveNext()
+            {
+                return ++_index < _fields.Count;
+            }
+
+            public void Reset()
+            {
+                _index = -1;
+            }
+
+            public void Dispose()
+            {
+                // Holds nothing to release.
+            }
+
+            private readonly PdfAcroFieldCollection _fields;
+            private int _index;
+        }
 
         internal PdfAcroField GetValue(string name)
         {
