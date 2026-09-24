@@ -1,4 +1,3 @@
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
@@ -52,5 +51,5 @@ internal sealed record DiagnosticInfo(
         new(descriptor, location, new EquatableArray<string>(messageArgs));
 
     public Diagnostic ToDiagnostic() =>
-        Diagnostic.Create(Descriptor, Location?.ToLocation(), [..MessageArgs.Cast<object>()]);
+        Diagnostic.Create(Descriptor, Location?.ToLocation(), [..MessageArgs]);
 }

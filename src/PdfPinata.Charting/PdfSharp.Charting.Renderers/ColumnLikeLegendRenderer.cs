@@ -52,12 +52,11 @@ internal class ColumnLikeLegendRenderer : LegendRenderer
   /// </summary>
   internal override RendererInfo Init()
   {
-    LegendRendererInfo lri = null;
     var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     if (cri.Chart.legend == null)
       return null;
 
-    lri = new LegendRendererInfo { Legend = cri.Chart.legend };
+    var lri = new LegendRendererInfo { Legend = cri.Chart.legend };
 
     lri.Font = Converter.ToXFont(lri.Legend.font, cri.DefaultFont);
     lri.FontColor = Converter.ToXBrush(lri.Legend.font, cri.DefaultFontColor);

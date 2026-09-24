@@ -114,7 +114,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
 
     /// <summary>The four ways to fail, and where in the render each of them lands.</summary>
     private static (string What, Func<IImageSource> Source, string When)[] Cases() => [
-        ("A type nothing can decode", (Func<IImageSource>)FailingImage.OfAnUnsupportedType,
+        ("A type nothing can decode", FailingImage.OfAnUnsupportedType,
             "throws while XImage is built, before any measuring"),
         ("An image of no extent", FailingImage.OfNoSize,
             "no exception at all - it measures to nothing"),
