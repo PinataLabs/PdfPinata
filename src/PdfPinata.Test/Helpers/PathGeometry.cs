@@ -25,7 +25,7 @@ internal static class PathGeometry
 
         foreach (var op in Operators(page))
         {
-            var operands = ItemsOf(op.Operands);
+            var operands = op.Operands;
             switch (op.OpCode.OpCodeName)
             {
                 case OpCodeName.m:
@@ -70,16 +70,9 @@ internal static class PathGeometry
 
     private static IEnumerable<COperator> Operators(PdfPage page)
     {
-        return ItemsOf(ContentReader.ReadContent(PageContent.Of(page))).OfType<COperator>();
+        return ContentReader.ReadContent(PageContent.Of(page)).OfType<COperator>();
     }
 
-    private static IReadOnlyList<CObject> ItemsOf(CSequence sequence)
-    {
-        var items = new List<CObject>();
-        foreach (var item in sequence)
-            items.Add(item);
-        return items;
-    }
 
     private static double Number(CObject operand)
     {

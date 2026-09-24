@@ -42,8 +42,8 @@ internal static class TextOperators
     {
         return [..Operators(page)
             .Where(op => op.OpCode.OpCodeName is OpCodeName.Tj or OpCodeName.TJ)
-            .SelectMany(op => ItemsOf(op.Operands)
-                .SelectMany(operand => operand is CArray array ? ItemsOf(array) : [operand])
+            .SelectMany(op => op.Operands
+                .SelectMany(operand => operand is CArray array ? array.AsEnumerable() : [operand])
                 .OfType<CString>())
             .Select(text => text.Value)];
     }
@@ -55,7 +55,7 @@ internal static class TextOperators
     {
         return [..Operators(page)
             .Where(op => op.OpCode.OpCodeName == opCode)
-            .Select(op => ItemsOf(op.Operands).Select(Number).ToArray())];
+            .Select(op => op.Operands.Select(Number).ToArray())];
     }
 
     /// <summary>
@@ -105,7 +105,7 @@ internal static class TextOperators
     internal static IReadOnlyList<double> TjAdjustments(PdfPage page)
     {
         return [..TjArrays(page)
-            .SelectMany(array => ItemsOf(array).OfType<CNumber>())
+            .SelectMany(array => array.OfType<CNumber>())
             .Select(Number)];
     }
 
@@ -115,7 +115,7 @@ internal static class TextOperators
     internal static IReadOnlyList<int> TjRunCounts(PdfPage page)
     {
         return [..TjArrays(page)
-            .Select(array => ItemsOf(array).OfType<CString>().Count())];
+            .Select(array => array.OfType<CString>().Count())];
     }
 
     /// <summary>
@@ -227,7 +227,7 @@ internal static class TextOperators
 
         foreach (var op in Operators(page))
         {
-            var operands = ItemsOf(op.Operands);
+            var operands = op.Operands;
             switch (op.OpCode.OpCodeName)
             {
                 case OpCodeName.BT:
@@ -254,7 +254,7 @@ internal static class TextOperators
                     // array's strings move the glyphs within the run rather than placing pieces of
                     // it separately, and the run began at the pen.
                     shown.Add((x, y, shown.Count, string.Concat(operands
-                        .SelectMany(o => o is CArray array ? ItemsOf(array) : [o])
+                        .SelectMany(o => o is CArray array ? array.AsEnumerable() : [o])
                         .OfType<CString>()
                         .Select(text => text.Value)), exact));
 
@@ -285,29 +285,12 @@ internal static class TextOperators
     {
         return Operators(page)
             .Where(op => op.OpCode.OpCodeName == OpCodeName.TJ)
-            .SelectMany(op => ItemsOf(op.Operands).OfType<CArray>());
+            .SelectMany(op => op.Operands.OfType<CArray>());
     }
 
     private static IEnumerable<COperator> Operators(PdfPage page)
     {
-        return ItemsOf(ContentReader.ReadContent(PageContent.Of(page))).OfType<COperator>();
-    }
-
-    /// <summary>
-    ///   The items of a sequence as a plain list.
-    /// </summary>
-    /// <remarks>
-    ///   CSequence implements IList&lt;CObject&gt;, but its explicit
-    ///   IEnumerable&lt;CObject&gt;.GetEnumerator throws NotImplementedException, so LINQ - which
-    ///   asks for exactly that one - cannot be pointed at a sequence directly. Its public
-    ///   GetEnumerator, the one foreach binds to, works.
-    /// </remarks>
-    private static IReadOnlyList<CObject> ItemsOf(CSequence sequence)
-    {
-        var items = new List<CObject>();
-        foreach (var item in sequence)
-            items.Add(item);
-        return items;
+        return ContentReader.ReadContent(PageContent.Of(page)).OfType<COperator>();
     }
 
     private static double Number(CObject operand)
