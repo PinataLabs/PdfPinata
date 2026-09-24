@@ -34,7 +34,7 @@ namespace PdfPinata.Charting;
 /// <summary>
 /// Represents a series of data on the X-Axis.
 /// </summary>
-public class XSeries : ChartObject
+public class XSeries : ChartObject, IEnumerable
 {
   /// <summary>
   /// Initializes a new instance of the XSeries class.
@@ -102,9 +102,9 @@ public class XSeries : ChartObject
   }
 
   /// <summary>
-  /// Gets the enumerator.
+  /// Returns an enumerator over the xvalues in the order they were added. A blank added by
+  /// <see cref="AddBlank"/> is a null element.
   /// </summary>
-  /// <returns></returns>
   public IEnumerator GetEnumerator()
   {
     return xSeriesElements.GetEnumerator();
