@@ -70,7 +70,7 @@ internal class RC4Encryptor : EncryptorBase, IEncryptor
     private void ValidateOwnerPassword(string password)
     {
         var pwdPad = PadPassword(password);
-        var rc4Input = OwnerPasswordKey(pwdPad, keyLength);
+        var rc4Input = OwnerPasswordKey(pwdPad);
 
         var ov = new byte[ownerValue.Length];
         Array.Copy(ownerValue, ov, ov.Length);
@@ -108,48 +108,28 @@ internal class RC4Encryptor : EncryptorBase, IEncryptor
 
     /// <summary>
     /// The RC4 key made from the padded owner password: its MD5 hash, rehashed 50 times from
-    /// revision 3 on, and cut to the key length.
+    /// revision 3 on, and cut to the key length. ISO 32000-1 7.6.3.4, Algorithm 3, steps (a)-(d).
     /// </summary>
-    /// <param name="pwdPad">The padded owner password.</param>
-    /// <param name="rehashedLength">
-    /// How many bytes of the hash each rehash reads. Validating a password reads the key length and
-    /// creating the key reads the whole 16-byte hash, as each always has.
-    /// </param>
-    private byte[] OwnerPasswordKey(byte[] pwdPad, int rehashedLength)
+    /// <remarks>
+    /// Each rehash reads only the first key-length bytes of the hash before it, as Algorithm 2
+    /// step (h) does for the file key. Algorithm 3 step (c) reads as though it wants the whole
+    /// 16-byte digest, but Ghostscript and qpdf both write /O this way, and qpdf rejects the owner
+    /// password of a file whose /O was made from the whole digest. The two readings only differ
+    /// below 128 bits, and at revision 2 there is no rehash at all.
+    /// </remarks>
+    private byte[] OwnerPasswordKey(byte[] pwdPad)
     {
         md5.Initialize();
         var pwdKey = md5.ComputeHash(pwdPad);
         if (rValue >= 3)
         {
             for (var i = 0; i < 50; i++)
-                pwdKey = md5.ComputeHash(pwdKey, 0, rehashedLength);
+                pwdKey = md5.ComputeHash(pwdKey, 0, keyLength);
         }
         var n = rValue <= 2 ? 5 : keyLength;
         var rc4Input = new byte[n];
         Array.Copy(pwdKey, rc4Input, n);
         return rc4Input;
-    }
-
-    /// <summary>
-    /// Pdf Reference 1.7, Chapter 7.6.3.4, Algorithm #3
-    /// </summary>
-    public void CreateOwnerKey(string password)
-    {
-        var pwdPad = PadPassword(password);
-        var rc4Input = OwnerPasswordKey(pwdPad, 16);
-        var n = rc4Input.Length;
-        if (rValue >= 3)
-        {
-            for (var i = 0; i < 20; i++)
-            {
-                for (var j = 0; j < rc4Input.Length; j++)
-                    rc4Input[j] = (byte)(rc4Input[j] ^ i);
-                PrepareRC4Key(rc4Input);
-                EncryptRC4(pwdPad);
-            }
-        }
-        computedOwnerValue = new byte[n];
-        Array.Copy(pwdPad, computedOwnerValue, n);
     }
 
     /// <summary>
@@ -177,11 +157,15 @@ internal class RC4Encryptor : EncryptorBase, IEncryptor
             // ReSharper disable once AssignNullToNotNullAttribute
             // ReSharper disable once PossibleNullReferenceException
             Array.Copy(mkey, computedUserValue, mkey.Length);
+            // Each round's key is the file key XORed with the round number, so it is as long as
+            // the file key, which is /Length / 8 bytes. Only at 128 bits does that match the
+            // 16-byte digest above, and a shorter key read past the end of the file key.
+            var roundKey = new byte[encryptionKey.Length];
             for (var i = 0; i < 20; i++)
             {
-                for (var j = 0; j < mkey.Length; j++)
-                    mkey[j] = (byte)(encryptionKey[j] ^ i);
-                PrepareRC4Key(mkey);
+                for (var j = 0; j < roundKey.Length; j++)
+                    roundKey[j] = (byte)(encryptionKey[j] ^ i);
+                PrepareRC4Key(roundKey, 0, roundKey.Length);
                 EncryptRC4(computedUserValue, 0, 16);
             }
             for (var i = 16; i < 32; i++)
