@@ -892,7 +892,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// The value an indirect reference leads to, as the type the meta information says the key
         /// holds.
         /// </summary>
-        private PdfItem TypedReferencedValue(string key, PdfReference iref)
+        private PdfObject TypedReferencedValue(string key, PdfReference iref)
         {
             // Case: value is an indirect reference.
             var value = iref.Value;

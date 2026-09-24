@@ -153,7 +153,7 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
   /// <summary>
   /// Returns the specific y axis renderer.
   /// </summary>
-  private YAxisRenderer GetYAxisRenderer()
+  private VerticalYAxisRenderer GetYAxisRenderer()
   {
     var chart = (Chart)rendererParms.DrawingItem;
     return chart.type switch

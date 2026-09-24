@@ -109,6 +109,7 @@ public class AsciiHexDecode : Filter
     /// The value of a hexadecimal digit, or -1 for white space, which is skipped.
     /// </summary>
     /// <exception cref="ArgumentException">Any other character.</exception>
+    #pragma warning disable CA2208 // The parameter named is Decode's, deliberately; see below.
     private static int DigitValue(byte ch) => ch switch
     {
         >= (byte)'0' and <= (byte)'9' => ch - '0',
@@ -118,6 +119,7 @@ public class AsciiHexDecode : Filter
         // Named after Decode's parameter, which is where the character came from.
         _ => throw new ArgumentException($"Illegal character 0x{ch:X2} in ASCIIHexDecode data.", "data")
     };
+    #pragma warning restore CA2208
 
     // The six characters ISO 32000-1 Table 1 calls white space.
     private static bool IsWhiteSpace(byte ch) =>

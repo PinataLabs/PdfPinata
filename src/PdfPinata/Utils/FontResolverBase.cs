@@ -278,7 +278,7 @@ public abstract class FontResolverBase
     /// How many faces a font file holds and whether it is a collection. A file that cannot be read
     /// is logged and answers false.
     /// </summary>
-    private bool TryCountFaces(string fontPathFile, out int faceCount, out bool isCollection)
+    private static bool TryCountFaces(string fontPathFile, out int faceCount, out bool isCollection)
     {
         try
         {
