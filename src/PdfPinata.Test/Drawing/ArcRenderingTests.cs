@@ -102,7 +102,8 @@ public class ArcRenderingTests
     [InlineData(360, 0)]
     [InlineData(-360, 0)]
     // Sweeps too small to move the angle they are added to, such as float cancellation leaves
-    // behind: 90 + 1e-15 is 90, so these go nowhere just as a sweep of 0 does.
+    // behind: 90 + 1e-15 is 90, so these go nowhere just as a sweep of 0 does. The last is the
+    // exception, since 0 + 5.55e-17 is not 0: it is an ordinary arc, too short to leave its start.
     [InlineData(90, 1e-15)]
     [InlineData(360, -1e-15)]
     [InlineData(45, 1e-15)]
