@@ -337,13 +337,10 @@ public partial class TextArea : ChartObject, IVisitable
     if (!height.IsNull)
       serializer.WriteSimpleAttribute("Height", Height);
 
-    if (verticalAlignment != null)
-      serializer.WriteSimpleAttribute("VerticalAlignment", VerticalAlignment);
+    serializer.WriteSimpleAttributeIfSet("VerticalAlignment", verticalAlignment);
 
-    if (!IsNull("LineFormat"))
-      lineFormat.Serialize(serializer);
-    if (!IsNull("FillFormat"))
-      fillFormat.Serialize(serializer);
+    serializer.SerializeUnlessNull(this, "LineFormat", lineFormat);
+    serializer.SerializeUnlessNull(this, "FillFormat", fillFormat);
 
     serializer.EndAttributes(pos);
 

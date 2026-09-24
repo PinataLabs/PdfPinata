@@ -622,43 +622,11 @@ public sealed class PdfDocument : PdfObject, IDisposable
     private void DoSave(PdfWriter writer)
     {
         EnsureCanDeduplicate();
-
-        if (_pages == null || _pages.Count == 0)
-        {
-            if (_outStream != null)
-            {
-                // Give feedback if the wrong constructor was used.
-                throw new InvalidOperationException(
-                    "Cannot save a PDF document with no pages. Do not use \"public PdfDocument(Stream outputStream)\" if you want to open an existing PDF document from a file or stream; use PdfReader.Open() for that purpose.");
-            }
-
-            throw new InvalidOperationException("Cannot save a PDF document with no pages.");
-        }
+        EnsureHasPages();
 
         try
         {
-            // HACK: Remove XRefTrailer
-            if (_trailer is PdfCrossReferenceStream crossReferenceStream)
-            {
-                // HACK^2: Preserve the SecurityHandler.
-                var securityHandler = _securitySettings.SecurityHandler;
-                _trailer = new PdfTrailer(crossReferenceStream) { _securityHandler = securityHandler };
-            }
-
-            var encrypt = _securitySettings.DocumentSecurityLevel != PdfDocumentSecurityLevel.None;
-            if (encrypt)
-            {
-                var securityHandler = _securitySettings.SecurityHandler;
-                if (securityHandler.Reference == null)
-                    _irefTable.Add(securityHandler);
-                else
-                    Debug.Assert(_irefTable.Contains(securityHandler.ObjectID));
-                _trailer.Elements[PdfTrailer.Keys.Encrypt] = _securitySettings.SecurityHandler.Reference;
-            }
-            else
-            {
-                _trailer.Elements.Remove(PdfTrailer.Keys.Encrypt);
-            }
+            var encrypt = PrepareTrailerForSave();
 
             PrepareForSave();
 
@@ -666,42 +634,93 @@ public sealed class PdfDocument : PdfObject, IDisposable
                 _securitySettings.SecurityHandler.PrepareEncryption();
 
             if (Options.CrossReferenceFormat == PdfCrossReferenceFormat.Stream)
-            {
-                // A cross-reference stream is a PDF 1.5 construct, so a file that has one may not
-                // announce itself as anything earlier. Raised on the field rather than the property:
-                // the property refuses a document that cannot be modified, and by here the decision
-                // to write has already been taken.
-                PdfVersionRequirements.Require(this, 15);
-
-                writer.WriteFileHeader(this);
-                var startxref = PdfCrossReferenceStreamWriter.WriteBody(this, writer);
-                writer.WriteEof(startxref);
-            }
+                WriteWithCrossReferenceStream(writer);
             else
-            {
-                writer.WriteFileHeader(this);
-                var irefs = _irefTable.AllReferences;
-                var count = irefs.Length;
-                for (var idx = 0; idx < count; idx++)
-                {
-                    var iref = irefs[idx];
-                    iref.Position = writer.Position;
-                    iref.Value.WriteObject(writer);
-                }
-
-                var startxref = writer.Position;
-                _irefTable.WriteObject(writer);
-                writer.WriteRaw("trailer\n");
-                _trailer.Elements.SetInteger("/Size", count + 1);
-                _trailer.WriteObject(writer);
-                writer.WriteEof(startxref);
-            }
+                WriteWithCrossReferenceTable(writer);
         }
         finally
         {
             writer?.Stream.Flush();
             // DO NOT CLOSE WRITER HERE
         }
+    }
+
+    private void EnsureHasPages()
+    {
+        if (_pages != null && _pages.Count != 0)
+            return;
+
+        if (_outStream != null)
+        {
+            // Give feedback if the wrong constructor was used.
+            throw new InvalidOperationException(
+                "Cannot save a PDF document with no pages. Do not use \"public PdfDocument(Stream outputStream)\" if you want to open an existing PDF document from a file or stream; use PdfReader.Open() for that purpose.");
+        }
+
+        throw new InvalidOperationException("Cannot save a PDF document with no pages.");
+    }
+
+    /// <summary>
+    /// Gives the document a classic trailer and adds or removes its <c>/Encrypt</c> entry, and
+    /// answers whether the document is to be encrypted.
+    /// </summary>
+    private bool PrepareTrailerForSave()
+    {
+        // HACK: Remove XRefTrailer
+        if (_trailer is PdfCrossReferenceStream crossReferenceStream)
+        {
+            // HACK^2: Preserve the SecurityHandler.
+            var securityHandler = _securitySettings.SecurityHandler;
+            _trailer = new PdfTrailer(crossReferenceStream) { _securityHandler = securityHandler };
+        }
+
+        var encrypt = _securitySettings.DocumentSecurityLevel != PdfDocumentSecurityLevel.None;
+        if (!encrypt)
+        {
+            _trailer.Elements.Remove(PdfTrailer.Keys.Encrypt);
+            return false;
+        }
+
+        var handler = _securitySettings.SecurityHandler;
+        if (handler.Reference == null)
+            _irefTable.Add(handler);
+        else
+            Debug.Assert(_irefTable.Contains(handler.ObjectID));
+        _trailer.Elements[PdfTrailer.Keys.Encrypt] = _securitySettings.SecurityHandler.Reference;
+        return true;
+    }
+
+    private void WriteWithCrossReferenceStream(PdfWriter writer)
+    {
+        // A cross-reference stream is a PDF 1.5 construct, so a file that has one may not
+        // announce itself as anything earlier. Raised on the field rather than the property:
+        // the property refuses a document that cannot be modified, and by here the decision
+        // to write has already been taken.
+        PdfVersionRequirements.Require(this, 15);
+
+        writer.WriteFileHeader(this);
+        var startxref = PdfCrossReferenceStreamWriter.WriteBody(this, writer);
+        writer.WriteEof(startxref);
+    }
+
+    private void WriteWithCrossReferenceTable(PdfWriter writer)
+    {
+        writer.WriteFileHeader(this);
+        var irefs = _irefTable.AllReferences;
+        var count = irefs.Length;
+        for (var idx = 0; idx < count; idx++)
+        {
+            var iref = irefs[idx];
+            iref.Position = writer.Position;
+            iref.Value.WriteObject(writer);
+        }
+
+        var startxref = writer.Position;
+        _irefTable.WriteObject(writer);
+        writer.WriteRaw("trailer\n");
+        _trailer.Elements.SetInteger("/Size", count + 1);
+        _trailer.WriteObject(writer);
+        writer.WriteEof(startxref);
     }
 
     /// <summary>
@@ -711,26 +730,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         var info = Info;
 
-        var infoCreator = VersionInfo.Producer;
-
-        // Set Creator if value is undefined.
-        if (info.Elements[PdfDocumentInformation.Keys.Creator] == null)
-            info.Creator = infoCreator;
-
-        // Keep original producer if file was imported.
-        var producer = info.Producer;
-        if (producer.Length == 0)
-        {
-            producer = infoCreator;
-        }
-        else
-        {
-            // Prevent endless concatenation if file is edited with PDFsharp more than once.
-            if (!producer.StartsWith(VersionInfo.Title))
-                producer = infoCreator + " (Original: " + producer + ")";
-        }
-
-        info.Elements.SetString(PdfDocumentInformation.Keys.Producer, producer);
+        StampCreatorAndProducer(info);
 
         // Stamp a document opened for modification with the time it was written. This used to be
         // done when the document was opened, which meant that reading one to look at its dates
@@ -784,6 +784,25 @@ public sealed class PdfDocument : PdfObject, IDisposable
         if (removed != 0)
             Debug.WriteLine("PrepareForSave: Number of deleted unreachable objects: " + removed);
         _irefTable.Renumber();
+    }
+
+    private static void StampCreatorAndProducer(PdfDocumentInformation info)
+    {
+        var infoCreator = VersionInfo.Producer;
+
+        // Set Creator if value is undefined.
+        if (info.Elements[PdfDocumentInformation.Keys.Creator] == null)
+            info.Creator = infoCreator;
+
+        // Keep original producer if file was imported.
+        var producer = info.Producer;
+        if (producer.Length == 0)
+            producer = infoCreator;
+        // Prevent endless concatenation if file is edited with PDFsharp more than once.
+        else if (!producer.StartsWith(VersionInfo.Title))
+            producer = infoCreator + " (Original: " + producer + ")";
+
+        info.Elements.SetString(PdfDocumentInformation.Keys.Producer, producer);
     }
 
     /// <summary>

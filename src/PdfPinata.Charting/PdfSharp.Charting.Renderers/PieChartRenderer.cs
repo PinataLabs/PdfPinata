@@ -149,23 +149,29 @@ internal class PieChartRenderer : ChartRenderer
 
       sri.PointRendererInfos = new PointRendererInfo[sri.Series.Elements.Count];
       for (var pointIdx = 0; pointIdx < sri.PointRendererInfos.Length; ++pointIdx)
-      {
-        PointRendererInfo pri = new SectorRendererInfo();
-        var point = sri.Series.Elements[pointIdx];
-        pri.Point = point;
-        if (point != null)
-        {
-          pri.LineFormat = sri.LineFormat;
-          if (point.lineFormat is { color.IsEmpty: false })
-            pri.LineFormat = new XPen(point.lineFormat.color);
-          if (point.fillFormat is { color.IsEmpty: false })
-            pri.FillFormat = new XSolidBrush(point.fillFormat.color);
-          else
-            pri.FillFormat = new XSolidBrush(PieColors.Item(pointIdx));
-          pri.LineFormat.LineJoin = XLineJoin.Round;
-        }
-        sri.PointRendererInfos[pointIdx] = pri;
-      }
+        sri.PointRendererInfos[pointIdx] = InitSector(sri, sri.Series.Elements[pointIdx], pointIdx);
     }
+  }
+
+  /// <summary>
+  /// Initializes the data to draw one sector, which is coloured by its position unless it has a
+  /// fill of its own.
+  /// </summary>
+  private static PointRendererInfo InitSector(SeriesRendererInfo sri, Point point, int pointIdx)
+  {
+    PointRendererInfo pri = new SectorRendererInfo();
+    pri.Point = point;
+    if (point == null)
+      return pri;
+
+    pri.LineFormat = sri.LineFormat;
+    if (point.lineFormat is { color.IsEmpty: false })
+      pri.LineFormat = new XPen(point.lineFormat.color);
+    if (point.fillFormat is { color.IsEmpty: false })
+      pri.FillFormat = new XSolidBrush(point.fillFormat.color);
+    else
+      pri.FillFormat = new XSolidBrush(PieColors.Item(pointIdx));
+    pri.LineFormat.LineJoin = XLineJoin.Round;
+    return pri;
   }
 }

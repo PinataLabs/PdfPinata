@@ -72,27 +72,7 @@ internal static class OpenTypeFontMetadata
 
     internal static FontMetadata Read(byte[] data, int faceIndex)
     {
-        var baseOffset = 0;
-
-        // A TrueType collection starts with a directory of fonts. TrueTypeCollection owns both
-        // the signature check and the validation of the declared face count against the room the
-        // file has to point at that many, so neither is repeated here.
-        if (TrueTypeCollection.IsCollection(data))
-        {
-            var faceCount = TrueTypeCollection.FaceCount(data);
-            var face = faceIndex < 0 ? 0 : faceIndex;
-
-            if (face >= faceCount)
-                throw new InvalidOperationException(
-                    "Font collection holds " + faceCount + " faces; face " + face + " was asked for.");
-
-            baseOffset = (int)U32(data, OffsetTableLength + face * 4);
-        }
-        else if (faceIndex > 0)
-        {
-            throw new InvalidOperationException(
-                "Font is not a collection and holds face 0 alone; face " + faceIndex + " was asked for.");
-        }
+        var baseOffset = FaceOffset(data, faceIndex);
 
         // A collection is free to point at a face outside the file, and the offset table holds
         // the table count, so both are checked before anything is read through them.
@@ -104,9 +84,51 @@ internal static class OpenTypeFontMetadata
         if (baseOffset + OffsetTableLength + numTables * TableRecordLength > data.Length)
             throw new InvalidOperationException("Font declares more tables than the file holds.");
 
-        var nameOffset = -1;
-        var os2Offset = -1;
-        var headOffset = -1;
+        FindTables(data, baseOffset, numTables, out var nameOffset, out var os2Offset, out var headOffset);
+
+        if (nameOffset < 0)
+            throw new InvalidOperationException("Font contains no 'name' table.");
+
+        return new FontMetadata(ReadFamilyName(data, nameOffset), ReadStyle(data, os2Offset, headOffset));
+    }
+
+    /// <summary>
+    /// Where the offset table of the face asked for begins: zero for a single font, or the entry
+    /// the collection's directory holds for it.
+    /// </summary>
+    private static int FaceOffset(byte[] data, int faceIndex)
+    {
+        // A TrueType collection starts with a directory of fonts. TrueTypeCollection owns both
+        // the signature check and the validation of the declared face count against the room the
+        // file has to point at that many, so neither is repeated here.
+        if (!TrueTypeCollection.IsCollection(data))
+        {
+            if (faceIndex > 0)
+                throw new InvalidOperationException(
+                    "Font is not a collection and holds face 0 alone; face " + faceIndex + " was asked for.");
+
+            return 0;
+        }
+
+        var faceCount = TrueTypeCollection.FaceCount(data);
+        var face = faceIndex < 0 ? 0 : faceIndex;
+
+        if (face >= faceCount)
+            throw new InvalidOperationException(
+                "Font collection holds " + faceCount + " faces; face " + face + " was asked for.");
+
+        return (int)U32(data, OffsetTableLength + face * 4);
+    }
+
+    /// <summary>
+    /// The offsets of the 'name', 'OS/2' and 'head' tables, each -1 when the face has none.
+    /// </summary>
+    private static void FindTables(byte[] data, int baseOffset, int numTables,
+        out int nameOffset, out int os2Offset, out int headOffset)
+    {
+        nameOffset = -1;
+        os2Offset = -1;
+        headOffset = -1;
 
         for (var i = 0; i < numTables; i++)
         {
@@ -121,11 +143,6 @@ internal static class OpenTypeFontMetadata
             else if (tag == TagOs2) os2Offset = offset;
             else if (tag == TagHead) headOffset = offset;
         }
-
-        if (nameOffset < 0)
-            throw new InvalidOperationException("Font contains no 'name' table.");
-
-        return new FontMetadata(ReadFamilyName(data, nameOffset), ReadStyle(data, os2Offset, headOffset));
     }
 
 
@@ -143,23 +160,8 @@ internal static class OpenTypeFontMetadata
             if (record + 12 > data.Length)
                 break;
 
-            if (U16(data, record + 6) != NameIdFamily)
-                continue;
-
-            var platformId = U16(data, record);
-            var languageId = U16(data, record + 4);
-            var length = U16(data, record + 8);
-            var offset = stringBase + U16(data, record + 10);
-
-            if (offset < 0 || offset + length > data.Length)
-                continue;
-
-            var score = ScoreName(platformId, languageId);
-            if (score <= bestScore)
-                continue;
-
-            var value = Decode(data, offset, length, platformId);
-            if (string.IsNullOrEmpty(value))
+            var value = BetterFamilyName(data, record, stringBase, bestScore, out var score);
+            if (value == null)
                 continue;
 
             best = value;
@@ -167,6 +169,32 @@ internal static class OpenTypeFontMetadata
         }
 
         return best ?? throw new InvalidOperationException("Font contains no family name (name ID 1).");
+    }
+
+    /// <summary>
+    /// The family name the name record at <paramref name="record"/> holds, when it is one, lies
+    /// inside the file, is not empty and scores above <paramref name="bestScore"/>; null otherwise.
+    /// </summary>
+    private static string BetterFamilyName(byte[] data, int record, int stringBase, int bestScore, out int score)
+    {
+        score = int.MinValue;
+        if (U16(data, record + 6) != NameIdFamily)
+            return null;
+
+        var platformId = U16(data, record);
+        var languageId = U16(data, record + 4);
+        var length = U16(data, record + 8);
+        var offset = stringBase + U16(data, record + 10);
+
+        if (offset < 0 || offset + length > data.Length)
+            return null;
+
+        score = ScoreName(platformId, languageId);
+        if (score <= bestScore)
+            return null;
+
+        var value = Decode(data, offset, length, platformId);
+        return string.IsNullOrEmpty(value) ? null : value;
     }
 
 

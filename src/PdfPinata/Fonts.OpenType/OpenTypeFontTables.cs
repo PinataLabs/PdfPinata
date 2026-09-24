@@ -331,32 +331,7 @@ internal class CMapTable : OpenTypeFontTable
             version = _fontData.ReadUShort();
             numTables = _fontData.ReadUShort();
 
-            // The whole record list is walked now rather than stopped at the first usable subtable,
-            // because two are wanted and they arrive in no guaranteed order: the format 4 subtable
-            // that answers for the basic multilingual plane, and the format 12 one that is the only
-            // thing that answers above it. Which format 4 subtable is chosen is unchanged - the
-            // first record that would have ended the old loop is the first that sets it here, and
-            // nothing later overwrites it - so a face with no format 12 is read exactly as before
-            // and every existing document keeps the glyphs it had.
-            var cmap4Offset = -1;
-            var cmap4IsSymbol = false;
-            var cmap12Offset = -1;
-
-            for (var idx = 0; idx < numTables; idx++)
-            {
-                var platformId = (PlatformId)_fontData.ReadUShort();
-                int encodingId = _fontData.ReadUShort();
-                var offset = _fontData.ReadLong();
-
-                if (cmap4Offset < 0 && IsBmpSubtable(platformId, encodingId, out var isSymbol))
-                {
-                    cmap4Offset = offset;
-                    cmap4IsSymbol = isSymbol;
-                }
-
-                if (cmap12Offset < 0 && IsFullUnicode(platformId, encodingId))
-                    cmap12Offset = offset;
-            }
+            ReadSubtableRecords(out var cmap4Offset, out var cmap4IsSymbol, out var cmap12Offset);
 
             if (cmap4Offset < 0)
                 throw new InvalidOperationException(
@@ -372,6 +347,40 @@ internal class CMapTable : OpenTypeFontTable
         catch (Exception ex) when (!Unrecoverable.Is(ex))
         {
             throw new InvalidOperationException(PSSR.ErrorReadingFontData, ex);
+        }
+    }
+
+    /// <summary>
+    /// Walks the subtable records for the offsets of the format 4 and format 12 subtables, each -1
+    /// when the face has none.
+    /// </summary>
+    private void ReadSubtableRecords(out int cmap4Offset, out bool cmap4IsSymbol, out int cmap12Offset)
+    {
+        // The whole record list is walked now rather than stopped at the first usable subtable,
+        // because two are wanted and they arrive in no guaranteed order: the format 4 subtable
+        // that answers for the basic multilingual plane, and the format 12 one that is the only
+        // thing that answers above it. Which format 4 subtable is chosen is unchanged - the
+        // first record that would have ended the old loop is the first that sets it here, and
+        // nothing later overwrites it - so a face with no format 12 is read exactly as before
+        // and every existing document keeps the glyphs it had.
+        cmap4Offset = -1;
+        cmap4IsSymbol = false;
+        cmap12Offset = -1;
+
+        for (var idx = 0; idx < numTables; idx++)
+        {
+            var platformId = (PlatformId)_fontData.ReadUShort();
+            int encodingId = _fontData.ReadUShort();
+            var offset = _fontData.ReadLong();
+
+            if (cmap4Offset < 0 && IsBmpSubtable(platformId, encodingId, out var isSymbol))
+            {
+                cmap4Offset = offset;
+                cmap4IsSymbol = isSymbol;
+            }
+
+            if (cmap12Offset < 0 && IsFullUnicode(platformId, encodingId))
+                cmap12Offset = offset;
         }
     }
 

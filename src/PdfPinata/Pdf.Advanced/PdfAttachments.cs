@@ -180,38 +180,56 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
     {
         ArgumentNullException.ThrowIfNull(specification);
 
-        var removed = false;
+        var removedFromAssociated = RemoveFromAssociated(specification);
+        var removedFromLeaves = RemoveFromLeaves(specification);
+        return removedFromAssociated || removedFromLeaves;
+    }
 
+    /// <summary>
+    /// Removes the file from the catalog's <c>/AF</c> array, dropping the array once it is empty.
+    /// </summary>
+    private bool RemoveFromAssociated(PdfFileSpecification specification)
+    {
         var associated = _document.Catalog.Elements.GetArray(PdfCatalog.Keys.AF);
-        if (associated != null)
+        if (associated == null)
+            return false;
+
+        var removed = false;
+        for (var idx = associated.Elements.Count - 1; idx >= 0; idx--)
         {
-            for (var idx = associated.Elements.Count - 1; idx >= 0; idx--)
-            {
-                if (!ReferenceEquals(Resolve(associated.Elements[idx]), specification))
-                    continue;
+            if (!ReferenceEquals(Resolve(associated.Elements[idx]), specification))
+                continue;
 
-                associated.Elements.RemoveAt(idx);
-                removed = true;
-            }
-
-            if (associated.Elements.Count == 0)
-                _document.Catalog.Elements.Remove(PdfCatalog.Keys.AF);
+            associated.Elements.RemoveAt(idx);
+            removed = true;
         }
 
-        var leaves = Leaves();
-        if (leaves != null)
-        {
-            // Backwards, and two at a time: the array alternates key and value, so removing a pair
-            // from the front would renumber every pair after it mid-walk.
-            for (var idx = leaves.Elements.Count - 2; idx >= 0; idx -= 2)
-            {
-                if (!ReferenceEquals(Resolve(leaves.Elements[idx + 1]), specification))
-                    continue;
+        if (associated.Elements.Count == 0)
+            _document.Catalog.Elements.Remove(PdfCatalog.Keys.AF);
 
-                leaves.Elements.RemoveAt(idx + 1);
-                leaves.Elements.RemoveAt(idx);
-                removed = true;
-            }
+        return removed;
+    }
+
+    /// <summary>
+    /// Removes the file from the <c>/EmbeddedFiles</c> name tree's leaves.
+    /// </summary>
+    private bool RemoveFromLeaves(PdfFileSpecification specification)
+    {
+        var leaves = Leaves();
+        if (leaves == null)
+            return false;
+
+        var removed = false;
+        // Backwards, and two at a time: the array alternates key and value, so removing a pair
+        // from the front would renumber every pair after it mid-walk.
+        for (var idx = leaves.Elements.Count - 2; idx >= 0; idx -= 2)
+        {
+            if (!ReferenceEquals(Resolve(leaves.Elements[idx + 1]), specification))
+                continue;
+
+            leaves.Elements.RemoveAt(idx + 1);
+            leaves.Elements.RemoveAt(idx);
+            removed = true;
         }
 
         return removed;
@@ -268,23 +286,29 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
             AddOnce(found, entry.Value);
 
         if (includeAnnotations)
-        {
-            foreach (var page in _document.Pages)
-            {
-                var annotations = page.Elements.GetArray("/Annots");
-                if (annotations == null)
-                    continue;
-
-                foreach (var item in annotations.Elements)
-                {
-                    var annotation = Dictionary(item);
-                    if (annotation != null)
-                        AddOnce(found, annotation.Elements["/FS"]);
-                }
-            }
-        }
+            AddAnnotationAttachments(found);
 
         return found;
+    }
+
+    /// <summary>
+    /// Adds the file each page's annotations hang off by <c>/FS</c>.
+    /// </summary>
+    private void AddAnnotationAttachments(List<PdfFileSpecification> found)
+    {
+        foreach (var page in _document.Pages)
+        {
+            var annotations = page.Elements.GetArray("/Annots");
+            if (annotations == null)
+                continue;
+
+            foreach (var item in annotations.Elements)
+            {
+                var annotation = Dictionary(item);
+                if (annotation != null)
+                    AddOnce(found, annotation.Elements["/FS"]);
+            }
+        }
     }
 
     private static void AddOnce(List<PdfFileSpecification> found, PdfItem item)

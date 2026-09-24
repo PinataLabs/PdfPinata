@@ -372,20 +372,7 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public OpenTypeFontface CreateFontSubSet(Dictionary<int, object> glyphs, bool cidFont)
     {
-        // Subsetting means rebuilding 'glyf' and 'loca', which a font with PostScript outlines
-        // does not have. Callers embed such a font whole instead; say so here rather than let
-        // the next line fail on a null table.
-        if (IsPostscriptOutlines)
-            throw new InvalidOperationException(
-                "'" + FullFaceName + "' has PostScript (CFF) outlines, which PdfPinata cannot subset. "
-                + "Embed the font whole instead.");
-
-        // Every glyph-outline font has a 'maxp' table, and the new 'loca' is sized by the glyph
-        // count it holds. A face without one would otherwise fail below on a null table.
-        if (maxp == null)
-            throw new InvalidOperationException(
-                "'" + FullFaceName + "' has no 'maxp' table, so PdfPinata cannot tell how many glyphs it has "
-                + "and cannot subset it.");
+        EnsureCanSubset();
 
         // Create new font image
         var fontData = new OpenTypeFontface(this);
@@ -394,21 +381,7 @@ internal sealed class OpenTypeFontface
         var locaNew = new IndexToLocationTable { ShortIndex = loca.ShortIndex };
         var glyfNew = new GlyphDataTable();
 
-        // Add all required tables
-        if (!cidFont)
-            fontData.AddTable(cmap);
-        if (cvt != null)
-            fontData.AddTable(cvt);
-        if (fpgm != null)
-            fontData.AddTable(fpgm);
-        fontData.AddTable(glyfNew);
-        fontData.AddTable(head);
-        fontData.AddTable(hhea);
-        fontData.AddTable(hmtx);
-        fontData.AddTable(locaNew);
-        fontData.AddTable(maxp);
-        if (prep != null)
-            fontData.AddTable(prep);
+        AddSubsetTables(fontData, locaNew, glyfNew, cidFont);
 
         // Get closure of used glyphs.
         glyf.CompleteGlyphClosure(glyphs);
@@ -432,7 +405,61 @@ internal sealed class OpenTypeFontface
         // Create new glyf table
         glyfNew.GlyphTable = new byte[glyfNew.DirectoryEntry.PaddedLength];
 
-        // Fill new glyf and loca table
+        FillSubsetGlyphs(locaNew, glyfNew, glyphArray, numGlyphs);
+
+        // Compile font tables into byte array
+        fontData.Compile();
+
+        return fontData;
+    }
+
+    private void EnsureCanSubset()
+    {
+        // Subsetting means rebuilding 'glyf' and 'loca', which a font with PostScript outlines
+        // does not have. Callers embed such a font whole instead; say so here rather than let
+        // the next line fail on a null table.
+        if (IsPostscriptOutlines)
+            throw new InvalidOperationException(
+                "'" + FullFaceName + "' has PostScript (CFF) outlines, which PdfPinata cannot subset. "
+                + "Embed the font whole instead.");
+
+        // Every glyph-outline font has a 'maxp' table, and the new 'loca' is sized by the glyph
+        // count it holds. A face without one would otherwise fail below on a null table.
+        if (maxp == null)
+            throw new InvalidOperationException(
+                "'" + FullFaceName + "' has no 'maxp' table, so PdfPinata cannot tell how many glyphs it has "
+                + "and cannot subset it.");
+    }
+
+    /// <summary>
+    /// Adds all required tables to a subset font image.
+    /// </summary>
+    private void AddSubsetTables(OpenTypeFontface fontData, IndexToLocationTable locaNew, GlyphDataTable glyfNew,
+        bool cidFont)
+    {
+        if (!cidFont)
+            fontData.AddTable(cmap);
+        if (cvt != null)
+            fontData.AddTable(cvt);
+        if (fpgm != null)
+            fontData.AddTable(fpgm);
+        fontData.AddTable(glyfNew);
+        fontData.AddTable(head);
+        fontData.AddTable(hhea);
+        fontData.AddTable(hmtx);
+        fontData.AddTable(locaNew);
+        fontData.AddTable(maxp);
+        if (prep != null)
+            fontData.AddTable(prep);
+    }
+
+    /// <summary>
+    /// Fills the new glyf and loca tables with the glyphs in <paramref name="glyphArray"/>, which is
+    /// sorted.
+    /// </summary>
+    private void FillSubsetGlyphs(IndexToLocationTable locaNew, GlyphDataTable glyfNew, int[] glyphArray, int numGlyphs)
+    {
+        var glyphCount = glyphArray.Length;
         var glyphOffset = 0;
         var glyphIndex = 0;
         for (var idx = 0; idx < numGlyphs; idx++)
@@ -451,11 +478,6 @@ internal sealed class OpenTypeFontface
             glyphOffset += length;
         }
         locaNew.LocationTable[numGlyphs] = glyphOffset;
-
-        // Compile font tables into byte array
-        fontData.Compile();
-
-        return fontData;
     }
 
     /// <summary>

@@ -63,45 +63,7 @@ public class LzwDecode : Filter
         _bytePointer = 0;
         _nextData = 0;
         _nextBits = 0;
-        int code, oldCode = 0;
-        byte[] str;
-
-        while ((code = NextCode) != 257)
-        {
-            if (code == 256)
-            {
-                InitializeDictionary();
-                code = NextCode;
-                if (code == 257)
-                {
-                    break;
-                }
-                outputStream.Write(_stringTable[code], 0, _stringTable[code].Length);
-                oldCode = code;
-
-            }
-            else
-            {
-                if (code < _tableIndex)
-                {
-                    str = _stringTable[code];
-                    outputStream.Write(str, 0, str.Length);
-                    AddEntry(_stringTable[oldCode], str[0]);
-                    oldCode = code;
-                }
-                else
-                {
-                    // The encoder is allowed to emit the code for the entry it is in the middle of
-                    // defining, which it does whenever the input repeats a run. That entry is the
-                    // previous string followed by that string's own first byte, so writing the
-                    // previous string alone drops the repeated byte.
-                    var previous = _stringTable[oldCode];
-                    str = AddEntry(previous, previous[0]);
-                    outputStream.Write(str, 0, str.Length);
-                    oldCode = code;
-                }
-            }
-        }
+        DecodeCodes(outputStream);
 
         if (outputStream.Length < 0)
             return null;
@@ -111,6 +73,54 @@ public class LzwDecode : Filter
         return parms?.DecodeParms != null
             ? StreamDecoder.Decode(outputStream.ToArray(), parms.DecodeParms)
             : outputStream.ToArray();
+    }
+
+    /// <summary>
+    /// Reads codes up to the end-of-data code, writing the string each one stands for.
+    /// </summary>
+    private void DecodeCodes(Stream outputStream)
+    {
+        int code, oldCode = 0;
+        while ((code = NextCode) != 257)
+        {
+            if (code == 256)
+            {
+                InitializeDictionary();
+                code = NextCode;
+                if (code == 257)
+                    break;
+
+                outputStream.Write(_stringTable[code], 0, _stringTable[code].Length);
+            }
+            else
+            {
+                WriteString(outputStream, code, oldCode);
+            }
+            oldCode = code;
+        }
+    }
+
+    /// <summary>
+    /// Writes the string a code stands for, and adds the table entry that code completes.
+    /// </summary>
+    private void WriteString(Stream outputStream, int code, int oldCode)
+    {
+        byte[] str;
+        if (code < _tableIndex)
+        {
+            str = _stringTable[code];
+            outputStream.Write(str, 0, str.Length);
+            AddEntry(_stringTable[oldCode], str[0]);
+            return;
+        }
+
+        // The encoder is allowed to emit the code for the entry it is in the middle of
+        // defining, which it does whenever the input repeats a run. That entry is the
+        // previous string followed by that string's own first byte, so writing the
+        // previous string alone drops the repeated byte.
+        var previous = _stringTable[oldCode];
+        str = AddEntry(previous, previous[0]);
+        outputStream.Write(str, 0, str.Length);
     }
 
     /// <summary>

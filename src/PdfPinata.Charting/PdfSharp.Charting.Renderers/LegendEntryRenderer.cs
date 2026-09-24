@@ -106,35 +106,40 @@ internal class LegendEntryRenderer : Renderer
     foreach (var paragraph in leri.EntryText.Split(LineBreaks, StringSplitOptions.None))
     {
       if (gfx.MeasureString(paragraph, font).Width <= textWidth)
-      {
         lines.Add(paragraph);
-        continue;
-      }
-
-      string line = null;
-      foreach (var word in paragraph.Split([' '], StringSplitOptions.RemoveEmptyEntries))
-      {
-        if (line == null)
-        {
-          line = word;
-        }
-        else if (gfx.MeasureString(line + " " + word, font).Width <= textWidth)
-        {
-          line += " " + word;
-        }
-        else
-        {
-          lines.Add(line);
-          line = word;
-        }
-      }
-      lines.Add(line ?? "");
+      else
+        WrapParagraph(gfx, font, paragraph, textWidth, lines);
     }
 
     leri.Lines = [..lines];
     Measure(gfx, leri);
     leri.Width = leri.TextSize.Width + leri.MarkerArea.Width + SpacingBetweenMarkerAndText;
     leri.Height = Math.Max(leri.Height, leri.TextSize.Height);
+  }
+
+  /// <summary>
+  /// Breaks one paragraph into lines no wider than the text width, adding them to those given.
+  /// </summary>
+  private static void WrapParagraph(XGraphics gfx, XFont font, string paragraph, double textWidth, List<string> lines)
+  {
+    string line = null;
+    foreach (var word in paragraph.Split([' '], StringSplitOptions.RemoveEmptyEntries))
+    {
+      if (line == null)
+      {
+        line = word;
+      }
+      else if (gfx.MeasureString(line + " " + word, font).Width <= textWidth)
+      {
+        line += " " + word;
+      }
+      else
+      {
+        lines.Add(line);
+        line = word;
+      }
+    }
+    lines.Add(line ?? "");
   }
 
   /// <summary>
@@ -170,37 +175,16 @@ internal class LegendEntryRenderer : Renderer
     // of the entry, as it always was; for one of several it is not.
     var keyHeight = leri.Lines.Length > 1 ? leri.LineHeight : leri.Height;
 
-    XRect rect;
     if (leri.SeriesRendererInfo.Series.chartType == ChartType.Line)
-    {
-      // Draw line, unless the series' own line is hidden: a pen of width 0 is how a line format
-      // that says Visible = false comes out of the converter.
-      if (leri.SeriesRendererInfo.LineFormat.Width > 0)
-      {
-        var posLineStart = new XPoint(leri.X, leri.Y + keyHeight / 2);
-        var posLineEnd = new XPoint(leri.X + leri.MarkerArea.Width, leri.Y + keyHeight / 2);
-        gfx.DrawLine(new XPen(((XSolidBrush)leri.MarkerBrush).Color), posLineStart, posLineEnd);
-      }
-
-      // Draw marker.
-      var x = leri.X + leri.MarkerArea.Width / 2;
-      var posMarker = new XPoint(x, leri.Y + keyHeight / 2);
-      MarkerRenderer.Draw(gfx, posMarker, leri.SeriesRendererInfo.MarkerRendererInfo);
-    }
+      DrawLineKey(gfx, leri, keyHeight);
     else
-    {
-      // Draw series rectangle for column, bar or pie charts.
-      rect = new XRect(leri.X, leri.Y, leri.MarkerArea.Width, leri.MarkerArea.Height);
-      rect.Y += (keyHeight - leri.MarkerArea.Height) / 2;
-      var border = leri.MarkerPen is { Width: > 0 } ? leri.MarkerPen : null;
-      gfx.DrawRectangle(border, leri.MarkerBrush, rect);
-    }
+      DrawRectangleKey(gfx, leri, keyHeight);
 
     // Draw text, one line under another.
     if (leri.EntryText.Length == 0)
       return;
 
-    rect = leri.Rect;
+    var rect = leri.Rect;
     rect.X += leri.MarkerArea.Width + SpacingBetweenMarkerAndText;
     var format = new XStringFormat { LineAlignment = XLineAlignment.Near };
     if (leri.Lines.Length > 1)
@@ -211,6 +195,38 @@ internal class LegendEntryRenderer : Renderer
         gfx.DrawString(line, leri.LegendRendererInfo.Font, leri.LegendRendererInfo.FontColor, rect, format);
       rect.Y += leri.LineHeight;
     }
+  }
+
+  /// <summary>
+  /// Draws the key of a line series: a stretch of its line with a marker in the middle.
+  /// </summary>
+  private static void DrawLineKey(XGraphics gfx, LegendEntryRendererInfo leri, double keyHeight)
+  {
+    // Draw line, unless the series' own line is hidden: a pen of width 0 is how a line format
+    // that says Visible = false comes out of the converter.
+    if (leri.SeriesRendererInfo.LineFormat.Width > 0)
+    {
+      var posLineStart = new XPoint(leri.X, leri.Y + keyHeight / 2);
+      var posLineEnd = new XPoint(leri.X + leri.MarkerArea.Width, leri.Y + keyHeight / 2);
+      gfx.DrawLine(new XPen(((XSolidBrush)leri.MarkerBrush).Color), posLineStart, posLineEnd);
+    }
+
+    // Draw marker.
+    var x = leri.X + leri.MarkerArea.Width / 2;
+    var posMarker = new XPoint(x, leri.Y + keyHeight / 2);
+    MarkerRenderer.Draw(gfx, posMarker, leri.SeriesRendererInfo.MarkerRendererInfo);
+  }
+
+  /// <summary>
+  /// Draws the key of a column, bar or pie series: a rectangle in its colours.
+  /// </summary>
+  private static void DrawRectangleKey(XGraphics gfx, LegendEntryRendererInfo leri, double keyHeight)
+  {
+    // Draw series rectangle for column, bar or pie charts.
+    var rect = new XRect(leri.X, leri.Y, leri.MarkerArea.Width, leri.MarkerArea.Height);
+    rect.Y += (keyHeight - leri.MarkerArea.Height) / 2;
+    var border = leri.MarkerPen is { Width: > 0 } ? leri.MarkerPen : null;
+    gfx.DrawRectangle(border, leri.MarkerBrush, rect);
   }
 
   /// <summary>

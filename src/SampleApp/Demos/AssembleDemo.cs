@@ -30,84 +30,19 @@ internal sealed class AssembleDemo : PdfDemo
 
     public override int PageCount => 7;
 
+    #region example
     protected override PdfDocument Build(DemoContext context)
     {
-        #region example
         var heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
         var label = new XFont("Liberation Sans", 9, XFontStyle.Bold);
         var body = new XFont("Liberation Sans", 9);
         var mono = new XFont("Source Code Pro", 8.5);
         var huge = new XFont("Liberation Sans", 48, XFontStyle.Bold);
 
-        // Every source page says loudly which document and which page it was, so that the order
-        // the assembled document ends up in can be read off the pages themselves.
-        void Stamp(PdfPage page, string name, XColor colour)
-        {
-            using var gfx = XGraphics.FromPdfPage(page);
-            gfx.DrawRectangle(new XSolidBrush(colour), 0, 0, page.Width.Point, 90);
-            gfx.DrawString(name, huge, XBrushes.White, new XRect(0, 10, page.Width.Point, 70),
-                XStringFormats.Center);
-        }
-
-        // A source document is a document like any other. Built here, saved to memory and read
-        // back in Import mode - which is the mode that permits taking pages *out* of a document,
-        // as against Modify, which permits changing them.
-        PdfDocument Source(string prefix, int pages, XColor colour, bool withLink, bool withImage,
-            out long bytes)
-        {
-            var source = new PdfDocument();
-            source.Info.Title = prefix;
-
-            for (var index = 1; index <= pages; index++)
-            {
-                var page = source.AddPage();
-                Stamp(page, $"{prefix}{index}", colour);
-
-                using var gfx = XGraphics.FromPdfPage(page);
-                gfx.DrawString($"Page {index} of document {prefix}", body, XBrushes.Black,
-                    new XPoint(50, 130));
-
-                if (withImage)
-                {
-                    // A fresh XImage per page, deliberately. Two pages sharing one XImage already
-                    // share one XObject; two that loaded the same bytes separately do not, and
-                    // that is the case ConsolidateImages exists for.
-                    using var photograph = XImage.FromStream(
-                        () => Assets.Open(Assets.ImagePrefix + "pdf-pinata.jpg"));
-                    gfx.DrawImage(photograph, 50, 160, 200, 150);
-                }
-
-                if (withLink && index == 1 && pages > 1)
-                {
-                    gfx.DrawString("This line links to the last page of this document.", body,
-                        XBrushes.MediumBlue, new XPoint(50, 340));
-                    gfx.AddDocumentLink(new XRect(50, 330, 300, 14), pages - 1);
-                }
-            }
-
-            // Measured here rather than after reopening: a document opened in Import mode is not
-            // one that can be saved, so its size has to be taken while it is still being written.
-            // docs:begin reopen-for-import
-            using var buffer = new MemoryStream();
-            source.Save(buffer, false);
-            bytes = buffer.Length;
-
-            buffer.Position = 0;
-            return PdfReader.Open(buffer, PdfDocumentOpenMode.Import);
-            // docs:end reopen-for-import
-        }
-
-        long Bytes(PdfDocument document)
-        {
-            using var buffer = new MemoryStream();
-            document.Save(buffer, false);
-            return buffer.Length;
-        }
-
         using var sourceA = Source("A", 3, XColor.FromArgb(70, 130, 180),
-            withLink: true, withImage: true, out var bytesA);
+            withLink: true, withImage: true, body, huge, out var bytesA);
         using var sourceB = Source("B", 2, XColor.FromArgb(178, 34, 34),
-            withLink: false, withImage: true, out var bytesB);
+            withLink: false, withImage: true, body, huge, out var bytesB);
 
         // ----- the assembly itself -----
 
@@ -246,8 +181,73 @@ internal sealed class AssembleDemo : PdfDemo
                 + "page draws with.",
                 body, XBrushes.Black, new XRect(50, y + 225, 495, 60));
         }
-        #endregion
 
         return document;
     }
+
+    // Every source page says loudly which document and which page it was, so that the order
+    // the assembled document ends up in can be read off the pages themselves.
+    private static void Stamp(PdfPage page, string name, XColor colour, XFont huge)
+    {
+        using var gfx = XGraphics.FromPdfPage(page);
+        gfx.DrawRectangle(new XSolidBrush(colour), 0, 0, page.Width.Point, 90);
+        gfx.DrawString(name, huge, XBrushes.White, new XRect(0, 10, page.Width.Point, 70),
+            XStringFormats.Center);
+    }
+
+    // A source document is a document like any other. Built here, saved to memory and read
+    // back in Import mode - which is the mode that permits taking pages *out* of a document,
+    // as against Modify, which permits changing them.
+    private static PdfDocument Source(string prefix, int pages, XColor colour, bool withLink, bool withImage,
+        XFont body, XFont huge, out long bytes)
+    {
+        var source = new PdfDocument();
+        source.Info.Title = prefix;
+
+        for (var index = 1; index <= pages; index++)
+        {
+            var page = source.AddPage();
+            Stamp(page, $"{prefix}{index}", colour, huge);
+
+            using var gfx = XGraphics.FromPdfPage(page);
+            gfx.DrawString($"Page {index} of document {prefix}", body, XBrushes.Black,
+                new XPoint(50, 130));
+
+            if (withImage)
+            {
+                // A fresh XImage per page, deliberately. Two pages sharing one XImage already
+                // share one XObject; two that loaded the same bytes separately do not, and
+                // that is the case ConsolidateImages exists for.
+                using var photograph = XImage.FromStream(
+                    () => Assets.Open(Assets.ImagePrefix + "pdf-pinata.jpg"));
+                gfx.DrawImage(photograph, 50, 160, 200, 150);
+            }
+
+            if (withLink && index == 1 && pages > 1)
+            {
+                gfx.DrawString("This line links to the last page of this document.", body,
+                    XBrushes.MediumBlue, new XPoint(50, 340));
+                gfx.AddDocumentLink(new XRect(50, 330, 300, 14), pages - 1);
+            }
+        }
+
+        // Measured here rather than after reopening: a document opened in Import mode is not
+        // one that can be saved, so its size has to be taken while it is still being written.
+        // docs:begin reopen-for-import
+        using var buffer = new MemoryStream();
+        source.Save(buffer, false);
+        bytes = buffer.Length;
+
+        buffer.Position = 0;
+        return PdfReader.Open(buffer, PdfDocumentOpenMode.Import);
+        // docs:end reopen-for-import
+    }
+
+    private static long Bytes(PdfDocument document)
+    {
+        using var buffer = new MemoryStream();
+        document.Save(buffer, false);
+        return buffer.Length;
+    }
+    #endregion
 }

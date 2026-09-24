@@ -63,22 +63,29 @@ public static class CSharpHighlighter
         if (current == '/' && NextIs(line, index, '/'))
             return (line.Length, CommentStyle);
 
-        if (current == '"' || (current == '@' && NextIs(line, index, '"')))
+        if (IsStringStart(line, index))
             return (EndOfString(line, index), StringStyle);
 
         if (current == '\'')
             return (EndOfChar(line, index), StringStyle);
 
         if (char.IsLetter(current) || current == '_')
-        {
-            var end = EndOf(line, index, c => char.IsLetterOrDigit(c) || c == '_');
-            return (end, Keywords.Contains(line.Substring(index, end - index)) ? KeywordStyle : null);
-        }
+            return Word(line, index);
 
         if (char.IsDigit(current))
             return (EndOf(line, index, c => char.IsLetterOrDigit(c) || c == '.'), NumberStyle);
 
         return (index + 1, null);
+    }
+
+    private static bool IsStringStart(string line, int index) =>
+        line[index] == '"' || (line[index] == '@' && NextIs(line, index, '"'));
+
+    /// <summary>An identifier or keyword, coloured only if it is a keyword.</summary>
+    private static (int End, string? Style) Word(string line, int index)
+    {
+        var end = EndOf(line, index, c => char.IsLetterOrDigit(c) || c == '_');
+        return (end, Keywords.Contains(line.Substring(index, end - index)) ? KeywordStyle : null);
     }
 
     private static bool NextIs(string line, int index, char expected) =>
@@ -109,23 +116,15 @@ public static class CSharpHighlighter
 
         while (index < line.Length)
         {
-            if (line[index] == '\\' && !verbatim)
+            var escape = EscapeLength(line, index, verbatim);
+            if (escape > 0)
             {
-                index += 2;
+                index += escape;
                 continue;
             }
 
             if (line[index] == '"')
-            {
-                // In a verbatim string a doubled quote is an escaped quote, not the end of it.
-                if (verbatim && index + 1 < line.Length && line[index + 1] == '"')
-                {
-                    index += 2;
-                    continue;
-                }
-
                 return index + 1;
-            }
 
             index++;
         }
@@ -134,6 +133,16 @@ public static class CSharpHighlighter
         // legitimately for a verbatim string spanning lines, and is the only sensible answer
         // anywhere else too.
         return line.Length;
+    }
+
+    /// <summary>How many characters the escape sequence at <paramref name="index"/> takes, or 0 for none.</summary>
+    private static int EscapeLength(string line, int index, bool verbatim)
+    {
+        if (!verbatim)
+            return line[index] == '\\' ? 2 : 0;
+
+        // In a verbatim string a doubled quote is an escaped quote, not the end of it.
+        return line[index] == '"' && NextIs(line, index, '"') ? 2 : 0;
     }
 
     private static int EndOfChar(string line, int start)

@@ -642,22 +642,18 @@ internal static class PdfPageResizer
 
         foreach (var item in fields.Elements)
         {
-            var fieldItem = item;
-            if (fieldItem is PdfReference reference)
-                fieldItem = reference.Value;
-            if (fieldItem is not PdfDictionary field)
-                continue;
-
-            if (field.Elements.GetName("/FT") == "/Sig")
-                return true;
-
-            var kidsItem = field.Elements["/Kids"];
-            if (kidsItem is PdfReference kidsReference)
-                kidsItem = kidsReference.Value;
-            if (kidsItem is PdfArray kids && HoldsSignatureField(kids, depth + 1))
+            if (Dereferenced(item) is PdfDictionary field && IsOrHoldsSignatureField(field, depth))
                 return true;
         }
 
         return false;
+    }
+
+    private static bool IsOrHoldsSignatureField(PdfDictionary field, int depth)
+    {
+        if (field.Elements.GetName("/FT") == "/Sig")
+            return true;
+
+        return Dereferenced(field.Elements["/Kids"]) is PdfArray kids && HoldsSignatureField(kids, depth + 1);
     }
 }

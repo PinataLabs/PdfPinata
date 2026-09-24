@@ -107,13 +107,8 @@ internal static class DataMatrixModules
         {
             for (var column = 0; column < columns; column++)
             {
-                if (!modules[row, column])
-                    continue;
-
-                for (var down = 0; down < scale; down++)
-                for (var across = 0; across < scale; across++)
-                    luminance[((row + quietZone) * scale + down) * width
-                              + (column + quietZone) * scale + across] = 0;
+                if (modules[row, column])
+                    PaintModule(luminance, width, (row + quietZone) * scale, (column + quietZone) * scale, scale);
             }
         }
 
@@ -130,5 +125,16 @@ internal static class DataMatrixModules
 
         var result = reader.Decode(source);
         return result?.Text;
+    }
+
+    /// <summary>
+    ///   Blackens the <paramref name="scale"/>-pixel square whose top left corner is at
+    ///   <paramref name="top"/>, <paramref name="left"/> in an image <paramref name="width"/> wide.
+    /// </summary>
+    private static void PaintModule(byte[] luminance, int width, int top, int left, int scale)
+    {
+        for (var down = 0; down < scale; down++)
+        for (var across = 0; across < scale; across++)
+            luminance[(top + down) * width + left + across] = 0;
     }
 }

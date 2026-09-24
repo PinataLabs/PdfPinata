@@ -224,32 +224,48 @@ public class Lexer
     /// <returns></returns>
     internal byte[] ScanUntilMarker(byte[] marker, out bool markerFound)
     {
-        markerFound = false;
         var result = new List<byte>();
         while (true)
         {
-            var markerIndex = 0;
-            while (_currChar != Chars.EOF && _currChar != marker[markerIndex])
-            {
-                result.Add((byte)_currChar);
-                ScanNextChar(false);
-            }
-            while (_currChar != Chars.EOF && markerIndex < marker.Length && _currChar == marker[markerIndex])
-            {
-                markerIndex++;
-                ScanNextChar(false);
-            }
-            if (_currChar == Chars.EOF || markerIndex == marker.Length)
-            {
-                if (markerIndex == marker.Length)
-                    markerFound = true;
+            AppendUntil(marker[0], result);
+            var matched = MatchMarker(marker);
+            markerFound = matched == marker.Length;
+            if (markerFound || _currChar == Chars.EOF)
                 break;
-            }
+
             // only part of the marker was found, add to result and continue
-            result.AddRange(marker.Take(markerIndex));
+            result.AddRange(marker.Take(matched));
         }
 
         return [..result];
+    }
+
+    /// <summary>
+    /// Adds bytes to <paramref name="result"/> up to the next <paramref name="stop"/> byte or the
+    /// end of the stream.
+    /// </summary>
+    private void AppendUntil(byte stop, List<byte> result)
+    {
+        while (_currChar != Chars.EOF && _currChar != stop)
+        {
+            result.Add((byte)_currChar);
+            ScanNextChar(false);
+        }
+    }
+
+    /// <summary>
+    /// Reads past as much of the marker as the stream holds from here, and answers how many of
+    /// its bytes matched.
+    /// </summary>
+    private int MatchMarker(byte[] marker)
+    {
+        var markerIndex = 0;
+        while (_currChar != Chars.EOF && markerIndex < marker.Length && _currChar == marker[markerIndex])
+        {
+            markerIndex++;
+            ScanNextChar(false);
+        }
+        return markerIndex;
     }
 
     /// <summary>
@@ -371,8 +387,6 @@ public class Lexer
         //   /Checksum 2996984786
         // What is this? It is neither an integer nor a real.
         // I introduced an UInteger...
-        var period = false;
-
         _token = new StringBuilder();
         var ch = _currChar;
         if (ch is '+' or '-')
@@ -380,28 +394,8 @@ public class Lexer
             _token.Append(ch);
             ch = ScanNextChar(true);
         }
-        while (true)
-        {
-            if (char.IsDigit(ch))
-            {
-                _token.Append(ch);
-            }
-            else if (ch == '.')
-            {
-                if (period)
-                    ParserDiagnostics.ThrowParserException("More than one period in number.");
 
-                period = true;
-                _token.Append(ch);
-            }
-            else
-            {
-                break;
-            }
-            ch = ScanNextChar(true);
-        }
-
-        if (period)
+        if (AppendDigitsAndPeriod(ch))
             return Symbol.Real;
         var l = long.Parse(_token.ToString(), CultureInfo.InvariantCulture);
         if (l is >= int.MinValue and <= int.MaxValue)
@@ -414,6 +408,32 @@ public class Lexer
         // Got an AutoCAD PDF file that contains this: /C 264584027963392
         // Best we can do is to convert it to real value.
         return Symbol.Real;
+    }
+
+    /// <summary>
+    /// Appends the digits of a number and at most one period, starting with <paramref name="ch"/>,
+    /// and says whether a period was among them.
+    /// </summary>
+    private bool AppendDigitsAndPeriod(char ch)
+    {
+        var period = false;
+        while (true)
+        {
+            if (ch == '.')
+            {
+                if (period)
+                    ParserDiagnostics.ThrowParserException("More than one period in number.");
+
+                period = true;
+            }
+            else if (!char.IsDigit(ch))
+            {
+                return period;
+            }
+
+            _token.Append(ch);
+            ch = ScanNextChar(true);
+        }
     }
 
     /// <summary>Scans a number, which may turn out to be the first part of an indirect reference.</summary>
@@ -709,30 +729,48 @@ public class Lexer
                 continue;
             }
 
-            hex[0] = _currChar;
-            ScanNextChar(true);
-            // What may come between the two digits of a byte is what may come before one:
-            // white space, and anything else that is not a digit. Only the end of the
-            // string decides that the second digit is missing rather than merely late.
-            while (!IsHexChar(_currChar) && _currChar != '>' && _currChar != Chars.EOF)
-                ScanNextChar(true);
-
-            if (IsHexChar(_currChar))
-            {
-                hex[1] = _currChar;
-                ScanNextChar(true);
-            }
-            else
-            {
-                // A hex string with an odd number of digits ends in a zero.
-                hex[1] = '0';
-            }
-            _token.Append((char)int.Parse(new string(hex), NumberStyles.AllowHexSpecifier));
+            _token.Append(ReadHexByte(hex));
         }
+        return Symbol = DecodeHexString();
+    }
+
+    /// <summary>
+    /// Reads the byte whose first hex digit is the current character, into and out of
+    /// <paramref name="hex"/>.
+    /// </summary>
+    private char ReadHexByte(char[] hex)
+    {
+        hex[0] = _currChar;
+        ScanNextChar(true);
+        // What may come between the two digits of a byte is what may come before one:
+        // white space, and anything else that is not a digit. Only the end of the
+        // string decides that the second digit is missing rather than merely late.
+        while (!IsHexChar(_currChar) && _currChar != '>' && _currChar != Chars.EOF)
+            ScanNextChar(true);
+
+        if (IsHexChar(_currChar))
+        {
+            hex[1] = _currChar;
+            ScanNextChar(true);
+        }
+        else
+        {
+            // A hex string with an odd number of digits ends in a zero.
+            hex[1] = '0';
+        }
+        return (char)int.Parse(new string(hex), NumberStyles.AllowHexSpecifier);
+    }
+
+    /// <summary>
+    /// Decodes the bytes <see cref="ScanHexadecimalString"/> has gathered in the token as UTF-16
+    /// when they open with a byte order mark, and says which kind of string they turned out to be.
+    /// </summary>
+    private Symbol DecodeHexString()
+    {
         var chars = _token.ToString();
         var count = chars.Length;
         if (count <= 2 || chars[0] != (char)0xFE || chars[1] != (char)0xFF)
-            return Symbol = Symbol.HexString;
+            return Symbol.HexString;
 
         // The last character of the string may be short of its low byte, which is a zero
         // for the same reason the last byte is short of its low digit. Reading on for a
@@ -745,7 +783,7 @@ public class Lexer
         _token.Length = 0;
         for (var idx = 2; idx < count; idx += 2)
             _token.Append((char)(chars[idx] * 256 + chars[idx + 1]));
-        return Symbol = Symbol.UnicodeHexString;
+        return Symbol.UnicodeHexString;
     }
 
     internal static bool IsHexChar(char c) => CharacterScanning.IsHexChar(c);

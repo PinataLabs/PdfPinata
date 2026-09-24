@@ -337,22 +337,24 @@ internal abstract class PdfPageWalk
         foreach (var glyph in charProcs.Elements.KeyNames)
         {
             var procedure = charProcs.Elements.GetDictionary(glyph.Value);
-            if (procedure == null)
+            if (procedure == null || !MarkAsRead(procedure, fontScope))
                 continue;
 
-            if (!MarkAsRead(procedure, fontScope))
-                continue;
-
-            if (!TryGetContent(procedure, out var content))
-            {
-                _understood = false;
-                return;
-            }
-
-            Read(content, fontScope, depth + 1);
+            ReadCharProc(procedure, fontScope, depth);
             if (!_understood)
                 return;
         }
+    }
+
+    private void ReadCharProc(PdfDictionary procedure, PdfDictionary fontScope, int depth)
+    {
+        if (!TryGetContent(procedure, out var content))
+        {
+            _understood = false;
+            return;
+        }
+
+        Read(content, fontScope, depth + 1);
     }
 
     private void ReadAppearances(PdfPage page)

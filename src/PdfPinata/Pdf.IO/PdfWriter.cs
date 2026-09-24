@@ -269,28 +269,40 @@ internal class PdfWriter
         }
         _stack.Add(new StackItem(obj));
         if (indirect)
-        {
-            if (obj is PdfArray)
-                WriteRaw("[\n");
-            else if (obj is PdfDictionary)
-                WriteRaw("<<\n");
-            _lastCat = CharCat.NewLine;
-        }
+            WriteIndirectOpening(obj);
         else
+            WriteDirectOpening(obj);
+    }
+
+    /// <summary>
+    /// Opens an indirect array or dictionary on a line of its own.
+    /// </summary>
+    private void WriteIndirectOpening(PdfObject obj)
+    {
+        if (obj is PdfArray)
+            WriteRaw("[\n");
+        else if (obj is PdfDictionary)
+            WriteRaw("<<\n");
+        _lastCat = CharCat.NewLine;
+    }
+
+    /// <summary>
+    /// Opens a direct array or dictionary where it stands.
+    /// </summary>
+    private void WriteDirectOpening(PdfObject obj)
+    {
+        if (obj is PdfArray)
         {
-            if (obj is PdfArray)
-            {
-                WriteSeparator();
-                WriteRaw('[');
-                _lastCat = CharCat.Delimiter;
-            }
-            else if (obj is PdfDictionary)
-            {
-                NewLine();
-                WriteSeparator();
-                WriteRaw("<<\n");
-                _lastCat = CharCat.NewLine;
-            }
+            WriteSeparator();
+            WriteRaw('[');
+            _lastCat = CharCat.Delimiter;
+        }
+        else if (obj is PdfDictionary)
+        {
+            NewLine();
+            WriteSeparator();
+            WriteRaw("<<\n");
+            _lastCat = CharCat.NewLine;
         }
     }
 
@@ -308,38 +320,51 @@ internal class PdfWriter
         var value = stackItem.Object;
         var indirect = value.IsIndirect;
         if (value is PdfArray)
-        {
-            if (indirect)
-            {
-                WriteRaw("\n]\n");
-                _lastCat = CharCat.NewLine;
-            }
-            else
-            {
-                WriteRaw("]");
-                _lastCat = CharCat.Delimiter;
-            }
-        }
+            WriteArrayClosing(indirect);
         else if (value is PdfDictionary)
-        {
-            if (indirect)
-            {
-                if (!stackItem.HasStream)
-                    WriteRaw(_lastCat == CharCat.NewLine ? ">>\n" : " >>\n");
-            }
-            else
-            {
-                Debug.Assert(!stackItem.HasStream, "Direct object with stream??");
-                WriteSeparator();
-                WriteRaw(">>\n");
-                _lastCat = CharCat.NewLine;
-            }
-        }
+            WriteDictionaryClosing(indirect, stackItem.HasStream);
+
         if (indirect && !OmitIndirectFraming)
         {
             NewLine();
             WriteRaw("endobj\n");
         }
+    }
+
+    /// <summary>
+    /// Closes an array, on a line of its own when it is indirect.
+    /// </summary>
+    private void WriteArrayClosing(bool indirect)
+    {
+        if (indirect)
+        {
+            WriteRaw("\n]\n");
+            _lastCat = CharCat.NewLine;
+        }
+        else
+        {
+            WriteRaw("]");
+            _lastCat = CharCat.Delimiter;
+        }
+    }
+
+    /// <summary>
+    /// Closes a dictionary - unless it is an indirect one with a stream, which closed its
+    /// dictionary before the stream was written.
+    /// </summary>
+    private void WriteDictionaryClosing(bool indirect, bool hasStream)
+    {
+        if (indirect)
+        {
+            if (!hasStream)
+                WriteRaw(_lastCat == CharCat.NewLine ? ">>\n" : " >>\n");
+            return;
+        }
+
+        Debug.Assert(!hasStream, "Direct object with stream??");
+        WriteSeparator();
+        WriteRaw(">>\n");
+        _lastCat = CharCat.NewLine;
     }
 
     /// <summary>

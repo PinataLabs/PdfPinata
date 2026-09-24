@@ -492,42 +492,37 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
     /// </summary>
     public void Union(XRect rect)
     {
-        // ReSharper disable CompareOfFloatsByEqualityOperator
         if (IsEmpty)
         {
             this = rect;
+            return;
         }
-        else if (!rect.IsEmpty)
-        {
-            var left = Math.Min(Left, rect.Left);
-            var top = Math.Min(Top, rect.Top);
-            #pragma warning disable S1244 // Exact on purpose: compared with a sentinel the value is set to, never with the result of arithmetic.
-            if (rect.Width == double.PositiveInfinity || Width == double.PositiveInfinity)
-            {
-                _width = double.PositiveInfinity;
-            }
-            #pragma warning restore S1244
-            else
-            {
-                var right = Math.Max(Right, rect.Right);
-                _width = Math.Max(right - left, 0.0);
-            }
 
-            #pragma warning disable S1244 // Exact on purpose: compared with a sentinel the value is set to, never with the result of arithmetic.
-            if (rect.Height == double.PositiveInfinity || _height == double.PositiveInfinity)
-            {
-                _height = double.PositiveInfinity;
-            }
-            #pragma warning restore S1244
-            else
-            {
-                var bottom = Math.Max(Bottom, rect.Bottom);
-                _height = Math.Max(bottom - top, 0.0);
-            }
-            _x = left;
-            _y = top;
-        }
+        if (rect.IsEmpty)
+            return;
+
+        var left = Math.Min(Left, rect.Left);
+        var top = Math.Min(Top, rect.Top);
+        _width = UnionExtent(left, Right, rect.Right, Width, rect.Width);
+        _height = UnionExtent(top, Bottom, rect.Bottom, _height, rect.Height);
+        _x = left;
+        _y = top;
+    }
+
+    /// <summary>
+    /// How far a union reaches along one axis from its <paramref name="start"/>: to the further of
+    /// the two ends, or without limit when either rectangle is unlimited that way.
+    /// </summary>
+    private static double UnionExtent(double start, double end1, double end2, double extent1, double extent2)
+    {
+        // ReSharper disable CompareOfFloatsByEqualityOperator
+        #pragma warning disable S1244 // Exact on purpose: compared with a sentinel the value is set to, never with the result of arithmetic.
+        if (extent2 == double.PositiveInfinity || extent1 == double.PositiveInfinity)
+            return double.PositiveInfinity;
+        #pragma warning restore S1244
         // ReSharper restore CompareOfFloatsByEqualityOperator
+
+        return Math.Max(Math.Max(end1, end2) - start, 0.0);
     }
 
     /// <summary>

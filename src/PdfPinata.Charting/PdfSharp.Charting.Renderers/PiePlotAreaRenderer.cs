@@ -27,7 +27,9 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System;
 using System.Linq;
+using PdfPinata.Drawing;
 
 namespace PdfPinata.Charting.Renderers;
 
@@ -72,7 +74,7 @@ internal abstract class PiePlotAreaRenderer : PlotAreaRenderer
     var sri = cri.SeriesRendererInfos[0];
     foreach (var sector in sri.PointRendererInfos.Cast<SectorRendererInfo>())
     {
-      if (!double.IsNaN(sector.StartAngle) && !double.IsNaN(sector.SweepAngle))
+      if (HasAngles(sector))
         gfx.DrawPie(sector.FillFormat, sector.Rect, sector.StartAngle, sector.SweepAngle);
     }
 
@@ -80,7 +82,7 @@ internal abstract class PiePlotAreaRenderer : PlotAreaRenderer
     // as a hairline.
     foreach (var sector in sri.PointRendererInfos.Cast<SectorRendererInfo>())
     {
-      if (!double.IsNaN(sector.StartAngle) && !double.IsNaN(sector.SweepAngle) && sector.LineFormat.Width > 0)
+      if (HasAngles(sector) && sector.LineFormat.Width > 0)
         gfx.DrawPie(sector.LineFormat, sector.Rect, sector.StartAngle, sector.SweepAngle);
     }
 
@@ -88,7 +90,63 @@ internal abstract class PiePlotAreaRenderer : PlotAreaRenderer
   }
 
   /// <summary>
+  /// Whether a sector has angles to draw it at, which a blank does not.
+  /// </summary>
+  private static bool HasAngles(SectorRendererInfo sector)
+    => !double.IsNaN(sector.StartAngle) && !double.IsNaN(sector.SweepAngle);
+
+  /// <summary>
   /// Calculates the specific positions for each sector.
   /// </summary>
   protected abstract void CalcSectors();
+
+  /// <summary>
+  /// The rectangle the pie is drawn in: the plot area, less room all round for data labels
+  /// drawn outside the pie.
+  /// </summary>
+  protected static XRect PieRect(ChartRendererInfo cri, SeriesRendererInfo sri)
+  {
+    var textMeasure = OutsideLabelMeasure(sri);
+    var pieRect = cri.PlotAreaRendererInfo.Rect;
+    if (textMeasure != 0)
+    {
+      pieRect.X += textMeasure;
+      pieRect.Y += textMeasure;
+      pieRect.Width -= 2 * textMeasure;
+      pieRect.Height -= 2 * textMeasure;
+    }
+    return pieRect;
+  }
+
+  /// <summary>
+  /// The widest or tallest of the data labels drawn outside the pie, or 0 when they are not.
+  /// </summary>
+  private static double OutsideLabelMeasure(SeriesRendererInfo sri)
+  {
+    double textMeasure = 0;
+    if (sri.DataLabelRendererInfo is not { Position: DataLabelPosition.OutsideEnd })
+      return textMeasure;
+
+    foreach (var dleri in sri.DataLabelRendererInfo.Entries)
+    {
+      textMeasure = Math.Max(textMeasure, dleri.Width);
+      textMeasure = Math.Max(textMeasure, dleri.Height);
+    }
+    return textMeasure;
+  }
+
+  /// <summary>
+  /// Whether a sector has a share of the pie to draw, which a blank or a zero does not.
+  /// </summary>
+  protected static bool HasShare(SectorRendererInfo sector)
+    => !double.IsNaN(sector.Value) && sector.Value != 0;
+
+  /// <summary>
+  /// Marks a sector as having nothing to draw.
+  /// </summary>
+  protected static void MarkUndrawn(SectorRendererInfo sector)
+  {
+    sector.StartAngle = double.NaN;
+    sector.SweepAngle = double.NaN;
+  }
 }

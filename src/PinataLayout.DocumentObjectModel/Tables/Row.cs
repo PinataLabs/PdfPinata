@@ -310,8 +310,7 @@ public partial class Row : DocumentObject, IVisitable
     if (!height.IsNull)
       serializer.WriteSimpleAttribute("Height", Height);
 
-    if (heightRule != null)
-      serializer.WriteSimpleAttribute("HeightRule", HeightRule);
+    serializer.WriteSimpleAttributeIfSet("HeightRule", heightRule);
 
     if (!topPadding.IsNull)
       serializer.WriteSimpleAttribute("TopPadding", TopPadding);
@@ -319,27 +318,20 @@ public partial class Row : DocumentObject, IVisitable
     if (!bottomPadding.IsNull)
       serializer.WriteSimpleAttribute("BottomPadding", BottomPadding);
 
-    if (headingFormat != null)
-      serializer.WriteSimpleAttribute("HeadingFormat", HeadingFormat);
-
-    if (verticalAlignment != null)
-      serializer.WriteSimpleAttribute("VerticalAlignment", VerticalAlignment);
-
-    if (keepWith.HasValue)
-      serializer.WriteSimpleAttribute("KeepWith", KeepWith);
+    serializer.WriteSimpleAttributeIfSet("HeadingFormat", headingFormat);
+    serializer.WriteSimpleAttributeIfSet("VerticalAlignment", verticalAlignment);
+    serializer.WriteSimpleAttributeIfSet("KeepWith", keepWith);
 
     //Borders & Shading
     if (!IsNull("Borders"))
       borders.Serialize(serializer, null);
 
-    if (!IsNull("Shading"))
-      shading.Serialize(serializer);
+    serializer.SerializeUnlessNull(this, "Shading", shading);
 
     serializer.EndAttributes(pos);
 
     serializer.BeginContent();
-    if (!IsNull("Cells"))
-      cells.Serialize(serializer);
+    serializer.SerializeUnlessNull(this, "Cells", cells);
     serializer.EndContent();
   }
 

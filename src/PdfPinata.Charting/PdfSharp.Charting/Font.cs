@@ -199,23 +199,37 @@ public sealed class Font : DocumentObject
       if (owner == null)
         return null;
 
-      if (owner is DataLabel && owner.parent is Series)
-      {
-        for (var ancestor = owner.parent; ancestor != null; ancestor = ancestor.parent)
-        {
-          if (ancestor is Chart { dataLabel.font: not null } chart)
-            return chart.dataLabel.font;
-        }
-      }
-
-      for (var ancestor = owner.parent; ancestor != null; ancestor = ancestor.parent)
-      {
-        var font = FontOf(ancestor);
-        if (font != null)
-          return font;
-      }
-      return null;
+      var isSeriesDataLabel = owner is DataLabel && owner.parent is Series;
+      var chartDataLabelFont = isSeriesDataLabel ? ChartDataLabelFont(owner.parent) : null;
+      return chartDataLabelFont ?? NearestFont(owner.parent);
     }
+  }
+
+  /// <summary>
+  /// The font of the data label of the chart the object given is in, or null when it has none.
+  /// </summary>
+  private static Font ChartDataLabelFont(DocumentObject from)
+  {
+    for (var ancestor = from; ancestor != null; ancestor = ancestor.parent)
+    {
+      if (ancestor is Chart { dataLabel.font: not null } chart)
+        return chart.dataLabel.font;
+    }
+    return null;
+  }
+
+  /// <summary>
+  /// The font of the object given or of its nearest ancestor that has one.
+  /// </summary>
+  private static Font NearestFont(DocumentObject from)
+  {
+    for (var ancestor = from; ancestor != null; ancestor = ancestor.parent)
+    {
+      var font = FontOf(ancestor);
+      if (font != null)
+        return font;
+    }
+    return null;
   }
 
   private static Font FontOf(DocumentObject owner) => owner switch

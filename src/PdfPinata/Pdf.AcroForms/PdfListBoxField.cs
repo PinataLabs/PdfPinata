@@ -109,19 +109,7 @@ public sealed class PdfListBoxField : PdfChoiceField
             EnsureCanBeFilled();
 
             var indices = Ordered(value);
-
-            if (indices.Length > 1 && !AllowsMultipleSelection)
-                throw new InvalidOperationException(
-                    "The list allows one option to be selected at a time. Set the MultiSelect flag "
-                    + "on the field before selecting " + indices.Length + " of them.");
-
-            // A list with no /Opt at all offers nothing, so no index names an option. Checked
-            // here because ValueInOptArray answers "" for that case rather than refusing, which
-            // would otherwise write an empty /V and an /I pointing into an array that is not
-            // there, and the getter would then report nothing selected.
-            if (indices.Length != 0 && Elements.GetArray(PdfChoiceField.Keys.Opt) == null)
-                throw new ArgumentOutOfRangeException(nameof(value),
-                    "The list has no options, so there is no option at any index to select.");
+            EnsureCanSelect(indices, nameof(value));
 
             // Mapped before anything is written, so an index the list has no option for leaves the
             // field as it was rather than half changed.
@@ -129,21 +117,7 @@ public sealed class PdfListBoxField : PdfChoiceField
             for (var idx = 0; idx < indices.Length; idx++)
                 texts[idx] = ValueInOptArray(indices[idx]);
 
-            if (indices.Length == 0)
-            {
-                Elements.Remove(PdfAcroField.Keys.V);
-            }
-            else if (indices.Length == 1)
-            {
-                Elements.SetString(PdfAcroField.Keys.V, texts[0]);
-            }
-            else
-            {
-                var values = new PdfArray(Owner);
-                foreach (var text in texts)
-                    values.Elements.Add(new PdfString(text));
-                Elements[PdfAcroField.Keys.V] = values;
-            }
+            WriteSelectedValues(texts);
 
             // /I is for a list that allows several choices, so a single-choice list carries /V
             // alone and any /I left over from before is taken away rather than left to disagree
@@ -156,6 +130,45 @@ public sealed class PdfListBoxField : PdfChoiceField
             WriteSelectedIndices(
                 AllowsMultipleSelection || tellsApartWhatTheValueCannot ? indices : []);
         }
+    }
+
+    private void EnsureCanSelect(int[] indices, string paramName)
+    {
+        if (indices.Length > 1 && !AllowsMultipleSelection)
+            throw new InvalidOperationException(
+                "The list allows one option to be selected at a time. Set the MultiSelect flag "
+                + "on the field before selecting " + indices.Length + " of them.");
+
+        // A list with no /Opt at all offers nothing, so no index names an option. Checked
+        // here because ValueInOptArray answers "" for that case rather than refusing, which
+        // would otherwise write an empty /V and an /I pointing into an array that is not
+        // there, and the getter would then report nothing selected.
+        if (indices.Length != 0 && Elements.GetArray(PdfChoiceField.Keys.Opt) == null)
+            throw new ArgumentOutOfRangeException(paramName,
+                "The list has no options, so there is no option at any index to select.");
+    }
+
+    /// <summary>
+    /// Writes <c>/V</c>: nothing, one string or an array of them, as many as are selected.
+    /// </summary>
+    private void WriteSelectedValues(string[] texts)
+    {
+        if (texts.Length == 0)
+        {
+            Elements.Remove(PdfAcroField.Keys.V);
+            return;
+        }
+
+        if (texts.Length == 1)
+        {
+            Elements.SetString(PdfAcroField.Keys.V, texts[0]);
+            return;
+        }
+
+        var values = new PdfArray(Owner);
+        foreach (var text in texts)
+            values.Elements.Add(new PdfString(text));
+        Elements[PdfAcroField.Keys.V] = values;
     }
 
     /// <summary>

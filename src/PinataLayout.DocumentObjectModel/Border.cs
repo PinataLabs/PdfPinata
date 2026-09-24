@@ -176,16 +176,17 @@ public partial class Border : DocumentObject
 
     var pos = serializer.BeginContent(name);
 
-    if (visible != null && (refBorder == null || Visible != refBorder.Visible))
+    // Each comparison is lifted: with no reference border it is against null, and always differs.
+    if (visible != null && Visible != refBorder?.Visible)
       serializer.WriteSimpleAttribute("Visible", Visible);
 
-    if (style != null && (refBorder == null || Style != refBorder.Style))
+    if (style != null && Style != refBorder?.Style)
       serializer.WriteSimpleAttribute("Style", Style);
 
-    if (!width.IsNull && (refBorder == null || Width != refBorder.Width))
+    if (!width.IsNull && Width != refBorder?.Width)
       serializer.WriteSimpleAttribute("Width", Width);
 
-    if (!color.IsNull && (refBorder == null || Color != refBorder.Color))
+    if (!color.IsNull && Color != refBorder?.Color)
       serializer.WriteSimpleAttribute("Color", Color);
 
     serializer.EndContent(pos);

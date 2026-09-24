@@ -102,6 +102,24 @@ public partial class Table : DocumentObject, IVisitable
     // ReSharper disable once ParameterHidesMember
     public void SetShading(int clm, int row, int clms, int rows, Color clr)
     {
+        AssertCellRange(clm, row, clms, rows);
+
+        var maxRow = row + rows - 1;
+        var maxClm = clm + clms - 1;
+        for (var r = row; r <= maxRow; r++)
+        {
+            var currentRow = this.rows[r];
+            for (var c = clm; c <= maxClm; c++)
+                currentRow[c].Shading.Color = clr;
+        }
+    }
+
+    /// <summary>
+    /// Throws unless the range of cells lies wholly within the table.
+    /// </summary>
+    // ReSharper disable once ParameterHidesMember
+    private void AssertCellRange(int clm, int row, int clms, int rows)
+    {
         // Through the properties rather than the fields: the fields are null until something has
         // asked for the collection, so a table that has had no row or column added to it threw
         // NullReferenceException here and never reached the range checks below.
@@ -119,15 +137,6 @@ public partial class Table : DocumentObject, IVisitable
 
         if (clms <= 0 || clm + clms > clmsCount)
             throw new ArgumentOutOfRangeException(nameof(clms), clms, "Invalid column count.");
-
-        var maxRow = row + rows - 1;
-        var maxClm = clm + clms - 1;
-        for (var r = row; r <= maxRow; r++)
-        {
-            var currentRow = this.rows[r];
-            for (var c = clm; c <= maxClm; c++)
-                currentRow[c].Shading.Color = clr;
-        }
     }
 
     /// <summary>
@@ -485,8 +494,7 @@ public partial class Table : DocumentObject, IVisitable
         if (summary != null)
             serializer.WriteSimpleAttribute("Summary", Summary);
 
-        if (keepTogether != null)
-            serializer.WriteSimpleAttribute("KeepTogether", KeepTogether);
+        serializer.WriteSimpleAttributeIfSet("KeepTogether", keepTogether);
 
         if (!IsNull("Format"))
             format.Serialize(serializer, "Format", null);
@@ -506,8 +514,7 @@ public partial class Table : DocumentObject, IVisitable
         if (!IsNull("Borders"))
             borders.Serialize(serializer, null);
 
-        if (!IsNull("Shading"))
-            shading.Serialize(serializer);
+        serializer.SerializeUnlessNull(this, "Shading", shading);
 
         serializer.EndAttributes(pos);
 

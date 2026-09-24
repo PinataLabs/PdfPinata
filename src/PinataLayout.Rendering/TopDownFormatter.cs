@@ -127,11 +127,8 @@ internal class TopDownFormatter
         var renderer = Renderer.Create(gfx, documentRenderer, docObj, areaProvider.AreaFieldInfos);
         renderer?.MaxElementHeight = state.MaxHeight; // "Slightly hacked" for legends: see below
 
-        if (topLevel && documentRenderer.HasPrepareDocumentProgress)
-        {
-            documentRenderer.OnPrepareDocumentProgress(documentRenderer.ProgressCompleted + state.Index + 1,
-                documentRenderer.ProgressMaximum);
-        }
+        if (topLevel)
+            ReportProgress(state);
 
         // "Slightly hacked" for legends: they are rendered as part of the chart.
         // So they are skipped here.
@@ -157,13 +154,33 @@ internal class TopDownFormatter
 
         renderer.Format(state.Area, state.PrevFormatInfo);
         areaProvider.PositionHorizontally(renderer.RenderInfo.LayoutInfo);
-        var pagebreakBefore = areaProvider.IsAreaBreakBefore(renderer.RenderInfo.LayoutInfo) && !state.IsFirstOnPage;
-        pagebreakBefore = pagebreakBefore || !state.IsFirstOnPage && IsForcedAreaBreak(state.Index, renderer, state.Area);
+        var pagebreakBefore = BreaksAreaBefore(state, renderer);
 
         if (!pagebreakBefore && renderer.RenderInfo.FormatInfo.IsEnding)
             PlaceEndingElement(state, renderer, docObj);
         else
             BreakArea(state, renderer, docObj, pagebreakBefore);
+    }
+
+    private void ReportProgress(FormattingState state)
+    {
+        if (documentRenderer.HasPrepareDocumentProgress)
+        {
+            documentRenderer.OnPrepareDocumentProgress(documentRenderer.ProgressCompleted + state.Index + 1,
+                documentRenderer.ProgressMaximum);
+        }
+    }
+
+    /// <summary>
+    /// Whether a formatted element has to start a new area: asked for one, or is forced into one
+    /// by what follows it. The first element on a page never does.
+    /// </summary>
+    private bool BreaksAreaBefore(FormattingState state, Renderer renderer)
+    {
+        var breakRequested = areaProvider.IsAreaBreakBefore(renderer.RenderInfo.LayoutInfo);
+        if (state.IsFirstOnPage)
+            return false;
+        return breakRequested || IsForcedAreaBreak(state.Index, renderer, state.Area);
     }
 
     /// <summary>
@@ -520,21 +537,11 @@ internal class TopDownFormatter
                 return true;
 
             currRenderer.Format(area, null);
-            var currFormatInfo = currRenderer.RenderInfo.FormatInfo;
+            var verdict = KeptElementVerdict(currRenderer);
+            if (verdict.HasValue)
+                return verdict.Value;
+
             var currLayoutInfo = currRenderer.RenderInfo.LayoutInfo;
-
-            if (currLayoutInfo.VerticalReference != VerticalReference.PreviousElement)
-                return false;
-
-            if (!currFormatInfo.StartingIsComplete)
-                return true;
-
-            if (currLayoutInfo.KeepTogether && !currFormatInfo.IsComplete)
-                return true;
-
-            if (!(currLayoutInfo.KeepTogether && currLayoutInfo.KeepWithNext))
-                return false;
-
             area = area.Lower(currLayoutInfo.ContentArea.Height);
             if (area.Height <= 0)
                 return true;
@@ -543,6 +550,31 @@ internal class TopDownFormatter
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// What a formatted following element settles about whether the chain fits: true when it does
+    /// not, false when it does, and null when the element is kept together with the next one too
+    /// and the chain has to be followed further.
+    /// </summary>
+    private static bool? KeptElementVerdict(Renderer currRenderer)
+    {
+        var currFormatInfo = currRenderer.RenderInfo.FormatInfo;
+        var currLayoutInfo = currRenderer.RenderInfo.LayoutInfo;
+
+        if (currLayoutInfo.VerticalReference != VerticalReference.PreviousElement)
+            return false;
+
+        if (!currFormatInfo.StartingIsComplete)
+            return true;
+
+        if (currLayoutInfo.KeepTogether && !currFormatInfo.IsComplete)
+            return true;
+
+        if (!(currLayoutInfo.KeepTogether && currLayoutInfo.KeepWithNext))
+            return false;
+
+        return null;
     }
 
     private bool NeedsEndingOnNextArea(int idx, Renderer renderer, Area remainingArea, bool isFirstOnPage)

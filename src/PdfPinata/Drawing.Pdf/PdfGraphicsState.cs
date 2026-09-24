@@ -312,7 +312,6 @@ internal sealed class PdfGraphicsState : ICloneable
     private static string DashPatternOf(XPen pen)
     {
         const string frmt2 = Config.SignificantFigures2;
-        const string format = Config.SignificantFigures3;
         var dot = pen.Width;
         var dash = 3 * dot;
 
@@ -336,33 +335,7 @@ internal sealed class PdfGraphicsState : ICloneable
                 return Format("[{0:" + frmt2 + "} {1:" + frmt2 + "} {1:" + frmt2 + "} {1:" + frmt2 + "} {1:" + frmt2 + "} {1:" + frmt2 + "}]0 d\n", dash, dot);
 
             case XDashStyle.Custom:
-            {
-                // Every number is checked as it is written, as the Append methods check theirs: a
-                // dash length that is not a number would otherwise reach the content stream.
-                var pdf = new StringBuilder("[", 256);
-                var len = pen._dashPattern == null ? 0 : pen._dashPattern.Length;
-                for (var idx = 0; idx < len; idx++)
-                {
-                    if (idx > 0)
-                        pdf.Append(' ');
-                    // ReSharper disable PossibleNullReferenceException
-                    XGraphicsPdfRenderer.EnsureWritable(
-                        pen._dashPattern[idx] * pen._width, "a dash pattern");
-                    // ReSharper restore PossibleNullReferenceException
-                    pdf.Append(PdfEncoders.ToString(pen._dashPattern[idx] * pen._width));
-                }
-                // Make an even number of values look like in GDI+
-                if (len > 0 && len % 2 == 1)
-                {
-                    pdf.Append(' ');
-                    XGraphicsPdfRenderer.EnsureWritable(0.2 * pen._width, "a dash pattern");
-                    pdf.Append(PdfEncoders.ToString(0.2 * pen._width));
-                }
-                XGraphicsPdfRenderer.EnsureWritable(
-                    pen._dashOffset * pen._width, "a dash pattern");
-                pdf.AppendFormat(CultureInfo.InvariantCulture, "]{0:" + format + "} d\n", pen._dashOffset * pen._width);
-                return pdf.ToString();
-            }
+                return CustomDashPatternOf(pen);
 
             default:
                 return "[]0 d\n";
@@ -371,6 +344,40 @@ internal sealed class PdfGraphicsState : ICloneable
         // The pen's width is checked before this is reached, where "w" is written.
         static string Format(string text, double first, double second = 0) =>
             string.Format(CultureInfo.InvariantCulture, text, first, second);
+    }
+
+    /// <summary>
+    /// The dash operator for a pen with a dash pattern of its own.
+    /// </summary>
+    private static string CustomDashPatternOf(XPen pen)
+    {
+        const string format = Config.SignificantFigures3;
+
+        // Every number is checked as it is written, as the Append methods check theirs: a
+        // dash length that is not a number would otherwise reach the content stream.
+        var pdf = new StringBuilder("[", 256);
+        var len = pen._dashPattern == null ? 0 : pen._dashPattern.Length;
+        for (var idx = 0; idx < len; idx++)
+        {
+            if (idx > 0)
+                pdf.Append(' ');
+            // ReSharper disable PossibleNullReferenceException
+            XGraphicsPdfRenderer.EnsureWritable(
+                pen._dashPattern[idx] * pen._width, "a dash pattern");
+            // ReSharper restore PossibleNullReferenceException
+            pdf.Append(PdfEncoders.ToString(pen._dashPattern[idx] * pen._width));
+        }
+        // Make an even number of values look like in GDI+
+        if (len > 0 && len % 2 == 1)
+        {
+            pdf.Append(' ');
+            XGraphicsPdfRenderer.EnsureWritable(0.2 * pen._width, "a dash pattern");
+            pdf.Append(PdfEncoders.ToString(0.2 * pen._width));
+        }
+        XGraphicsPdfRenderer.EnsureWritable(
+            pen._dashOffset * pen._width, "a dash pattern");
+        pdf.AppendFormat(CultureInfo.InvariantCulture, "]{0:" + format + "} d\n", pen._dashOffset * pen._width);
+        return pdf.ToString();
     }
 
     /// <summary>
@@ -558,16 +565,29 @@ internal sealed class PdfGraphicsState : ICloneable
 
     private void RealizeFillColor(XColor color, bool overPrint, PdfColorMode colorMode)
     {
+        color = RealizeFillComponents(color, colorMode);
+        RealizeFillAlpha(color, overPrint);
+        _realizedFillColor = color;
+        _realizedNonStrokeOverPrint = overPrint;
+    }
+
+    /// <summary>
+    /// Writes the fill colour's space and components when they differ from those last realized.
+    /// Answers the colour as written, in the document's colour mode unless it is a spot colour.
+    /// </summary>
+    private XColor RealizeFillComponents(XColor color, PdfColorMode colorMode)
+    {
         if (color.Spot != null)
         {
             // Not converted to the document's colour mode: the mode says how process colour is
             // written, and a spot colour is not process colour. Its alternate is the caller's.
             RealizeSpotColor(color, _realizedFillColor, false);
+            return color;
         }
-        else if (colorMode != PdfColorMode.Cmyk)
-        {
-            color = ColorSpaceHelper.EnsureColorMode(colorMode, color);
 
+        color = ColorSpaceHelper.EnsureColorMode(colorMode, color);
+        if (colorMode != PdfColorMode.Cmyk)
+        {
             // A spot colour last realized has the Separation space selected, and "rg" is what
             // selects DeviceRGB again - so its components matching this colour's is no reason to
             // skip it.
@@ -576,35 +596,39 @@ internal sealed class PdfGraphicsState : ICloneable
                 _renderer.Append(PdfEncoders.ToString(color, PdfColorMode.Rgb));
                 _renderer.Append(" rg\n");
             }
+            return color;
         }
-        else
-        {
-            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            Debug.Assert(colorMode == PdfColorMode.Cmyk);
-            color = ColorSpaceHelper.EnsureColorMode(colorMode, color);
 
-            if (_realizedFillColor is not { } realizedCmyk || realizedCmyk.Spot != null || !ColorSpaceHelper.IsEqualCmyk(realizedCmyk, color))
-            {
-                _renderer.Append(PdfEncoders.ToString(color, PdfColorMode.Cmyk));
-                _renderer.Append(" k\n");
-            }
+        if (_realizedFillColor is not { } realizedCmyk || realizedCmyk.Spot != null || !ColorSpaceHelper.IsEqualCmyk(realizedCmyk, color))
+        {
+            _renderer.Append(PdfEncoders.ToString(color, PdfColorMode.Cmyk));
+            _renderer.Append(" k\n");
         }
+        return color;
+    }
+
+    /// <summary>
+    /// Writes the fill's constant alpha and overprint, through an ExtGState, when they differ from
+    /// those last realized.
+    /// </summary>
+    private void RealizeFillAlpha(XColor color, bool overPrint)
+    {
+        if (_renderer.Owner.Version < 14)
+            return;
 
         #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
-        if (_renderer.Owner.Version >= 14 && (_realizedFillColor is not { } realized || realized.A != color.A || _realizedNonStrokeOverPrint != overPrint))
+        var unchanged = _realizedFillColor is { } realized && realized.A == color.A && _realizedNonStrokeOverPrint == overPrint;
         #pragma warning restore S1244
-        {
+        if (unchanged)
+            return;
 
-            var extGState = _renderer.Owner.ExtGStateTable.GetExtGStateNonStroke(color.A, overPrint);
-            var gs = _renderer.Resources.AddExtGState(extGState);
-            _renderer.AppendFormatString("{0} gs\n", gs);
+        var extGState = _renderer.Owner.ExtGStateTable.GetExtGStateNonStroke(color.A, overPrint);
+        var gs = _renderer.Resources.AddExtGState(extGState);
+        _renderer.AppendFormatString("{0} gs\n", gs);
 
-            // Must create transparency group.
-            if (_renderer.Page != null && color.A < 1)
-                _renderer.Page.TransparencyUsed = true;
-        }
-        _realizedFillColor = color;
-        _realizedNonStrokeOverPrint = overPrint;
+        // Must create transparency group.
+        if (_renderer.Page != null && color.A < 1)
+            _renderer.Page.TransparencyUsed = true;
     }
 
     /// <summary>

@@ -78,39 +78,44 @@ internal class ColumnClusteredPlotAreaRenderer : ColumnPlotAreaRenderer
       {
         if (!double.IsNaN(column.Value))
         {
-          var x0 = x + dx;
-          var x1 = x + dx + columnWidth;
-          var y0 = yMin;
-          var y1 = column.Value;
-
-          // Draw from zero base line, if it exists.
-          if (y0 < 0 && yMax >= 0)
-            y0 = 0;
-
-          // y0 should always be lower than y1, i. e. draw column from bottom to top.
-          if (y1 < 0 && y1 < y0)
-          {
-            var y = y0;
-            y0 = y1;
-            y1 = y;
-          }
-
-          points[0].X = x0; // upper left
-          points[0].Y = y1;
-          points[1].X = x1; // lower right
-          points[1].Y = y0;
-
-          cri.PlotAreaRendererInfo.Matrix.TransformPoints(points);
-
-          column.Rect = new XRect(points[0].X,
-            points[0].Y,
-            points[1].X - points[0].X,
-            points[1].Y - points[0].Y);
+          var (y0, y1) = ValueRange(yMin, column.Value, yMax);
+          column.Rect = ColumnRect(cri.PlotAreaRendererInfo, points, x + dx, x + dx + columnWidth, y0, y1);
         }
         x++; // Next clustered column.
       }
       seriesIdx++;
     }
+  }
+
+  /// <summary>
+  /// The bottom and top of a column running from y0 to y1.
+  /// </summary>
+  private static (double Y0, double Y1) ValueRange(double y0, double y1, double yMax)
+  {
+    // Draw from zero base line, if it exists.
+    if (y0 < 0 && yMax >= 0)
+      y0 = 0;
+
+    // y0 should always be lower than y1, i. e. draw column from bottom to top.
+    return y1 < 0 && y1 < y0 ? (y1, y0) : (y0, y1);
+  }
+
+  /// <summary>
+  /// Transforms one column's corners into the plot area and makes a rectangle of them.
+  /// </summary>
+  private static XRect ColumnRect(PlotAreaRendererInfo pari, XPoint[] points, double x0, double x1, double y0, double y1)
+  {
+    points[0].X = x0; // upper left
+    points[0].Y = y1;
+    points[1].X = x1; // lower right
+    points[1].Y = y0;
+
+    pari.Matrix.TransformPoints(points);
+
+    return new XRect(points[0].X,
+      points[0].Y,
+      points[1].X - points[0].X,
+      points[1].Y - points[0].Y);
   }
 
   /// <summary>

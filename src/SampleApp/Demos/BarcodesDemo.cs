@@ -31,9 +31,9 @@ internal sealed class BarcodesDemo : PdfDemo
 
     public override int PageCount => 3;
 
+    #region example
     protected override PdfDocument Build(DemoContext context)
     {
-        #region example
         var document = new PdfDocument();
         document.Info.Title = "Barcodes";
 
@@ -45,8 +45,7 @@ internal sealed class BarcodesDemo : PdfDemo
         void Caption(XGraphics gfx, double x, double y, string title, string detail)
         {
             gfx.DrawString(title, label, XBrushes.Black, new XPoint(x, y));
-            if (detail.Length > 0)
-                gfx.DrawString(detail, note, XBrushes.DimGray, new XPoint(x, y + 11));
+            CaptionDetail(gfx, note, x, y, detail);
         }
 
         // ----- page 1: the linear codes -----
@@ -94,11 +93,7 @@ internal sealed class BarcodesDemo : PdfDemo
             };
             gfx1.DrawBarCode(scaled, XBrushes.Black, codeText, new XPoint(left, 240));
             // docs:end ratio
-            #pragma warning disable S1244 // Exact on purpose: compared with the literal the value was taken from.
-            // ReSharper disable once CompareOfFloatsByEqualityOperator
-            gfx1.DrawString($"WideNarrowRatio {ratio:0.0}" + (ratio == 2.6 ? " (default)" : ""),
-                note, XBrushes.DimGray, new XPoint(left, 296));
-            #pragma warning restore S1244
+            gfx1.DrawString(RatioLabel(ratio), note, XBrushes.DimGray, new XPoint(left, 296));
             left += 165;
         }
 
@@ -314,8 +309,23 @@ internal sealed class BarcodesDemo : PdfDemo
             + "of them throws NotImplementedException rather than encoding wrongly. ASCII carries "
             + "anything a data matrix can hold; it is only less dense over a long run of one case.",
             note, XBrushes.DimGray, new XRect(50, 668, 495, 40));
-        #endregion
 
         return document;
     }
+
+    /// <summary>The grey second line under a caption, when there is one.</summary>
+    private static void CaptionDetail(XGraphics gfx, XFont note, double x, double y, string detail)
+    {
+        if (detail.Length > 0)
+            gfx.DrawString(detail, note, XBrushes.DimGray, new XPoint(x, y + 11));
+    }
+
+    private static string RatioLabel(double ratio)
+    {
+        #pragma warning disable S1244 // Exact on purpose: compared with the literal the value was taken from.
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
+        return $"WideNarrowRatio {ratio:0.0}" + (ratio == 2.6 ? " (default)" : "");
+        #pragma warning restore S1244
+    }
+    #endregion
 }

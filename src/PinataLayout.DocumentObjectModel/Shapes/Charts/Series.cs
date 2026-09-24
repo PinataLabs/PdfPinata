@@ -266,26 +266,19 @@ public partial class Series : ChartObject
 
         if (!markerSize.IsNull)
             serializer.WriteSimpleAttribute("MarkerSize", MarkerSize);
-        if (markerStyle != null)
-            serializer.WriteSimpleAttribute("MarkerStyle", MarkerStyle);
+        serializer.WriteSimpleAttributeIfSet("MarkerStyle", markerStyle);
 
         if (!markerBackgroundColor.IsNull)
             serializer.WriteSimpleAttribute("MarkerBackgroundColor", MarkerBackgroundColor);
         if (!markerForegroundColor.IsNull)
             serializer.WriteSimpleAttribute("MarkerForegroundColor", MarkerForegroundColor);
 
-        if (chartType != null)
-            serializer.WriteSimpleAttribute("ChartType", ChartType);
+        serializer.WriteSimpleAttributeIfSet("ChartType", chartType);
+        serializer.WriteSimpleAttributeIfSet("HasDataLabel", hasDataLabel);
 
-        if (hasDataLabel != null)
-            serializer.WriteSimpleAttribute("HasDataLabel", HasDataLabel);
-
-        if (!IsNull("LineFormat"))
-            lineFormat.Serialize(serializer);
-        if (!IsNull("FillFormat"))
-            fillFormat.Serialize(serializer);
-        if (!IsNull("DataLabel"))
-            dataLabel.Serialize(serializer);
+        serializer.SerializeUnlessNull(this, "LineFormat", lineFormat);
+        serializer.SerializeUnlessNull(this, "FillFormat", fillFormat);
+        serializer.SerializeUnlessNull(this, "DataLabel", dataLabel);
 
         serializer.EndAttributes(pos);
 

@@ -73,52 +73,59 @@ internal static class FontFactory
             fontResolverInfo = customFontResolver.ResolveTypeface(familyName, fontResolvingOptions.IsBold, fontResolvingOptions.IsItalic);
 
             // If resolved by custom font resolver register info and font source.
-            if (fontResolverInfo != null)
-            {
-                var resolverInfoKey = fontResolverInfo.Key;
-                if (FontResolverInfosByName.TryGetValue(resolverInfoKey, out var existingFontResolverInfo))
-                {
-                    // Case: A new typeface was resolved with the same info as a previous one.
-                    // Discard new object an reuse previous one.
-                    fontResolverInfo = existingFontResolverInfo;
-                    // Associate with typeface key.
-                    FontResolverInfosByName.Add(typefaceKey, fontResolverInfo);
-                    // The font source should exist.
-                    Debug.Assert(FontSourcesByName.ContainsKey(fontResolverInfo.FaceName));
-                }
-                else
-                {
-                    // Case: No such font resolver info exists.
-                    // Add to both dictionaries.
-                    FontResolverInfosByName.Add(typefaceKey, fontResolverInfo);
-                    Debug.Assert(resolverInfoKey == fontResolverInfo.Key);
-                    FontResolverInfosByName.Add(resolverInfoKey, fontResolverInfo);
-
-                    // Create font source if not yet exists.
-                    if (FontSourcesByName.TryGetValue(fontResolverInfo.FaceName, out _))
-                    {
-                        // Case: The font source exists, because a previous font resolver info comes
-                        // with the same face name, but was different in style simulation flags.
-                        // Nothing to do.
-                    }
-                    else
-                    {
-                        // Case: Get font from custom font resolver and create font source.
-                        var bytes = customFontResolver.GetFont(fontResolverInfo.FaceName);
-                        var fontSource = XFontSource.GetOrCreateFrom(bytes);
-
-                        // Add font source's font resolver name if it is different to the face name.
-                        if (string.Compare(fontResolverInfo.FaceName, fontSource.FontName, StringComparison.OrdinalIgnoreCase) != 0)
-                            FontSourcesByName.Add(fontResolverInfo.FaceName, fontSource);
-                    }
-                }
-            }
-
             // Return value is null if the typeface could not be resolved.
             // In this case PDFsharp stops.
-            return fontResolverInfo;
+            return fontResolverInfo == null
+                ? null
+                : Register(typefaceKey, fontResolverInfo, customFontResolver);
         }
         finally { Lock.ExitFontFactory(); }
+    }
+
+    /// <summary>
+    /// Registers a typeface the custom font resolver resolved under <paramref name="typefaceKey"/>,
+    /// and answers the info to use for it — an existing one where the resolver's answer duplicates it.
+    /// </summary>
+    private static FontResolverInfo Register(string typefaceKey, FontResolverInfo fontResolverInfo,
+        IFontResolver customFontResolver)
+    {
+        var resolverInfoKey = fontResolverInfo.Key;
+        if (FontResolverInfosByName.TryGetValue(resolverInfoKey, out var existingFontResolverInfo))
+        {
+            // Case: A new typeface was resolved with the same info as a previous one.
+            // Discard new object an reuse previous one.
+            // Associate with typeface key.
+            FontResolverInfosByName.Add(typefaceKey, existingFontResolverInfo);
+            // The font source should exist.
+            Debug.Assert(FontSourcesByName.ContainsKey(existingFontResolverInfo.FaceName));
+            return existingFontResolverInfo;
+        }
+
+        // Case: No such font resolver info exists.
+        // Add to both dictionaries.
+        FontResolverInfosByName.Add(typefaceKey, fontResolverInfo);
+        Debug.Assert(resolverInfoKey == fontResolverInfo.Key);
+        FontResolverInfosByName.Add(resolverInfoKey, fontResolverInfo);
+
+        // Create font source if not yet exists.
+        // Otherwise the font source exists, because a previous font resolver info comes
+        // with the same face name, but was different in style simulation flags.
+        // Nothing to do.
+        if (!FontSourcesByName.TryGetValue(fontResolverInfo.FaceName, out _))
+            AddFontSource(fontResolverInfo, customFontResolver);
+
+        return fontResolverInfo;
+    }
+
+    private static void AddFontSource(FontResolverInfo fontResolverInfo, IFontResolver customFontResolver)
+    {
+        // Case: Get font from custom font resolver and create font source.
+        var bytes = customFontResolver.GetFont(fontResolverInfo.FaceName);
+        var fontSource = XFontSource.GetOrCreateFrom(bytes);
+
+        // Add font source's font resolver name if it is different to the face name.
+        if (string.Compare(fontResolverInfo.FaceName, fontSource.FontName, StringComparison.OrdinalIgnoreCase) != 0)
+            FontSourcesByName.Add(fontResolverInfo.FaceName, fontSource);
     }
 
     /// <summary>

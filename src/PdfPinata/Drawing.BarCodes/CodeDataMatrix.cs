@@ -246,9 +246,7 @@ public class CodeDataMatrix : MatrixCode
 
                 // Run of adjacent dark modules drawn as one rectangle, which keeps the
                 // content stream short and leaves no seam between them.
-                var run = 1;
-                while (column + run < columns && modules[row, column + run])
-                    run++;
+                var run = DarkRunLength(modules, row, column);
 
                 gfx.DrawRectangle(brush,
                     position.X + column * moduleWidth,
@@ -259,6 +257,18 @@ public class CodeDataMatrix : MatrixCode
                 column += run - 1;
             }
         }
+    }
+
+    /// <summary>
+    /// How many dark modules in a row there are from the dark one at <paramref name="column"/>.
+    /// </summary>
+    private static int DarkRunLength(bool[,] modules, int row, int column)
+    {
+        var columns = modules.GetLength(1);
+        var run = 1;
+        while (column + run < columns && modules[row, column + run])
+            run++;
+        return run;
     }
 
     /// <summary>

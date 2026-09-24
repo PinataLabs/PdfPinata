@@ -162,28 +162,40 @@ public sealed class OcspRevocationDataProvider : IRevocationDataProvider, IDispo
 
             while (accessDescriptions.HasData)
             {
-                var accessDescription = accessDescriptions.ReadSequence();
-                var accessMethod = accessDescription.ReadObjectIdentifier();
-
-                var uriTag = new Asn1Tag(TagClass.ContextSpecific, 6);
-                if (accessMethod != OcspAccessMethodOid || accessDescription.PeekTag() != uriTag)
-                    continue;
-
-                var uri = accessDescription.ReadCharacterString(UniversalTagNumber.IA5String, uriTag);
-
-                // http(s) only. The URI names where an HTTP POST goes, chosen by whoever issued
-                // the certificate being checked rather than by this library's caller — accepting
-                // any scheme Uri.TryCreate parses would hand that issuer more than "which server",
-                // for no benefit, since RFC 6960 traffic is HTTP either way.
-                if (Uri.TryCreate(uri, UriKind.Absolute, out var responderUri)
-                    && (responderUri.Scheme == Uri.UriSchemeHttp || responderUri.Scheme == Uri.UriSchemeHttps))
-                    return responderUri;
+                var responder = HttpOcspResponderOf(accessDescriptions.ReadSequence());
+                if (responder != null)
+                    return responder;
             }
         }
         catch (AsnContentException)
         {
             return null;
         }
+
+        return null;
+    }
+
+    /// <summary>
+    /// The http(s) OCSP responder one AccessDescription names, or null when it names something
+    /// else or names it some other way.
+    /// </summary>
+    private static Uri HttpOcspResponderOf(AsnReader accessDescription)
+    {
+        var accessMethod = accessDescription.ReadObjectIdentifier();
+
+        var uriTag = new Asn1Tag(TagClass.ContextSpecific, 6);
+        if (accessMethod != OcspAccessMethodOid || accessDescription.PeekTag() != uriTag)
+            return null;
+
+        var uri = accessDescription.ReadCharacterString(UniversalTagNumber.IA5String, uriTag);
+
+        // http(s) only. The URI names where an HTTP POST goes, chosen by whoever issued
+        // the certificate being checked rather than by this library's caller — accepting
+        // any scheme Uri.TryCreate parses would hand that issuer more than "which server",
+        // for no benefit, since RFC 6960 traffic is HTTP either way.
+        if (Uri.TryCreate(uri, UriKind.Absolute, out var responderUri)
+            && (responderUri.Scheme == Uri.UriSchemeHttp || responderUri.Scheme == Uri.UriSchemeHttps))
+            return responderUri;
 
         return null;
     }

@@ -247,17 +247,8 @@ public abstract class FontResolverBase
     {
         var fileName = System.IO.Path.GetFileName(fontPathFile);
 
-        int faceCount;
-        bool isCollection;
-        try
-        {
-            isCollection = TrueTypeCollection.TryGetFaceCount(fontPathFile, out faceCount);
-        }
-        catch (System.Exception e) when (!Unrecoverable.Is(e))
-        {
-            LogError(e.ToString());
+        if (!TryCountFaces(fontPathFile, out var faceCount, out var isCollection))
             return;
-        }
 
         Debug.WriteLine(fontPathFile);
 
@@ -265,10 +256,7 @@ public abstract class FontResolverBase
 
         for (var face = 0; face < faceCount; face++)
         {
-            // Only a member of a collection carries an index; a single font keeps the plain
-            // file name it has always been known by.
-            var faceIndex = isCollection ? face : -1;
-            var faceName = isCollection ? TrueTypeCollection.FaceName(fileName, face) : fileName;
+            var (faceIndex, faceName) = FaceIndexAndName(fileName, face, isCollection);
 
             // Two font directories habitually hold a file of the same name - on Windows the
             // system one and the per-user one. The first found wins, so that the face name a
@@ -284,6 +272,38 @@ public abstract class FontResolverBase
             facePaths.Add(faceName, new FaceLocation(fontPathFile, faceIndex));
             fontInfoList.Add(new FontFileInfo(faceName, metadata));
         }
+    }
+
+    /// <summary>
+    /// How many faces a font file holds and whether it is a collection. A file that cannot be read
+    /// is logged and answers false.
+    /// </summary>
+    private bool TryCountFaces(string fontPathFile, out int faceCount, out bool isCollection)
+    {
+        try
+        {
+            isCollection = TrueTypeCollection.TryGetFaceCount(fontPathFile, out faceCount);
+            return true;
+        }
+        catch (System.Exception e) when (!Unrecoverable.Is(e))
+        {
+            LogError(e.ToString());
+            faceCount = 0;
+            isCollection = false;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// The index a face is read at and the name it is known by.
+    /// </summary>
+    private static (int FaceIndex, string FaceName) FaceIndexAndName(string fileName, int face, bool isCollection)
+    {
+        // Only a member of a collection carries an index; a single font keeps the plain
+        // file name it has always been known by.
+        return isCollection
+            ? (face, TrueTypeCollection.FaceName(fileName, face))
+            : (-1, fileName);
     }
 
 

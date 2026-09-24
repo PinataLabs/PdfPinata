@@ -193,36 +193,49 @@ internal sealed class PdfType0Font : PdfFont
         });
 
         // Use GetGlyphIndices to create the widths array.
-        var descriptor = FontDescriptor.Descriptor;
-        var w = new StringBuilder("[");
         if (CmapInfo != null)
-        {
-            // The indices come back sorted, so each run of consecutive CIDs is adjacent and can be
-            // written as one "c [w1 w2 ...]" entry (ISO 32000-1 9.7.4.3) rather than one per glyph.
-            var glyphIndices = CmapInfo.GetGlyphIndices();
-            for (var idx = 0; idx < glyphIndices.Length; idx++)
-            {
-                var cid = glyphIndices[idx];
-                if (idx > 0 && cid == glyphIndices[idx - 1] + 1)
-                {
-                    w.Append(' ');
-                }
-                else
-                {
-                    if (idx > 0)
-                        w.Append(']');
-                    w.Append(cid.ToString(CultureInfo.InvariantCulture)).Append('[');
-                }
-                w.Append(descriptor.GlyphIndexToPdfWidth(cid).ToString(CultureInfo.InvariantCulture));
-            }
-            if (glyphIndices.Length > 0)
-                w.Append(']');
-            w.Append(']');
-            DescendantFont.Elements.SetValue(PdfCIDFont.Keys.W, new PdfLiteral(w.ToString()));
+            DescendantFont.Elements.SetValue(PdfCIDFont.Keys.W, new PdfLiteral(WidthsArray()));
 
-        }
         DescendantFont.PrepareForSave();
         ToUnicode.PrepareForSave();
+    }
+
+    /// <summary>
+    /// The <c>/W</c> array of the descendant font, as the text it is written as.
+    /// </summary>
+    private string WidthsArray()
+    {
+        var descriptor = FontDescriptor.Descriptor;
+        var w = new StringBuilder("[");
+
+        // The indices come back sorted, so each run of consecutive CIDs is adjacent and can be
+        // written as one "c [w1 w2 ...]" entry (ISO 32000-1 9.7.4.3) rather than one per glyph.
+        var glyphIndices = CmapInfo.GetGlyphIndices();
+        for (var idx = 0; idx < glyphIndices.Length; idx++)
+        {
+            var cid = glyphIndices[idx];
+            var continuesRun = idx > 0 && cid == glyphIndices[idx - 1] + 1;
+            if (continuesRun)
+                w.Append(' ');
+            else
+                StartRun(w, cid, isFirst: idx == 0);
+
+            w.Append(descriptor.GlyphIndexToPdfWidth(cid).ToString(CultureInfo.InvariantCulture));
+        }
+        if (glyphIndices.Length > 0)
+            w.Append(']');
+        w.Append(']');
+        return w.ToString();
+    }
+
+    /// <summary>
+    /// Closes the run before, if there is one, and opens the run that starts at the CID.
+    /// </summary>
+    private static void StartRun(StringBuilder w, int cid, bool isFirst)
+    {
+        if (!isFirst)
+            w.Append(']');
+        w.Append(cid.ToString(CultureInfo.InvariantCulture)).Append('[');
     }
 
     /// <summary>

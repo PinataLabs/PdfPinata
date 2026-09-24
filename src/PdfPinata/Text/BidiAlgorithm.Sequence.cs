@@ -146,21 +146,43 @@ public static partial class BidiAlgorithm
                 if (TypeAt(idx) != BidiClass.ET)
                     continue;
 
-                var end = idx;
-                while (end + 1 < Count && TypeAt(end + 1) == BidiClass.ET)
-                    end++;
-
-                var adjacent = (idx > 0 && TypeAt(idx - 1) == BidiClass.EN)
-                               || (end + 1 < Count && TypeAt(end + 1) == BidiClass.EN);
-
-                if (adjacent)
-                {
-                    for (var scan = idx; scan <= end; scan++)
-                        SetType(scan, BidiClass.EN);
-                }
+                var end = EndOfRun(idx, BidiClass.ET);
+                if (TypeBefore(idx) == BidiClass.EN || TypeAfter(end) == BidiClass.EN)
+                    SetTypes(idx, end, BidiClass.EN);
 
                 idx = end;
             }
+        }
+
+        /// <summary>
+        /// The last position of the run of <paramref name="type"/> that starts at
+        /// <paramref name="start"/>.
+        /// </summary>
+        private int EndOfRun(int start, BidiClass type)
+        {
+            var end = start;
+            while (end + 1 < Count && TypeAt(end + 1) == type)
+                end++;
+
+            return end;
+        }
+
+        /// <summary>
+        /// The type just before <paramref name="position"/>, or <see cref="BidiClass.ON"/> at the
+        /// start of the sequence.
+        /// </summary>
+        private BidiClass TypeBefore(int position) => position > 0 ? TypeAt(position - 1) : BidiClass.ON;
+
+        /// <summary>
+        /// The type just after <paramref name="position"/>, or <see cref="BidiClass.ON"/> at the end
+        /// of the sequence.
+        /// </summary>
+        private BidiClass TypeAfter(int position) => position + 1 < Count ? TypeAt(position + 1) : BidiClass.ON;
+
+        private void SetTypes(int start, int end, BidiClass type)
+        {
+            for (var idx = start; idx <= end; idx++)
+                SetType(idx, type);
         }
 
         /// <summary>
@@ -320,32 +342,37 @@ public static partial class BidiAlgorithm
                 var codePoint = _paragraph.CodePoints[_indices[idx]];
 
                 var closing = ClosingBracketOf(codePoint);
-                if (closing >= 0)
-                {
-                    if (stack.Count == capacity)
-                        break;
-
-                    stack.Add((Canonical(closing), idx));
-                    continue;
-                }
-
-                if (!IsClosingBracket(codePoint))
-                    continue;
-
-                var wanted = Canonical(codePoint);
-                for (var depth = stack.Count - 1; depth >= 0; depth--)
-                {
-                    if (stack[depth].Closing != wanted)
-                        continue;
-
-                    pairs.Add((stack[depth].Position, idx));
-                    stack.RemoveRange(depth, stack.Count - depth);
+                var opens = closing >= 0;
+                if (opens && stack.Count == capacity)
                     break;
-                }
+
+                if (opens)
+                    stack.Add((Canonical(closing), idx));
+                else if (IsClosingBracket(codePoint))
+                    CloseBracket(stack, pairs, Canonical(codePoint), idx);
             }
 
             pairs.Sort((left, right) => left.Open.CompareTo(right.Open));
             return pairs;
+        }
+
+        /// <summary>
+        /// Pairs the closing bracket at <paramref name="position"/> with the nearest opener on the
+        /// stack that it closes, dropping that opener and everything above it. A closer that closes
+        /// nothing on the stack is ignored.
+        /// </summary>
+        private static void CloseBracket(
+            List<(int Closing, int Position)> stack, List<(int Open, int Close)> pairs, int wanted, int position)
+        {
+            for (var depth = stack.Count - 1; depth >= 0; depth--)
+            {
+                if (stack[depth].Closing != wanted)
+                    continue;
+
+                pairs.Add((stack[depth].Position, position));
+                stack.RemoveRange(depth, stack.Count - depth);
+                return;
+            }
         }
 
         /// <summary>
@@ -381,16 +408,22 @@ public static partial class BidiAlgorithm
                 while (end + 1 < Count && IsNeutralOrIsolate(TypeAt(end + 1)))
                     end++;
 
-                var before = idx == 0 ? _sos : StrongDirectionOf(TypeAt(idx - 1));
-                var after = end + 1 == Count ? _eos : StrongDirectionOf(TypeAt(end + 1));
-
-                // N1 when the two sides agree, N2 - the embedding direction - when they do not.
-                var resolved = before == after && before != BidiClass.ON ? before : Embedding;
-                for (var scan = idx; scan <= end; scan++)
-                    SetType(scan, resolved);
-
+                SetTypes(idx, end, NeutralResolution(idx, end));
                 idx = end;
             }
+        }
+
+        /// <summary>
+        /// What the run of neutrals from <paramref name="start"/> to <paramref name="end"/> resolves
+        /// to, from the strong directions either side of it.
+        /// </summary>
+        private BidiClass NeutralResolution(int start, int end)
+        {
+            var before = start == 0 ? _sos : StrongDirectionOf(TypeAt(start - 1));
+            var after = end + 1 == Count ? _eos : StrongDirectionOf(TypeAt(end + 1));
+
+            // N1 when the two sides agree, N2 - the embedding direction - when they do not.
+            return before == after && before != BidiClass.ON ? before : Embedding;
         }
 
         // ----- I1 and I2: from types back to levels ---------------------------------------------------
@@ -399,29 +432,25 @@ public static partial class BidiAlgorithm
         {
             var even = (_level & 1) == 0;
             for (var idx = 0; idx < Count; idx++)
+                _paragraph.Levels[_indices[idx]] = (byte)(_level + ImplicitBump(TypeAt(idx), even));
+        }
+
+        private static int ImplicitBump(BidiClass type, bool even)
+        {
+            if (even)
             {
-                var type = TypeAt(idx);
-                int bump;
-
-                if (even)
-                {
-                    // I1. In an even run, right-to-left text goes one deeper and a number two, so
-                    // that the number sits inside the right-to-left text around it.
-                    bump = type == BidiClass.R ? 1
-                        : type is BidiClass.AN or BidiClass.EN ? 2
-                        : 0;
-                }
-                else
-                {
-                    // I2. In an odd run, anything left-to-right - a number included - goes one
-                    // deeper.
-                    bump = type is BidiClass.L or BidiClass.EN or BidiClass.AN
-                        ? 1
-                        : 0;
-                }
-
-                _paragraph.Levels[_indices[idx]] = (byte)(_level + bump);
+                // I1. In an even run, right-to-left text goes one deeper and a number two, so
+                // that the number sits inside the right-to-left text around it.
+                return type == BidiClass.R ? 1
+                    : type is BidiClass.AN or BidiClass.EN ? 2
+                    : 0;
             }
+
+            // I2. In an odd run, anything left-to-right - a number included - goes one
+            // deeper.
+            return type is BidiClass.L or BidiClass.EN or BidiClass.AN
+                ? 1
+                : 0;
         }
     }
 }

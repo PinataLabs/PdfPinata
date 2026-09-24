@@ -290,14 +290,7 @@ public class OutlineTreeMembershipTests
         {
             if (text.Length > 0)
                 text.Append(',');
-            text.Append(current.Elements.GetString("/Title"));
-
-            if (!ReferenceEquals(current.Elements.GetDictionary("/Parent"), parent))
-                text.Append("!parent");
-            if (!ReferenceEquals(current.Elements.GetDictionary("/Prev"), previous))
-                text.Append("!prev");
-            if (current.Elements.GetDictionary("/First") != null)
-                text.Append('(').Append(Entries(current)).Append(')');
+            AppendEntry(text, current, parent, previous);
 
             previous = current;
             current = current.Elements.GetDictionary("/Next");
@@ -308,5 +301,21 @@ public class OutlineTreeMembershipTests
         if (!ReferenceEquals(parent.Elements.GetDictionary("/Last"), previous))
             text.Append("!last");
         return text.ToString();
+    }
+
+    /// <summary>
+    ///   One entry's title, a mark for each back-link that is not the one it was reached through,
+    ///   and its own children in parentheses.
+    /// </summary>
+    private static void AppendEntry(StringBuilder text, PdfDictionary current, PdfDictionary parent, PdfDictionary previous)
+    {
+        text.Append(current.Elements.GetString("/Title"));
+
+        if (!ReferenceEquals(current.Elements.GetDictionary("/Parent"), parent))
+            text.Append("!parent");
+        if (!ReferenceEquals(current.Elements.GetDictionary("/Prev"), previous))
+            text.Append("!prev");
+        if (current.Elements.GetDictionary("/First") != null)
+            text.Append('(').Append(Entries(current)).Append(')');
     }
 }

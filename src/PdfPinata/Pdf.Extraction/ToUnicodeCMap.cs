@@ -207,25 +207,37 @@ internal sealed class ToUnicodeCMap
 
         for (var at = from; at < to; at++)
         {
-            var ch = text[at];
-            if (ch is '[' or ']')
+            switch (text[at])
             {
-                tokens.Add(ch == '[' ? "[" : "]");
-                continue;
+                case '[':
+                    tokens.Add("[");
+                    break;
+
+                case ']':
+                    tokens.Add("]");
+                    break;
+
+                case '<':
+                    at = AddHexString(tokens, text, at, to);
+                    break;
             }
-
-            if (ch != '<')
-                continue;
-
-            var close = text.IndexOf('>', at);
-            if (close < 0 || close >= to)
-                break;
-
-            tokens.Add(text.Substring(at + 1, close - at - 1).Trim());
-            at = close;
         }
 
         return tokens;
+    }
+
+    /// <summary>
+    /// Adds the hexadecimal string opening at <paramref name="at"/> and answers where it closes, or
+    /// adds nothing and answers <paramref name="to"/> when it does not close before then.
+    /// </summary>
+    private static int AddHexString(List<string> tokens, string text, int at, int to)
+    {
+        var close = text.IndexOf('>', at);
+        if (close < 0 || close >= to)
+            return to;
+
+        tokens.Add(text.Substring(at + 1, close - at - 1).Trim());
+        return close;
     }
 
     /// <summary>

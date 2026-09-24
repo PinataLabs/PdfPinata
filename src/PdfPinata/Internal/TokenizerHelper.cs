@@ -127,60 +127,14 @@ internal class TokenizerHelper
         if (_charIndex >= _strLen)
             return false;
 
-        var currentChar = _str[_charIndex];
-
-        // Setup the quoteCount .
-        var quoteCount = 0;
-
         // If we are allowing a quoted token and this token begins with a quote,
-        // set up the quote count and skip the initial quote
-        if (allowQuotedToken &&
-            currentChar == _quoteChar)
-        {
-            quoteCount++;
+        // skip the initial quote.
+        var quoted = allowQuotedToken && _str[_charIndex] == _quoteChar;
+        if (quoted)
             _charIndex++;
-        }
 
         var newTokenIndex = _charIndex;
-        var newTokenLength = 0;
-
-        // Loop until hit end of string or hit a separator or whitespace.
-        while (_charIndex < _strLen)
-        {
-            currentChar = _str[_charIndex];
-
-            // If you have a quoteCount and this is a quote  decrement the quoteCount.
-            if (quoteCount > 0)
-            {
-                // If anything but a quoteChar we move on.
-                if (currentChar == _quoteChar)
-                {
-                    quoteCount--;
-
-                    // If at zero which it always should for now break out of the loop.
-                    if (quoteCount == 0)
-                    {
-                        ++_charIndex;
-                        break;
-                    }
-                }
-            }
-            else if (char.IsWhiteSpace(currentChar) || currentChar == separator)
-            {
-                if (currentChar == separator)
-                    FoundSeparator = true;
-                break;
-            }
-
-            _charIndex++;
-            newTokenLength++;
-        }
-
-        // If quoteCount isn't zero we hit the end of the string before the ending quote.
-        if (quoteCount > 0)
-            throw
-                new InvalidOperationException(
-                    "Missing end quote"); //SR.Get(SRID.TokenizerHelperMissingEndQuote, new object[0]));
+        var newTokenLength = quoted ? ScanQuotedToken() : ScanUnquotedToken(separator);
 
         // Move at the start of the nextToken.
         ScanToNextToken(separator);
@@ -194,6 +148,55 @@ internal class TokenizerHelper
                 new InvalidOperationException("Empty token");
 
         return true;
+    }
+
+    /// <summary>
+    /// Scans to the closing quote, which is consumed but not counted, and answers the token's length.
+    /// </summary>
+    private int ScanQuotedToken()
+    {
+        var length = 0;
+        while (_charIndex < _strLen)
+        {
+            if (_str[_charIndex] == _quoteChar)
+            {
+                ++_charIndex;
+                return length;
+            }
+
+            _charIndex++;
+            length++;
+        }
+
+        // We hit the end of the string before the ending quote.
+        throw
+            new InvalidOperationException(
+                "Missing end quote"); //SR.Get(SRID.TokenizerHelperMissingEndQuote, new object[0]));
+    }
+
+    /// <summary>
+    /// Scans until the end of the string, a separator or whitespace, and answers the token's length.
+    /// </summary>
+    private int ScanUnquotedToken(char separator)
+    {
+        var length = 0;
+        while (_charIndex < _strLen)
+        {
+            var currentChar = _str[_charIndex];
+            if (currentChar == separator)
+            {
+                FoundSeparator = true;
+                break;
+            }
+
+            if (char.IsWhiteSpace(currentChar))
+                break;
+
+            _charIndex++;
+            length++;
+        }
+
+        return length;
     }
 
     private void ScanToNextToken(char separator)
@@ -210,11 +213,24 @@ internal class TokenizerHelper
                 new InvalidOperationException(
                     "ExtraDataEncountered");
 
-        // Loop until a character that isn't the separator or white space.
+        var argSepCount = SkipSeparatorAndWhiteSpace(separator);
+
+        // If there was a separatorChar then we shouldn't be at the end of string or means there was a separator but there isn't an arg.
+        if (argSepCount > 0 && _charIndex >= _strLen)
+            throw
+                new InvalidOperationException("EmptyToken");
+    }
+
+    /// <summary>
+    /// Loops until a character that isn't the separator or white space, and answers how many
+    /// separators were skipped. A second separator is an empty token.
+    /// </summary>
+    private int SkipSeparatorAndWhiteSpace(char separator)
+    {
         var argSepCount = 0;
         while (_charIndex < _strLen)
         {
-            currentChar = _str[_charIndex];
+            var currentChar = _str[_charIndex];
             if (currentChar == separator)
             {
                 FoundSeparator = true;
@@ -236,10 +252,7 @@ internal class TokenizerHelper
             }
         }
 
-        // If there was a separatorChar then we shouldn't be at the end of string or means there was a separator but there isn't an arg.
-        if (argSepCount > 0 && _charIndex >= _strLen)
-            throw
-                new InvalidOperationException("EmptyToken");
+        return argSepCount;
     }
 
     public static char GetNumericListSeparator(IFormatProvider provider)

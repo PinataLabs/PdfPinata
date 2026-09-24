@@ -585,54 +585,57 @@ public class XTextFormatter
         int startIndex = 0, blockLength = 0;
         for (var idx = 0; idx < length; idx++)
         {
-            var ch = Text[idx];
-
-            // Treat CR and CRLF as LF
-            if (ch == Chars.CR)
-            {
-                if (idx < length - 1 && Text[idx + 1] == Chars.LF)
-                    idx++;
-                ch = Chars.LF;
-            }
+            var ch = LineFeedForLineEnd(ref idx);
+            var isWhiteSpace = char.IsWhiteSpace(ch);
             if (ch == Chars.LF)
             {
-                if (blockLength != 0)
-                {
-                    var token = Text.Substring(startIndex, blockLength);
-                    _blocks.Add(new Block(token, BlockType.Text,
-                        _gfx.MeasureString(token, _font).Width));
-                }
+                AddTextBlockIfAny(startIndex, blockLength);
                 startIndex = idx + 1;
                 blockLength = 0;
                 _blocks.Add(new Block(BlockType.LineBreak));
             }
-            else if (char.IsWhiteSpace(ch))
+            else if (isWhiteSpace && inNonWhiteSpace)
             {
-                if (inNonWhiteSpace)
-                {
-                    var token = Text.Substring(startIndex, blockLength);
-                    _blocks.Add(new Block(token, BlockType.Text,
-                        _gfx.MeasureString(token, _font).Width));
-                    startIndex = idx + 1;
-                    blockLength = 0;
-                }
-                else
-                {
-                    blockLength++;
-                }
+                AddTextBlock(startIndex, blockLength);
+                startIndex = idx + 1;
+                blockLength = 0;
             }
             else
             {
-                inNonWhiteSpace = true;
+                inNonWhiteSpace |= !isWhiteSpace;
                 blockLength++;
             }
         }
+        AddTextBlockIfAny(startIndex, blockLength);
+    }
+
+    /// <summary>
+    /// The character at <paramref name="idx"/>, with CR and CRLF read as LF; a CRLF advances
+    /// <paramref name="idx"/> past its CR.
+    /// </summary>
+    private char LineFeedForLineEnd(ref int idx)
+    {
+        var ch = Text[idx];
+        if (ch != Chars.CR)
+            return ch;
+
+        // Treat CR and CRLF as LF
+        if (idx < Text.Length - 1 && Text[idx + 1] == Chars.LF)
+            idx++;
+        return Chars.LF;
+    }
+
+    private void AddTextBlockIfAny(int startIndex, int blockLength)
+    {
         if (blockLength != 0)
-        {
-            var token = Text.Substring(startIndex, blockLength);
-            _blocks.Add(new Block(token, BlockType.Text,
-                _gfx.MeasureString(token, _font).Width));
-        }
+            AddTextBlock(startIndex, blockLength);
+    }
+
+    private void AddTextBlock(int startIndex, int blockLength)
+    {
+        var token = Text.Substring(startIndex, blockLength);
+        _blocks.Add(new Block(token, BlockType.Text,
+            _gfx.MeasureString(token, _font).Width));
     }
 
     /// <summary>
@@ -1040,69 +1043,87 @@ public class XTextFormatter
     {
         var firstIndex = 0;
         var column = 0;
+        double y = 0;
 
         // The measure of the line being filled. Re-asked for at every line, because a drop cap -
         // or anything else the text has to flow beside - makes the answer depend on how far down
         // the column the line sits.
-        LineMeasure measure;
-        double y = 0;
-        var count = _blocks.Count;
-
-        // Asked before the first block rather than at it: a first band with no room in it is
-        // answered by starting the text further down, and there is no text placed yet to move.
-        // Where that runs out of layout there is nowhere for any of the text to go.
-        var placeable = MeasureLineWithRoom(true, columnWidth, rectHeight, out measure, ref column, ref y)
-            ? count
-            : 0;
-        if (placeable == 0 && count > 0)
-            _blocks[0].Stop = true;
+        var placeable = PlaceableCount(columnWidth, rectHeight, out var measure, ref column, ref y);
 
         var lineStart = measure.Start;
         var x = lineStart;
         for (var idx = 0; idx < placeable; idx++)
         {
             var block = _blocks[idx];
-            if (block.Type == BlockType.LineBreak)
-            {
-                EndParagraph(firstIndex, idx, measure.Width);
-                firstIndex = idx + 1;
-                // A written line break ends a paragraph, so the next line is indented again and
-                // the gap between paragraphs falls here.
-                y += _lineHeight + LineGap + ParagraphGap;
-                if (!StartNextLine(true, columnWidth, rectHeight, ref measure, ref column, ref y))
-                {
-                    block.Stop = true;
-                    break;
-                }
-                lineStart = measure.Start;
-                x = lineStart;
-                continue;
-            }
-
+            var isLineBreak = block.Type == BlockType.LineBreak;
             var width = block.Width;
-            if (FitsOnLine(x, width, lineStart, measure))
+            if (!isLineBreak && FitsOnLine(x, width, lineStart, measure))
             {
                 Place(block, x, y, column, columnWidth, lineStart, measure);
                 x += width + _spaceWidth;
                 continue;
             }
 
-            HorizontalAlignLine(firstIndex, idx - 1, measure.Width);
-
-            // Begin implicit line break
-            firstIndex = idx;
-            y += _lineHeight + LineGap;
-            if (!StartNextLine(false, columnWidth, rectHeight, ref measure, ref column, ref y))
+            // The line ends here, at a written line break or at the block that does not fit on it.
+            firstIndex = EndLineAt(idx, isLineBreak, firstIndex, measure.Width, ref y);
+            if (!StartNextLine(isLineBreak, columnWidth, rectHeight, ref measure, ref column, ref y))
             {
                 block.Stop = true;
                 break;
             }
             lineStart = measure.Start;
+            if (isLineBreak)
+            {
+                x = lineStart;
+                continue;
+            }
             Place(block, lineStart, y, column, columnWidth, lineStart, measure);
             x = lineStart + width + _spaceWidth;
         }
 
         return (placeable, firstIndex, measure);
+    }
+
+    /// <summary>
+    /// Measures the first line and answers how many blocks there is room to try: all of them, or
+    /// none when there is no line with room anywhere, in which case the first block is stopped.
+    /// </summary>
+    private int PlaceableCount(double columnWidth, double rectHeight, out LineMeasure measure, ref int column,
+        ref double y)
+    {
+        var count = _blocks.Count;
+
+        // Asked before the first block rather than at it: a first band with no room in it is
+        // answered by starting the text further down, and there is no text placed yet to move.
+        // Where that runs out of layout there is nowhere for any of the text to go.
+        if (MeasureLineWithRoom(true, columnWidth, rectHeight, out measure, ref column, ref y))
+            return count;
+
+        if (count > 0)
+            _blocks[0].Stop = true;
+        return 0;
+    }
+
+    /// <summary>
+    /// Ends the line at block <paramref name="idx"/>, aligning what is on it and moving
+    /// <paramref name="y"/> down to the next line. Answers the index the next line starts at.
+    /// </summary>
+    private int EndLineAt(int idx, bool isLineBreak, int firstIndex, double lineWidth, ref double y)
+    {
+        if (isLineBreak)
+        {
+            EndParagraph(firstIndex, idx, lineWidth);
+            // A written line break ends a paragraph, so the next line is indented again and
+            // the gap between paragraphs falls here.
+            y += _lineHeight + LineGap + ParagraphGap;
+            return idx + 1;
+        }
+
+        HorizontalAlignLine(firstIndex, idx - 1, lineWidth);
+
+        // Begin implicit line break
+        y += _lineHeight + LineGap;
+        return idx;
     }
 
     /// <summary>
@@ -1231,30 +1252,48 @@ public class XTextFormatter
         if (count == 0)
             return;
 
+        // An indented line has that much less room to be centred, pushed right or stretched in.
+        var dx = Math.Max(layoutWidth - _blocks[firstIndex].LineIndent - LineWidthOf(firstIndex, lastIndex), 0);
+        if (Alignment == XParagraphAlignment.Justify)
+        {
+            JustifyLine(firstIndex, lastIndex, count, dx);
+            return;
+        }
+
+        if (Alignment == XParagraphAlignment.Center)
+            dx /= 2;
+        for (var idx = firstIndex; idx <= lastIndex; idx++)
+        {
+            var block = _blocks[idx];
+            block.Location += new XVector(dx, 0);
+        }
+    }
+
+    /// <summary>
+    /// The width of blocks <paramref name="firstIndex"/> to <paramref name="lastIndex"/> set one
+    /// space apart.
+    /// </summary>
+    private double LineWidthOf(int firstIndex, int lastIndex)
+    {
         var totalWidth = -_spaceWidth;
         for (var idx = firstIndex; idx <= lastIndex; idx++)
             totalWidth += _blocks[idx].Width + _spaceWidth;
+        return totalWidth;
+    }
 
-        // An indented line has that much less room to be centred, pushed right or stretched in.
-        var dx = Math.Max(layoutWidth - _blocks[firstIndex].LineIndent - totalWidth, 0);
-        if (Alignment != XParagraphAlignment.Justify)
+    /// <summary>
+    /// Shares the room left on a line out between the gaps of its <paramref name="count"/> blocks.
+    /// </summary>
+    private void JustifyLine(int firstIndex, int lastIndex, int count, double dx)
+    {
+        if (count <= 1)
+            return;
+
+        dx /= count - 1;
+        for (int idx = firstIndex + 1, i = 1; idx <= lastIndex; idx++, i++)
         {
-            if (Alignment == XParagraphAlignment.Center)
-                dx /= 2;
-            for (var idx = firstIndex; idx <= lastIndex; idx++)
-            {
-                var block = _blocks[idx];
-                block.Location += new XVector(dx, 0);
-            }
-        }
-        else if (count > 1) // case: justify
-        {
-            dx /= count - 1;
-            for (int idx = firstIndex + 1, i = 1; idx <= lastIndex; idx++, i++)
-            {
-                var block = _blocks[idx];
-                block.Location += new XVector(dx * i, 0);
-            }
+            var block = _blocks[idx];
+            block.Location += new XVector(dx * i, 0);
         }
     }
 

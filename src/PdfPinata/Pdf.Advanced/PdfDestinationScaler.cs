@@ -66,13 +66,7 @@ internal static class PdfDestinationScaler
         if (document == null || matrices == null || matrices.Count == 0)
             return;
 
-        var byObjectId = new Dictionary<PdfObjectID, XMatrix>();
-        foreach (var pair in matrices)
-        {
-            if (pair.Key?.Reference != null)
-                byObjectId[pair.Key.Reference.ObjectID] = pair.Value;
-        }
-
+        var byObjectId = ByObjectId(matrices);
         if (byObjectId.Count == 0)
             return;
 
@@ -84,9 +78,32 @@ internal static class PdfDestinationScaler
             sweep.VisitAnnotationsOf(page);
 
         var catalog = document.Catalog;
-        if (catalog == null)
-            return;
+        if (catalog != null)
+            VisitCatalog(sweep, catalog);
+    }
 
+    /// <summary>
+    /// The matrices keyed by the object ID of their page, leaving out a page that is not an
+    /// indirect object and so cannot be a destination.
+    /// </summary>
+    private static Dictionary<PdfObjectID, XMatrix> ByObjectId(IDictionary<PdfPage, XMatrix> matrices)
+    {
+        var byObjectId = new Dictionary<PdfObjectID, XMatrix>();
+        foreach (var pair in matrices)
+        {
+            if (pair.Key?.Reference != null)
+                byObjectId[pair.Key.Reference.ObjectID] = pair.Value;
+        }
+
+        return byObjectId;
+    }
+
+    /// <summary>
+    /// Every place the catalog holds a destination: the outline, the name tree, the PDF 1.1
+    /// /Dests dictionary and the action the document opens with.
+    /// </summary>
+    private static void VisitCatalog(Sweep sweep, PdfCatalog catalog)
+    {
         sweep.VisitOutline(catalog.Elements.GetDictionary(PdfCatalog.Keys.Outlines), 0);
 
         var names = catalog.Elements.GetDictionary(PdfCatalog.Keys.Names);

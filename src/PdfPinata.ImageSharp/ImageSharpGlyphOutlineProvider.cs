@@ -103,19 +103,31 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
                 ? new CodePoint(char.ConvertToUtf32(text[idx], text[++idx]))
                 : new CodePoint(text[idx]);
 
-            // Whitespace is skipped by the layout, and so has no say in where the line sits.
-            if (CodePoint.IsWhiteSpace(codePoint))
-                continue;
+            overshoot = Math.Max(overshoot, OvershootOfCharacter(metrics, codePoint));
+        }
 
-            if (!metrics.TryGetGlyphMetrics(codePoint, TextAttributes.None, TextDecorations.None,
-                    LayoutMode.HorizontalTopBottom, ColorFontSupport.None, out var glyphs))
-                continue;
+        return overshoot;
+    }
 
-            foreach (var glyph in glyphs)
-            {
-                if (glyph.TopSideBearing < 0)
-                    overshoot = Math.Max(overshoot, -glyph.TopSideBearing);
-            }
+    /// <summary>
+    /// How far the tallest glyph drawn for one character rises above the font's ascender, in
+    /// design units; zero when it does not.
+    /// </summary>
+    private static double OvershootOfCharacter(FontMetrics metrics, CodePoint codePoint)
+    {
+        // Whitespace is skipped by the layout, and so has no say in where the line sits.
+        if (CodePoint.IsWhiteSpace(codePoint))
+            return 0;
+
+        if (!metrics.TryGetGlyphMetrics(codePoint, TextAttributes.None, TextDecorations.None,
+                LayoutMode.HorizontalTopBottom, ColorFontSupport.None, out var glyphs))
+            return 0;
+
+        double overshoot = 0;
+        foreach (var glyph in glyphs)
+        {
+            if (glyph.TopSideBearing < 0)
+                overshoot = Math.Max(overshoot, -glyph.TopSideBearing);
         }
 
         return overshoot;

@@ -454,19 +454,12 @@ public partial class Styles : DocumentObjectCollection, IVisitable
             throw new Exception(message);
         }
 
-        // Only style 'Normal' has no base style
-        if (style.BaseStyle != "")
+        var idxBaseStyle = UnserializedBaseStyleIndex(style, fSerialized);
+        if (idxBaseStyle != -1)
         {
-            var idxBaseStyle = GetIndex(style.BaseStyle);
-            if (idxBaseStyle != -1)
-            {
-                if (!fSerialized[idxBaseStyle])
-                {
-                    fSerializePending[index] = true;
-                    SerializeStyle(serializer, idxBaseStyle, ref fSerialized, ref fSerializePending, ref newLine);
-                    fSerializePending[index] = false;
-                }
-            }
+            fSerializePending[index] = true;
+            SerializeStyle(serializer, idxBaseStyle, ref fSerialized, ref fSerializePending, ref newLine);
+            fSerializePending[index] = false;
         }
         var pos2 = serializer.BeginBlock();
         if (newLine)
@@ -475,6 +468,19 @@ public partial class Styles : DocumentObjectCollection, IVisitable
         if (serializer.EndBlock(pos2))
             newLine = true;
         fSerialized[index] = true;
+    }
+
+    /// <summary>
+    /// The index of a style's base style when that is yet to be serialized, otherwise -1.
+    /// </summary>
+    private int UnserializedBaseStyleIndex(Style style, bool[] fSerialized)
+    {
+        // Only style 'Normal' has no base style
+        if (style.BaseStyle == "")
+            return -1;
+
+        var idxBaseStyle = GetIndex(style.BaseStyle);
+        return idxBaseStyle != -1 && !fSerialized[idxBaseStyle] ? idxBaseStyle : -1;
     }
 
     /// <summary>

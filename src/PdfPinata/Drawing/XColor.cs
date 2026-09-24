@@ -77,17 +77,22 @@ public struct XColor : IEquatable<XColor>
     private XColor(double alpha, double cyan, double magenta, double yellow, double black)
     {
         _cs = XColorSpace.Cmyk;
-        _a = (float)(alpha > 1 ? 1 : alpha < 0 ? 0 : alpha);
-        _c = (float)(cyan > 1 ? 1 : cyan < 0 ? 0 : cyan);
-        _m = (float)(magenta > 1 ? 1 : magenta < 0 ? 0 : magenta);
-        _y = (float)(yellow > 1 ? 1 : yellow < 0 ? 0 : yellow);
-        _k = (float)(black > 1 ? 1 : black < 0 ? 0 : black);
+        _a = (float)ClampToUnit(alpha);
+        _c = (float)ClampToUnit(cyan);
+        _m = (float)ClampToUnit(magenta);
+        _y = (float)ClampToUnit(yellow);
+        _k = (float)ClampToUnit(black);
         _r = 0;
         _g = 0;
         _b = 0;
         _gs = 0f;
         CmykChanged();
     }
+
+    /// <summary>
+    /// The value brought into the range 0 through 1. NaN is left as it is.
+    /// </summary>
+    private static double ClampToUnit(double value) => value > 1 ? 1 : value < 0 ? 0 : value;
 
     private XColor(double cyan, double magenta, double yellow, double black)
         : this(1.0, cyan, magenta, yellow, black)
@@ -97,7 +102,7 @@ public struct XColor : IEquatable<XColor>
     private XColor(double gray)
     {
         _cs = XColorSpace.GrayScale;
-        _gs = (float)(gray > 1 ? 1 : gray < 0 ? 0 : gray);
+        _gs = (float)ClampToUnit(gray);
 
         _a = 1;
         _r = 0;
@@ -219,7 +224,7 @@ public struct XColor : IEquatable<XColor>
         if (double.IsNaN(tint))
             throw new ArgumentOutOfRangeException(nameof(tint), "A tint has to be a number between 0 and 1.");
 
-        tint = tint > 1 ? 1 : tint < 0 ? 0 : tint;
+        tint = ClampToUnit(tint);
         var color = spot.Tinted(tint);
         color.A = alpha;
         color._spot = spot;
@@ -359,36 +364,31 @@ public struct XColor : IEquatable<XColor>
         var value1 = _r / 255.0;
         var value2 = _g / 255.0;
         var value3 = _b / 255.0;
-        double value7 = 0;
-        var value4 = value1;
-        var value5 = value1;
-        if (value2 > value4)
-            value4 = value2;
+        var value4 = Math.Max(Math.Max(value1, value2), value3);
+        var value5 = Math.Min(Math.Min(value1, value2), value3);
 
-        if (value3 > value4)
-            value4 = value3;
-
-        if (value2 < value5)
-            value5 = value2;
-
-        if (value3 < value5)
-            value5 = value3;
-
-        var value6 = value4 - value5;
-#pragma warning disable S1244 // Exact on purpose: compared with a maximum or minimum taken from these same values.
-        if (value1 == value4)
-            value7 = (value2 - value3) / value6;
-        else if (value2 == value4)
-            value7 = 2f + (value3 - value1) / value6;
-        else if (value3 == value4)
-            value7 = 4f + (value1 - value2) / value6;
-#pragma warning restore S1244
-
+        var value7 = HueSector(value1, value2, value3, value4, value4 - value5);
         value7 *= 60;
         if (value7 < 0)
             value7 += 360;
         return value7;
         // ReSharper restore CompareOfFloatsByEqualityOperator
+    }
+
+    /// <summary>
+    /// The hue in sixths of a turn, measured from whichever component is the largest.
+    /// </summary>
+    private static double HueSector(double red, double green, double blue, double max, double delta)
+    {
+#pragma warning disable S1244 // Exact on purpose: compared with a maximum or minimum taken from these same values.
+        if (red == max)
+            return (green - blue) / delta;
+        if (green == max)
+            return 2f + (blue - red) / delta;
+        if (blue == max)
+            return 4f + (red - green) / delta;
+#pragma warning restore S1244
+        return 0;
     }
 
     /// <summary>

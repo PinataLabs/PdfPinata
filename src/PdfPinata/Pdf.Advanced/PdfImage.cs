@@ -28,6 +28,7 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System;
 using System.Diagnostics;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PdfPinata.Drawing;
@@ -158,11 +159,60 @@ public sealed class PdfImage : PdfXObject
         var source = pixels.Pixels.Span;
 
         var imageData = new byte[3 * width * height];
-
-        var hasMask = false;
-        var hasAlphaMask = false;
         var alphaMask = new byte[width * height];
         var mask = new MonochromeMask(width, height);
+        SplitPixels(source, width, height, imageData, alphaMask, mask, out var hasMask, out var hasAlphaMask);
+
+        var fd = new FlateDecode();
+
+        // The soft mask carries alpha exactly; the stencil rounds it to transparent or opaque
+        // at 128. Where the soft mask goes the stencil is therefore redundant at best, and it
+        // is worse than that: ISO 32000-1 Table 89 has /SMask override an image's /Mask, and
+        // pdf.js obeys that, but Ghostscript and macOS Quartz apply both - so a picture whose
+        // alpha lay wholly below 128, a watermark say, was embedded, referenced, and
+        // invisible. So the two are alternatives rather than a pair. That leaves the stencil
+        // the two cases where it is the whole answer: transparency that is already binary,
+        // where it loses nothing, and a document too old to be read a soft mask.
+        var hasSoftMask = hasMask && hasAlphaMask && pdfVersion >= 14;
+
+        if (hasMask && !hasSoftMask)
+        {
+            // Either binary transparency, which the stencil states exactly, or a pre-1.4
+            // document, where it is all a reader of that vintage could have been given.
+            var pdfMask = AddMaskImage(fd.Encode(mask.MaskData, _document.Options.FlateEncodeMode), width, height, 1);
+            pdfMask.Elements[Keys.ImageMask] = new PdfBoolean(true);
+            Elements[Keys.Mask] = pdfMask.Reference;
+        }
+        if (hasSoftMask)
+        {
+            // The image provides an alpha mask (requires Arcrobat 5.0 or higher)
+            var smask = AddMaskImage(fd.Encode(alphaMask, _document.Options.FlateEncodeMode), width, height, 8);
+            smask.Elements[Keys.ColorSpace] = new PdfName("/DeviceGray");
+            Elements[Keys.SMask] = smask.Reference;
+        }
+
+        var imageDataCompressed = fd.Encode(imageData, _document.Options.FlateEncodeMode);
+
+        Stream = new PdfStream(imageDataCompressed, this);
+        Elements[PdfStream.Keys.Length] = new PdfInteger(imageDataCompressed.Length);
+        Elements[PdfStream.Keys.Filter] = new PdfName("/FlateDecode");
+        Elements[Keys.Width] = new PdfInteger(width);
+        Elements[Keys.Height] = new PdfInteger(height);
+        Elements[Keys.BitsPerComponent] = new PdfInteger(8);
+        Elements[Keys.ColorSpace] = new PdfName("/DeviceRGB");
+        if (Image.Interpolate)
+            Elements[Keys.Interpolate] = PdfBoolean.True;
+    }
+
+    /// <summary>
+    /// Splits BGRA pixels into RGB image data, an 8-bit alpha channel and a 1-bit stencil, and
+    /// says whether any pixel is less than opaque and whether any is partly transparent.
+    /// </summary>
+    private static void SplitPixels(ReadOnlySpan<byte> source, int width, int height, byte[] imageData,
+        byte[] alphaMask, MonochromeMask mask, out bool hasMask, out bool hasAlphaMask)
+    {
+        hasMask = false;
+        hasAlphaMask = false;
 
         // Row r of the source is row r of the output: both are top-down and neither pads.
         var read = 0;
@@ -182,80 +232,34 @@ public sealed class PdfImage : PdfXObject
                 var alpha = source[read + 3];
                 mask.AddPel(alpha);
                 alphaMask[writeAlpha] = alpha;
-                if (alpha != 255)
-                {
-                    hasMask = true;
-                    if (alpha != 0)
-                        hasAlphaMask = true;
-                }
+                hasMask |= alpha != 255;
+                hasAlphaMask |= alpha is not (255 or 0);
 
                 ++writeAlpha;
                 read += PixelBuffer.BytesPerPixel;
                 write += 3;
             }
         }
+    }
 
-        var fd = new FlateDecode();
+    /// <summary>
+    /// Adds to the document the image XObject a mask is drawn from, up to its bits per component;
+    /// the caller adds what says which kind of mask it is.
+    /// </summary>
+    private PdfDictionary AddMaskImage(byte[] compressed, int width, int height, int bitsPerComponent)
+    {
+        var maskImage = new PdfDictionary(_document);
+        maskImage.Elements.SetName(Keys.Type, "/XObject");
+        maskImage.Elements.SetName(Keys.Subtype, "/Image");
 
-        // The soft mask carries alpha exactly; the stencil rounds it to transparent or opaque
-        // at 128. Where the soft mask goes the stencil is therefore redundant at best, and it
-        // is worse than that: ISO 32000-1 Table 89 has /SMask override an image's /Mask, and
-        // pdf.js obeys that, but Ghostscript and macOS Quartz apply both - so a picture whose
-        // alpha lay wholly below 128, a watermark say, was embedded, referenced, and
-        // invisible. So the two are alternatives rather than a pair. That leaves the stencil
-        // the two cases where it is the whole answer: transparency that is already binary,
-        // where it loses nothing, and a document too old to be read a soft mask.
-        var hasSoftMask = hasMask && hasAlphaMask && pdfVersion >= 14;
-
-        if (hasMask && !hasSoftMask)
-        {
-            // Either binary transparency, which the stencil states exactly, or a pre-1.4
-            // document, where it is all a reader of that vintage could have been given.
-            var maskDataCompressed = fd.Encode(mask.MaskData, _document.Options.FlateEncodeMode);
-            var pdfMask = new PdfDictionary(_document);
-            pdfMask.Elements.SetName(Keys.Type, "/XObject");
-            pdfMask.Elements.SetName(Keys.Subtype, "/Image");
-
-            Owner._irefTable.Add(pdfMask);
-            pdfMask.Stream = new PdfStream(maskDataCompressed, pdfMask);
-            pdfMask.Elements[PdfStream.Keys.Length] = new PdfInteger(maskDataCompressed.Length);
-            pdfMask.Elements[PdfStream.Keys.Filter] = new PdfName("/FlateDecode");
-            pdfMask.Elements[Keys.Width] = new PdfInteger(width);
-            pdfMask.Elements[Keys.Height] = new PdfInteger(height);
-            pdfMask.Elements[Keys.BitsPerComponent] = new PdfInteger(1);
-            pdfMask.Elements[Keys.ImageMask] = new PdfBoolean(true);
-            Elements[Keys.Mask] = pdfMask.Reference;
-        }
-        if (hasSoftMask)
-        {
-            // The image provides an alpha mask (requires Arcrobat 5.0 or higher)
-            var alphaMaskCompressed = fd.Encode(alphaMask, _document.Options.FlateEncodeMode);
-            var smask = new PdfDictionary(_document);
-            smask.Elements.SetName(Keys.Type, "/XObject");
-            smask.Elements.SetName(Keys.Subtype, "/Image");
-
-            Owner._irefTable.Add(smask);
-            smask.Stream = new PdfStream(alphaMaskCompressed, smask);
-            smask.Elements[PdfStream.Keys.Length] = new PdfInteger(alphaMaskCompressed.Length);
-            smask.Elements[PdfStream.Keys.Filter] = new PdfName("/FlateDecode");
-            smask.Elements[Keys.Width] = new PdfInteger(width);
-            smask.Elements[Keys.Height] = new PdfInteger(height);
-            smask.Elements[Keys.BitsPerComponent] = new PdfInteger(8);
-            smask.Elements[Keys.ColorSpace] = new PdfName("/DeviceGray");
-            Elements[Keys.SMask] = smask.Reference;
-        }
-
-        var imageDataCompressed = fd.Encode(imageData, _document.Options.FlateEncodeMode);
-
-        Stream = new PdfStream(imageDataCompressed, this);
-        Elements[PdfStream.Keys.Length] = new PdfInteger(imageDataCompressed.Length);
-        Elements[PdfStream.Keys.Filter] = new PdfName("/FlateDecode");
-        Elements[Keys.Width] = new PdfInteger(width);
-        Elements[Keys.Height] = new PdfInteger(height);
-        Elements[Keys.BitsPerComponent] = new PdfInteger(8);
-        Elements[Keys.ColorSpace] = new PdfName("/DeviceRGB");
-        if (Image.Interpolate)
-            Elements[Keys.Interpolate] = PdfBoolean.True;
+        Owner._irefTable.Add(maskImage);
+        maskImage.Stream = new PdfStream(compressed, maskImage);
+        maskImage.Elements[PdfStream.Keys.Length] = new PdfInteger(compressed.Length);
+        maskImage.Elements[PdfStream.Keys.Filter] = new PdfName("/FlateDecode");
+        maskImage.Elements[Keys.Width] = new PdfInteger(width);
+        maskImage.Elements[Keys.Height] = new PdfInteger(height);
+        maskImage.Elements[Keys.BitsPerComponent] = new PdfInteger(bitsPerComponent);
+        return maskImage;
     }
 
     /// <summary>

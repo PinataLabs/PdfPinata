@@ -60,63 +60,48 @@ internal class PieExplodedPlotAreaRenderer : PiePlotAreaRenderer
     if (sumValues == 0)
       return;
 
-    double textMeasure = 0;
-    if (sri.DataLabelRendererInfo is { Position: DataLabelPosition.OutsideEnd })
-    {
-      foreach (var dleri in sri.DataLabelRendererInfo.Entries)
-      {
-        textMeasure = Math.Max(textMeasure, dleri.Width);
-        textMeasure = Math.Max(textMeasure, dleri.Height);
-      }
-    }
-
-    var pieRect = cri.PlotAreaRendererInfo.Rect;
-    if (textMeasure != 0)
-    {
-      pieRect.X += textMeasure;
-      pieRect.Y += textMeasure;
-      pieRect.Width -= 2 * textMeasure;
-      pieRect.Height -= 2 * textMeasure;
-    }
-
+    var pieRect = PieRect(cri, sri);
     var origin = new XPoint(pieRect.X + pieRect.Width / 2, pieRect.Y + pieRect.Height / 2);
-    var innerRect = new XRect();
-    var p1 = new XPoint();
 
-    double midAngle, sectorStartAngle, sectorSweepAngle,
-      deltaAngle = 2, startAngle = 270, sweepAngle,
+    double deltaAngle = 2, startAngle = 270,
       rInnerCircle = pieRect.Width / 15,
       rOuterCircle = pieRect.Width / 2;
 
     // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
     foreach (SectorRendererInfo sector in sri.PointRendererInfos)
     {
-      if (!double.IsNaN(sector.Value) && sector.Value != 0)
+      if (!HasShare(sector))
       {
-        sweepAngle = 360 / (sumValues / Math.Abs(sector.Value));
-
-        midAngle = startAngle + sweepAngle / 2;
-        sectorStartAngle = Math.Max(0, startAngle + deltaAngle);
-        sectorSweepAngle = Math.Max(sweepAngle, sweepAngle - deltaAngle);
-
-        p1.X = origin.X + rInnerCircle * Math.Cos(midAngle / 180 * Math.PI);
-        p1.Y = origin.Y + rInnerCircle * Math.Sin(midAngle / 180 * Math.PI);
-        innerRect.X = p1.X - rOuterCircle + rInnerCircle;
-        innerRect.Y = p1.Y - rOuterCircle + rInnerCircle;
-        innerRect.Width = (rOuterCircle - rInnerCircle) * 2;
-        innerRect.Height = innerRect.Width;
-
-        sector.Rect = innerRect;
-        sector.StartAngle = sectorStartAngle;
-        sector.SweepAngle = sectorSweepAngle;
-
-        startAngle += sweepAngle;
+        MarkUndrawn(sector);
+        continue;
       }
-      else
-      {
-        sector.StartAngle = double.NaN;
-        sector.SweepAngle = double.NaN;
-      }
+
+      var sweepAngle = 360 / (sumValues / Math.Abs(sector.Value));
+      var midAngle = startAngle + sweepAngle / 2;
+
+      sector.Rect = ExplodedRect(origin, midAngle, rInnerCircle, rOuterCircle);
+      sector.StartAngle = Math.Max(0, startAngle + deltaAngle);
+      sector.SweepAngle = Math.Max(sweepAngle, sweepAngle - deltaAngle);
+
+      startAngle += sweepAngle;
     }
+  }
+
+  /// <summary>
+  /// The rectangle of a sector's circle, pushed out from the pie's centre along the middle of the
+  /// sector by the radius of the inner circle.
+  /// </summary>
+  private static XRect ExplodedRect(XPoint origin, double midAngle, double rInnerCircle, double rOuterCircle)
+  {
+    var p1 = new XPoint();
+    p1.X = origin.X + rInnerCircle * Math.Cos(midAngle / 180 * Math.PI);
+    p1.Y = origin.Y + rInnerCircle * Math.Sin(midAngle / 180 * Math.PI);
+
+    var innerRect = new XRect();
+    innerRect.X = p1.X - rOuterCircle + rInnerCircle;
+    innerRect.Y = p1.Y - rOuterCircle + rInnerCircle;
+    innerRect.Width = (rOuterCircle - rInnerCircle) * 2;
+    innerRect.Height = innerRect.Width;
+    return innerRect;
   }
 }

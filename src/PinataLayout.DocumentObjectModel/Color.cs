@@ -85,14 +85,20 @@ public struct Color : INullableValue, IEquatable<Color>
     public Color(double alpha, double cyan, double magenta, double yellow, double black)
     {
         isCmyk = true;
-        a = (float)(alpha > 100 ? 100 : alpha < 0 ? 0 : alpha);
-        c = (float)(cyan > 100 ? 100 : cyan < 0 ? 0 : cyan);
-        m = (float)(magenta > 100 ? 100 : magenta < 0 ? 0 : magenta);
-        y = (float)(yellow > 100 ? 100 : yellow < 0 ? 0 : yellow);
-        k = (float)(black > 100 ? 100 : black < 0 ? 0 : black);
+        a = ClampedPercent(alpha);
+        c = ClampedPercent(cyan);
+        m = ClampedPercent(magenta);
+        y = ClampedPercent(yellow);
+        k = ClampedPercent(black);
         argb = 0; // Compiler enforces this line of code
         InitRgbFromCmyk();
     }
+
+    /// <summary>
+    /// The value limited to 0 to 100 percent.
+    /// </summary>
+    private static float ClampedPercent(double value)
+        => (float)(value > 100 ? 100 : value < 0 ? 0 : value);
 
     /// <summary>
     /// Initializes a new instance of the Color class with a CMYK color.

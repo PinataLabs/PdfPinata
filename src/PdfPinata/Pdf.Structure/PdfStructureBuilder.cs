@@ -327,19 +327,22 @@ public sealed class PdfStructureBuilder
         if (item == null || depth > MaxTreeDepth)
             return;
 
-        if (item is PdfReference reference)
-            item = reference.Value;
-
-        if (item is PdfArray array)
+        switch (Resolve(item))
         {
-            foreach (var kid in array.Elements)
-                Collect(kid, named, depth + 1);
-            return;
+            case PdfArray array:
+                foreach (var kid in array.Elements)
+                    Collect(kid, named, depth + 1);
+                break;
+
+            case PdfStructureElement element:
+                CollectElement(element, named, depth);
+                break;
         }
+    }
 
-        if (item is not PdfStructureElement element)
-            return;
-
+    private static void CollectElement(PdfStructureElement element, List<KeyValuePair<string, PdfStructureElement>> named,
+        int depth)
+    {
         var id = element.Id;
         if (!string.IsNullOrEmpty(id))
             named.Add(new KeyValuePair<string, PdfStructureElement>(id, element));

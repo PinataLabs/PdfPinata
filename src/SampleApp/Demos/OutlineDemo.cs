@@ -98,13 +98,7 @@ internal sealed class OutlineDemo : PdfDemo
             "below and chapter 2 is not, so the panel should show its sections only after a click."
         ];
 
-        double y = 164;
-        foreach (var line in explanation)
-        {
-            titleGfx.DrawString(line, line.StartsWith("    ") ? mono : body, XBrushes.Black,
-                new XPoint(56, y));
-            y += 14;
-        }
+        var y = Explanation(titleGfx, explanation, body, mono, 164);
 
         // ---- A drawn contents page, beside the outline -------------------------------
         //
@@ -237,6 +231,47 @@ internal sealed class OutlineDemo : PdfDemo
         appendixGfx.DrawLine(XPens.LightGray, 56, rowY, 539, rowY);
         rowY += 18;
 
+        rowY = DestinationEntries(appendixGfx, appendix, appendixEntry, destinations, body, mono, rowY);
+
+        rowY += 24;
+        appendixGfx.DrawString(
+            "Click each of these in the bookmark panel: they all point at this page, and what",
+            noteFont, XBrushes.DimGray, new XPoint(56, rowY));
+        rowY += 12;
+        appendixGfx.DrawString(
+            "changes is how the reader frames it. Xyz is the default, and the only one that zooms.",
+            noteFont, XBrushes.DimGray, new XPoint(56, rowY));
+        rowY += 12;
+        appendixGfx.DrawString(
+            "PdfDocument.PageMode = PdfPageMode.UseOutlines is what opened the panel for you, and",
+            noteFont, XBrushes.DimGray, new XPoint(56, rowY));
+        rowY += 12;
+        appendixGfx.DrawString(
+            "Opened on each entry is what decided how much of the tree was already unfolded in it.",
+            noteFont, XBrushes.DimGray, new XPoint(56, rowY));
+
+        return document;
+    }
+
+    // The explanation on page one, a line at a time, with the indented code lines in the
+    // monospaced face. Answers where the next line would have gone.
+    private static double Explanation(XGraphics gfx, string[] lines, XFont body, XFont mono, double y)
+    {
+        foreach (var line in lines)
+        {
+            gfx.DrawString(line, line.StartsWith("    ") ? mono : body, XBrushes.Black,
+                new XPoint(56, y));
+            y += 14;
+        }
+        return y;
+    }
+
+    // One row of the appendix per destination type, each with an entry under the appendix's own
+    // that lands on this page framed that way. Answers where the next row would have gone.
+    private static double DestinationEntries(XGraphics appendixGfx, PdfPage appendix, PdfOutline appendixEntry,
+        (string Label, string Reads, PdfPageDestinationType Type)[] destinations, XFont body, XFont mono,
+        double rowY)
+    {
         foreach (var row in destinations)
         {
             var entryTop = TopOf(appendixGfx, rowY - 12);
@@ -259,25 +294,7 @@ internal sealed class OutlineDemo : PdfDemo
 
             rowY += 22;
         }
-
-        rowY += 24;
-        appendixGfx.DrawString(
-            "Click each of these in the bookmark panel: they all point at this page, and what",
-            noteFont, XBrushes.DimGray, new XPoint(56, rowY));
-        rowY += 12;
-        appendixGfx.DrawString(
-            "changes is how the reader frames it. Xyz is the default, and the only one that zooms.",
-            noteFont, XBrushes.DimGray, new XPoint(56, rowY));
-        rowY += 12;
-        appendixGfx.DrawString(
-            "PdfDocument.PageMode = PdfPageMode.UseOutlines is what opened the panel for you, and",
-            noteFont, XBrushes.DimGray, new XPoint(56, rowY));
-        rowY += 12;
-        appendixGfx.DrawString(
-            "Opened on each entry is what decided how much of the tree was already unfolded in it.",
-            noteFont, XBrushes.DimGray, new XPoint(56, rowY));
-
-        return document;
+        return rowY;
     }
 
     // docs:begin top-of

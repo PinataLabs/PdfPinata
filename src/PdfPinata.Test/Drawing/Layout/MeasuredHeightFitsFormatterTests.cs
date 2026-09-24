@@ -37,24 +37,31 @@ public class MeasuredHeightFitsFormatterTests
         foreach (var style in new[] { XFontStyle.Regular, XFontStyle.Bold })
         {
             for (var tenths = 10; tenths <= 1000; tenths += 3)
-            {
-                var font = new XFont("Arial", tenths / 10.0, style);
-                for (var count = 1; count <= 25; count++)
-                {
-                    var text = Lines(count);
-                    var height = Gfx.MeasureString(text, font).Height;
-
-                    var laidOut = new XTextFormatter(Gfx)
-                        .GetLayout(text, font, XBrushes.Black, new XRect(0, 0, 500, height));
-
-                    var lines = LinesLaidOut(laidOut, font);
-                    if (lines != count)
-                        dropped.Add($"{style} {tenths / 10.0}pt: {lines} of {count} lines in {height:R}");
-                }
-            }
+                AddDroppedLines(dropped, style, tenths);
         }
 
         dropped.Should().BeEmpty();
+    }
+
+    /// <summary>
+    ///   Lays out one to 25 lines at one size and style, each in a rectangle as tall as they
+    ///   measure, and describes every layout that did not hold them all.
+    /// </summary>
+    private static void AddDroppedLines(List<string> dropped, XFontStyle style, int tenths)
+    {
+        var font = new XFont("Arial", tenths / 10.0, style);
+        for (var count = 1; count <= 25; count++)
+        {
+            var text = Lines(count);
+            var height = Gfx.MeasureString(text, font).Height;
+
+            var laidOut = new XTextFormatter(Gfx)
+                .GetLayout(text, font, XBrushes.Black, new XRect(0, 0, 500, height));
+
+            var lines = LinesLaidOut(laidOut, font);
+            if (lines != count)
+                dropped.Add($"{style} {tenths / 10.0}pt: {lines} of {count} lines in {height:R}");
+        }
     }
 
     [Fact]

@@ -86,31 +86,7 @@ internal abstract class YAxisRenderer : AxisRenderer
 
     var gfx = rendererParms.Graphics;
 
-    var size = new XSize(0, 0);
-
-    // height of all ticklabels
-    var yMin = yari.MinimumScale;
-    var yMax = yari.MaximumScale;
-    var yMajorTick = yari.MajorTick;
-    var lineHeight = double.MinValue;
-    var labelSize = new XSize(0, 0);
-    for (var y = yMin; y <= yMax; y += yMajorTick)
-    {
-      var str = y.ToString(yari.TickLabelsFormat);
-      labelSize = gfx.MeasureString(str, yari.TickLabelsFont);
-      if (isHorizontal)
-      {
-        size.Width += labelSize.Width;
-        size.Height = Math.Max(labelSize.Height, size.Height);
-        lineHeight = Math.Max(lineHeight, labelSize.Width);
-      }
-      else
-      {
-        size.Height += labelSize.Height;
-        size.Width = Math.Max(labelSize.Width, size.Width);
-        lineHeight = Math.Max(lineHeight, labelSize.Height);
-      }
-    }
+    var size = MeasureTickLabels(gfx, yari, out var labelSize);
 
     // add space for tickmarks
     if (isHorizontal)
@@ -118,20 +94,7 @@ internal abstract class YAxisRenderer : AxisRenderer
     else
       size.Width += yari.MajorTickMarkWidth * 1.5;
 
-    // Measure axis title
-    var titleSize = new XSize(0, 0);
-    if (yari.AxisTitleRendererInfo != null)
-    {
-      var parms = new RendererParameters
-      {
-        Graphics = gfx,
-        RendererInfo = yari
-      };
-      var atr = new AxisTitleRenderer(parms);
-      atr.Format();
-      titleSize.Height = yari.AxisTitleRendererInfo.Height;
-      titleSize.Width = yari.AxisTitleRendererInfo.Width;
-    }
+    var titleSize = MeasureAxisTitle(gfx, yari);
 
     if (isHorizontal)
     {
@@ -155,6 +118,57 @@ internal abstract class YAxisRenderer : AxisRenderer
     }
 
     yari.LabelSize = labelSize;
+  }
+
+  /// <summary>
+  /// The space all tick labels take laid end to end along the axis, and the size of the last of them.
+  /// </summary>
+  private XSize MeasureTickLabels(XGraphics gfx, AxisRendererInfo yari, out XSize labelSize)
+  {
+    var size = new XSize(0, 0);
+
+    // height of all ticklabels
+    var yMin = yari.MinimumScale;
+    var yMax = yari.MaximumScale;
+    var yMajorTick = yari.MajorTick;
+    labelSize = new XSize(0, 0);
+    for (var y = yMin; y <= yMax; y += yMajorTick)
+    {
+      var str = y.ToString(yari.TickLabelsFormat);
+      labelSize = gfx.MeasureString(str, yari.TickLabelsFont);
+      if (isHorizontal)
+      {
+        size.Width += labelSize.Width;
+        size.Height = Math.Max(labelSize.Height, size.Height);
+      }
+      else
+      {
+        size.Height += labelSize.Height;
+        size.Width = Math.Max(labelSize.Width, size.Width);
+      }
+    }
+    return size;
+  }
+
+  /// <summary>
+  /// Formats the axis title, if there is one, and answers its size.
+  /// </summary>
+  private static XSize MeasureAxisTitle(XGraphics gfx, AxisRendererInfo yari)
+  {
+    var titleSize = new XSize(0, 0);
+    if (yari.AxisTitleRendererInfo == null)
+      return titleSize;
+
+    var parms = new RendererParameters
+    {
+      Graphics = gfx,
+      RendererInfo = yari
+    };
+    var atr = new AxisTitleRenderer(parms);
+    atr.Format();
+    titleSize.Height = yari.AxisTitleRendererInfo.Height;
+    titleSize.Width = yari.AxisTitleRendererInfo.Width;
+    return titleSize;
   }
 
   /// <summary>
@@ -340,41 +354,53 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// </remarks>
   private void DrawAxisLine(LineFormatRenderer lineFormatRenderer, AxisRendererInfo yari, XMatrix matrix)
   {
-    var yMin = yari.MinimumScale;
-    var yMax = yari.MaximumScale;
-    var points = new XPoint[2];
+    var points = isHorizontal ? HorizontalAxisLine(yari, matrix) : VerticalAxisLine(yari, matrix);
+    if (points == null)
+      return;
 
-    if (isHorizontal)
-    {
-      if (yari.LineFormat == null)
-        return;
-
-      points[0] = new XPoint(yMin, yari.Y);
-      points[1] = new XPoint(yMax, yari.Y);
-      matrix.TransformPoints(points);
-      if (yari.MajorTickMark != TickMarkType.None)
-      {
-        // yMax is at the upper side of the axis
-        points[0].X -= yari.LineFormat.Width / 2;
-        points[1].X += yari.LineFormat.Width / 2;
-      }
-    }
-    else
-    {
-      if (yari.LineFormat is not { Width: > 0 })
-        return;
-
-      points[0] = new XPoint(yari.InnerRect.X + yari.InnerRect.Width, yMin);
-      points[1] = new XPoint(yari.InnerRect.X + yari.InnerRect.Width, yMax);
-      matrix.TransformPoints(points);
-      if (yari.MajorTickMark != TickMarkType.None)
-      {
-        // yMax is at the upper side of the axis
-        points[1].Y -= yari.LineFormat.Width / 2;
-        points[0].Y += yari.LineFormat.Width / 2;
-      }
-    }
     lineFormatRenderer.DrawLine(points[0], points[1]);
+  }
+
+  /// <summary>
+  /// The two ends of a horizontal axis line, or null when there is no line format.
+  /// </summary>
+  private static XPoint[] HorizontalAxisLine(AxisRendererInfo yari, XMatrix matrix)
+  {
+    if (yari.LineFormat == null)
+      return null;
+
+    var points = new XPoint[2];
+    points[0] = new XPoint(yari.MinimumScale, yari.Y);
+    points[1] = new XPoint(yari.MaximumScale, yari.Y);
+    matrix.TransformPoints(points);
+    if (yari.MajorTickMark != TickMarkType.None)
+    {
+      // yMax is at the upper side of the axis
+      points[0].X -= yari.LineFormat.Width / 2;
+      points[1].X += yari.LineFormat.Width / 2;
+    }
+    return points;
+  }
+
+  /// <summary>
+  /// The two ends of a vertical axis line, or null when there is no line format with a width.
+  /// </summary>
+  private static XPoint[] VerticalAxisLine(AxisRendererInfo yari, XMatrix matrix)
+  {
+    if (yari.LineFormat is not { Width: > 0 })
+      return null;
+
+    var points = new XPoint[2];
+    points[0] = new XPoint(yari.InnerRect.X + yari.InnerRect.Width, yari.MinimumScale);
+    points[1] = new XPoint(yari.InnerRect.X + yari.InnerRect.Width, yari.MaximumScale);
+    matrix.TransformPoints(points);
+    if (yari.MajorTickMark != TickMarkType.None)
+    {
+      // yMax is at the upper side of the axis
+      points[1].Y -= yari.LineFormat.Width / 2;
+      points[0].Y += yari.LineFormat.Width / 2;
+    }
+    return points;
   }
 
   /// <summary>
@@ -523,24 +549,33 @@ internal abstract class YAxisRenderer : AxisRenderer
 
     for (var pointIdx = 0; pointIdx < maxPoints; ++pointIdx)
     {
-      double valueSumPos = 0, valueSumNeg = 0;
-      foreach (var sri in stacked)
-      {
-        if (sri.PointRendererInfos.Length <= pointIdx)
-          break;
-
-        var column = (ColumnRendererInfo)sri.PointRendererInfos[pointIdx];
-        if (double.IsNaN(column.Value))
-          continue;
-
-        if (column.Value < 0)
-          valueSumNeg += column.Value;
-        else
-          valueSumPos += column.Value;
-      }
+      var (valueSumNeg, valueSumPos) = StackedSums(stacked, pointIdx);
       yMin = Math.Min(valueSumNeg, yMin);
       yMax = Math.Max(valueSumPos, yMax);
     }
+  }
+
+  /// <summary>
+  /// The sums of the negative and of the positive values the series stack at one point.
+  /// </summary>
+  private static (double Negative, double Positive) StackedSums(SeriesRendererInfo[] stacked, int pointIdx)
+  {
+    double valueSumPos = 0, valueSumNeg = 0;
+    foreach (var sri in stacked)
+    {
+      if (sri.PointRendererInfos.Length <= pointIdx)
+        break;
+
+      var column = (ColumnRendererInfo)sri.PointRendererInfos[pointIdx];
+      if (double.IsNaN(column.Value))
+        continue;
+
+      if (column.Value < 0)
+        valueSumNeg += column.Value;
+      else
+        valueSumPos += column.Value;
+    }
+    return (valueSumNeg, valueSumPos);
   }
 
   /// <summary>

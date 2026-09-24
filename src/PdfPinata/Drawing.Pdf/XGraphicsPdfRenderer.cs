@@ -690,21 +690,29 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         while (idx < s.Length)
         {
             var blankStart = idx;
-            while (idx < s.Length && char.IsWhiteSpace(s[idx]))
-                idx++;
+            idx = EndOfRun(s, idx, whiteSpace: true);
             if (idx > blankStart)
                 x += _gfx.MeasureString(s.Substring(blankStart, idx - blankStart), font, format).Width;
             if (idx == s.Length)
                 yield break;
 
             var wordStart = idx;
-            while (idx < s.Length && !char.IsWhiteSpace(s[idx]))
-                idx++;
+            idx = EndOfRun(s, idx, whiteSpace: false);
 
             var width = _gfx.MeasureString(s.Substring(wordStart, idx - wordStart), font, format).Width;
             yield return (x, width);
             x += width;
         }
+    }
+
+    /// <summary>
+    /// Where the run of blank (or of non-blank) characters starting at <paramref name="idx"/> ends.
+    /// </summary>
+    private static int EndOfRun(string s, int idx, bool whiteSpace)
+    {
+        while (idx < s.Length && char.IsWhiteSpace(s[idx]) == whiteSpace)
+            idx++;
+        return idx;
     }
 
     /// <summary>
@@ -733,62 +741,61 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         const string format = Config.SignificantFigures4;
 
         var name = Realize(image);
-        if (image is not XForm form)
+        if (image is XForm form)
         {
-            if (_gfx.PageDirection == XPageDirection.Downwards)
-            {
-                AppendFormatImage(
-                    "q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format + "} cm {4} Do Q\n",
-                    x, y + height, width, height, name);
-            }
-            else
-            {
-                AppendFormatImage(
-                    "q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format + "} cm {4} Do Q\n",
-                    x, y, width, height, name);
-            }
+            DrawForm(form, name, x, y, width, height);
+            return;
         }
-        else
+
+        var imageY = _gfx.PageDirection == XPageDirection.Downwards ? y + height : y;
+        AppendFormatImage(
+            "q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format + "} cm {4} Do Q\n",
+            x, imageY, width, height, name);
+    }
+
+    /// <summary>
+    /// Draws a form, finished and registered first, scaled from its own size to the one asked for.
+    /// </summary>
+    private void DrawForm(XForm form, string name, double x, double y, double width, double height)
+    {
+        const string format = Config.SignificantFigures4;
+
+        BeginPage();
+
+        form.Finish();
+
+        Owner.FormTable.GetForm(form);
+
+        var cx = width / form.PointWidth;
+        var cy = height / form.PointHeight;
+
+        if (cx == 0 || cy == 0)
+            return;
+
+        if (_gfx.PageDirection != XPageDirection.Downwards)
         {
-            BeginPage();
-
-            form.Finish();
-
-            Owner.FormTable.GetForm(form);
-
-            var cx = width / image.PointWidth;
-            var cy = height / image.PointHeight;
-
-            if (cx == 0 || cy == 0)
-                return;
-
-            var xForm = image as XPdfForm;
-            if (_gfx.PageDirection == XPageDirection.Downwards)
-            {
-                // If we have an XPdfForm, then we take the MediaBox into account.
-                var xDraw = x;
-                var yDraw = y;
-                if (xForm != null)
-                {
-                    // Yes, it is an XPdfForm - adjust the position where the page will be drawn.
-                    xDraw -= xForm.Page.MediaBox.X1;
-                    yDraw += xForm.Page.MediaBox.Y1;
-                }
-
-                AppendFormatImage(
-                    "q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format +
-                    "} cm 100 Tz {4} Do Q\n",
-                    xDraw, yDraw + height, cx, cy, name);
-            }
-            else
-            {
-                // No MediaBox offset here, unlike Downwards: Upwards is obsolete and was never finished.
-                AppendFormatImage(
-                    "q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format +
-                    "} cm {4} Do Q\n",
-                    x, y, cx, cy, name);
-            }
+            // No MediaBox offset here, unlike Downwards: Upwards is obsolete and was never finished.
+            AppendFormatImage(
+                "q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format +
+                "} cm {4} Do Q\n",
+                x, y, cx, cy, name);
+            return;
         }
+
+        // If we have an XPdfForm, then we take the MediaBox into account.
+        var xDraw = x;
+        var yDraw = y;
+        if (form is XPdfForm xForm)
+        {
+            // Yes, it is an XPdfForm - adjust the position where the page will be drawn.
+            xDraw -= xForm.Page.MediaBox.X1;
+            yDraw += xForm.Page.MediaBox.Y1;
+        }
+
+        AppendFormatImage(
+            "q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format +
+            "} cm 100 Tz {4} Do Q\n",
+            xDraw, yDraw + height, cx, cy, name);
     }
 
     /// <summary>
@@ -953,14 +960,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         if (combineMode == XCombineMode.Replace)
         {
-            if (_clipLevel != 0)
-            {
-                if (_clipLevel != _gfxState.Level)
-                    throw new NotImplementedException("Cannot set new clip region in an inner graphic state level.");
-                ResetClip();
-            }
-
-            _clipLevel = _gfxState.Level;
+            ReplaceClipLevel();
         }
         else if (combineMode == XCombineMode.Intersect)
         {
@@ -973,6 +973,22 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         }
 
         _gfxState.SetAndRealizeClipPath(path);
+    }
+
+    /// <summary>
+    /// Empties any clip region already set, which can only be done at the level it was set at, and
+    /// makes the current level the one the new region is set at.
+    /// </summary>
+    private void ReplaceClipLevel()
+    {
+        if (_clipLevel != 0)
+        {
+            if (_clipLevel != _gfxState.Level)
+                throw new NotImplementedException("Cannot set new clip region in an inner graphic state level.");
+            ResetClip();
+        }
+
+        _clipLevel = _gfxState.Level;
     }
 
     /// <summary>
@@ -1064,121 +1080,28 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     private void AppendPartialArcQuadrant(double x, double y, double width, double height, double α, double β,
         PathStart pathStart, XMatrix matrix)
     {
-        Debug.Assert(α is >= 0 and <= 360);
-        Debug.Assert(β >= 0);
-        if (β > 360)
-            β -= Math.Floor(β / 360) * 360;
-        Debug.Assert(Math.Abs(α - β) <= 90);
-
-        // Scanling factor
-        var δx = width / 2;
-        var δy = height / 2;
-
-        // Center of ellipse
-        var x0 = x + δx;
-        var y0 = y + δy;
-
-        // We have the following quarters:
-        //     |
-        //   2 | 3
-        // ----+-----
-        //   1 | 0
-        //     |
-        // If the angles lie in quarter 2 or 3, their values are subtracted by 180 and the
-        // resulting curve is reflected at the center. This algorithm works as expected (simply tried out).
-        // There may be a mathematically more elegant solution...
-        var reflect = false;
-        if (α >= 180 && β >= 180)
-        {
-            α -= 180;
-            β -= 180;
-            reflect = true;
-        }
-
-        double sinα, sinβ;
-#pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
-        if (width == height)
-#pragma warning restore S1244
-        {
-            // Circular arc needs no correction.
-            α *= Calc.Deg2Rad;
-            β *= Calc.Deg2Rad;
-        }
-        else
-        {
-            // Elliptic arc needs the angles to be adjusted such that the scaling transformation is compensated.
-            α *= Calc.Deg2Rad;
-            sinα = Math.Sin(α);
-            if (Math.Abs(sinα) > 1E-10)
-                α = Math.PI / 2 - Math.Atan(δy * Math.Cos(α) / (δx * sinα));
-            β *= Calc.Deg2Rad;
-            sinβ = Math.Sin(β);
-            if (Math.Abs(sinβ) > 1E-10)
-                β = Math.PI / 2 - Math.Atan(δy * Math.Cos(β) / (δx * sinβ));
-        }
-
-        var κ = GeometryHelper.ArcKappa(α, β);
-        sinα = Math.Sin(α);
-        var cosα = Math.Cos(α);
-        sinβ = Math.Sin(β);
-        var cosβ = Math.Cos(β);
+        // The same curve the path geometry adds for the same quadrant.
+        var curve = GeometryHelper.ArcQuadrantCurveOf(x, y, width, height, α, β, matrix);
 
         const string format = Config.SignificantFigures3;
-        XPoint pt1, pt2, pt3;
-        if (!reflect)
+        switch (pathStart)
         {
-            // Calculation for quarter 0 and 1
-            switch (pathStart)
-            {
-                case PathStart.MoveTo1st:
-                    pt1 = matrix.Transform(new XPoint(x0 + δx * cosα, y0 + δy * sinα));
-                    AppendFormatPoint("{0:" + format + "} {1:" + format + "} m\n", pt1.X, pt1.Y);
-                    break;
+            case PathStart.MoveTo1st:
+                AppendFormatPoint("{0:" + format + "} {1:" + format + "} m\n", curve.Start.X, curve.Start.Y);
+                break;
 
-                case PathStart.LineTo1st:
-                    pt1 = matrix.Transform(new XPoint(x0 + δx * cosα, y0 + δy * sinα));
-                    AppendFormatPoint("{0:" + format + "} {1:" + format + "} l\n", pt1.X, pt1.Y);
-                    break;
+            case PathStart.LineTo1st:
+                AppendFormatPoint("{0:" + format + "} {1:" + format + "} l\n", curve.Start.X, curve.Start.Y);
+                break;
 
-                case PathStart.Ignore1st:
-                    break;
-            }
-
-            pt1 = matrix.Transform(new XPoint(x0 + δx * (cosα - κ * sinα), y0 + δy * (sinα + κ * cosα)));
-            pt2 = matrix.Transform(new XPoint(x0 + δx * (cosβ + κ * sinβ), y0 + δy * (sinβ - κ * cosβ)));
-            pt3 = matrix.Transform(new XPoint(x0 + δx * cosβ, y0 + δy * sinβ));
-            AppendFormat3Points(
-                "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" +
-                format + "} c\n",
-                pt1.X, pt1.Y, pt2.X, pt2.Y, pt3.X, pt3.Y);
+            case PathStart.Ignore1st:
+                break;
         }
-        else
-        {
-            // Calculation for quarter 2 and 3.
-            switch (pathStart)
-            {
-                case PathStart.MoveTo1st:
-                    pt1 = matrix.Transform(new XPoint(x0 - δx * cosα, y0 - δy * sinα));
-                    AppendFormatPoint("{0:" + format + "} {1:" + format + "} m\n", pt1.X, pt1.Y);
-                    break;
 
-                case PathStart.LineTo1st:
-                    pt1 = matrix.Transform(new XPoint(x0 - δx * cosα, y0 - δy * sinα));
-                    AppendFormatPoint("{0:" + format + "} {1:" + format + "} l\n", pt1.X, pt1.Y);
-                    break;
-
-                case PathStart.Ignore1st:
-                    break;
-            }
-
-            pt1 = matrix.Transform(new XPoint(x0 - δx * (cosα - κ * sinα), y0 - δy * (sinα + κ * cosα)));
-            pt2 = matrix.Transform(new XPoint(x0 - δx * (cosβ + κ * sinβ), y0 - δy * (sinβ - κ * cosβ)));
-            pt3 = matrix.Transform(new XPoint(x0 - δx * cosβ, y0 - δy * sinβ));
-            AppendFormat3Points(
-                "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" +
-                format + "} c\n",
-                pt1.X, pt1.Y, pt2.X, pt2.Y, pt3.X, pt3.Y);
-        }
+        AppendFormat3Points(
+            "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" +
+            format + "} c\n",
+            curve.Control1.X, curve.Control1.Y, curve.Control2.X, curve.Control2.Y, curve.End.X, curve.End.Y);
     }
 
     /// <summary>
@@ -1203,6 +1126,13 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         AppendPath(path.PathPoints, path.PathTypes);
     }
 
+    // From GDI+ documentation:
+    private const byte PathPointTypeStart = 0; // move
+    private const byte PathPointTypeLine = 1; // line
+    private const byte PathPointTypeBezier = 3; // default Bezier (= cubic Bezier)
+    private const byte PathPointTypePathTypeMask = 0x07; // type mask (lowest 3 bits).
+    private const byte PathPointTypeCloseSubpath = 0x80; // closed flag
+
     private void AppendPath(XPoint[] points, Byte[] types)
     {
         const string format = Config.SignificantFigures4;
@@ -1212,15 +1142,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         for (var idx = 0; idx < count; idx++)
         {
-            // ReSharper disable InconsistentNaming
-            // From GDI+ documentation:
-            const byte PathPointTypeStart = 0; // move
-            const byte PathPointTypeLine = 1; // line
-            const byte PathPointTypeBezier = 3; // default Bezier (= cubic Bezier)
-            const byte PathPointTypePathTypeMask = 0x07; // type mask (lowest 3 bits).
-            const byte PathPointTypeCloseSubpath = 0x80; // closed flag
-            // ReSharper restore InconsistentNaming
-
             var type = types[idx];
             switch (type & PathPointTypePathTypeMask)
             {
@@ -1230,8 +1151,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
                 case PathPointTypeLine:
                     AppendFormatPoint("{0:" + format + "} {1:" + format + "} l\n", points[idx].X, points[idx].Y);
-                    if ((type & PathPointTypeCloseSubpath) != 0)
-                        Append("h\n");
+                    AppendCloseSubpathIfMarked(type);
                     break;
 
                 case PathPointTypeBezier:
@@ -1240,11 +1160,16 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                         "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format +
                         "} {5:" + format + "} c\n", points[idx].X, points[idx].Y,
                         points[++idx].X, points[idx].Y, points[++idx].X, points[idx].Y);
-                    if ((types[idx] & PathPointTypeCloseSubpath) != 0)
-                        Append("h\n");
+                    AppendCloseSubpathIfMarked(types[idx]);
                     break;
             }
         }
+    }
+
+    private void AppendCloseSubpathIfMarked(byte type)
+    {
+        if ((type & PathPointTypeCloseSubpath) != 0)
+            Append("h\n");
     }
 
     internal void Append(string value)
@@ -1417,24 +1342,20 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         if (closePath)
             _content.Append("h ");
 
-        if (fillMode == XFillMode.Winding)
-        {
-            if (pen != null && brush != null)
-                _content.Append("B\n");
-            else if (pen != null)
-                _content.Append("S\n");
-            else
-                _content.Append("f\n");
-        }
-        else
-        {
-            if (pen != null && brush != null)
-                _content.Append("B*\n");
-            else if (pen != null)
-                _content.Append("S\n");
-            else
-                _content.Append("f*\n");
-        }
+        _content.Append(PaintOperator(pen != null, brush != null, fillMode == XFillMode.Winding));
+    }
+
+    /// <summary>
+    /// The operator that paints the current path: stroked, filled, or both. Without a pen the path
+    /// is filled whether or not there is a brush.
+    /// </summary>
+    private static string PaintOperator(bool strokes, bool fills, bool winding)
+    {
+        if (!strokes)
+            return winding ? "f\n" : "f*\n";
+        if (!fills)
+            return "S\n";
+        return winding ? "B\n" : "B*\n";
     }
 
     #endregion
@@ -1984,7 +1905,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         XPen pen, XStringFormat format)
     {
         const string sizeFormat = Config.SignificantFigures3;
-        const string numberFormat = Config.SignificantFigures3;
 
         var parts = new StringBuilder();
         var selected = font;
@@ -2007,20 +1927,8 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             var wantedCharSpace =
                 format.CharacterSpacing + FontHelper.BoldSimulationSpacing(segment.Font);
 
-            if (wantedMode != mode)
-            {
-                parts.AppendFormat(CultureInfo.InvariantCulture, "{0} Tr\n", wantedMode);
-                mode = wantedMode;
-            }
-
-#pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
-            if (wantedCharSpace != charSpace)
-#pragma warning restore S1244
-            {
-                parts.AppendFormat(CultureInfo.InvariantCulture,
-                    "{0:" + numberFormat + "} Tc\n", wantedCharSpace);
-                charSpace = wantedCharSpace;
-            }
+            mode = AppendRenderingModeChange(parts, mode, wantedMode);
+            charSpace = AppendCharSpaceChange(parts, charSpace, wantedCharSpace);
 
             if (!ReferenceEquals(segment.Font, selected))
             {
@@ -2035,16 +1943,8 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             parts.Append('\n');
         }
 
-        if (mode != stateMode)
-            parts.AppendFormat(CultureInfo.InvariantCulture, "{0} Tr\n", stateMode);
-
-#pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
-        if (charSpace != stateCharSpace)
-#pragma warning restore S1244
-        {
-            parts.AppendFormat(CultureInfo.InvariantCulture,
-                "{0:" + numberFormat + "} Tc\n", stateCharSpace);
-        }
+        AppendRenderingModeChange(parts, mode, stateMode);
+        AppendCharSpaceChange(parts, charSpace, stateCharSpace);
 
         if (!ReferenceEquals(selected, font))
         {
@@ -2053,6 +1953,37 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         }
 
         return parts.ToString().TrimEnd('\n');
+    }
+
+    /// <summary>
+    /// Writes a "Tr" when the text rendering mode wanted is not the current one. Answers the mode in
+    /// force afterwards.
+    /// </summary>
+    private static int AppendRenderingModeChange(StringBuilder parts, int current, int wanted)
+    {
+        if (wanted == current)
+            return current;
+
+        parts.AppendFormat(CultureInfo.InvariantCulture, "{0} Tr\n", wanted);
+        return wanted;
+    }
+
+    /// <summary>
+    /// Writes a "Tc" when the character spacing wanted is not the current one. Answers the spacing
+    /// in force afterwards.
+    /// </summary>
+    private static double AppendCharSpaceChange(StringBuilder parts, double current, double wanted)
+    {
+        const string numberFormat = Config.SignificantFigures3;
+
+#pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
+        if (wanted == current)
+#pragma warning restore S1244
+            return current;
+
+        parts.AppendFormat(CultureInfo.InvariantCulture,
+            "{0:" + numberFormat + "} Tc\n", wanted);
+        return wanted;
     }
 
     /// <summary>
@@ -2271,12 +2202,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             ? format.WordSpacing
             : 0;
 
-        bool displacedSideways = false, displacedUpwards = false;
-        for (var idx = from; idx < to; idx++)
-        {
-            displacedSideways |= shaped[idx].OffsetX != 0;
-            displacedUpwards |= shaped[idx].OffsetY != 0;
-        }
+        var (displacedSideways, displacedUpwards) = DisplacementsIn(shaped, from, to);
 
         if (wordSpacing == 0 && !displacedSideways && !displacedUpwards)
             return GlyphRunToHexString(glyphs.Substring(from, to - from)) + " Tj";
@@ -2285,8 +2211,33 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             return ShownGlyphs(text, run, glyphs, fontSize, wordSpacing, from, to);
 
         // Where the graphics state already has the rise, and where it has to be left.
-        var baseline = format.TextRise;
+        return RaisedOperators(text, run, glyphs, fontSize, wordSpacing, from, to, format.TextRise);
+    }
 
+    /// <summary>
+    /// Whether any of glyphs <paramref name="from"/> up to <paramref name="to"/> is displaced
+    /// sideways, and whether any is displaced upwards.
+    /// </summary>
+    private static (bool Sideways, bool Upwards) DisplacementsIn(IReadOnlyList<ShapedGlyph> shaped, int from, int to)
+    {
+        bool displacedSideways = false, displacedUpwards = false;
+        for (var idx = from; idx < to; idx++)
+        {
+            displacedSideways |= shaped[idx].OffsetX != 0;
+            displacedUpwards |= shaped[idx].OffsetY != 0;
+        }
+        return (displacedSideways, displacedUpwards);
+    }
+
+    /// <summary>
+    /// Glyphs <paramref name="from"/> up to <paramref name="to"/> of a run some of whose glyphs a
+    /// shaper raised or lowered: grouped by rise, each group shown after a "Ts" that sets it, and
+    /// the rise put back to <paramref name="baseline"/> at the end.
+    /// </summary>
+    private static string RaisedOperators(string text, ShapedRun run, string glyphs, double fontSize,
+        double wordSpacing, int from, int to, double baseline)
+    {
+        var shaped = run.Glyphs;
         var parts = new StringBuilder();
         var realized = baseline;
         var start = from;
@@ -2338,7 +2289,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     {
         var shaped = run.Glyphs;
         var emUnits = 1000.0 / run.UnitsPerEm;
-        var wordAdjustment = fontSize > 0 ? -wordSpacing * 1000 / fontSize : 0;
+        var wordAdjustment = WordAdjustmentOf(wordSpacing, fontSize);
 
         var tj = new StringBuilder("[");
         var pending = from;
@@ -2371,10 +2322,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                 Move(-sideways);
             }
 
-            var after = sideways;
-            if (wordAdjustment != 0 && IsLastGlyphOfWordSpace(text, shaped, idx))
-                after += wordAdjustment;
-
+            var after = MoveAfterGlyph(text, shaped, idx, sideways, wordAdjustment);
             if (after == 0)
                 continue;
 
@@ -2393,6 +2341,34 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             return GlyphRunToHexString(glyphs.Substring(from, to - from)) + " Tj";
         }
 
+        return ClosedTJ(tj);
+    }
+
+    /// <summary>
+    /// The word spacing as a TJ displacement, in thousandths of the font size. A font of no size has
+    /// none.
+    /// </summary>
+    private static double WordAdjustmentOf(double wordSpacing, double fontSize)
+        => fontSize > 0 ? -wordSpacing * 1000 / fontSize : 0;
+
+    /// <summary>
+    /// How far to move after the glyph at <paramref name="idx"/>: back by the sideways displacement
+    /// it was drawn with, plus the word spacing when it is the last glyph of a space.
+    /// </summary>
+    private static double MoveAfterGlyph(string text, IReadOnlyList<ShapedGlyph> shaped, int idx, double sideways,
+        double wordAdjustment)
+    {
+        var after = sideways;
+        if (wordAdjustment != 0 && IsLastGlyphOfWordSpace(text, shaped, idx))
+            after += wordAdjustment;
+        return after;
+    }
+
+    /// <summary>
+    /// Ends a TJ array begun with "[".
+    /// </summary>
+    private static string ClosedTJ(StringBuilder tj)
+    {
         // A run ending on a displacement leaves a space behind it, which is legal and untidy.
         if (tj[^1] == ' ')
             tj.Length--;

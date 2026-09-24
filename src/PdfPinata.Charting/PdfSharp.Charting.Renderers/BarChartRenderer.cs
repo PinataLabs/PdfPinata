@@ -224,21 +224,26 @@ internal class BarChartRenderer : ChartRenderer
 
       sri.PointRendererInfos = new PointRendererInfo[sri.Series.Elements.Count];
       for (var pointIdx = 0; pointIdx < sri.PointRendererInfos.Length; ++pointIdx)
-      {
-        PointRendererInfo pri = new ColumnRendererInfo();
-        var point = sri.Series.Elements[pointIdx];
-        pri.Point = point;
-        if (point != null)
-        {
-          pri.LineFormat = sri.LineFormat;
-          pri.FillFormat = sri.FillFormat;
-          if (point.lineFormat is { color.IsEmpty: false })
-            pri.LineFormat = Converter.ToXPen(point.lineFormat, sri.LineFormat);
-          if (point.fillFormat is { color.IsEmpty: false })
-            pri.FillFormat = new XSolidBrush(point.fillFormat.color);
-        }
-        sri.PointRendererInfos[pointIdx] = pri;
-      }
+        sri.PointRendererInfos[pointIdx] = InitPoint(sri, sri.Series.Elements[pointIdx]);
     }
+  }
+
+  /// <summary>
+  /// Initializes the data to draw one bar, which takes the series' formats unless it has its own.
+  /// </summary>
+  private static PointRendererInfo InitPoint(SeriesRendererInfo sri, Point point)
+  {
+    PointRendererInfo pri = new ColumnRendererInfo();
+    pri.Point = point;
+    if (point == null)
+      return pri;
+
+    pri.LineFormat = sri.LineFormat;
+    pri.FillFormat = sri.FillFormat;
+    if (point.lineFormat is { color.IsEmpty: false })
+      pri.LineFormat = Converter.ToXPen(point.lineFormat, sri.LineFormat);
+    if (point.fillFormat is { color.IsEmpty: false })
+      pri.FillFormat = new XSolidBrush(point.fillFormat.color);
+    return pri;
   }
 }

@@ -201,26 +201,27 @@ public static class PdfUaValidator
 
             foreach (var item in annotations.Elements)
             {
-                if (!(Resolve(item) is PdfDictionary dictionary))
-                    continue;
-
-                if (dictionary.Elements.GetName(PdfAnnotation.Keys.Subtype) != "/Link")
-                    continue;
-
-                if (string.IsNullOrEmpty(dictionary.Elements.GetString(PdfAnnotation.Keys.Contents)))
-                    throw new InvalidOperationException(
-                        "A link on page " + (index + 1) + " has no /Contents, so a reader announcing "
-                        + "it can only say \"link\". Give the annotation a description of where it "
-                        + "goes. From PinataLayout, this is written from the hyperlink's own text.");
-
-                if (!dictionary.Elements.ContainsKey("/StructParent"))
-                    throw new InvalidOperationException(
-                        "A link on page " + (index + 1) + " is not reachable from the structure tree. "
-                        + "A link is content as much as anything drawn is, and one that only exists "
-                        + "as a rectangle is found by a reader hit-testing the page and by nothing "
-                        + "else. Join it with PdfStructureBuilder.AddAnnotation.");
+                if (Resolve(item) is PdfDictionary dictionary
+                    && dictionary.Elements.GetName(PdfAnnotation.Keys.Subtype) == "/Link")
+                    RequireDescribedLink(dictionary, index + 1);
             }
         }
+    }
+
+    private static void RequireDescribedLink(PdfDictionary link, int pageNumber)
+    {
+        if (string.IsNullOrEmpty(link.Elements.GetString(PdfAnnotation.Keys.Contents)))
+            throw new InvalidOperationException(
+                "A link on page " + pageNumber + " has no /Contents, so a reader announcing "
+                + "it can only say \"link\". Give the annotation a description of where it "
+                + "goes. From PinataLayout, this is written from the hyperlink's own text.");
+
+        if (!link.Elements.ContainsKey("/StructParent"))
+            throw new InvalidOperationException(
+                "A link on page " + pageNumber + " is not reachable from the structure tree. "
+                + "A link is content as much as anything drawn is, and one that only exists "
+                + "as a rectangle is found by a reader hit-testing the page and by nothing "
+                + "else. Join it with PdfStructureBuilder.AddAnnotation.");
     }
 
     /// <summary>

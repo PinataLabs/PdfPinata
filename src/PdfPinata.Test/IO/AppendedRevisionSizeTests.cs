@@ -176,37 +176,55 @@ public class AppendedRevisionSizeTests
         const string ids = "/ID [<00112233445566778899AABBCCDDEEFF> <00112233445566778899AABBCCDDEEFF>]";
         if (crossReferenceStream)
         {
-            // Object 5 is the stream; 6 to 11 are free. Rows of /W [1 4 2], uncompressed.
+            // Object 5 is the stream; 6 to 11 are free.
             offsets.Add(startxref);
-            var rows = new List<byte>();
-            void Row(int type, int field2, int field3)
-            {
-                rows.Add((byte)type);
-                rows.AddRange([(byte)(field2 >> 24), (byte)(field2 >> 16), (byte)(field2 >> 8), (byte)field2]);
-                rows.AddRange([(byte)(field3 >> 8), (byte)field3]);
-            }
-            Row(0, 0, 65535);
-            foreach (var offset in offsets)
-                Row(1, offset, 0);
-            for (var number = offsets.Count + 1; number < PreviousSize; number++)
-                Row(0, 0, 1);
-
-            text.Append($"5 0 obj\n<< /Type /XRef /Size {declaredSize} /Index [0 {PreviousSize}] /W [1 4 2] /Root 1 0 R /Info 4 0 R {ids} /Length {rows.Count} >>\nstream\n");
-            text.Append(Encoding.Latin1.GetString(rows.ToArray()));
-            text.Append("\nendstream\nendobj\n");
+            AppendCrossReferenceStream(text, offsets, declaredSize, ids);
         }
         else
         {
-            text.Append($"xref\n0 {PreviousSize}\n0000000000 65535 f \n");
-            foreach (var offset in offsets)
-                text.Append($"{offset:0000000000} 00000 n \n");
-            for (var number = offsets.Count + 1; number < PreviousSize; number++)
-                text.Append("0000000000 00001 f \n");
-            text.Append($"trailer\n<< /Size {declaredSize} /Root 1 0 R /Info 4 0 R {ids} >>\n");
+            AppendCrossReferenceTable(text, offsets, declaredSize, ids);
         }
 
         text.Append($"startxref\n{startxref}\n%%EOF\n");
         return Encoding.Latin1.GetBytes(text.ToString());
+    }
+
+    /// <summary>
+    /// Object 5, a cross-reference stream of <see cref="PreviousSize"/> rows of <c>/W [1 4 2]</c>,
+    /// uncompressed: the objects at <paramref name="offsets"/> in use and every other one free.
+    /// </summary>
+    private static void AppendCrossReferenceStream(StringBuilder text, List<int> offsets, int declaredSize, string ids)
+    {
+        var rows = new List<byte>();
+        void Row(int type, int field2, int field3)
+        {
+            rows.Add((byte)type);
+            rows.AddRange([(byte)(field2 >> 24), (byte)(field2 >> 16), (byte)(field2 >> 8), (byte)field2]);
+            rows.AddRange([(byte)(field3 >> 8), (byte)field3]);
+        }
+        Row(0, 0, 65535);
+        foreach (var offset in offsets)
+            Row(1, offset, 0);
+        for (var number = offsets.Count + 1; number < PreviousSize; number++)
+            Row(0, 0, 1);
+
+        text.Append($"5 0 obj\n<< /Type /XRef /Size {declaredSize} /Index [0 {PreviousSize}] /W [1 4 2] /Root 1 0 R /Info 4 0 R {ids} /Length {rows.Count} >>\nstream\n");
+        text.Append(Encoding.Latin1.GetString(rows.ToArray()));
+        text.Append("\nendstream\nendobj\n");
+    }
+
+    /// <summary>
+    /// A classic cross-reference table of <see cref="PreviousSize"/> entries and its trailer: the
+    /// objects at <paramref name="offsets"/> in use and every other one free.
+    /// </summary>
+    private static void AppendCrossReferenceTable(StringBuilder text, List<int> offsets, int declaredSize, string ids)
+    {
+        text.Append($"xref\n0 {PreviousSize}\n0000000000 65535 f \n");
+        foreach (var offset in offsets)
+            text.Append($"{offset:0000000000} 00000 n \n");
+        for (var number = offsets.Count + 1; number < PreviousSize; number++)
+            text.Append("0000000000 00001 f \n");
+        text.Append($"trailer\n<< /Size {declaredSize} /Root 1 0 R /Info 4 0 R {ids} >>\n");
     }
 
     private static byte[] AppendChange(byte[] original, Action<PdfDocument> change)

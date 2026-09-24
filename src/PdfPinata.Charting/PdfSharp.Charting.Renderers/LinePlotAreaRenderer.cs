@@ -74,19 +74,7 @@ internal class LinePlotAreaRenderer : ColumnLikePlotAreaRenderer
             if (count < 2)
                 continue;
 
-            var points = new XPoint[count];
-            for (var idx = 0; idx < count; idx++)
-            {
-                // Off the series rather than through PointRendererInfos, which the line chart renderer
-                // does not fill in. A blank is a null element, and is drawn at zero whatever
-                // Chart.DisplayBlanksAs says: NotPlotted and Interpolated are not implemented here.
-                var element = sri.Series.Elements[idx];
-                var v = element?.Value ?? double.NaN;
-                if (double.IsNaN(v))
-                    v = 0;
-                points[idx] = new XPoint(idx + xMajorTick / 2, v);
-            }
-
+            var points = SeriesPoints(sri, count, xMajorTick);
             matrix.TransformPoints(points);
 
             // A line format that says Visible = false converts to a pen of width 0, which to PDF is the
@@ -97,6 +85,26 @@ internal class LinePlotAreaRenderer : ColumnLikePlotAreaRenderer
         }
 
         gfx.Restore(state);
+    }
+
+    /// <summary>
+    /// The points of one series in chart coordinates, one to a category.
+    /// </summary>
+    private static XPoint[] SeriesPoints(SeriesRendererInfo sri, int count, double xMajorTick)
+    {
+        var points = new XPoint[count];
+        for (var idx = 0; idx < count; idx++)
+        {
+            // Off the series rather than through PointRendererInfos, which the line chart renderer
+            // does not fill in. A blank is a null element, and is drawn at zero whatever
+            // Chart.DisplayBlanksAs says: NotPlotted and Interpolated are not implemented here.
+            var element = sri.Series.Elements[idx];
+            var v = element?.Value ?? double.NaN;
+            if (double.IsNaN(v))
+                v = 0;
+            points[idx] = new XPoint(idx + xMajorTick / 2, v);
+        }
+        return points;
     }
 
     /// <summary>

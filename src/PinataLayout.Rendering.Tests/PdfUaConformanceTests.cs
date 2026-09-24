@@ -400,22 +400,24 @@ public class PdfUaConformanceTests
         {
             if (item is PdfReference reference) item = reference.Value;
 
-            if (item is PdfArray array)
-            {
-                foreach (var element in array.Elements)
-                {
-                    var found = FindByType(element, type);
-                    if (found != null) return found;
-                }
-
-                return null;
-            }
+            if (item is PdfArray array) return FindByTypeAmong(array, type);
 
             if (item is not PdfDictionary dictionary) return null;
 
             if (dictionary.Elements.GetName("/S") == type) return dictionary;
             item = dictionary.Elements["/K"];
         }
+    }
+
+    private static PdfDictionary FindByTypeAmong(PdfArray array, string type)
+    {
+        foreach (var element in array.Elements)
+        {
+            var found = FindByType(element, type);
+            if (found != null) return found;
+        }
+
+        return null;
     }
 
     /// <summary>

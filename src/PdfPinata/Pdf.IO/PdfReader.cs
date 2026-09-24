@@ -551,24 +551,30 @@ public static class PdfReader
             foreach (var item in xrefStream.Entries)
             {
                 // Is type xref to compressed object?
-                if (item.Type != 2)
+                if (item.Type != 2 || IsReadAlready(document, item))
                     continue;
-
-                // Only the newest revision's word on an object counts. Reading an older
-                // revision's compressed copy puts it in the table over whatever the newer
-                // one says - a catalog a signing tool wrote out uncompressed, with the
-                // /AcroForm it added, lost to the compressed catalog it replaced. The
-                // streams are newest first, so the first to read an object is the newest.
-                if (item.ObjectNumber >= 1)
-                {
-                    var entry = document._irefTable[new PdfObjectID(item.ObjectNumber)];
-                    if (entry is not { Position: < 0, Value: null })
-                        continue;
-                }
 
                 parser.ReadCompressedObject(new PdfObjectID((int)item.Field2), (int)item.Field3);
             }
         }
+    }
+
+    /// <summary>
+    /// Whether the object a compressed entry names has been placed in the table already, by a
+    /// newer revision.
+    /// </summary>
+    private static bool IsReadAlready(PdfDocument document, PdfCrossReferenceStream.CrossReferenceStreamEntry item)
+    {
+        // Only the newest revision's word on an object counts. Reading an older
+        // revision's compressed copy puts it in the table over whatever the newer
+        // one says - a catalog a signing tool wrote out uncompressed, with the
+        // /AcroForm it added, lost to the compressed catalog it replaced. The
+        // streams are newest first, so the first to read an object is the newest.
+        if (item.ObjectNumber < 1)
+            return false;
+
+        var entry = document._irefTable[new PdfObjectID(item.ObjectNumber)];
+        return entry is not { Position: < 0, Value: null };
     }
 
     /// <summary>

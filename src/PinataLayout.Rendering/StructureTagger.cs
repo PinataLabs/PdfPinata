@@ -382,55 +382,66 @@ internal sealed class StructureTagger
         var ambientParent = ParentFor(paragraph);
 
         if (_listFrames.Count == 0)
-        {
             OpenList(type, level, ambientParent);
-        }
         else
-        {
-            while (_listFrames.Count > 1 && level < _listFrames.Peek().Level)
-                _listFrames.Pop();
-
-            var top = _listFrames.Peek();
-
-            if (level < top.Level)
-            {
-                // Shallower than even the outermost open frame: nothing here still applies.
-                _listFrames.Clear();
-                OpenList(type, level, ambientParent);
-            }
-            else if (level == top.Level)
-            {
-                // The outermost frame hangs off wherever the ambient context says it should; a
-                // nested one always hangs off the same fixed parent it was opened with, so this
-                // comparison only ever finds a mismatch at the outermost level - exactly where a
-                // change of surrounding context matters.
-                var desiredParent = _listFrames.Count == 1 ? ambientParent : top.Parent;
-                if (type != top.Type || !ReferenceEquals(top.Parent, desiredParent))
-                {
-                    var parent = top.Parent;
-                    _listFrames.Pop();
-                    OpenList(type, level, parent);
-                }
-            }
-            else
-            {
-                // Deeper: nested inside the body of the item the enclosing frame last added, which
-                // is where the standard puts a nested list. top.LastItem is never null here - a frame
-                // only ever becomes "top" after a ListItem call set it - so the body already exists by
-                // now, made when that item finished rendering, Lbl and LBody both. Asking for it
-                // rather than building it here matters: building it here would give an item's body a
-                // child before its own label, and every list would come out with LBody ahead of Lbl
-                // instead of behind it.
-                var enclosingBody = Element(top.LastItemKey, PdfTag.LBody, top.LastItem, ListBodySlot);
-                OpenList(type, level, enclosingBody);
-            }
-        }
+            PlaceAmongOpenLists(type, level, ambientParent);
 
         var frame = _listFrames.Peek();
         var item = Element(paragraph, PdfTag.LI, frame.List);
         frame.LastItem = item;
         frame.LastItemKey = paragraph;
         return item;
+    }
+
+    /// <summary>
+    /// Leaves on top the frame an item at <paramref name="level"/> belongs in, when at least one
+    /// frame is already open: closing deeper ones, restarting a shallower run, continuing or
+    /// replacing an equal one, or nesting a new one.
+    /// </summary>
+    private void PlaceAmongOpenLists(ListType type, int level, PdfStructureElement ambientParent)
+    {
+        while (_listFrames.Count > 1 && level < _listFrames.Peek().Level)
+            _listFrames.Pop();
+
+        var top = _listFrames.Peek();
+
+        if (level < top.Level)
+        {
+            // Shallower than even the outermost open frame: nothing here still applies.
+            _listFrames.Clear();
+            OpenList(type, level, ambientParent);
+        }
+        else if (level == top.Level)
+        {
+            ContinueOrReplaceFrame(top, type, level, ambientParent);
+        }
+        else
+        {
+            // Deeper: nested inside the body of the item the enclosing frame last added, which
+            // is where the standard puts a nested list. top.LastItem is never null here - a frame
+            // only ever becomes "top" after a ListItem call set it - so the body already exists by
+            // now, made when that item finished rendering, Lbl and LBody both. Asking for it
+            // rather than building it here matters: building it here would give an item's body a
+            // child before its own label, and every list would come out with LBody ahead of Lbl
+            // instead of behind it.
+            var enclosingBody = Element(top.LastItemKey, PdfTag.LBody, top.LastItem, ListBodySlot);
+            OpenList(type, level, enclosingBody);
+        }
+    }
+
+    private void ContinueOrReplaceFrame(ListFrame top, ListType type, int level, PdfStructureElement ambientParent)
+    {
+        // The outermost frame hangs off wherever the ambient context says it should; a
+        // nested one always hangs off the same fixed parent it was opened with, so this
+        // comparison only ever finds a mismatch at the outermost level - exactly where a
+        // change of surrounding context matters.
+        var desiredParent = _listFrames.Count == 1 ? ambientParent : top.Parent;
+        if (type == top.Type && ReferenceEquals(top.Parent, desiredParent))
+            return;
+
+        var parent = top.Parent;
+        _listFrames.Pop();
+        OpenList(type, level, parent);
     }
 
     /// <summary>

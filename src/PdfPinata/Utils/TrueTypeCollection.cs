@@ -133,14 +133,7 @@ public static class TrueTypeCollection
             return data;
         }
 
-        var faceCount = ValidateFaceCount(U32(data, 8), data.Length);
-        if (faceIndex < 0 || faceIndex >= faceCount)
-            throw new ArgumentOutOfRangeException(nameof(faceIndex),
-                "Font collection holds " + faceCount + " faces; face " + faceIndex + " was asked for.");
-
-        var directory = (int)U32(data, OffsetTableLength + faceIndex * 4);
-        if (directory < 0 || directory + OffsetTableLength > data.Length)
-            throw new InvalidOperationException("Font collection points at a face outside the file.");
+        var directory = FaceDirectory(data, faceIndex);
 
         var sfntVersion = U32(data, directory);
         var tableCount = U16(data, directory + 4);
@@ -154,8 +147,56 @@ public static class TrueTypeCollection
         // Lay the new file out: offset table, then the directory, then each table 4-byte aligned.
         var lengths = new int[tableCount];
         var sources = new int[tableCount];
-        var position = OffsetTableLength + tableCount * TableRecordLength;
         var targets = new int[tableCount];
+        var position = LayOutTables(data, records, sources, lengths, targets);
+
+        var font = new byte[position];
+        WriteOffsetTable(font, sfntVersion, tableCount);
+
+        for (var idx = 0; idx < tableCount; idx++)
+        {
+            var source = records + idx * TableRecordLength;
+            var target = OffsetTableLength + idx * TableRecordLength;
+
+            // Tag and checksum carry over untouched; only the offset is rewritten.
+            Buffer.BlockCopy(data, source, font, target, 8);
+            W32(font, target + 8, (uint)targets[idx]);
+            W32(font, target + 12, (uint)lengths[idx]);
+
+            Buffer.BlockCopy(data, sources[idx], font, targets[idx], lengths[idx]);
+        }
+
+        return font;
+    }
+
+
+    /// <summary>
+    /// Where the table directory of one face of a collection starts, checked against both the
+    /// number of faces the collection declares and the length of the file.
+    /// </summary>
+    private static int FaceDirectory(byte[] data, int faceIndex)
+    {
+        var faceCount = ValidateFaceCount(U32(data, 8), data.Length);
+        if (faceIndex < 0 || faceIndex >= faceCount)
+            throw new ArgumentOutOfRangeException(nameof(faceIndex),
+                "Font collection holds " + faceCount + " faces; face " + faceIndex + " was asked for.");
+
+        var directory = (int)U32(data, OffsetTableLength + faceIndex * 4);
+        if (directory < 0 || directory + OffsetTableLength > data.Length)
+            throw new InvalidOperationException("Font collection points at a face outside the file.");
+
+        return directory;
+    }
+
+
+    /// <summary>
+    /// Reads where each table's data is and how long it is, and gives each a 4-byte aligned place
+    /// after the directory in the new file. Answers the length of the new file.
+    /// </summary>
+    private static int LayOutTables(byte[] data, int records, int[] sources, int[] lengths, int[] targets)
+    {
+        var tableCount = sources.Length;
+        var position = OffsetTableLength + tableCount * TableRecordLength;
 
         for (var idx = 0; idx < tableCount; idx++)
         {
@@ -172,8 +213,15 @@ public static class TrueTypeCollection
             position += Align4(length);
         }
 
-        var font = new byte[position];
+        return position;
+    }
 
+
+    /// <summary>
+    /// Writes the offset table at the start of the new file.
+    /// </summary>
+    private static void WriteOffsetTable(byte[] font, uint sfntVersion, int tableCount)
+    {
         W32(font, 0, sfntVersion);
         W16(font, 4, tableCount);
 
@@ -184,21 +232,6 @@ public static class TrueTypeCollection
         W16(font, 6, searchRange);
         W16(font, 8, entrySelector);
         W16(font, 10, tableCount * TableRecordLength - searchRange);
-
-        for (var idx = 0; idx < tableCount; idx++)
-        {
-            var source = records + idx * TableRecordLength;
-            var target = OffsetTableLength + idx * TableRecordLength;
-
-            // Tag and checksum carry over untouched; only the offset is rewritten.
-            Buffer.BlockCopy(data, source, font, target, 8);
-            W32(font, target + 8, (uint)targets[idx]);
-            W32(font, target + 12, (uint)lengths[idx]);
-
-            Buffer.BlockCopy(data, sources[idx], font, targets[idx], lengths[idx]);
-        }
-
-        return font;
     }
 
 

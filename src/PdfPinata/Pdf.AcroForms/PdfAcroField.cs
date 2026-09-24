@@ -412,21 +412,20 @@ public abstract class PdfAcroField : PdfDictionary
             AppDict(dict, names);
 
             if (HasKids)
-            {
-                var kids = Fields.Elements.Items;
-                foreach (var pdfItem in kids)
-                {
-                    if (pdfItem is not PdfReference reference)
-                        continue;
-
-                    if (reference.Value is PdfDictionary xxx)
-                        AppDict(xxx, names);
-                }
-            }
+                AppKids(names);
         }
         var array = new string[names.Count];
         names.Keys.CopyTo(array, 0);
         return array;
+    }
+
+    private void AppKids(Dictionary<string, object> names)
+    {
+        foreach (var pdfItem in Fields.Elements.Items)
+        {
+            if (pdfItem is PdfReference { Value: PdfDictionary kid })
+                AppDict(kid, names);
+        }
     }
 
     private static void AppDict(PdfDictionary dict, Dictionary<string, object> names)

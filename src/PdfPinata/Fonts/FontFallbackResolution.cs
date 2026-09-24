@@ -104,16 +104,7 @@ internal static class FontFallbackResolution
     private static string Decide(IFontFallback fallback, int codePoint, XFont requested,
         OpenTypeDescriptor descriptor)
     {
-        // Whitespace and joining controls are asked about as characters because that is what they
-        // are: every one of them is inside the basic multilingual plane, and there is no astral
-        // code point either test would answer true for.
-        if (codePoint <= 0xFFFF
-            && (char.IsWhiteSpace((char)codePoint) || UnicodeProperties.IsJoiningControl((char)codePoint)))
-        {
-            return null;
-        }
-
-        if (UnicodeProperties.BidiClassOf(codePoint) == BidiClass.NSM)
+        if (TakesNoFaceOfItsOwn(codePoint))
             return null;
 
         if (Covers(descriptor, codePoint))
@@ -128,21 +119,45 @@ internal static class FontFallbackResolution
 
         foreach (var family in candidates)
         {
-            if (string.IsNullOrWhiteSpace(family))
-                continue;
-
-            var candidate = Resolved(family, requested);
-            if (candidate == null)
-                continue;
-
-            if (FontDescriptorCache.GetOrCreateDescriptorFor(candidate) is OpenTypeDescriptor other
-                && Covers(other, codePoint))
-            {
+            if (FamilyCovers(family, codePoint, requested))
                 return family;
-            }
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Whether a character goes with whatever face its neighbours are in rather than asking for
+    /// one: whitespace, a joining control or a non-spacing mark.
+    /// </summary>
+    private static bool TakesNoFaceOfItsOwn(int codePoint)
+    {
+        // Whitespace and joining controls are asked about as characters because that is what they
+        // are: every one of them is inside the basic multilingual plane, and there is no astral
+        // code point either test would answer true for.
+        if (codePoint <= 0xFFFF
+            && (char.IsWhiteSpace((char)codePoint) || UnicodeProperties.IsJoiningControl((char)codePoint)))
+        {
+            return true;
+        }
+
+        return UnicodeProperties.BidiClassOf(codePoint) == BidiClass.NSM;
+    }
+
+    /// <summary>
+    /// Whether <paramref name="family"/> resolves and has a glyph for <paramref name="codePoint"/>.
+    /// </summary>
+    private static bool FamilyCovers(string family, int codePoint, XFont requested)
+    {
+        if (string.IsNullOrWhiteSpace(family))
+            return false;
+
+        var candidate = Resolved(family, requested);
+        if (candidate == null)
+            return false;
+
+        return FontDescriptorCache.GetOrCreateDescriptorFor(candidate) is OpenTypeDescriptor other
+               && Covers(other, codePoint);
     }
 
     /// <summary>

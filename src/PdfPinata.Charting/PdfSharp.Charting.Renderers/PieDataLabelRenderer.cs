@@ -60,46 +60,52 @@ internal class PieDataLabelRenderer : DataLabelRenderer
       return;
 
     var sumValues = sri.SumOfPoints;
-    var gfx = rendererParms.Graphics;
-
-    sri.DataLabelRendererInfo.Entries = new DataLabelEntryRendererInfo[sri.PointRendererInfos.Length];
+    var dlri = sri.DataLabelRendererInfo;
+    dlri.Entries = new DataLabelEntryRendererInfo[sri.PointRendererInfos.Length];
     var index = 0;
     foreach (var sector in sri.PointRendererInfos.Cast<SectorRendererInfo>())
-    {
-      var dleri = new DataLabelEntryRendererInfo();
+      dlri.Entries[index++] = FormatLabel(dlri, sector, sumValues);
+  }
 
-      // A blank draws no wedge, so it is left with no text either and Draw passes over it.
-      // Writing what NaN formats to would label a wedge that is not there.
-      if (sri.DataLabelRendererInfo.Type != DataLabelType.None && !double.IsNaN(sector.Value))
-      {
-        if (sri.DataLabelRendererInfo.Type == DataLabelType.Percent)
-        {
-          // Two ways of asking for a percentage, and the caller's format says which. A format
-          // carrying '%' is a .NET percent format, which scales by a hundred and writes the sign
-          // itself, so it is handed the fraction and its result is used as it stands. Anything else
-          // is a plain numeric format, is handed the number out of a hundred, and has the sign
-          // appended - which is what this always did.
-          //
-          // Appending unconditionally made the natural format the broken one: "0%" over a share of
-          // 0.1875 produced "1875%%" rather than "19%", because 18.75 was scaled by a hundred a
-          // second time and signed twice. It read back exactly as it was set and printed nonsense.
-          var share = Math.Abs(sector.Value) / sumValues;
-          var format = sri.DataLabelRendererInfo.Format;
-          dleri.Text = format != null && format.Contains('%')
-            ? share.ToString(format)
-            : (share * 100).ToString(format) + "%";
-        }
-        else if (sri.DataLabelRendererInfo.Type == DataLabelType.Value)
-        {
-          dleri.Text = sector.Value.ToString(sri.DataLabelRendererInfo.Format);
-        }
+  /// <summary>
+  /// Writes and measures the data label of one sector.
+  /// </summary>
+  private DataLabelEntryRendererInfo FormatLabel(DataLabelRendererInfo dlri, SectorRendererInfo sector, double sumValues)
+  {
+    var dleri = new DataLabelEntryRendererInfo();
 
-        if (dleri.Text.Length > 0)
-          dleri.Size = gfx.MeasureString(dleri.Text, sri.DataLabelRendererInfo.Font);
-      }
+    // A blank draws no wedge, so it is left with no text either and Draw passes over it.
+    // Writing what NaN formats to would label a wedge that is not there.
+    if (dlri.Type == DataLabelType.None || double.IsNaN(sector.Value))
+      return dleri;
 
-      sri.DataLabelRendererInfo.Entries[index++] = dleri;
-    }
+    if (dlri.Type == DataLabelType.Percent)
+      dleri.Text = PercentText(Math.Abs(sector.Value) / sumValues, dlri.Format);
+    else if (dlri.Type == DataLabelType.Value)
+      dleri.Text = sector.Value.ToString(dlri.Format);
+
+    if (dleri.Text.Length > 0)
+      dleri.Size = rendererParms.Graphics.MeasureString(dleri.Text, dlri.Font);
+    return dleri;
+  }
+
+  /// <summary>
+  /// Writes a sector's share of the whole as a percentage.
+  /// </summary>
+  private static string PercentText(double share, string format)
+  {
+    // Two ways of asking for a percentage, and the caller's format says which. A format
+    // carrying '%' is a .NET percent format, which scales by a hundred and writes the sign
+    // itself, so it is handed the fraction and its result is used as it stands. Anything else
+    // is a plain numeric format, is handed the number out of a hundred, and has the sign
+    // appended - which is what this always did.
+    //
+    // Appending unconditionally made the natural format the broken one: "0%" over a share of
+    // 0.1875 produced "1875%%" rather than "19%", because 18.75 was scaled by a hundred a
+    // second time and signed twice. It read back exactly as it was set and printed nonsense.
+    return format != null && format.Contains('%')
+      ? share.ToString(format)
+      : (share * 100).ToString(format) + "%";
   }
 
   /// <summary>

@@ -105,68 +105,7 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
 
         UnitsPerEm = FontFace.head.unitsPerEm;
 
-        // Calculate Ascent, Descent, Leading and LineSpacing like in WPF Source Code (see FontDriver.ReadBasicMetrics)
-
-        // OS/2 is an optional table, but we can't determine if it is existing in this font.
-        var os2SeemsToBeEmpty = FontFace.os2.sTypoAscender == 0 && FontFace.os2.sTypoDescender == 0 &&
-                                FontFace.os2.sTypoLineGap == 0;
-
-        var dontUseWinLineMetrics = (FontFace.os2.fsSelection & 128) != 0;
-        if (!os2SeemsToBeEmpty && dontUseWinLineMetrics)
-        {
-            // Comment from WPF: The font specifies that the sTypoAscender, sTypoDescender, and sTypoLineGap fields are valid and
-            // should be used instead of winAscent and winDescent.
-            int typoAscender = FontFace.os2.sTypoAscender;
-            int typoDescender = FontFace.os2.sTypoDescender;
-            int typoLineGap = FontFace.os2.sTypoLineGap;
-
-            // Comment from WPF: We include the line gap in the ascent so that white space is distributed above the line. (Note that
-            // the typo line gap is a different concept than "external leading".)
-            Ascender = typoAscender + typoLineGap;
-            // Comment from WPF: Typo descent is a signed value where the positive direction is up. It is therefore typically negative.
-            // A signed typo descent would be quite unusual as it would indicate the descender was above the baseline
-            Descender = -typoDescender;
-            LineSpacing = typoAscender + typoLineGap - typoDescender;
-        }
-        else
-        {
-            // Comment from WPF: get the ascender field
-            int ascender = FontFace.hhea.ascender;
-            // Comment from WPF: get the descender field; this is measured in the same direction as ascender and is therefore
-            // normally negative whereas we want a positive value; however some fonts get the sign wrong
-            // so instead of just negating we take the absolute value.
-            int descender = Math.Abs(FontFace.hhea.descender);
-            // Comment from WPF: get the lineGap field and make sure it's >= 0
-            int lineGap = Math.Max((short)0, FontFace.hhea.lineGap);
-
-            if (!os2SeemsToBeEmpty)
-            {
-                // Comment from WPF: we could use sTypoAscender, sTypoDescender, and sTypoLineGap which are supposed to represent
-                // optimal typographic values not constrained by backwards compatibility; however, many fonts get
-                // these fields wrong or get them right only for Latin text; therefore we use the more reliable
-                // platform-specific Windows values. We take the absolute value of the win32descent in case some
-                // fonts get the sign wrong.
-                int winAscent = FontFace.os2.usWinAscent;
-                var winDescent = FontFace.os2.usWinDescent;
-
-                Ascender = winAscent;
-                Descender = winDescent;
-                // Comment from WPF: The following calculation for designLineSpacing is per [....]. The default line spacing
-                // should be the sum of the Mac ascender, descender, and lineGap unless the resulting value would
-                // be less than the cell height (winAscent + winDescent) in which case we use the cell height.
-                // See also http://www.microsoft.com/typography/otspec/recom.htm.
-                // Note that in theory it's valid for the baseline-to-baseline distance to be less than the cell
-                // height. However, Windows has never allowed this for Truetype fonts, and fonts built for Windows
-                // sometimes rely on this behavior and get the hha values wrong or set them all to zero.
-                LineSpacing = Math.Max(lineGap + ascender + descender, winAscent + winDescent);
-            }
-            else
-            {
-                Ascender = ascender;
-                Descender = descender;
-                LineSpacing = ascender + descender + lineGap;
-            }
-        }
+        InitializeLineMetrics();
 
         Debug.Assert(Descender >= 0);
 
@@ -174,6 +113,84 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
         var externalLeading = LineSpacing - cellHeight;
         Leading = externalLeading;
 
+        InitializeCapAndXHeight();
+        InitializeWidths();
+    }
+
+    /// <summary>
+    /// Calculates Ascent, Descent and LineSpacing like in WPF Source Code (see FontDriver.ReadBasicMetrics).
+    /// </summary>
+    private void InitializeLineMetrics()
+    {
+        // OS/2 is an optional table, but we can't determine if it is existing in this font.
+        var os2SeemsToBeEmpty = FontFace.os2.sTypoAscender == 0 && FontFace.os2.sTypoDescender == 0 &&
+                                FontFace.os2.sTypoLineGap == 0;
+
+        var dontUseWinLineMetrics = (FontFace.os2.fsSelection & 128) != 0;
+        if (!os2SeemsToBeEmpty && dontUseWinLineMetrics)
+            InitializeTypoLineMetrics();
+        else
+            InitializeHheaLineMetrics(os2SeemsToBeEmpty);
+    }
+
+    private void InitializeTypoLineMetrics()
+    {
+        // Comment from WPF: The font specifies that the sTypoAscender, sTypoDescender, and sTypoLineGap fields are valid and
+        // should be used instead of winAscent and winDescent.
+        int typoAscender = FontFace.os2.sTypoAscender;
+        int typoDescender = FontFace.os2.sTypoDescender;
+        int typoLineGap = FontFace.os2.sTypoLineGap;
+
+        // Comment from WPF: We include the line gap in the ascent so that white space is distributed above the line. (Note that
+        // the typo line gap is a different concept than "external leading".)
+        Ascender = typoAscender + typoLineGap;
+        // Comment from WPF: Typo descent is a signed value where the positive direction is up. It is therefore typically negative.
+        // A signed typo descent would be quite unusual as it would indicate the descender was above the baseline
+        Descender = -typoDescender;
+        LineSpacing = typoAscender + typoLineGap - typoDescender;
+    }
+
+    private void InitializeHheaLineMetrics(bool os2SeemsToBeEmpty)
+    {
+        // Comment from WPF: get the ascender field
+        int ascender = FontFace.hhea.ascender;
+        // Comment from WPF: get the descender field; this is measured in the same direction as ascender and is therefore
+        // normally negative whereas we want a positive value; however some fonts get the sign wrong
+        // so instead of just negating we take the absolute value.
+        int descender = Math.Abs(FontFace.hhea.descender);
+        // Comment from WPF: get the lineGap field and make sure it's >= 0
+        int lineGap = Math.Max((short)0, FontFace.hhea.lineGap);
+
+        if (os2SeemsToBeEmpty)
+        {
+            Ascender = ascender;
+            Descender = descender;
+            LineSpacing = ascender + descender + lineGap;
+            return;
+        }
+
+        // Comment from WPF: we could use sTypoAscender, sTypoDescender, and sTypoLineGap which are supposed to represent
+        // optimal typographic values not constrained by backwards compatibility; however, many fonts get
+        // these fields wrong or get them right only for Latin text; therefore we use the more reliable
+        // platform-specific Windows values. We take the absolute value of the win32descent in case some
+        // fonts get the sign wrong.
+        int winAscent = FontFace.os2.usWinAscent;
+        var winDescent = FontFace.os2.usWinDescent;
+
+        Ascender = winAscent;
+        Descender = winDescent;
+        // Comment from WPF: The following calculation for designLineSpacing is per [....]. The default line spacing
+        // should be the sum of the Mac ascender, descender, and lineGap unless the resulting value would
+        // be less than the cell height (winAscent + winDescent) in which case we use the cell height.
+        // See also http://www.microsoft.com/typography/otspec/recom.htm.
+        // Note that in theory it's valid for the baseline-to-baseline distance to be less than the cell
+        // height. However, Windows has never allowed this for Truetype fonts, and fonts built for Windows
+        // sometimes rely on this behavior and get the hha values wrong or set them all to zero.
+        LineSpacing = Math.Max(lineGap + ascender + descender, winAscent + winDescent);
+    }
+
+    private void InitializeCapAndXHeight()
+    {
         // sCapHeight and sxHeight are only valid if Version >= 2
         if (FontFace.os2.version >= 2 && FontFace.os2.sCapHeight != 0)
             CapHeight = FontFace.os2.sCapHeight;
@@ -184,7 +201,10 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
             XHeight = FontFace.os2.sxHeight;
         else
             XHeight = (int)(0.66 * Ascender);
+    }
 
+    private void InitializeWidths()
+    {
         var ansi = PdfEncoders.WinAnsiEncoding; // System.Text.Encoding.Default;
         var bytes = new byte[256];
 

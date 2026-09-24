@@ -92,20 +92,7 @@ internal static class TextShaping
 
         for (var idx = start; idx < end; idx++)
         {
-            // The trailing half of a surrogate pair is not a character and has no face of its own.
-            // Asked separately it would be a lone surrogate, which no cmap covers, and a cut here
-            // would put the two halves of one character in two fonts. It goes wherever its leading
-            // half went - so the pair is asked about once, at its leading half, as the one code
-            // point it spells.
-            if (idx > start && char.IsLowSurrogate(whole[idx]) && char.IsHighSurrogate(whole[idx - 1]))
-                continue;
-
-            var codePoint = char.IsHighSurrogate(whole[idx]) && idx + 1 < end
-                                                             && char.IsLowSurrogate(whole[idx + 1])
-                ? char.ConvertToUtf32(whole[idx], whole[idx + 1])
-                : whole[idx];
-
-            var wanted = FontFallbackResolution.FontFor(codePoint, font, descriptor);
+            var wanted = FaceWantedAt(whole, start, end, idx, font, descriptor);
 
             // No opinion, or the same opinion as the piece being built: nothing to cut.
             if (wanted == null || ReferenceEquals(wanted, piece))
@@ -134,6 +121,29 @@ internal static class TextShaping
         // runs of a paragraph, one level down and for a reason it knows nothing about.
         if (direction == XTextDirection.RightToLeft)
             into.Reverse(first, into.Count - first);
+    }
+
+    /// <summary>
+    /// The face fallback resolution wants for the character at <paramref name="idx"/>, or null
+    /// when it has no opinion.
+    /// </summary>
+    private static XFont FaceWantedAt(string whole, int start, int end, int idx, XFont font,
+        OpenTypeDescriptor descriptor)
+    {
+        // The trailing half of a surrogate pair is not a character and has no face of its own.
+        // Asked separately it would be a lone surrogate, which no cmap covers, and a cut here
+        // would put the two halves of one character in two fonts. It goes wherever its leading
+        // half went - so the pair is asked about once, at its leading half, as the one code
+        // point it spells.
+        if (idx > start && char.IsLowSurrogate(whole[idx]) && char.IsHighSurrogate(whole[idx - 1]))
+            return null;
+
+        var codePoint = char.IsHighSurrogate(whole[idx]) && idx + 1 < end
+                                                         && char.IsLowSurrogate(whole[idx + 1])
+            ? char.ConvertToUtf32(whole[idx], whole[idx + 1])
+            : whole[idx];
+
+        return FontFallbackResolution.FontFor(codePoint, font, descriptor);
     }
 
     private static ShapedSegment Segment(string whole, int start, int length, XTextDirection direction,
@@ -244,6 +254,43 @@ internal static class TextShaping
         var symbol = descriptor.FontFace.cmap.symbol;
         var symbolBase = descriptor.FontFace.os2.usFirstCharIndex & 0xFF00;
 
+        var drawn = DrawnCharacterCount(text);
+        if (drawn == 0)
+            return ShapedRun.Empty(descriptor.UnitsPerEm, direction);
+
+        var rightToLeft = direction == XTextDirection.RightToLeft;
+        var glyphs = new ShapedGlyph[drawn];
+        for (int idx = 0, position = 0; idx < text.Length; )
+        {
+            if (UnicodeProperties.IsJoiningControl(text[idx]))
+            {
+                idx++;
+                continue;
+            }
+
+            var length = CharacterLengthAt(text, idx);
+            var codePoint = UnshapedCodePoint(text, idx, length, symbol, symbolBase);
+            var glyphIndex = descriptor.CharCodeToGlyphIndex(codePoint);
+
+            // The cluster stays the index of the character it came from; only the position in the
+            // list changes, so a right-to-left run's clusters descend exactly as a shaper's do. For
+            // a surrogate pair it is the index of the high surrogate, and the next glyph's cluster
+            // is two further on, which is how the reader recovers both code units.
+            var at = rightToLeft ? drawn - 1 - position : position;
+            glyphs[at] = new ShapedGlyph((ushort)glyphIndex, idx, descriptor.GlyphIndexToWidth(glyphIndex));
+            position++;
+            idx += length;
+        }
+
+        return new ShapedRun(glyphs, descriptor.UnitsPerEm, direction);
+    }
+
+    /// <summary>
+    /// How many glyphs <see cref="Unshaped(System.ReadOnlySpan{char},OpenTypeDescriptor,XTextDirection)"/>
+    /// draws for <paramref name="text"/>: one per character, joining controls left out.
+    /// </summary>
+    private static int DrawnCharacterCount(ReadOnlySpan<char> text)
+    {
         // A joining control is inside the run because a real shaper has to read it - see
         // BidiResult.Runs - and this is not a real shaper. It draws nothing for one: the control is
         // zero width by definition, so whatever glyph the face happens to map it to is not a glyph
@@ -261,51 +308,23 @@ internal static class TextShaping
             idx += CharacterLengthAt(text, idx);
         }
 
-        if (drawn == 0)
-            return ShapedRun.Empty(descriptor.UnitsPerEm, direction);
+        return drawn;
+    }
 
-        var rightToLeft = direction == XTextDirection.RightToLeft;
-        var glyphs = new ShapedGlyph[drawn];
-        for (int idx = 0, position = 0; idx < text.Length; )
-        {
-            var ch = text[idx];
-            if (UnicodeProperties.IsJoiningControl(ch))
-            {
-                idx++;
-                continue;
-            }
+    /// <summary>
+    /// The code point the unshaped path looks the character at <paramref name="index"/> up by.
+    /// </summary>
+    private static int UnshapedCodePoint(ReadOnlySpan<char> text, int index, int length, bool symbol, int symbolBase)
+    {
+        var ch = text[index];
 
-            var length = CharacterLengthAt(text, idx);
-            int codePoint;
-            if (length == 2)
-            {
-                // An astral character. A symbol face never encodes one, so the shift below does not
-                // apply and would corrupt the code point if it did.
-                codePoint = char.ConvertToUtf32(ch, text[idx + 1]);
-            }
-            else if (symbol)
-            {
-                // Used | rather than + because of http://PdfPinata.codeplex.com/workitem/15954.
-                codePoint = ch | symbolBase;
-            }
-            else
-            {
-                codePoint = ch;
-            }
+        // An astral character. A symbol face never encodes one, so the shift below does not
+        // apply and would corrupt the code point if it did.
+        if (length == 2)
+            return char.ConvertToUtf32(ch, text[index + 1]);
 
-            var glyphIndex = descriptor.CharCodeToGlyphIndex(codePoint);
-
-            // The cluster stays the index of the character it came from; only the position in the
-            // list changes, so a right-to-left run's clusters descend exactly as a shaper's do. For
-            // a surrogate pair it is the index of the high surrogate, and the next glyph's cluster
-            // is two further on, which is how the reader recovers both code units.
-            var at = rightToLeft ? drawn - 1 - position : position;
-            glyphs[at] = new ShapedGlyph((ushort)glyphIndex, idx, descriptor.GlyphIndexToWidth(glyphIndex));
-            position++;
-            idx += length;
-        }
-
-        return new ShapedRun(glyphs, descriptor.UnitsPerEm, direction);
+        // Used | rather than + because of http://PdfPinata.codeplex.com/workitem/15954.
+        return symbol ? ch | symbolBase : ch;
     }
 
     /// <summary>
@@ -377,31 +396,25 @@ internal static class TextShaping
         if (cluster < 0 || cluster >= text.Length)
             return string.Empty;
 
-        var end = text.Length;
-        if (run.Direction == XTextDirection.RightToLeft)
+        var step = run.Direction == XTextDirection.RightToLeft ? -1 : 1;
+        var end = Math.Min(NextClusterAlongText(glyphs, index, step, text.Length), text.Length);
+        return end <= cluster ? string.Empty : text.Substring(cluster, end - cluster);
+    }
+
+    /// <summary>
+    /// The first cluster past the glyph at <paramref name="index"/>'s own, looking through the
+    /// glyphs in the direction <paramref name="step"/> says the text runs in, or
+    /// <paramref name="otherwise"/> when there is none.
+    /// </summary>
+    private static int NextClusterAlongText(IReadOnlyList<ShapedGlyph> glyphs, int index, int step, int otherwise)
+    {
+        var cluster = glyphs[index].Cluster;
+        for (var idx = index + step; idx >= 0 && idx < glyphs.Count; idx += step)
         {
-            for (var idx = index - 1; idx >= 0; idx--)
-            {
-                if (glyphs[idx].Cluster > cluster)
-                {
-                    end = glyphs[idx].Cluster;
-                    break;
-                }
-            }
-        }
-        else
-        {
-            for (var idx = index + 1; idx < glyphs.Count; idx++)
-            {
-                if (glyphs[idx].Cluster > cluster)
-                {
-                    end = glyphs[idx].Cluster;
-                    break;
-                }
-            }
+            if (glyphs[idx].Cluster > cluster)
+                return glyphs[idx].Cluster;
         }
 
-        end = Math.Min(end, text.Length);
-        return end <= cluster ? string.Empty : text.Substring(cluster, end - cluster);
+        return otherwise;
     }
 }

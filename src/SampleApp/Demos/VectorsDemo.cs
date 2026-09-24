@@ -323,12 +323,13 @@ internal sealed class VectorsDemo : PdfDemo
     private static void PensAndBrushes(PdfDocument document, Fonts fonts)
     {
         var sheet = NewPage(document, fonts, "Pens and brushes");
-        PenPanels(sheet, fonts);
+        PenEndPanels(sheet, fonts);
+        PenPatternPanels(sheet, fonts);
         BrushPanels(sheet, fonts);
     }
 
-    // The top two rows: everything an XPen carries besides its colour.
-    private static void PenPanels(XGraphics sheet, Fonts fonts)
+    // The top row: how thick a pen is, and what it does at the ends and the corners of a line.
+    private static void PenEndPanels(XGraphics sheet, Fonts fonts)
     {
         Panel(sheet, fonts, Cell(0, 0), "Width", (gfx, r) =>
         {
@@ -372,7 +373,11 @@ internal sealed class VectorsDemo : PdfDemo
                 y += r.Height / 3;
             }
         });
+    }
 
+    // The second row: where a mitre gives up, and the patterns a stroke can be broken into.
+    private static void PenPatternPanels(XGraphics sheet, Fonts fonts)
+    {
         Panel(sheet, fonts, Cell(0, 1), "MiterLimit", (gfx, r) =>
         {
             // A mitre on a sharp corner runs a long way past it - the spike below would reach
@@ -468,14 +473,7 @@ internal sealed class VectorsDemo : PdfDemo
             // A gradient one of whose ends is transparent needs a soft mask as well as a colour
             // ramp. It is drawn over a chequer here so that the transparency is visible as
             // transparency rather than as a colour.
-            for (var x = 0; x < 8; x++)
-            {
-                for (var y = 0; y < 5; y++)
-                {
-                    gfx.DrawRectangle((x + y) % 2 == 0 ? XBrushes.WhiteSmoke : XBrushes.Gainsboro,
-                        r.X + x * r.Width / 8, r.Y + y * r.Height / 5, r.Width / 8, r.Height / 5);
-                }
-            }
+            Chequer(gfx, r);
 
             // docs:begin fade-to-transparent
             gfx.DrawRectangle(new XLinearGradientBrush(r,
@@ -696,6 +694,19 @@ internal sealed class VectorsDemo : PdfDemo
         ]);
         gfx.DrawPath(new XPen(XColors.MidnightBlue, 1), new XSolidBrush(
             XColor.FromArgb(120, 100, 149, 237)), path);
+    }
+
+    // A grey and white chequer, eight squares across and five down, filling the cell.
+    private static void Chequer(XGraphics gfx, XRect r)
+    {
+        for (var x = 0; x < 8; x++)
+        {
+            for (var y = 0; y < 5; y++)
+            {
+                gfx.DrawRectangle((x + y) % 2 == 0 ? XBrushes.WhiteSmoke : XBrushes.Gainsboro,
+                    r.X + x * r.Width / 8, r.Y + y * r.Height / 5, r.Width / 8, r.Height / 5);
+            }
+        }
     }
 
     #endregion

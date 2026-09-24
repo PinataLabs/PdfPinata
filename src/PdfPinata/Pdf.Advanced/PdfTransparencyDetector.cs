@@ -187,13 +187,15 @@ internal static class PdfTransparencyDetector
 
         // An array is a list of blend modes in order of preference, the first one the reader
         // knows winning. Any of them being a real blend is enough to want a group.
-        if (item is PdfArray array)
+        return item is PdfArray array && AnyBlendsWithTheBackdrop(array);
+    }
+
+    private static bool AnyBlendsWithTheBackdrop(PdfArray blendModes)
+    {
+        foreach (var element in blendModes.Elements)
         {
-            foreach (var element in array.Elements)
-            {
-                if (BlendsWithTheBackdrop(element))
-                    return true;
-            }
+            if (BlendsWithTheBackdrop(element))
+                return true;
         }
 
         return false;

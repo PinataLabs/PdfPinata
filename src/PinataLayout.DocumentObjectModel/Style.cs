@@ -176,40 +176,60 @@ public sealed partial class Style : DocumentObject, IVisitable
                 return;
             }
 
-            if (string.Compare(name ?? "", DefaultParagraphName, StringComparison.OrdinalIgnoreCase) == 0 ||
-                string.Compare(name ?? "", DefaultParagraphFontName, StringComparison.OrdinalIgnoreCase) == 0)
-            {
-                var msg = $"Style '{name}' has no base style and that cannot be altered.";
-                throw new ArgumentException(msg);
-            }
-
-            var styles = (Styles)parent;
-            // The base style must exists
-            var idxBaseStyle = styles.GetIndex(value);
-            if (idxBaseStyle == -1)
-            {
-                var msg = $"Base style '{value}' does not exist.";
-                throw new ArgumentException(msg);
-            }
-
-            if (idxBaseStyle > 1)
-            {
-                // Is this style in the base style chain of the new base style
-                var style = styles[idxBaseStyle];
-                while (style != null)
-                {
-                    if (style == this)
-                    {
-                        var msg = $"Base style '{value}' leads to a circular dependency.";
-                        throw new ArgumentException(msg);
-                    }
-
-                    style = styles[style.BaseStyle];
-                }
-            }
+            AssertBaseStyleCanBeAltered();
+            AssertBaseStyleIsValid(value);
 
             // Now setting new base style is save
             baseStyle = value;
+        }
+    }
+
+    /// <summary>
+    /// Throws for the two root styles, whose having no base style cannot be altered.
+    /// </summary>
+    private void AssertBaseStyleCanBeAltered()
+    {
+        if (string.Compare(name ?? "", DefaultParagraphName, StringComparison.OrdinalIgnoreCase) == 0 ||
+            string.Compare(name ?? "", DefaultParagraphFontName, StringComparison.OrdinalIgnoreCase) == 0)
+        {
+            var msg = $"Style '{name}' has no base style and that cannot be altered.";
+            throw new ArgumentException(msg);
+        }
+    }
+
+    /// <summary>
+    /// Throws unless the named base style exists and does not have this style in its own chain of
+    /// base styles.
+    /// </summary>
+    private void AssertBaseStyleIsValid(string value)
+    {
+        var styles = (Styles)parent;
+        // The base style must exists
+        var idxBaseStyle = styles.GetIndex(value);
+        if (idxBaseStyle == -1)
+        {
+            var msg = $"Base style '{value}' does not exist.";
+            throw new ArgumentException(msg);
+        }
+
+        if (idxBaseStyle > 1)
+            AssertNotInBaseStyleChain(styles, styles[idxBaseStyle], value);
+    }
+
+    /// <summary>
+    /// Throws if this style is in the base style chain starting at style.
+    /// </summary>
+    private void AssertNotInBaseStyleChain(Styles styles, Style style, string value)
+    {
+        while (style != null)
+        {
+            if (style == this)
+            {
+                var msg = $"Base style '{value}' leads to a circular dependency.";
+                throw new ArgumentException(msg);
+            }
+
+            style = styles[style.BaseStyle];
         }
     }
 

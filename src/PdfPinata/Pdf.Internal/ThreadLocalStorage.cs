@@ -92,32 +92,44 @@ internal class ThreadLocalStorage // #???
     public void DetachDocument(PdfDocument.DocumentHandle handle)
     {
         if (handle.IsAlive)
-        {
-            foreach (var path in _importedDocuments.Keys)
-            {
-                if (_importedDocuments[path] == handle)
-                {
-                    _importedDocuments.Remove(path);
-                    break;
-                }
-            }
-        }
+            RemovePathOf(handle);
 
         // Clean table
         var itemRemoved = true;
         while (itemRemoved)
+            itemRemoved = RemoveFirstDeadHandle();
+    }
+
+    /// <summary>
+    /// Removes the first path mapped to the handle, if any.
+    /// </summary>
+    private void RemovePathOf(PdfDocument.DocumentHandle handle)
+    {
+        foreach (var path in _importedDocuments.Keys)
         {
-            itemRemoved = false;
-            foreach (var path in _importedDocuments.Keys)
+            if (_importedDocuments[path] == handle)
             {
-                if (!_importedDocuments[path].IsAlive)
-                {
-                    _importedDocuments.Remove(path);
-                    itemRemoved = true;
-                    break;
-                }
+                _importedDocuments.Remove(path);
+                return;
             }
         }
+    }
+
+    /// <summary>
+    /// Removes the first path whose document has been collected, and says whether there was one.
+    /// One at a time, because removing an entry ends the enumeration.
+    /// </summary>
+    private bool RemoveFirstDeadHandle()
+    {
+        foreach (var path in _importedDocuments.Keys)
+        {
+            if (!_importedDocuments[path].IsAlive)
+            {
+                _importedDocuments.Remove(path);
+                return true;
+            }
+        }
+        return false;
     }
 
     /// <summary>

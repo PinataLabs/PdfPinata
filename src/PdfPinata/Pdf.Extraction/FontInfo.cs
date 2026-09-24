@@ -110,28 +110,41 @@ internal sealed class FontInfo
             if (at >= w.Elements.Count)
                 break;
 
-            if (w.Elements[at] is PdfArray individually)
-            {
-                for (var index = 0; index < individually.Elements.Count; index++)
-                    _widths[first + index] = individually.Elements.GetReal(index) / 1000.0;
-                at++;
-            }
-            else
-            {
-                var last = (int)w.Elements.GetReal(at++);
-                if (at >= w.Elements.Count)
-                    break;
-
-                var width = w.Elements.GetReal(at++) / 1000.0;
-
-                // A run may legitimately be long, but a malformed one may claim millions of codes;
-                // filling that in would be a denial of service by arithmetic.
-                if (last - first > 0xFFFF)
-                    continue;
-
-                for (var code = first; code <= last; code++)
-                    _widths[code] = width;
-            }
+            at = w.Elements[at] is PdfArray individually
+                ? ReadIndividualWidths(first, individually, at)
+                : ReadSharedWidth(w, first, at);
         }
+    }
+
+    /// <summary>
+    /// Reads a <c>c [w1 w2 …]</c> run and answers the index after its array.
+    /// </summary>
+    private int ReadIndividualWidths(int first, PdfArray individually, int at)
+    {
+        for (var index = 0; index < individually.Elements.Count; index++)
+            _widths[first + index] = individually.Elements.GetReal(index) / 1000.0;
+        return at + 1;
+    }
+
+    /// <summary>
+    /// Reads the <c>cLast w</c> of a <c>cFirst cLast w</c> run and answers the index after it,
+    /// which is past the end of <paramref name="w"/> when the run is cut short.
+    /// </summary>
+    private int ReadSharedWidth(PdfArray w, int first, int at)
+    {
+        var last = (int)w.Elements.GetReal(at++);
+        if (at >= w.Elements.Count)
+            return at;
+
+        var width = w.Elements.GetReal(at++) / 1000.0;
+
+        // A run may legitimately be long, but a malformed one may claim millions of codes;
+        // filling that in would be a denial of service by arithmetic.
+        if (last - first > 0xFFFF)
+            return at;
+
+        for (var code = first; code <= last; code++)
+            _widths[code] = width;
+        return at;
     }
 }

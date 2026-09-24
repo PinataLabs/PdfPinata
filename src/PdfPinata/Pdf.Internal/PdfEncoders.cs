@@ -104,17 +104,7 @@ internal static class PdfEncoders
         Debug.Assert(name.Length > 0 && name[0] == '/');
         var pdf = new StringBuilder("/", name.Length + 8);
 
-        var isByteString = true;
-        for (var idx = 1; idx < name.Length; idx++)
-        {
-            if (name[idx] > 0xFF)
-            {
-                isByteString = false;
-                break;
-            }
-        }
-
-        if (isByteString)
+        if (IsByteString(name))
         {
             for (var idx = 1; idx < name.Length; idx++)
                 AppendNameByte(pdf, (byte)name[idx]);
@@ -126,6 +116,19 @@ internal static class PdfEncoders
                 AppendNameByte(pdf, b);
         }
         return pdf.ToString();
+    }
+
+    /// <summary>
+    /// Whether every character of the name after its slash is a single byte.
+    /// </summary>
+    private static bool IsByteString(string name)
+    {
+        for (var idx = 1; idx < name.Length; idx++)
+        {
+            if (name[idx] > 0xFF)
+                return false;
+        }
+        return true;
     }
 
     private static void EnsureNoLoneSurrogate(string name)
@@ -260,6 +263,15 @@ internal static class PdfEncoders
             bytes = securityHandler.EncryptBytes(bytes);
         }
 
+        return RawEncoding.GetBytes(FormatLiteral(bytes, unicode, hex, byteOrderMarkLength));
+    }
+
+    /// <summary>
+    /// Writes the bytes, encrypted already when they are to be, as a Unicode, hexadecimal or
+    /// parenthesised string literal.
+    /// </summary>
+    private static string FormatLiteral(byte[] bytes, bool unicode, bool hex, int byteOrderMarkLength)
+    {
         var pdf = new StringBuilder();
         if (unicode)
         {
@@ -276,7 +288,7 @@ internal static class PdfEncoders
         {
             AppendLiteral(pdf, bytes);
         }
-        return RawEncoding.GetBytes(pdf.ToString());
+        return pdf.ToString();
     }
 
     /// <summary>

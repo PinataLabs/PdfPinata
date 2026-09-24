@@ -117,26 +117,18 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
     /// </summary>
     private void TakeContentOf(PdfPage page)
     {
-        var item = page.Elements[PdfPage.Keys.Contents];
-        if (item is PdfReference reference)
-            item = reference.Value;
-
-        var single = item as PdfDictionary;
-        if (item is PdfArray array)
+        var item = Resolve(page.Elements[PdfPage.Keys.Contents]);
+        if (item is PdfArray { Elements.Count: > 1 })
         {
-            if (array.Elements.Count == 1)
-            {
-                var only = array.Elements[0];
-                if (only is PdfReference onlyReference)
-                    only = onlyReference.Value;
-                single = only as PdfDictionary;
-            }
-            else if (array.Elements.Count != 0)
-            {
-                TakeRunTogetherContentOf(page);
-                return;
-            }
+            TakeRunTogetherContentOf(page);
+            return;
         }
+
+        var single = item switch
+        {
+            PdfArray { Elements.Count: 1 } array => Resolve(array.Elements[0]) as PdfDictionary,
+            _ => item as PdfDictionary
+        };
 
         if (single?.Stream == null)
         {
@@ -209,69 +201,20 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
         if (res != null) // unlikely but possible
         {
             // Get root object
-            PdfObject root;
-            if (res is PdfReference resourcesReference)
-                root = resourcesReference.Value;
-            else
-                root = (PdfDictionary)res;
-
-            root = ImportClosure(importedObjectTable, thisDocument, root);
-            // If the root was a direct object, make it indirect.
-            if (root.Reference == null)
-                thisDocument._irefTable.Add(root);
-
-            Debug.Assert(root.Reference != null);
-            Elements["/Resources"] = root.Reference;
+            var root = res is PdfReference resourcesReference ? resourcesReference.Value : (PdfDictionary)res;
+            Elements["/Resources"] = ImportIndirect(importedObjectTable, thisDocument, root);
         }
 
         // A transparency group belongs to the content it wraps, and the content is being moved
         // into this form. Leaving it behind on the page in the other document would mean the
         // content arrives composited against the wrong backdrop - which is the whole of what a
         // group says - so it is imported along with everything else.
-        var group = importPage.Elements[PdfPage.Keys.Group];
-        if (group is PdfReference reference)
-            group = reference.Value;
-
         // A /Group entry that is not a dictionary describes no group. A PDF null is the way a
         // writer says a key is not there, and a page that says nothing has nothing to bring.
-        if (group is PdfDictionary groupDictionary)
-        {
-            var root = ImportClosure(importedObjectTable, thisDocument, groupDictionary);
-            // A group written straight into the page dictionary comes across as a direct object.
-            if (root.Reference == null)
-                thisDocument._irefTable.Add(root);
+        if (Resolve(importPage.Elements[PdfPage.Keys.Group]) is PdfDictionary groupDictionary)
+            Elements["/Group"] = ImportIndirect(importedObjectTable, thisDocument, groupDictionary);
 
-            Debug.Assert(root.Reference != null);
-            Elements["/Group"] = root.Reference;
-        }
-
-        // Take /Rotate into account
-        var rect = importPage.Elements.GetRectangle(PdfPage.InheritablePageKeys.MediaBox);
-        var rotate = importPage.Elements.GetInteger(PdfPage.InheritablePageKeys.Rotate);
-        if (rotate == 0)
-        {
-            // Set bounding box to media box
-            Elements["/BBox"] = rect;
-        }
-        else
-        {
-            Elements["/BBox"] = rect;
-
-            // Rotate the image such that it is upright
-            var matrix = new XMatrix();
-            var width = rect.Width;
-            var height = rect.Height;
-            matrix.RotateAtPrepend(-rotate, new XPoint(width / 2, height / 2));
-
-            // Translate the image such that its center lies on the center of the rotated bounding box
-            var offset = (height - width) / 2;
-            if (rotate == 90)
-                matrix.TranslatePrepend(offset, offset);
-            else if (rotate == -90)
-                matrix.TranslatePrepend(-offset, -offset);
-
-            Elements.SetMatrix(Keys.Matrix, matrix);
-        }
+        SetBoundingBoxOf(importPage);
 
         // Preserve filter because the content keeps unmodified
         var content = importPage.Contents.CreateSingleContent();
@@ -283,6 +226,50 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
         Stream = content.Stream; // new PdfStream(bytes, this);
         Elements.SetInteger("/Length", content.Stream.Value.Length);
     }
+
+    /// <summary>
+    /// Imports an object and everything it reaches, and answers a reference to the copy.
+    /// </summary>
+    private static PdfReference ImportIndirect(PdfImportedObjectTable importedObjectTable, PdfDocument thisDocument, PdfObject root)
+    {
+        root = ImportClosure(importedObjectTable, thisDocument, root);
+        // If the root was a direct object - a group written straight into the page dictionary,
+        // for one - make it indirect.
+        if (root.Reference == null)
+            thisDocument._irefTable.Add(root);
+
+        Debug.Assert(root.Reference != null);
+        return root.Reference;
+    }
+
+    /// <summary>
+    /// Sets the bounding box to the imported page's media box, taking /Rotate into account.
+    /// </summary>
+    private void SetBoundingBoxOf(PdfPage importPage)
+    {
+        var rect = importPage.Elements.GetRectangle(PdfPage.InheritablePageKeys.MediaBox);
+        var rotate = importPage.Elements.GetInteger(PdfPage.InheritablePageKeys.Rotate);
+        Elements["/BBox"] = rect;
+        if (rotate == 0)
+            return;
+
+        // Rotate the image such that it is upright
+        var matrix = new XMatrix();
+        var width = rect.Width;
+        var height = rect.Height;
+        matrix.RotateAtPrepend(-rotate, new XPoint(width / 2, height / 2));
+
+        // Translate the image such that its center lies on the center of the rotated bounding box
+        var offset = (height - width) / 2;
+        if (rotate == 90)
+            matrix.TranslatePrepend(offset, offset);
+        else if (rotate == -90)
+            matrix.TranslatePrepend(-offset, -offset);
+
+        Elements.SetMatrix(Keys.Matrix, matrix);
+    }
+
+    private static PdfItem Resolve(PdfItem item) => item is PdfReference reference ? reference.Value : item;
 
     /// <summary>
     /// Gets the PdfResources object of this form.

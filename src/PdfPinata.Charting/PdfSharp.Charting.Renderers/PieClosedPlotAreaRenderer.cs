@@ -60,43 +60,24 @@ internal class PieClosedPlotAreaRenderer : PiePlotAreaRenderer
     if (sumValues == 0)
       return;
 
-    double textMeasure = 0;
-    if (sri.DataLabelRendererInfo is { Position: DataLabelPosition.OutsideEnd })
-    {
-      foreach (var dleri in sri.DataLabelRendererInfo.Entries)
-      {
-        textMeasure = Math.Max(textMeasure, dleri.Width);
-        textMeasure = Math.Max(textMeasure, dleri.Height);
-      }
-    }
-
-    var pieRect = cri.PlotAreaRendererInfo.Rect;
-    if (textMeasure != 0)
-    {
-      pieRect.X += textMeasure;
-      pieRect.Y += textMeasure;
-      pieRect.Width -= 2 * textMeasure;
-      pieRect.Height -= 2 * textMeasure;
-    }
+    var pieRect = PieRect(cri, sri);
 
     double startAngle = 270;
     foreach (var sector in sri.PointRendererInfos.Cast<SectorRendererInfo>())
     {
-      if (!double.IsNaN(sector.Value) && sector.Value != 0)
+      if (!HasShare(sector))
       {
-        var sweepAngle = 360 / (sumValues / Math.Abs(sector.Value));
-
-        sector.Rect = pieRect;
-        sector.StartAngle = startAngle;
-        sector.SweepAngle = sweepAngle;
-
-        startAngle += sweepAngle;
+        MarkUndrawn(sector);
+        continue;
       }
-      else
-      {
-        sector.StartAngle = double.NaN;
-        sector.SweepAngle = double.NaN;
-      }
+
+      var sweepAngle = 360 / (sumValues / Math.Abs(sector.Value));
+
+      sector.Rect = pieRect;
+      sector.StartAngle = startAngle;
+      sector.SweepAngle = sweepAngle;
+
+      startAngle += sweepAngle;
     }
   }
 }

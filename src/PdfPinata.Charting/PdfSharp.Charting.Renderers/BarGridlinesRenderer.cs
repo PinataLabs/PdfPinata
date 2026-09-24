@@ -56,78 +56,73 @@ internal class BarGridlinesRenderer : GridlinesRenderer
     if (HasNoRoom(plotAreaRect))
       return;
 
-    var xari = cri.XAxisRendererInfo;
-    var yari = cri.YAxisRendererInfo;
-
-    var xMin = xari.MinimumScale;
-    var xMax = xari.MaximumScale;
-    var yMin = yari.MinimumScale;
-    var yMax = yari.MaximumScale;
-    var xMajorTick = xari.MajorTick;
-    var yMajorTick = yari.MajorTick;
-    var xMinorTick = xari.MinorTick;
-    var yMinorTick = yari.MinorTick;
-
-    var matrix = cri.PlotAreaRendererInfo.Matrix;
-
-    LineFormatRenderer lineFormatRenderer;
-    var gfx = rendererParms.Graphics;
-
     var points = new XPoint[2];
-    if (xari.MinorGridlinesLineFormat != null)
-    {
-      lineFormatRenderer = new LineFormatRenderer(gfx, xari.MinorGridlinesLineFormat);
-      for (var x = xMin + xMinorTick; x < xMax; x += xMinorTick)
-      {
-        points[0].Y = x;
-        points[0].X = yMin;
-        points[1].Y = x;
-        points[1].X = yMax;
-        matrix.TransformPoints(points);
-        lineFormatRenderer.DrawLine(points[0], points[1]);
-      }
-    }
+    DrawXGridlines(cri, points, minor: true);
+    DrawXGridlines(cri, points, minor: false);
+    DrawYGridlines(cri, points, minor: true);
+    DrawYGridlines(cri, points, minor: false);
+  }
 
-    if (xari.MajorGridlinesLineFormat != null)
-    {
-      lineFormatRenderer = new LineFormatRenderer(gfx, xari.MajorGridlinesLineFormat);
-      for (var x = xMin; x <= xMax; x += xMajorTick)
-      {
-        points[0].Y = x;
-        points[0].X = yMin;
-        points[1].Y = x;
-        points[1].X = yMax;
-        matrix.TransformPoints(points);
-        lineFormatRenderer.DrawLine(points[0], points[1]);
-      }
-    }
+  /// <summary>
+  /// Draws a gridline from left to right at every minor or every major tick of the X axis.
+  /// </summary>
+  private void DrawXGridlines(ChartRendererInfo cri, XPoint[] points, bool minor)
+  {
+    var xari = cri.XAxisRendererInfo;
+    var lineFormat = minor ? xari.MinorGridlinesLineFormat : xari.MajorGridlinesLineFormat;
+    if (lineFormat == null)
+      return;
 
-    if (yari.MinorGridlinesLineFormat != null)
+    var yari = cri.YAxisRendererInfo;
+    var matrix = cri.PlotAreaRendererInfo.Matrix;
+    var lineFormatRenderer = new LineFormatRenderer(rendererParms.Graphics, lineFormat);
+    var tick = minor ? xari.MinorTick : xari.MajorTick;
+    for (var x = FirstGridline(xari, minor); IsOnGrid(x, xari.MaximumScale, minor); x += tick)
     {
-      lineFormatRenderer = new LineFormatRenderer(gfx, yari.MinorGridlinesLineFormat);
-      for (var y = yMin + yMinorTick; y < yMax; y += yMinorTick)
-      {
-        points[0].Y = xMin;
-        points[0].X = y;
-        points[1].Y = xMax;
-        points[1].X = y;
-        matrix.TransformPoints(points);
-        lineFormatRenderer.DrawLine(points[0], points[1]);
-      }
-    }
-
-    if (yari.MajorGridlinesLineFormat != null)
-    {
-      lineFormatRenderer = new LineFormatRenderer(gfx, yari.MajorGridlinesLineFormat);
-      for (var y = yMin; y <= yMax; y += yMajorTick)
-      {
-        points[0].Y = xMin;
-        points[0].X = y;
-        points[1].Y = xMax;
-        points[1].X = y;
-        matrix.TransformPoints(points);
-        lineFormatRenderer.DrawLine(points[0], points[1]);
-      }
+      points[0].Y = x;
+      points[0].X = yari.MinimumScale;
+      points[1].Y = x;
+      points[1].X = yari.MaximumScale;
+      matrix.TransformPoints(points);
+      lineFormatRenderer.DrawLine(points[0], points[1]);
     }
   }
+
+  /// <summary>
+  /// Draws a gridline from top to bottom at every minor or every major tick of the Y axis.
+  /// </summary>
+  private void DrawYGridlines(ChartRendererInfo cri, XPoint[] points, bool minor)
+  {
+    var yari = cri.YAxisRendererInfo;
+    var lineFormat = minor ? yari.MinorGridlinesLineFormat : yari.MajorGridlinesLineFormat;
+    if (lineFormat == null)
+      return;
+
+    var xari = cri.XAxisRendererInfo;
+    var matrix = cri.PlotAreaRendererInfo.Matrix;
+    var lineFormatRenderer = new LineFormatRenderer(rendererParms.Graphics, lineFormat);
+    var tick = minor ? yari.MinorTick : yari.MajorTick;
+    for (var y = FirstGridline(yari, minor); IsOnGrid(y, yari.MaximumScale, minor); y += tick)
+    {
+      points[0].Y = xari.MinimumScale;
+      points[0].X = y;
+      points[1].Y = xari.MaximumScale;
+      points[1].X = y;
+      matrix.TransformPoints(points);
+      lineFormatRenderer.DrawLine(points[0], points[1]);
+    }
+  }
+
+  /// <summary>
+  /// Where the first gridline goes. Minor gridlines leave out both ends of the scale, which is
+  /// where the major ones fall.
+  /// </summary>
+  private static double FirstGridline(AxisRendererInfo ari, bool minor)
+    => minor ? ari.MinimumScale + ari.MinorTick : ari.MinimumScale;
+
+  /// <summary>
+  /// Whether a gridline at this value is still on the scale.
+  /// </summary>
+  private static bool IsOnGrid(double value, double max, bool minor)
+    => value < max || !minor && value == max;
 }

@@ -57,31 +57,34 @@ internal class ColumnDataLabelRenderer : DataLabelRenderer
       if (sri.DataLabelRendererInfo == null)
         continue;
 
-      var gfx = rendererParms.Graphics;
-
-      sri.DataLabelRendererInfo.Entries = new DataLabelEntryRendererInfo[sri.PointRendererInfos.Length];
+      var dlri = sri.DataLabelRendererInfo;
+      dlri.Entries = new DataLabelEntryRendererInfo[sri.PointRendererInfos.Length];
       var index = 0;
       foreach (var column in sri.PointRendererInfos.Cast<ColumnRendererInfo>())
-      {
-        var dleri = new DataLabelEntryRendererInfo();
-        if (sri.DataLabelRendererInfo.Type == DataLabelType.Percent)
-          throw new InvalidOperationException(PSCSR.PercentNotSupportedByColumnDataLabel);
-
-        // A blank has no value to write, so it is left with no text at all and Draw passes over
-        // it. Writing what NaN formats to would put the word NaN on the plot area.
-        if (sri.DataLabelRendererInfo.Type == DataLabelType.Value && !double.IsNaN(column.Value))
-        {
-          dleri.Text = column.Value.ToString(sri.DataLabelRendererInfo.Format);
-
-          if (dleri.Text.Length > 0)
-            dleri.Size = gfx.MeasureString(dleri.Text, sri.DataLabelRendererInfo.Font);
-        }
-
-        sri.DataLabelRendererInfo.Entries[index++] = dleri;
-      }
+        dlri.Entries[index++] = FormatLabel(dlri, column);
     }
 
     CalcPositions();
+  }
+
+  /// <summary>
+  /// Writes and measures the data label of one column.
+  /// </summary>
+  private DataLabelEntryRendererInfo FormatLabel(DataLabelRendererInfo dlri, ColumnRendererInfo column)
+  {
+    var dleri = new DataLabelEntryRendererInfo();
+    if (dlri.Type == DataLabelType.Percent)
+      throw new InvalidOperationException(PSCSR.PercentNotSupportedByColumnDataLabel);
+
+    // A blank has no value to write, so it is left with no text at all and Draw passes over
+    // it. Writing what NaN formats to would put the word NaN on the plot area.
+    if (dlri.Type != DataLabelType.Value || double.IsNaN(column.Value))
+      return dleri;
+
+    dleri.Text = column.Value.ToString(dlri.Format);
+    if (dleri.Text.Length > 0)
+      dleri.Size = rendererParms.Graphics.MeasureString(dleri.Text, dlri.Font);
+    return dleri;
   }
 
   /// <summary>
@@ -123,39 +126,43 @@ internal class ColumnDataLabelRenderer : DataLabelRenderer
 
       var columnIndex = 0;
       foreach (var column in sri.PointRendererInfos.Cast<ColumnRendererInfo>())
-      {
-        var dleri = sri.DataLabelRendererInfo.Entries[columnIndex++];
+        PositionLabel(sri.DataLabelRendererInfo.Entries[columnIndex++], sri.DataLabelRendererInfo.Position, column);
+    }
+  }
 
-        dleri.X = column.Rect.X + column.Rect.Width / 2 - dleri.Width / 2; // Always the same...
-        switch (sri.DataLabelRendererInfo.Position)
-        {
-          case DataLabelPosition.InsideEnd:
-            // Inner border of the column.
-            dleri.Y = column.Rect.Y;
-            if (column.Value < 0)
-              dleri.Y = column.Rect.Y + column.Rect.Height - dleri.Height;
-            break;
+  /// <summary>
+  /// Places one column's data label where the position asks for it.
+  /// </summary>
+  private static void PositionLabel(DataLabelEntryRendererInfo dleri, DataLabelPosition position, ColumnRendererInfo column)
+  {
+    dleri.X = column.Rect.X + column.Rect.Width / 2 - dleri.Width / 2; // Always the same...
+    switch (position)
+    {
+      case DataLabelPosition.InsideEnd:
+        // Inner border of the column.
+        dleri.Y = column.Rect.Y;
+        if (column.Value < 0)
+          dleri.Y = column.Rect.Y + column.Rect.Height - dleri.Height;
+        break;
 
-          case DataLabelPosition.Center:
-            // Centered inside the column.
-            dleri.Y = column.Rect.Y + column.Rect.Height / 2 - dleri.Height / 2;
-            break;
+      case DataLabelPosition.Center:
+        // Centered inside the column.
+        dleri.Y = column.Rect.Y + column.Rect.Height / 2 - dleri.Height / 2;
+        break;
 
-          case DataLabelPosition.InsideBase:
-            // Aligned at the base of the column.
-            dleri.Y = column.Rect.Y + column.Rect.Height - dleri.Height;
-            if (column.Value < 0)
-              dleri.Y = column.Rect.Y;
-            break;
+      case DataLabelPosition.InsideBase:
+        // Aligned at the base of the column.
+        dleri.Y = column.Rect.Y + column.Rect.Height - dleri.Height;
+        if (column.Value < 0)
+          dleri.Y = column.Rect.Y;
+        break;
 
-          case DataLabelPosition.OutsideEnd:
-            // Outer border of the column.
-            dleri.Y = column.Rect.Y - dleri.Height;
-            if (column.Value < 0)
-              dleri.Y = column.Rect.Y  + column.Rect.Height;
-            break;
-        }
-      }
+      case DataLabelPosition.OutsideEnd:
+        // Outer border of the column.
+        dleri.Y = column.Rect.Y - dleri.Height;
+        if (column.Value < 0)
+          dleri.Y = column.Rect.Y  + column.Rect.Height;
+        break;
     }
   }
 }

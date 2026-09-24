@@ -33,9 +33,9 @@ internal sealed class TablesDemo : PdfDemo
 
     public override int PageCount => 2;
 
+    #region example
     protected override PdfDocument Build(DemoContext context)
     {
-        #region example
         var document = new Document
         {
             Info =
@@ -142,37 +142,11 @@ internal sealed class TablesDemo : PdfDemo
         {
             for (var q = 0; q < quarters.Length; q++)
             {
-                // docs:begin banding-and-merge-down
-                var row = table.AddRow();
-                row.VerticalAlignment = VerticalAlignment.Center;
-
-                // Banding by row rather than by border, which stays readable when the
-                // table is wide and the eye has to track across it.
-                if (rowIndex % 2 == 1)
-                    row.Shading.Color = Colors.WhiteSmoke;
-
-                // The region is named once and its cell swallows the three rows below it,
-                // so the four quarters read as one block. MergeDown counts the rows taken.
-                if (q == 0)
-                {
-                    row.Cells[0].MergeDown = quarters.Length - 1;
-                    row.Cells[0].VerticalAlignment = VerticalAlignment.Center;
-                    row.Cells[0].AddParagraph(name);
-                }
-                // docs:end banding-and-merge-down
-
-                var units = 400 + rowIndex * 37 % 900;
-                var revenue = units * 12.5;
-                var margin = (units % 17 + 8) / 100.0;
+                var (units, revenue, margin) = AddQuarterRow(table, name, quarters, q, rowIndex);
 
                 totalUnits += units;
                 totalRevenue += revenue;
                 marginTimesUnits += margin * units;
-
-                row.Cells[1].AddParagraph(quarters[q]);
-                row.Cells[2].AddParagraph($"{units:N0}");
-                row.Cells[3].AddParagraph($"{revenue:N2}");
-                row.Cells[4].AddParagraph($"{margin:P1}");
 
                 rowIndex++;
             }
@@ -227,8 +201,43 @@ internal sealed class TablesDemo : PdfDemo
         // the base class to save exactly as the hand-drawn demos hand theirs back.
         var renderer = new PdfDocumentRenderer(true) { Document = document };
         renderer.RenderDocument();
-        #endregion
 
         return renderer.PdfDocument;
     }
+
+    // One quarter of one region: a row of the table, and the figures it shows.
+    private static (int Units, double Revenue, double Margin) AddQuarterRow(Table table, string name,
+        string[] quarters, int q, int rowIndex)
+    {
+        // docs:begin banding-and-merge-down
+        var row = table.AddRow();
+        row.VerticalAlignment = VerticalAlignment.Center;
+
+        // Banding by row rather than by border, which stays readable when the
+        // table is wide and the eye has to track across it.
+        if (rowIndex % 2 == 1)
+            row.Shading.Color = Colors.WhiteSmoke;
+
+        // The region is named once and its cell swallows the three rows below it,
+        // so the four quarters read as one block. MergeDown counts the rows taken.
+        if (q == 0)
+        {
+            row.Cells[0].MergeDown = quarters.Length - 1;
+            row.Cells[0].VerticalAlignment = VerticalAlignment.Center;
+            row.Cells[0].AddParagraph(name);
+        }
+        // docs:end banding-and-merge-down
+
+        var units = 400 + rowIndex * 37 % 900;
+        var revenue = units * 12.5;
+        var margin = (units % 17 + 8) / 100.0;
+
+        row.Cells[1].AddParagraph(quarters[q]);
+        row.Cells[2].AddParagraph($"{units:N0}");
+        row.Cells[3].AddParagraph($"{revenue:N2}");
+        row.Cells[4].AddParagraph($"{margin:P1}");
+
+        return (units, revenue, margin);
+    }
+    #endregion
 }

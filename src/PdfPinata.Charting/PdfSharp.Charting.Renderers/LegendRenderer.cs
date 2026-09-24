@@ -58,8 +58,41 @@ internal abstract class LegendRenderer : Renderer
     var parms = new RendererParameters { Graphics = rendererParms.Graphics };
 
     var verticalLegend = lri.Legend.docking is DockingType.Left or DockingType.Right;
-    var maxMarkerArea = new XSize();
     var ler = new LegendEntryRenderer(parms);
+    FormatEntries(lri, parms, ler);
+
+    var paddingFactor = PaddingFactor(lri);
+
+    // The room the entries have across the chart: its width, less the legend's padding either
+    // side. An entry wider than that is word wrapped to fit, whichever side the legend is docked
+    // to - a single entry longer than the chart used to push the legend off both sides of it.
+    var maxWidth = rendererParms.Box.Width
+      - (LeftPadding + RightPadding) * paddingFactor;
+    if (maxWidth > 0)
+    {
+      foreach (var leri in lri.Entries)
+      {
+        parms.RendererInfo = leri;
+        ler.FitToWidth(maxWidth);
+      }
+    }
+
+    if (verticalLegend)
+      LayoutColumn(lri);
+    else
+      LayoutRows(lri, maxWidth);
+
+    // Add padding to left, right, top and bottom
+    lri.Width += (LeftPadding + RightPadding) * paddingFactor;
+    lri.Height += (TopPadding + BottomPadding) * paddingFactor;
+  }
+
+  /// <summary>
+  /// Formats every entry, then gives each the marker area of the widest and the tallest.
+  /// </summary>
+  private static void FormatEntries(LegendRendererInfo lri, RendererParameters parms, LegendEntryRenderer ler)
+  {
+    var maxMarkerArea = new XSize();
     foreach (var leri in lri.Entries)
     {
       parms.RendererInfo = leri;
@@ -82,42 +115,20 @@ internal abstract class LegendRenderer : Renderer
       leri.Height = Math.Max(leri.Height, maxMarkerArea.Height);
       leri.MarkerArea = maxMarkerArea;
     }
+  }
 
-    var paddingFactor = 1;
-    if (lri.BorderPen != null)
-      paddingFactor = 2;
-
-    // The room the entries have across the chart: its width, less the legend's padding either
-    // side. An entry wider than that is word wrapped to fit, whichever side the legend is docked
-    // to - a single entry longer than the chart used to push the legend off both sides of it.
-    var maxWidth = rendererParms.Box.Width
-      - (LeftPadding + RightPadding) * paddingFactor;
-    if (maxWidth > 0)
+  /// <summary>
+  /// Stacks the entries of a legend docked left or right of the chart one above another. The
+  /// legend is as wide as its widest entry and as tall as all of them.
+  /// </summary>
+  private static void LayoutColumn(LegendRendererInfo lri)
+  {
+    foreach (var leri in lri.Entries)
     {
-      foreach (var leri in lri.Entries)
-      {
-        parms.RendererInfo = leri;
-        ler.FitToWidth(maxWidth);
-      }
+      lri.Width = Math.Max(lri.Width, leri.Width);
+      lri.Height += leri.Height;
     }
-
-    if (verticalLegend)
-    {
-      foreach (var leri in lri.Entries)
-      {
-        lri.Width = Math.Max(lri.Width, leri.Width);
-        lri.Height += leri.Height;
-      }
-      lri.Height += EntrySpacing * (lri.Entries.Length - 1);
-    }
-    else
-    {
-      LayoutRows(lri, maxWidth);
-    }
-
-    // Add padding to left, right, top and bottom
-    lri.Width += (LeftPadding + RightPadding) * paddingFactor;
-    lri.Height += (TopPadding + BottomPadding) * paddingFactor;
+    lri.Height += EntrySpacing * (lri.Entries.Length - 1);
   }
 
   /// <summary>
@@ -182,41 +193,78 @@ internal abstract class LegendRenderer : Renderer
     var ler = new LegendEntryRenderer(parms);
 
     var verticalLegend = lri.Legend.docking is DockingType.Left or DockingType.Right;
-    var paddingFactor = 1;
-    if (lri.BorderPen != null)
-      paddingFactor = 2;
+    var paddingFactor = PaddingFactor(lri);
     var legendRect = lri.Rect;
     legendRect.X += LeftPadding * paddingFactor;
     legendRect.Y += TopPadding * paddingFactor;
     foreach (var leri in cri.LegendRendererInfo.Entries)
     {
-      var entryRect = legendRect;
-      if (!verticalLegend)
-      {
-        entryRect.X += leri.Offset.X;
-        entryRect.Y += leri.Offset.Y;
-      }
-      entryRect.Width = leri.Width;
-      entryRect.Height = leri.Height;
-
-      leri.Rect = entryRect;
-      parms.RendererInfo = leri;
-      ler.Draw();
+      var entryRect = DrawEntry(ler, parms, leri, legendRect, verticalLegend);
 
       if (verticalLegend)
         legendRect.Y += entryRect.Height + EntrySpacing;
     }
 
-    // Draw border around legend
-    if (lri.BorderPen != null)
+    DrawBorder(gfx, lri);
+  }
+
+  /// <summary>
+  /// Starts the legend's renderer info with its font, font colour and border, and no entries yet.
+  /// </summary>
+  protected static LegendRendererInfo NewLegendRendererInfo(ChartRendererInfo cri)
+  {
+    var lri = new LegendRendererInfo { Legend = cri.Chart.legend };
+
+    lri.Font = Converter.ToXFont(lri.Legend.font, cri.DefaultFont);
+    lri.FontColor = Converter.ToXBrush(lri.Legend.font, cri.DefaultFontColor);
+
+    if (lri.Legend.lineFormat != null)
+      lri.BorderPen = Converter.ToXPen(lri.Legend.lineFormat, XColors.Black, DefaultLineWidth, XDashStyle.Solid);
+    return lri;
+  }
+
+  /// <summary>
+  /// How many paddings the legend keeps from its edge: two when it has a border, one when not.
+  /// </summary>
+  protected static int PaddingFactor(LegendRendererInfo lri)
+    => lri.BorderPen != null ? 2 : 1;
+
+  /// <summary>
+  /// Draws one entry at the top left of the rectangle given, or at its offset from there when the
+  /// legend is laid out in rows, and answers the rectangle it was drawn in.
+  /// </summary>
+  protected static XRect DrawEntry(LegendEntryRenderer ler, RendererParameters parms, LegendEntryRendererInfo leri,
+    XRect legendRect, bool verticalLegend)
+  {
+    var entryRect = legendRect;
+    if (!verticalLegend)
     {
-      var borderRect = lri.Rect;
-      borderRect.X += LeftPadding;
-      borderRect.Y += TopPadding;
-      borderRect.Width -= LeftPadding + RightPadding;
-      borderRect.Height -= TopPadding + BottomPadding;
-      gfx.DrawRectangle(lri.BorderPen, borderRect);
+      entryRect.X += leri.Offset.X;
+      entryRect.Y += leri.Offset.Y;
     }
+    entryRect.Width = leri.Width;
+    entryRect.Height = leri.Height;
+
+    leri.Rect = entryRect;
+    parms.RendererInfo = leri;
+    ler.Draw();
+    return entryRect;
+  }
+
+  /// <summary>
+  /// Draws the border around the legend, if it has one.
+  /// </summary>
+  protected static void DrawBorder(XGraphics gfx, LegendRendererInfo lri)
+  {
+    if (lri.BorderPen == null)
+      return;
+
+    var borderRect = lri.Rect;
+    borderRect.X += LeftPadding;
+    borderRect.Y += TopPadding;
+    borderRect.Width -= LeftPadding + RightPadding;
+    borderRect.Height -= TopPadding + BottomPadding;
+    gfx.DrawRectangle(lri.BorderPen, borderRect);
   }
 
   /// <summary>

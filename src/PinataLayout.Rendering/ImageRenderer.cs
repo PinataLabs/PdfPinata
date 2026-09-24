@@ -342,6 +342,26 @@ internal class ImageRenderer : ShapeRenderer
     /// </remarks>
     private (XUnit Width, XUnit Height) SizeWithRatioLocked(XUnit inherentWidth, XUnit inherentHeight)
     {
+        var (resultWidth, resultHeight) = UnscaledSizeWithRatioLocked(inherentWidth, inherentHeight);
+
+        if (!image.IsNull("ScaleHeight"))
+        {
+            var scaleHeight = image.ScaleHeight;
+            resultHeight *= scaleHeight;
+            resultWidth *= scaleHeight;
+        }
+        else if (!image.IsNull("ScaleWidth"))
+        {
+            var scaleWidth = image.ScaleWidth;
+            resultHeight *= scaleWidth;
+            resultWidth *= scaleWidth;
+        }
+
+        return (resultWidth, resultHeight);
+    }
+
+    private (XUnit Width, XUnit Height) UnscaledSizeWithRatioLocked(XUnit inherentWidth, XUnit inherentHeight)
+    {
         XUnit usrWidth = image.Width.Point;
         XUnit usrHeight = image.Height.Point;
         var usrWidthSet = !image.IsNull("Width");
@@ -371,19 +391,6 @@ internal class ImageRenderer : ShapeRenderer
         {
             resultHeight = inherentHeight;
             resultWidth = inherentWidth;
-        }
-
-        if (!image.IsNull("ScaleHeight"))
-        {
-            var scaleHeight = image.ScaleHeight;
-            resultHeight *= scaleHeight;
-            resultWidth *= scaleHeight;
-        }
-        else if (!image.IsNull("ScaleWidth"))
-        {
-            var scaleWidth = image.ScaleWidth;
-            resultHeight *= scaleWidth;
-            resultWidth *= scaleWidth;
         }
 
         return (resultWidth, resultHeight);

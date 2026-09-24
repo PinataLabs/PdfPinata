@@ -190,24 +190,30 @@ public class SerializeAndFlattenCharacterizationTests
 
         for (var r = 0; r < 4; r++)
         {
+            // Every cell's borders are asked for, so every cell has a Borders object, set or not.
             for (var c = 0; c < 4; c++)
-            {
-                var cellBorders = table[r, c].Borders;
-                var n = r * 4 + c;
-                if (n % 5 == 0)
-                    continue;
-                cellBorders.Top.Width = 0.5 + n % 3;
-                cellBorders.Left.Width = 0.5 + n % 4;
-                if (n % 2 == 0)
-                    cellBorders.Bottom.Width = 1 + n % 5;
-                if (n % 3 == 0)
-                    cellBorders.Right.Visible = false;
-                else
-                    cellBorders.Right.Width = 2 + n % 2;
-            }
+                SetMergedTableBorders(table[r, c].Borders, r * 4 + c);
         }
         table[3, 3].Borders.Width = 4;
         return table;
+    }
+
+    /// <summary>
+    ///   Sets the borders of the cell numbered <paramref name="n"/>, counting across the rows: every
+    ///   fifth cell is left alone, and the rest get widths, and a hidden right border, by their number.
+    /// </summary>
+    private static void SetMergedTableBorders(Borders cellBorders, int n)
+    {
+        if (n % 5 == 0)
+            return;
+        cellBorders.Top.Width = 0.5 + n % 3;
+        cellBorders.Left.Width = 0.5 + n % 4;
+        if (n % 2 == 0)
+            cellBorders.Bottom.Width = 1 + n % 5;
+        if (n % 3 == 0)
+            cellBorders.Right.Visible = false;
+        else
+            cellBorders.Right.Width = 2 + n % 2;
     }
 
     private static string Side(Border border) =>
