@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 #### Fixed
 
 - **A literal string continued onto the next line with a backslash before CR LF no longer keeps the LF.** A CR LF is one end-of-line marker (ISO 32000-1 7.2.3), and the backslash is ignored together with the whole of it (7.3.4.2). Both the document lexer and the content-stream lexer dropped the CR and kept the LF as the first character of the next line. A backslash before a lone CR or a lone LF was already read correctly. (#131)
+- **A stream whose `/Length` refers back to itself no longer overflows the stack in `PdfReader.Open`.** An indirect `/Length` is resolved by reading the object it names. When that object was the stream itself, or another stream whose `/Length` named the first, reading it resolved the same length again, until the stack overflowed and the process ended with no exception to catch. Such a length is now unknown, as a missing one is, and the stream is read up to its `endstream` keyword. (#128)
 
 ### Pages & Documents
 

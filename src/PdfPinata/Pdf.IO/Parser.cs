@@ -406,7 +406,21 @@ internal sealed class Parser
     /// </summary>
     private byte[] TheStreamTheDictionaryDescribes(PdfDictionary dict, long startOfStream)
     {
-        var length = GetStreamLength(dict);
+        // An indirect length is resolved by reading the object it names, which may lead back to
+        // this very stream. Note that this one is being read, so that such a length is unknown.
+        var objectID = dict.ObjectID;
+        var added = _streamsBeingRead.Add(objectID);
+        int length;
+        try
+        {
+            length = GetStreamLength(dict);
+        }
+        finally
+        {
+            if (added)
+                _streamsBeingRead.Remove(objectID);
+        }
+
         if (length < 0 || startOfStream + length > _lexer.PdfLength)
             return null;
 
@@ -516,6 +530,12 @@ internal sealed class Parser
         // Objects inside an object stream have no position in the file. When such an object has not
         // been read yet there is no way to reach it from here.
         if (iref is { Position: < 0 })
+            return null;
+
+        // A stream whose length is the stream itself, or another stream whose length is the
+        // first, cannot be resolved: reading it would resolve the same length again, and again,
+        // until the stack overflowed. See https://github.com/PinataLabs/PdfPinata/issues/128.
+        if (_streamsBeingRead.Contains(reference.ObjectID))
             return null;
 
         var state = SaveState();
@@ -1680,6 +1700,11 @@ internal sealed class Parser
     private readonly PdfDocument _document;
     private readonly Lexer _lexer;
     private readonly ShiftStack _stack;
+
+    /// <summary>
+    /// The streams whose length is being worked out, which an indirect /Length may not lead back to.
+    /// </summary>
+    private readonly HashSet<PdfObjectID> _streamsBeingRead = [];
 }
 
 internal static class StreamHelper
