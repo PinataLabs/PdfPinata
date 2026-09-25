@@ -176,17 +176,34 @@ public sealed class PdfAcroForm : PdfDictionary
     /// <summary>
     /// Gets the fields collection of this form.
     /// </summary>
+    /// <remarks>
+    /// Reading it makes <c>/Fields</c> if the form has none, since ISO 32000-1 Table 218 requires
+    /// the entry of every form.
+    /// </remarks>
     public PdfAcroField.PdfAcroFieldCollection Fields
     {
         get
         {
-            if (field == null)
+            if (_fields == null)
             {
-                object o = Elements.GetValue(Keys.Fields, VCF.CreateIndirect);
-                field = (PdfAcroField.PdfAcroFieldCollection)o;
+                _fields = new PdfAcroField.PdfAcroFieldCollection(this, Keys.Fields, parent: null);
+                _fields.GetOrCreateEntries();
             }
-            return field;
+            return _fields;
         }
+    }
+
+    private PdfAcroField.PdfAcroFieldCollection _fields;
+
+    /// <summary>
+    /// A copy is a form of its own, so it does not keep the view of <c>/Fields</c> this form made,
+    /// which reads and writes this form's array.
+    /// </summary>
+    protected override object Copy()
+    {
+        var copy = (PdfAcroForm)base.Copy();
+        copy._fields = null;
+        return copy;
     }
 
     /// <summary>
@@ -201,7 +218,7 @@ public sealed class PdfAcroForm : PdfDictionary
         /// (Required) An array of references to the document’s root fields (those with
         /// no ancestors in the field hierarchy).
         /// </summary>
-        [KeyInfo(KeyType.Array | KeyType.Required, typeof(PdfAcroField.PdfAcroFieldCollection))]
+        [KeyInfo(KeyType.Array | KeyType.Required)]
         public const string Fields = "/Fields";
 
         /// <summary>

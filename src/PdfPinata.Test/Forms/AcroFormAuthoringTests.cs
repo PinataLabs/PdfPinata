@@ -91,8 +91,9 @@ public class AcroFormAuthoringTests
         form.Fields.Add(field);
 
         field.Reference.Should().NotBeNull();
-        form.Fields.Elements.Count.Should().Be(1);
-        form.Fields.Elements[0].Should().BeOfType<Pdf.Advanced.PdfReference>();
+        var entries = form.Elements.GetArray(PdfAcroForm.Keys.Fields);
+        entries.Elements.Count.Should().Be(1);
+        entries.Elements[0].Should().BeOfType<Pdf.Advanced.PdfReference>();
     }
 
     [Fact]

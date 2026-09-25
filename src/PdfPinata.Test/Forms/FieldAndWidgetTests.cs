@@ -288,4 +288,35 @@ public class FieldAndWidgetTests
         reread.Pages[0].Annotations[0].Flags
             .Should().Be(PdfAnnotationFlags.Print | PdfAnnotationFlags.ReadOnly);
     }
+
+    [Fact]
+    public void ACopiedFieldAddsToItsOwnKidsRatherThanTheOriginals()
+    {
+        // Copying is memberwise, and a page imported from another document copies its fields. A
+        // copy that kept the original's view of /Kids added its children under the original.
+        var (document, field, _) = ATextFieldOnAPage();
+        _ = field.Fields.Count;
+        _ = field.Widgets;
+
+        var copy = (PdfTextField)field.Clone();
+        document.Internals.AddObject(copy);
+        var child = new PdfTextField(document) { Name = "child" };
+        copy.Fields.Add(child);
+
+        copy.Fields.Should().NotBeSameAs(field.Fields);
+        child.Elements.GetReference(PdfAcroField.Keys.Parent).Should().BeSameAs(copy.Reference,
+            "the child is the copy's, and /Parent says so");
+    }
+
+    [Fact]
+    public void ACopiedFormHasItsOwnViewOfItsFields()
+    {
+        var (document, _, _) = ATextFieldOnAPage();
+        var form = document.AcroForm;
+        _ = form.Fields.Count;
+
+        var copy = (PdfAcroForm)form.Clone();
+
+        copy.Fields.Should().NotBeSameAs(form.Fields);
+    }
 }

@@ -10,7 +10,7 @@ libraries do, and the plan. The plan breaks the public API on purpose, while the
 | 1 | A dictionary cannot be taken from one role into the other: a field never rebinds an annotation's reference, and an annotation never rebinds a field's | no | done |
 | 2 | A merged field-and-widget dictionary is one `PdfAcroField`; its annotation role is a view cached on it | no | done |
 | 3 | `Fields` lists child fields only; new `Widgets` lists widget annotations | **yes**, behaviour | done |
-| 4 | `PdfAcroFieldCollection` stops being a `PdfArray` and becomes `IReadOnlyList<PdfAcroField>` | **yes**, compile | not started |
+| 4 | `PdfAcroFieldCollection` stops being a `PdfArray` and becomes `IReadOnlyList<PdfAcroField>` | **yes**, compile | done |
 | 5 | `PdfWidgetAnnotation.Field`, and the library's own kid walks moved onto `Widgets` | no | done |
 | 6 | `AddWidget` on a merged field splits it first | no | not started |
 | — | Separate classes for terminal and non-terminal fields | **deliberately not done** (§5.3) |
@@ -187,6 +187,12 @@ had to make: a `PdfArray` is already `IEnumerable<PdfItem>`, so the collection c
 `PdfItem`, which the repro tests ran into. As a plain `IReadOnlyList<PdfAcroField>` it is typed.
 `/Kids` and `/Fields` become ordinary arrays, and the collection becomes a view over one, created by
 the field or the form, which holds the parent for `Add`.
+
+Building it turned up a side effect of the old shape. The getter asked for `/Kids` with
+`VCF.CreateIndirect`, so merely *reading* `field.Fields` wrote an empty, indirect `/Kids` into the
+field, and a terminal field that had been looked at was saved with an empty array of children. The
+view reads the array without creating it, and creates it only when `Add` or `AddWidget` needs it.
+A form's `/Fields` is still made on first read, because Table 218 requires it of every form.
 
 ## 4. The plan
 

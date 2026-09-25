@@ -419,7 +419,7 @@ public abstract class PdfAcroField : PdfDictionary
         widget.Elements.SetReference(Keys.P, page);
         widget.Elements.SetReference(Keys.Parent, this);
 
-        Fields.Elements.Add(widget.Reference);
+        Fields.GetOrCreateEntries().Elements.Add(widget.Reference);
 
         OnWidgetAdded();
         return widget;
@@ -509,8 +509,8 @@ public abstract class PdfAcroField : PdfDictionary
     /// </summary>
     /// <remarks>
     /// The reference is followed. <c>/Kids</c> may be an indirect array as well as a direct one -
-    /// and is one for every field this library builds, because <see cref="Fields"/> asks for it
-    /// with <c>VCF.CreateIndirect</c> - where this used to answer false for anything that was not
+    /// and is one for every field this library builds, because adding the first field or widget
+    /// makes it an indirect object - where this used to answer false for anything that was not
     /// a <c>PdfArray</c> outright. A field whose children it could not see was treated as a
     /// terminal field, so a check box with a widget of its own toggled the field's own appearance
     /// state and left its widget showing whatever it showed before.
@@ -642,48 +642,91 @@ public abstract class PdfAcroField : PdfDictionary
     /// <summary>
     /// Gets the collection of fields within this field.
     /// </summary>
-    public PdfAcroFieldCollection Fields
-    {
-        get
-        {
-            if (field == null)
-            {
-                object o = Elements.GetValue(Keys.Kids, VCF.CreateIndirect);
-                field = (PdfAcroFieldCollection)o;
+    /// <remarks>
+    /// Reading it writes nothing. <c>/Kids</c> is made when the first field or widget is added,
+    /// where it used to be made - empty, and indirect - the first time anybody asked.
+    /// </remarks>
+    public PdfAcroFieldCollection Fields => _fields ??= new PdfAcroFieldCollection(this, Keys.Kids, this);
 
-                // Whose /Kids this is. The same class serves as a form's /Fields, where there is
-                // nobody to be under, so the collection cannot work it out for itself - and a
-                // field added to /Kids needs the /Parent back-reference that a root field must
-                // not have.
-                field.SetParentField(this);
-            }
-            return field;
-        }
+    private PdfAcroFieldCollection _fields;
+
+    /// <summary>
+    /// A copy is a field of its own, so it takes none of the views this field has made of itself.
+    /// </summary>
+    /// <remarks>
+    /// Copying is memberwise, and a page imported from another document copies the fields its
+    /// widgets belong to. A copy that kept these would read and write the original: its
+    /// <see cref="Fields"/> added to the original's <c>/Kids</c>, with the original's document as
+    /// owner, and its widget view shared the original's entries.
+    /// </remarks>
+    protected override object Copy()
+    {
+        var copy = (PdfAcroField)base.Copy();
+        copy._fields = null;
+        copy._widgetView = null;
+        return copy;
     }
 
     /// <summary>
-    /// Holds a collection of interactive fields.
+    /// The fields in a form's <c>/Fields</c> or a field's <c>/Kids</c>: a read-only list of the
+    /// fields in the array, each given the class its entries name, with <see cref="Add"/> to put
+    /// one there.
     /// </summary>
-    public sealed class PdfAcroFieldCollection : PdfArray
+    /// <remarks>
+    /// <para>
+    /// A view of the array rather than the array itself. It used to be a <see cref="PdfArray"/>,
+    /// which put a field-counting indexer and an entry-counting <c>Elements</c> on one object that
+    /// disagreed whenever a field had widgets, and which made it an <see cref="IEnumerable{T}"/>
+    /// of <see cref="PdfItem"/> - so it could not also be one of <see cref="PdfAcroField"/>
+    /// without making every LINQ call ambiguous. It is now the second alone, and LINQ over it is
+    /// typed. The array as the file has it is <c>field.Elements.GetArray(PdfAcroField.Keys.Kids)</c>,
+    /// or the form's <c>/Fields</c>.
+    /// </para>
+    /// <para>
+    /// It reads the array each time rather than holding it, so an array replaced under it - or
+    /// made by <see cref="Add"/> - is the one read next.
+    /// </para>
+    /// </remarks>
+    public sealed class PdfAcroFieldCollection : IReadOnlyList<PdfAcroField>
     {
-        // Made by reflection, by the dictionary that holds the array, so neither is public.
-        internal PdfAcroFieldCollection(PdfArray array)
-            : base(array)
-        { }
+        internal PdfAcroFieldCollection(PdfDictionary holder, string key, PdfAcroField parent)
+        {
+            _holder = holder;
+            _key = key;
+            _parent = parent;
+        }
 
-        internal PdfAcroFieldCollection(PdfDocument document)
-            : base(document)
-        { }
+        /// <summary>The field or form whose array this is.</summary>
+        private readonly PdfDictionary _holder;
+
+        /// <summary><c>/Kids</c> or <c>/Fields</c>.</summary>
+        private readonly string _key;
 
         /// <summary>
         /// The field this collection is the <c>/Kids</c> of, or null when it is a form's
         /// <c>/Fields</c> and the fields in it are therefore root fields.
         /// </summary>
-        private PdfAcroField _parent;
+        private readonly PdfAcroField _parent;
 
-        internal void SetParentField(PdfAcroField parent)
+        private PdfDocument Owner => _holder.Owner;
+
+        /// <summary>
+        /// The array underneath, or null when the holder has none yet.
+        /// </summary>
+        private PdfArray Entries => _holder.Elements.GetArray(_key);
+
+        /// <summary>
+        /// The array underneath, made - as an indirect object - when the holder has none yet.
+        /// </summary>
+        internal PdfArray GetOrCreateEntries()
         {
-            _parent = parent;
+            if (Entries is { } entries)
+                return entries;
+
+            entries = new PdfArray(Owner);
+            Owner.Internals.AddObject(entries);
+            _holder.Elements.SetReference(_key, entries);
+            return entries;
         }
 
         /// <summary>
@@ -713,7 +756,7 @@ public abstract class PdfAcroField : PdfDictionary
             if (field.Reference == null)
                 Owner.Internals.AddObject(field);
 
-            Elements.Add(field.Reference);
+            GetOrCreateEntries().Elements.Add(field.Reference);
 
             // ISO 32000-1 Table 220: /Parent is required of a field that is the child of another
             // and absent otherwise. Every lookup here walks down from /Fields, but the inheritable
@@ -745,8 +788,9 @@ public abstract class PdfAcroField : PdfDictionary
             {
                 var positions = FieldPositions();
                 var names = new string[positions.Count];
+                var entries = Entries;
                 for (var idx = 0; idx < names.Length; idx++)
-                    names[idx] = Elements.GetDictionary(positions[idx]).Elements.GetString(Keys.T);
+                    names[idx] = entries.Elements.GetDictionary(positions[idx]).Elements.GetString(Keys.T);
                 return names;
             }
         }
@@ -778,7 +822,7 @@ public abstract class PdfAcroField : PdfDictionary
         /// </summary>
         /// <remarks>
         /// The position counts fields only, so it is not the position in the array underneath when
-        /// that also holds widget annotations.
+        /// that also holds widget annotations - <see cref="PdfAcroField.Widgets"/> are those.
         /// </remarks>
         /// <exception cref="ArgumentOutOfRangeException">
         /// <paramref name="index"/> is negative, or not less than <see cref="Count"/>.
@@ -791,7 +835,7 @@ public abstract class PdfAcroField : PdfDictionary
                 if (index < 0 || index >= positions.Count)
                     throw new ArgumentOutOfRangeException(nameof(index), index, "There is no field at this position.");
 
-                return FromDictionary(Elements.GetDictionary(positions[index]));
+                return FromDictionary(Entries.Elements.GetDictionary(positions[index]));
             }
         }
 
@@ -807,9 +851,13 @@ public abstract class PdfAcroField : PdfDictionary
         private List<int> FieldPositions()
         {
             var positions = new List<int>();
-            for (var idx = 0; idx < Elements.Count; idx++)
+            var entries = Entries;
+            if (entries == null)
+                return positions;
+
+            for (var idx = 0; idx < entries.Elements.Count; idx++)
             {
-                var dict = Elements.GetDictionary(idx);
+                var dict = entries.Elements.GetDictionary(idx);
                 if (dict != null && dict is not PdfAnnotation && !IsWidgetOnly(dict))
                     positions.Add(idx);
             }
@@ -820,26 +868,14 @@ public abstract class PdfAcroField : PdfDictionary
         /// Returns an enumerator over the fields in this collection, each given the class its
         /// entries name, exactly as <see cref="this[int]"/> gives it.
         /// </summary>
-        /// <remarks>
-        /// Hides <see cref="PdfArray.GetEnumerator"/> rather than overriding it, so that
-        /// <c>foreach (var field in form.Fields)</c> is typed as <see cref="PdfAcroField"/>.
-        /// Enumerated as a <see cref="PdfArray"/>, or through <see cref="IEnumerable{T}"/> of
-        /// <see cref="PdfItem"/> - which is what LINQ sees - or plain <see cref="IEnumerable"/>, it
-        /// yields the same fields rather than the references to them; LINQ reaches them typed
-        /// through <c>OfType&lt;PdfAcroField&gt;()</c>. The collection deliberately does not also
-        /// implement <see cref="IEnumerable{T}"/> of <see cref="PdfAcroField"/>, which would leave
-        /// LINQ two element types to choose between and every call ambiguous.
-        /// </remarks>
-        public new IEnumerator<PdfAcroField> GetEnumerator()
+        public IEnumerator<PdfAcroField> GetEnumerator()
         {
+            var entries = Entries;
             foreach (var position in FieldPositions())
-                yield return FromDictionary(Elements.GetDictionary(position));
+                yield return FromDictionary(entries.Elements.GetDictionary(position));
         }
 
-        private protected override IEnumerator<PdfItem> EnumerateItems()
-        {
-            return GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         internal PdfAcroField GetValue(string name)
         {
@@ -895,7 +931,7 @@ public abstract class PdfAcroField : PdfDictionary
         /// <summary>
         /// (Optional) An array of indirect references to the immediate children of this field.
         /// </summary>
-        [KeyInfo(KeyType.Array | KeyType.Optional, typeof(PdfAcroFieldCollection))]
+        [KeyInfo(KeyType.Array | KeyType.Optional)]
         public const string Kids = "/Kids";
 
         /// <summary>

@@ -36,12 +36,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Breaking
 
+- **`PdfAcroField.PdfAcroFieldCollection` is an `IReadOnlyList<PdfAcroField>` and no longer a `PdfArray`.** A form's `Fields` and a field's `Fields` are views of the array underneath, so LINQ over them is typed: `form.Fields.Single(f => f.Name == "x")` is a `PdfAcroField` with no `Cast`. The collection has no `Elements`; the array as the file has it is `form.Elements.GetArray(PdfAcroForm.Keys.Fields)` or `field.Elements.GetArray(PdfAcroField.Keys.Kids)`. Reading a field's `Fields` no longer writes an empty `/Kids` into the field; the array is made when the first field or widget is added. (#146)
 - **A field's `Fields` lists the fields nested under it and no longer its widget annotations.** A field's `/Kids` holds both kinds (ISO 32000-1 12.7.3.1), and the collection returned every kid as a field, so a widget came back as a nameless `PdfTextField` or `PdfCheckBoxField`. A kid is now a widget when it has `/Subtype /Widget`, a `/Parent` and neither `/T` nor `/Kids`, and `Fields`, its `Count`, its indexer and its enumerator skip it. A position given to the indexer therefore counts fields only, and is not the position in `Fields.Elements` when a field has widgets. The widgets are `PdfAcroField.Widgets`. Code that reached a field's widget as `field.Fields[0]` reads `field.Widgets[0]` now. (#146)
 
 #### Added
 
 - **`PdfAcroField.Widgets` lists the widget annotations a field is drawn as**, typed as `PdfWidgetAnnotation`: the widgets under its `/Kids`, or, for a field merged with its only widget in one dictionary, that widget. **`PdfWidgetAnnotation.Field`** goes the other way, and **`PdfAcroField.IsTerminal`** says whether a field has no fields nested under it. (#146)
-- **`PdfAcroField.PdfAcroFieldCollection` has a `Count` and a typed enumerator.** A form's `Fields` and a field's `Kids` can now be counted without LINQ, and `foreach (var field in form.Fields)` is typed as `PdfAcroField`, yielding exactly what the indexer returns. The collection does not implement `IEnumerable<PdfAcroField>`, which would make every LINQ call on it ambiguous; use `OfType<PdfAcroField>()` to query it.
+- **`PdfAcroField.PdfAcroFieldCollection` has a `Count` and a typed enumerator.** A form's `Fields` and a field's `Kids` can now be counted without LINQ, and `foreach (var field in form.Fields)` is typed as `PdfAcroField`, yielding exactly what the indexer returns.
 
 #### Fixed
 
