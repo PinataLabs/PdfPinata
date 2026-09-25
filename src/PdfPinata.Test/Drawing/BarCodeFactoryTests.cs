@@ -149,7 +149,8 @@ public class BarCodeFactoryTests
         // as no data at all.
         var act = () => new Code3of9Standard(code, Size);
 
-        act.Should().Throw<ArgumentException>().WithMessage($"*{code}*");
+        // Contain rather than WithMessage, where the "*" in the code would be read as a wildcard.
+        act.Should().Throw<ArgumentException>().Which.Message.Should().Contain($"'{code}'");
     }
 
     // Every data character: the 43 of Code 39, which is the alphabet less the "*" delimiter.
