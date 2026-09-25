@@ -27,6 +27,8 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using PdfPinata.Pdf.AcroForms;
+
 namespace PdfPinata.Pdf.Annotations;
 
 /// <summary>
@@ -74,6 +76,40 @@ public sealed class PdfWidgetAnnotation : PdfAnnotation
     internal PdfWidgetAnnotation(PdfDictionary dict)
         : base(dict)
     { }
+
+    /// <summary>
+    /// The widget annotation a field merged with its widget is drawn as: a view of the field's own
+    /// dictionary, sharing its entries and its reference and taking neither over.
+    /// </summary>
+    private PdfWidgetAnnotation(PdfAcroField field)
+        : base(field, View.Of)
+    {
+        _viewOf = field;
+    }
+
+    /// <summary>
+    /// Makes the view <see cref="PdfAcroField"/> caches, which is the only place one is made.
+    /// </summary>
+    internal static PdfWidgetAnnotation ViewOf(PdfAcroField field) => new(field);
+
+    private readonly PdfAcroField _viewOf;
+
+    /// <summary>
+    /// Gets the form field this widget draws: the field that is its <c>/Parent</c>, or, when the
+    /// field and the widget are one dictionary, that field. Null for a widget that belongs to no
+    /// field, which is malformed but can be read from a file.
+    /// </summary>
+    public PdfAcroField Field
+    {
+        get
+        {
+            if (_viewOf != null)
+                return _viewOf;
+
+            var parent = Elements.GetDictionary(PdfAcroField.Keys.Parent);
+            return parent is null or PdfAnnotation ? null : PdfAcroField.FromDictionary(parent);
+        }
+    }
 
     private void Initialize()
     {

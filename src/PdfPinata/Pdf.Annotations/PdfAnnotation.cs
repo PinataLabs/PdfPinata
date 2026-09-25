@@ -30,6 +30,7 @@
 using System;
 using System.Collections.Generic;
 using PdfPinata.Drawing;
+using PdfPinata.Pdf.AcroForms;
 using PdfPinata.Pdf.Advanced;
 
 namespace PdfPinata.Pdf.Annotations;
@@ -64,6 +65,16 @@ public abstract class PdfAnnotation : PdfDictionary
     { }
 
     /// <summary>
+    /// Initializes a view of a dictionary that is canonically something else - see
+    /// <see cref="PdfDictionary(PdfDictionary, View)"/>.
+    /// </summary>
+    private protected PdfAnnotation(PdfDictionary viewed, View view)
+        : base(viewed, view)
+    { }
+
+    internal override string Role => "annotation";
+
+    /// <summary>
     /// Gives an annotation dictionary read from a document the class that knows its subtype, or
     /// <see cref="PdfGenericAnnotation"/> when there is none.
     /// </summary>
@@ -77,9 +88,11 @@ public abstract class PdfAnnotation : PdfDictionary
     /// it, exactly as for an annotation made here.
     /// </para>
     /// <para>
-    /// A <c>/Widget</c> is often the same dictionary as the form field it shows. Wrapping it here
-    /// shares its entries with any field object already made over it, as the generic wrapper always
-    /// did, so a value written through either is written into the one dictionary.
+    /// A <c>/Widget</c> is often the same dictionary as the form field it shows, and such a
+    /// dictionary is canonically the field: it is made one here if nothing has made it one yet, and
+    /// what comes back is the field's widget view. Taking it over as an annotation instead would
+    /// take it away from the form, and which of the two a caller got would depend on which
+    /// collection happened to be read first.
     /// </para>
     /// </remarks>
     internal static PdfAnnotation FromDictionary(PdfDictionary dict)
@@ -89,7 +102,14 @@ public abstract class PdfAnnotation : PdfDictionary
         if (dict is PdfAnnotation annotation)
             return annotation;
 
-        return WrappersBySubtype.TryGetValue(dict.Elements.GetName(Keys.Subtype), out var wrap)
+        if (dict is PdfAcroField field)
+            return field.WidgetView;
+
+        var subtype = dict.Elements.GetName(Keys.Subtype);
+        if (subtype == "/Widget" && !PdfAcroField.IsWidgetOnly(dict))
+            return PdfAcroField.FromDictionary(dict).WidgetView;
+
+        return WrappersBySubtype.TryGetValue(subtype, out var wrap)
             ? wrap(dict)
             : new PdfGenericAnnotation(dict);
     }

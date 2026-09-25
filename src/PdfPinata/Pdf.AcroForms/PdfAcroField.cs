@@ -74,6 +74,148 @@ public abstract class PdfAcroField : PdfDictionary
         : base(dict)
     { }
 
+    internal override string Role => "form field";
+
+    /// <summary>
+    /// Whether a dictionary is a widget annotation and nothing else - a widget of the field its
+    /// <c>/Parent</c> names, rather than a field of its own.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <c>/Kids</c> holds both kinds (ISO 32000-1 section 12.7.3.1), and <c>/T</c> is what tells
+    /// them apart, as it does in PDFBox, pdf-lib, pypdf and MuPDF: a field has a partial name, and a
+    /// widget is the same field drawn somewhere and so has none. <c>/Subtype /Widget</c> alone is
+    /// not enough, because a field merged with its only widget carries it too.
+    /// </para>
+    /// <para>
+    /// A dictionary with <c>/Kids</c> of its own is a field whatever it says, since a widget has no
+    /// children; and one with no <c>/Parent</c> is a root field - merged with its widget, perhaps,
+    /// but a field - because a widget always belongs to one.
+    /// </para>
+    /// <para>
+    /// Any other field key does not count. iText treats <c>/V</c> as marking a field, and
+    /// <see cref="PdfCheckBoxField"/> writes <c>/V</c> onto its widgets.
+    /// </para>
+    /// </remarks>
+    internal static bool IsWidgetOnly(PdfDictionary dict)
+    {
+        var elements = dict.Elements;
+        return elements.GetName(PdfAnnotation.Keys.Subtype) == "/Widget"
+               && !elements.ContainsKey(Keys.T)
+               && !elements.ContainsKey(Keys.Kids)
+               && elements.ContainsKey(Keys.Parent);
+    }
+
+    /// <summary>
+    /// The field a dictionary is, given the class its inherited <c>/FT</c> and <c>/Ff</c> name, or
+    /// <see cref="PdfGenericField"/> when they name none.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// The dictionary is already an annotation, and so is not a field.
+    /// </exception>
+    internal static PdfAcroField FromDictionary(PdfDictionary dict)
+    {
+        if (dict is PdfAcroField field)
+            return field;
+
+        // Both entries are inheritable, and a terminal field read from a file often carries
+        // neither itself: a group of radio buttons, say, whose parent says /Btn and Radio once
+        // for all of them.
+        var ft = InheritedFrom(dict, Keys.FT)?.Elements.GetName(Keys.FT) ?? "";
+        var flags = InheritedFlags(dict);
+        switch (ft)
+        {
+            case "/Btn":
+                if ((flags & PdfAcroFieldFlags.Pushbutton) != 0)
+                    return new PdfPushButtonField(dict);
+
+                if ((flags & PdfAcroFieldFlags.Radio) != 0)
+                    return new PdfRadioButtonField(dict);
+
+                return new PdfCheckBoxField(dict);
+
+            case "/Tx":
+                return new PdfTextField(dict);
+
+            case "/Ch":
+                if ((flags & PdfAcroFieldFlags.Combo) != 0)
+                    return new PdfComboBoxField(dict);
+                return new PdfListBoxField(dict);
+
+            case "/Sig":
+                return new PdfSignatureField(dict);
+
+            default:
+                return new PdfGenericField(dict);
+        }
+    }
+
+    /// <summary>
+    /// The annotation this field is drawn as when the field and its only widget are one
+    /// dictionary: a view of this field, made once, which <c>page.Annotations</c> hands out for
+    /// the dictionary as well.
+    /// </summary>
+    internal PdfWidgetAnnotation WidgetView => _widgetView ??= PdfWidgetAnnotation.ViewOf(this);
+
+    private PdfWidgetAnnotation _widgetView;
+
+    /// <summary>
+    /// Whether this field is its own widget annotation - merged with it into one dictionary, as
+    /// ISO 32000-1 section 12.7.3.1 allows for a field with exactly one widget.
+    /// </summary>
+    private bool IsOwnWidget => Elements.GetName(PdfAnnotation.Keys.Subtype) == "/Widget";
+
+    /// <summary>
+    /// Gets the widget annotations this field is drawn as: the widgets under its <c>/Kids</c>, or,
+    /// for a field merged with its only widget, that widget - a view of this field's own
+    /// dictionary, and the same object <c>page.Annotations</c> gives for it.
+    /// </summary>
+    /// <remarks>
+    /// A snapshot, taken when read. <see cref="AddWidget"/> is what adds one. A field that holds
+    /// other fields rather than widgets has none; its widgets are theirs.
+    /// </remarks>
+    public IReadOnlyList<PdfWidgetAnnotation> Widgets
+    {
+        get
+        {
+            if (IsOwnWidget)
+                return [WidgetView];
+
+            var widgets = new List<PdfWidgetAnnotation>();
+            foreach (var kid in KidDictionaries())
+            {
+                if (IsWidgetOnly(kid))
+                    widgets.Add((PdfWidgetAnnotation)PdfAnnotation.FromDictionary(kid));
+            }
+            return widgets;
+        }
+    }
+
+    /// <summary>
+    /// Gets whether this is a terminal field - one with no fields nested under it, and so the one
+    /// that holds a value and is drawn.
+    /// </summary>
+    public bool IsTerminal => !HasKids || Fields.Count == 0;
+
+    /// <summary>
+    /// The dictionaries under <c>/Kids</c>, whatever each of them is, without making a collection
+    /// of them.
+    /// </summary>
+    private IEnumerable<PdfDictionary> KidDictionaries()
+    {
+        var item = Elements[Keys.Kids];
+        if (item is PdfReference reference)
+            item = reference.Value;
+        if (item is not PdfArray kids)
+            yield break;
+
+        for (var idx = 0; idx < kids.Elements.Count; idx++)
+        {
+            if (kids.Elements.GetDictionary(idx) is { } kid)
+                yield return kid;
+        }
+    }
+
     /// <summary>
     /// Gets or sets the partial name of this field - <c>/T</c> - which is what
     /// <see cref="PdfAcroFieldCollection.this[string]"/> looks a field up by, and what the dotted
@@ -422,11 +564,8 @@ public abstract class PdfAcroField : PdfDictionary
 
     private void AppKids(Dictionary<string, object> names)
     {
-        foreach (var pdfItem in Fields.Elements.Items)
-        {
-            if (pdfItem is PdfReference { Value: PdfDictionary kid })
-                AppDict(kid, names);
-        }
+        foreach (var widget in Widgets)
+            AppDict(widget, names);
     }
 
     private static void AppDict(PdfDictionary dict, Dictionary<string, object> names)
@@ -587,10 +726,15 @@ public abstract class PdfAcroField : PdfDictionary
         }
 
         /// <summary>
-        /// Gets the number of entries in the collection, which is the range <see cref="this[int]"/>
+        /// Gets the number of fields in the collection, which is the range <see cref="this[int]"/>
         /// accepts.
         /// </summary>
-        public int Count => Elements.Count;
+        /// <remarks>
+        /// Not the length of the array underneath. A field's <c>/Kids</c> holds its widget
+        /// annotations as well as the fields nested under it, and only the fields are counted -
+        /// the widgets are <see cref="PdfAcroField.Widgets"/>.
+        /// </remarks>
+        public int Count => FieldPositions().Count;
 
         /// <summary>
         /// Gets the names of all fields in the collection.
@@ -599,10 +743,10 @@ public abstract class PdfAcroField : PdfDictionary
         {
             get
             {
-                var count = Elements.Count;
-                var names = new string[count];
-                for (var idx = 0; idx < count; idx++)
-                    names[idx] = ((PdfDictionary)((PdfReference)Elements[idx]).Value).Elements.GetString(Keys.T);
+                var positions = FieldPositions();
+                var names = new string[positions.Count];
+                for (var idx = 0; idx < names.Length; idx++)
+                    names[idx] = Elements.GetDictionary(positions[idx]).Elements.GetString(Keys.T);
                 return names;
             }
         }
@@ -622,36 +766,32 @@ public abstract class PdfAcroField : PdfDictionary
 
         internal void GetDescendantNames(ref List<string> names, string partialName)
         {
-            var count = Elements.Count;
-            for (var idx = 0; idx < count; idx++)
-            {
-                var field = this[idx];
-                field?.GetDescendantNames(ref names, partialName);
-            }
+            foreach (var field in this)
+                field.GetDescendantNames(ref names, partialName);
         }
 
         /// <summary>
-        /// Gets a field from the collection. For your convenience an instance of a derived class like
-        /// PdfTextField or PdfCheckBox is returned if PDFsharp can guess the actual type of the dictionary.
-        /// If the actual type cannot be guessed by PDFsharp the function returns an instance
-        /// of PdfGenericField.
+        /// Gets the field at the specified position among the fields in this collection. An
+        /// instance of the class the field's inherited <c>/FT</c> and <c>/Ff</c> name is returned -
+        /// <see cref="PdfTextField"/>, <see cref="PdfCheckBoxField"/> and so on - or
+        /// <see cref="PdfGenericField"/> when they name none.
         /// </summary>
+        /// <remarks>
+        /// The position counts fields only, so it is not the position in the array underneath when
+        /// that also holds widget annotations.
+        /// </remarks>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="index"/> is negative, or not less than <see cref="Count"/>.
+        /// </exception>
         public PdfAcroField this[int index]
         {
             get
             {
-                var item = Elements[index];
-                Debug.Assert(item is PdfReference);
-                var dict = ((PdfReference)item).Value as PdfDictionary;
-                Debug.Assert(dict != null);
-                var field = dict as PdfAcroField;
-                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-                if (field == null && dict != null)
-                {
-                    // Do type transformation
-                    field = CreateAcroField(dict);
-                }
-                return field;
+                var positions = FieldPositions();
+                if (index < 0 || index >= positions.Count)
+                    throw new ArgumentOutOfRangeException(nameof(index), index, "There is no field at this position.");
+
+                return FromDictionary(Elements.GetDictionary(positions[index]));
             }
         }
 
@@ -659,6 +799,22 @@ public abstract class PdfAcroField : PdfDictionary
         /// Gets the field with the specified name.
         /// </summary>
         public PdfAcroField this[string name] => GetValue(name);
+
+        /// <summary>
+        /// The positions in the array underneath that hold fields: every dictionary in it but the
+        /// widget annotations, which a field's <c>/Kids</c> holds as well.
+        /// </summary>
+        private List<int> FieldPositions()
+        {
+            var positions = new List<int>();
+            for (var idx = 0; idx < Elements.Count; idx++)
+            {
+                var dict = Elements.GetDictionary(idx);
+                if (dict != null && dict is not PdfAnnotation && !IsWidgetOnly(dict))
+                    positions.Add(idx);
+            }
+            return positions;
+        }
 
         /// <summary>
         /// Returns an enumerator over the fields in this collection, each given the class its
@@ -676,43 +832,13 @@ public abstract class PdfAcroField : PdfDictionary
         /// </remarks>
         public new IEnumerator<PdfAcroField> GetEnumerator()
         {
-            return new FieldsIterator(this);
+            foreach (var position in FieldPositions())
+                yield return FromDictionary(Elements.GetDictionary(position));
         }
 
         private protected override IEnumerator<PdfItem> EnumerateItems()
         {
             return GetEnumerator();
-        }
-
-        private sealed class FieldsIterator : IEnumerator<PdfAcroField>
-        {
-            public FieldsIterator(PdfAcroFieldCollection fields)
-            {
-                _fields = fields;
-                _index = -1;
-            }
-
-            public PdfAcroField Current => _fields[_index];
-
-            object IEnumerator.Current => Current;
-
-            public bool MoveNext()
-            {
-                return ++_index < _fields.Count;
-            }
-
-            public void Reset()
-            {
-                _index = -1;
-            }
-
-            public void Dispose()
-            {
-                // Holds nothing to release.
-            }
-
-            private readonly PdfAcroFieldCollection _fields;
-            private int _index;
         }
 
         internal PdfAcroField GetValue(string name)
@@ -724,53 +850,12 @@ public abstract class PdfAcroField : PdfDictionary
             var prefix = dot == -1 ? name : name[..dot];
             var suffix = dot == -1 ? "" : name[(dot + 1)..];
 
-            var count = Elements.Count;
-            for (var idx = 0; idx < count; idx++)
+            foreach (var field in this)
             {
-                var field = this[idx];
                 if (field.Name == prefix)
                     return field.GetValue(suffix);
             }
             return null;
-        }
-
-        /// <summary>
-        /// Create a derived type like PdfTextField or PdfCheckBox if possible.
-        /// If the actual cannot be guessed by PDFsharp the function returns an instance
-        /// of PdfGenericField.
-        /// </summary>
-        private static PdfAcroField CreateAcroField(PdfDictionary dict)
-        {
-            // Both entries are inheritable, and a terminal field read from a file often carries
-            // neither itself: a group of radio buttons, say, whose parent says /Btn and Radio once
-            // for all of them.
-            var ft = InheritedFrom(dict, Keys.FT)?.Elements.GetName(Keys.FT) ?? "";
-            var flags = InheritedFlags(dict);
-            switch (ft)
-            {
-                case "/Btn":
-                    if ((flags & PdfAcroFieldFlags.Pushbutton) != 0)
-                        return new PdfPushButtonField(dict);
-
-                    if ((flags & PdfAcroFieldFlags.Radio) != 0)
-                        return new PdfRadioButtonField(dict);
-
-                    return new PdfCheckBoxField(dict);
-
-                case "/Tx":
-                    return new PdfTextField(dict);
-
-                case "/Ch":
-                    if ((flags & PdfAcroFieldFlags.Combo) != 0)
-                        return new PdfComboBoxField(dict);
-                    return new PdfListBoxField(dict);
-
-                case "/Sig":
-                    return new PdfSignatureField(dict);
-
-                default:
-                    return new PdfGenericField(dict);
-            }
         }
     }
 

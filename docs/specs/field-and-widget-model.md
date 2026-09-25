@@ -7,11 +7,11 @@ libraries do, and the plan. The plan breaks the public API on purpose, while the
 
 | item | what | breaking | status |
 |---|---|---|---|
-| 1 | A dictionary cannot be taken from one role into the other: a field never rebinds an annotation's reference, and an annotation never rebinds a field's | no | not started |
-| 2 | A merged field-and-widget dictionary is one `PdfAcroField`; its annotation role is a view cached on it | no | not started |
-| 3 | `Fields` lists child fields only; new `Widgets` lists widget annotations | **yes**, behaviour | not started |
+| 1 | A dictionary cannot be taken from one role into the other: a field never rebinds an annotation's reference, and an annotation never rebinds a field's | no | done |
+| 2 | A merged field-and-widget dictionary is one `PdfAcroField`; its annotation role is a view cached on it | no | done |
+| 3 | `Fields` lists child fields only; new `Widgets` lists widget annotations | **yes**, behaviour | done |
 | 4 | `PdfAcroFieldCollection` stops being a `PdfArray` and becomes `IReadOnlyList<PdfAcroField>` | **yes**, compile | not started |
-| 5 | `PdfWidgetAnnotation.Field`, and the library's own kid walks moved onto `Widgets` | no | not started |
+| 5 | `PdfWidgetAnnotation.Field`, and the library's own kid walks moved onto `Widgets` | no | done |
 | 6 | `AddWidget` on a merged field splits it first | no | not started |
 | — | Separate classes for terminal and non-terminal fields | **deliberately not done** (§5.3) |
 | — | Thin, uncached wrappers throughout (the PDFBox model) | **deliberately not done** (§5.1) |
@@ -82,8 +82,13 @@ Where they agree:
 
 ### 3.1 Which kid is a widget
 
-> A kid is a **widget** when it has `/Subtype /Widget`, no `/T` and no `/Kids`. Every other kid is a
-> **field**.
+> A kid is a **widget** when it has `/Subtype /Widget`, a `/Parent`, no `/T` and no `/Kids`. Every
+> other kid is a **field**.
+
+The `/Parent` condition was added while building it. A widget always belongs to a field, so a
+`/Widget` with no `/Parent` is a root field merged with its widget, even one with no name. It lets
+the annotation side use the same rule: `page.Annotations` makes a `/Widget` canonically a field
+exactly when `Fields` would list it.
 
 - **`/T` is the test**, as in PDFBox, pdf-lib, pypdf and MuPDF. `/Subtype /Widget` alone is not
   enough, because a merged dictionary has it too.
@@ -126,11 +131,12 @@ That makes the annotation side do the work:
   into `PdfAcroField`, or the other way. The class of bug reported here then fails loudly the next
   time some other path reaches it.
 
-One detail needs a test before it can be relied on. The view reads widget keys (`/MK`, `/AP`, `/BS`)
-through entries whose `Meta` is the *field's*. `PdfAcroField.Keys` already lists `/Rect`, `/Subtype`
-and `/P` for the merged case. A typed read through the view of a key the field's `Meta` does not
-declare would throw exactly as §1's `/Kids` did. So the field's `Meta`, when the dictionary is
-merged, has to declare the widget's keys as well.
+One detail looked like it needed more work, and turned out not to. The view reads widget keys
+(`/MK`, `/AP`, `/BS`) through entries whose `Meta` is the *field's*, and a typed read of a key the
+field's `Meta` does not declare would throw as §1's `/Kids` did. But `Meta` is consulted only to
+*create* a missing value, and nothing in `Pdf.Annotations` does that. The only keys created that way
+in either namespace are `/Kids` and `/Fields`, and those belong to the field, which keeps the entries.
+Nothing had to change.
 
 ### 3.3 The collections
 
@@ -184,8 +190,11 @@ the field or the form, which holds the parent for `Add`.
 
 ## 4. The plan
 
-Each item is one PR. Items 1 and 2 fix every failure in §1 except the fake field, and they break
-nothing, so they can ship in a patch release before the breaking pair.
+The plan was one PR per item, with items 1 and 2 shipping first as a non-breaking patch. Building
+them showed that plan was wrong: once a field may not take over a widget's reference, `Fields[i]`
+has nothing honest to return for a widget kid. It can throw, return null, or skip the kid, and
+skipping it is item 3. So items 1, 2, 3 and 5 are one PR; item 4 is the second, and item 6 the third.
+Items 1 to 4 ship in one release.
 
 1. **Stop cross-role rebinding** (§3.2, the tripwire and the throw in `CreateAcroField`). Tests: the
    §1 repros turned into assertions — `page.Annotations[0]` stays the object `AddWidget` returned

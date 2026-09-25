@@ -34,12 +34,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Annotations & Forms
 
+#### Breaking
+
+- **A field's `Fields` lists the fields nested under it and no longer its widget annotations.** A field's `/Kids` holds both kinds (ISO 32000-1 12.7.3.1), and the collection returned every kid as a field, so a widget came back as a nameless `PdfTextField` or `PdfCheckBoxField`. A kid is now a widget when it has `/Subtype /Widget`, a `/Parent` and neither `/T` nor `/Kids`, and `Fields`, its `Count`, its indexer and its enumerator skip it. A position given to the indexer therefore counts fields only, and is not the position in `Fields.Elements` when a field has widgets. The widgets are `PdfAcroField.Widgets`. Code that reached a field's widget as `field.Fields[0]` reads `field.Widgets[0]` now. (#146)
+
 #### Added
 
+- **`PdfAcroField.Widgets` lists the widget annotations a field is drawn as**, typed as `PdfWidgetAnnotation`: the widgets under its `/Kids`, or, for a field merged with its only widget in one dictionary, that widget. **`PdfWidgetAnnotation.Field`** goes the other way, and **`PdfAcroField.IsTerminal`** says whether a field has no fields nested under it. (#146)
 - **`PdfAcroField.PdfAcroFieldCollection` has a `Count` and a typed enumerator.** A form's `Fields` and a field's `Kids` can now be counted without LINQ, and `foreach (var field in form.Fields)` is typed as `PdfAcroField`, yielding exactly what the indexer returns. The collection does not implement `IEnumerable<PdfAcroField>`, which would make every LINQ call on it ambiguous; use `OfType<PdfAcroField>()` to query it.
 
 #### Fixed
 
+- **Reading a form's fields no longer takes their widgets away from the page.** Typing a widget as a field pointed the dictionary's reference at the new field object, so `page.Annotations[i]` stopped being the widget `AddWidget` had returned, and reading the fields and the annotations in turn made a new object each time. A value written through the widget-as-field went into the widget's `/V`, where no reader looks, and the field kept none. A field and an annotation can no longer be made out of one another; attempting it throws `InvalidOperationException`. (#146)
+- **A field merged with its widget in one dictionary is one field object and one widget object, whichever is read first.** Such a dictionary is canonically the field, and `page.Annotations` and `field.Widgets` give a view of it that shares its entries and takes nothing over. Before, reading the page after the field retyped the dictionary as an annotation, and the field object made first then threw `NotImplementedException` for `/Kids` when asked for its `Fields`. (#146)
+- **`PdfTextField` no longer draws its value into the fields nested under it.** It drew into every kid with a `/Rect`, which included nested fields merged with their widgets, over their own values. It draws into its widgets alone. (#146)
 - **LINQ over a form's fields, or a field's kids, now yields the typed `PdfAcroField` objects instead of `PdfReference`s.** The collection's indexer returned `PdfTextField`, `PdfCheckBoxField` and the rest, but every enumeration yielded the references underneath, so `OfType<PdfAcroField>()` was empty and `Cast<PdfAcroField>()` threw. Enumeration as a `PdfArray`, through `IEnumerable<PdfItem>` or through plain `IEnumerable` now yields the same objects the indexer does, typing each field on the way as the indexer always has.
 - **`PdfDocument.MakeAcroFormsReadOnly` walks the form's fields once.** It counted them with LINQ's `Count()` in its loop condition, enumerating the whole collection again on every iteration.
 - **`PdfOutlineCollection.Insert` accepts an index equal to `Count` and appends the outline.** `IList<T>.Insert` requires this, but the collection threw `ArgumentOutOfRangeException`, including for `Insert(0, outline)` on an empty collection. The outline is now placed in the tree exactly as `Add` places it, and is saved at the end of its list.

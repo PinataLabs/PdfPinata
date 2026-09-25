@@ -198,14 +198,11 @@ public sealed class PdfTextField : PdfAcroField
             return;
         }
 
-        var kids = Elements.GetArray(PdfAcroField.Keys.Kids);
-        if (kids == null)
-            return;
-
-        foreach (var kid in kids.Elements.Items)
+        // The widgets alone. /Kids can hold nested fields as well, each with a value of its own,
+        // and drawing this field's value into them drew it over theirs.
+        foreach (var widget in Widgets)
         {
-            var item = kid is PdfReference reference ? reference.Value : kid;
-            if (item is PdfDictionary widget && widget.Elements.ContainsKey(PdfAnnotation.Keys.Rect))
+            if (widget.Elements.ContainsKey(PdfAnnotation.Keys.Rect))
                 RenderAppearanceOn(widget);
         }
     }

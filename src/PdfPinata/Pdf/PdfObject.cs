@@ -63,6 +63,18 @@ public abstract class PdfObject : PdfItem
     protected PdfObject(PdfObject obj)
         : this(obj.Owner)
     {
+        // A transformation refines what an object is known to be; it never turns one role into
+        // another. The reference is what the rest of the document finds the object by, so a form
+        // field retyped as an annotation - or the reverse - takes the object away from whoever held
+        // it in the first role, and whatever that wrapper kept in its own fields is lost with it.
+        if (obj.Role != null && obj.Role != Role)
+        {
+            throw new InvalidOperationException(
+                $"A {obj.Role} cannot be made into a {Role ?? GetType().Name}. A dictionary that "
+                + "plays both parts - a form field merged with its widget - is a form field whose "
+                + "widget annotation is a view of it.");
+        }
+
         // If the object that was transformed to an instance of a derived class was an indirect object
         // set the value of the reference to this.
         obj.Reference?.Value = this;
@@ -72,6 +84,16 @@ public abstract class PdfObject : PdfItem
         // left out of the appended revision.
         IsDirty = obj.IsDirty;
     }
+
+    /// <summary>
+    /// What part this object plays in the document when that is one a dictionary could be retyped
+    /// out of - a form field or an annotation - or null for everything else.
+    /// </summary>
+    /// <remarks>
+    /// Read by the constructor above on an object whose own constructors have not run yet, so an
+    /// override must answer a constant.
+    /// </remarks>
+    internal virtual string Role => null;
 
     /// <summary>
     /// Creates a copy of this object. The clone does not belong to a document, i.e. its owner and its iref are null.
