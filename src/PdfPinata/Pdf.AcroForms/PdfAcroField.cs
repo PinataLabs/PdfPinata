@@ -95,8 +95,9 @@ public abstract class PdfAcroField : PdfDictionary
     /// but a field - because a widget always belongs to one.
     /// </para>
     /// <para>
-    /// Any other field key does not count. iText treats <c>/V</c> as marking a field, and
-    /// <see cref="PdfCheckBoxField"/> writes <c>/V</c> onto its widgets.
+    /// Any other field key does not count. iText treats <c>/V</c> as marking a field, but a widget
+    /// can carry one: files from other software do, and so do check boxes written by earlier
+    /// versions of this library, which recorded a box's state on its widgets.
     /// </para>
     /// </remarks>
     internal static bool IsWidgetOnly(PdfDictionary dict)
@@ -687,8 +688,17 @@ public abstract class PdfAcroField : PdfDictionary
                 Elements[Keys.V] = value;
             else
                 throw new NotImplementedException("Values other than string cannot be set.");
+
+            OnValueChanged();
         }
     }
+
+    /// <summary>
+    /// Called when <see cref="Value"/> has been set, for a field that draws its own appearance
+    /// from its value or keeps something else in step with it.
+    /// </summary>
+    internal virtual void OnValueChanged()
+    { }
 
     /// <summary>
     /// Throws unless the field may be given a value: it must not be read only, and the document
@@ -883,7 +893,26 @@ public abstract class PdfAcroField : PdfDictionary
     /// Reading it writes nothing. <c>/Kids</c> is made when the first field or widget is added,
     /// where it used to be made - empty, and indirect - the first time anybody asked.
     /// </remarks>
-    public PdfAcroFieldCollection Fields => field ??= new PdfAcroFieldCollection(this, Keys.Kids, this);
+    public PdfAcroFieldCollection Fields => _fields ??= new PdfAcroFieldCollection(this, Keys.Kids, this);
+
+    private PdfAcroFieldCollection _fields;
+
+    /// <summary>
+    /// A copy is a field of its own, so it takes none of the views this field has made of itself.
+    /// </summary>
+    /// <remarks>
+    /// Copying is memberwise, and a page imported from another document copies the fields its
+    /// widgets belong to. A copy that kept these would read and write the original: its
+    /// <see cref="Fields"/> added to the original's <c>/Kids</c>, with the original's document as
+    /// owner, and its widget view shared the original's entries.
+    /// </remarks>
+    protected override object Copy()
+    {
+        var copy = (PdfAcroField)base.Copy();
+        copy._fields = null;
+        copy._widgetView = null;
+        return copy;
+    }
 
     /// <summary>
     /// The fields in a form's <c>/Fields</c> or a field's <c>/Kids</c>: a read-only list of the

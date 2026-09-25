@@ -174,6 +174,12 @@ public sealed class PdfTextField : PdfAcroField
         }
     }
 
+    /// <summary>
+    /// A value set through <see cref="PdfAcroField.Value"/> is drawn, as one set through
+    /// <see cref="Text"/> is.
+    /// </summary>
+    internal override void OnValueChanged() => RenderAppearance();
+
     internal override void OnWidgetAdded()
     {
         // A field is usually described before it is placed, and until it is placed there is no

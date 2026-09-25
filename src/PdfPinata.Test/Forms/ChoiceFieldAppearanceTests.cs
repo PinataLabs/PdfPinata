@@ -259,6 +259,56 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
     }
 
     [Fact]
+    public void SettingAListBoxsValueRedrawsItAndReplacesItsIndices()
+    {
+        // Filling a form through Value - AcroForm.Fields[name].Value - is the ordinary way to fill
+        // one read from a file, and it redrew nothing and left /I naming the old rows.
+        var (_, list) = OnAPage(ACountryList);
+        list.SelectedIndices = [0, 3];
+        var before = NormalAppearance(list).Stream.Value;
+
+        list.Value = new PdfString("Canada");
+
+        list.SelectedIndices.Should().Equal(1);
+        list.Elements.GetArray(PdfChoiceField.Keys.I).Elements.GetInteger(0).Should().Be(1);
+        NormalAppearance(list).Stream.Value.Should().NotEqual(before);
+    }
+
+    [Fact]
+    public void SettingATextFieldsValueRedrawsIt()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var form = document.GetOrCreateAcroForm();
+        var text = new PdfTextField(document) { Name = "name", BorderColor = XColors.Gray };
+        form.Fields.Add(text);
+        text.AddWidget(page, new PdfRectangle(new XRect(60, 700, 200, 20)));
+        var appearances = text.Widgets[0].Elements.GetDictionary(PdfAnnotation.Keys.AP);
+        var before = ((PdfDictionary)appearances.Elements.GetObject("/N")).Stream.Value;
+
+        text.Value = new PdfString("Ada Lovelace");
+
+        appearances = text.Widgets[0].Elements.GetDictionary(PdfAnnotation.Keys.AP);
+        ((PdfDictionary)appearances.Elements.GetObject("/N")).Stream.Value.Should().NotEqual(before);
+    }
+
+    [Theory]
+    [InlineData("/Helv 9 Tf 1 rg")]
+    [InlineData("/Helv 9 Tf 0 0 0 k")]
+    [InlineData("/Helv 9 Tf 0 0 1 0 rg")]
+    public void AColourOperatorWithTheWrongNumberOfOperandsIsReadAsBlack(string appearance)
+    {
+        // /DA comes from files, and this used to throw FormatException out of every setter that
+        // redraws the field.
+        var (_, combo) = OnAPage(ACountryCombo);
+        combo.DefaultAppearance = appearance;
+
+        combo.ForeColor.Should().Be(XColors.Black);
+        var act = () => combo.SelectedIndex = 2;
+        act.Should().NotThrow();
+    }
+
+    [Fact]
     public void AFieldReadFromAFileKeepsItsAppearanceUntilItIsChanged()
     {
         // Saving does not redraw: a form somebody else wrote keeps its own drawing unless the

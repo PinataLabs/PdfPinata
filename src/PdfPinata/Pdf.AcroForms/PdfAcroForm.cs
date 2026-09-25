@@ -187,13 +187,26 @@ public sealed class PdfAcroForm : PdfDictionary
     {
         get
         {
-            if (field == null)
+            if (_fields == null)
             {
-                field = new PdfAcroField.PdfAcroFieldCollection(this, Keys.Fields, parent: null);
-                field.GetOrCreateEntries();
+                _fields = new PdfAcroField.PdfAcroFieldCollection(this, Keys.Fields, parent: null);
+                _fields.GetOrCreateEntries();
             }
-            return field;
+            return _fields;
         }
+    }
+
+    private PdfAcroField.PdfAcroFieldCollection _fields;
+
+    /// <summary>
+    /// A copy is a form of its own, so it does not keep the view of <c>/Fields</c> this form made,
+    /// which reads and writes this form's array.
+    /// </summary>
+    protected override object Copy()
+    {
+        var copy = (PdfAcroForm)base.Copy();
+        copy._fields = null;
+        return copy;
     }
 
     /// <summary>

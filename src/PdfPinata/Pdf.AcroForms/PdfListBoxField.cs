@@ -135,6 +135,19 @@ public sealed class PdfListBoxField : PdfChoiceField
     }
 
     /// <summary>
+    /// A value set through <see cref="PdfAcroField.Value"/> names the option chosen; <c>/I</c> is
+    /// brought into line with it, where it would otherwise go on naming the rows chosen before,
+    /// and the list is redrawn.
+    /// </summary>
+    internal override void OnValueChanged()
+    {
+        Elements.Remove(PdfChoiceField.Keys.I);
+        if (AllowsMultipleSelection)
+            WriteSelectedIndices(SelectedIndicesFromValue());
+        RenderAppearance();
+    }
+
+    /// <summary>
     /// Gets or sets the index of the first option shown - <c>/TI</c>, the top index of a list
     /// longer than its box. Zero, the default, shows the list from its first option.
     /// </summary>

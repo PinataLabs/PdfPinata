@@ -432,6 +432,13 @@ public abstract class PdfChoiceField : PdfAcroField
         if (Owner == null)
             return;
 
+        // Drawing needs a font, and with none set on the field that is the resolver's. Without
+        // either, the value has already been written and stands; the field is left for a reader
+        // to draw, as every choice field was before it drew itself, rather than throwing out of
+        // a setter that has already changed it.
+        if (_font == null && !GlobalFontSettings.IsFontResolverSet)
+            return;
+
         foreach (var widget in Widgets)
             RenderAppearanceOn(widget);
     }
@@ -541,12 +548,17 @@ public abstract class PdfChoiceField : PdfAcroField
         if (last == null)
             return XColors.Black;
 
+        // The pattern takes one to four numbers before any of the three operators, so an operator
+        // is only believed with the count it takes: /DA is read from files, and "1 rg" parsed as
+        // three numbers made every setter that redraws the field throw.
+        var three = last.Groups["b"].Success && last.Groups["c"].Success;
+        var four = three && last.Groups["d"].Success;
         return last.Groups["op"].Value switch
         {
-            "g" => XColor.FromGrayScale(Number(last.Groups["a"])),
-            "rg" => XColor.FromArgb((int)Math.Round(Number(last.Groups["a"]) * 255),
+            "g" when !three => XColor.FromGrayScale(Number(last.Groups["a"])),
+            "rg" when three && !four => XColor.FromArgb((int)Math.Round(Number(last.Groups["a"]) * 255),
                 (int)Math.Round(Number(last.Groups["b"]) * 255), (int)Math.Round(Number(last.Groups["c"]) * 255)),
-            "k" => XColor.FromCmyk(Number(last.Groups["a"]), Number(last.Groups["b"]),
+            "k" when four => XColor.FromCmyk(Number(last.Groups["a"]), Number(last.Groups["b"]),
                 Number(last.Groups["c"]), Number(last.Groups["d"])),
             _ => XColors.Black
         };
