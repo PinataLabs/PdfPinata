@@ -111,12 +111,11 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
         switch (tokens[index])
         {
             case "g" when TryOperands(tokens, index, 1, out operands):
-                var grey = Component(operands[0]);
-                color = XColor.FromArgb(grey, grey, grey);
+                color = XColor.FromUnitRgb(operands[0], operands[0], operands[0]);
                 return true;
 
             case "rg" when TryOperands(tokens, index, 3, out operands):
-                color = XColor.FromArgb(Component(operands[0]), Component(operands[1]), Component(operands[2]));
+                color = XColor.FromUnitRgb(operands[0], operands[1], operands[2]);
                 return true;
 
             case "k" when TryOperands(tokens, index, 4, out operands):
@@ -149,8 +148,6 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
         operands = values;
         return true;
     }
-
-    private static int Component(double value) => (int)Math.Round(Math.Clamp(value, 0, 1) * 255);
 
     private void Initialize()
     {

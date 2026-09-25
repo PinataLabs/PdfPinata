@@ -149,6 +149,24 @@ public struct XColor : IEquatable<XColor>
     }
 
     /// <summary>
+    /// Creates an opaque XColor from three components in the unit range, as a DeviceRGB colour is
+    /// written in a PDF file - an outline's <c>/C</c>, an annotation's <c>/C</c> or <c>/IC</c>, the
+    /// operands of <c>rg</c>.
+    /// </summary>
+    /// <remarks>
+    /// Rounded rather than truncated: a component goes out as a fraction of 255 at limited
+    /// precision, so 127 is written as 0.498 and comes back as 126.99, and truncating that loses a
+    /// level on every save and reopen. Clamped, because a file from another writer may say 1.2 or
+    /// -0.1, and <see cref="FromArgb(int, int, int)"/> refuses anything outside a byte.
+    /// </remarks>
+    internal static XColor FromUnitRgb(double red, double green, double blue)
+        => FromArgb(UnitToByte(red), UnitToByte(green), UnitToByte(blue));
+
+    // NaN is not a colour anyone meant, and (int)NaN is unspecified, so it reads as 0.
+    private static int UnitToByte(double value)
+        => double.IsNaN(value) ? 0 : (int)Math.Round(Math.Clamp(value, 0, 1) * 255);
+
+    /// <summary>
     /// Creates an XColor structure from the four ARGB component (alpha, red, green, and blue) values.
     /// </summary>
     public static XColor FromArgb(int alpha, int red, int green, int blue)
