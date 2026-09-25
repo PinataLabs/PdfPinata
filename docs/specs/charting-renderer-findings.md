@@ -456,6 +456,12 @@ hands over, so nothing it draws is affected.
 Pinned by `HiddenSeriesLineTests`, across line, area, column, bar and pie charts, with and without
 a legend.
 
+The axes were left out of that fix and disagreed among themselves (#173): a column chart's value
+axis tested `Width > 0`, while the category axis and a bar chart's value axis stroked the width-0
+pen, and no tick mark, gridline, zero baseline or legend border tested anything. The guard now lives
+in `LineFormatRenderer(XGraphics, XPen)`, which every one of those is drawn through, so a pen of
+width 0 is no pen wherever it is used. Pinned by `HiddenAxisLineTests`.
+
 ---
 
 ## C13. A second category series was drawn past the end of the axis — fixed

@@ -164,15 +164,20 @@ public class ChartCloneAndLineFormatTests
     }
 
     [Fact]
-    public void AGridlineFormatStatingOnlyAColourIsStillDrawn()
+    public void AGridlineFormatStatingOnlyAColourIsNotDrawn()
     {
-        // Visible is not the only way to ask for a line: a format that names a colour and no
-        // width is taken to want one, because naming a colour for a line nobody draws is not a
-        // thing anyone means.
+        // It used to be, but only as a hairline: Converter.ToXPen gives a format that is not
+        // Visible a pen of width 0, and PDF strokes that as the thinnest line the device can
+        // draw. A width-0 pen is no line everywhere else in the package (C12, and #173 for the
+        // axes), so a gridline is no exception - Visible = true is what asks for one.
         var chart = Charts.Of(ChartType.Column2D, 1.0, 2.0, 3.0);
         chart.YAxis.HasMajorGridlines = true;
         chart.YAxis.MajorGridlines.LineFormat.Color = XColors.Red;
 
+        StrokedLines.Of(Drawn.Page(chart)).Select(line => line.Colour)
+            .Should().NotContain("1,0,0");
+
+        chart.YAxis.MajorGridlines.LineFormat.Visible = true;
         StrokedLines.Of(Drawn.Page(chart)).Select(line => line.Colour)
             .Should().Contain("1,0,0");
     }

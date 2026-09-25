@@ -264,7 +264,8 @@ internal abstract class LegendRenderer : Renderer
     borderRect.Y += TopPadding;
     borderRect.Width -= LeftPadding + RightPadding;
     borderRect.Height -= TopPadding + BottomPadding;
-    gfx.DrawRectangle(lri.BorderPen, borderRect);
+    // Through the line format renderer, which draws a hidden border - a pen of width 0 - as nothing.
+    new LineFormatRenderer(gfx, lri.BorderPen).DrawRectangle(borderRect);
   }
 
   /// <summary>

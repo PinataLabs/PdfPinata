@@ -349,8 +349,8 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// its own width when there are major tick marks, so that it covers the outermost of them.
   /// </summary>
   /// <remarks>
-  /// The two orientations test for a line format differently, and are kept that way: the
-  /// horizontal one draws whenever there is one, the vertical one only when it has a width.
+  /// A line format that is not visible is a pen of width 0, which the line format renderer draws
+  /// as nothing, so both orientations ask only whether there is a line format at all.
   /// </remarks>
   private void DrawAxisLine(LineFormatRenderer lineFormatRenderer, AxisRendererInfo yari, XMatrix matrix)
   {
@@ -383,11 +383,11 @@ internal abstract class YAxisRenderer : AxisRenderer
   }
 
   /// <summary>
-  /// The two ends of a vertical axis line, or null when there is no line format with a width.
+  /// The two ends of a vertical axis line, or null when there is no line format.
   /// </summary>
   private static XPoint[] VerticalAxisLine(AxisRendererInfo yari, XMatrix matrix)
   {
-    if (yari.LineFormat is not { Width: > 0 })
+    if (yari.LineFormat == null)
       return null;
 
     var points = new XPoint[2];
