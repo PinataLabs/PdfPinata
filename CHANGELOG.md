@@ -15,8 +15,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **A literal string continued onto the next line with a backslash before CR LF no longer keeps the LF.** A CR LF is one end-of-line marker (ISO 32000-1 7.2.3), and the backslash is ignored together with the whole of it (7.3.4.2). Both the document lexer and the content-stream lexer dropped the CR and kept the LF as the first character of the next line. A backslash before a lone CR or a lone LF was already read correctly. (#131)
 - **A stream whose `/Length` refers back to itself no longer overflows the stack in `PdfReader.Open`.** An indirect `/Length` is resolved by reading the object it names. When that object was the stream itself, or another stream whose `/Length` named the first, reading it resolved the same length again, until the stack overflowed and the process ended with no exception to catch. Such a length is now unknown, as a missing one is, and the stream is read up to its `endstream` keyword. (#128)
 - **Text extraction no longer hangs on a font whose `/W` widths run up to the last `int` code.** A `cFirst cLast w` run was filled in with an `int` counter, which wraps at `int.MaxValue` rather than passing it, so a run ending there never finished and filled a dictionary until memory ran out. The guard against a run claiming more than 65,536 codes computed the span as an `int` too, so a run such as `-1 2147483647` overflowed past it. Both are now `long`, and such a run is either skipped by the guard or filled in and finished. (#137)
+- **`PdfReader.Open` in `PdfDocumentOpenMode.Append` opens a file with padding after `%%EOF`.** Append mode looked for the last `startxref` a second time, in the last 2 KB only, and parsed the number in the current culture. So a file whose producer pads the end (SAP, for example; empira/PDFsharp#390) opened in every mode except Append, which threw "The document has no startxref". Append now uses the offset the parser already read. (#164)
+- **PDF dates are written in the Gregorian calendar whatever the current culture.** `/CreationDate`, `/ModDate` and an annotation's `/M` were formatted in the current culture, so under th-TH, for example, they carried the Buddhist year 2569. (#160)
+- **An XMP date of `DateTimeKind.Unspecified` carries the local offset, so it describes the same instant as `/Info`.** `/Info` wrote the local offset for such a date and XMP wrote none, and PDF/A requires the two to agree. Both now take the offset from one computation. (#160)
 
 ### Pages & Documents
+
+#### Breaking
+
+- **`PageSize.Post`, `PageSize.Elephant` and `PageSize.RA5` have the dimensions of their sheets.** Post is now 1116 × 1386 points rather than 1126 wide, and Elephant 1656 × 2016 rather than 1565 wide (the digits were transposed). RA5 is 434 points wide rather than 433, because 153 mm had been truncated rather than rounded. All three now match the DOM's `PageFormat`, and a test keeps the two tables in step. Documents using these sizes get a different page size. (#161)
 
 #### Added
 
@@ -25,12 +32,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 #### Fixed
 
 - **LINQ over a page's `PdfContents` now yields the `PdfContent` streams instead of their `PdfReference`s.** `foreach` already gave `PdfContent`, but enumeration as a `PdfArray`, through `IEnumerable<PdfItem>` (what LINQ sees) or through plain `IEnumerable` gave the references underneath, so `page.Contents.OfType<PdfContent>()` was empty and `Cast<PdfContent>()` threw. Every way of enumerating the array now yields the same content streams, as `PdfAnnotations` has since #81.
+- **`PdfPage.Resize` no longer hangs on a malformed `/Dests` name tree or outline that leads back to itself.** The resize walked the name tree with a depth cap but no record of the nodes it had visited, so a `/Kids` naming its own node took 2^33 steps. It now uses the guarded `PdfNameTree` walk. The outline walk beside it hung the same way on an item that is its own `/First` and `/Next`, and now enters each item once. (#165)
 
 ### Drawing & Graphics
 
 #### Fixed
 
 - **An arc with a sweep of 0 is drawn as a single curve that stays at its start, and always returns.** `XGraphics.DrawArc` and `XGraphicsPath.AddArc` never returned for a zero sweep starting at exactly 360 or -360: the quadrant the arc ends in came out as 4, and the walk through quadrants 0 to 3 kept adding curves until the process ran out of memory. Off a quadrant edge, such as a start of 45, both control points were 0/0 and the content-stream writer refused the NaN, so `DrawArc` threw at once and a path holding the arc threw when it was drawn. On any other quadrant edge the arc was cut as though it crossed that edge, so a start of 90 drew the whole ellipse. A zero sweep, or one too small to move the start angle (such as float cancellation leaves), is now one piece from its start to its start, whose control points lie at that point. Arcs with a non-zero sweep are unchanged. (#129, #130)
+- **`Code3of9Standard` refuses an apostrophe when the code is set.** The check accepted `'` and the lookup did not know it, so drawing the barcode threw `IndexOutOfRangeException`. The apostrophe is not a Code 39 character. (#158)
+- **`quality: null` on `ImageSource.FromFile`, `FromBinary`, `FromStream`, `SkiaImageSource.FromSkiaBitmap` and `ImageSharpImageSource.FromImageSharpImage` means the default of 75.** The parameter is `int?`, but both backends cast it to `int`, so passing null threw "Nullable object must have a value". (#176)
 
 ### Annotations & Forms
 
@@ -62,12 +72,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **LINQ over a form's fields, or a field's kids, now yields the typed `PdfAcroField` objects instead of `PdfReference`s.** The collection's indexer returned `PdfTextField`, `PdfCheckBoxField` and the rest, but every enumeration yielded the references underneath, so `OfType<PdfAcroField>()` was empty and `Cast<PdfAcroField>()` threw. Every enumeration now yields the same objects the indexer does, typing each field on the way as the indexer always has.
 - **`PdfDocument.MakeAcroFormsReadOnly` walks the form's fields once.** It counted them with LINQ's `Count()` in its loop condition, enumerating the whole collection again on every iteration.
 - **`PdfOutlineCollection.Insert` accepts an index equal to `Count` and appends the outline.** `IList<T>.Insert` requires this, but the collection threw `ArgumentOutOfRangeException`, including for `Insert(0, outline)` on an empty collection. The outline is now placed in the tree exactly as `Add` places it, and is saved at the end of its list.
+- **An outline's colour no longer loses a level when the document is saved and reopened.** `/C` was read by truncating each component, so 127, written as `0.498`, came back as 126. It is now rounded, as an annotation's colour already was. A component outside 0 to 1 in an outline or annotation colour now reads as the nearest valid value, where it used to throw. (#159)
+
+### Signatures & Metadata
+
+#### Fixed
+
+- **`Rfc3161TimestampProvider` no longer reads a response of any size, and its own client no longer follows redirects.** It read the whole body into memory with no limit and followed a 3xx to wherever it pointed. It now reads through the same guarded exchange as `OcspRevocationDataProvider`: headers first, then at most 1 MiB of body, with the client's `Timeout` over the whole exchange, body included. A larger or slower response fails the signing with an `InvalidOperationException` naming the authority. The client the provider makes for itself follows no redirect, because the caller named the authority it trusts; if your authority has moved, pass its new URI. A caller that supplies its own `HttpClient` keeps its own redirect policy. The OCSP provider also gains the timeout over the body, which it lacked before. (#166)
 
 ### Charts
+
+#### Breaking
+
+- **A chart line format that is not `Visible` is no line, on every axis and every element.** `Converter.ToXPen` turns such a format into a pen of width 0, which PDF draws as the thinnest line the device can. Only a column chart's value axis checked the width, so setting just `XAxis.LineFormat.Width` drew a hairline on the category axis and on a bar chart's value axis and nothing on a column chart's; tick marks, gridlines, the zero baseline and the legend border checked nothing. A pen of width 0 or less is now dropped wherever it is drawn. A gridline format naming only a colour is therefore no longer drawn: set `Visible = true`, as a series already needed. (#173)
 
 #### Fixed
 
 - **The charting `XSeries` implements `IEnumerable`, so LINQ can be used over it.** It had a public `GetEnumerator` and no interface, so `foreach` compiled and every LINQ operator, `Cast` included, did not. It is non-generic like the package's other collections: `Cast<XValue>()` yields a blank as null and `OfType<XValue>()` leaves it out.
+- **A data point's own `LineFormat` is applied the same way on column, bar, area and pie charts.** Each renderer turned it into a pen differently. A bar or pie point that sets only a width is now drawn at that width, a pie point is outlined at its own width rather than 1, and a hidden pie point is no longer stroked. (#171)
+- **Stacked column and stacked bar charts with an explicit `MinimumScale` or `MaximumScale` agree on which segments to draw.** A segment is drawn only when the whole of it lies on the scale, from where it starts on its pile to where the pile reaches with it, and blanks are skipped. Stacked columns used to be drawn past the plot area, and stacked bars were shown or hidden by the segment's own value rather than by where its pile reached. Scales worked out from the data are unaffected. (#168)
+- **On a scale entirely below zero, a clustered bar starts at the scale's minimum even when the bar before it is off the scale.** The start was carried from one bar to the next, so a bar after one that fell off the scale started from that bar's value, as a clustered column never did. (#170)
+- **An exploded pie leaves a gap between its wedges.** The 2° gap only turned the whole pie, because `Math.Max` always returned the full sweep. Each wedge now gives up the gap, half from each side. A share narrower than two gaps keeps half of itself, and a single share is drawn whole. (#169)
+- **A chart too small for its axes no longer strokes a border around a plot area that has no room**, just as it draws no wall there. (#172)
+- **A null value-axis title caption is treated as no caption.** It threw `ArgumentNullException` while a column or bar chart was drawn; the category axis already skipped it. (#174)
+- **A pie chart's legend no longer throws on an empty category collection or a blank category.** The first now numbers the entries and the second gives that entry no text, as the category axis does. (#175)
 
 ### PinataLayout & DDL
 
@@ -80,6 +108,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **A PinataLayout image whose source fails to open with anything but an `InvalidOperationException` gets a placeholder.** The exception used to escape formatting and end the whole render. It is now reported through `ImageFailed` as `ImageFailure.NotRead` and a placeholder is drawn, as it already was for the same exception thrown while the image was drawn. An `InvalidOperationException` is still reported as `InvalidType`. (#131)
 - **A list that starts a new section is tagged in that section.** When a section ended with a list and the next began with one of the same kind and level, the tagger saw that the list's parent had changed, closed the old list and opened a new one, but under the previous section's `/Sect`. So the new section's list appeared in the structure tree inside the section before it. It is now opened under its own section. (#137)
 - **An object added to a PinataLayout collection through its non-generic `IList` belongs to that collection.** `IList.Add`, `Insert`, `Remove` and the indexer setter on `DocumentObjectCollection` went straight to the list underneath. They set no parent, reset no cached values, and skipped what a collection does on `Add` or `InsertObject`. So `((IList)table.Rows).Add(row)` gave the row no cells, and `Styles` accepted a paragraph. They now go through the typed members, as the charting collections already did. One thing a caller can see: an argument that is not a `DocumentObject` now throws `ArgumentException` from `Add`, `Insert` and the indexer. It used to be stored and throw later, on read. `Contains`, `IndexOf` and `Remove` still answer false, -1 and nothing for one. A null is still accepted, as the typed members accept it.
+- **An underline or strikethrough whose dash style changes between adjacent runs is drawn in each run's own style.** The two pen comparisons that decide where a rule ends compared colour and width only, so a dotted run followed by a dashed one was drawn as one dotted line. (#162)
+- **An upward text frame restores every graphics state it saves.** It saved the state twice and restored it once, so everything drawn after it on the page ran one `q` deeper. (#163)
+- **A PinataLayout chart no longer gives every point an empty line format.** The mapper wrote one for every point, always with a solid dash, so a dashed series' columns, bars and sectors were outlined solid. A point's line format is now mapped only when the document set one. (#171)
 
 ### API & Packaging
 
@@ -90,6 +121,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 #### Removed
 
 - **`PdfDocument(string filename)`.** It built a document and then threw `NotImplementedException`, so no caller ever got one from it. Use `new PdfDocument()` and `Save(path)`.
+
+#### Fixed
+
+- **Every package is built with `Microsoft.Sbom.Targets` 4.1.12.** Each project's override to 4.1.12 was evaluated before the shared reference it meant to change, so it never applied and every package was built with 4.1.5. The version is now set once in `Directory.Build.targets`. (#167)
 
 ## [0.3.0] - 2026-09-22
 
