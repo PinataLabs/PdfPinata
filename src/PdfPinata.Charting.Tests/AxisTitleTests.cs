@@ -256,44 +256,34 @@ public class AxisTitleTests
     }
 
     /// <summary>
-    ///   A caption set to null is no caption, on the value axis as on the category axis. The
-    ///   category axis asked whether its caption had any length; the value axis asked only whether
-    ///   it had a title at all, and handed the null on to be measured.
+    ///   A caption set to null is no caption, on the value axis as on the category axis: it takes
+    ///   no room and writes nothing. The category axis asked whether its caption had any length;
+    ///   the value axis asked only whether it had a title at all, and handed the null on to be
+    ///   measured. A column chart's value axis is vertical and a bar chart's horizontal, and each
+    ///   draws its title by a method of its own.
     /// </summary>
     [Theory]
     [InlineData(ChartType.Column2D)]
     [InlineData(ChartType.Bar2D)]
-    public void ANullValueAxisCaptionCostsThePlotAreaNothing(ChartType type)
+    public void ANullValueAxisCaptionIsNoCaption(ChartType type)
     {
         var untitled = Charts.Of(type, 1.0, 3.0);
 
         var nullTitle = Charts.Of(type, 1.0, 3.0);
         nullTitle.YAxis.Title.Caption = null;
 
-        var withoutTitle = PaintedRectangles.FilledOn(Drawn.Page(untitled))[0];
-        var withNullTitle = PaintedRectangles.FilledOn(Drawn.Page(nullTitle))[0];
+        var untitledPage = Drawn.Page(untitled);
+        var nullTitlePage = Drawn.Page(nullTitle);
+
+        ShownText.On(nullTitlePage).Should().Equal(ShownText.On(untitledPage));
+
+        var withoutTitle = PaintedRectangles.FilledOn(untitledPage)[0];
+        var withNullTitle = PaintedRectangles.FilledOn(nullTitlePage)[0];
 
         withNullTitle.X.Should().Be(withoutTitle.X);
         withNullTitle.Y.Should().Be(withoutTitle.Y);
         withNullTitle.Width.Should().Be(withoutTitle.Width);
         withNullTitle.Height.Should().Be(withoutTitle.Height);
-    }
-
-    /// <summary>
-    ///   And the same for a caption turned on its side, which the value axis draws by another path.
-    /// </summary>
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Bar2D)]
-    public void ANullRotatedValueAxisCaptionWritesNothing(ChartType type)
-    {
-        var chart = Charts.Of(type, 1.0, 3.0);
-        chart.YAxis.Title.Caption = null;
-        chart.YAxis.Title.Orientation = 90;
-
-        var page = Drawn.Page(chart);
-
-        ShownText.On(page).Should().Equal(ShownText.On(Drawn.Page(Charts.Of(type, 1.0, 3.0))));
     }
 
     [Fact]
