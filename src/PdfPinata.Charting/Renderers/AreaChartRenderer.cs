@@ -179,9 +179,8 @@ internal class AreaChartRenderer : ColumnLikeChartRenderer
 
     pri.LineFormat = sri.LineFormat;
     pri.FillFormat = sri.FillFormat;
-    // Any line format on the point, resolved against the series' pen, as ColumnChartRenderer does.
-    if (point.lineFormat != null)
-      pri.LineFormat = Converter.ToXPen(point.lineFormat, sri.LineFormat);
+    // A point's own line format is not read: an area is outlined once, as one polygon, with the
+    // series' pen, so a point has no border of its own to draw.
     if (point.fillFormat is { color.IsEmpty: false })
       pri.FillFormat = new XSolidBrush(point.fillFormat.color);
     return pri;
