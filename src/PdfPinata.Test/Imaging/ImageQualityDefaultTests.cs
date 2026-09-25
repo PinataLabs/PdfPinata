@@ -100,8 +100,14 @@ public class ImageQualityDefaultTests
             Jpeg(FromStreamImpl("probe", () => new MemoryStream(png), quality));
     }
 
+    /// <summary>
+    ///   Encodes <paramref name="image"/> and then releases it. Each backend's source owns the
+    ///   bitmap or image it decoded and is <see cref="IDisposable"/>, and every source here is
+    ///   encoded once.
+    /// </summary>
     private static byte[] Jpeg(ImageSource.IImageSource image)
     {
+        using var _ = image as IDisposable;
         using var ms = new MemoryStream();
         image.SaveAsJpeg(ms);
         ms.Length.Should().BePositive();
