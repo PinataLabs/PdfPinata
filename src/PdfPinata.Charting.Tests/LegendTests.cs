@@ -350,6 +350,28 @@ public class LegendTests
             "the legend is docked by its right edge and grows leftwards by the extra padding");
     }
 
+    /// <summary>
+    ///   A border that is not visible is no border, so it takes no room either: the legend is laid
+    ///   out exactly as one with no line format at all, rather than padded for a line nobody sees.
+    /// </summary>
+    [Theory]
+    [InlineData(ChartType.Column2D)]
+    [InlineData(ChartType.Bar2D)]
+    public void AHiddenLegendBorderIsNotPaddedFor(ChartType type)
+    {
+        var plain = TwoNamedSeries(type);
+        plain.Legend.Docking = DockingType.Right;
+
+        var hidden = TwoNamedSeries(type);
+        hidden.Legend.Docking = DockingType.Right;
+        hidden.Legend.LineFormat.Color = BorderColour;
+        hidden.Legend.LineFormat.Width = 2;
+
+        var hiddenPage = Drawn.Page(hidden);
+        PaintedPaths.StrokedIn(hiddenPage, PaintedRectangles.ColourOf(BorderColour)).Should().BeEmpty();
+        RunReading(hiddenPage, "North").X.Should().BeApproximately(RunReading(Drawn.Page(plain), "North").X, 0.01);
+    }
+
     // ----- a line series -----
 
     /// <summary>
