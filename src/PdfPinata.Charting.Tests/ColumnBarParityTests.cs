@@ -37,6 +37,9 @@ public class ColumnBarParityTests
     // A blank is not a segment, and the one above it stacks as if it were not there.
     [InlineData(new[] { 0, 2 }, 0, 5, new[] { 2.0, double.NaN, 2.0 })]
     [InlineData(new[] { 0, 1, 2 }, -5, 5, new[] { 2.0, -2.0, 2.0 })]
+    // A scale ending at the total: 0.1 + 0.2 sums to a hair over 0.3, and is still on it.
+    [InlineData(new[] { 0, 1 }, 0, 0.3, new[] { 0.1, 0.2 })]
+    [InlineData(new[] { 0, 1 }, -0.3, 0, new[] { -0.1, -0.2 })]
     public void StackedColumnsAndBarsDrawTheSameSegments(int[] drawn, double minimum, double maximum, double[] stack)
     {
         var expected = drawn.Select(series => Colours[series]);
@@ -86,7 +89,7 @@ public class ColumnBarParityTests
 
         chart.YAxis.MinimumScale = minimum;
         chart.YAxis.MaximumScale = maximum;
-        chart.YAxis.MajorTick = 1;
+        chart.YAxis.MajorTick = (maximum - minimum) / 5;
 
         return [.. PaintedRectangles.FilledOn(Drawn.Page(chart)).Select(segment => segment.Colour)];
     }

@@ -133,6 +133,11 @@ internal class ColumnStackedPlotAreaRenderer : ColumnPlotAreaRenderer
     // A scale worked out from the data holds every pile, but one the caller set need not, and a
     // stacked column's own value is a length rather than a position on it. A blank has no extent,
     // and NaN fails both tests.
-    return point.StackedFrom >= yMin && point.StackedTo <= yMax;
+    //
+    // A pile is a running sum, and a sum of decimals lands a rounding error either side of the
+    // total it spells: 0.1 + 0.2 is a hair over 0.3, and a scale set to end at the total would
+    // lose its top segment for it. A billionth of the scale is far below anything drawn.
+    var slack = (yMax - yMin) * 1e-9;
+    return point.StackedFrom >= yMin - slack && point.StackedTo <= yMax + slack;
   }
 }
