@@ -185,8 +185,13 @@ signature certifies the document and does not allow form filling, setting a valu
   do different things with it. Ghostscript scales the first line of a multi-line field to the height of
   the whole box.
 - **The value a text field draws is one line.** PdfPinata draws the value from the top-left of the
-  box in `Font` and does not wrap it. With `NeedAppearances` set, a reader can draw the field again
-  itself.
+  box in `Font` and does not wrap it.
+- **Leave `NeedAppearances` unset.** It asks a reader to discard the appearance of every field and
+  build its own. Chrome and Edge do exactly that, for buttons and check boxes too, so a form that sets
+  it shows there as bare text. PDF/A forbids it.
+- **Colours are written twice.** `BackColor` and `BorderColor` go into the appearance the field draws
+  and into each widget's `/MK`. Some readers, such as Firefox, draw their own field on top from `/MK`
+  alone.
 - **A plain text field has no drawing of its own.** If it has no background, no border and no value,
   PdfPinata removes its appearance so that the reader draws it from `/MK`.
 - **`Password` hides what is typed, nothing more.** The value is still stored in the file. Do not use a

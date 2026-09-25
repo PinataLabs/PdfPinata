@@ -371,43 +371,10 @@ public abstract class PdfChoiceField : PdfAcroField
 
     private XColor _foreColor = XColor.Empty;
 
-    /// <summary>
-    /// Gets or sets the colour the box is filled with. <see cref="XColor.Empty"/>, the default,
-    /// takes the background each widget's <c>/MK</c> names, and fills nothing where it names none.
-    /// </summary>
-    /// <remarks>
-    /// <c>/MK</c> is what a reader builds an appearance from, and a widget that has an appearance
-    /// is drawn from that instead - so a field decorated through <c>/MK</c> alone would lose its
-    /// box the moment it drew itself, as a text field does, were <c>/MK</c> not read here too.
-    /// </remarks>
-    public XColor BackColor
-    {
-        get => _backColor;
-        set
-        {
-            _backColor = value;
-            RenderAppearance();
-        }
-    }
-
-    private XColor _backColor = XColor.Empty;
-
-    /// <summary>
-    /// Gets or sets the colour of the one-point border drawn inside the box.
-    /// <see cref="XColor.Empty"/>, the default, takes the border colour each widget's <c>/MK</c>
-    /// names, and draws none where it names none.
-    /// </summary>
-    public XColor BorderColor
-    {
-        get => _borderColor;
-        set
-        {
-            _borderColor = value;
-            RenderAppearance();
-        }
-    }
-
-    private XColor _borderColor = XColor.Empty;
+    // BackColor and BorderColor are PdfAcroField's, and write each widget's /MK. Drawing reads the
+    // widget's /MK, so a field decorated that way alone - as one read from a file often is -
+    // keeps its box once it draws itself.
+    internal override void OnAppearanceCharacteristicsChanged() => RenderAppearance();
 
     /// <summary>
     /// The text shown for the option at <paramref name="index"/>: the second element of an
@@ -490,8 +457,8 @@ public abstract class PdfChoiceField : PdfAcroField
             return;
 
         var characteristics = widget.Elements.GetDictionary(PdfWidgetAnnotation.Keys.MK);
-        var back = _backColor.IsEmpty ? ColorIn(characteristics, "/BG") : _backColor;
-        var border = _borderColor.IsEmpty ? ColorIn(characteristics, "/BC") : _borderColor;
+        var back = BackColor.IsEmpty ? ColorIn(characteristics, "/BG") : BackColor;
+        var border = BorderColor.IsEmpty ? ColorIn(characteristics, "/BC") : BorderColor;
 
         // Nothing to draw. Writing an empty appearance would blank the field rather than leave a
         // reader to build it, so the one it had is taken away instead.

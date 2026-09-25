@@ -420,6 +420,15 @@ strip the box from any field decorated that way. Unlike the text field, a choice
 redraw on save**: a form read from a file keeps its own drawing until the caller changes the field.
 `/NeedAppearances` is no longer what makes a choice visible, and PDF/A forbids it.
 
+**Colours go into `/MK` as well as into the drawing** (#153). `BackColor` and `BorderColor` are on
+`PdfAcroField` and write each widget's `/MK /BG` and `/BC` (plus `/BS`), and `Caption` on a push
+button writes `/CA`. Only the key set is touched, so a widget keeps the `/MK` it came with. It
+matters because the appearance stream is not what every viewer shows: pdf.js overlays its own inputs
+styled from `/MK`, and **PDFium (Chrome, Edge) honours `/NeedAppearances` by discarding every drawn
+appearance, buttons included** — which is why the `Forms` demo no longer sets it. Check it with
+`pypdfium2` (`init_forms()`, `may_draw_forms=True`) and headless Firefox `--screenshot`; Ghostscript
+alone shows only the appearance streams and hid both problems.
+
 **`/Line` computes its own `/Rect`**, from `Start`, `End`, the width and how much the line endings
 take — the opposite of `PdfSquareCircleAnnotation`, where the rectangle *is* the geometry. Assigning
 `Rectangle` on one is overwritten rather than honoured. It also reads every property back out of the

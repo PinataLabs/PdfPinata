@@ -21,6 +21,7 @@ worth writing down: each item is a thing somebody trying to use the library woul
 | 9 | general | `PdfInternals.CreateIndirectObject<T>()` always returns null | **fixed** |
 | 10 | general | bookmarks and links do not survive page import | open, known |
 | 11 | forms | a combo box or list box draws no appearance, so its value is invisible outside a viewer that honours `/NeedAppearances` | **fixed** (#151) |
+| 12 | forms | field colours are drawn but not written to `/MK`, and the demo's `/NeedAppearances` made Chrome and Edge discard every appearance | **fixed** (#153) |
 
 Items 7 and 8 are done under `docs/specs/bookmarks-and-outlines.md` item 5; everything else except
 item 10 is done under this one. Item 10 is out of scope here and stays where it was recorded:
@@ -65,7 +66,6 @@ wants.
 
 ```csharp
 PdfAcroForm form = document.GetOrCreateAcroForm();
-form.NeedAppearances = true;
 form.DefaultAppearance = "/Helv 9 Tf 0 g";
 form.AddStandardFont("/Helv", "/Helvetica");
 
@@ -207,9 +207,9 @@ the flag second, because the flag now stops the program as well as the reader.
 
 #### What is still the caller's
 
-`/MK` — the background and border a reader paints a field's box from when it builds the appearance
-itself — has no wrapper, and nor does a push button's `/A` action. Those are the only two entries the
-`Forms` demo still writes by name. **Flattening** a form into page content is still not offered, and
+A push button's `/A` action has no wrapper, and it is the one entry the `Forms` demo still writes by
+name. (`/MK` had none either until item 12: `BackColor`, `BorderColor` and a push button's `Caption`
+write it now.) **Flattening** a form into page content is still not offered, and
 `PdfSignatureField` is still a field type rather than a signature implementation:
 `PdfPinata.Signing` is what signs a document.
 
@@ -236,6 +236,29 @@ read from a file keeps the drawing it came with. `ChoiceFieldAppearanceTests` co
 
 Not done: the conformance corpus has no document with a choice field, so veraPDF has not yet
 checked one. Adding one is the natural follow-up.
+
+### 12 — colours drawn but not described, and `/NeedAppearances` — **fixed**
+
+Found by opening the `Forms` demo in browsers, which item 11's Ghostscript check could not have
+found: Ghostscript draws only the appearance streams, and those were right. Firefox showed every text
+and choice field without a box, and Chrome and Edge showed that and a push button that was bare text,
+a check box with no box and radio buttons with no rings.
+
+Two causes, confirmed by rendering variants of the same file with pdf.js (headless Firefox) and
+PDFium (`pypdfium2` with its form layer on):
+
+- **pdf.js** lays an HTML input over every text and choice field and styles it from the widget's
+  `/MK` and `/BS`, whatever the appearance stream draws. `BackColor` and `BorderColor` went into the
+  stream alone, so there was nothing for it to read. Toggling `/NeedAppearances` changed nothing.
+- **PDFium** honours `/NeedAppearances` by discarding the appearance of every field, buttons
+  included, and building its own from `/MK` - which for these widgets said nothing, or only a
+  caption. With the flag off, PDFium showed every drawn appearance correctly.
+
+So both went. `BackColor` and `BorderColor` moved to `PdfAcroField`, where every kind of field has
+them, and write each widget's `/MK` (a border also a one-point solid `/BS`), on widgets added later
+too, touching only the key set. `PdfPushButtonField.Caption` writes `/MK /CA`. The demo stopped
+setting `/NeedAppearances` and describes its check box, radio buttons and button in `/MK` to match
+what it draws. `AppearanceCharacteristicsTests` pins the entries; the viewers themselves are not in CI.
 
 ### 2 — `PdfAcroFieldFlags` has no `Comb` — **fixed**
 

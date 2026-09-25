@@ -27,6 +27,8 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using PdfPinata.Pdf.Annotations;
+
 namespace PdfPinata.Pdf.AcroForms;
 
 /// <summary>
@@ -55,6 +57,65 @@ public sealed class PdfPushButtonField : PdfButtonField
     { }
 
     private protected override PdfAcroFieldFlags KindFlags => PdfAcroFieldFlags.Pushbutton;
+
+    /// <summary>
+    /// Gets or sets the text on the face of the button - each widget's <c>/MK /CA</c>, its normal
+    /// caption. Reading answers what was set here, or else the first widget's caption; "" when
+    /// there is none.
+    /// </summary>
+    /// <remarks>
+    /// A button's face is drawn by the caller, through
+    /// <see cref="Annotations.PdfAnnotation.SetAppearance(string, Drawing.XForm)"/>; the caption
+    /// is what a viewer that builds its own button shows, and it is in <c>/MK</c> alongside
+    /// <see cref="PdfAcroField.BackColor"/> and <see cref="PdfAcroField.BorderColor"/>. Setting it
+    /// to null or "" removes it.
+    /// </remarks>
+    public string Caption
+    {
+        get
+        {
+            if (_caption != null)
+                return _caption;
+
+            foreach (var widget in Widgets)
+            {
+                if (widget.Elements.GetDictionary(PdfWidgetAnnotation.Keys.MK) is { } characteristics)
+                    return characteristics.Elements.GetString("/CA");
+            }
+            return "";
+        }
+        set
+        {
+            _caption = value ?? "";
+            foreach (var widget in Widgets)
+                SetCaption(widget, _caption);
+        }
+    }
+
+    private string _caption;
+
+    private protected override void WriteAppearanceCharacteristics(PdfDictionary widget)
+    {
+        base.WriteAppearanceCharacteristics(widget);
+        if (!string.IsNullOrEmpty(_caption))
+            SetCaption(widget, _caption);
+    }
+
+    private static void SetCaption(PdfDictionary widget, string caption)
+    {
+        if (caption.Length != 0)
+        {
+            Characteristics(widget).Elements.SetString("/CA", caption);
+            return;
+        }
+
+        if (widget.Elements.GetDictionary(PdfWidgetAnnotation.Keys.MK) is not { } characteristics)
+            return;
+
+        characteristics.Elements.Remove("/CA");
+        if (characteristics.Elements.Count == 0)
+            widget.Elements.Remove(PdfWidgetAnnotation.Keys.MK);
+    }
 
     /// <summary>
     /// Predefined keys of this dictionary.

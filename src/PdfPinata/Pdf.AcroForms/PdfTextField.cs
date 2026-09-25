@@ -101,42 +101,9 @@ public sealed class PdfTextField : PdfAcroField
         }
     } = XColors.Black;
 
-    /// <summary>
-    /// Gets or sets the background color of the field.
-    /// </summary>
-    public XColor BackColor
-    {
-        get => _backColor;
-        set
-        {
-            _backColor = value;
-            RenderAppearance();
-        }
-    }
-
-    private XColor _backColor = XColor.Empty;
-
-    /// <summary>
-    /// Gets or sets the colour of the one-point border drawn around the field.
-    /// <see cref="XColor.Empty"/>, which is the default, draws none.
-    /// </summary>
-    /// <remarks>
-    /// This field draws its own appearance, and an appearance is what a reader shows in place of
-    /// building one from <c>/MK</c> - so a text field decorated only through <c>/MK</c> loses its
-    /// box the moment it is given a value. Naming the border here is what lets the drawing the
-    /// library makes look like the field the author described.
-    /// </remarks>
-    public XColor BorderColor
-    {
-        get => _borderColor;
-        set
-        {
-            _borderColor = value;
-            RenderAppearance();
-        }
-    }
-
-    private XColor _borderColor = XColor.Empty;
+    // BackColor and BorderColor are PdfAcroField's: they are drawn here, and written to each
+    // widget's /MK for a viewer that builds its own field instead.
+    internal override void OnAppearanceCharacteristicsChanged() => RenderAppearance();
 
     /// <summary>
     /// Gets or sets the maximum length of the field.
@@ -234,7 +201,7 @@ public sealed class PdfTextField : PdfAcroField
         // Nothing asked for. An appearance is what a reader shows in place of building one from
         // /MK, so writing an empty one here would blank a field decorated that way rather than
         // leave it alone - which is the difference between "draw nothing" and "draw it yourself".
-        if (_backColor == XColor.Empty && _borderColor == XColor.Empty && Text.Length == 0)
+        if (BackColor.IsEmpty && BorderColor.IsEmpty && Text.Length == 0)
         {
             annotation.Elements.Remove(PdfAnnotation.Keys.AP);
             return;
@@ -243,14 +210,14 @@ public sealed class PdfTextField : PdfAcroField
         var form = new XForm(_document, rect.Size);
         var gfx = XGraphics.FromForm(form);
 
-        if (_backColor != XColor.Empty)
+        if (!BackColor.IsEmpty)
             gfx.DrawRectangle(new XSolidBrush(BackColor), rect.ToXRect() - rect.Location);
 
-        if (_borderColor != XColor.Empty)
+        if (!BorderColor.IsEmpty)
         {
             // Inside the rectangle rather than centred on its edge, so that the outer half of the
             // stroke is not clipped by the annotation's own bounds.
-            gfx.DrawRectangle(new XPen(_borderColor, 1),
+            gfx.DrawRectangle(new XPen(BorderColor, 1),
                 new XRect(0.5, 0.5, rect.Width - 1, rect.Height - 1));
         }
 

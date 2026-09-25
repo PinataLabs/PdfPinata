@@ -62,15 +62,18 @@ public sealed class PdfAcroForm : PdfDictionary
     /// </summary>
     /// <remarks>
     /// <para>
-    /// It is how a text or choice field gets drawn without the author laying out its glyphs: the
-    /// reader renders the value using <see cref="DefaultAppearance"/> and the resources in
-    /// <see cref="DefaultResources"/>. Buttons get no help from it, because what a check box or a
-    /// radio button shows <em>is</em> its value rather than a rendering of one, so their
-    /// appearance streams are the field and have to be written.
+    /// Rarely what a form built here wants. Text fields, combo boxes and list boxes draw their own
+    /// appearance, and a caller draws a button's. The flag asks a reader to throw all of those
+    /// away and build its own from each widget's <c>/MK</c>, <see cref="DefaultAppearance"/> and
+    /// <see cref="DefaultResources"/> - and PDFium, the engine in Chrome and Edge, does exactly
+    /// that for every field, buttons included, so a push button whose <c>/MK</c> names only a
+    /// caption shows there as bare text (issue #153).
     /// </para>
     /// <para>
-    /// Not every reader honours it, and one that does may draw the field only once it has been
-    /// clicked into. A form that must look right unopened carries its own appearances.
+    /// Other readers ignore it: Ghostscript, print pipelines and most previewers draw the
+    /// appearance streams whatever it says. ISO 32000-2 deprecates it, and PDF/A-2 and PDF/A-3
+    /// forbid it to be true. What is left for it is a field whose value the library cannot draw as
+    /// a reader would - a multi-line text field whose value needs wrapping.
     /// </para>
     /// </remarks>
     public bool NeedAppearances
