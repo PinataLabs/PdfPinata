@@ -108,6 +108,18 @@ internal sealed class Parser
     /// </remarks>
     internal int LargestSize { get; private set; }
 
+    /// <summary>
+    /// The offset the file's last <c>startxref</c> names, as <see cref="ReadTrailer"/> read it: where
+    /// the newest cross-reference section begins, and so what an appended revision's <c>/Prev</c>
+    /// has to point back at.
+    /// </summary>
+    /// <remarks>
+    /// Kept rather than searched for again. The search in <see cref="ReadTrailer"/> scans back
+    /// through the whole file, because some producers write megabytes after <c>%%EOF</c>; a second
+    /// search that looked less far found nothing in exactly the files the first had opened.
+    /// </remarks>
+    internal long StartXref { get; private set; }
+
     /// <summary>ISO 32000-1 Table C.1: at most 8,388,607 indirect objects, so /Size is at most one more.</summary>
     private const int MaximumSize = 8_388_608;
 
@@ -1074,7 +1086,8 @@ internal sealed class Parser
         _lexer.Position = idx;
 
         ReadSymbol(Symbol.StartXRef);
-        _lexer.Position = ReadLong();
+        StartXref = ReadLong();
+        _lexer.Position = StartXref;
 
         return ReadRevisions(accuracy);
     }

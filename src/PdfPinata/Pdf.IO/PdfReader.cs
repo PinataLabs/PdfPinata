@@ -668,7 +668,7 @@ public static class PdfReader
         var pages = document.Pages;
         Debug.Assert(pages != null);
 
-        document.CaptureOriginalBytes(stream);
+        document.CaptureOriginalBytes(stream, parser.StartXref);
     }
 
     /// <summary>

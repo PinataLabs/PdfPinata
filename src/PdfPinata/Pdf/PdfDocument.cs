@@ -35,7 +35,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using JetBrains.Annotations;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf.Advanced;
@@ -515,7 +514,12 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// that <see cref="SaveIncremental"/> has something to append to and knows which objects are
     /// new. Called by the reader for <see cref="PdfDocumentOpenMode.Append"/> and nothing else.
     /// </summary>
-    internal void CaptureOriginalBytes(Stream stream)
+    /// <param name="stream">The stream the document was read from.</param>
+    /// <param name="startXref">
+    /// The offset the file's last <c>startxref</c> names, as the parser read it, which the next
+    /// revision's <c>/Prev</c> points back at.
+    /// </param>
+    internal void CaptureOriginalBytes(Stream stream, long startXref)
     {
         // Appending means holding the original, and an array cannot hold more than this. Said here,
         // where the reason is visible, rather than left to surface as an OutOfMemoryException from
@@ -533,7 +537,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         PdfPinata.Internal.StreamHelper.ReadUpTo(stream, _originalBytes, 0, _originalBytes.Length);
         stream.Position = position;
 
-        _originalStartXref = FindLastStartXref(_originalBytes);
+        _originalStartXref = startXref;
 
         _originalObjectNumbers = [];
         foreach (var iref in _irefTable.AllReferences)
@@ -545,34 +549,6 @@ public sealed class PdfDocument : PdfObject, IDisposable
             // than from being changed, and none of it needs writing again.
             iref.Value?.IsDirty = false;
         }
-    }
-
-    /// <summary>
-    /// The offset the last <c>startxref</c> of a file names, which is where a reader of the next
-    /// revision has to be told to look for the one before it.
-    /// </summary>
-    private static long FindLastStartXref(byte[] bytes)
-    {
-        var marker = "startxref";
-        var text = PdfEncoders.RawEncoding.GetString(bytes, Math.Max(0, bytes.Length - 2048),
-            Math.Min(2048, bytes.Length));
-
-        var at = text.LastIndexOf(marker, StringComparison.Ordinal);
-        if (at < 0)
-            throw new InvalidOperationException(
-                "The document has no startxref, so there is no previous revision to point back at.");
-
-        var digits = new StringBuilder();
-        for (var index = at + marker.Length; index < text.Length; index++)
-        {
-            var ch = text[index];
-            if (ch is >= '0' and <= '9')
-                digits.Append(ch);
-            else if (digits.Length > 0)
-                break;
-        }
-
-        return long.Parse(digits.ToString());
     }
 
     private byte[] _originalBytes;

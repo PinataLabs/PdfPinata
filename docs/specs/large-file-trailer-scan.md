@@ -110,6 +110,13 @@ This is the `//TODO: Implement chunking to read long files.` that was sitting in
 
 `Lexer.ReadRawString` is now unused inside the library. It is public on a public class, so it stays.
 
+**The scan is the only one (#164).** `PdfDocumentOpenMode.Append` needs the same offset again, as
+the `/Prev` of the revision it appends, and `PdfDocument.CaptureOriginalBytes` used to find it with
+a second search of its own: the last 2 048 bytes, parsed in the current culture. A file padded past
+that opened in every mode but `Append`, which threw "the document has no startxref". The parser now
+keeps what it read as `Parser.StartXref` and hands it over, and the second search is gone.
+`IncrementalUpdateTests.AFilePaddedPastItsEndOfFileMarkerCanBeAppendedTo` pins it.
+
 ## Verification
 
 `src/PdfPinata.Test/IO/TrailerLocationTests.cs`, 4 tests, all four failing before the change:
