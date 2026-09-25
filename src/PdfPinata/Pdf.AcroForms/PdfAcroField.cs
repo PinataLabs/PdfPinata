@@ -31,7 +31,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
+using System.Globalization;
 using PdfPinata.Drawing;
+using PdfPinata.Fonts;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.Internal;
@@ -364,6 +367,76 @@ public abstract class PdfAcroField : PdfDictionary
     private XColor _borderColor = XColor.Empty;
 
     /// <summary>
+    /// The field's default appearance string: its own <c>/DA</c>, an ancestor's, or the form's.
+    /// </summary>
+    private protected string EffectiveDefaultAppearance()
+    {
+        var owner = InheritedFrom(this, PdfAcroField.Keys.DA);
+        if (owner != null)
+            return owner.Elements.GetString(PdfAcroField.Keys.DA);
+
+        return Owner?.AcroForm?.DefaultAppearance ?? "";
+    }
+
+    /// <summary>
+    /// The font a field of variable text draws in when none is set: the resolver's default font
+    /// at the size <c>/DA</c> names, or 10 points when it names none or asks for auto-sizing.
+    /// </summary>
+    private protected XFont FontFromDefaultAppearance()
+    {
+        var size = 10.0;
+        var match = FontSize.Match(EffectiveDefaultAppearance());
+        if (match.Success
+            && double.TryParse(match.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var named)
+            && named > 0)
+        {
+            size = named;
+        }
+
+        return new XFont(GlobalFontSettings.FontResolver.DefaultFontName, size);
+    }
+
+    /// <summary>
+    /// The colour <c>/DA</c> names for the text - its last <c>g</c>, <c>rg</c> or <c>k</c> - or
+    /// black when it names none.
+    /// </summary>
+    private protected XColor ColorFromDefaultAppearance()
+    {
+        var appearance = EffectiveDefaultAppearance();
+
+        double Number(Group group) => Math.Clamp(double.Parse(group.Value, CultureInfo.InvariantCulture), 0, 1);
+
+        // The last colour operator wins, as it would in the content stream the string is for.
+        Match last = null;
+        foreach (Match match in ColorOperator.Matches(appearance))
+            last = match;
+
+        if (last == null)
+            return XColors.Black;
+
+        // The pattern takes one to four numbers before any of the three operators, so an operator
+        // is only believed with the count it takes: /DA is read from files, and "1 rg" parsed as
+        // three numbers made every setter that redraws the field throw.
+        var three = last.Groups["b"].Success && last.Groups["c"].Success;
+        var four = three && last.Groups["d"].Success;
+        return last.Groups["op"].Value switch
+        {
+            "g" when !three => XColor.FromGrayScale(Number(last.Groups["a"])),
+            "rg" when three && !four => XColor.FromArgb((int)Math.Round(Number(last.Groups["a"]) * 255),
+                (int)Math.Round(Number(last.Groups["b"]) * 255), (int)Math.Round(Number(last.Groups["c"]) * 255)),
+            "k" when four => XColor.FromCmyk(Number(last.Groups["a"]), Number(last.Groups["b"]),
+                Number(last.Groups["c"]), Number(last.Groups["d"])),
+            _ => XColors.Black
+        };
+    }
+
+    private static readonly Regex FontSize = new(@"([0-9]*\.?[0-9]+)\s+Tf\b", RegexOptions.CultureInvariant);
+
+    private static readonly Regex ColorOperator = new(
+        @"(?<a>[0-9]*\.?[0-9]+)\s+(?:(?<b>[0-9]*\.?[0-9]+)\s+(?<c>[0-9]*\.?[0-9]+)\s+(?:(?<d>[0-9]*\.?[0-9]+)\s+)?)?(?<op>rg|g|k)\b",
+        RegexOptions.CultureInvariant);
+
+    /// <summary>
     /// Called when <see cref="BackColor"/> or <see cref="BorderColor"/> is set, for a field that
     /// draws its own appearance from them.
     /// </summary>
@@ -456,9 +529,10 @@ public abstract class PdfAcroField : PdfDictionary
     /// field or a choice field - replacing any it had.
     /// </summary>
     /// <remarks>
-    /// The content is bracketed as <c>/Tx BMC … EMC</c>, the marked content ISO 32000-1 section
-    /// 12.7.3.3 asks of variable text so that a reader editing the field knows which part of the
-    /// drawing is the text; Adobe Reader 9 and later draw no text without it.
+    /// The drawing brackets its text, and only its text, as <c>/Tx BMC … EMC</c>, through
+    /// <see cref="XGraphics.BeginVariableText"/>. This used to wrap the whole stream - background
+    /// and border too - and a viewer that edits the field replaces what is inside the bracket, so
+    /// the box went with the first edit (issue #155).
     /// </remarks>
     internal static void SetVariableTextAppearance(PdfDictionary widget, XForm form)
     {
@@ -473,8 +547,6 @@ public abstract class PdfAcroField : PdfDictionary
         }
         appearances.Elements["/N"] = xobject.Reference;
 
-        var content = xobject.Stream.ToString();
-        xobject.Stream.Value = new RawEncoding().GetBytes("/Tx BMC\n" + content + "\nEMC");
     }
 
     /// <summary>

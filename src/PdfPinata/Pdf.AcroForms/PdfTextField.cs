@@ -27,7 +27,9 @@
 
 #endregion
 
+using System;
 using PdfPinata.Drawing;
+using PdfPinata.Drawing.Layout;
 using PdfPinata.Fonts;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Annotations;
@@ -70,36 +72,52 @@ public sealed class PdfTextField : PdfAcroField
     }
 
     /// <summary>
-    /// Gets or sets the font used to draw the text of the field.
+    /// Gets or sets the font used to draw the text of the field. Unset, it is the resolver's
+    /// default font at the size the field's <c>/DA</c> names, or 10 points when that names none
+    /// or asks for auto-sizing.
     /// </summary>
     /// <remarks>
-    /// This and the three colours below redraw the field, as <see cref="Text"/> does. They used
-    /// not to: the appearance was drawn from them when the value changed and at no other time,
-    /// so setting a colour on a field whose value was already in place did nothing at all, and
-    /// setting one on a field that never gets a value did nothing ever.
+    /// <para>
+    /// The size comes from <c>/DA</c> because <c>/DA</c> is what a viewer edits the field in: a
+    /// drawing in any other size makes the text jump as the field gains and loses the focus. It
+    /// used to be a fixed 10 points whatever <c>/DA</c> said (issue #155).
+    /// </para>
+    /// <para>
+    /// This and the colours redraw the field, as <see cref="Text"/> does. They used not to: the
+    /// appearance was drawn from them when the value changed and at no other time, so setting a
+    /// colour on a field whose value was already in place did nothing at all, and setting one on
+    /// a field that never gets a value did nothing ever.
+    /// </para>
     /// </remarks>
     public XFont Font
     {
-        get;
+        get => _font ?? FontFromDefaultAppearance();
         set
         {
-            field = value;
+            _font = value;
             RenderAppearance();
         }
-    } = new(GlobalFontSettings.FontResolver.DefaultFontName, 10);
+    }
+
+    private XFont _font;
 
     /// <summary>
-    /// Gets or sets the foreground color of the field.
+    /// Gets or sets the colour of the text. Unset, or set to <see cref="XColor.Empty"/>, it is the
+    /// colour the field's <c>/DA</c> names, or black.
     /// </summary>
     public XColor ForeColor
     {
-        get;
+        get => _foreColor.IsEmpty ? ColorFromDefaultAppearance() : _foreColor;
         set
         {
-            field = value;
+            _foreColor = value;
             RenderAppearance();
         }
-    } = XColors.Black;
+    }
+
+    private XColor _foreColor = XColor.Empty;
+
+    internal override void OnDefaultAppearanceChanged() => RenderAppearance();
 
     // BackColor and BorderColor are PdfAcroField's: they are drawn here, and written to each
     // widget's /MK for a viewer that builds its own field instead.
@@ -159,6 +177,11 @@ public sealed class PdfTextField : PdfAcroField
     /// </remarks>
     private void RenderAppearance()
     {
+        // With no font set and no resolver to give one, the value stands and the drawing is left
+        // to the reader, rather than a setter throwing after it has changed the field.
+        if (_font == null && !GlobalFontSettings.IsFontResolverSet)
+            return;
+
         if (Elements.ContainsKey(PdfAnnotation.Keys.Rect))
         {
             RenderAppearanceOn(this);
@@ -221,12 +244,107 @@ public sealed class PdfTextField : PdfAcroField
                 new XRect(0.5, 0.5, rect.Width - 1, rect.Height - 1));
         }
 
-        var text = Text;
-        if (text.Length > 0)
-            gfx.DrawString(Text, Font, new XSolidBrush(ForeColor),
-                rect.ToXRect() - rect.Location + new XPoint(2, 0), XStringFormats.TopLeft);
+        // The bracket is written even with no text in it, so that a viewer editing the field
+        // knows where its text goes.
+        using (gfx.BeginVariableText())
+        {
+            var text = Text;
+            if (text.Length > 0)
+            {
+                // Clipped inside the border, as a viewer clips the text it draws while editing.
+                gfx.Save();
+                gfx.IntersectClip(new XRect(1, 1, Math.Max(rect.Width - 2, 0), Math.Max(rect.Height - 2, 0)));
+                DrawValue(gfx, text, new XSize(rect.Width, rect.Height));
+                gfx.Restore();
+            }
+        }
 
         SetVariableTextAppearance(annotation, form);
+    }
+
+    /// <summary>
+    /// Draws the value the way a viewer lays it out while the field is being edited, so that
+    /// giving the field the focus and taking it away again does not move the text.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// One line is centred vertically, two points in from the side it is aligned to; several are
+    /// wrapped and start two points from the top. A comb field puts one character in the middle
+    /// of each of <see cref="MaxLength"/> equal cells, and a password field draws an asterisk for
+    /// each character rather than the character. <c>/Q</c> says which side a line is aligned to.
+    /// </para>
+    /// <para>
+    /// It used to draw every value as one line from the top left, whatever the field was: a
+    /// multi-line value ran off the side, a comb field was ordinary text and a password was
+    /// written in the clear into the drawing of it (issue #155).
+    /// </para>
+    /// </remarks>
+    private void DrawValue(XGraphics gfx, string text, XSize size)
+    {
+        const double Margin = 2;
+
+        var font = Font;
+        var brush = new XSolidBrush(ForeColor);
+        var alignment = Alignment;
+
+        if (Password)
+            text = new string('*', text.Length);
+
+        var cells = MaxLength;
+        if (Comb && cells > 0 && !MultiLine && !Password)
+        {
+            var cellWidth = size.Width / cells;
+            for (var index = 0; index < text.Length && index < cells; index++)
+            {
+                gfx.DrawString(text[index].ToString(), font, brush,
+                    new XRect(index * cellWidth, 0, cellWidth, size.Height), XStringFormats.Center);
+            }
+            return;
+        }
+
+        var inside = new XRect(Margin, Margin, Math.Max(size.Width - 2 * Margin, 0), Math.Max(size.Height - 2 * Margin, 0));
+        if (MultiLine)
+        {
+            var formatter = new XTextFormatter(gfx)
+            {
+                Alignment = alignment switch
+                {
+                    1 => XParagraphAlignment.Center,
+                    2 => XParagraphAlignment.Right,
+                    _ => XParagraphAlignment.Left
+                }
+            };
+            formatter.DrawString(text, font, brush, inside);
+            return;
+        }
+
+        gfx.DrawString(text, font, brush, inside, alignment switch
+        {
+            1 => XStringFormats.Center,
+            2 => XStringFormats.CenterRight,
+            _ => XStringFormats.CenterLeft
+        });
+    }
+
+    /// <summary>
+    /// Whether the field divides itself into <see cref="MaxLength"/> cells, one character each.
+    /// </summary>
+    private bool Comb => (Flags & PdfAcroFieldFlags.Comb) != 0;
+
+    /// <summary>
+    /// The quadding, <c>/Q</c>: 0 to align left, 1 to centre and 2 to align right. Inheritable,
+    /// and the form's when no field in the chain says.
+    /// </summary>
+    private int Alignment
+    {
+        get
+        {
+            var owner = InheritedFrom(this, PdfAcroField.Keys.Q);
+            if (owner != null)
+                return owner.Elements.GetInteger(PdfAcroField.Keys.Q);
+
+            return Owner?.AcroForm?.Elements.GetInteger(PdfAcroForm.Keys.Q) ?? 0;
+        }
     }
 
     internal override void PrepareForSave()

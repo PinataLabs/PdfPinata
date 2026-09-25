@@ -184,8 +184,11 @@ signature certifies the document and does not allow form filling, setting a valu
 - **Name a real font size.** A size of 0 in `DefaultAppearance` means "fit to the box", and readers
   do different things with it. Ghostscript scales the first line of a multi-line field to the height of
   the whole box.
-- **The value a text field draws is one line.** PdfPinata draws the value from the top-left of the
-  box in `Font` and does not wrap it.
+- **A text field is drawn the way a reader edits it.** One line is centred vertically, two points in
+  from the side; a `MultiLine` field wraps from the top; a `Comb` field puts one character in each of
+  `MaxLength` cells; a `Password` field draws asterisks. The size and colour come from
+  `DefaultAppearance` unless you set `Font` or `ForeColor`, so the text does not jump when the field is
+  clicked into.
 - **Leave `NeedAppearances` unset.** It asks a reader to discard the appearance of every field and
   build its own. Chrome and Edge do exactly that, for buttons and check boxes too, so a form that sets
   it shows there as bare text. PDF/A forbids it.

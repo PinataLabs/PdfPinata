@@ -418,7 +418,11 @@ or `ForeColor` is set, and takes its background and border from each widget's `/
 `BackColor` or `BorderColor` is — an appearance hides `/MK` from a reader, so ignoring it would
 strip the box from any field decorated that way. Unlike the text field, a choice field **does not
 redraw on save**: a form read from a file keeps its own drawing until the caller changes the field.
-`/NeedAppearances` is no longer what makes a choice visible, and PDF/A forbids it.
+`/NeedAppearances` is no longer what makes a choice visible, and PDF/A forbids it. **Both lay their
+text out as a viewer edits it** (#155): size and colour from `/DA` via `PdfAcroField`'s
+`FontFromDefaultAppearance`/`ColorFromDefaultAppearance`, one line centred vertically two points in,
+so the text does not move when the field takes the focus. A text field also wraps `MultiLine`, spreads
+`Comb` over `MaxLength` cells, masks `Password` and honours `/Q`.
 
 **Colours go into `/MK` as well as into the drawing** (#153). `BackColor` and `BorderColor` are on
 `PdfAcroField` and write each widget's `/MK /BG` and `/BC` (plus `/BS`), and `Caption` on a push
