@@ -56,9 +56,9 @@ internal class PieLegendRenderer : LegendRenderer
 
     var lri = NewLegendRendererInfo(cri);
 
-    XSeries xseries = null;
-    if (cri.Chart.xValues != null)
-      xseries = cri.Chart.xValues[0];
+    // The first series of categories, as the category axis reads it: a collection with none in
+    // it is no categories at all, and the entries are numbered.
+    var xseries = cri.Chart.xValues is { Count: > 0 } ? cri.Chart.xValues[0] : null;
 
     var index = 0;
     var sri = cri.SeriesRendererInfos[0];
@@ -81,13 +81,13 @@ internal class PieLegendRenderer : LegendRenderer
 
   /// <summary>
   /// The text of the entry for the point at the index given: its category, or its number when
-  /// the chart has no categories.
+  /// the chart has no categories. A blank category, or a point beyond the last of them, has no text.
   /// </summary>
   private static string EntryText(XSeries xseries, int index)
   {
     if (xseries == null)
       return (index + 1).ToString(CultureInfo.InvariantCulture); // create default/dummy entry
 
-    return xseries.Count > index ? xseries[index].Value : string.Empty;
+    return xseries.Count > index ? xseries[index]?.Value ?? string.Empty : string.Empty;
   }
 }
