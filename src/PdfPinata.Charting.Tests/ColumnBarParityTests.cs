@@ -21,6 +21,31 @@ namespace PdfPinata.Charting.Tests;
 public class ColumnBarParityTests
 {
     /// <summary>
+    ///   A stacked segment is drawn only when the whole of it lies on the scale: from where it
+    ///   starts on its pile to where the pile has reached with it. That is the clustered charts'
+    ///   rule - a value off the scale is left undrawn rather than clipped - taken to the stretch a
+    ///   stacked segment actually covers rather than to its own value, which on a stacked chart is
+    ///   a length and not a position. A blank has no segment, and is skipped.
+    /// </summary>
+    [Theory]
+    // The third segment's top, at 6, is past the end of the scale at 5.
+    [InlineData(new[] { 0, 1 }, 0, 5, new[] { 2.0, 2.0, 2.0 })]
+    // The first segment starts at zero, below a scale starting at 2; the second, 3 to 4, is on it.
+    [InlineData(new[] { 1 }, 2, 10, new[] { 3.0, 1.0 })]
+    // The negative pile reaches -2, below a scale starting at -1.
+    [InlineData(new[] { 0 }, -1, 5, new[] { 3.0, -2.0 })]
+    // A blank is not a segment, and the one above it stacks as if it were not there.
+    [InlineData(new[] { 0, 2 }, 0, 5, new[] { 2.0, double.NaN, 2.0 })]
+    [InlineData(new[] { 0, 1, 2 }, -5, 5, new[] { 2.0, -2.0, 2.0 })]
+    public void StackedColumnsAndBarsDrawTheSameSegments(int[] drawn, double minimum, double maximum, double[] stack)
+    {
+        var expected = drawn.Select(series => Colours[series]);
+
+        StackedSegmentColours(ChartType.ColumnStacked2D, minimum, maximum, stack).Should().Equal(expected);
+        StackedSegmentColours(ChartType.BarStacked2D, minimum, maximum, stack).Should().Equal(expected);
+    }
+
+    /// <summary>
     ///   A column or bar off the scale changes nothing about the next one. On a scale wholly below
     ///   zero there is no zero line to draw from, so each starts at the scale's minimum - and a bar
     ///   used to start instead wherever the bar before it had ended, because the start was carried
@@ -48,6 +73,27 @@ public class ColumnBarParityTests
         var last = PaintedRectangles.FilledOn(Drawn.Page(chart))[^1];
         return type == ChartType.Bar2D ? last.Width : last.Height;
     }
+
+    /// <summary>
+    ///   The colours of the segments a stacked chart draws at its one category, in the order it
+    ///   draws them: a series each, one point each, each series filled in a colour of its own.
+    /// </summary>
+    private static string[] StackedSegmentColours(ChartType type, double minimum, double maximum, double[] stack)
+    {
+        var chart = Charts.OfSeries(type, [.. stack.Select(value => new[] { value })]);
+        for (var idx = 0; idx < stack.Length; idx++)
+            chart.SeriesCollection[idx].FillFormat.Color = SeriesColours[idx];
+
+        chart.YAxis.MinimumScale = minimum;
+        chart.YAxis.MaximumScale = maximum;
+        chart.YAxis.MajorTick = 1;
+
+        return [.. PaintedRectangles.FilledOn(Drawn.Page(chart)).Select(segment => segment.Colour)];
+    }
+
+    private static readonly XColor[] SeriesColours = [XColors.Red, XColors.Lime, XColors.Blue];
+
+    private static readonly string[] Colours = [.. SeriesColours.Select(PaintedRectangles.ColourOf)];
 
     private const double Tolerance = 0.01;
 }

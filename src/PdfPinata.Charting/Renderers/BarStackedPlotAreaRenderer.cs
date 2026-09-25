@@ -89,6 +89,8 @@ internal class BarStackedPlotAreaRenderer : BarPlotAreaRenderer
         continue;
 
       var (y0, y1) = StackOnto(column.Value, ref yMin, ref yMax);
+      column.StackedFrom = y0;
+      column.StackedTo = y1;
 
       points[0].Y = x0; // oben links
       points[0].X = y0;
@@ -122,10 +124,14 @@ internal class BarStackedPlotAreaRenderer : BarPlotAreaRenderer
   }
 
   /// <summary>
-  /// If yValue is within the range from yMin to yMax returns true, otherwise false.
+  /// Whether the whole of a stacked bar, from where it starts on its pile to where the pile
+  /// reaches with it, lies within the scale from yMin to yMax.
   /// </summary>
-  protected override bool IsDataInside(double yMin, double yMax, double yValue)
+  protected override bool IsDataInside(double yMin, double yMax, ColumnRendererInfo point)
   {
-    return yValue <= yMax && yValue >= yMin;
+    // A scale worked out from the data holds every pile, but one the caller set need not, and a
+    // stacked bar's own value is a length rather than a position on it. A blank has no extent,
+    // and NaN fails both tests.
+    return point.StackedFrom >= yMin && point.StackedTo <= yMax;
   }
 }

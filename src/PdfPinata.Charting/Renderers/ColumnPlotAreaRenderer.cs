@@ -83,12 +83,12 @@ internal abstract class ColumnPlotAreaRenderer : ColumnLikePlotAreaRenderer
       .ToList();
 
     // Draw columns. Do not draw a column if its value is outside yMin/yMax range. Clipping does not make sense.
-    foreach (var column in columns.Where(column => IsDataInside(yMin, yMax, column.Value)))
+    foreach (var column in columns.Where(column => IsDataInside(yMin, yMax, column)))
       gfx.DrawRectangle(column.FillFormat, column.Rect);
 
     // Draw borders around column.
     // A border can overlap neighbor columns, so it is important to draw borders at the end.
-    foreach (var column in columns.Where(column => IsDataInside(yMin, yMax, column.Value) && column.LineFormat.Width is > 0))
+    foreach (var column in columns.Where(column => IsDataInside(yMin, yMax, column) && column.LineFormat.Width is > 0))
       new LineFormatRenderer(gfx, column.LineFormat).DrawRectangle(column.Rect);
 
     gfx.Restore(state);
@@ -116,7 +116,8 @@ internal abstract class ColumnPlotAreaRenderer : ColumnLikePlotAreaRenderer
   protected abstract void CalcColumns();
 
   /// <summary>
-  /// If yValue is within the range from yMin to yMax returns true, otherwise false.
+  /// Whether a point lies within the scale from yMin to yMax and is to be drawn. One that does not
+  /// is left undrawn rather than clipped. A blank never does.
   /// </summary>
-  protected abstract bool IsDataInside(double yMin, double yMax, double yValue);
+  protected abstract bool IsDataInside(double yMin, double yMax, ColumnRendererInfo point);
 }

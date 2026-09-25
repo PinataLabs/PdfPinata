@@ -90,6 +90,8 @@ internal class ColumnStackedPlotAreaRenderer : ColumnPlotAreaRenderer
         continue;
 
       var (y0, y1) = StackOnto(column.Value, ref yMin, ref yMax);
+      column.StackedFrom = y0;
+      column.StackedTo = y1;
 
       points[0].X = x0; // upper left
       points[0].Y = y1;
@@ -123,13 +125,14 @@ internal class ColumnStackedPlotAreaRenderer : ColumnPlotAreaRenderer
   }
 
   /// <summary>
-  /// Stacked columns are always inside.
+  /// Whether the whole of a stacked column, from where it starts on its pile to where the pile
+  /// reaches with it, lies within the scale from yMin to yMax.
   /// </summary>
-  protected override bool IsDataInside(double yMin, double yMax, double yValue)
+  protected override bool IsDataInside(double yMin, double yMax, ColumnRendererInfo point)
   {
-    // A stacked column is inside the scale by construction - the scale was worked out from the
-    // totals it is part of - so the range is not tested. A blank still is: there is no column for
-    // it, and nothing to draw one with.
-    return !double.IsNaN(yValue);
+    // A scale worked out from the data holds every pile, but one the caller set need not, and a
+    // stacked column's own value is a length rather than a position on it. A blank has no extent,
+    // and NaN fails both tests.
+    return point.StackedFrom >= yMin && point.StackedTo <= yMax;
   }
 }

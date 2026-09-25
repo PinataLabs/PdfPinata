@@ -104,12 +104,12 @@ internal abstract class BarPlotAreaRenderer : PlotAreaRenderer
       .ToList();
 
     // Draw bars. Do not draw a bar if its value is outside yMin/yMax range. Clipping does not make sense.
-    foreach (var bar in bars.Where(bar => IsDataInside(yMin, yMax, bar.Value)))
+    foreach (var bar in bars.Where(bar => IsDataInside(yMin, yMax, bar)))
       gfx.DrawRectangle(bar.FillFormat, bar.Rect);
 
     // Draw borders around bar.
     // A border can overlap neighbor bars, so it is important to draw borders at the end.
-    foreach (var bar in bars.Where(bar => IsDataInside(yMin, yMax, bar.Value) && bar.LineFormat.Width is > 0))
+    foreach (var bar in bars.Where(bar => IsDataInside(yMin, yMax, bar) && bar.LineFormat.Width is > 0))
       new LineFormatRenderer(gfx, bar.LineFormat).DrawRectangle(bar.Rect);
 
     gfx.Restore(state);
@@ -137,7 +137,8 @@ internal abstract class BarPlotAreaRenderer : PlotAreaRenderer
   protected abstract void CalcBars();
 
   /// <summary>
-  /// If yValue is within the range from yMin to yMax returns true, otherwise false.
+  /// Whether a point lies within the scale from yMin to yMax and is to be drawn. One that does not
+  /// is left undrawn rather than clipped. A blank never does.
   /// </summary>
-  protected abstract bool IsDataInside(double yMin, double yMax, double yValue);
+  protected abstract bool IsDataInside(double yMin, double yMax, ColumnRendererInfo point);
 }
