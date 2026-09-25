@@ -66,11 +66,9 @@ internal sealed class FormsDemo : PdfDemo
         // PdfDocument.AcroForm only reads, and answers null until this has been called.
         var form = document.GetOrCreateAcroForm();
 
-        // Every field below draws its own appearance, so the form reads the same in a viewer that
-        // builds nothing - Ghostscript, a print pipeline, a thumbnailer. /NeedAppearances asks a
-        // viewer that can to build them again anyway, which is what reflows the multi-line notes:
-        // the library draws a value as one line. Leave it out of a PDF/A document, which forbids it.
-        form.NeedAppearances = true;
+        // No /NeedAppearances. Every field below has an appearance of its own, and the flag asks a
+        // viewer to throw them away and build its own from /MK - which Chrome and Edge do, for
+        // every field, so a form that set it showed there as bare text. PDF/A forbids it as well.
 
         // A real size, not the "/Helv 0 Tf" most examples show. Zero means auto-size, and what a
         // viewer makes of that on a multiline box is its own business: Ghostscript scales the
@@ -233,8 +231,8 @@ internal sealed class FormsDemo : PdfDemo
 
         // ---- A check box -------------------------------------------------------------
         //
-        // Both states are drawn here rather than left to /NeedAppearances. What a check box
-        // shows IS its value, so the two streams are the field rather than a rendering of it.
+        // Both states are drawn here. What a check box shows IS its value, so the two streams are
+        // the field rather than a rendering of it.
         // docs:begin check-box
         var tickBox = Row("Subscribe", 16);
         tickBox = new XRect(tickBox.X, tickBox.Y, 16, 16);
@@ -245,6 +243,11 @@ internal sealed class FormsDemo : PdfDemo
             ToolTip = "Send me the newsletter"
         };
         form.Fields.Add(subscribe);
+
+        // The same box, said in /MK, for a viewer that draws its own check box over the one in
+        // the appearance stream - pdf.js does, and Acrobat while the box has the focus.
+        subscribe.BorderColor = XColors.Gray;
+        subscribe.BackColor = XColors.White;
         var tick = Place(subscribe, tickBox);
 
         var boxOutline = new XPen(XColors.Gray, 1);
@@ -280,6 +283,8 @@ internal sealed class FormsDemo : PdfDemo
             Flags = PdfAcroFieldFlags.Radio | PdfAcroFieldFlags.NoToggleToOff
         };
         form.Fields.Add(delivery);
+        delivery.BorderColor = XColors.Gray;
+        delivery.BackColor = XColors.White;
 
         string[] choices = ["Standard", "Express", "Collect"];
         delivery.Options = choices;
@@ -368,10 +373,16 @@ internal sealed class FormsDemo : PdfDemo
         buttonBox = new XRect(buttonBox.X, buttonBox.Y, 140, 24);
 
         // docs:begin push-button
+        var buttonFace = XColor.FromArgb(217, 227, 240);
+        var buttonEdge = XColor.FromArgb(89, 115, 153);
         var help = new PdfPushButtonField(document)
         {
             Name = "help",
-            ToolTip = "Opens the PdfPinata repository"
+            ToolTip = "Opens the PdfPinata repository",
+            // What a viewer that builds its own button shows: the caption and colours, in /MK.
+            Caption = "Read the manual",
+            BackColor = buttonFace,
+            BorderColor = buttonEdge
         };
         form.Fields.Add(help);
         var face = Place(help, buttonBox);
@@ -379,18 +390,14 @@ internal sealed class FormsDemo : PdfDemo
         face.Elements["/A"] = new PdfLiteral(
             "<</S/URI/URI(https://github.com/PinataLabs/PdfPinata)>>");
 
-        var caption = new PdfDictionary(document);
-        caption.Elements.SetString("/CA", "Read the manual");
-        face.Elements["/MK"] = caption;
-
-        // Unlike the text fields, a push button gets no help from /NeedAppearances, so its face
-        // is drawn here - with the same XGraphics calls that drew the page.
+        // And the face every other viewer shows, drawn here with the same XGraphics calls that
+        // drew the page.
         var buttonFont = new XFont(Sans, 10);
         face.SetAppearance(Appearance(buttonBox, into =>
         {
-            into.DrawRectangle(new XPen(XColor.FromArgb(89, 115, 153), 1),
-                new XSolidBrush(XColor.FromArgb(217, 227, 240)), new XRect(0.5, 0.5, 139, 23));
-            into.DrawString("Read the manual", buttonFont,
+            into.DrawRectangle(new XPen(buttonEdge, 1), new XSolidBrush(buttonFace),
+                new XRect(0.5, 0.5, 139, 23));
+            into.DrawString(help.Caption, buttonFont,
                 new XSolidBrush(XColor.FromArgb(26, 51, 89)),
                 new XRect(0, 0, 140, 24), XStringFormats.Center);
         }));
@@ -460,9 +467,8 @@ internal sealed class FormsDemo : PdfDemo
         lineY += 14;
         string[] closing =
         [
-            "Two entries above are still written by name, because nothing wraps them: the push",
-            "button's /MK, which carries its caption, and its /A action. Everything else on page",
-            "one goes through a property or a method.",
+            "One entry above is still written by name, because nothing wraps it: the push button's",
+            "/A action. Everything else on page one goes through a property or a method.",
             "",
             "One rule to know. A partial field name may not contain a period, because a period is",
             "what joins nested names into the path a field is found by - so Name = \"name.full\" is",

@@ -297,6 +297,147 @@ public abstract class PdfAcroField : PdfDictionary
     { }
 
     /// <summary>
+    /// Gets or sets the colour each of the field's widgets is filled with. Setting it writes the
+    /// widgets' <c>/MK /BG</c>; <see cref="XColor.Empty"/>, the default, writes none and removes
+    /// one set before.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <c>/MK</c>, the appearance characteristics, is what a viewer builds a field from when it
+    /// does not show the appearance stream: pdf.js lays its own input over every text and choice
+    /// field and styles it from <c>/MK</c>, Acrobat does while a field has the focus, and a viewer
+    /// honouring <c>/NeedAppearances</c> rebuilds every appearance from it. Colours drawn only into
+    /// the appearance stream disappeared in all three (issue #153). A field that draws its own
+    /// appearance - a text field, a combo box, a list box - draws this colour too.
+    /// </para>
+    /// <para>
+    /// A widget added later is given it as well. The property answers what was set here, not what
+    /// a field read from a file carries.
+    /// </para>
+    /// </remarks>
+    public XColor BackColor
+    {
+        get => _backColor;
+        set
+        {
+            _backColor = value;
+            foreach (var widget in Widgets)
+                SetCharacteristicColor(widget, "/BG", value);
+            OnAppearanceCharacteristicsChanged();
+        }
+    }
+
+    private XColor _backColor = XColor.Empty;
+
+    /// <summary>
+    /// Gets or sets the colour of the one-point border around each of the field's widgets.
+    /// Setting it writes the widgets' <c>/MK /BC</c> and a solid one-point <c>/BS</c>;
+    /// <see cref="XColor.Empty"/>, the default, writes none and removes a <c>/BC</c> set before.
+    /// </summary>
+    /// <remarks>See <see cref="BackColor"/> for why this is written to <c>/MK</c>.</remarks>
+    public XColor BorderColor
+    {
+        get => _borderColor;
+        set
+        {
+            _borderColor = value;
+            foreach (var widget in Widgets)
+                SetBorder(widget, value);
+            OnAppearanceCharacteristicsChanged();
+        }
+    }
+
+    private XColor _borderColor = XColor.Empty;
+
+    /// <summary>
+    /// Called when <see cref="BackColor"/> or <see cref="BorderColor"/> is set, for a field that
+    /// draws its own appearance from them.
+    /// </summary>
+    internal virtual void OnAppearanceCharacteristicsChanged()
+    { }
+
+    /// <summary>
+    /// Gives a widget the appearance characteristics set on the field - called for a widget that
+    /// has just been added. Only what was set is written, so a widget keeps the rest of the
+    /// <c>/MK</c> it had.
+    /// </summary>
+    private protected virtual void WriteAppearanceCharacteristics(PdfDictionary widget)
+    {
+        if (!_backColor.IsEmpty)
+            SetCharacteristicColor(widget, "/BG", _backColor);
+        if (!_borderColor.IsEmpty)
+            SetBorder(widget, _borderColor);
+    }
+
+    private static void SetBorder(PdfDictionary widget, XColor color)
+    {
+        SetCharacteristicColor(widget, "/BC", color);
+        if (color.IsEmpty)
+            return;
+
+        // The appearance draws a solid border one point wide, and a viewer building its own takes
+        // the width and style from /BS; without it the width is left to the viewer.
+        var style = new PdfDictionary(widget.Owner);
+        style.Elements.SetInteger("/W", 1);
+        style.Elements.SetName("/S", "/S");
+        widget.Elements["/BS"] = style;
+    }
+
+    /// <summary>
+    /// Writes one colour entry of a widget's <c>/MK</c>, or removes it for an empty colour - and
+    /// the <c>/MK</c> with it when nothing else is left in it.
+    /// </summary>
+    private protected static void SetCharacteristicColor(PdfDictionary widget, string key, XColor color)
+    {
+        var characteristics = widget.Elements.GetDictionary(PdfWidgetAnnotation.Keys.MK);
+        if (color.IsEmpty)
+        {
+            if (characteristics == null)
+                return;
+
+            characteristics.Elements.Remove(key);
+            if (characteristics.Elements.Count == 0)
+                widget.Elements.Remove(PdfWidgetAnnotation.Keys.MK);
+            return;
+        }
+
+        characteristics ??= Characteristics(widget);
+        characteristics.Elements[key] = ColorArray(widget.Owner, color);
+    }
+
+    /// <summary>
+    /// A widget's <c>/MK</c>, made - as a direct dictionary - when it has none.
+    /// </summary>
+    private protected static PdfDictionary Characteristics(PdfDictionary widget)
+    {
+        if (widget.Elements.GetDictionary(PdfWidgetAnnotation.Keys.MK) is { } characteristics)
+            return characteristics;
+
+        characteristics = new PdfDictionary(widget.Owner);
+        widget.Elements[PdfWidgetAnnotation.Keys.MK] = characteristics;
+        return characteristics;
+    }
+
+    /// <summary>
+    /// A colour as ISO 32000-1 Table 189 writes one: one component for grey, three for RGB and
+    /// four for CMYK.
+    /// </summary>
+    private static PdfArray ColorArray(PdfDocument document, XColor color)
+    {
+        double[] components = color.ColorSpace switch
+        {
+            XColorSpace.GrayScale => [color.GS],
+            XColorSpace.Cmyk => [color.C, color.M, color.Y, color.K],
+            _ => [color.R / 255.0, color.G / 255.0, color.B / 255.0]
+        };
+
+        var array = new PdfArray(document);
+        foreach (var component in components)
+            array.Elements.Add(new PdfReal(Math.Round(component, 4)));
+        return array;
+    }
+
+    /// <summary>
     /// Makes a drawing the normal appearance of a widget of a field of variable text - a text
     /// field or a choice field - replacing any it had.
     /// </summary>
@@ -476,6 +617,7 @@ public abstract class PdfAcroField : PdfDictionary
 
         Fields.GetOrCreateEntries().Elements.Add(widget.Reference);
 
+        WriteAppearanceCharacteristics(widget);
         OnWidgetAdded();
         return widget;
     }
