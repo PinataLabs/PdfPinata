@@ -30,6 +30,7 @@
 using System;
 using System.Collections.Generic;
 using PdfPinata.Drawing;
+using PdfPinata.Fonts;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Annotations;
 
@@ -427,6 +428,13 @@ public abstract class PdfChoiceField : PdfAcroField
     private protected void RenderAppearance()
     {
         if (Owner == null)
+            return;
+
+        // Drawing needs a font, and with none set on the field that is the resolver's. Without
+        // either, the value has already been written and stands; the field is left for a reader
+        // to draw, as every choice field was before it drew itself, rather than throwing out of
+        // a setter that has already changed it.
+        if (_font == null && !GlobalFontSettings.IsFontResolverSet)
             return;
 
         foreach (var widget in Widgets)

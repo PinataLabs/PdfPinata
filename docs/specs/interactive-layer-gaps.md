@@ -67,7 +67,6 @@ wants.
 
 ```csharp
 PdfAcroForm form = document.GetOrCreateAcroForm();
-form.NeedAppearances = true;
 form.DefaultAppearance = "/Helv 9 Tf 0 g";
 form.AddStandardFont("/Helv", "/Helvetica");
 
@@ -209,9 +208,9 @@ the flag second, because the flag now stops the program as well as the reader.
 
 #### What is still the caller's
 
-`/MK` — the background and border a reader paints a field's box from when it builds the appearance
-itself — has no wrapper, and nor does a push button's `/A` action. Those are the only two entries the
-`Forms` demo still writes by name. **Flattening** a form into page content is still not offered, and
+A push button's `/A` action has no wrapper, and it is the one entry the `Forms` demo still writes by
+name. (`/MK` had none either until item 12: `BackColor`, `BorderColor` and a push button's `Caption`
+write it now.) **Flattening** a form into page content is still not offered, and
 `PdfSignatureField` is still a field type rather than a signature implementation:
 `PdfPinata.Signing` is what signs a document.
 

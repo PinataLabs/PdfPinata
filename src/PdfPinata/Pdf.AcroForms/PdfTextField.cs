@@ -30,6 +30,7 @@
 using System;
 using PdfPinata.Drawing;
 using PdfPinata.Drawing.Layout;
+using PdfPinata.Fonts;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.Internal;
@@ -176,6 +177,11 @@ public sealed class PdfTextField : PdfAcroField
     /// </remarks>
     private void RenderAppearance()
     {
+        // With no font set and no resolver to give one, the value stands and the drawing is left
+        // to the reader, rather than a setter throwing after it has changed the field.
+        if (_font == null && !GlobalFontSettings.IsFontResolverSet)
+            return;
+
         if (Elements.ContainsKey(PdfAnnotation.Keys.Rect))
         {
             RenderAppearanceOn(this);
@@ -190,6 +196,12 @@ public sealed class PdfTextField : PdfAcroField
                 RenderAppearanceOn(widget);
         }
     }
+
+    /// <summary>
+    /// A value set through <see cref="PdfAcroField.Value"/> is drawn, as one set through
+    /// <see cref="Text"/> is.
+    /// </summary>
+    internal override void OnValueChanged() => RenderAppearance();
 
     internal override void OnWidgetAdded()
     {
