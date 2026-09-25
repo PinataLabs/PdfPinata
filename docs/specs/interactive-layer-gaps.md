@@ -22,6 +22,7 @@ worth writing down: each item is a thing somebody trying to use the library woul
 | 10 | general | bookmarks and links do not survive page import | open, known |
 | 11 | forms | a combo box or list box draws no appearance, so its value is invisible outside a viewer that honours `/NeedAppearances` | **fixed** (#151) |
 | 12 | forms | field colours are drawn but not written to `/MK`, and the demo's `/NeedAppearances` made Chrome and Edge discard every appearance | **fixed** (#153) |
+| 13 | forms | a text field's value jumps when it is clicked into; multi-line, comb and password values are drawn as plain single lines | **fixed** (#155) |
 
 Items 7 and 8 are done under `docs/specs/bookmarks-and-outlines.md` item 5; everything else except
 item 10 is done under this one. Item 10 is out of scope here and stays where it was recorded:
@@ -260,6 +261,22 @@ them, and write each widget's `/MK` (a border also a one-point solid `/BS`), on 
 too, touching only the key set. `PdfPushButtonField.Caption` writes `/MK /CA`. The demo stopped
 setting `/NeedAppearances` and describes its check box, radio buttons and button in `/MK` to match
 what it draws. `AppearanceCharacteristicsTests` pins the entries; the viewers themselves are not in CI.
+
+### 13 — a text field's value jumped on focus — **fixed**
+
+Found using the `Forms` demo in a browser once item 12 made the drawn appearances visible there:
+clicking into Full name moved the text down and made it smaller, and leaving it moved it back. A
+viewer edits a field in its `/DA` font size and colour and centres a single line vertically; the
+appearance stream was drawn at a fixed 10 points, in black, from the top left. Measured in PDFium,
+by simulating the click through its form API and rendering the field with and without the focus,
+the text moved 4.9 points vertically and changed height by 0.8. After the fix, 0.2 and 0.1.
+
+`PdfTextField` now takes `Font` and `ForeColor` from `/DA` when they are unset - the parsing moved
+from `PdfChoiceField` (item 11) to `PdfAcroField` so both use it - and lays a value out as a viewer
+does: one line centred vertically two points in from the side `/Q` names; `MultiLine` wrapped from
+the top with `XTextFormatter`; `Comb` one character centred in each of `MaxLength` cells; and
+`Password` as an asterisk per character, where it used to write the value in the clear into the
+drawing. `TextFieldAppearanceTests` rasterizes each; seven of its eight fail against the old drawing.
 
 ### 2 — `PdfAcroFieldFlags` has no `Comb` — **fixed**
 

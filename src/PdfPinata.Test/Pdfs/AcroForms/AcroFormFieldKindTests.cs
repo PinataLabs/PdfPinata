@@ -63,7 +63,8 @@ public class AcroFormFieldKindTests
         var field = (PdfTextField)FormWith("/Tx", "surname").AcroForm.Fields["surname"];
 
         field.Font.Should().NotBeNull("a field draws its own text, so it needs a font before anyone sets one");
-        field.ForeColor.Should().Be(XColors.Black);
+        // The colour the field's /DA names - "0 g" in this form, so black in grey rather than RGB.
+        field.ForeColor.Should().Be(XColor.FromGrayScale(0));
         field.BackColor.Should().Be(XColor.Empty, "no background at all rather than a white one");
 
         field.Font = new XFont("Arial", 14);

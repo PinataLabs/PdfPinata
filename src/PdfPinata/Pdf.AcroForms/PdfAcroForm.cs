@@ -72,8 +72,8 @@ public sealed class PdfAcroForm : PdfDictionary
     /// <para>
     /// Other readers ignore it: Ghostscript, print pipelines and most previewers draw the
     /// appearance streams whatever it says. ISO 32000-2 deprecates it, and PDF/A-2 and PDF/A-3
-    /// forbid it to be true. What is left for it is a field whose value the library cannot draw as
-    /// a reader would - a multi-line text field whose value needs wrapping.
+    /// forbid it to be true. Since text fields wrap, centre and mask their values as a reader
+    /// does (issue #155), there is little left for it to do.
     /// </para>
     /// </remarks>
     public bool NeedAppearances

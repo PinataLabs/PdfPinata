@@ -31,7 +31,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
+using System.Globalization;
 using PdfPinata.Drawing;
+using PdfPinata.Fonts;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.Internal;
@@ -348,6 +351,71 @@ public abstract class PdfAcroField : PdfDictionary
     }
 
     private XColor _borderColor = XColor.Empty;
+
+    /// <summary>
+    /// The field's default appearance string: its own <c>/DA</c>, an ancestor's, or the form's.
+    /// </summary>
+    private protected string EffectiveDefaultAppearance()
+    {
+        var owner = InheritedFrom(this, PdfAcroField.Keys.DA);
+        if (owner != null)
+            return owner.Elements.GetString(PdfAcroField.Keys.DA);
+
+        return Owner?.AcroForm?.DefaultAppearance ?? "";
+    }
+
+    /// <summary>
+    /// The font a field of variable text draws in when none is set: the resolver's default font
+    /// at the size <c>/DA</c> names, or 10 points when it names none or asks for auto-sizing.
+    /// </summary>
+    private protected XFont FontFromDefaultAppearance()
+    {
+        var size = 10.0;
+        var match = FontSize.Match(EffectiveDefaultAppearance());
+        if (match.Success
+            && double.TryParse(match.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var named)
+            && named > 0)
+        {
+            size = named;
+        }
+
+        return new XFont(GlobalFontSettings.FontResolver.DefaultFontName, size);
+    }
+
+    /// <summary>
+    /// The colour <c>/DA</c> names for the text - its last <c>g</c>, <c>rg</c> or <c>k</c> - or
+    /// black when it names none.
+    /// </summary>
+    private protected XColor ColorFromDefaultAppearance()
+    {
+        var appearance = EffectiveDefaultAppearance();
+
+        double Number(Group group) => Math.Clamp(double.Parse(group.Value, CultureInfo.InvariantCulture), 0, 1);
+
+        // The last colour operator wins, as it would in the content stream the string is for.
+        Match last = null;
+        foreach (Match match in ColorOperator.Matches(appearance))
+            last = match;
+
+        if (last == null)
+            return XColors.Black;
+
+        return last.Groups["op"].Value switch
+        {
+            "g" => XColor.FromGrayScale(Number(last.Groups["a"])),
+            "rg" => XColor.FromArgb((int)Math.Round(Number(last.Groups["a"]) * 255),
+                (int)Math.Round(Number(last.Groups["b"]) * 255), (int)Math.Round(Number(last.Groups["c"]) * 255)),
+            "k" => XColor.FromCmyk(Number(last.Groups["a"]), Number(last.Groups["b"]),
+                Number(last.Groups["c"]), Number(last.Groups["d"])),
+            _ => XColors.Black
+        };
+    }
+
+    private static readonly Regex FontSize = new(@"([0-9]*\.?[0-9]+)\s+Tf\b", RegexOptions.CultureInvariant);
+
+    private static readonly Regex ColorOperator = new(
+        @"(?<a>[0-9]*\.?[0-9]+)\s+(?:(?<b>[0-9]*\.?[0-9]+)\s+(?<c>[0-9]*\.?[0-9]+)\s+(?:(?<d>[0-9]*\.?[0-9]+)\s+)?)?(?<op>rg|g|k)\b",
+        RegexOptions.CultureInvariant);
 
     /// <summary>
     /// Called when <see cref="BackColor"/> or <see cref="BorderColor"/> is set, for a field that
