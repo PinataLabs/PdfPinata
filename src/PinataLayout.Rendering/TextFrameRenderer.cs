@@ -111,7 +111,6 @@ internal class TextFrameRenderer : ShapeRenderer
         break;
 
       case TextOrientation.Upward:
-        state = Gfx.Save();
         xPosition = frameContentArea.X;
         yPosition = frameContentArea.Y + frameContentArea.Height;
         Gfx.TranslateTransform(xPosition, yPosition);

@@ -3246,26 +3246,7 @@ internal class ParagraphRenderer : Renderer
     private XPen currentUnderlinePen;
     private XUnit underlineStartPos;
 
-    private bool UnderlinePenChanged(XPen pen)
-    {
-        if (pen == null && currentUnderlinePen == null)
-            return false;
-
-        if (pen == null && currentUnderlinePen != null)
-            return true;
-
-        if (pen != null && currentUnderlinePen == null)
-            return true;
-
-        // ReSharper disable once PossibleNullReferenceException
-        if (pen.Color != currentUnderlinePen.Color)
-            return true;
-
-        #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
-        // ReSharper disable once CompareOfFloatsByEqualityOperator
-        return pen.Width != currentUnderlinePen.Width;
-        #pragma warning restore S1244
-    }
+    private bool UnderlinePenChanged(XPen pen) => RulePenChanged(pen, currentUnderlinePen);
 
 
     private void RenderStrikethrough(XUnit width, bool isWord)
@@ -3310,24 +3291,28 @@ internal class ParagraphRenderer : Renderer
     private XPen currentStrikethroughPen;
     private XUnit strikethroughStartPos;
 
-    private bool StrikethroughPenChanged(XPen pen)
+    private bool StrikethroughPenChanged(XPen pen) => RulePenChanged(pen, currentStrikethroughPen);
+
+    /// <summary>
+    /// Whether a rule being drawn with <paramref name="current"/> has to end, and another begin, for a
+    /// run drawn with <paramref name="pen"/>. A rule stays one line for as long as its pen is the same.
+    /// </summary>
+    /// <remarks>
+    /// Colour, width and dash style are everything <see cref="GetUnderlinePen"/> and
+    /// <see cref="GetStrikethroughPen"/> set, so a change to any of them is a change of pen. The dash
+    /// style used to be left out, which drew a dotted run followed by a dashed one as one dotted line.
+    /// </remarks>
+    private static bool RulePenChanged(XPen pen, XPen current)
     {
-        if (pen == null && currentStrikethroughPen == null)
-            return false;
+        if (pen == null || current == null)
+            return pen != current;
 
-        if (pen == null && currentStrikethroughPen != null)
-            return true;
-
-        if (pen != null && currentStrikethroughPen == null)
-            return true;
-
-        // ReSharper disable once PossibleNullReferenceException
-        if (pen.Color != currentStrikethroughPen.Color)
+        if (pen.Color != current.Color || pen.DashStyle != current.DashStyle)
             return true;
 
         #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         // ReSharper disable once CompareOfFloatsByEqualityOperator
-        return pen.Width != currentStrikethroughPen.Width;
+        return pen.Width != current.Width;
         #pragma warning restore S1244
     }
 
