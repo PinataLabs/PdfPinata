@@ -97,12 +97,13 @@ exactly when `Fields` would list it.
   having `/T`. ISO 32000-1 does not allow a mix of the two kinds, but a file from disk can have one.
   A per-kid test sorts a mixed array instead of misreading all of it.
 - **iText's wider test does not fit.** iText counts *any* field key, `/V` included, as marking a
-  field. This library's own `PdfCheckBoxField` writes `/V` onto its widget (`SetSingleChildState`),
-  so that test would read our own check boxes as nested fields.
+  field. A widget can carry `/V`: files from other software do, and so do check boxes written by
+  earlier versions of this library, which recorded a box's state on its widgets. That test would
+  read all of those as nested fields.
 - **A kid with no `/T` and no `/Subtype` is a field** — a nameless field node. It is malformed but
   harmless, and it stays reachable.
 
-The test goes in one internal place, `PdfAcroField.IsWidgetKid(PdfDictionary)`. `Fields`, `Widgets`
+The test goes in one internal place, `PdfAcroField.IsWidgetOnly(PdfDictionary)`. `Fields`, `Widgets`
 and every walk in the library call it.
 
 ### 3.2 Which object a dictionary is
@@ -126,7 +127,7 @@ That makes the annotation side do the work:
 - **`PdfAnnotation.FromDictionary`** gets a `/Widget` that carries `/T` (or already *is* a
   `PdfAcroField`). It builds the field through the AcroForm factory and returns the field's widget
   view. It never builds a free-standing `PdfWidgetAnnotation` over a field dictionary.
-- **`CreateAcroField`** gets a dictionary that is already a `PdfWidgetAnnotation`. That is a pure
+- **`PdfAcroField.FromDictionary`** gets a dictionary that is already a `PdfWidgetAnnotation`. That is a pure
   widget, which `Fields` does not list, so reaching it is a bug. It throws rather than rebinds.
 - **A tripwire in `PdfObject(PdfObject)`** throws when an object is transformed from `PdfAnnotation`
   into `PdfAcroField`, or the other way. The class of bug reported here then fails loudly the next
@@ -203,7 +204,7 @@ has nothing honest to return for a widget kid. It can throw, return null, or ski
 skipping it is item 3. So items 1, 2, 3 and 5 are one PR; item 4 is the second, and item 6 the third.
 Items 1 to 4 ship in one release.
 
-1. **Stop cross-role rebinding** (§3.2, the tripwire and the throw in `CreateAcroField`). Tests: the
+1. **Stop cross-role rebinding** (§3.2, the tripwire and the throw in `PdfAcroField.FromDictionary`). Tests: the
    §1 repros turned into assertions — `page.Annotations[0]` stays the object `AddWidget` returned
    after `Fields` is walked, and the stale-wrapper `/Kids` throw is gone.
 2. **Merged dictionary as field plus cached view** (§3.2). Tests: every order of reading

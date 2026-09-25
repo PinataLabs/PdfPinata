@@ -95,8 +95,9 @@ public abstract class PdfAcroField : PdfDictionary
     /// but a field - because a widget always belongs to one.
     /// </para>
     /// <para>
-    /// Any other field key does not count. iText treats <c>/V</c> as marking a field, and
-    /// <see cref="PdfCheckBoxField"/> writes <c>/V</c> onto its widgets.
+    /// Any other field key does not count. iText treats <c>/V</c> as marking a field, but a widget
+    /// can carry one: files from other software do, and so do check boxes written by earlier
+    /// versions of this library, which recorded a box's state on its widgets.
     /// </para>
     /// </remarks>
     internal static bool IsWidgetOnly(PdfDictionary dict)
@@ -545,8 +546,17 @@ public abstract class PdfAcroField : PdfDictionary
                 Elements[Keys.V] = value;
             else
                 throw new NotImplementedException("Values other than string cannot be set.");
+
+            OnValueChanged();
         }
     }
+
+    /// <summary>
+    /// Called when <see cref="Value"/> has been set, for a field that draws its own appearance
+    /// from its value or keeps something else in step with it.
+    /// </summary>
+    internal virtual void OnValueChanged()
+    { }
 
     /// <summary>
     /// Throws unless the field may be given a value: it must not be read only, and the document
