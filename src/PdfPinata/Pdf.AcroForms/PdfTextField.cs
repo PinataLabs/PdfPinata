@@ -232,14 +232,19 @@ public sealed class PdfTextField : PdfAcroField
                 new XRect(0.5, 0.5, rect.Width - 1, rect.Height - 1));
         }
 
-        var text = Text;
-        if (text.Length > 0)
+        // The bracket is written even with no text in it, so that a viewer editing the field
+        // knows where its text goes.
+        using (gfx.BeginVariableText())
         {
-            // Clipped inside the border, as a viewer clips the text it draws while editing.
-            gfx.Save();
-            gfx.IntersectClip(new XRect(1, 1, Math.Max(rect.Width - 2, 0), Math.Max(rect.Height - 2, 0)));
-            DrawValue(gfx, text, new XSize(rect.Width, rect.Height));
-            gfx.Restore();
+            var text = Text;
+            if (text.Length > 0)
+            {
+                // Clipped inside the border, as a viewer clips the text it draws while editing.
+                gfx.Save();
+                gfx.IntersectClip(new XRect(1, 1, Math.Max(rect.Width - 2, 0), Math.Max(rect.Height - 2, 0)));
+                DrawValue(gfx, text, new XSize(rect.Width, rect.Height));
+                gfx.Restore();
+            }
         }
 
         SetVariableTextAppearance(annotation, form);

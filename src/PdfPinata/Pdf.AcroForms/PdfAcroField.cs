@@ -510,9 +510,10 @@ public abstract class PdfAcroField : PdfDictionary
     /// field or a choice field - replacing any it had.
     /// </summary>
     /// <remarks>
-    /// The content is bracketed as <c>/Tx BMC … EMC</c>, the marked content ISO 32000-1 section
-    /// 12.7.3.3 asks of variable text so that a reader editing the field knows which part of the
-    /// drawing is the text; Adobe Reader 9 and later draw no text without it.
+    /// The drawing brackets its text, and only its text, as <c>/Tx BMC … EMC</c>, through
+    /// <see cref="XGraphics.BeginVariableText"/>. This used to wrap the whole stream - background
+    /// and border too - and a viewer that edits the field replaces what is inside the bracket, so
+    /// the box went with the first edit (issue #155).
     /// </remarks>
     internal static void SetVariableTextAppearance(PdfDictionary widget, XForm form)
     {
@@ -527,8 +528,6 @@ public abstract class PdfAcroField : PdfDictionary
         }
         appearances.Elements["/N"] = xobject.Reference;
 
-        var content = xobject.Stream.ToString();
-        xobject.Stream.Value = new RawEncoding().GetBytes("/Tx BMC\n" + content + "\nEMC");
     }
 
     /// <summary>

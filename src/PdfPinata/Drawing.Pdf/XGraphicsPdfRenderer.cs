@@ -1681,6 +1681,26 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// content or an artifact, and something that is neither is a PDF/UA failure, so marking the
     /// furniture is half the rule rather than a tidiness measure.
     /// </remarks>
+    /// <summary>
+    /// Opens the <c>/Tx BMC</c> sequence that marks the text of a form field's appearance.
+    /// </summary>
+    internal void BeginVariableText()
+    {
+        BeginPage();
+        BeginGraphicMode();
+        _content.Append("/Tx BMC\n");
+    }
+
+    /// <summary>
+    /// Closes the sequence <see cref="BeginVariableText"/> opened, after any text object in it.
+    /// </summary>
+    internal void EndVariableText()
+    {
+        BeginPage();
+        BeginGraphicMode();
+        _content.Append("EMC\n");
+    }
+
     internal void BeginArtifact()
     {
         BeginPage();

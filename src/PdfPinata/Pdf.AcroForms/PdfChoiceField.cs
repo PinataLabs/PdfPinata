@@ -469,10 +469,13 @@ public abstract class PdfChoiceField : PdfAcroField
             gfx.DrawRectangle(new XPen(border, 1), new XRect(0.5, 0.5, box.Width - 1, box.Height - 1));
 
         var inside = new XRect(1, 1, Math.Max(box.Width - 2, 0), Math.Max(box.Height - 2, 0));
-        gfx.Save();
-        gfx.IntersectClip(inside);
-        DrawContent(gfx, inside);
-        gfx.Restore();
+        using (gfx.BeginVariableText())
+        {
+            gfx.Save();
+            gfx.IntersectClip(inside);
+            DrawContent(gfx, inside);
+            gfx.Restore();
+        }
 
         SetVariableTextAppearance(widget, form);
     }

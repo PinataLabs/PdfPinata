@@ -173,6 +173,61 @@ public sealed class TextFieldAppearanceTests : IDisposable
         (Line.Right - right.Right).Should().BeInRange(1.5, 4, "aligned right, two points in");
     }
 
+    [Theory]
+    [InlineData("Ada Lovelace")]
+    [InlineData("")]
+    public void OnlyTheTextIsMarkedAsVariableText(string value)
+    {
+        // A viewer that edits the field replaces what is between /Tx BMC and EMC with its own
+        // text. The box has to be outside, or the first edit takes it away.
+        var field = OnAPage(Line, f =>
+        {
+            f.BackColor = XColors.LightGray;
+            f.BorderColor = XColors.Gray;
+        });
+        field.Text = value;
+
+        var content = AppearanceContent(field);
+        var open = content.IndexOf("/Tx BMC", StringComparison.Ordinal);
+        var close = content.IndexOf("EMC", open + 7, StringComparison.Ordinal);
+
+        open.Should().BeGreaterThan(-1, "the text is marked, even when there is none yet");
+        close.Should().BeGreaterThan(open);
+        var inside = content[open..close];
+        var before = content[..open];
+        before.Should().Contain(Fill, "the background is filled before the text");
+        before.Should().Contain(Stroke, "and the border is stroked before it");
+        inside.Should().NotContain(Fill).And.NotContain(Stroke, "neither is inside the bracket");
+    }
+
+    [Fact]
+    public void AChoiceFieldMarksOnlyItsTextToo()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var form = document.GetOrCreateAcroForm();
+        var combo = new PdfComboBoxField(document) { Name = "c", Options = ["one", "two"], BackColor = XColors.LightGray };
+        form.Fields.Add(combo);
+        combo.AddWidget(page, new PdfRectangle(new XRect(60, 700, 200, 20)));
+        combo.SelectedIndex = 1;
+
+        var content = AppearanceContent(combo);
+        var open = content.IndexOf("/Tx BMC", StringComparison.Ordinal);
+        open.Should().BeGreaterThan(content.IndexOf(Fill, StringComparison.Ordinal));
+    }
+
+    /// <summary>A rectangle filled, and a rectangle stroked, as the renderer writes them.</summary>
+    private const string Fill = " re\nf";
+
+    private const string Stroke = " re\nS";
+
+    private static string AppearanceContent(PdfAcroField field)
+    {
+        var appearances = field.Widgets[0].Elements.GetDictionary("/AP");
+        var normal = (PdfDictionary)appearances.Elements.GetObject("/N");
+        return System.Text.Encoding.Latin1.GetString(normal.Stream.UnfilteredValue);
+    }
+
     private IMagickImage<byte> Rasterize(string name, PdfTextField field)
     {
         var images = PdfHelper.Rasterize(field.Owner).ImageCollection;

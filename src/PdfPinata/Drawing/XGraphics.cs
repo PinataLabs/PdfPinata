@@ -1562,6 +1562,33 @@ public sealed class XGraphics : IDisposable
         return new MarkedContentScope(this, false);
     }
 
+    /// <summary>
+    /// Marks what is drawn until the scope is disposed as the variable text of a form field's
+    /// appearance - <c>/Tx BMC … EMC</c>, ISO 32000-1 section 12.7.3.3.
+    /// </summary>
+    /// <remarks>
+    /// A viewer that edits the field replaces what is inside the sequence with the text it lays
+    /// out itself, and keeps the rest. So the field's background and border go before it, or the
+    /// first edit wipes them away.
+    /// </remarks>
+    internal IDisposable BeginVariableText()
+    {
+        var renderer = PdfRenderer("Variable text can only be written to a PDF form.");
+        renderer.BeginVariableText();
+        return new VariableTextScope(renderer);
+    }
+
+    private sealed class VariableTextScope(Drawing.Pdf.XGraphicsPdfRenderer renderer) : IDisposable
+    {
+        private Drawing.Pdf.XGraphicsPdfRenderer _renderer = renderer;
+
+        public void Dispose()
+        {
+            _renderer?.EndVariableText();
+            _renderer = null;
+        }
+    }
+
     private Drawing.Pdf.XGraphicsPdfRenderer PdfRenderer(string message) =>
         _renderer as Drawing.Pdf.XGraphicsPdfRenderer
         ?? throw new InvalidOperationException(message);
