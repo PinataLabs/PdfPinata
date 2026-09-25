@@ -108,7 +108,7 @@ internal static class PdfDestinationScaler
 
         var names = catalog.Elements.GetDictionary(PdfCatalog.Keys.Names);
         if (names != null)
-            sweep.VisitNameTree(names.Elements.GetDictionary("/Dests"), 0);
+            sweep.VisitNameTree(names.Elements.GetDictionary("/Dests"));
 
         var dests = catalog.Elements.GetDictionary(PdfCatalog.Keys.Dests);
         if (dests != null)
@@ -124,6 +124,7 @@ internal static class PdfDestinationScaler
     {
         private readonly Dictionary<PdfObjectID, XMatrix> _matrices;
         private readonly HashSet<PdfArray> _done = new(ByIdentity.Instance);
+        private readonly HashSet<PdfDictionary> _outlineItemsSeen = [];
 
         internal Sweep(Dictionary<PdfObjectID, XMatrix> matrices)
         {
@@ -151,15 +152,19 @@ internal static class PdfDestinationScaler
 
         internal void VisitOutline(PdfDictionary node, int depth)
         {
-            // The cap is what stops an outline that leads back into itself being walked forever.
-            if (node == null || depth > MaxDepth)
+            // Each item is entered once. The two caps bound how deep and how wide the walk goes, but
+            // not their product: an item that is its own first child and its own next sibling is
+            // MaxSiblings visits at each of MaxDepth levels, one inside another. The caps stay for
+            // the honest outline that is merely absurdly large.
+            if (node == null || depth > MaxDepth || !_outlineItemsSeen.Add(node))
                 return;
 
             VisitHolderAndItsAction(node, "/Dest");
 
             var child = node.Elements.GetDictionary("/First");
             var guard = 0;
-            while (child != null && guard++ <= MaxSiblings)
+            // A /Next chain that comes back round stops at the first item it has already entered.
+            while (child != null && guard++ <= MaxSiblings && !_outlineItemsSeen.Contains(child))
             {
                 VisitOutline(child, depth + 1);
                 child = child.Elements.GetDictionary("/Next");
@@ -170,25 +175,15 @@ internal static class PdfDestinationScaler
         /// Every destination held in a name tree, which is where PDF 1.2 onwards keeps the ones
         /// that are named rather than stated.
         /// </summary>
-        internal void VisitNameTree(PdfDictionary node, int depth)
+        /// <remarks>
+        /// Walked by <see cref="PdfNameTree.Walk"/>, which enters each node once. A depth cap alone
+        /// does not stop a node that names itself twice among its /Kids from doubling the walk at
+        /// every level, and this ran during a page resize.
+        /// </remarks>
+        internal void VisitNameTree(PdfDictionary root)
         {
-            if (node == null || depth > MaxDepth)
-                return;
-
-            // A leaf alternates the names with what each one stands for.
-            var leaves = node.Elements.GetArray("/Names");
-            if (leaves != null)
-            {
-                for (var index = 1; index < leaves.Elements.Count; index += 2)
-                    VisitDestination(leaves.Elements[index]);
-            }
-
-            var kids = node.Elements.GetArray("/Kids");
-            if (kids == null)
-                return;
-
-            for (var index = 0; index < kids.Elements.Count; index++)
-                VisitNameTree(kids.Elements.GetDictionary(index), depth + 1);
+            foreach (var entry in PdfNameTree.Walk(root, 0, []))
+                VisitDestination(entry.Value);
         }
 
         /// <summary>
@@ -421,8 +416,8 @@ internal static class PdfDestinationScaler
         private const int MaxDepth = 32;
 
         /// <summary>
-        /// How many outline entries to follow along one level before giving up, against a file
-        /// whose /Next entries lead round in a circle.
+        /// How many outline entries to follow along one level before giving up. A circle of /Next
+        /// entries is stopped sooner, at the first entry already entered.
         /// </summary>
         private const int MaxSiblings = 100000;
     }

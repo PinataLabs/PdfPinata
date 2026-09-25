@@ -390,6 +390,30 @@ public class IncrementalUpdateTests
         Reopen(updated).Info.Subject.Should().Be("Changed");
     }
 
+    [Fact]
+    public void AFilePaddedPastItsEndOfFileMarkerCanBeAppendedTo()
+    {
+        // Some producers - SAP among them, empira/PDFsharp#390 - write kilobytes or megabytes of
+        // padding after %%EOF. The parser scans back through the whole file for the last startxref,
+        // so such a file opens in every mode. Append used to search a second time, through the last
+        // 2 KB alone, and threw "the document has no startxref" for a file every other mode reads.
+        var unpadded = OriginalDocument();
+        var original = unpadded.Concat(Enumerable.Repeat((byte)' ', 64 * 1024)).ToArray();
+
+        var updated = AppendChange(original, document => document.Info.Subject = "Changed");
+
+        updated.Take(original.Length).Should().Equal(original);
+        var reread = Reopen(updated);
+        reread.Info.Subject.Should().Be("Changed");
+        reread.Info.Title.Should().Be("Original title", "/Prev has to name the original revision");
+        reread.PageCount.Should().Be(2);
+
+        var text = Encoding.Latin1.GetString(unpadded);
+        var named = text[(text.LastIndexOf("startxref", StringComparison.Ordinal) + 9)..]
+            .Trim().Split('\n', '\r')[0].Trim();
+        Appended(updated, original.Length).Should().Contain("/Prev " + named);
+    }
+
     /// <summary>A document to append to, with more than one page so a change is visibly partial.</summary>
     private static byte[] OriginalDocument()
     {
