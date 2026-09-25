@@ -76,9 +76,10 @@ internal class BarDataLabelRenderer : DataLabelRenderer
     if (dlri.Type == DataLabelType.Percent)
       throw new InvalidOperationException(PSCSR.PercentNotSupportedByColumnDataLabel);
 
-    // A blank has no value to write, so it is left with no text at all and Draw passes over
-    // it. Writing what NaN formats to would put the word NaN on the plot area.
-    if (dlri.Type != DataLabelType.Value || double.IsNaN(bar.Value))
+    // A bar the plot area does not draw - a blank, or one off the scale - is left with no text at
+    // all and Draw passes over it. A blank would write the word NaN, and one off the scale a
+    // number with nothing under it, outside the plot area.
+    if (dlri.Type != DataLabelType.Value || !bar.Drawn)
       return dleri;
 
     dleri.Text = bar.Value.ToString(dlri.Format);

@@ -73,6 +73,23 @@ internal abstract class BarPlotAreaRenderer : PlotAreaRenderer
     cri.PlotAreaRendererInfo.Matrix.Translate(plotAreaBox.X, plotAreaBox.Y, XMatrixOrder.Append);
 
     CalcBars();
+    DecideWhichAreDrawn();
+  }
+
+  /// <summary>
+  /// Decides once, for every bar, whether it is drawn: here, after the positions are worked out
+  /// and before the data labels are formatted, so that Draw and the data label renderer ask the
+  /// same question and get the same answer. A bar off the scale is left undrawn rather than
+  /// clipped, and takes its label with it. A chart with nothing to plot returns before this, and
+  /// its bars stay undrawn.
+  /// </summary>
+  private void DecideWhichAreDrawn()
+  {
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
+    var yMin = cri.YAxisRendererInfo.MinimumScale;
+    var yMax = cri.YAxisRendererInfo.MaximumScale;
+    foreach (var bar in cri.SeriesRendererInfos.SelectMany(sri => sri.PointRendererInfos.Cast<ColumnRendererInfo>()))
+      bar.Drawn = IsDataInside(yMin, yMax, bar);
   }
 
   /// <summary>
@@ -90,8 +107,6 @@ internal abstract class BarPlotAreaRenderer : PlotAreaRenderer
 
     var xMin = cri.XAxisRendererInfo.MinimumScale;
     var xMax = cri.XAxisRendererInfo.MaximumScale;
-    var yMin = cri.YAxisRendererInfo.MinimumScale;
-    var yMax = cri.YAxisRendererInfo.MaximumScale;
 
     // Under some circumstances it is possible that no zero base line will be drawn,
     // e. g. because of unfavourable minimum/maximum scale and/or major tick, so force to draw
@@ -103,13 +118,13 @@ internal abstract class BarPlotAreaRenderer : PlotAreaRenderer
       .SelectMany(sri => sri.PointRendererInfos.Cast<ColumnRendererInfo>())
       .ToList();
 
-    // Draw bars. Do not draw a bar if its value is outside yMin/yMax range. Clipping does not make sense.
-    foreach (var bar in bars.Where(bar => IsDataInside(yMin, yMax, bar)))
+    // Draw bars. A bar off the scale is not drawn; Format decided which, and clipping does not make sense.
+    foreach (var bar in bars.Where(bar => bar.Drawn))
       gfx.DrawRectangle(bar.FillFormat, bar.Rect);
 
     // Draw borders around bar.
     // A border can overlap neighbor bars, so it is important to draw borders at the end.
-    foreach (var bar in bars.Where(bar => IsDataInside(yMin, yMax, bar) && bar.LineFormat.Width is > 0))
+    foreach (var bar in bars.Where(bar => bar.Drawn && bar.LineFormat.Width is > 0))
       new LineFormatRenderer(gfx, bar.LineFormat).DrawRectangle(bar.Rect);
 
     gfx.Restore(state);

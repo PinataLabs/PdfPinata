@@ -231,6 +231,12 @@ internal class ColumnRendererInfo : PointRendererInfo
   /// a blank, and for a column or bar that is not stacked, whose extent is its value.
   /// </summary>
   internal double StackedFrom = double.NaN, StackedTo = double.NaN;
+
+  /// <summary>
+  /// Whether the plot area draws this column or bar, which it decides once in Format. One off the
+  /// scale, and a blank, is not drawn, and the data label renderer writes no label for it.
+  /// </summary>
+  internal bool Drawn;
 }
 
 /// <summary>

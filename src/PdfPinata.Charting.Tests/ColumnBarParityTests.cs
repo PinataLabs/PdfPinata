@@ -66,6 +66,57 @@ public class ColumnBarParityTests
             "the bar for -5 runs from the scale's minimum at -10 whatever came before it");
     }
 
+    /// <summary>
+    ///   A segment left out for lying off the scale takes its data label with it, or the number
+    ///   would be written with nothing under it - outside the plot area, over the axis or the
+    ///   legend. The third segment here reaches 5.75 on a scale ending at 5.
+    /// </summary>
+    [Theory]
+    [InlineData(ChartType.ColumnStacked2D)]
+    [InlineData(ChartType.BarStacked2D)]
+    public void AStackedSegmentLeftOffTheScaleIsNotLabelled(ChartType type)
+    {
+        var chart = Charts.OfSeries(type, [1.25], [1.5], [3.0]);
+        Labelled(chart, 0, 5);
+
+        ShownText.On(Drawn.Page(chart)).Should()
+            .Contain(Label(1.25)).And.Contain(Label(1.5)).And.NotContain(Label(3.0));
+    }
+
+    /// <summary>
+    ///   The same of a clustered column or bar whose value is off the scale: it is not drawn, and
+    ///   neither is its label, while the label of the one on the scale is.
+    /// </summary>
+    [Theory]
+    [InlineData(ChartType.Column2D)]
+    [InlineData(ChartType.Bar2D)]
+    public void AClusteredValueOffTheScaleIsNotLabelled(ChartType type)
+    {
+        var chart = Charts.Of(type, 1.25, 40.0);
+        Labelled(chart, 0, 5);
+
+        ShownText.On(Drawn.Page(chart)).Should()
+            .Contain(Label(1.25)).And.NotContain(Label(40.0));
+    }
+
+    /// <summary>
+    ///   Labels every point with its value, to two places so that no label can be mistaken for a
+    ///   tick label of a scale in whole numbers.
+    /// </summary>
+    private static void Labelled(Chart chart, double minimum, double maximum)
+    {
+        chart.HasDataLabel = true;
+        chart.DataLabel.Type = DataLabelType.Value;
+        chart.DataLabel.Format = LabelFormat;
+        chart.YAxis.MinimumScale = minimum;
+        chart.YAxis.MaximumScale = maximum;
+        chart.YAxis.MajorTick = 1;
+    }
+
+    private static string Label(double value) => value.ToString(LabelFormat);
+
+    private const string LabelFormat = "0.00";
+
     private static double LengthOfLast(ChartType type, params double[] values)
     {
         var chart = Charts.Of(type, values);
