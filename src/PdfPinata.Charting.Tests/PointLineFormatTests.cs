@@ -99,4 +99,46 @@ public class PointLineFormatTests
         PaintedPaths.StrokedIn(Drawn.Page(chart), Red).Should().HaveCount(3)
             .And.OnlyContain(path => System.Math.Abs(path.LineWidth - 2) < 0.001);
     }
+
+    private static Chart WithARedSeriesLine(ChartType type)
+    {
+        var chart = Charts.Of(type, 1.0, 3.0, 2.0);
+        var series = chart.SeriesCollection[0];
+        series.LineFormat.Visible = true;
+        series.LineFormat.Color = XColors.Red;
+        series.LineFormat.Width = 2;
+        return chart;
+    }
+
+    [Theory]
+    [InlineData(ChartType.Column2D)]
+    [InlineData(ChartType.Bar2D)]
+    [InlineData(ChartType.Pie2D)]
+    [InlineData(ChartType.PieExploded2D)]
+    public void ReadingAPointsLineFormatDoesNotTakeItsBorderAway(ChartType type)
+    {
+        // Point.LineFormat creates the format the first time it is read, and a format nobody set
+        // says Visible = false. Treated as the point's own, it hid the border the series gives it.
+        var chart = WithARedSeriesLine(type);
+        _ = chart.SeriesCollection[0].Elements[1].LineFormat.Width;
+
+        PaintedPaths.StrokedIn(Drawn.Page(chart), Red).Should().HaveCount(3);
+    }
+
+    [Theory]
+    [InlineData(ChartType.Column2D)]
+    [InlineData(ChartType.Bar2D)]
+    [InlineData(ChartType.Pie2D)]
+    [InlineData(ChartType.PieExploded2D)]
+    public void APointThatSaysItsLineIsNotVisibleHasNoBorder(ChartType type)
+    {
+        // Setting Visible = false is a line format the caller gave, even though it leaves the
+        // format looking exactly as one that was only read: it hides that point's border.
+        var chart = WithARedSeriesLine(type);
+        chart.SeriesCollection[0].Elements[1].LineFormat.Visible = false;
+
+        PaintedPaths.StrokedIn(Drawn.Page(chart), Red).Should().HaveCount(2);
+        PaintedPaths.StrokedIn(Drawn.Page(chart.Clone()), Red).Should().HaveCount(2,
+            "a copy of the chart keeps what the caller set on the point");
+    }
 }

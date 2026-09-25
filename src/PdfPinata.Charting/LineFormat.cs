@@ -65,7 +65,7 @@ public class LineFormat : DocumentObject
   public bool Visible
   {
     get => visible;
-    set => visible = value;
+    set { visible = value; isSet = true; }
   }
   internal bool visible;
 
@@ -75,7 +75,7 @@ public class LineFormat : DocumentObject
   public XUnit Width
   {
     get => width;
-    set => width = value;
+    set { width = value; isSet = true; }
   }
   internal XUnit width;
 
@@ -85,7 +85,7 @@ public class LineFormat : DocumentObject
   public XColor Color
   {
     get => color;
-    set => color = value;
+    set { color = value; isSet = true; }
   }
   internal XColor color = XColor.Empty;
 
@@ -95,7 +95,7 @@ public class LineFormat : DocumentObject
   public XDashStyle DashStyle
   {
     get => dashStyle;
-    set => dashStyle = value;
+    set { dashStyle = value; isSet = true; }
   }
   internal XDashStyle dashStyle;
 
@@ -105,8 +105,15 @@ public class LineFormat : DocumentObject
   public LineStyle Style
   {
     get => style;
-    set => style = value;
+    set { style = value; isSet = true; }
   }
   internal LineStyle style;
+
+  /// <summary>
+  /// Whether any of the properties above has been assigned. A format the caller only read into
+  /// existence - Point.LineFormat creates one the first time it is read - has not been, and is
+  /// not a line format the caller gave. Copied by Clone with the rest of the fields.
+  /// </summary>
+  internal bool isSet;
   #endregion
 }
