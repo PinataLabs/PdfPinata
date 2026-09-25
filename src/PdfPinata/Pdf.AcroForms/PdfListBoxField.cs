@@ -28,6 +28,7 @@
 #endregion
 
 using System;
+using PdfPinata.Drawing;
 
 namespace PdfPinata.Pdf.AcroForms;
 
@@ -129,6 +130,76 @@ public sealed class PdfListBoxField : PdfChoiceField
 
             WriteSelectedIndices(
                 AllowsMultipleSelection || tellsApartWhatTheValueCannot ? indices : []);
+            RenderAppearance();
+        }
+    }
+
+    /// <summary>
+    /// A value set through <see cref="PdfAcroField.Value"/> names the option chosen; <c>/I</c> is
+    /// brought into line with it, where it would otherwise go on naming the rows chosen before,
+    /// and the list is redrawn.
+    /// </summary>
+    internal override void OnValueChanged()
+    {
+        Elements.Remove(PdfChoiceField.Keys.I);
+        if (AllowsMultipleSelection)
+            WriteSelectedIndices(SelectedIndicesFromValue());
+        RenderAppearance();
+    }
+
+    /// <summary>
+    /// Gets or sets the index of the first option shown - <c>/TI</c>, the top index of a list
+    /// longer than its box. Zero, the default, shows the list from its first option.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">The index is negative.</exception>
+    public int TopIndex
+    {
+        get => Math.Max(Elements.GetInteger(PdfChoiceField.Keys.TI), 0);
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(value);
+
+            if (value == 0)
+                Elements.Remove(PdfChoiceField.Keys.TI);
+            else
+                Elements.SetInteger(PdfChoiceField.Keys.TI, value);
+            RenderAppearance();
+        }
+    }
+
+    /// <summary>
+    /// The colour a chosen row is highlighted in - the one Acrobat uses, so that a list drawn here
+    /// looks the same as one a reader draws.
+    /// </summary>
+    private static readonly XColor Highlight = XColor.FromArgb(153, 193, 218);
+
+    private protected override bool HasContent => Options.Length != 0;
+
+    /// <summary>
+    /// Draws the options one to a row from <see cref="TopIndex"/> down, as many as the box has
+    /// room for, with each chosen row highlighted behind its text.
+    /// </summary>
+    private protected override void DrawContent(XGraphics gfx, XRect inside)
+    {
+        var options = Options;
+        if (options.Length == 0)
+            return;
+
+        var font = Font;
+        var rowHeight = font.GetHeight();
+        var chosen = SelectedIndicesFromValue();
+        var brush = new XSolidBrush(ForeColor);
+
+        var y = inside.Y;
+        for (var index = Math.Min(TopIndex, options.Length - 1); index < options.Length && y < inside.Bottom; index++)
+        {
+            var row = new XRect(inside.X, y, inside.Width, rowHeight);
+            if (Array.IndexOf(chosen, index) >= 0)
+                gfx.DrawRectangle(new XSolidBrush(Highlight), row);
+
+            var line = new XRect(row.X + 1, row.Y, Math.Max(row.Width - 2, 0), row.Height);
+            gfx.DrawString(DisplayTextAt(index), font, brush, line, XStringFormats.CenterLeft);
+            y += rowHeight;
         }
     }
 

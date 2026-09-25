@@ -207,6 +207,12 @@ public sealed class PdfTextField : PdfAcroField
         }
     }
 
+    /// <summary>
+    /// A value set through <see cref="PdfAcroField.Value"/> is drawn, as one set through
+    /// <see cref="Text"/> is.
+    /// </summary>
+    internal override void OnValueChanged() => RenderAppearance();
+
     internal override void OnWidgetAdded()
     {
         // A field is usually described before it is placed, and until it is placed there is no
@@ -253,26 +259,7 @@ public sealed class PdfTextField : PdfAcroField
             gfx.DrawString(Text, Font, new XSolidBrush(ForeColor),
                 rect.ToXRect() - rect.Location + new XPoint(2, 0), XStringFormats.TopLeft);
 
-        form.DrawingFinished();
-        form.PdfForm.Elements.Add("/FormType", new PdfLiteral("1"));
-
-        // Get existing or create new appearance dictionary.
-        var ap = annotation.Elements[PdfAnnotation.Keys.AP] as PdfDictionary;
-        if (ap == null)
-        {
-            ap = new PdfDictionary(_document);
-            annotation.Elements[PdfAnnotation.Keys.AP] = ap;
-        }
-
-        // Set XRef to normal state
-        ap.Elements["/N"] = form.PdfForm.Reference;
-
-        var xobj = form.PdfForm;
-        var s = xobj.Stream.ToString();
-        // Thank you Adobe: Without putting the content in 'EMC brackets'
-        // the text is not rendered by PDF Reader 9 or higher.
-        s = "/Tx BMC\n" + s + "\nEMC";
-        xobj.Stream.Value = new RawEncoding().GetBytes(s);
+        SetVariableTextAppearance(annotation, form);
     }
 
     internal override void PrepareForSave()

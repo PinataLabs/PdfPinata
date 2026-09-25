@@ -29,6 +29,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Text.RegularExpressions;
+using PdfPinata.Drawing;
+using PdfPinata.Fonts;
+using PdfPinata.Pdf.Advanced;
+using PdfPinata.Pdf.Annotations;
 
 namespace PdfPinata.Pdf.AcroForms;
 
@@ -100,6 +106,7 @@ public abstract class PdfChoiceField : PdfAcroField
                 options.Elements.Add(new PdfString(option ?? ""));
 
             Elements[Keys.Opt] = options;
+            RenderAppearance();
         }
     }
 
@@ -324,6 +331,277 @@ public abstract class PdfChoiceField : PdfAcroField
         ordered.Sort();
         return [..ordered];
     }
+
+    // ----- Appearance ------------------------------------------------------------------------
+
+    /// <summary>
+    /// Gets or sets the font the options are drawn in. Unset, it is the resolver's default font at
+    /// the size the field's <c>/DA</c> names, or 10 points when that names none or asks for
+    /// auto-sizing.
+    /// </summary>
+    /// <remarks>
+    /// The size is taken from <c>/DA</c> so that the drawing agrees with the one a reader builds
+    /// from the same string. Setting this, or any of the colours below, redraws the field.
+    /// </remarks>
+    public XFont Font
+    {
+        get => _font ?? DefaultFont();
+        set
+        {
+            _font = value;
+            RenderAppearance();
+        }
+    }
+
+    private XFont _font;
+
+    /// <summary>
+    /// Gets or sets the colour of the text. Unset, it is the colour the field's <c>/DA</c> names,
+    /// or black.
+    /// </summary>
+    public XColor ForeColor
+    {
+        get => _foreColor.IsEmpty ? ColorFromDefaultAppearance() : _foreColor;
+        set
+        {
+            _foreColor = value;
+            RenderAppearance();
+        }
+    }
+
+    private XColor _foreColor = XColor.Empty;
+
+    /// <summary>
+    /// Gets or sets the colour the box is filled with. <see cref="XColor.Empty"/>, the default,
+    /// takes the background each widget's <c>/MK</c> names, and fills nothing where it names none.
+    /// </summary>
+    /// <remarks>
+    /// <c>/MK</c> is what a reader builds an appearance from, and a widget that has an appearance
+    /// is drawn from that instead - so a field decorated through <c>/MK</c> alone would lose its
+    /// box the moment it drew itself, as a text field does, were <c>/MK</c> not read here too.
+    /// </remarks>
+    public XColor BackColor
+    {
+        get => _backColor;
+        set
+        {
+            _backColor = value;
+            RenderAppearance();
+        }
+    }
+
+    private XColor _backColor = XColor.Empty;
+
+    /// <summary>
+    /// Gets or sets the colour of the one-point border drawn inside the box.
+    /// <see cref="XColor.Empty"/>, the default, takes the border colour each widget's <c>/MK</c>
+    /// names, and draws none where it names none.
+    /// </summary>
+    public XColor BorderColor
+    {
+        get => _borderColor;
+        set
+        {
+            _borderColor = value;
+            RenderAppearance();
+        }
+    }
+
+    private XColor _borderColor = XColor.Empty;
+
+    /// <summary>
+    /// The text shown for the option at <paramref name="index"/>: the second element of an
+    /// <c>[export display]</c> pair, or the option itself when it is a single string. "" when the
+    /// field has no such option.
+    /// </summary>
+    private protected string DisplayTextAt(int index)
+    {
+        var options = Elements.GetArray(Keys.Opt);
+        if (options == null || index < 0 || index >= options.Elements.Count)
+            return "";
+
+        var item = options.Elements[index];
+        if (item is PdfReference reference)
+            item = reference.Value;
+
+        return item switch
+        {
+            PdfArray { Elements.Count: >= 2 } pair => TextOfOption(pair.Elements[1]),
+            PdfArray { Elements.Count: 1 } single => TextOfOption(single.Elements[0]),
+            _ => TextOfOption(item)
+        };
+    }
+
+    /// <summary>
+    /// Whether the field has anything of its own to draw - a value to show, or options to list.
+    /// </summary>
+    private protected virtual bool HasContent => false;
+
+    /// <summary>
+    /// Draws the field's own content - its value, or its list - inside the border.
+    /// </summary>
+    /// <param name="gfx">The graphics of the widget's appearance, already clipped to the inside.</param>
+    /// <param name="inside">The box inside the border, in the appearance's own space.</param>
+    private protected virtual void DrawContent(XGraphics gfx, XRect inside)
+    { }
+
+    /// <summary>
+    /// Draws the normal appearance of each of the field's widgets.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// A choice field wrote its value and left the drawing to the reader, through
+    /// <c>/NeedAppearances</c>. That flag is a request, and Ghostscript, print pipelines and most
+    /// previewers ignore it, so the value was set and invisible; PDF 2.0 deprecates it, and PDF/A
+    /// forbids it. Issue #151.
+    /// </para>
+    /// <para>
+    /// Called whenever something drawn from changes, and not on save: a field read from a file
+    /// keeps the appearance it came with until the caller changes the field.
+    /// </para>
+    /// </remarks>
+    private protected void RenderAppearance()
+    {
+        if (Owner == null)
+            return;
+
+        // Drawing needs a font, and with none set on the field that is the resolver's. Without
+        // either, the value has already been written and stands; the field is left for a reader
+        // to draw, as every choice field was before it drew itself, rather than throwing out of
+        // a setter that has already changed it.
+        if (_font == null && !GlobalFontSettings.IsFontResolverSet)
+            return;
+
+        foreach (var widget in Widgets)
+            RenderAppearanceOn(widget);
+    }
+
+    internal override void OnWidgetAdded() => RenderAppearance();
+
+    internal override void OnDefaultAppearanceChanged() => RenderAppearance();
+
+    private void RenderAppearanceOn(PdfDictionary widget)
+    {
+        var rect = widget.Elements.GetRectangle(PdfAnnotation.Keys.Rect);
+
+        // XForm refuses a box under a point in either direction, and a widget can be that small
+        // while it is being assembled.
+        if (rect.Width < 1 || rect.Height < 1)
+            return;
+
+        var characteristics = widget.Elements.GetDictionary(PdfWidgetAnnotation.Keys.MK);
+        var back = _backColor.IsEmpty ? ColorIn(characteristics, "/BG") : _backColor;
+        var border = _borderColor.IsEmpty ? ColorIn(characteristics, "/BC") : _borderColor;
+
+        // Nothing to draw. Writing an empty appearance would blank the field rather than leave a
+        // reader to build it, so the one it had is taken away instead.
+        if (back.IsEmpty && border.IsEmpty && !HasContent)
+        {
+            widget.Elements.Remove(PdfAnnotation.Keys.AP);
+            return;
+        }
+
+        var form = new XForm(Owner, rect.Size);
+        var gfx = XGraphics.FromForm(form);
+        var box = new XRect(0, 0, rect.Width, rect.Height);
+
+        if (!back.IsEmpty)
+            gfx.DrawRectangle(new XSolidBrush(back), box);
+
+        if (!border.IsEmpty)
+            gfx.DrawRectangle(new XPen(border, 1), new XRect(0.5, 0.5, box.Width - 1, box.Height - 1));
+
+        var inside = new XRect(1, 1, Math.Max(box.Width - 2, 0), Math.Max(box.Height - 2, 0));
+        gfx.Save();
+        gfx.IntersectClip(inside);
+        DrawContent(gfx, inside);
+        gfx.Restore();
+
+        SetVariableTextAppearance(widget, form);
+    }
+
+    /// <summary>
+    /// The colour an appearance-characteristics entry names - one component for grey, three for
+    /// RGB and four for CMYK, as ISO 32000-1 Table 189 has them - or empty when it names none.
+    /// </summary>
+    private static XColor ColorIn(PdfDictionary characteristics, string key)
+    {
+        var components = characteristics?.Elements.GetArray(key);
+        if (components == null)
+            return XColor.Empty;
+
+        double At(int index) => Math.Clamp(components.Elements.GetReal(index), 0, 1);
+
+        return components.Elements.Count switch
+        {
+            1 => XColor.FromGrayScale(At(0)),
+            3 => XColor.FromArgb((int)Math.Round(At(0) * 255), (int)Math.Round(At(1) * 255), (int)Math.Round(At(2) * 255)),
+            4 => XColor.FromCmyk(At(0), At(1), At(2), At(3)),
+            _ => XColor.Empty
+        };
+    }
+
+    /// <summary>
+    /// The field's default appearance string: its own <c>/DA</c>, an ancestor's, or the form's.
+    /// </summary>
+    private string EffectiveDefaultAppearance()
+    {
+        var owner = InheritedFrom(this, PdfAcroField.Keys.DA);
+        if (owner != null)
+            return owner.Elements.GetString(PdfAcroField.Keys.DA);
+
+        return Owner?.AcroForm?.DefaultAppearance ?? "";
+    }
+
+    private XFont DefaultFont()
+    {
+        var size = 10.0;
+        var match = FontSize.Match(EffectiveDefaultAppearance());
+        if (match.Success
+            && double.TryParse(match.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var named)
+            && named > 0)
+        {
+            size = named;
+        }
+
+        return new XFont(GlobalFontSettings.FontResolver.DefaultFontName, size);
+    }
+
+    private XColor ColorFromDefaultAppearance()
+    {
+        var appearance = EffectiveDefaultAppearance();
+
+        double Number(Group group) => Math.Clamp(double.Parse(group.Value, CultureInfo.InvariantCulture), 0, 1);
+
+        // The last colour operator wins, as it would in the content stream the string is for.
+        Match last = null;
+        foreach (Match match in ColorOperator.Matches(appearance))
+            last = match;
+
+        if (last == null)
+            return XColors.Black;
+
+        // The pattern takes one to four numbers before any of the three operators, so an operator
+        // is only believed with the count it takes: /DA is read from files, and "1 rg" parsed as
+        // three numbers made every setter that redraws the field throw.
+        var three = last.Groups["b"].Success && last.Groups["c"].Success;
+        var four = three && last.Groups["d"].Success;
+        return last.Groups["op"].Value switch
+        {
+            "g" when !three => XColor.FromGrayScale(Number(last.Groups["a"])),
+            "rg" when three && !four => XColor.FromArgb((int)Math.Round(Number(last.Groups["a"]) * 255),
+                (int)Math.Round(Number(last.Groups["b"]) * 255), (int)Math.Round(Number(last.Groups["c"]) * 255)),
+            "k" when four => XColor.FromCmyk(Number(last.Groups["a"]), Number(last.Groups["b"]),
+                Number(last.Groups["c"]), Number(last.Groups["d"])),
+            _ => XColors.Black
+        };
+    }
+
+    private static readonly Regex FontSize = new(@"([0-9]*\.?[0-9]+)\s+Tf\b", RegexOptions.CultureInvariant);
+
+    private static readonly Regex ColorOperator = new(
+        @"(?<a>[0-9]*\.?[0-9]+)\s+(?:(?<b>[0-9]*\.?[0-9]+)\s+(?<c>[0-9]*\.?[0-9]+)\s+(?:(?<d>[0-9]*\.?[0-9]+)\s+)?)?(?<op>rg|g|k)\b",
+        RegexOptions.CultureInvariant);
 
     /// <summary>
     /// Predefined keys of this dictionary.

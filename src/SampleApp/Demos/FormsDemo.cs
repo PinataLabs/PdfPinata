@@ -66,10 +66,10 @@ internal sealed class FormsDemo : PdfDemo
         // PdfDocument.AcroForm only reads, and answers null until this has been called.
         var form = document.GetOrCreateAcroForm();
 
-        // /NeedAppearances asks the viewer to build the appearance streams for the text and
-        // choice fields, which is what saves this demo from laying out their glyphs. The buttons
-        // below still carry their own, because a check box's appearance is the thing being
-        // toggled rather than a rendering of its value.
+        // Every field below draws its own appearance, so the form reads the same in a viewer that
+        // builds nothing - Ghostscript, a print pipeline, a thumbnailer. /NeedAppearances asks a
+        // viewer that can to build them again anyway, which is what reflows the multi-line notes:
+        // the library draws a value as one line. Leave it out of a PDF/A document, which forbids it.
         form.NeedAppearances = true;
 
         // A real size, not the "/Helv 0 Tf" most examples show. Zero means auto-size, and what a
@@ -124,23 +124,6 @@ internal sealed class FormsDemo : PdfDemo
         }
         // docs:end place
 
-        // /MK is what a viewer paints a field's box and border from when it is building the
-        // appearance itself, which for the two choice fields below it is. It is appearance
-        // characteristics rather than an appearance, and the library wraps no part of it, so
-        // this and the push button's action are the only entries the demo still writes by name.
-        void Decorate(PdfWidgetAnnotation widget, double grey)
-        {
-            var appearance = new PdfDictionary(document)
-            {
-                Elements =
-                {
-                    ["/BG"] = new PdfArray(document, new PdfReal(grey)),
-                    ["/BC"] = new PdfArray(document, new PdfReal(0.45))
-                }
-            };
-            widget.Elements["/MK"] = appearance;
-        }
-
         // docs:begin style-text
         // A text field draws its own appearance out of these, from the value in /V - so the box a
         // reader shows is the library's drawing rather than something built from /MK, and naming
@@ -154,6 +137,15 @@ internal sealed class FormsDemo : PdfDemo
             field.DefaultAppearance = "/Helv 9 Tf 0 g";
         }
         // docs:end style-text
+
+        // A combo box and a list box draw their own appearance too, in the size and colour their
+        // /DA names, so they take the same box as the text fields.
+        void StyleChoice(PdfChoiceField field)
+        {
+            field.BackColor = XColor.FromArgb(245, 245, 245);
+            field.BorderColor = XColor.FromArgb(115, 115, 115);
+            field.DefaultAppearance = "/Helv 9 Tf 0 g";
+        }
 
         // An appearance stream is a form XObject, and XGraphics draws onto one exactly as it
         // draws onto a page - which is what SetAppearance takes. This demo's first draft drew
@@ -341,8 +333,8 @@ internal sealed class FormsDemo : PdfDemo
             ]
         };
         form.Fields.Add(country);
-        country.DefaultAppearance = "/Helv 9 Tf 0 g";
-        Decorate(Place(country, countryBox), 0.96);
+        StyleChoice(country);
+        Place(country, countryBox);
         country.SelectedIndex = 4;
         // docs:end combo-box
         EndRow(countryBox,
@@ -360,8 +352,8 @@ internal sealed class FormsDemo : PdfDemo
             ]
         };
         form.Fields.Add(interests);
-        interests.DefaultAppearance = "/Helv 9 Tf 0 g";
-        Decorate(Place(interests, interestsBox), 0.96);
+        StyleChoice(interests);
+        Place(interests, interestsBox);
         interests.SelectedIndices = [0, 3];
         // docs:end list-box
         EndRow(interestsBox,
@@ -468,9 +460,9 @@ internal sealed class FormsDemo : PdfDemo
         lineY += 14;
         string[] closing =
         [
-            "Two entries above are still written by name, because nothing wraps them: /MK, which a",
-            "viewer paints a field's box from when it builds the appearance itself, and the push",
-            "button's /A action. Everything else on page one goes through a property or a method.",
+            "Two entries above are still written by name, because nothing wraps them: the push",
+            "button's /MK, which carries its caption, and its /A action. Everything else on page",
+            "one goes through a property or a method.",
             "",
             "One rule to know. A partial field name may not contain a period, because a period is",
             "what joins nested names into the path a field is found by - so Name = \"name.full\" is",

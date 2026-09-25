@@ -20,6 +20,7 @@ worth writing down: each item is a thing somebody trying to use the library woul
 | 8 | outlines | reading a document lost every expanded branch | **fixed** |
 | 9 | general | `PdfInternals.CreateIndirectObject<T>()` always returns null | **fixed** |
 | 10 | general | bookmarks and links do not survive page import | open, known |
+| 11 | forms | a combo box or list box draws no appearance, so its value is invisible outside a viewer that honours `/NeedAppearances` | **fixed** (#151) |
 
 Items 7 and 8 are done under `docs/specs/bookmarks-and-outlines.md` item 5; everything else except
 item 10 is done under this one. Item 10 is out of scope here and stays where it was recorded:
@@ -215,6 +216,26 @@ itself — has no wrapper, and nor does a push button's `/A` action. Those are t
 `src/PdfPinata.Test/Forms/AcroFormAuthoringTests.cs` has 41 tests. The one that matters saves the form
 and reads it back through `PdfReader`, because a form that is right in memory and wrong in the file
 looks identical from the calling side.
+
+### 11 — combo and list boxes had no appearance — **fixed**
+
+Found after item 1, by rendering the `Forms` demo with Ghostscript: the Country and Interests boxes
+were empty although their values were set and read back correctly. `PdfTextField` drew its own
+appearance and the two choice fields drew none, leaving it to `/NeedAppearances` — a request that
+Ghostscript, print pipelines and most previewers ignore, that PDF 2.0 deprecates and that PDF/A
+forbids.
+
+`PdfChoiceField` now draws, for each of `Widgets`: background and border, then the combo box's
+chosen option (its display text, the second element of an `[export display]` pair) or typed value,
+or the list box's options from `TopIndex` (`/TI`) down with each chosen row highlighted in
+Acrobat's colour. The text is drawn in the size and colour `/DA` names unless `Font` or `ForeColor`
+says otherwise, and `BackColor` and `BorderColor` fall back to the widget's `/MK`, which the demo
+had been writing by hand and a file from other software usually carries. It redraws when the value,
+the options, `/DA` or a colour changes, and when a widget is added - but not on save, so a field
+read from a file keeps the drawing it came with. `ChoiceFieldAppearanceTests` counts pixels.
+
+Not done: the conformance corpus has no document with a choice field, so veraPDF has not yet
+checked one. Adding one is the natural follow-up.
 
 ### 2 — `PdfAcroFieldFlags` has no `Comb` — **fixed**
 

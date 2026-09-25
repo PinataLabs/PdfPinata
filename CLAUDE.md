@@ -411,6 +411,15 @@ whenever anything it is drawn from changes. **Asked for nothing, each one remove
 had** rather than writing an empty stream, or a border set back to zero stays on the page. Tests for
 these count pixels; asserting keys would pass on a document nobody can see.
 
+**So does every field of variable text.** `PdfTextField` and, since #151, `PdfComboBoxField` and
+`PdfListBoxField` draw into each of `Widgets` through `SetVariableTextAppearance`, which adds the
+`/Tx BMC … EMC` bracket. A choice field draws in the size and colour its `/DA` names unless `Font`
+or `ForeColor` is set, and takes its background and border from each widget's `/MK` unless
+`BackColor` or `BorderColor` is — an appearance hides `/MK` from a reader, so ignoring it would
+strip the box from any field decorated that way. Unlike the text field, a choice field **does not
+redraw on save**: a form read from a file keeps its own drawing until the caller changes the field.
+`/NeedAppearances` is no longer what makes a choice visible, and PDF/A forbids it.
+
 **`/Line` computes its own `/Rect`**, from `Start`, `End`, the width and how much the line endings
 take — the opposite of `PdfSquareCircleAnnotation`, where the rectangle *is* the geometry. Assigning
 `Rectangle` on one is overwritten rather than honoured. It also reads every property back out of the
