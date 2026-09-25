@@ -394,4 +394,59 @@ public class FieldAndWidgetTests
         box.Widgets[0].Elements.GetName(PdfAnnotation.Keys.AS).Should().Be("/Yes");
         box.Elements.ContainsKey(PdfAnnotation.Keys.AS).Should().BeFalse();
     }
+
+    [Fact]
+    public void SeparatingAMergedFieldGivesTheWidgetItsOwnTriggers()
+    {
+        // Focus and blur belong to the annotation, keystroke and validate to the field. Left on a
+        // field that is no longer an annotation, the first two would never run.
+        var document = AMergedFieldAndWidget();
+        var field = document.AcroForm.Fields[0];
+        var actions = new PdfDictionary(document);
+        foreach (var trigger in new[] { "/Fo", "/Bl", "/K", "/V" })
+            actions.Elements[trigger] = new PdfDictionary(document);
+        field.Elements[PdfAcroField.Keys.AA] = actions;
+
+        field.AddWidget(document.Pages[0], new PdfRectangle(new XRect(60, 660, 200, 20)));
+
+        var separated = field.Widgets[0].Elements.GetDictionary(PdfAcroField.Keys.AA);
+        separated.Elements.Keys.Should().BeEquivalentTo("/Fo", "/Bl");
+        field.Elements.GetDictionary(PdfAcroField.Keys.AA).Elements.Keys.Should().BeEquivalentTo("/K", "/V");
+    }
+
+    [Fact]
+    public void AFieldReportsTheAppearanceStatesOfItsSeparateWidgets()
+    {
+        var document = new AcroFormBuilder()
+            .WithTypedParent("/Btn", "agree",
+                kid => AcroFormBuilder.WithOnAndOffAppearances(kid, "/Ja"),
+                kid => AcroFormBuilder.WithOnAndOffAppearances(kid, "/Ja"))
+            .Build();
+
+        document.AcroForm.Fields["agree"].GetAppearanceNames().Should().BeEquivalentTo("/Ja", "/Off");
+    }
+
+    [Fact]
+    public void AMergedTickBoxViewedBeforeItIsAddedKeepsItsValue()
+    {
+        // The view took the field's reference when it was made, which was none, and the setter
+        // then took the view for a separate widget and removed the /V it had just written.
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var form = document.GetOrCreateAcroForm();
+        var box = new PdfCheckBoxField(document) { Name = "agree" };
+        box.Elements.SetName("/Type", "/Annot");
+        box.Elements.SetName("/Subtype", "/Widget");
+        box.Elements.SetRectangle("/Rect", Box);
+        AcroFormBuilder.WithOnAndOffAppearances(box, "/Yes");
+        _ = box.Widgets;
+
+        form.Fields.Add(box);
+        page.Annotations.Elements.Add(box.Reference);
+        box.Checked = true;
+
+        box.Elements.GetName(PdfAcroField.Keys.V).Should().Be("/Yes");
+        box.Checked.Should().BeTrue();
+        box.Widgets[0].Reference.Should().BeSameAs(box.Reference);
+    }
 }
