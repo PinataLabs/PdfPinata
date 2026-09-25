@@ -72,8 +72,15 @@ public class Code3of9Standard : TwoWidthBarCode
     /// <param name="ch">The character to represent.</param>
     private static bool[] WideNarrowLines(char ch)
     {
-        return _lines["0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%*".IndexOf(ch)];
+        return _lines[Alphabet.IndexOf(ch)];
     }
+
+    /// <summary>
+    /// The characters the symbology can carry, in the order of <see cref="_lines"/>. The check and
+    /// the lookup both read this one string. They used to keep a copy each, and the check's copy had
+    /// an apostrophe the lookup's did not, so <c>'</c> was accepted and then failed at drawing time.
+    /// </summary>
+    private const string Alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%*";
 
     private static readonly bool[][] _lines =
     [
@@ -203,7 +210,7 @@ public class Code3of9Standard : TwoWidthBarCode
 
         foreach (var ch in text)
         {
-            if ("0123456789ABCDEFGHIJKLMNOP'QRSTUVWXYZ-. $/+%*".IndexOf(ch) < 0)
+            if (Alphabet.IndexOf(ch) < 0)
                 throw new ArgumentException(BcgSR.Invalid3Of9Code(text));
         }
     }

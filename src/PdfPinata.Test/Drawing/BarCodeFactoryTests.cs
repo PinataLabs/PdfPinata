@@ -126,4 +126,29 @@ public class BarCodeFactoryTests
             .WithMessage("*'ODD'*")
             .And.Message.Should().Contain("2 of 5");
     }
+
+    // Code 3 of 9 kept its alphabet twice, once to check a code and once to look each character's
+    // bars up, and the check's copy had an apostrophe the lookup's did not. So "'" was accepted where
+    // the code was set and then read _lines[-1] when it was drawn.
+
+    [Fact]
+    public void CodeThreeOfNineRefusesAnApostropheWhereItIsSet()
+    {
+        var act = () => new Code3of9Standard("AB'C", Size);
+
+        act.Should().Throw<ArgumentException>().WithMessage("*AB'C*");
+    }
+
+    [Fact]
+    public void CodeThreeOfNineDrawsEveryCharacterItAccepts()
+    {
+        var code = new Code3of9Standard("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%", new XSize(400, 40));
+        using var document = new PdfPinata.Pdf.PdfDocument();
+        var page = document.AddPage();
+        using var gfx = XGraphics.FromPdfPage(page);
+
+        var act = () => gfx.DrawBarCode(code, new XPoint(10, 10));
+
+        act.Should().NotThrow();
+    }
 }
