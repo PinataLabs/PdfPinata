@@ -52,8 +52,14 @@ internal class PlotAreaBorderRenderer : Renderer
     if (cri.PlotAreaRendererInfo.LineFormat is not { Width: > 0 })
       return;
 
+    // A plot area with no room has no border, as it has no wall: a frame too small for its axes
+    // leaves it a rectangle of no size, or of negative size.
+    var plotAreaBox = cri.PlotAreaRendererInfo.Rect;
+    if (HasNoRoom(plotAreaBox))
+      return;
+
     var gfx = rendererParms.Graphics;
     var lineFormatRenderer = new LineFormatRenderer(gfx, cri.PlotAreaRendererInfo.LineFormat);
-    lineFormatRenderer.DrawRectangle(cri.PlotAreaRendererInfo.Rect);
+    lineFormatRenderer.DrawRectangle(plotAreaBox);
   }
 }
