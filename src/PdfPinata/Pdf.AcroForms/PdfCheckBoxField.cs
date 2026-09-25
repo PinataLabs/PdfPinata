@@ -110,7 +110,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
                 // A widget that is a view of this field shares its entries, and /V is the field's.
                 // Any other widget has no business carrying one: nothing reads it but the scheme
                 // this replaces, which put the state there.
-                if (widget.Reference != Reference)
+                if (!ReferenceEquals(widget.Elements, Elements))
                     widget.Elements.Remove(PdfAcroField.Keys.V);
 
                 var states = StatesOf(widget);
