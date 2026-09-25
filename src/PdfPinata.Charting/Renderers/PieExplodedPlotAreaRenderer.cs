@@ -79,9 +79,16 @@ internal class PieExplodedPlotAreaRenderer : PiePlotAreaRenderer
       var sweepAngle = 360 / (sumValues / Math.Abs(sector.Value));
       var midAngle = startAngle + sweepAngle / 2;
 
+      // The gap is taken out of the sector, half from each side, so that neighbouring sectors
+      // stand the gap apart and each is pushed out along the middle of what is drawn of it. A
+      // sector narrower than two gaps gives up half of itself rather than all of it, so that a
+      // share in the data is never missing from the page; a sector that is the whole pie has no
+      // neighbour to stand apart from.
+      var gap = sweepAngle >= 360 ? 0 : Math.Min(deltaAngle, sweepAngle / 2);
+
       sector.Rect = ExplodedRect(origin, midAngle, rInnerCircle, rOuterCircle);
-      sector.StartAngle = Math.Max(0, startAngle + deltaAngle);
-      sector.SweepAngle = Math.Max(sweepAngle, sweepAngle - deltaAngle);
+      sector.StartAngle = startAngle + gap / 2;
+      sector.SweepAngle = sweepAngle - gap;
 
       startAngle += sweepAngle;
     }

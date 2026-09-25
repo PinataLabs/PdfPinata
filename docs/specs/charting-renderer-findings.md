@@ -544,4 +544,5 @@ change to what a chart looks like rather than to whether it can be drawn.
   is asserted through the operators it wrote.
 - **Line, area and pie geometry.** Where the wedges and line segments themselves land is not
   asserted; those renderers were not among the ten and would want a path reader rather than a
-  rectangle reader.
+  rectangle reader. `PaintedPaths` is that reader, and since #169 `PieExplodedPlotAreaTests` reads
+  an exploded pie's wedge angles through it; the closed pie, the line and the area are still open.
