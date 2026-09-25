@@ -146,6 +146,19 @@ was often signed by somebody else. The two capabilities are related and are not 
 believes it is B-T is worse than no signature, because it will be discovered by a verifier and not by
 its author.
 
+**Both HTTP providers read what a server sends through one guarded exchange** (#166). The timestamp
+provider and the OCSP provider POST a DER request to a server this library does not control, and the
+internal `DerHttp.PostAsync` is the one place either reads the answer: headers first, then the body
+under a cap of 1 MiB, and the client's `Timeout` over the whole exchange, body included, because
+reading headers first takes the body out of what that timeout covers. Too large or too slow is a
+failure: a timestamp failure fails the signing, and an OCSP one is an absence of evidence.
+**Neither provider's own client follows a redirect.** For OCSP the certificate names the responder,
+so a 3xx would let whoever issued it send the request anywhere. For a timestamp the caller names the
+authority it trusts, and a 3xx would put another server in its place without the caller seeing the
+new name. A failure names the URI, so a caller whose authority has moved sees it and updates the URI.
+A caller who passes its own `HttpClient` sets its own redirect policy. The size cap and the timeout
+apply either way, because they are in the read and not in the client.
+
 **Permissions are enforced through the existing modification guard.** The guard already fronts the
 operations that can change a document and already produces a message naming the mode the document was
 opened with and what the operation needs. It gains the notion of **what kind of change** is being

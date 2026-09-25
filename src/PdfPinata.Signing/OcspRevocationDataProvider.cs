@@ -1,6 +1,5 @@
 using System;
 using System.Formats.Asn1;
-using System.IO;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -82,47 +81,16 @@ public sealed class OcspRevocationDataProvider : IRevocationDataProvider, IDispo
 
         try
         {
-            using var content = new ByteArrayContent(request);
-            content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/ocsp-request");
-
-            // ReSharper disable once UsingStatementResourceInitialization
-            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, responderUri) { Content = content };
-
-            // ResponseHeadersRead so the body is read by ReadBounded, under its own cap, rather than
-            // buffered in full by the client before this ever sees it.
-            using var response = _httpClient
-                .SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead)
+            var responseBytes = DerHttp
+                .PostAsync(_httpClient, responderUri, request, "application/ocsp-request", MaxOcspResponseBytes)
                 .GetAwaiter().GetResult();
-            response.EnsureSuccessStatusCode();
-
-            var responseBytes = ReadBounded(response.Content, MaxOcspResponseBytes);
-            return responseBytes == null ? RevocationData.None : new RevocationData([responseBytes], null);
+            return new RevocationData([responseBytes], null);
         }
-        catch (Exception problem) when (problem is HttpRequestException or TaskCanceledException)
+        catch (Exception problem) when (problem is HttpRequestException or OperationCanceledException)
         {
+            // A responder that fails, answers too much, or takes too long is an absence of evidence.
             return RevocationData.None;
         }
-    }
-
-    /// <summary>
-    /// Reads <paramref name="content"/> into memory, or answers null once it has read more than
-    /// <paramref name="maxBytes"/> without ever buffering the excess.
-    /// </summary>
-    private static byte[] ReadBounded(HttpContent content, int maxBytes)
-    {
-        using var stream = content.ReadAsStreamAsync().GetAwaiter().GetResult();
-        using var buffer = new MemoryStream();
-        var chunk = new byte[8192];
-
-        int read;
-        while ((read = stream.Read(chunk, 0, chunk.Length)) > 0)
-        {
-            buffer.Write(chunk, 0, read);
-            if (buffer.Length > maxBytes)
-                return null;
-        }
-
-        return buffer.ToArray();
     }
 
     /// <summary>
