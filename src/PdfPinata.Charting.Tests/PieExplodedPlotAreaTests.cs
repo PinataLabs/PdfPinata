@@ -55,16 +55,18 @@ public class PieExplodedPlotAreaTests
 
     /// <summary>
     ///   A share narrower than two gaps keeps half of itself, rather than being swallowed by the gap
-    ///   and leaving a value that is in the data and nowhere on the page.
+    ///   and leaving a value that is in the data and nowhere on the page. The share beside it, at
+    ///   well over half the pie, gives up the whole gap like any other.
     /// </summary>
     [Fact]
     public void AShareNarrowerThanTheGapIsStillDrawn()
     {
-        // One part in 400 is 0.9 of a degree.
+        // One part in 400 is 0.9 of a degree, and the other 399 are 359.1.
         var wedges = Wedges(Charts.Of(ChartType.PieExploded2D, 399.0, 1.0));
 
-        wedges.Should().HaveCount(2);
-        wedges[1].Sweep.Should().BeApproximately(0.45, AngleTolerance);
+        wedges.Select(wedge => wedge.Sweep).Should().SatisfyRespectively(
+            sweep => sweep.Should().BeApproximately(359.1 - Gap, AngleTolerance),
+            sweep => sweep.Should().BeApproximately(0.45, AngleTolerance));
     }
 
     /// <summary>
@@ -76,14 +78,19 @@ public class PieExplodedPlotAreaTests
     {
         var wedge = Wedges(Charts.Of(ChartType.PieExploded2D, 5.0)).Should().ContainSingle().Subject;
 
-        Between(wedge.Start, wedge.End).Should().BeApproximately(0, AngleTolerance,
-            "a wedge of the full circle ends where it starts");
+        wedge.Sweep.Should().BeApproximately(360, AngleTolerance);
     }
 
     /// <summary>
     ///   Filled wedges, in the order the pie draws them, each as the direction of its two radii
-    ///   and the angle between them, all in degrees.
+    ///   and the angle its arc sweeps through, all in degrees.
     /// </summary>
+    /// <remarks>
+    ///   The sweep is followed along the arc rather than read off the two radii, which cannot tell
+    ///   a wedge of 357 degrees from one of 3. The arc is written a quarter of a circle or less to
+    ///   each curve, so the end points of the curves - the first point after the centre, then every
+    ///   third - are never half a turn apart, and the turn from each to the next is unambiguous.
+    /// </remarks>
     private static List<(double Start, double End, double Sweep)> Wedges(Chart chart)
     {
         var page = Drawn.Page(chart);
@@ -94,9 +101,15 @@ public class PieExplodedPlotAreaTests
                 .Select(path =>
                 {
                     var centre = path.Points[0];
-                    var start = Direction(centre, path.Points[1]);
-                    var end = Direction(centre, path.Points[^1]);
-                    return (start, end, Between(start, end));
+                    var directions = new List<double>();
+                    for (var idx = 1; idx < path.Points.Count; idx += 3)
+                        directions.Add(Direction(centre, path.Points[idx]));
+
+                    var sweep = 0.0;
+                    for (var idx = 1; idx < directions.Count; idx++)
+                        sweep += Turn(directions[idx - 1], directions[idx]);
+
+                    return (directions[0], directions[^1], Math.Abs(sweep));
                 })
         ];
     }
@@ -104,12 +117,19 @@ public class PieExplodedPlotAreaTests
     private static double Direction((double X, double Y) from, (double X, double Y) to) =>
         Math.Atan2(to.Y - from.Y, to.X - from.X) * 180 / Math.PI;
 
-    /// <summary>The angle from one direction round to another, however the page's axes turn them.</summary>
-    private static double Between(double from, double to)
+    /// <summary>The signed turn from one direction to another, the short way round.</summary>
+    private static double Turn(double from, double to)
     {
-        var angle = Math.Abs(to - from) % 360;
-        return Math.Min(angle, 360 - angle);
+        var turn = (to - from) % 360;
+        if (turn > 180)
+            turn -= 360;
+        else if (turn <= -180)
+            turn += 360;
+        return turn;
     }
+
+    /// <summary>The angle from one direction round to another, the short way, however the page's axes turn them.</summary>
+    private static double Between(double from, double to) => Math.Abs(Turn(from, to));
 
     /// <summary>The gap the renderer leaves between one wedge and the next, in degrees.</summary>
     private const double Gap = 2;
