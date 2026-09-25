@@ -741,7 +741,26 @@ public abstract class PdfAcroField : PdfDictionary
     /// Reading it writes nothing. <c>/Kids</c> is made when the first field or widget is added,
     /// where it used to be made - empty, and indirect - the first time anybody asked.
     /// </remarks>
-    public PdfAcroFieldCollection Fields => field ??= new PdfAcroFieldCollection(this, Keys.Kids, this);
+    public PdfAcroFieldCollection Fields => _fields ??= new PdfAcroFieldCollection(this, Keys.Kids, this);
+
+    private PdfAcroFieldCollection _fields;
+
+    /// <summary>
+    /// A copy is a field of its own, so it takes none of the views this field has made of itself.
+    /// </summary>
+    /// <remarks>
+    /// Copying is memberwise, and a page imported from another document copies the fields its
+    /// widgets belong to. A copy that kept these would read and write the original: its
+    /// <see cref="Fields"/> added to the original's <c>/Kids</c>, with the original's document as
+    /// owner, and its widget view shared the original's entries.
+    /// </remarks>
+    protected override object Copy()
+    {
+        var copy = (PdfAcroField)base.Copy();
+        copy._fields = null;
+        copy._widgetView = null;
+        return copy;
+    }
 
     /// <summary>
     /// The fields in a form's <c>/Fields</c> or a field's <c>/Kids</c>: a read-only list of the
