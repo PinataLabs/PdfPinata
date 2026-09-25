@@ -462,6 +462,12 @@ pen, and no tick mark, gridline, zero baseline or legend border tested anything.
 in `LineFormatRenderer(XGraphics, XPen)`, which every one of those is drawn through, so a pen of
 width 0 is no pen wherever it is used. Pinned by `HiddenAxisLineTests`.
 
+A data point's own line format had the same trouble in another shape (#171): the column, bar, area
+and pie renderers each turned it into a pen their own way, and the pie chart made a pen of the
+point's colour alone, 1 wide and stroked even when the point said `Visible = false`. All four now
+take any line format on the point and resolve it through `Converter.ToXPen` against the series'
+pen, which is what the column chart always did. Pinned by `PointLineFormatTests`.
+
 ---
 
 ## C13. A second category series was drawn past the end of the axis — fixed
