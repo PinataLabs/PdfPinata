@@ -28,6 +28,7 @@
 #endregion
 
 using System;
+using PdfPinata.Drawing;
 
 namespace PdfPinata.Pdf.AcroForms;
 
@@ -87,6 +88,7 @@ public sealed class PdfComboBoxField : PdfChoiceField
             // would not follow /V without it, and that is a recommendation rather than a
             // requirement, whereas the array shape is required.
             WriteSelectedIndices([value]);
+            RenderAppearance();
         }
     }
 
@@ -128,6 +130,36 @@ public sealed class PdfComboBoxField : PdfChoiceField
             options.Elements.Add(text);
             SyncSelectedIndex();
         }
+    }
+
+    /// <summary>
+    /// The text the closed box shows: the display text of the chosen option, or, for a value that
+    /// names no option - one typed into an editable box - the value itself.
+    /// </summary>
+    private string DisplayText
+    {
+        get
+        {
+            var index = SelectedIndex;
+            return index != -1 ? DisplayTextAt(index) : Elements.GetString(PdfAcroField.Keys.V);
+        }
+    }
+
+    private protected override bool HasContent => DisplayText.Length != 0;
+
+    /// <summary>
+    /// Draws the chosen value, left-aligned and centred vertically, as a closed combo box shows
+    /// it. No drop-down button is drawn: it is not part of the value, and a reader draws its own
+    /// when the field is opened.
+    /// </summary>
+    private protected override void DrawContent(XGraphics gfx, XRect inside)
+    {
+        var text = DisplayText;
+        if (text.Length == 0)
+            return;
+
+        var line = new XRect(inside.X + 1, inside.Y, Math.Max(inside.Width - 2, 0), inside.Height);
+        gfx.DrawString(text, Font, new XSolidBrush(ForeColor), line, XStringFormats.CenterLeft);
     }
 
     /// <summary>

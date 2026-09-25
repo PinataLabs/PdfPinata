@@ -31,8 +31,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using PdfPinata.Drawing;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Annotations;
+using PdfPinata.Pdf.Internal;
 using PdfPinata.Pdf.Signatures;
 
 namespace PdfPinata.Pdf.AcroForms;
@@ -280,7 +282,44 @@ public abstract class PdfAcroField : PdfDictionary
     public string DefaultAppearance
     {
         get => Elements.GetString(Keys.DA);
-        set => Elements.SetString(Keys.DA, value);
+        set
+        {
+            Elements.SetString(Keys.DA, value);
+            OnDefaultAppearanceChanged();
+        }
+    }
+
+    /// <summary>
+    /// Called when <see cref="DefaultAppearance"/> is set, for a field that draws its own
+    /// appearance from it.
+    /// </summary>
+    internal virtual void OnDefaultAppearanceChanged()
+    { }
+
+    /// <summary>
+    /// Makes a drawing the normal appearance of a widget of a field of variable text - a text
+    /// field or a choice field - replacing any it had.
+    /// </summary>
+    /// <remarks>
+    /// The content is bracketed as <c>/Tx BMC … EMC</c>, the marked content ISO 32000-1 section
+    /// 12.7.3.3 asks of variable text so that a reader editing the field knows which part of the
+    /// drawing is the text; Adobe Reader 9 and later draw no text without it.
+    /// </remarks>
+    internal static void SetVariableTextAppearance(PdfDictionary widget, XForm form)
+    {
+        form.DrawingFinished();
+        var xobject = form.PdfForm;
+        xobject.Elements.Add("/FormType", new PdfLiteral("1"));
+
+        if (widget.Elements[PdfAnnotation.Keys.AP] is not PdfDictionary appearances)
+        {
+            appearances = new PdfDictionary(widget.Owner);
+            widget.Elements[PdfAnnotation.Keys.AP] = appearances;
+        }
+        appearances.Elements["/N"] = xobject.Reference;
+
+        var content = xobject.Stream.ToString();
+        xobject.Stream.Value = new RawEncoding().GetBytes("/Tx BMC\n" + content + "\nEMC");
     }
 
     /// <summary>

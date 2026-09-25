@@ -101,8 +101,10 @@ one row with `SelectedIndices`; without the flag, that throws `InvalidOperationE
 ```csharp demo=Forms snippet=list-box
 ```
 
-The demo's `Decorate` helper writes the widget's `/MK` entry by hand. `/MK` is the background and
-border colour a reader uses when it draws the field itself, and PdfPinata has no property for it.
+Both draw their own appearance: a combo box shows the chosen option, and a list box shows its options
+from `TopIndex` down with the chosen rows highlighted. They draw in the font size and colour that
+`DefaultAppearance` names, unless you set `Font` or `ForeColor`. `BackColor` and `BorderColor` work as
+they do for a text field. When you leave them unset, each widget's `/MK` background and border are used.
 
 ## Push buttons
 
@@ -189,8 +191,9 @@ signature certifies the document and does not allow form filling, setting a valu
   PdfPinata removes its appearance so that the reader draws it from `/MK`.
 - **`Password` hides what is typed, nothing more.** The value is still stored in the file. Do not use a
   form field to keep a secret.
-- **A field's children are not all fields.** A field's widgets sit in the same list as its child
-  fields, and widgets have no name. Allow for that if you walk a form yourself.
+- **A field's children and its widgets are two lists.** In the file, a field's `/Kids` holds both its
+  child fields and its widget annotations. `Fields` lists only the child fields, and `Widgets` lists
+  only the widgets.
 - **Every widget prints.** `AddWidget` sets the print flag, so the field appears on paper.
 - **Coordinates go up from the bottom.** Widget rectangles are in PDF page coordinates, not the
   top-left coordinates `XGraphics` draws in.

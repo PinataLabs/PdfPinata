@@ -43,6 +43,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Added
 
+- **`PdfComboBoxField` and `PdfListBoxField` draw their own appearance.** A combo box shows its chosen option, or the text typed into an editable one. A list box shows its options from the new `TopIndex` (`/TI`) down, with the chosen rows highlighted. Both draw in the size and colour `DefaultAppearance` names, and have `Font`, `ForeColor`, `BackColor` and `BorderColor` as a text field does; left unset, the background and border come from each widget's `/MK`. Before, both left the drawing to the reader through `/NeedAppearances`, which Ghostscript, print pipelines and most previewers ignore, so the value was set and not shown. PDF 2.0 deprecates that flag and PDF/A forbids it. A field read from a file is redrawn only when it is changed, not on save. (#151)
 - **`PdfAcroField.Widgets` lists the widget annotations a field is drawn as**, typed as `PdfWidgetAnnotation`: the widgets under its `/Kids`, or, for a field merged with its only widget in one dictionary, that widget. **`PdfWidgetAnnotation.Field`** goes the other way, and **`PdfAcroField.IsTerminal`** says whether a field has no fields nested under it. (#146)
 - **`PdfAcroField.PdfAcroFieldCollection` has a `Count` and a typed enumerator.** A form's `Fields` and a field's `Kids` can now be counted without LINQ, and `foreach (var field in form.Fields)` is typed as `PdfAcroField`, yielding exactly what the indexer returns.
 
