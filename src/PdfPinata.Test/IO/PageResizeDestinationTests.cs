@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
@@ -289,6 +290,63 @@ public class PageResizeDestinationTests
         LinkOn(fixture.Source, "/Dest", new PdfString("chapter.1"));
 
         HalveThePage(fixture.Target);
+
+        destination.Elements.GetReal(3).Should().BeApproximately(350, Tolerance);
+    }
+
+    /// <summary>
+    ///   A node whose /Kids name it twice doubles the walk at every level, so a depth cap alone lets
+    ///   a few hundred bytes run to 2^32 visits: a hang rather than a failure. xUnit honours Timeout
+    ///   only on an async test, hence the Task.Run.
+    /// </summary>
+    [Fact(Timeout = 30000)]
+    public async Task ANameTreeWhoseKidsLeadBackToItselfDoesNotHangTheResize()
+    {
+        var fixture = TwoPages();
+        var destination = Destination(fixture.Target,
+            new PdfName("/XYZ"), new PdfReal(100), new PdfReal(700), new PdfPinata.Pdf.PdfInteger(0));
+
+        var names = new PdfArray(fixture.Document);
+        names.Elements.Add(new PdfString("chapter.1"));
+        names.Elements.Add(destination);
+
+        var dests = new PdfDictionary(fixture.Document) { Elements = { ["/Names"] = names } };
+        fixture.Document.Internals.AddObject(dests);
+        var kids = new PdfArray(fixture.Document);
+        kids.Elements.Add(dests.Reference);
+        kids.Elements.Add(dests.Reference);
+        dests.Elements["/Kids"] = kids;
+
+        var namesDictionary = new PdfDictionary(fixture.Document) { Elements = { ["/Dests"] = dests.Reference } };
+        fixture.Document.Internals.Catalog.Elements["/Names"] = namesDictionary;
+
+        await Task.Run(() => HalveThePage(fixture.Target));
+
+        destination.Elements.GetReal(3).Should().BeApproximately(350, Tolerance,
+            "the destination is still moved, and moved once");
+    }
+
+    /// <summary>
+    ///   The outline's twin of the case above: an item that is its own first child and its own next
+    ///   sibling. The sibling cap bounds one level and the depth cap bounds the levels, but together
+    ///   they allow 100,000^32 visits.
+    /// </summary>
+    [Fact(Timeout = 30000)]
+    public async Task AnOutlineThatLeadsBackToItselfDoesNotHangTheResize()
+    {
+        var fixture = TwoPages();
+        var destination = Destination(fixture.Target,
+            new PdfName("/XYZ"), new PdfReal(100), new PdfReal(700), new PdfPinata.Pdf.PdfInteger(0));
+
+        var item = new PdfDictionary(fixture.Document) { Elements = { ["/Dest"] = destination } };
+        fixture.Document.Internals.AddObject(item);
+        item.Elements["/First"] = item.Reference;
+        item.Elements["/Next"] = item.Reference;
+
+        var outlines = new PdfDictionary(fixture.Document) { Elements = { ["/First"] = item.Reference } };
+        fixture.Document.Internals.Catalog.Elements["/Outlines"] = outlines;
+
+        await Task.Run(() => HalveThePage(fixture.Target));
 
         destination.Elements.GetReal(3).Should().BeApproximately(350, Tolerance);
     }
