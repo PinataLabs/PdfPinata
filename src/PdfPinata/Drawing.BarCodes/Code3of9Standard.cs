@@ -82,6 +82,9 @@ public class Code3of9Standard : TwoWidthBarCode
     /// </summary>
     private const string Alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%*";
 
+    /// <summary>The start and stop character, which <see cref="Render"/> draws at each end itself.</summary>
+    private const char Delimiter = '*';
+
     private static readonly bool[][] _lines =
     [
         // '0'
@@ -210,7 +213,9 @@ public class Code3of9Standard : TwoWidthBarCode
 
         foreach (var ch in text)
         {
-            if (Alphabet.IndexOf(ch) < 0)
+            // "*" is in the alphabet because it has bars, but it is the delimiter Render draws at
+            // each end, not a data character: one in the data ends the symbol where it stands.
+            if (ch == Delimiter || Alphabet.IndexOf(ch) < 0)
                 throw new ArgumentException(BcgSR.Invalid3Of9Code(text));
         }
     }
@@ -265,12 +270,12 @@ public class Code3of9Standard : TwoWidthBarCode
 
     private void RenderStart(BarCodeRenderInfo info)
     {
-        RenderChar(info, '*');
+        RenderChar(info, Delimiter);
         RenderGap(info, false);
     }
 
     private void RenderStop(BarCodeRenderInfo info)
     {
-        RenderChar(info, '*');
+        RenderChar(info, Delimiter);
     }
 }

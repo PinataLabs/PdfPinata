@@ -139,6 +139,20 @@ public class BarCodeFactoryTests
         act.Should().Throw<ArgumentException>().WithMessage("*AB'C*");
     }
 
+    [Theory]
+    [InlineData("AB*C")]
+    [InlineData("*ABC*")]
+    public void CodeThreeOfNineRefusesTheStartAndStopCharacterInItsData(string code)
+    {
+        // The renderer draws the "*" that opens and closes the symbol itself, so one in the data is
+        // a second delimiter: a scanner stops reading there, and "*ABC*" drew "**ABC**", which reads
+        // as no data at all.
+        var act = () => new Code3of9Standard(code, Size);
+
+        act.Should().Throw<ArgumentException>().WithMessage($"*{code}*");
+    }
+
+    // Every data character: the 43 of Code 39, which is the alphabet less the "*" delimiter.
     [Fact]
     public void CodeThreeOfNineDrawsEveryCharacterItAccepts()
     {
