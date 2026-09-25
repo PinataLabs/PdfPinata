@@ -67,11 +67,11 @@ public sealed class PdfDate : PdfItem
     /// <summary>
     /// Returns the value in the PDF date format.
     /// </summary>
-    public override string ToString()
-    {
-        var delta = _value.ToString("zzz").Replace(':', '\'');
-        return $"D:{_value:yyyyMMddHHmmss}{delta}'";
-    }
+    /// <remarks>
+    /// In the invariant culture, with the offset worked out as the XMP packet works it out; see
+    /// <see cref="PdfDateFormat"/>.
+    /// </remarks>
+    public override string ToString() => PdfDateFormat.Pdf(_value);
 
     /// <summary>
     /// Writes the value in the PDF date format.
