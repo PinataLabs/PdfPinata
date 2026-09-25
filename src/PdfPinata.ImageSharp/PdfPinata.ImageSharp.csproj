@@ -38,7 +38,6 @@ Provides ImageSharpImageSource and ImageSharpFontResolver. Pinned to the Apache-
          upper bound turns that into a restore-time version conflict instead. See #348. -->
     <PackageReference Include="SixLabors.ImageSharp" Version="[2.1.13,3.0.0)" />
     <PackageReference Include="SixLabors.Fonts" Version="1.0.1" />
-    <PackageReference Update="Microsoft.Sbom.Targets" Version="4.1.12" />
   </ItemGroup>
 
   <ItemGroup>

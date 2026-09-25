@@ -30,7 +30,6 @@ Provides HarfBuzzTextShaper, an ITextShaper for GlobalFontSettings.TextShaper, s
       reasons and cannot shape for itself. It targets netstandard2.1, so the Unity leg survives.
     -->
     <PackageReference Include="HarfBuzzSharp" Version="14.2.1.201" />
-    <PackageReference Update="Microsoft.Sbom.Targets" Version="4.1.12" />
   </ItemGroup>
 
   <ItemGroup>
