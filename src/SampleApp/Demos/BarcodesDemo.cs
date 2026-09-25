@@ -65,7 +65,8 @@ internal sealed class BarcodesDemo : PdfDemo
         gfx1.DrawBarCode(code39, XBrushes.Black, codeText, new XPoint(50, 95));
         // docs:end code39
         Caption(gfx1, 50, 180, "Code 3 of 9 (Code 39)",
-            "0-9, A-Z and - . $ / + % space. Anything else throws, by name.");
+            "0-9, A-Z and - . $ / + % space. Anything else throws, by name.\n"
+            + "* too: the code draws its own start and stop, so pass \"ABC\", not \"*ABC*\".");
 
         // docs:begin code25
         // Interleaved 2 of 5 packs two digits into every five bars, so it is denser than Code 39
@@ -145,7 +146,7 @@ internal sealed class BarcodesDemo : PdfDemo
 
         (string Code, string Accepts)[] rules =
         [
-            ("Code 3 of 9", "0-9, A-Z and - . $ / + % * space. Anything else throws ArgumentException."),
+            ("Code 3 of 9", "0-9, A-Z and - . $ / + % space. Anything else, * included, throws ArgumentException."),
             ("Interleaved 2 of 5", "Digits, evenly many. Anything else throws ArgumentException."),
             ("OMR", "A number. Text that will not parse becomes zero, and the low bit is forced on."),
             ("Data matrix", "Any text, in ASCII encodation, within the symbol size asked for.")
@@ -313,11 +314,15 @@ internal sealed class BarcodesDemo : PdfDemo
         return document;
     }
 
-    /// <summary>The grey second line under a caption, when there is one.</summary>
+    /// <summary>The grey lines under a caption, when there are any, one for each <c>\n</c>.</summary>
     private static void CaptionDetail(XGraphics gfx, XFont note, double x, double y, string detail)
     {
-        if (detail.Length > 0)
-            gfx.DrawString(detail, note, XBrushes.DimGray, new XPoint(x, y + 11));
+        if (detail.Length == 0)
+            return;
+
+        // DrawString draws one line and drops a line feed, so each line is drawn on its own.
+        foreach (var line in detail.Split('\n'))
+            gfx.DrawString(line, note, XBrushes.DimGray, new XPoint(x, y += 11));
     }
 
     private static string RatioLabel(double ratio)

@@ -25,6 +25,7 @@ internal sealed class ChartsDemo : PdfDemo
 
     public override IReadOnlyList<string> Shows => [
         "Column2D, ColumnStacked2D, Bar2D and BarStacked2D, sharing one set of figures",
+        "A stacked pile taller than a fixed scale, whose top segment and its label are left out",
         "Line and Area2D, with markers, gridlines and a fixed axis scale",
         "A combination chart: one series drawn as a line on a chart of columns",
         "Pie2D and PieExploded2D, with percentage data labels and the legend docked four ways",
@@ -49,6 +50,7 @@ internal sealed class ChartsDemo : PdfDemo
 
         var heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
         var caption = new XFont("Liberation Sans", 8);
+        var label = new XFont("Liberation Sans", 9, XFontStyle.Bold);
 
         // docs:begin chart-frame
         // A chart carries no size of its own. ChartFrame is what gives it one: set the frame's
@@ -119,6 +121,38 @@ internal sealed class ChartsDemo : PdfDemo
             new XRect(50, 350, 235, 210), "Bar2D - the same chart on its side");
         Place(gfx1, Regional(Charting.ChartType.BarStacked2D, "North", "South", "West"),
             new XRect(310, 350, 235, 210), "BarStacked2D");
+
+        gfx1.DrawString("A pile taller than the scale", label, XBrushes.Black, new XPoint(50, 600));
+
+        // docs:begin stacked-scale
+        // A fixed scale the data does not fit. Q4's pile comes to 158 against a maximum of 150, so
+        // its top segment - West, from 111 to 158 - is not wholly on the scale. It is left out, and
+        // its data label with it, rather than drawn running off the plot. The column and the bar
+        // chart apply the same rule, so the two agree on what is drawn.
+        Charting.Chart Overflowing(Charting.ChartType type)
+        {
+            var chart = Regional(type, "North", "South", "West");
+            chart.YAxis.MinimumScale = 0;
+            chart.YAxis.MaximumScale = 150;
+            chart.YAxis.MajorTick = 50;
+            chart.HasDataLabel = true;
+            chart.DataLabel.Type = Charting.DataLabelType.Value;
+            chart.DataLabel.Position = Charting.DataLabelPosition.Center;
+            return chart;
+        }
+
+        Place(gfx1, Overflowing(Charting.ChartType.ColumnStacked2D),
+            new XRect(50, 612, 235, 160), "ColumnStacked2D - MaximumScale = 150");
+        Place(gfx1, Overflowing(Charting.ChartType.BarStacked2D),
+            new XRect(310, 612, 235, 160), "BarStacked2D - the same figures and scale");
+        // docs:end stacked-scale
+
+        gfx1.DrawString(
+            "A segment not wholly on the scale is left out, with its label: Q4's West, from 111 to 158.",
+            caption, XBrushes.DimGray, new XPoint(50, 796));
+        gfx1.DrawString(
+            "Columns and bars follow the same rule, so the two charts agree on what is drawn.",
+            caption, XBrushes.DimGray, new XPoint(50, 807));
 
         // ----- page 2: lines, areas, and one chart of two kinds -----
 
