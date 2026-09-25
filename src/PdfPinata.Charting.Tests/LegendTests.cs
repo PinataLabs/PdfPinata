@@ -459,6 +459,45 @@ public class LegendTests
         runs.Select(run => run.Y).Should().BeInDescendingOrder();
     }
 
+    /// <summary>
+    ///   A blank category is an entry with no text, as it is a tick label with no text on a column
+    ///   chart's axis - the wedge is still keyed with its swatch, and the entries either side keep
+    ///   their names. <see cref="XSeries.AddBlank"/> stores a null, whose value the legend used to
+    ///   read.
+    /// </summary>
+    [Fact]
+    public void APieLegendKeysABlankCategoryWithNoText()
+    {
+        var chart = Charts.Empty(ChartType.Pie2D);
+        var categories = chart.XValues.AddXSeries();
+        categories.Add("A");
+        categories.AddBlank();
+        categories.Add("C");
+        chart.SeriesCollection.AddSeries().Add(1.0, 2.0, 3.0);
+        chart.Legend.Docking = DockingType.Left;
+
+        var page = Drawn.Page(chart);
+
+        ShownText.On(page).Should().Equal("A", "C");
+        Swatches(page).Should().HaveCount(3, "every wedge is keyed, the blank one too");
+    }
+
+    /// <summary>
+    ///   A chart whose category collection holds no series has no categories, and a pie legend
+    ///   numbers its entries then, as it does for a chart that never asked for the collection at all.
+    ///   It used to read the first series without asking whether there was one.
+    /// </summary>
+    [Fact]
+    public void APieLegendWithAnEmptyCategoryCollectionNumbersItsEntries()
+    {
+        var chart = Charts.Empty(ChartType.Pie2D);
+        _ = chart.XValues;
+        chart.SeriesCollection.AddSeries().Add(1.0, 2.0, 3.0);
+        chart.Legend.Docking = DockingType.Left;
+
+        ShownText.On(Drawn.Page(chart)).Should().Equal("1", "2", "3");
+    }
+
     // ----- a legend too wide for the chart (empira/PDFsharp#306) -----
 
     /// <summary>

@@ -255,6 +255,37 @@ public class AxisTitleTests
         withEmptyTitle.Width.Should().Be(withoutTitle.Width);
     }
 
+    /// <summary>
+    ///   A caption set to null is no caption, on the value axis as on the category axis: it takes
+    ///   no room and writes nothing. The category axis asked whether its caption had any length;
+    ///   the value axis asked only whether it had a title at all, and handed the null on to be
+    ///   measured. A column chart's value axis is vertical and a bar chart's horizontal, and each
+    ///   draws its title by a method of its own.
+    /// </summary>
+    [Theory]
+    [InlineData(ChartType.Column2D)]
+    [InlineData(ChartType.Bar2D)]
+    public void ANullValueAxisCaptionIsNoCaption(ChartType type)
+    {
+        var untitled = Charts.Of(type, 1.0, 3.0);
+
+        var nullTitle = Charts.Of(type, 1.0, 3.0);
+        nullTitle.YAxis.Title.Caption = null;
+
+        var untitledPage = Drawn.Page(untitled);
+        var nullTitlePage = Drawn.Page(nullTitle);
+
+        ShownText.On(nullTitlePage).Should().Equal(ShownText.On(untitledPage));
+
+        var withoutTitle = PaintedRectangles.FilledOn(untitledPage)[0];
+        var withNullTitle = PaintedRectangles.FilledOn(nullTitlePage)[0];
+
+        withNullTitle.X.Should().Be(withoutTitle.X);
+        withNullTitle.Y.Should().Be(withoutTitle.Y);
+        withNullTitle.Width.Should().Be(withoutTitle.Width);
+        withNullTitle.Height.Should().Be(withoutTitle.Height);
+    }
+
     [Fact]
     public void ABarChartsAxisTitlesAreWrittenTheSameWay()
     {

@@ -92,4 +92,27 @@ public class PlotAreaCreationTests
             .Should().Contain(rectangle =>
                 rectangle.Stroked && rectangle.Colour == PaintedRectangles.ColourOf(XColors.Red));
     }
+
+    /// <summary>
+    ///   A frame too small for its axes leaves the plot area no room, and then there is no border to
+    ///   draw either. <c>WallRenderer</c> already stopped there; the border renderer beside it did
+    ///   not, and stroked a rectangle of no size - or of negative size - where the plot area was not.
+    /// </summary>
+    [Theory]
+    [InlineData(ChartType.Column2D)]
+    [InlineData(ChartType.Bar2D)]
+    [InlineData(ChartType.Line)]
+    public void APlotAreaWithNoRoomHasNoBorder(ChartType type)
+    {
+        var chart = Charts.Of(type, 1.0, 5.0, 3.0);
+        chart.PlotArea.LineFormat.Visible = true;
+        chart.PlotArea.LineFormat.Color = XColors.Red;
+        chart.PlotArea.LineFormat.Width = 2;
+
+        var page = Drawn.Page(chart, 20, 15);
+
+        PaintedRectangles.On(page)
+            .Should().NotContain(rectangle =>
+                rectangle.Stroked && rectangle.Colour == PaintedRectangles.ColourOf(XColors.Red));
+    }
 }
