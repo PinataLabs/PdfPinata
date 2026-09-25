@@ -12,7 +12,8 @@ libraries do, and the plan. The plan breaks the public API on purpose, while the
 | 3 | `Fields` lists child fields only; new `Widgets` lists widget annotations | **yes**, behaviour | done |
 | 4 | `PdfAcroFieldCollection` stops being a `PdfArray` and becomes `IReadOnlyList<PdfAcroField>` | **yes**, compile | done |
 | 5 | `PdfWidgetAnnotation.Field`, and the library's own kid walks moved onto `Widgets` | no | done |
-| 6 | `AddWidget` on a merged field splits it first | no | not started |
+| 6 | `AddWidget` on a merged field splits it first | no | done |
+| 7 | A check box's state is its field's `/V`, shown by every widget | **yes**, behaviour | done |
 | — | Separate classes for terminal and non-terminal fields | **deliberately not done** (§5.3) |
 | — | Thin, uncached wrappers throughout (the PDFBox model) | **deliberately not done** (§5.1) |
 | — | Merging or splitting dictionaries while reading | **deliberately not done** (§5.4) |
@@ -226,8 +227,24 @@ Items 1 to 4 ship in one release.
    array: `AcroFormTwinCheckBoxTests`, `AcroFormFieldTests.cs:175`, `AcroFormAuthoringTests.cs:94`.
 6. **`AddWidget` on a merged field splits it first**, as iText's `separateWidgetAndField` does. The
    annotation keys go into a new widget dictionary, and the page's `/Annots` entry is swapped for it.
-   Until then, `AddWidget` on a merged field throws `InvalidOperationException`. Today it writes a
-   field that has both a `/Rect` and `/Kids`, which is not valid PDF.
+   Before, it wrote a field that had both a `/Rect` and `/Kids`, which is not valid PDF.
+
+   Two things turned up building it. The widget view is kept rather than replaced: `SeparateFrom`
+   gives it entries and an object number of its own, so a caller holding the field's widget from
+   `Widgets` or `page.Annotations` holds the separated widget afterwards. And a ticked check box
+   read as unticked the moment it gained a widget, which led to item 7.
+7. **A check box's state is the field's `/V`** (breaking). `Checked` read the first widget's own
+   `/V` once a field had kids, and a field with exactly two widgets recorded its state in which of
+   them was on, giving the field no value at all — a scheme the setter's comment says took two
+   working days to find. `/V` is a field key and stays with the field when a merged one is
+   separated, so the old getter lost it. A first fix copied `/V` onto the separated widget; the
+   better one follows ISO 32000-1 12.7.4.2.3. The value is the field's `/V`, inherited if need be.
+   Each widget shows it through `/AS`: the value where its appearances offer that state, `/Off`
+   where they do not. A box drawn twice ticks in both places, a pair naming different on states
+   behaves as a reader would make it, and any number of widgets is handled — three used to be left
+   alone. A file with no `/V` anywhere, which is what the old scheme wrote, is read by the widgets'
+   `/AS`. `CheckedName` becomes the on state the appearances name, and `UncheckedName`, which
+   nothing read, goes. `CheckBoxWidgetStateTests` replaces `AcroFormTwinCheckBoxTests`.
 
 Items 3 to 5 touch no docs-website excerpt. `FormsDemo` and `forms.md` use only `form.Fields.Add`,
 `AddWidget` and `Fields[name]`, and their meaning does not change. `interactive-layer-gaps.md` needs

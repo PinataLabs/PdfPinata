@@ -155,7 +155,20 @@ public abstract class PdfAcroField : PdfDictionary
     /// dictionary: a view of this field, made once, which <c>page.Annotations</c> hands out for
     /// the dictionary as well.
     /// </summary>
-    internal PdfWidgetAnnotation WidgetView => _widgetView ??= PdfWidgetAnnotation.ViewOf(this);
+    /// <remarks>
+    /// The view takes the field's reference when it is made, and a field can be viewed before it
+    /// is added to a form and so before it has one. The reference is brought up to date on each
+    /// read, or the view would go on answering null and look like a widget of its own.
+    /// </remarks>
+    internal PdfWidgetAnnotation WidgetView
+    {
+        get
+        {
+            var view = _widgetView ??= PdfWidgetAnnotation.ViewOf(this);
+            view.Reference = Reference;
+            return view;
+        }
+    }
 
     private PdfWidgetAnnotation _widgetView;
 
@@ -352,7 +365,7 @@ public abstract class PdfAcroField : PdfDictionary
     /// A <c>/Parent</c> chain that comes back on itself is malformed but possible in a file read
     /// from disk, and is treated as ending where it first repeats rather than walked for ever.
     /// </remarks>
-    private static PdfDictionary InheritedFrom(PdfDictionary field, string key)
+    private protected static PdfDictionary InheritedFrom(PdfDictionary field, string key)
     {
         HashSet<PdfDictionary> visited = null;
         for (var dict = field; dict != null; dict = dict.Elements.GetDictionary(Keys.Parent))
@@ -391,6 +404,14 @@ public abstract class PdfAcroField : PdfDictionary
     /// otherwise have to know that the first one changes shape when they do.
     /// </para>
     /// <para>
+    /// A field read from a file may be merged with its one widget, and a second widget cannot be
+    /// added beside it: a field that is also an annotation and has widget kids is not valid PDF.
+    /// So the first widget is separated out first, as iText's <c>separateWidgetAndField</c> does -
+    /// the annotation's entries move into a dictionary of their own under <c>/Kids</c>, which takes
+    /// the field's place in the page's <c>/Annots</c>. The widget object a caller already held,
+    /// from <see cref="Widgets"/> or <c>page.Annotations</c>, is that separated widget from then on.
+    /// </para>
+    /// <para>
     /// The widget is marked as printing. A form field that is not is one that vanishes when the
     /// page is put on paper, which is almost never what an author means and is invisible until
     /// somebody prints.
@@ -405,6 +426,14 @@ public abstract class PdfAcroField : PdfDictionary
             throw new InvalidOperationException(
                 "The field does not belong to a form yet. Add it - form.Fields.Add(field) - "
                 + "before putting it on a page, or the widget has no parent to point at.");
+        }
+
+        if (IsOwnWidget)
+        {
+            // Asked here as well as by Annotations.Add, because separating the widget changes the
+            // document before that is reached.
+            Owner.EnsureCanModify("adding an annotation", PdfChangeKind.Annotations);
+            SeparateOwnWidget();
         }
 
         var widget = new PdfWidgetAnnotation(Owner);
@@ -424,6 +453,85 @@ public abstract class PdfAcroField : PdfDictionary
         OnWidgetAdded();
         return widget;
     }
+
+    /// <summary>
+    /// Moves the widget this field is merged with into a dictionary of its own, under
+    /// <c>/Kids</c> and in the field's place on the page.
+    /// </summary>
+    private void SeparateOwnWidget()
+    {
+        var widget = WidgetView;
+        var fieldReference = Reference;
+
+        widget.SeparateFrom(this, FieldKeys.Contains);
+        _widgetView = null;
+        SeparateAdditionalActions(widget);
+        Fields.GetOrCreateEntries().Elements.Add(widget.Reference);
+
+        foreach (var page in Owner.Pages)
+        {
+            var annotations = page.Elements.GetArray(PdfPage.Keys.Annots);
+            if (annotations == null)
+                continue;
+
+            for (var idx = 0; idx < annotations.Elements.Count; idx++)
+            {
+                if (ReferenceEquals(annotations.Elements[idx], fieldReference))
+                    annotations.Elements[idx] = widget.Reference;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Moves the annotation's triggers out of the field's <c>/AA</c> into the separated widget's.
+    /// </summary>
+    /// <remarks>
+    /// A merged dictionary's <c>/AA</c> holds both kinds: the field's (ISO 32000-1 Table 196 -
+    /// keystroke, format, validate, calculate) and the annotation's (Table 194 - enter, exit,
+    /// down, up, focus, blur, and the page ones). <c>/AA</c> stays with the field as a whole, and a
+    /// field that is no longer an annotation has its annotation triggers ignored, so focus, blur
+    /// and mouse actions - JavaScript, often - stopped running after <see cref="AddWidget"/>.
+    /// </remarks>
+    private void SeparateAdditionalActions(PdfDictionary widget)
+    {
+        if (Elements.GetDictionary(Keys.AA) is not { } actions)
+            return;
+
+        PdfDictionary moved = null;
+        foreach (var trigger in AnnotationTriggers)
+        {
+            if (!actions.Elements.ContainsKey(trigger))
+                continue;
+
+            moved ??= new PdfDictionary(Owner);
+            moved.Elements[trigger] = actions.Elements[trigger];
+            actions.Elements.Remove(trigger);
+        }
+
+        if (moved == null)
+            return;
+
+        widget.Elements[Keys.AA] = moved;
+        if (actions.Elements.Count == 0)
+            Elements.Remove(Keys.AA);
+    }
+
+    /// <summary>The triggers of an annotation's <c>/AA</c>, ISO 32000-1 Table 194.</summary>
+    private static readonly string[] AnnotationTriggers =
+        ["/E", "/X", "/D", "/U", "/Fo", "/Bl", "/PO", "/PC", "/PV", "/PI"];
+
+    /// <summary>
+    /// The entries that belong to the field when a field and its widget are separated, everything
+    /// else going to the widget: those of every field (ISO 32000-1 Table 220), of variable text
+    /// (Table 222) and of each kind of field, and <c>/Lock</c> and <c>/SV</c> of a signature field.
+    /// It is the list iText separates by. <c>/AA</c> stays, since a field's actions are the ones a
+    /// field has and a widget's own are rarer.
+    /// </summary>
+    private static readonly HashSet<string> FieldKeys =
+    [
+        Keys.FT, Keys.Parent, Keys.Kids, Keys.T, Keys.TU, Keys.TM, Keys.Ff, Keys.V, Keys.DV, Keys.AA,
+        Keys.DA, Keys.Q, Keys.DR, "/DS", "/RV", "/Opt", "/MaxLen", "/TI", "/I", "/Lock", "/SV",
+    ];
 
     /// <summary>
     /// Called once a widget has been added, and so once the field has somewhere to be drawn.
@@ -549,14 +657,14 @@ public abstract class PdfAcroField : PdfDictionary
     /// </summary>
     public string[] GetAppearanceNames()
     {
+        // The field's own appearances, and each widget's. They used to be read only when the field
+        // had an /AP of its own - which a field whose widgets are separate never has - and each
+        // widget was handed over whole, where its states are one level down, under its /AP.
         var names = new Dictionary<string, object>();
-        if (Elements["/AP"] is PdfDictionary dict)
-        {
+        if (Elements.GetDictionary(PdfAnnotation.Keys.AP) is { } dict)
             AppDict(dict, names);
 
-            if (HasKids)
-                AppKids(names);
-        }
+        AppKids(names);
         var array = new string[names.Count];
         names.Keys.CopyTo(array, 0);
         return array;
@@ -565,7 +673,10 @@ public abstract class PdfAcroField : PdfDictionary
     private void AppKids(Dictionary<string, object> names)
     {
         foreach (var widget in Widgets)
-            AppDict(widget, names);
+        {
+            if (widget.Elements.GetDictionary(PdfAnnotation.Keys.AP) is { } appearance)
+                AppDict(appearance, names);
+        }
     }
 
     private static void AppDict(PdfDictionary dict, Dictionary<string, object> names)

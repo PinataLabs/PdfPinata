@@ -29,6 +29,7 @@
 
 #endregion
 
+using System.Collections.Generic;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.Advanced;
 
@@ -60,167 +61,122 @@ public sealed class PdfCheckBoxField : PdfButtonField
     }
 
     /// <summary>
-    /// Indicates whether the field is checked.
+    /// Gets or sets whether the box is ticked.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The state is the field's value, <c>/V</c>: the name of an on state, or <c>/Off</c> (ISO
+    /// 32000-1 section 12.7.4.2.3). Each widget only shows it - its <c>/AS</c> is the value when
+    /// its appearances offer that state and <c>/Off</c> when they do not - so a box drawn in two
+    /// places is ticked in both, and a pair whose widgets name different on states is ticked in
+    /// the first alone, which is what a reader does with the same file.
+    /// </para>
+    /// <para>
+    /// <c>/V</c> is inheritable, and read from the nearest ancestor that has one. A file that says
+    /// no value anywhere - some software writes only the appearance states - is read by its
+    /// widgets: ticked when one of them shows an on state.
+    /// </para>
+    /// <para>
+    /// This used to read the first widget's own <c>/V</c> whenever the field had widgets under
+    /// <c>/Kids</c>, and a field with exactly two was ticked by turning the first on and the
+    /// second off and unticked the other way round, with no value written on the field at all.
+    /// A reader goes by the field's value, so what one showed and what this read disagreed.
+    /// </para>
+    /// </remarks>
     public bool Checked
     {
         get
         {
-            if (!HasKids) //R080317
-            {
-                var value = Elements.GetString(PdfAcroField.Keys.V);
-                return value.Length != 0 && value != "/Off";
-            }
-            else //R080317
-            {
-                // The answer lives in the first child rather than in the field, whatever the
-                // number of children: a field with one widget is as much a tick box as a field
-                // with the twin widgets the setter below was written for.
-                var child = ChildAt(0);
-                if (child == null)
-                    return false;
+            var owner = InheritedFrom(this, PdfAcroField.Keys.V);
+            if (owner != null)
+                return IsOnState(owner.Elements.GetName(PdfAcroField.Keys.V));
 
-                var value = child.Elements.GetString(PdfAcroField.Keys.V);
-                return
-                    value.Length != 0 && value != "/Off" &&
-                    // Some forms name their off state /Nein, German for "no", rather than /Off.
-                    value != "/Nein";
+            foreach (var widget in Widgets)
+            {
+                if (IsOnState(widget.Elements.GetName(PdfAnnotation.Keys.AS)))
+                    return true;
             }
+            return false;
         }
         set
         {
             EnsureCanBeFilled();
 
-            if (!HasKids)
-                SetOwnState(value);
-            else if (Widgets.Count == 1)
-                SetSingleChildState(value);
-            else if (Widgets.Count == 2)
-                SetTwinChildStates(value);
+            var state = value ? CheckedName : Off;
+            Elements.SetName(PdfAcroField.Keys.V, state);
+
+            foreach (var widget in Widgets)
+            {
+                // A widget that is a view of this field shares its entries, and /V is the field's.
+                // Any other widget has no business carrying one: nothing reads it but the scheme
+                // this replaces, which put the state there.
+                if (!ReferenceEquals(widget.Elements, Elements))
+                    widget.Elements.Remove(PdfAcroField.Keys.V);
+
+                var states = StatesOf(widget);
+                if (states == null)
+                    continue;
+
+                widget.Elements.SetName(PdfAnnotation.Keys.AS, states.Contains(state) ? state : Off);
+            }
         }
     }
 
     /// <summary>
-    /// A field that is its own widget takes the state in its own <c>/V</c> and <c>/AS</c>.
-    /// </summary>
-    private void SetOwnState(bool value)
-    {
-        var name = value ? GetNonOffValue() : "/Off";
-        Elements.SetName(PdfAcroField.Keys.V, name);
-        Elements.SetName(PdfAnnotation.Keys.AS, name);
-    }
-
-    /// <summary>
-    /// One widget of its own is the ordinary shape of a tick box whose annotation was not merged
-    /// into the field, and it is a tick box rather than half of a pair: the state asked for is the
-    /// state it takes. The names come from the child, because the child is what carries the
-    /// appearances.
-    /// </summary>
-    private void SetSingleChildState(bool value)
-    {
-        var child = ChildAt(0);
-        var name = value ? OnStateOf(child) : OffStateOf(child);
-        if (child != null && name.Length != 0)
-        {
-            child.Elements.SetName(PdfAcroField.Keys.V, name);
-            child.Elements.SetName(PdfAnnotation.Keys.AS, name);
-            Elements.SetName(PdfAcroField.Keys.V, name);
-        }
-    }
-
-    /// <summary>
-    /// Here we have to handle fields that exist twice with the same name. Checked must be set for
-    /// both fields, using /Off for one field and skipping /Off for the other, to have only one field
-    /// with a check mark. Finding this took me two working days.
+    /// Gets the name of the on state: the first state other than <c>/Off</c> that the widgets'
+    /// normal appearances name, or <c>/Yes</c> - the name ISO 32000-1 uses throughout - when none
+    /// of them names one.
     /// </summary>
     /// <remarks>
-    /// Ticked, the first child takes its on state and the second its off state; unticked, the
-    /// second takes its on state and the first its off state. Either way the child taking the on
-    /// state is written first. Each child's name is looked up on its own, so a child that offers no
-    /// such state is left untouched - carrying one name over from the other child is how both
-    /// were once ticked.
+    /// Read from the appearances rather than kept, because the appearances are what a reader
+    /// shows: a value naming a state they do not have shows every widget off. It used to be a
+    /// property that could be set and that nothing read, beside an <c>UncheckedName</c> that
+    /// nothing read either; the off state is always <c>/Off</c>.
     /// </remarks>
-    private void SetTwinChildStates(bool value)
+    public string CheckedName
     {
-        SetTwinChildState(ReferencedChildAt(value ? 0 : 1), on: true);
-        SetTwinChildState(ReferencedChildAt(value ? 1 : 0), on: false);
-    }
-
-    /// <summary>
-    /// The widget at the given position, which the twin-widget path takes to exist.
-    /// </summary>
-    private PdfDictionary ReferencedChildAt(int index) => Widgets[index];
-
-    /// <summary>
-    /// Writes the child's on or off state into its <c>/V</c> and <c>/AS</c>, unless its appearances
-    /// name no such state.
-    /// </summary>
-    private static void SetTwinChildState(PdfDictionary child, bool on)
-    {
-        var name = StateIn(child.Elements, wanted: !on);
-        if (name.Length == 0)
-            return;
-
-        child.Elements.SetName(PdfAcroField.Keys.V, name);
-        child.Elements.SetName(PdfAnnotation.Keys.AS, name);
-    }
-
-    /// <summary>
-    /// Gets the widget at the given position, or null when there is no such widget.
-    /// </summary>
-    /// <remarks>
-    /// The widgets, not the kids: <c>/Kids</c> can hold nested fields as well, and those carry
-    /// states of their own rather than this field's.
-    /// </remarks>
-    private PdfDictionary ChildAt(int index)
-    {
-        var widgets = Widgets;
-        return index >= 0 && index < widgets.Count ? widgets[index] : null;
-    }
-
-    /// <summary>
-    /// The name of the first appearance state of the child that is not "/Off", or "" when it
-    /// names none - which is how a child with no appearances at all is left as it was.
-    /// </summary>
-    private static string OnStateOf(PdfDictionary child) => StateOf(child, wanted: false);
-
-    /// <summary>
-    /// The name of the child's "/Off" appearance state, or "" when it has not got one.
-    /// </summary>
-    private static string OffStateOf(PdfDictionary child) => StateOf(child, wanted: true);
-
-    private static string StateOf(PdfDictionary child, bool wanted) =>
-        child == null ? "" : StateIn(child.Elements, wanted);
-
-    /// <summary>
-    /// The first normal appearance state that is "/Off" when <paramref name="wanted"/> is true, or
-    /// that is not when it is false; "" when there is no such state or no appearances at all.
-    /// </summary>
-    private static string StateIn(PdfDictionary.DictionaryElements elements, bool wanted)
-    {
-        var appearances = elements["/AP"] as PdfDictionary;
-        if (appearances?.Elements["/N"] is not PdfDictionary normal)
-            return "";
-
-        foreach (var name in normal.Elements.Keys)
+        get
         {
-            if (name == "/Off" == wanted)
-                return name;
+            foreach (var widget in Widgets)
+            {
+                var states = StatesOf(widget);
+                if (states == null)
+                    continue;
+
+                foreach (var state in states)
+                {
+                    if (IsOnState(state))
+                        return state;
+                }
+            }
+            return "/Yes";
         }
-        return "";
     }
 
-    /// <summary>
-    /// Gets or sets the name of the dictionary that represents the Checked state.
-    /// </summary>
-    /// The default value is "/Yes".
-    public string CheckedName { get; set; } = "/Yes";
+    private const string Off = "/Off";
 
     /// <summary>
-    /// Gets or sets the name of the dictionary that represents the Unchecked state.
-    /// The default value is "/Off".
+    /// Whether a state name is an on state. Some forms name their off state <c>/Nein</c>, German
+    /// for "no", rather than <c>/Off</c>, and that is read as off too.
     /// </summary>
-    public string UncheckedName { get; set; } = "/Off";
+    private static bool IsOnState(string name) => name.Length != 0 && name != Off && name != "/Nein";
+
+    /// <summary>
+    /// The names of a widget's normal appearance states, or null when it has no normal
+    /// appearances to choose between.
+    /// </summary>
+    private static ICollection<string> StatesOf(PdfDictionary widget)
+    {
+        var appearances = widget.Elements[PdfAnnotation.Keys.AP];
+        if (appearances is PdfReference reference)
+            appearances = reference.Value;
+
+        var normal = (appearances as PdfDictionary)?.Elements["/N"];
+        if (normal is PdfReference normalReference)
+            normal = normalReference.Value;
+
+        return normal is PdfDictionary states ? states.Elements.Keys : null;
+    }
 
     /// <summary>
     /// Predefined keys of this dictionary.

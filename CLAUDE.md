@@ -428,7 +428,11 @@ the only way to put a field on a page, and it never merges the two dictionaries 
 not change shape. `/Kids` holds **both** nested fields and widget annotations, and only the first
 sort has a `/T`. **`Fields` lists the fields and `Widgets` the widgets**, both sorted by
 `PdfAcroField.IsWidgetOnly` — walk whichever you mean, never the raw array as if it were one kind.
-`PdfTextField` renders its value onto its `Widgets`, not onto the field.
+`PdfTextField` renders its value onto its `Widgets`, not onto the field. `AddWidget` on a field
+read from a file *merged* with its widget separates the two first (`SeparateOwnWidget`); the field
+keeps the keys in `FieldKeys` and everything else moves. **A check box's state is the field's
+`/V`**; `Checked` sets each widget's `/AS` to it, or to `/Off` where the widget has no such
+appearance. There is no longer a "twin widget" scheme that stored the state on the children.
 
 **A field and an annotation are never made out of one another.** Type transformation points a
 dictionary's reference at the new wrapper, so retyping a widget as a field took it away from
