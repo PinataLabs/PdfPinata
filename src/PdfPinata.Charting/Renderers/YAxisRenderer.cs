@@ -156,7 +156,7 @@ internal abstract class YAxisRenderer : AxisRenderer
   private static XSize MeasureAxisTitle(XGraphics gfx, AxisRendererInfo yari)
   {
     var titleSize = new XSize(0, 0);
-    if (yari.AxisTitleRendererInfo == null)
+    if (yari.AxisTitleRendererInfo is not { AxisTitleText.Length: > 0 })
       return titleSize;
 
     var parms = new RendererParameters
@@ -408,7 +408,7 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// </summary>
   private static void DrawHorizontalAxisTitle(XGraphics gfx, AxisRendererInfo yari)
   {
-    if (yari.AxisTitleRendererInfo == null)
+    if (yari.AxisTitleRendererInfo is not { AxisTitleText.Length: > 0 })
       return;
 
     var parms = new RendererParameters
@@ -430,7 +430,7 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// </summary>
   private static void DrawVerticalAxisTitle(XGraphics gfx, AxisRendererInfo yari)
   {
-    if (yari.AxisTitleRendererInfo == null || yari.AxisTitleRendererInfo.AxisTitleText == "")
+    if (yari.AxisTitleRendererInfo is not { AxisTitleText.Length: > 0 })
       return;
 
     var parms = new RendererParameters
