@@ -231,22 +231,23 @@ public sealed class AppearanceLifecycleTests : IDisposable
     }
 
     [Theory]
-    [InlineData("Square", "A border cannot be narrower than nothing.", "value")]
-    [InlineData("Circle", "A border cannot be narrower than nothing.", "value")]
-    [InlineData("FreeText", "A border cannot be narrower than nothing.", "value")]
-    [InlineData("Line", "A line cannot be narrower than nothing.", "value")]
-    [InlineData("Ink", "A border cannot be narrower than nothing.", "width")]
-    [InlineData("Polygon", "A border cannot be narrower than nothing.", "width")]
-    [InlineData("PolyLine", "A border cannot be narrower than nothing.", "width")]
-    public void ANegativeWidthIsRefused(string kind, string message, string parameter)
+    [InlineData("Square")]
+    [InlineData("Circle")]
+    [InlineData("FreeText")]
+    [InlineData("Line")]
+    [InlineData("Ink")]
+    [InlineData("Polygon")]
+    [InlineData("PolyLine")]
+    public void ANegativeWidthIsRefusedTheSameWayByEveryOne(string kind)
     {
         var annotation = Configured(kind);
 
         Action act = () => SetBorderWidth(annotation, -1);
 
+        // "value", because it is a property setter that refuses it.
         act.Should().Throw<ArgumentOutOfRangeException>()
-            .WithMessage(message + "*")
-            .Which.ParamName.Should().Be(parameter);
+            .WithMessage("A border cannot be narrower than nothing.*")
+            .Which.ParamName.Should().Be("value");
         BorderWidthOf(annotation).Should().BeGreaterThan(0, "nothing is written when the width is refused");
     }
 

@@ -592,10 +592,14 @@ public abstract class PdfAnnotation : PdfDictionary
     /// A border style dictionary for a solid border of the given width - a direct one, so that it
     /// needs no owner and the width can be set before the annotation is on a page.
     /// </summary>
+    /// <remarks>
+    /// A negative width is refused naming <c>value</c> rather than <paramref name="width"/>, because
+    /// every caller is a <c>BorderWidth</c> setter and that is where the mistake was made.
+    /// </remarks>
     private protected static PdfDictionary SolidBorder(double width)
     {
         if (width < 0)
-            throw new ArgumentOutOfRangeException(nameof(width), width, "A border cannot be narrower than nothing.");
+            throw new ArgumentOutOfRangeException("value", width, "A border cannot be narrower than nothing.");
 
         var border = new PdfDictionary();
         border.Elements.SetName("/Type", "/Border");

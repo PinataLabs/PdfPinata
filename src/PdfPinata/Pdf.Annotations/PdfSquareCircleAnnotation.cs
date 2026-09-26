@@ -1,4 +1,3 @@
-using System;
 using PdfPinata.Drawing;
 
 namespace PdfPinata.Pdf.Annotations;
@@ -116,16 +115,7 @@ public abstract class PdfSquareCircleAnnotation : PdfMarkupAnnotation
         get => BorderWidthFrom(Elements.GetDictionary(PdfAnnotation.Keys.BS));
         set
         {
-            if (value < 0)
-                throw new ArgumentOutOfRangeException(nameof(value), value, "A border cannot be narrower than nothing.");
-
-            // A direct dictionary, so that it needs no owner - the width can be set before the
-            // annotation has been added to a page.
-            var border = new PdfDictionary();
-            border.Elements.SetName("/Type", "/Border");
-            border.Elements.SetReal("/W", value);
-            border.Elements.SetName("/S", "/S");
-            Elements[PdfAnnotation.Keys.BS] = border;
+            Elements[PdfAnnotation.Keys.BS] = SolidBorder(value);
 
             Touch();
         }
