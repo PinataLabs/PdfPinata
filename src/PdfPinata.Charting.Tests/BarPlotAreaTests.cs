@@ -13,9 +13,10 @@ namespace PdfPinata.Charting.Tests;
 /// <remarks>
 ///   <c>BarPlotAreaRenderer.Draw</c> is <c>ColumnPlotAreaRenderer.Draw</c> with the axes swapped -
 ///   it forces a zero line when the data crosses zero, fills every bar, then outlines them all
-///   afterwards - and <c>BarGridlinesRenderer.Draw</c> is the other half of the same swap, drawing
-///   the category gridlines across the plot area instead of up it. Being separate code, they are
-///   separately wrong when they are wrong, so they are separately covered here.
+///   afterwards - and <c>ColumnLikeGridlinesRenderer.Draw</c>, given the bar chart's orientation,
+///   is the other half of the same swap, drawing the category gridlines across the plot area
+///   instead of up it. They are covered here as a bar chart draws them, and
+///   <c>ColumnBarParityTests</c> holds them to the column chart's picture turned on its side.
 /// </remarks>
 public class BarPlotAreaTests
 {

@@ -123,7 +123,7 @@ internal class BarChartRenderer : ChartRenderer
     var wr = new WallRenderer(rendererParms);
     wr.Draw();
 
-    var glr = new BarGridlinesRenderer(rendererParms);
+    var glr = new ColumnLikeGridlinesRenderer(rendererParms, AxisOrientation.Vertical);
     glr.Draw();
 
     var pabr = new PlotAreaBorderRenderer(rendererParms);

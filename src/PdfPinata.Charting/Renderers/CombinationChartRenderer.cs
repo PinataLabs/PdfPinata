@@ -174,7 +174,7 @@ internal class CombinationChartRenderer : ChartRenderer
     var wr = new WallRenderer(rendererParms);
     wr.Draw();
 
-    var glr = new ColumnLikeGridlinesRenderer(rendererParms);
+    var glr = new ColumnLikeGridlinesRenderer(rendererParms, AxisOrientation.Horizontal);
     glr.Draw();
 
     var pabr = new PlotAreaBorderRenderer(rendererParms);
