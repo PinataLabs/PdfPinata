@@ -50,10 +50,9 @@ public sealed class AppearanceLifecycleTests : IDisposable
         ["Square", "Circle", "Line", "FreeText", "Ink", "Polygon", "PolyLine", "Caret", "Redact", "Highlight"];
 
     /// <summary>
-    ///   The ones that can be asked to draw nothing and take their appearance away when they are.
+    ///   Asked to draw nothing, every one of them takes its appearance away.
     /// </summary>
-    public static TheoryData<string> Removing =>
-        ["Square", "Circle", "Line", "FreeText", "Ink", "Polygon", "PolyLine", "Caret", "Redact"];
+    public static TheoryData<string> Removing => Drawing;
 
     // ----- when the appearance is built -----------------------------------------------------------------
 
@@ -160,18 +159,6 @@ public sealed class AppearanceLifecycleTests : IDisposable
     }
 
     [Fact]
-    public void AHighlightWithNothingLeftToMarkKeepsTheAppearanceItHad()
-    {
-        // The one class that does not take its appearance away: with no quadrilaterals and no
-        // rectangle it returns without drawing, and the stream it drew last stays.
-        var highlight = OnAPage((PdfHighlightAnnotation)Configured("Highlight"));
-        highlight.ClearQuads();
-        highlight.Rectangle = new PdfRectangle();
-
-        highlight.Elements.ContainsKey("/AP").Should().BeTrue();
-    }
-
-    [Fact]
     public void AddingAQuadToAHighlightStampsTheModificationDate()
     {
         var highlight = OnAPage((PdfHighlightAnnotation)Configured("Highlight"));
@@ -191,6 +178,21 @@ public sealed class AppearanceLifecycleTests : IDisposable
         highlight.ClearQuads();
 
         highlight.Elements.GetDateTime("/M", DateTime.MinValue).Should().BeAfter(LongAgo);
+    }
+
+    [Fact]
+    public void AHighlightReadFromAFileShowsWhatItIsRedrawnAs()
+    {
+        // Read back, it carries the appearance the file gave it and none of its own - which the
+        // redraw has to replace rather than leave showing.
+        var written = OnAPage((PdfHighlightAnnotation)Configured("Highlight"));
+        var read = (PdfHighlightAnnotation)ReadBack(written.Owner).Pages[0].Annotations[0];
+        var before = NormalStream(read);
+
+        read.Color = XColors.Blue;
+
+        var form = (PdfDictionary)read.Elements.GetDictionary("/AP").Elements.GetObject("/N");
+        form.Stream.Value.Should().NotEqual(before);
     }
 
     // ----- what /RD and /BS say -------------------------------------------------------------------------
@@ -406,6 +408,11 @@ public sealed class AppearanceLifecycleTests : IDisposable
                 // Under XForm's floor of a point.
                 annotation.Rectangle = new PdfRectangle(new XPoint(100, 500), new XPoint(100.5, 600));
                 break;
+            case PdfTextMarkupAnnotation markup:
+                // No quadrilaterals, and no rectangle to stand for one.
+                markup.ClearQuads();
+                markup.Rectangle = new PdfRectangle();
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(annotation), annotation.GetType().Name, null);
         }
@@ -415,7 +422,7 @@ public sealed class AppearanceLifecycleTests : IDisposable
     {
         switch (annotation)
         {
-            case PdfCaretAnnotation or PdfRedactAnnotation:
+            case PdfCaretAnnotation or PdfRedactAnnotation or PdfTextMarkupAnnotation:
                 annotation.Rectangle = Box;
                 break;
             case PdfFreeTextAnnotation text:
@@ -452,6 +459,14 @@ public sealed class AppearanceLifecycleTests : IDisposable
     {
         new PdfDocument().AddPage().Annotations.Add(annotation);
         return annotation;
+    }
+
+    private static PdfDocument ReadBack(PdfDocument document)
+    {
+        using var output = new System.IO.MemoryStream();
+        document.Save(output, false);
+        return Pdf.IO.PdfReader.Open(new System.IO.MemoryStream(output.ToArray()),
+            Pdf.IO.PdfDocumentOpenMode.Modify);
     }
 
     private static byte[] NormalStream(PdfAnnotation annotation)
