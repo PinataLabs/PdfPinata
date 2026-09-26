@@ -77,6 +77,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **`PdfDocument.MakeAcroFormsReadOnly` walks the form's fields once.** It counted them with LINQ's `Count()` in its loop condition, enumerating the whole collection again on every iteration.
 - **`PdfOutlineCollection.Insert` accepts an index equal to `Count` and appends the outline.** `IList<T>.Insert` requires this, but the collection threw `ArgumentOutOfRangeException`, including for `Insert(0, outline)` on an empty collection. The outline is now placed in the tree exactly as `Add` places it, and is saved at the end of its list.
 - **An outline's colour no longer loses a level when the document is saved and reopened.** `/C` was read by truncating each component, so 127, written as `0.498`, came back as 126. It is now rounded, as an annotation's colour already was. A component outside 0 to 1 in an outline or annotation colour now reads as the nearest valid value, where it used to throw. (#159)
+- **A highlight, underline, squiggly or strike-out annotation stamps its modification date when its quadrilaterals change.** `AddQuad` and `ClearQuads` redrew the annotation without touching `/M`, although a redaction's `AddQuad` already stamped it. (#197)
+- **A text markup annotation left with nothing to mark removes its appearance.** With no quadrilaterals and an empty rectangle it kept showing the last appearance it drew; every other annotation that draws itself already removed its `/AP` when asked for nothing. (#197)
+- **A negative `BorderWidth` is refused the same way on every annotation that draws itself.** Line, Square, Circle, FreeText, Ink, Polygon and PolyLine now all throw `ArgumentOutOfRangeException` with the message "A border cannot be narrower than nothing." and `ParamName` `value`. Ink, Polygon and PolyLine used to name `width`, and Line said "A line cannot…". (#197)
 
 ### Signatures & Metadata
 
@@ -101,6 +104,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **A chart too small for its axes no longer strokes a border around a plot area that has no room**, just as it draws no wall there. (#172)
 - **A null value-axis title caption is treated as no caption.** It threw `ArgumentNullException` while a column or bar chart was drawn; the category axis already skipped it. (#174)
 - **A pie chart's legend no longer throws on an empty category collection or a blank category.** The first now numbers the entries and the second gives that entry no text, as the category axis does. (#175)
+- **A bar chart labels a zero on the positive side of the axis at `InsideEnd` and `OutsideEnd`**, as a column chart does. It put the label on the negative side. (#196)
+- **A clustered column or bar chart no longer throws `ArgumentException` for a value between zero and a minimum the caller set above zero.** Such a value, 1 on a scale from 2 to 5 for example, is left undrawn, as any value off the scale is. (#196)
+- **A stacked column chart whose value axis has its minimum above its maximum draws nothing rather than throwing**, as a stacked bar chart already did. (#196)
 
 ### PinataLayout & DDL
 
