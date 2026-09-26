@@ -53,15 +53,20 @@ public class LineFormatMapper
         {
             lineFormat.Color = ColorHelper.ToXColor(domLineFormat.Color, domLineFormat.Document.UseCmykColor);
         }
-        lineFormat.DashStyle = domLineFormat.DashStyle switch
+        // Only a dash style the document gave, so that a point which sets only its width or colour
+        // keeps its series' dashes rather than being handed Solid (#192).
+        if (!domLineFormat.IsNull("DashStyle"))
         {
-            DocumentObjectModel.Shapes.DashStyle.Dash => XDashStyle.Dash,
-            DocumentObjectModel.Shapes.DashStyle.DashDot => XDashStyle.DashDot,
-            DocumentObjectModel.Shapes.DashStyle.DashDotDot => XDashStyle.DashDotDot,
-            DocumentObjectModel.Shapes.DashStyle.Solid => XDashStyle.Solid,
-            DocumentObjectModel.Shapes.DashStyle.SquareDot => XDashStyle.Dot,
-            _ => XDashStyle.Solid
-        };
+            lineFormat.DashStyle = domLineFormat.DashStyle switch
+            {
+                DocumentObjectModel.Shapes.DashStyle.Dash => XDashStyle.Dash,
+                DocumentObjectModel.Shapes.DashStyle.DashDot => XDashStyle.DashDot,
+                DocumentObjectModel.Shapes.DashStyle.DashDotDot => XDashStyle.DashDotDot,
+                DocumentObjectModel.Shapes.DashStyle.Solid => XDashStyle.Solid,
+                DocumentObjectModel.Shapes.DashStyle.SquareDot => XDashStyle.Dot,
+                _ => XDashStyle.Solid
+            };
+        }
         switch (domLineFormat.Style)
         {
             case DocumentObjectModel.Shapes.LineStyle.Single:

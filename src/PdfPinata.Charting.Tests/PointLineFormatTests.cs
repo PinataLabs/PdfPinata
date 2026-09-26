@@ -141,4 +141,84 @@ public class PointLineFormatTests
         PaintedPaths.StrokedIn(Drawn.Page(chart.Clone()), Red).Should().HaveCount(2,
             "a copy of the chart keeps what the caller set on the point");
     }
+
+    private static readonly string Blue = PaintedRectangles.ColourOf(XColors.Blue);
+
+    private static Chart WithADashedRedSeriesLine(ChartType type)
+    {
+        var chart = WithARedSeriesLine(type);
+        chart.SeriesCollection[0].LineFormat.DashStyle = XDashStyle.Dash;
+        return chart;
+    }
+
+    /// <summary>
+    ///   The middle point's line format, said to be visible. A format the caller sets starts out
+    ///   hidden, as every line format here does (C12), so each point below says Visible = true
+    ///   and then the one thing its test is about.
+    /// </summary>
+    private static LineFormat VisiblePointLine(Chart chart)
+    {
+        var lineFormat = chart.SeriesCollection[0].Elements[1].LineFormat;
+        lineFormat.Visible = true;
+        return lineFormat;
+    }
+
+    [Theory]
+    [InlineData(ChartType.Column2D)]
+    [InlineData(ChartType.ColumnStacked2D)]
+    [InlineData(ChartType.Bar2D)]
+    [InlineData(ChartType.BarStacked2D)]
+    [InlineData(ChartType.Pie2D)]
+    [InlineData(ChartType.PieExploded2D)]
+    public void APointThatSetsOnlyAWidthKeepsTheSeriesDashes(ChartType type)
+    {
+        // A line format had no "unset" dash style, so a point that said nothing about dashes was
+        // read as saying Solid and drew its border solid on a dashed series (#192).
+        var chart = WithADashedRedSeriesLine(type);
+        VisiblePointLine(chart).Width = 3;
+
+        var page = Drawn.Page(chart);
+
+        var point = PaintedPaths.StrokedIn(page, Red).Where(path => System.Math.Abs(path.LineWidth - 3) < 0.001).ToList();
+        point.Should().ContainSingle().Which.Dashed.Should().BeTrue("the point set a width and nothing about dashes");
+        PaintedPaths.StrokedIn(page, Red).Should().HaveCount(3).And.OnlyContain(path => path.Dashed);
+    }
+
+    [Theory]
+    [InlineData(ChartType.Column2D)]
+    [InlineData(ChartType.Bar2D)]
+    [InlineData(ChartType.Pie2D)]
+    [InlineData(ChartType.PieExploded2D)]
+    public void APointThatSetsOnlyAColourKeepsTheSeriesDashes(ChartType type)
+    {
+        var chart = WithADashedRedSeriesLine(type);
+        VisiblePointLine(chart).Color = XColors.Blue;
+
+        var page = Drawn.Page(chart);
+
+        PaintedPaths.StrokedIn(page, Blue).Should().ContainSingle()
+            .Which.Dashed.Should().BeTrue("the point set a colour and nothing about dashes");
+        PaintedPaths.StrokedIn(Drawn.Page(chart.Clone()), Blue).Should().ContainSingle()
+            .Which.Dashed.Should().BeTrue("a copy of the chart is drawn as the chart is");
+    }
+
+    [Theory]
+    [InlineData(ChartType.Column2D)]
+    [InlineData(ChartType.Bar2D)]
+    [InlineData(ChartType.Pie2D)]
+    [InlineData(ChartType.PieExploded2D)]
+    public void APointThatSaysSolidOnADashedSeriesIsDrawnSolid(ChartType type)
+    {
+        // Solid is a dash style like any other once the caller has said it, and a copy of the
+        // chart has to remember that it was said.
+        var chart = WithADashedRedSeriesLine(type);
+        VisiblePointLine(chart).DashStyle = XDashStyle.Solid;
+
+        foreach (var page in new[] { Drawn.Page(chart), Drawn.Page(chart.Clone()) })
+        {
+            var red = PaintedPaths.StrokedIn(page, Red);
+            red.Should().HaveCount(3);
+            red.Count(path => !path.Dashed).Should().Be(1, "exactly one point asked for a solid line");
+        }
+    }
 }
