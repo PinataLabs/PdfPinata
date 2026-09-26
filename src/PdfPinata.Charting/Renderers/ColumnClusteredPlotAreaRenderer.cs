@@ -96,8 +96,11 @@ internal class ColumnClusteredPlotAreaRenderer : ColumnPlotAreaRenderer
     if (y0 < 0 && yMax >= 0)
       y0 = 0;
 
-    // y0 should always be lower than y1, i. e. draw column from bottom to top.
-    return y1 < 0 && y1 < y0 ? (y1, y0) : (y0, y1);
+    // y0 should always be lower than y1, i. e. draw column from bottom to top. That is so of a
+    // value below zero, and of one above zero and below a minimum set above zero too: it is off
+    // the scale and not drawn, but its rectangle is still made, and one running backwards is of
+    // negative size, which XRect refuses.
+    return y1 < y0 ? (y1, y0) : (y0, y1);
   }
 
   /// <summary>

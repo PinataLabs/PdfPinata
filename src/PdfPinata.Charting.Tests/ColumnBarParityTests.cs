@@ -130,6 +130,7 @@ public class ColumnBarParityTests
         { false, [[2.0, -3.0, 4.0]], -5.0, 5.0 },
         { false, [[-2.0, -5.0, -8.0], [-1.0, -12.0, -3.0]], -10.0, -1.0 },
         { false, [[0.5, 1.5], [1.0, 0.25]], 0.0, 2.0 },
+        { false, [[1.0, 3.0], [4.0, 2.5]], 2.0, 5.0 },
         { true, [[1.0, 5.0, 3.0]], null, null },
         { true, [[2.0, -3.0, 4.0], [1.0, -1.0, 2.0]], null, null },
         { true, [[1.0, 2.0], [3.0, -1.0], [2.0, 2.0]], null, null },
@@ -248,19 +249,19 @@ public class ColumnBarParityTests
 
     /// <summary>
     ///   A clustered column or bar whose value is above zero and below a minimum the caller set
-    ///   runs, from the minimum, backwards: today both orientations make a rectangle of negative
-    ///   size of it, and <c>XRect</c> refuses one, so the chart cannot be drawn at all.
+    ///   is off the scale, and is left undrawn as any other value off the scale is, while the one
+    ///   on the scale beside it is drawn. It runs from the minimum backwards, and both orientations
+    ///   used to make a rectangle of negative size of it, which <c>XRect</c> refuses - so the chart
+    ///   could not be drawn at all.
     /// </summary>
     [Theory]
     [InlineData(ChartType.Column2D)]
     [InlineData(ChartType.Bar2D)]
-    public void AClusteredValueBetweenZeroAndAPositiveMinimumCannotBeDrawn(ChartType type)
+    public void AClusteredValueBetweenZeroAndAPositiveMinimumIsLeftUndrawn(ChartType type)
     {
         var chart = Build(type, [[1.0, 3.0]], 2.0, 5.0);
 
-        var draw = () => Drawn.Page(chart);
-
-        draw.Should().Throw<ArgumentException>();
+        Plotted(chart, IsBar(type)).Where(rectangle => rectangle.Filled).Should().ContainSingle();
     }
 
     /// <summary>
