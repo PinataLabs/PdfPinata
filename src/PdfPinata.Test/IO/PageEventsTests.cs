@@ -23,20 +23,14 @@ public sealed class PageEventsTests : IDisposable
 {
     private const string OutDir = "Out/PageEvents";
 
-    private readonly List<MagickImageCollection> _rasterized = [];
+    private readonly Rasterizations _rasterized = new(OutDir);
 
     static PageEventsTests()
     {
         GhostscriptSetup.Configure();
     }
 
-    public void Dispose()
-    {
-        foreach (var collection in _rasterized)
-            collection.Dispose();
-
-        _rasterized.Clear();
-    }
+    public void Dispose() => _rasterized.Dispose();
 
     // ----- pages added and removed ----------------------------------------------------------------------
 
@@ -220,9 +214,7 @@ public sealed class PageEventsTests : IDisposable
         using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawRectangle(XBrushes.Blue, 100, 100, 200, 200);
 
-        var images = PdfHelper.Rasterize(document).ImageCollection;
-        _rasterized.Add(images);
-        PdfHelper.WriteImageCollection(images, OutDir, "underneath");
+        var images = _rasterized.Of(document, "underneath");
 
         Count(images[0], IsBlue).Should().BeGreaterThan(10000);
         Count(images[0], IsGrey).Should().BeGreaterThan(10000);

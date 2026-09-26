@@ -35,15 +35,9 @@ public sealed class TranslucentImageRenderingTests : IDisposable
     ///   Everything rasterized by one test, kept until the test is over - a page is tens of
     ///   megabytes of unmanaged bitmap the collector cannot see the size of.
     /// </summary>
-    private readonly List<MagickImageCollection> _rasterized = [];
+    private readonly Rasterizations _rasterized = new(OutDir);
 
-    public void Dispose()
-    {
-        foreach (var collection in _rasterized)
-            collection.Dispose();
-
-        _rasterized.Clear();
-    }
+    public void Dispose() => _rasterized.Dispose();
 
     static TranslucentImageRenderingTests()
     {
@@ -137,10 +131,7 @@ public sealed class TranslucentImageRenderingTests : IDisposable
         using (var gfx = XGraphics.FromPdfPage(page))
             draw(gfx);
 
-        var images = PdfHelper.Rasterize(document).ImageCollection;
-        _rasterized.Add(images);
-        PdfHelper.WriteImageCollection(images, OutDir, name);
-        return images[0];
+        return _rasterized.FirstPageOf(document, name);
     }
 
     /// <summary>The colour at the middle of <see cref="Area"/>.</summary>

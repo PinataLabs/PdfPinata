@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AwesomeAssertions;
@@ -32,19 +31,14 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
 
     private static readonly string[] Countries = ["Australia", "Canada", "Ireland", "New Zealand", "United Kingdom"];
 
-    private readonly List<MagickImageCollection> _rasterized = [];
+    private readonly Rasterizations _rasterized = new(OutDir);
 
     static ChoiceFieldAppearanceTests()
     {
         GhostscriptSetup.Configure();
     }
 
-    public void Dispose()
-    {
-        foreach (var collection in _rasterized)
-            collection.Dispose();
-        _rasterized.Clear();
-    }
+    public void Dispose() => _rasterized.Dispose();
 
     private static (PdfDocument Document, T Field) OnAPage<T>(Func<PdfDocument, T> make, XRect? box = null)
         where T : PdfChoiceField
@@ -343,10 +337,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
     {
         arrange(placed.Field);
 
-        var images = PdfHelper.Rasterize(placed.Document).ImageCollection;
-        _rasterized.Add(images);
-        PdfHelper.WriteImageCollection(images, OutDir, name);
-        return images[0];
+        return _rasterized.FirstPageOf(placed.Document, name);
     }
 
     /// <summary>The pixels inside a box given in world space, matching a test.</summary>

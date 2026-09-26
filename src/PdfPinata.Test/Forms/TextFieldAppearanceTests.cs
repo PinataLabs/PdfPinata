@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using AwesomeAssertions;
 using ImageMagick;
 using PdfPinata.Drawing;
@@ -20,19 +19,14 @@ public sealed class TextFieldAppearanceTests : IDisposable
 {
     private const string OutDir = "Out/TextFieldAppearances";
 
-    private readonly List<MagickImageCollection> _rasterized = [];
+    private readonly Rasterizations _rasterized = new(OutDir);
 
     static TextFieldAppearanceTests()
     {
         GhostscriptSetup.Configure();
     }
 
-    public void Dispose()
-    {
-        foreach (var collection in _rasterized)
-            collection.Dispose();
-        _rasterized.Clear();
-    }
+    public void Dispose() => _rasterized.Dispose();
 
     /// <summary>A single-line box, in world space from the top left of an A4 page.</summary>
     private static readonly XRect Line = new(60, 60, 300, 30);
@@ -230,10 +224,7 @@ public sealed class TextFieldAppearanceTests : IDisposable
 
     private IMagickImage<byte> Rasterize(string name, PdfTextField field)
     {
-        var images = PdfHelper.Rasterize(field.Owner).ImageCollection;
-        _rasterized.Add(images);
-        PdfHelper.WriteImageCollection(images, OutDir, name);
-        return images[0];
+        return _rasterized.FirstPageOf(field.Owner, name);
     }
 
     private static double Scale(IMagickImage<byte> image) =>

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using AwesomeAssertions;
 using ImageMagick;
 using PdfPinata.Drawing;
@@ -23,15 +22,9 @@ public sealed class GradientTransparencyRenderingTests : IDisposable
     ///   Everything rasterized by one test, kept until the test is over. A page at 300 dpi is
     ///   tens of megabytes of unmanaged bitmap that the collector cannot see the size of.
     /// </summary>
-    private readonly List<MagickImageCollection> _rasterized = [];
+    private readonly Rasterizations _rasterized = new(OutDir);
 
-    public void Dispose()
-    {
-        foreach (var collection in _rasterized)
-            collection.Dispose();
-
-        _rasterized.Clear();
-    }
+    public void Dispose() => _rasterized.Dispose();
 
     static GradientTransparencyRenderingTests()
     {
@@ -153,10 +146,7 @@ public sealed class GradientTransparencyRenderingTests : IDisposable
         using (var gfx = XGraphics.FromPdfPage(page))
             draw(gfx);
 
-        var images = PdfHelper.Rasterize(document).ImageCollection;
-        _rasterized.Add(images);
-        PdfHelper.WriteImageCollection(images, OutDir, name);
-        return images[0];
+        return _rasterized.FirstPageOf(document, name);
     }
 
     /// <summary>The colour a fraction of the way across and down the band under test.</summary>

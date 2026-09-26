@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AwesomeAssertions;
@@ -28,15 +27,9 @@ public sealed class LineAnnotationTests : IDisposable
 {
     private const string OutDir = "Out/LineAnnotations";
 
-    private readonly List<MagickImageCollection> _rasterized = [];
+    private readonly Rasterizations _rasterized = new(OutDir);
 
-    public void Dispose()
-    {
-        foreach (var collection in _rasterized)
-            collection.Dispose();
-
-        _rasterized.Clear();
-    }
+    public void Dispose() => _rasterized.Dispose();
 
     static LineAnnotationTests()
     {
@@ -370,10 +363,7 @@ public sealed class LineAnnotationTests : IDisposable
 
         arrange(line);
 
-        var images = PdfHelper.Rasterize(document).ImageCollection;
-        _rasterized.Add(images);
-        PdfHelper.WriteImageCollection(images, OutDir, name);
-        return images[0];
+        return _rasterized.FirstPageOf(document, name);
     }
 
     private static PdfLineAnnotation OnAPage()

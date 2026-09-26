@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using AwesomeAssertions;
 using ImageMagick;
 using PdfPinata.Drawing;
@@ -24,20 +23,14 @@ public sealed class SpotColorRenderingTests : IDisposable
     private static readonly XRect Half = new(50, 200, 200, 100);
     private static readonly XRect Stroked = new(300, 50, 200, 100);
 
-    private readonly List<MagickImageCollection> _rasterized = [];
+    private readonly Rasterizations _rasterized = new(OutDir);
 
     static SpotColorRenderingTests()
     {
         GhostscriptSetup.Configure();
     }
 
-    public void Dispose()
-    {
-        foreach (var collection in _rasterized)
-            collection.Dispose();
-
-        _rasterized.Clear();
-    }
+    public void Dispose() => _rasterized.Dispose();
 
     [GoldenImageFact]
     public void ACmykAlternateIsPaintedAtFullAndHalfTint()
@@ -102,9 +95,7 @@ public sealed class SpotColorRenderingTests : IDisposable
         using (var gfx = XGraphics.FromPdfPage(page))
             draw(gfx);
 
-        var images = PdfHelper.Rasterize(document).ImageCollection;
-        _rasterized.Add(images);
-        PdfHelper.WriteImageCollection(images, OutDir, name);
+        var images = _rasterized.Of(document, name);
 
         // A page painting a CMYK alternate is handed back as a CMYK raster, whose channels would
         // read here as cyan, magenta and yellow under the names R, G and B.

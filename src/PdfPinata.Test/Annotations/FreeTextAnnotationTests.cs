@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using AwesomeAssertions;
 using ImageMagick;
@@ -26,15 +25,9 @@ public sealed class FreeTextAnnotationTests : IDisposable
 {
     private const string OutDir = "Out/FreeTextAnnotations";
 
-    private readonly List<MagickImageCollection> _rasterized = [];
+    private readonly Rasterizations _rasterized = new(OutDir);
 
-    public void Dispose()
-    {
-        foreach (var collection in _rasterized)
-            collection.Dispose();
-
-        _rasterized.Clear();
-    }
+    public void Dispose() => _rasterized.Dispose();
 
     static FreeTextAnnotationTests()
     {
@@ -226,10 +219,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
 
         arrange(caption);
 
-        var images = PdfHelper.Rasterize(document).ImageCollection;
-        _rasterized.Add(images);
-        PdfHelper.WriteImageCollection(images, OutDir, name);
-        return images[0];
+        return _rasterized.FirstPageOf(document, name);
     }
 
     private static PdfFreeTextAnnotation OnAPage()

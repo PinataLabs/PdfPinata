@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using AwesomeAssertions;
 using ImageMagick;
@@ -38,15 +37,9 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
     ///   Kept until the test is over: the pages are handed out for counting, and the bitmap
     ///   behind one is unmanaged, so leaving them to the collector exhausts the test host.
     /// </summary>
-    private readonly List<MagickImageCollection> _rasterized = [];
+    private readonly Rasterizations _rasterized = new(OutDir);
 
-    public void Dispose()
-    {
-        foreach (var collection in _rasterized)
-            collection.Dispose();
-
-        _rasterized.Clear();
-    }
+    public void Dispose() => _rasterized.Dispose();
 
     static GenericAnnotationRenderingTests()
     {
@@ -107,10 +100,7 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
 
         arrange(annotation);
 
-        var images = PdfHelper.Rasterize(document).ImageCollection;
-        _rasterized.Add(images);
-        PdfHelper.WriteImageCollection(images, OutDir, name);
-        return images[0];
+        return _rasterized.FirstPageOf(document, name);
     }
 
     private static XForm Filled(PdfDocument document, XColor colour)

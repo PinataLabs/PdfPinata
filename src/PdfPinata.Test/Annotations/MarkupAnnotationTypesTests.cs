@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AwesomeAssertions;
@@ -27,20 +26,14 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
 {
     private const string OutDir = "Out/MarkupAnnotationTypes";
 
-    private readonly List<MagickImageCollection> _rasterized = [];
+    private readonly Rasterizations _rasterized = new(OutDir);
 
     static MarkupAnnotationTypesTests()
     {
         GhostscriptSetup.Configure();
     }
 
-    public void Dispose()
-    {
-        foreach (var collection in _rasterized)
-            collection.Dispose();
-
-        _rasterized.Clear();
-    }
+    public void Dispose() => _rasterized.Dispose();
 
     // ----- ink ------------------------------------------------------------------------------------------
 
@@ -373,10 +366,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
         _ = document.AddPage();
         arrange(document);
 
-        var images = PdfHelper.Rasterize(document).ImageCollection;
-        _rasterized.Add(images);
-        PdfHelper.WriteImageCollection(images, OutDir, name);
-        return images[0];
+        return _rasterized.FirstPageOf(document, name);
     }
 
     private static PdfDocument ReadBack(PdfDocument document)

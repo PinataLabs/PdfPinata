@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using AwesomeAssertions;
 using ImageMagick;
 using PdfPinata.Drawing;
@@ -25,15 +24,9 @@ public sealed class RadialGradientRenderingTests : IDisposable
 {
     private const string OutDir = "Out/RadialGradient";
 
-    private readonly List<MagickImageCollection> _rasterized = [];
+    private readonly Rasterizations _rasterized = new(OutDir);
 
-    public void Dispose()
-    {
-        foreach (var collection in _rasterized)
-            collection.Dispose();
-
-        _rasterized.Clear();
-    }
+    public void Dispose() => _rasterized.Dispose();
 
     static RadialGradientRenderingTests()
     {
@@ -237,10 +230,7 @@ public sealed class RadialGradientRenderingTests : IDisposable
         using (var gfx = XGraphics.FromPdfPage(page))
             draw(gfx);
 
-        var images = PdfHelper.Rasterize(document).ImageCollection;
-        _rasterized.Add(images);
-        PdfHelper.WriteImageCollection(images, OutDir, name);
-        return images[0];
+        return _rasterized.FirstPageOf(document, name);
     }
 
     /// <summary>The colour at a point on the page, in points from the top left.</summary>
