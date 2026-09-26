@@ -67,6 +67,11 @@
       three readers above.
     -->
     <Compile Include="..\PdfPinata.Test\Helpers\PinnedFontResolver.cs" Link="Helpers\Linked\PinnedFontResolver.cs" />
+    <!--
+      Saving a document and reading it back, which is how a test here sees what a reader sees. One
+      owner for it rather than a private copy in each file that needed one.
+    -->
+    <Compile Include="..\PdfPinata.Test\Helpers\Saved.cs" Link="Helpers\Linked\Saved.cs" />
   </ItemGroup>
 
   <ItemGroup>
