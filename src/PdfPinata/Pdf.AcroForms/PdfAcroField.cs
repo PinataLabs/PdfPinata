@@ -222,9 +222,7 @@ public abstract class PdfAcroField : PdfDictionary
     /// </summary>
     private IEnumerable<PdfDictionary> KidDictionaries()
     {
-        var item = Elements[Keys.Kids];
-        if (item is PdfReference reference)
-            item = reference.Value;
+        var item = PdfReference.Dereference(Elements[Keys.Kids]);
         if (item is not PdfArray kids)
             yield break;
 
@@ -890,9 +888,7 @@ public abstract class PdfAcroField : PdfDictionary
     {
         get
         {
-            var item = Elements[Keys.Kids];
-            if (item is PdfReference reference)
-                item = reference.Value;
+            var item = PdfReference.Dereference(Elements[Keys.Kids]);
 
             return item is PdfArray array && array.Elements.Count > 0;
         }
