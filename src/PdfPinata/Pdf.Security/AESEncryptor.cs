@@ -269,9 +269,9 @@ internal class AESEncryptor : RC4Encryptor
     }
 
     /// <summary>
-    /// Pdf Reference 1.7, Chapter 7.6.2, Algorithm #1
+    /// Makes the key the object <paramref name="id"/> is decrypted with: the file key itself from
+    /// revision 5 on, and before that Algorithm 1 with the AES salt.
     /// </summary>
-    /// <param name="id"></param>
     public override void CreateHashKey(PdfObjectID id)
     {
         if (rValue >= 5)
@@ -281,24 +281,7 @@ internal class AESEncryptor : RC4Encryptor
             Array.Copy(encryptionKey, key, encryptionKey.Length);
             return;
         }
-        var objectId = new byte[5];
-        md5.Initialize();
-        // Split the object number and generation
-        objectId[0] = (byte)id.ObjectNumber;
-        objectId[1] = (byte)(id.ObjectNumber >> 8);
-        objectId[2] = (byte)(id.ObjectNumber >> 16);
-        objectId[3] = (byte)id.GenerationNumber;
-        objectId[4] = (byte)(id.GenerationNumber >> 8);
-        var salt = "sAlT"u8.ToArray();
-        var k = new byte[encryptionKey.Length + 9];
-        Array.Copy(encryptionKey, k, encryptionKey.Length);
-        Array.Copy(objectId, 0, k, encryptionKey.Length, objectId.Length);
-        Array.Copy(salt, 0, k, encryptionKey.Length + objectId.Length, salt.Length);
-        key = md5.ComputeHash(k);
-        md5.Initialize();
-        keySize = encryptionKey.Length + 5;
-        if (keySize > 16)
-            keySize = 16;
+        key = StandardSecurityAlgorithms.ObjectKey(md5, encryptionKey, id, aes: true, out keySize);
     }
 
     /// <summary>

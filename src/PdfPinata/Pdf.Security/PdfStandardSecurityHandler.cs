@@ -313,36 +313,11 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     }
 
     /// <summary>
-    /// Pads a password to a 32 byte array.
-    /// </summary>
-    private static byte[] PadPassword(string password)
-    {
-        var padded = new byte[32];
-        if (password == null)
-        {
-            Array.Copy(PasswordPadding, 0, padded, 0, 32);
-        }
-        else
-        {
-            var length = password.Length;
-            Array.Copy(PdfEncoders.RawEncoding.GetBytes(password), 0, padded, 0, Math.Min(length, 32));
-            if (length < 32)
-                Array.Copy(PasswordPadding, 0, padded, length, 32 - length);
-        }
-        return padded;
-    }
-    private static readonly byte[] PasswordPadding = // 32 bytes password padding defined by Adobe
-    [
-        0x28, 0xBF, 0x4E, 0x5E, 0x4E, 0x75, 0x8A, 0x41, 0x64, 0x00, 0x4E, 0x56, 0xFF, 0xFA, 0x01, 0x08,
-        0x2E, 0x2E, 0x00, 0xB6, 0xD0, 0x68, 0x3E, 0x80, 0x2F, 0x0C, 0xA9, 0xFE, 0x64, 0x53, 0x69, 0x7A
-    ];
-
-    /// <summary>
     /// Generates the user key based on the padded user password.
     /// </summary>
     private void InitWithUserPassword(byte[] documentID, string userPassword, byte[] ownerKey, int permissions, bool strongEncryption)
     {
-        InitEncryptionKey(documentID, PadPassword(userPassword), ownerKey, permissions, strongEncryption);
+        InitEncryptionKey(documentID, StandardSecurityAlgorithms.PadPassword(userPassword), ownerKey, permissions, strongEncryption);
         SetupUserKey(documentID);
     }
 
@@ -420,7 +395,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     {
         if (_encryptionKey.Length == 16)
         {
-            _md5.TransformBlock(PasswordPadding, 0, PasswordPadding.Length, PasswordPadding, 0);
+            _md5.TransformBlock(StandardSecurityAlgorithms.PasswordPadding, 0, StandardSecurityAlgorithms.PasswordPadding.Length, StandardSecurityAlgorithms.PasswordPadding, 0);
             _md5.TransformFinalBlock(documentID, 0, documentID.Length);
             var digest = _md5.Hash!;
             _md5.Initialize();
@@ -439,7 +414,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         else
         {
             _rc4.SetKey(_encryptionKey);
-            _rc4.Apply(PasswordPadding, 0, PasswordPadding.Length, _userKey);
+            _rc4.Apply(StandardSecurityAlgorithms.PasswordPadding, 0, StandardSecurityAlgorithms.PasswordPadding.Length, _userKey);
         }
     }
 
@@ -448,21 +423,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// </summary>
     internal void SetHashKey(PdfObjectID id)
     {
-        var objectId = new byte[5];
-        _md5.Initialize();
-        // Split the object number and generation
-        objectId[0] = (byte)id.ObjectNumber;
-        objectId[1] = (byte)(id.ObjectNumber >> 8);
-        objectId[2] = (byte)(id.ObjectNumber >> 16);
-        objectId[3] = (byte)id.GenerationNumber;
-        objectId[4] = (byte)(id.GenerationNumber >> 8);
-        _md5.TransformBlock(_encryptionKey, 0, _encryptionKey.Length, _encryptionKey, 0);
-        _md5.TransformFinalBlock(objectId, 0, objectId.Length);
-        _key = _md5.Hash;
-        _md5.Initialize();
-        _keySize = _encryptionKey.Length + 5;
-        if (_keySize > 16)
-            _keySize = 16;
+        _key = StandardSecurityAlgorithms.ObjectKey(_md5, _encryptionKey, id, aes: false, out _keySize);
     }
 
     /// <summary>
@@ -504,8 +465,8 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         var pValue = new PdfInteger(permissions);
 
         Debug.Assert(_ownerPassword.Length > 0, "Empty owner password.");
-        var userPad = PadPassword(_userPassword);
-        var ownerPad = PadPassword(_ownerPassword);
+        var userPad = StandardSecurityAlgorithms.PadPassword(_userPassword);
+        var ownerPad = StandardSecurityAlgorithms.PadPassword(_ownerPassword);
 
         _md5.Initialize();
         _ownerKey = ComputeOwnerKey(userPad, ownerPad, strongEncryption);

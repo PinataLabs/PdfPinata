@@ -16,7 +16,7 @@ internal class RC4Encryptor : EncryptorBase, IEncryptor
     /// </summary>
     public virtual void InitEncryptionKey(string password)
     {
-        var userPad = PadPassword(password);
+        var userPad = StandardSecurityAlgorithms.PadPassword(password);
         md5.Initialize();
         md5.TransformBlock(userPad, 0, userPad.Length, userPad, 0);
         md5.TransformBlock(ownerValue, 0, ownerValue.Length, ownerValue, 0);
@@ -69,7 +69,7 @@ internal class RC4Encryptor : EncryptorBase, IEncryptor
 
     private void ValidateOwnerPassword(string password)
     {
-        var pwdPad = PadPassword(password);
+        var pwdPad = StandardSecurityAlgorithms.PadPassword(password);
         var rc4Input = OwnerPasswordKey(pwdPad);
 
         var ov = new byte[ownerValue.Length];
@@ -140,8 +140,8 @@ internal class RC4Encryptor : EncryptorBase, IEncryptor
         InitEncryptionKey(password);
         if (rValue == 2)
         {
-            var data = new byte[passwordPadding.Length];
-            Array.Copy(passwordPadding, data, data.Length);
+            var data = new byte[StandardSecurityAlgorithms.PasswordPadding.Length];
+            Array.Copy(StandardSecurityAlgorithms.PasswordPadding, data, data.Length);
             rc4.SetKey(encryptionKey, 0, keySize);
             rc4.Apply(data);
             computedUserValue = new byte[data.Length];
@@ -151,7 +151,7 @@ internal class RC4Encryptor : EncryptorBase, IEncryptor
         {
             computedUserValue = new byte[32];
             md5.Initialize();
-            md5.TransformBlock(passwordPadding, 0, passwordPadding.Length, passwordPadding, 0);
+            md5.TransformBlock(StandardSecurityAlgorithms.PasswordPadding, 0, StandardSecurityAlgorithms.PasswordPadding.Length, StandardSecurityAlgorithms.PasswordPadding, 0);
             md5.TransformFinalBlock(documentId, 0, documentId.Length);
             var mkey = md5.Hash;
             // ReSharper disable once AssignNullToNotNullAttribute
@@ -174,26 +174,11 @@ internal class RC4Encryptor : EncryptorBase, IEncryptor
     }
 
     /// <summary>
-    /// Pdf Reference 1.7, Chapter 7.6.2, Algorithm #1
+    /// Makes the key the object <paramref name="id"/> is decrypted with.
     /// </summary>
-    /// <param name="id"></param>
     public virtual void CreateHashKey(PdfObjectID id)
     {
-        var objectId = new byte[5];
-        md5.Initialize();
-        // Split the object number and generation
-        objectId[0] = (byte)id.ObjectNumber;
-        objectId[1] = (byte)(id.ObjectNumber >> 8);
-        objectId[2] = (byte)(id.ObjectNumber >> 16);
-        objectId[3] = (byte)id.GenerationNumber;
-        objectId[4] = (byte)(id.GenerationNumber >> 8);
-        md5.TransformBlock(encryptionKey, 0, encryptionKey.Length, encryptionKey, 0);   // ?? incomplete
-        md5.TransformFinalBlock(objectId, 0, objectId.Length);
-        key = md5.Hash;
-        md5.Initialize();
-        keySize = encryptionKey.Length + 5;
-        if (keySize > 16)
-            keySize = 16;
+        key = StandardSecurityAlgorithms.ObjectKey(md5, encryptionKey, id, aes: false, out keySize);
     }
 
     public virtual byte[] Encrypt(byte[] bytes)
