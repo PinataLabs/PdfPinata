@@ -264,25 +264,21 @@ public class ColumnBarParityTests
     }
 
     /// <summary>
-    ///   A scale whose minimum is above its maximum leaves nothing to plot against. A bar chart
-    ///   works nothing out and draws nothing; a stacked column chart works its columns out anyway,
-    ///   against a matrix that was never scaled, and throws for a rectangle of negative size.
+    ///   A scale whose minimum is above its maximum leaves nothing to plot against, and neither
+    ///   orientation works out a column or a bar against it. The column charts used to, against a
+    ///   matrix that was never scaled, and a stacked column chart threw for a rectangle of negative
+    ///   size; the bar charts had always returned first.
     /// </summary>
     [Theory]
-    [InlineData(ChartType.Column2D, false)]
-    [InlineData(ChartType.Bar2D, false)]
-    [InlineData(ChartType.ColumnStacked2D, true)]
-    [InlineData(ChartType.BarStacked2D, false)]
-    public void AScaleTurnedUpsideDownDrawsNothing(ChartType type, bool throws)
+    [InlineData(ChartType.Column2D)]
+    [InlineData(ChartType.Bar2D)]
+    [InlineData(ChartType.ColumnStacked2D)]
+    [InlineData(ChartType.BarStacked2D)]
+    public void AScaleTurnedUpsideDownDrawsNothing(ChartType type)
     {
         var chart = Build(type, [[3.0, 5.0]], 6.0, 2.0);
 
-        var draw = () => Drawn.Page(chart);
-
-        if (throws)
-            draw.Should().Throw<ArgumentException>();
-        else
-            Plotted(chart, IsBar(type)).Should().BeEmpty();
+        Plotted(chart, IsBar(type)).Should().BeEmpty();
     }
 
     /// <summary>

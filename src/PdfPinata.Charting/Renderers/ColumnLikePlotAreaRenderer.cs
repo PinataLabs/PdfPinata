@@ -64,7 +64,7 @@ internal abstract class ColumnLikePlotAreaRenderer : PlotAreaRenderer
     // derived from the matrix is then NaN - which is written to the page as the word NaN and makes
     // the file unreadable. There is nothing to plot, so the matrix is left as the identity and the
     // renderers that would use it draw their nothing against it.
-    if (xMax <= xMin || yMax <= yMin)
+    if (NothingToPlot(cri))
     {
       cri.PlotAreaRendererInfo.Matrix = new XMatrix();
       return;
@@ -82,5 +82,15 @@ internal abstract class ColumnLikePlotAreaRenderer : PlotAreaRenderer
     cri.PlotAreaRendererInfo.Matrix.Scale(plotAreaBox.Width / (xMax - xMin), plotAreaBox.Height / (yMax - yMin), XMatrixOrder.Append);
     cri.PlotAreaRendererInfo.Matrix.ScalePrepend(1, -1);
     cri.PlotAreaRendererInfo.Matrix.Translate(plotAreaBox.X, plotAreaBox.Y, XMatrixOrder.Append);
+  }
+
+  /// <summary>
+  /// Whether either scale spans nothing, which leaves the plot area nothing to plot against: a
+  /// chart with no points, or a value axis whose minimum the caller set at or above its maximum.
+  /// </summary>
+  protected static bool NothingToPlot(ChartRendererInfo cri)
+  {
+    return cri.XAxisRendererInfo.MaximumScale <= cri.XAxisRendererInfo.MinimumScale ||
+           cri.YAxisRendererInfo.MaximumScale <= cri.YAxisRendererInfo.MinimumScale;
   }
 }

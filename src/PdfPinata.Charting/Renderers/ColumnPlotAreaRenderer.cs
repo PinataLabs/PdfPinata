@@ -51,6 +51,14 @@ internal abstract class ColumnPlotAreaRenderer : ColumnLikePlotAreaRenderer
   internal override void Format()
   {
     base.Format();
+
+    // Nothing to plot leaves the matrix the identity, and a column worked out against it is a
+    // rectangle in chart units rather than on the page - of negative size for a stacked column on
+    // a scale turned upside down, which XRect refuses. So the columns are not worked out at all
+    // and stay undrawn, as the bar plot area has always left its bars.
+    if (NothingToPlot((ChartRendererInfo)rendererParms.RendererInfo))
+      return;
+
     CalcColumns();
     DecideWhichAreDrawn();
   }
