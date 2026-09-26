@@ -6,9 +6,9 @@ namespace PdfPinata.Pdf.Security;
 internal class RC4Encryptor : EncryptorBase, IEncryptor
 {
     /// <summary>
-    /// Bytes used for RC4 encryption.
+    /// The cipher the reader decrypts with.
     /// </summary>
-    private readonly byte[] state = new byte[256];
+    private readonly Rc4 rc4 = new();
 
     /// <summary>
     /// Creates the encryption Key.
@@ -91,8 +91,8 @@ internal class RC4Encryptor : EncryptorBase, IEncryptor
         var n = rc4Input.Length;
         if (rValue < 3)
         {
-            PrepareRC4Key(rc4Input, 0, n);
-            EncryptRC4(ov);
+            rc4.SetKey(rc4Input, 0, n);
+            rc4.Apply(ov);
             return;
         }
 
@@ -101,8 +101,8 @@ internal class RC4Encryptor : EncryptorBase, IEncryptor
         {
             for (var j = 0; j < n; j++)
                 xor[j] = (byte)(rc4Input[j] ^ (19 - i));
-            PrepareRC4Key(xor, 0, n);
-            EncryptRC4(ov);
+            rc4.SetKey(xor, 0, n);
+            rc4.Apply(ov);
         }
     }
 
@@ -142,8 +142,8 @@ internal class RC4Encryptor : EncryptorBase, IEncryptor
         {
             var data = new byte[passwordPadding.Length];
             Array.Copy(passwordPadding, data, data.Length);
-            PrepareRC4Key(encryptionKey);
-            EncryptRC4(data);
+            rc4.SetKey(encryptionKey, 0, keySize);
+            rc4.Apply(data);
             computedUserValue = new byte[data.Length];
             Array.Copy(data, computedUserValue, data.Length);
         }
@@ -165,8 +165,8 @@ internal class RC4Encryptor : EncryptorBase, IEncryptor
             {
                 for (var j = 0; j < roundKey.Length; j++)
                     roundKey[j] = (byte)(encryptionKey[j] ^ i);
-                PrepareRC4Key(roundKey, 0, roundKey.Length);
-                EncryptRC4(computedUserValue, 0, 16);
+                rc4.SetKey(roundKey);
+                rc4.Apply(computedUserValue, 0, 16, computedUserValue);
             }
             for (var i = 16; i < 32; i++)
                 computedUserValue[i] = 0;
@@ -198,80 +198,8 @@ internal class RC4Encryptor : EncryptorBase, IEncryptor
 
     public virtual byte[] Encrypt(byte[] bytes)
     {
-        PrepareRC4Key(key);
-        EncryptRC4(bytes);
+        rc4.SetKey(key, 0, keySize);
+        rc4.Apply(bytes);
         return bytes;
     }
-
-    /// <summary>
-    /// Prepare the encryption key.
-    /// </summary>
-    protected void PrepareRC4Key(byte[] keyBytes)
-    {
-        PrepareRC4Key(keyBytes, 0, keySize);
-    }
-
-    /// <summary>
-    /// Prepare the encryption key.
-    /// </summary>
-    protected void PrepareRC4Key(byte[] keyBytes, int offset, int length)
-    {
-        var idx1 = 0;
-        var idx2 = 0;
-        for (var idx = 0; idx < 256; idx++)
-            state[idx] = (byte)idx;
-        byte tmp;
-        for (var idx = 0; idx < 256; idx++)
-        {
-            idx2 = (keyBytes[idx1 + offset] + state[idx] + idx2) & 255;
-            tmp = state[idx];
-            state[idx] = state[idx2];
-            state[idx2] = tmp;
-            idx1 = (idx1 + 1) % length;
-        }
-    }
-
-    /// <summary>
-    /// Encrypts the data.
-    /// </summary>
-    protected void EncryptRC4(byte[] data)
-    {
-        EncryptRC4(data, 0, data.Length, data);
-    }
-
-    /// <summary>
-    /// Encrypts the data.
-    /// </summary>
-    protected void EncryptRC4(byte[] data, int offset, int length)
-    {
-        EncryptRC4(data, offset, length, data);
-    }
-
-    /// <summary>
-    /// Encrypts the data.
-    /// </summary>
-    protected void EncryptRC4(byte[] inputData, byte[] outputData)
-    {
-        EncryptRC4(inputData, 0, inputData.Length, outputData);
-    }
-
-    /// <summary>
-    /// Encrypts the data.
-    /// </summary>
-    protected void EncryptRC4(byte[] inputData, int offset, int length, byte[] outputData)
-    {
-        length += offset;
-        int x = 0, y = 0;
-        byte b;
-        for (var idx = offset; idx < length; idx++)
-        {
-            x = (x + 1) & 255;
-            y = (state[x] + y) & 255;
-            b = state[x];
-            state[x] = state[y];
-            state[y] = b;
-            outputData[idx] = (byte)(inputData[idx] ^ state[(state[x] + state[y]) & 255]);
-        }
-    }
-
 }

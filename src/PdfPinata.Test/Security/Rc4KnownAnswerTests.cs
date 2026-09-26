@@ -16,8 +16,9 @@ namespace PdfPinata.Test.Security;
 ///   eighteen offsets up to 4096 bytes in. Encrypting zeros gives the keystream itself.
 /// </summary>
 /// <remarks>
-///   The library's RC4 is internal, and this repository carries no <c>InternalsVisibleTo</c>, so
-///   it is reached by reflection. The same vectors check <see cref="StandardSecurity.Rc4"/>, the
+///   The library's <c>Rc4</c> is internal, and this repository carries no <c>InternalsVisibleTo</c>,
+///   so it is reached by reflection. It used to be two copies, one the reader decrypted with and one
+///   the writer encrypted with, and both passed these vectors before they were joined. The same vectors check <see cref="StandardSecurity.Rc4"/>, the
 ///   independent copy the other security tests judge the library by, so that neither is trusted
 ///   on the other's word.
 /// </remarks>
@@ -44,20 +45,61 @@ public class Rc4KnownAnswerTests
 
     [Theory]
     [MemberData(nameof(Keys))]
-    public void TheReadersCopyProducesTheRfcKeystream(string key)
+    public void TheLibrarysRc4ProducesTheRfcKeystream(string key)
     {
-        var keystream = LibraryRc4.Reader(FromHex(key), StreamLength);
+        var rc4 = new LibraryRc4();
+        rc4.SetKey(FromHex(key));
+        var keystream = new byte[StreamLength];
+        rc4.Apply(keystream, 0, keystream.Length);
 
         ShouldMatch(keystream, Vectors().Single(v => v.Key == key));
     }
 
     [Theory]
-    [MemberData(nameof(Keys))]
-    public void TheWritersCopyProducesTheRfcKeystream(string key)
+    [InlineData(1)]
+    [InlineData(7)]
+    [InlineData(16)]
+    [InlineData(1000)]
+    public void TheKeystreamCarriesOnFromOneCallToTheNext(int chunk)
     {
-        var keystream = LibraryRc4.Writer(FromHex(key), StreamLength);
+        var vector = Vectors()[4]; // 128 bits, the longest key the standard security handler uses
+        var rc4 = new LibraryRc4();
+        rc4.SetKey(FromHex(vector.Key));
+        var keystream = new byte[StreamLength];
+        for (var offset = 0; offset < keystream.Length; offset += chunk)
+            rc4.Apply(keystream, offset, System.Math.Min(chunk, keystream.Length - offset));
 
-        ShouldMatch(keystream, Vectors().Single(v => v.Key == key));
+        ShouldMatch(keystream, vector);
+    }
+
+    [Fact]
+    public void SettingTheKeyStartsTheKeystreamAgain()
+    {
+        var vector = Vectors()[0];
+        var rc4 = new LibraryRc4();
+        rc4.SetKey(FromHex("ffffffffffffffff"));
+        rc4.Apply(new byte[100], 0, 100);
+
+        rc4.SetKey(FromHex(vector.Key));
+        var keystream = new byte[StreamLength];
+        rc4.Apply(keystream, 0, keystream.Length);
+
+        ShouldMatch(keystream, vector);
+    }
+
+    [Fact]
+    public void AKeyCanBeTakenFromTheMiddleOfAnArray()
+    {
+        var vector = Vectors()[0];
+        var key = FromHex(vector.Key);
+        var padded = new byte[key.Length + 7];
+        key.CopyTo(padded, 3);
+        var rc4 = new LibraryRc4();
+        rc4.SetKey(padded, 3, key.Length);
+        var keystream = new byte[StreamLength];
+        rc4.Apply(keystream, 0, keystream.Length);
+
+        ShouldMatch(keystream, vector);
     }
 
     [Fact]
@@ -102,44 +144,25 @@ public class Rc4KnownAnswerTests
 
     private static byte[] FromHex(string hex) => StandardSecurity.FromHex(hex);
 
-    /// <summary>
-    ///   The library's two RC4 implementations: the one the reader decrypts with, in
-    ///   <c>RC4Encryptor</c>, and the one the writer encrypts with, in the security handler.
-    /// </summary>
-    private static class LibraryRc4
+    /// <summary>The library's <c>Rc4</c>, which is internal.</summary>
+    private sealed class LibraryRc4
     {
-        private const BindingFlags Instance = BindingFlags.Instance | BindingFlags.NonPublic;
+        private const BindingFlags Public = BindingFlags.Instance | BindingFlags.Public;
 
-        public static byte[] Reader(byte[] key, int length)
-        {
-            var type = typeof(PdfDocument).Assembly.GetType("PdfPinata.Pdf.Security.RC4Encryptor", true);
-            var encryptor = Activator.CreateInstance(type!, true);
-            return Keystream(encryptor, key, length);
-        }
+        private static readonly Type Type =
+            typeof(PdfDocument).Assembly.GetType("PdfPinata.Pdf.Security.Rc4", true)!;
 
-        public static byte[] Writer(byte[] key, int length) => Keystream(new PdfDocument().SecurityHandler, key, length);
+        private readonly object _rc4 = Activator.CreateInstance(Type, true);
 
-        private static byte[] Keystream(object target, byte[] key, int length)
-        {
-            var type = target.GetType();
-            var prepare = FindMethod(type, "PrepareRC4Key", typeof(byte[]), typeof(int), typeof(int));
-            var apply = FindMethod(type, "EncryptRC4", typeof(byte[]), typeof(int), typeof(int), typeof(byte[]));
+        public void SetKey(byte[] key) => SetKey(key, 0, key.Length);
 
-            var data = new byte[length];
-            prepare.Invoke(target, [key, 0, key.Length]);
-            apply.Invoke(target, [data, 0, data.Length, data]);
-            return data;
-        }
+        public void SetKey(byte[] key, int offset, int length) =>
+            Type.GetMethod("SetKey", Public, null, [typeof(byte[]), typeof(int), typeof(int)], null)!
+                .Invoke(_rc4, [key, offset, length]);
 
-        private static MethodInfo FindMethod(Type type, string name, params Type[] parameters)
-        {
-            for (var t = type; t != null; t = t.BaseType)
-            {
-                var method = t.GetMethod(name, Instance | BindingFlags.DeclaredOnly, null, parameters, null);
-                if (method != null)
-                    return method;
-            }
-            throw new MissingMethodException(type.FullName, name);
-        }
+        /// <summary>Encrypts <paramref name="data"/> in place, as the library does everywhere.</summary>
+        public void Apply(byte[] data, int offset, int length) =>
+            Type.GetMethod("Apply", Public, null, [typeof(byte[]), typeof(int), typeof(int), typeof(byte[])], null)!
+                .Invoke(_rc4, [data, offset, length, data]);
     }
 }

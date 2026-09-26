@@ -272,8 +272,8 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     {
         if (bytes != null && bytes.Length != 0)
         {
-            PrepareKey();
-            EncryptRC4(bytes);
+            _rc4.SetKey(_key, 0, _keySize);
+            _rc4.Apply(bytes);
         }
         return bytes;
     }
@@ -365,14 +365,14 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
             {
                 for (var j = 0; j < mkey.Length; ++j)
                     mkey[j] = (byte)(digest[j] ^ i);
-                PrepareRC4Key(mkey);
-                EncryptRC4(ownerKey);
+                _rc4.SetKey(mkey);
+                _rc4.Apply(ownerKey);
             }
         }
         else
         {
-            PrepareRC4Key(digest, 0, 5);
-            EncryptRC4(userPad, ownerKey);
+            _rc4.SetKey(digest, 0, 5);
+            _rc4.Apply(userPad, 0, userPad.Length, ownerKey);
         }
         return ownerKey;
     }
@@ -432,98 +432,14 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
             {
                 for (var j = 0; j < _encryptionKey.Length; j++)
                     digest[j] = (byte)(_encryptionKey[j] ^ i);
-                PrepareRC4Key(digest, 0, _encryptionKey.Length);
-                EncryptRC4(_userKey, 0, 16);
+                _rc4.SetKey(digest, 0, _encryptionKey.Length);
+                _rc4.Apply(_userKey, 0, 16, _userKey);
             }
         }
         else
         {
-            PrepareRC4Key(_encryptionKey);
-            EncryptRC4(PasswordPadding, _userKey);
-        }
-    }
-
-    /// <summary>
-    /// Prepare the encryption key.
-    /// </summary>
-    private void PrepareKey()
-    {
-        PrepareRC4Key(_key, 0, _keySize);
-    }
-
-    /// <summary>
-    /// Prepare the encryption key.
-    /// </summary>
-    private void PrepareRC4Key(byte[] key)
-    {
-        PrepareRC4Key(key, 0, key.Length);
-    }
-
-    /// <summary>
-    /// Prepare the encryption key.
-    /// </summary>
-    private void PrepareRC4Key(byte[] key, int offset, int length)
-    {
-        var idx1 = 0;
-        var idx2 = 0;
-        for (var idx = 0; idx < 256; idx++)
-            _state[idx] = (byte)idx;
-        byte tmp;
-        for (var idx = 0; idx < 256; idx++)
-        {
-            idx2 = (key[idx1 + offset] + _state[idx] + idx2) & 255;
-            tmp = _state[idx];
-            _state[idx] = _state[idx2];
-            _state[idx2] = tmp;
-            idx1 = (idx1 + 1) % length;
-        }
-    }
-
-    /// <summary>
-    /// Encrypts the data.
-    /// </summary>
-    // ReSharper disable InconsistentNaming
-    private void EncryptRC4(byte[] data)
-        // ReSharper restore InconsistentNaming
-    {
-        EncryptRC4(data, 0, data.Length, data);
-    }
-
-    /// <summary>
-    /// Encrypts the data.
-    /// </summary>
-    // ReSharper disable once InconsistentNaming
-    private void EncryptRC4(byte[] data, int offset, int length)
-    {
-        EncryptRC4(data, offset, length, data);
-    }
-
-    /// <summary>
-    /// Encrypts the data.
-    /// </summary>
-    // ReSharper disable once InconsistentNaming
-    private void EncryptRC4(byte[] inputData, byte[] outputData)
-    {
-        EncryptRC4(inputData, 0, inputData.Length, outputData);
-    }
-
-    /// <summary>
-    /// Encrypts the data.
-    /// </summary>
-    // ReSharper disable once InconsistentNaming
-    private void EncryptRC4(byte[] inputData, int offset, int length, byte[] outputData)
-    {
-        length += offset;
-        int x = 0, y = 0;
-        byte b;
-        for (var idx = offset; idx < length; idx++)
-        {
-            x = (x + 1) & 255;
-            y = (_state[x] + y) & 255;
-            b = _state[x];
-            _state[x] = _state[y];
-            _state[y] = b;
-            outputData[idx] = (byte)(inputData[idx] ^ _state[(_state[x] + _state[y]) & 255]);
+            _rc4.SetKey(_encryptionKey);
+            _rc4.Apply(PasswordPadding, 0, PasswordPadding.Length, _userKey);
         }
     }
 
@@ -624,9 +540,9 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     private MD5Managed _md5Instance;
 
     /// <summary>
-    /// Bytes used for RC4 encryption.
+    /// The cipher the writer encrypts with.
     /// </summary>
-    private readonly byte[] _state = new byte[256];
+    private readonly Rc4 _rc4 = new();
 
     /// <summary>
     /// The encryption key for the owner.
