@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Formats.Asn1;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +29,9 @@ public class Rfc3161TimestampProviderTests
 {
     private static readonly Uri Authority = new("http://tsa.example.invalid/");
 
+    private static readonly Lazy<X509Certificate2> AuthorityCertificate =
+        new(() => SigningCertificates.CreateTimestampAuthority("CN=PdfPinata Test TSA"));
+
     [Fact]
     public void AGenuineResponseYieldsItsToken()
     {
@@ -37,6 +42,64 @@ public class Rfc3161TimestampProviderTests
         var token = provider.GetTimestamp(SHA256.HashData("signed"u8), HashAlgorithmName.SHA256);
 
         Rfc3161TimestampToken.TryDecode(token, out _, out _).Should().BeTrue();
+    }
+
+    [Fact]
+    public void TheRequestAsksTheAuthorityForItsCertificate()
+    {
+        byte[] query = null;
+        using var handler = new FakeAuthority(request =>
+        {
+            query = request.Content!.ReadAsByteArrayAsync().GetAwaiter().GetResult();
+            return new ByteArrayContent(GenuineResponseTo(request));
+        });
+        using var client = new HttpClient(handler);
+        using var provider = new Rfc3161TimestampProvider(Authority, client);
+
+        provider.GetTimestamp(SHA256.HashData("signed"u8), HashAlgorithmName.SHA256);
+
+        Rfc3161TimestampRequest.TryDecode(query, out var decoded, out _).Should().BeTrue();
+        decoded!.RequestSignerCertificate.Should().BeTrue(
+            "RFC 3161 2.4.1 lets an authority leave its certificate out of the token unless certReq asks for it");
+    }
+
+    [Fact]
+    public void ASignatureTimestampedThroughTheProviderCarriesTheAuthoritysCertificate()
+    {
+        using var handler = new FakeAuthority(request => new ByteArrayContent(GenuineResponseTo(request)));
+        using var client = new HttpClient(handler);
+        using var provider = new Rfc3161TimestampProvider(Authority, client);
+        var signer = new Pkcs7Signer(SigningCertificates.Default, timestampProvider: provider);
+
+        var signature = new SignedCms();
+        signature.Decode(signer.Sign(new System.IO.MemoryStream("a document"u8.ToArray())));
+
+        var attribute = signature.SignerInfos[0].UnsignedAttributes
+            .Cast<CryptographicAttributeObject>()
+            .Single(a => a.Oid.Value == "1.2.840.113549.1.9.16.2.14");
+        Rfc3161TimestampToken.TryDecode(attribute.Values[0].RawData, out var token, out _).Should().BeTrue();
+
+        token!.AsSignedCms().Certificates.Cast<X509Certificate2>()
+            .Select(certificate => certificate.Thumbprint)
+            .Should().Contain(AuthorityCertificate.Value.Thumbprint);
+    }
+
+    /// <summary>
+    ///   Checked by <see cref="Rfc3161TimestampRequest.ProcessResponse"/>, and only because the
+    ///   token now carries the certificate to check it with: without <c>certReq</c> the same damaged
+    ///   token was accepted and folded into the signature.
+    /// </summary>
+    [Fact]
+    public void ATokenWhoseSignatureDoesNotVerifyFailsTheFetch()
+    {
+        using var handler = new FakeAuthority(request =>
+            new ByteArrayContent(GenuineResponseTo(request, corruptSignature: true)));
+        using var client = new HttpClient(handler);
+        using var provider = new Rfc3161TimestampProvider(Authority, client);
+
+        var fetching = () => provider.GetTimestamp(SHA256.HashData("signed"u8), HashAlgorithmName.SHA256);
+
+        fetching.Should().Throw<InvalidOperationException>().WithMessage("*tsa.example.invalid*");
     }
 
     [Fact]
@@ -103,16 +166,21 @@ public class Rfc3161TimestampProviderTests
     /// <summary>
     ///   The <c>TimeStampResp</c> an authority would send for <paramref name="request"/>: granted
     ///   status, and a token minted by <see cref="LocalTimestampAuthority"/> over the request's own
-    ///   message imprint.
+    ///   message imprint. Like a real authority, it puts its certificate in the token when the
+    ///   query's <c>certReq</c> asks for it and leaves it out otherwise (RFC 3161 2.4.1).
+    ///   <paramref name="corruptSignature"/> flips the last byte of the token's signature value,
+    ///   leaving everything else about it — its structure, its imprint, its certificate — as it was.
     /// </summary>
-    private static byte[] GenuineResponseTo(HttpRequestMessage request)
+    private static byte[] GenuineResponseTo(HttpRequestMessage request, bool corruptSignature = false)
     {
         var query = request.Content!.ReadAsByteArrayAsync().GetAwaiter().GetResult();
         Rfc3161TimestampRequest.TryDecode(query, out var decoded, out _).Should().BeTrue();
 
-        var authority = new LocalTimestampAuthority(
-            SigningCertificates.CreateTimestampAuthority("CN=PdfPinata Test TSA"));
+        var authority = new LocalTimestampAuthority(AuthorityCertificate.Value);
         var token = authority.GetTimestamp(decoded!.GetMessageHash().ToArray(), HashAlgorithmName.SHA256);
+
+        if (corruptSignature)
+            token = WithCorruptSignature(token);
 
         // A real authority leaves its certificate out when the query's certReq says not to send it,
         // and the provider's own check of the response holds it to that.
@@ -134,6 +202,21 @@ public class Rfc3161TimestampProviderTests
         }
 
         return writer.Encode();
+    }
+
+    /// <summary>The token with the last byte of its one signature value changed.</summary>
+    private static byte[] WithCorruptSignature(byte[] token)
+    {
+        var signed = new SignedCms();
+        signed.Decode(token);
+        var signature = signed.SignerInfos[0].GetSignature();
+
+        var at = token.AsSpan().IndexOf(signature);
+        at.Should().BeGreaterThanOrEqualTo(0);
+
+        var corrupt = (byte[])token.Clone();
+        corrupt[at + signature.Length - 1] ^= 0xFF;
+        return corrupt;
     }
 
     /// <summary>Answers every request with whatever content the test hands it.</summary>

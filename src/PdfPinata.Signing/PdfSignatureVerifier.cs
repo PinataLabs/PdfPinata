@@ -27,10 +27,6 @@ namespace PdfPinata.Signing;
 /// </remarks>
 public static class PdfSignatureVerifier
 {
-    /// <summary>id-aa-signatureTimeStampToken, RFC 3161 / RFC 5035.</summary>
-    private const string SignatureTimeStampTokenOid = "1.2.840.113549.1.9.16.2.14";
-
-
     /// <summary>
     /// Checks every signature in a signed file.
     /// </summary>
@@ -144,7 +140,7 @@ public static class PdfSignatureVerifier
     {
         foreach (var attribute in signerInfo.UnsignedAttributes)
         {
-            if (attribute.Oid.Value != SignatureTimeStampTokenOid || attribute.Values.Count == 0)
+            if (attribute.Oid.Value != CmsEncoding.SignatureTimeStampTokenOid || attribute.Values.Count == 0)
                 continue;
 
             try

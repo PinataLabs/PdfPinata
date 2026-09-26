@@ -159,6 +159,17 @@ new name. A failure names the URI, so a caller whose authority has moved sees it
 A caller who passes its own `HttpClient` sets its own redirect policy. The size cap and the timeout
 apply either way, because they are in the read and not in the client.
 
+**The timestamp request asks for the authority's certificate** (#193). RFC 3161 section 2.4.1 lets
+an authority leave its certificate out of the token unless the request's `certReq` is true, and
+`Rfc3161TimestampRequest.CreateFromHash` defaults it to false. A token without the certificate
+cannot be checked without finding the certificate somewhere else, and it gives the validation data
+nothing to gather for the timestamp. With the certificate present, `ProcessResponse` also checks the
+token's signature, so a damaged token fails the signing. `PdfSignatureValidationData` gathers the
+certificates inside each signature-timestamp token as well as the signer's, and asks the revocation
+provider about them with the token's own certificates as the chain. There is **no option to leave
+the certificate out**: the token grows by a few kilobytes, inside a reservation of 16 KiB, and a
+B-T signature whose timestamp cannot be checked later defeats the reason to timestamp it.
+
 **Permissions are enforced through the existing modification guard.** The guard already fronts the
 operations that can change a document and already produces a message naming the mode the document was
 opened with and what the operation needs. It gains the notion of **what kind of change** is being
