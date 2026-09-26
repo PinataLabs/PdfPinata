@@ -341,10 +341,8 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
 
         SetAppearance(form);
 
-        // What /Rect gives up before the text starts, as the specification asks for it: the
-        // difference at the left, top, right and bottom between /Rect and the box laid out in.
-        Elements[Keys.RD] = new PdfArray(Owner,
-            new PdfReal(inset), new PdfReal(inset), new PdfReal(inset), new PdfReal(inset));
+        // What /Rect gives up before the text starts: the box it is laid out in is inset by it.
+        SetRectDifferences(Keys.RD, inset);
     }
 
     /// <summary>

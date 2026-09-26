@@ -214,11 +214,7 @@ public sealed class PdfLineAnnotation : PdfMarkupAnnotation
         // ReSharper restore CompareOfFloatsByEqualityOperator
         #pragma warning restore S1244
         {
-            Elements.Remove(PdfAnnotation.Keys.AP);
-
-            // /AS names one of a set of appearances, so leaving it behind would point at a state
-            // in an /AP that is no longer there. SetAppearance clears it for the same reason.
-            Elements.Remove(PdfAnnotation.Keys.AS);
+            RemoveAppearance();
             return;
         }
 

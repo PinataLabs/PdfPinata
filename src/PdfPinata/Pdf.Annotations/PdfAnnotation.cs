@@ -620,6 +620,22 @@ public abstract class PdfAnnotation : PdfDictionary
     }
 
     /// <summary>
+    /// Writes <c>/RD</c> for an appearance drawn inset from <c>/Rect</c> by the same amount on
+    /// every side - the difference at the left, top, right and bottom between <c>/Rect</c> and
+    /// what is actually drawn, which is what ISO 32000-1 asks that entry to say.
+    /// </summary>
+    /// <param name="key">
+    /// <c>/RD</c>, as the subtype's own keys declare it: the entry belongs to the subtypes that
+    /// have one rather than to every annotation.
+    /// </param>
+    /// <param name="inset">How far in from <c>/Rect</c> the drawing starts.</param>
+    private protected void SetRectDifferences(string key, double inset)
+    {
+        Elements[key] = new PdfArray(Owner,
+            new PdfReal(inset), new PdfReal(inset), new PdfReal(inset), new PdfReal(inset));
+    }
+
+    /// <summary>
     /// Predefined keys of this dictionary.
     /// </summary>
     public class Keys : KeysBase

@@ -172,12 +172,9 @@ public abstract class PdfSquareCircleAnnotation : PdfMarkupAnnotation
         if (width < 1 || height < 1 || drawnWidth <= 0 || drawnHeight <= 0
             || (pen == null && brush == null))
         {
-            Elements.Remove(PdfAnnotation.Keys.AP);
+            // /RD describes the layout of an appearance that is no longer there.
+            RemoveAppearance();
             Elements.Remove(Keys.RD);
-
-            // /AS names one of a set of appearances, so leaving it behind would point at a state
-            // in an /AP that is no longer there. SetAppearance clears it for the same reason.
-            Elements.Remove(PdfAnnotation.Keys.AS);
             return;
         }
 
@@ -190,10 +187,8 @@ public abstract class PdfSquareCircleAnnotation : PdfMarkupAnnotation
 
         SetAppearance(form);
 
-        // What /Rect gives up to the border, as the specification asks for it: the difference at
-        // the left, top, right and bottom between /Rect and the square actually drawn.
-        Elements[Keys.RD] = new PdfArray(Owner,
-            new PdfReal(inset), new PdfReal(inset), new PdfReal(inset), new PdfReal(inset));
+        // What /Rect gives up to the border: the square actually drawn is inset by half of it.
+        SetRectDifferences(Keys.RD, inset);
     }
 
     /// <summary>
