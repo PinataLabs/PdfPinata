@@ -373,7 +373,7 @@ internal static class PdfPageResizer
             var corners = new double[4];
             for (var index = 0; index < 4; index++)
             {
-                if (!TryNumber(array.Elements[index], out corners[index]))
+                if (!PdfItemValues.TryGetNumber(array.Elements[index], out corners[index]))
                     return null;
             }
 
@@ -498,61 +498,6 @@ internal static class PdfPageResizer
 
         page.ApplyResizedBox(new PdfRectangle(target.X, target.Y,
             target.X + target.Width, target.Y + target.Height), size);
-    }
-
-    /// <summary>
-    /// Reads a number out of an item, following a reference to get at it.
-    /// <para>
-    /// Any object in a PDF is allowed to be indirect, a number in an array of coordinates
-    /// included. <c>GetReal</c> does not follow the reference - it throws
-    /// <see cref="InvalidCastException"/> on one - so reading coordinates with it turns a legal
-    /// if unusual file into a failed resize. Everything that reads a coordinate goes through
-    /// here instead, and answers false rather than throwing when the item is not a number at all.
-    /// </para>
-    /// </summary>
-    internal static bool TryNumber(PdfItem item, out double value)
-    {
-        if (item is PdfReference reference)
-            item = reference.Value;
-
-        switch (item)
-        {
-            case PdfReal real:
-                value = real.Value;
-                return true;
-
-            case PdfRealObject realObject:
-                value = realObject.Value;
-                return true;
-
-            case PdfInteger integer:
-                value = integer.Value;
-                return true;
-
-            case PdfIntegerObject integerObject:
-                value = integerObject.Value;
-                return true;
-
-            case PdfUInteger uinteger:
-                value = uinteger.Value;
-                return true;
-
-            case PdfUIntegerObject uintegerObject:
-                value = uintegerObject.Value;
-                return true;
-
-            case PdfLong longInteger:
-                value = longInteger.Value;
-                return true;
-
-            case PdfLongObject longObject:
-                value = longObject.Value;
-                return true;
-
-            default:
-                value = 0;
-                return false;
-        }
     }
 
     /// <summary>

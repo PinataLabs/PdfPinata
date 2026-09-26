@@ -281,8 +281,8 @@ internal static class PdfDestinationScaler
             if (destination.Elements.Count < 4)
                 return;
 
-            var hasLeft = PdfPageResizer.TryNumber(destination.Elements[2], out var left);
-            var hasTop = PdfPageResizer.TryNumber(destination.Elements[3], out var top);
+            var hasLeft = PdfItemValues.TryGetNumber(destination.Elements[2], out var left);
+            var hasTop = PdfItemValues.TryGetNumber(destination.Elements[3], out var top);
 
             if (hasLeft && hasTop)
             {
@@ -313,7 +313,7 @@ internal static class PdfDestinationScaler
             var corners = new double[4];
             for (var index = 0; index < 4; index++)
             {
-                if (!PdfPageResizer.TryNumber(destination.Elements[index + 2], out corners[index]))
+                if (!PdfItemValues.TryGetNumber(destination.Elements[index + 2], out corners[index]))
                     return;
             }
 
@@ -340,7 +340,7 @@ internal static class PdfDestinationScaler
         private static void MoveHorizontalLine(PdfArray destination, XMatrix matrix)
         {
             if (destination.Elements.Count < 3 ||
-                !PdfPageResizer.TryNumber(destination.Elements[2], out var value))
+                !PdfItemValues.TryGetNumber(destination.Elements[2], out var value))
                 return;
 
             if (IsAxisAligned(matrix))
@@ -361,7 +361,7 @@ internal static class PdfDestinationScaler
         private static void MoveVerticalLine(PdfArray destination, XMatrix matrix)
         {
             if (destination.Elements.Count < 3 ||
-                !PdfPageResizer.TryNumber(destination.Elements[2], out var value))
+                !PdfItemValues.TryGetNumber(destination.Elements[2], out var value))
                 return;
 
             if (IsAxisAligned(matrix))

@@ -168,9 +168,8 @@ internal static class PdfTransparencyDetector
     private static double AlphaOf(PdfDictionary state, string key)
     {
         // Not GetReal: it answers 0 for a key that is absent, which would read every graphics
-        // state in the document as fully transparent. TryNumber also follows a reference, which
-        // a number in a dictionary is allowed to be.
-        return PdfPageResizer.TryNumber(state.Elements[key], out var alpha) ? alpha : 1;
+        // state in the document as fully transparent.
+        return PdfItemValues.TryGetNumber(state.Elements[key], out var alpha) ? alpha : 1;
     }
 
     /// <summary>

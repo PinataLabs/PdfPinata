@@ -971,17 +971,9 @@ public abstract class PdfAcroField : PdfDictionary
     /// </remarks>
     internal static string TextOfOption(PdfItem item)
     {
-        if (item is PdfReference reference)
-            item = reference.Value;
-
-        return item switch
-        {
-            PdfString str => str.Value,
-            PdfStringObject strObject => strObject.Value,
-            PdfName name => name.Value,
-            PdfNameObject nameObject => nameObject.Value,
-            _ => item?.ToString()
-        };
+        return PdfItemValues.TryGetText(item, allowName: true, out var text)
+            ? text
+            : PdfReference.Dereference(item)?.ToString();
     }
 
     /// <remarks>

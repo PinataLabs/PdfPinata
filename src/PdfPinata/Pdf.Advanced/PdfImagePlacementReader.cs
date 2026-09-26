@@ -201,7 +201,7 @@ internal sealed class PdfImagePlacementReader
         var m = new double[6];
         for (var idx = 0; idx < 6; idx++)
         {
-            if (!TryGetNumber(matrix.Elements[idx], out m[idx]))
+            if (!PdfItemValues.TryGetNumber(matrix.Elements[idx], out m[idx]))
                 return XMatrix.Identity;
         }
 
@@ -242,10 +242,4 @@ internal sealed class PdfImagePlacementReader
         value = 0;
         return false;
     }
-
-    /// <summary>
-    /// A number of a form's /Matrix, read the way every coordinate a page is resized by is read,
-    /// so that an indirect one is read as the number it is rather than as no number.
-    /// </summary>
-    private static bool TryGetNumber(PdfItem item, out double value) => PdfPageResizer.TryNumber(item, out value);
 }

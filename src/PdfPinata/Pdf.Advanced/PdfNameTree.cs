@@ -105,21 +105,10 @@ internal static class PdfNameTree
     /// </summary>
     internal static string TextOf(PdfItem item)
     {
-        if (item is PdfReference reference)
-            item = reference.Value;
+        if (PdfItemValues.TryGetText(item, allowName: false, out var text))
+            return text;
 
-        if (item is PdfString text)
-            return text.Value;
-
-        if (item is PdfStringObject textObject)
-            return textObject.Value;
-
-        var name = item as PdfName;
-        if (name != null)
-            return WithoutSlash(name.Value);
-
-        var nameObject = item as PdfNameObject;
-        return nameObject != null ? WithoutSlash(nameObject.Value) : null;
+        return PdfItemValues.TryGetName(item, out var name) ? WithoutSlash(name) : null;
     }
 
     private static string WithoutSlash(string name)

@@ -181,7 +181,7 @@ internal static class PdfAnnotationTransformer
         var numbers = new double[count];
         for (var index = 0; index < count; index++)
         {
-            if (!PdfPageResizer.TryNumber(array.Elements[index], out numbers[index]))
+            if (!PdfItemValues.TryGetNumber(array.Elements[index], out numbers[index]))
                 return;
         }
 
@@ -261,7 +261,7 @@ internal static class PdfAnnotationTransformer
         var numbers = new double[array.Elements.Count];
         for (var index = 0; index < numbers.Length; index++)
         {
-            if (!PdfPageResizer.TryNumber(array.Elements[index], out numbers[index]))
+            if (!PdfItemValues.TryGetNumber(array.Elements[index], out numbers[index]))
                 return null;
         }
 
