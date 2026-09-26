@@ -1,5 +1,6 @@
 using System;
 using System.Formats.Asn1;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using AwesomeAssertions;
@@ -53,6 +54,60 @@ public class OcspRevocationDataProviderTests
         var result = provider.GetRevocationData(certificate, []);
 
         result.Should().BeSameAs(RevocationData.None);
+    }
+
+    [Fact]
+    public void AResponseFromTheResponderIsAnsweredAsEvidence()
+    {
+        var (certificate, chain) = CertificateIssuedWithResponder("http://ocsp.example.invalid/");
+        var answer = new byte[] { 0x30, 0x03, 0x0A, 0x01, 0x00 };
+        using var handler = new Rfc3161TimestampProviderTests.FakeAuthority(_ => new ByteArrayContent(answer));
+        using var client = new HttpClient(handler);
+        using var provider = new OcspRevocationDataProvider(client);
+
+        var result = provider.GetRevocationData(certificate, chain);
+
+        result.OcspResponses.Should().ContainSingle().Which.Should().Equal(answer);
+    }
+
+    [Fact]
+    public void AResponseLargerThanTheCapAnswersNoEvidenceWithoutBeingReadInFull()
+    {
+        var (certificate, chain) = CertificateIssuedWithResponder("http://ocsp.example.invalid/");
+        var body = new Rfc3161TimestampProviderTests.CountingStream(16 * 1024 * 1024);
+        using var handler = new Rfc3161TimestampProviderTests.FakeAuthority(_ => new StreamContent(body));
+        using var client = new HttpClient(handler);
+        using var provider = new OcspRevocationDataProvider(client);
+
+        var result = provider.GetRevocationData(certificate, chain);
+
+        result.Should().BeSameAs(RevocationData.None);
+        body.BytesRead.Should().BeLessThan(2 * 1024 * 1024);
+    }
+
+    /// <summary>
+    ///   A leaf naming <paramref name="ocspUri"/> as its responder, and a chain holding the issuer it
+    ///   names: the two things <see cref="OcspRevocationDataProvider.GetRevocationData"/> needs before
+    ///   it sends a request at all.
+    /// </summary>
+    private static (X509Certificate2 Certificate, X509Certificate2Collection Chain) CertificateIssuedWithResponder(
+        string ocspUri)
+    {
+        using var issuerKey = RSA.Create(2048);
+        var issuerRequest = new CertificateRequest("CN=PdfPinata Test Issuer", issuerKey, HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1);
+        issuerRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true));
+        var issuer = issuerRequest.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddYears(1));
+
+        using var leafKey = RSA.Create(2048);
+        var leafRequest = new CertificateRequest("CN=PdfPinata Test Subject", leafKey, HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1);
+        leafRequest.CertificateExtensions.Add(
+            new X509Extension("1.3.6.1.5.5.7.1.1", AuthorityInfoAccess(ocspUri), critical: false));
+        var leaf = leafRequest.Create(issuer, DateTimeOffset.UtcNow.AddHours(-1), DateTimeOffset.UtcNow.AddMonths(1),
+            [1, 2, 3, 4]);
+
+        return (leaf, [issuer]);
     }
 
     /// <summary>

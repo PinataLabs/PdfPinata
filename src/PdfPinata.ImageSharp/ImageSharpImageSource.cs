@@ -23,11 +23,15 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
     /// Wraps an image the caller has already decoded with ImageSharp, so that one held in memory need
     /// not be encoded and decoded again to be drawn.
     /// </summary>
+    /// <param name="image">The decoded image.</param>
+    /// <param name="imgFormat">The format it was decoded from; a PNG is treated as transparent.</param>
+    /// <param name="quality">
+    /// JPEG quality, 0 to 100, used when the image is written lossily. <c>null</c> means the default, 75.
+    /// </param>
     public static IImageSource FromImageSharpImage(Image<TPixel> image, IImageFormat imgFormat, int? quality = 75)
     {
         var _path = "*" + Guid.NewGuid().ToString("B");
-        // ReSharper disable once PossibleInvalidOperationException
-        return new ImageSharpImageSourceImpl<TPixel>(_path, image, (int)quality, imgFormat is PngFormat);
+        return new ImageSharpImageSourceImpl<TPixel>(_path, image, quality ?? DefaultQuality, imgFormat is PngFormat);
     }
 
     /// <summary>Decodes an image from bytes fetched on demand.</summary>
@@ -44,8 +48,7 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
         {
             throw ImageSharpVersion.Incompatible(ex);
         }
-        // ReSharper disable once PossibleInvalidOperationException
-        return new ImageSharpImageSourceImpl<TPixel>(name, image, (int)quality, isPng);
+        return new ImageSharpImageSourceImpl<TPixel>(name, image, quality ?? DefaultQuality, isPng);
     }
 
     /// <summary>Decodes an image from a file.</summary>
@@ -61,8 +64,7 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
         {
             throw ImageSharpVersion.Incompatible(ex);
         }
-        // ReSharper disable once PossibleInvalidOperationException
-        return new ImageSharpImageSourceImpl<TPixel>(path, image, (int) quality, isPng);
+        return new ImageSharpImageSourceImpl<TPixel>(path, image, quality ?? DefaultQuality, isPng);
     }
 
     /// <summary>Decodes an image from a stream opened on demand.</summary>
@@ -79,8 +81,7 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
         {
             throw ImageSharpVersion.Incompatible(ex);
         }
-        // ReSharper disable once PossibleInvalidOperationException
-        return new ImageSharpImageSourceImpl<TPixel>(name, image, (int)quality, isPng);
+        return new ImageSharpImageSourceImpl<TPixel>(name, image, quality ?? DefaultQuality, isPng);
     }
 
     // The Load(..., out IImageFormat) overloads exist only in ImageSharp 2.x, so each call sits in

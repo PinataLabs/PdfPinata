@@ -18,13 +18,17 @@ public class SkiaImageSource
     /// Wraps an already decoded SkiaSharp bitmap. The bitmap must be Bgra8888 with
     /// unpremultiplied alpha, and ownership passes to the returned image source.
     /// </summary>
+    /// <param name="bitmap">The decoded bitmap, Bgra8888 with unpremultiplied alpha.</param>
+    /// <param name="transparent">Whether the bitmap's alpha channel is to be written as a mask.</param>
+    /// <param name="quality">
+    /// JPEG quality, 0 to 100, used when the image is written lossily. <c>null</c> means the default, 75.
+    /// </param>
     public static IImageSource FromSkiaBitmap(SKBitmap bitmap, bool transparent, int? quality = 75)
     {
         ArgumentNullException.ThrowIfNull(bitmap);
 
         var name = "*" + Guid.NewGuid().ToString("B");
-        // ReSharper disable once PossibleInvalidOperationException
-        return new SkiaImageSourceImpl(name, bitmap, (int)quality, transparent);
+        return new SkiaImageSourceImpl(name, bitmap, quality ?? DefaultQuality, transparent);
     }
 
 
@@ -86,8 +90,7 @@ public class SkiaImageSource
         // FLATE path, everything else is re-encoded as JPEG.
         var transparent = codec.EncodedFormat == SKEncodedImageFormat.Png;
 
-        // ReSharper disable once PossibleInvalidOperationException
-        return new SkiaImageSourceImpl(name, bitmap, (int)quality, transparent);
+        return new SkiaImageSourceImpl(name, bitmap, quality ?? DefaultQuality, transparent);
     }
 
 

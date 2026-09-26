@@ -66,6 +66,12 @@ public abstract class ImageSource
         PixelBuffer GetPixels();
     }
 
+    /// <summary>
+    /// The JPEG quality an image is written with when the caller passes none: what every
+    /// <c>quality</c> parameter defaults to, and what a <c>null</c> passed to one means.
+    /// </summary>
+    protected const int DefaultQuality = 75;
+
     /// <summary>Decodes an image from a file. Implemented by the backend.</summary>
     protected abstract IImageSource FromFileImpl(string path, int? quality = 75);
     /// <summary>Decodes an image from bytes fetched on demand. Implemented by the backend.</summary>
@@ -89,11 +95,13 @@ public abstract class ImageSource
     /// Decodes an image from a file through the registered implementation.
     /// </summary>
     /// <param name="path">Path to the image file.</param>
-    /// <param name="quality">JPEG quality, 0 to 100, used when the image is written lossily.</param>
+    /// <param name="quality">
+    /// JPEG quality, 0 to 100, used when the image is written lossily. <c>null</c> means the default, 75.
+    /// </param>
     /// <exception cref="InvalidOperationException">No implementation has been registered.</exception>
     public static IImageSource FromFile(string path, int? quality = 75)
     {
-        return RequireImpl().FromFileImpl(path, quality);
+        return RequireImpl().FromFileImpl(path, quality ?? DefaultQuality);
     }
 
     /// <summary>
@@ -103,11 +111,13 @@ public abstract class ImageSource
     /// </summary>
     /// <param name="name">A name to identify the image by.</param>
     /// <param name="imageSource">Returns the encoded bytes of the image.</param>
-    /// <param name="quality">JPEG quality, 0 to 100, used when the image is written lossily.</param>
+    /// <param name="quality">
+    /// JPEG quality, 0 to 100, used when the image is written lossily. <c>null</c> means the default, 75.
+    /// </param>
     /// <exception cref="InvalidOperationException">No implementation has been registered.</exception>
     public static IImageSource FromBinary(string name, Func<byte[]> imageSource, int? quality = 75)
     {
-        return RequireImpl().FromBinaryImpl(name, imageSource, quality);
+        return RequireImpl().FromBinaryImpl(name, imageSource, quality ?? DefaultQuality);
     }
 
     /// <summary>
@@ -116,10 +126,12 @@ public abstract class ImageSource
     /// </summary>
     /// <param name="name">A name to identify the image by.</param>
     /// <param name="imageStream">Opens a stream over the encoded image.</param>
-    /// <param name="quality">JPEG quality, 0 to 100, used when the image is written lossily.</param>
+    /// <param name="quality">
+    /// JPEG quality, 0 to 100, used when the image is written lossily. <c>null</c> means the default, 75.
+    /// </param>
     /// <exception cref="InvalidOperationException">No implementation has been registered.</exception>
     public static IImageSource FromStream(string name, Func<Stream> imageStream, int? quality = 75)
     {
-        return RequireImpl().FromStreamImpl(name, imageStream, quality);
+        return RequireImpl().FromStreamImpl(name, imageStream, quality ?? DefaultQuality);
     }
 }

@@ -55,7 +55,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="Microsoft.Sbom.Targets" Version="4.1.12" />
   </ItemGroup>
 
 </Project>

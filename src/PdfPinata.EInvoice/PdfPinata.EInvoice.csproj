@@ -37,7 +37,6 @@ Generating the EN 16931 invoice XML itself is out of scope — hand this the XML
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="Microsoft.Sbom.Targets" Version="4.1.12" />
   </ItemGroup>
 
 </Project>
