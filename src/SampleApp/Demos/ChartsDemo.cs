@@ -107,6 +107,9 @@ internal sealed class ChartsDemo : PdfDemo
 
         // ----- page 1: the column and bar family -----
 
+        // A new page is A4 or US Letter depending on the machine's region, so everything drawn on
+        // these pages stays within Letter's 792 points of height as well as A4's 842.
+
         var page1 = document.AddPage();
         var gfx1 = XGraphics.FromPdfPage(page1);
         gfx1.DrawString("Columns and bars", heading, XBrushes.Black, new XPoint(50, 60));
@@ -114,15 +117,15 @@ internal sealed class ChartsDemo : PdfDemo
         // Clustered puts the regions side by side and compares them; stacked puts them on top of
         // one another and compares the totals. Same numbers, different question.
         Place(gfx1, Regional(Charting.ChartType.Column2D, "North", "South", "West"),
-            new XRect(50, 90, 235, 210), "Column2D - clustered");
+            new XRect(50, 80, 235, 200), "Column2D - clustered");
         Place(gfx1, Regional(Charting.ChartType.ColumnStacked2D, "North", "South", "West"),
-            new XRect(310, 90, 235, 210), "ColumnStacked2D - one bar per quarter");
+            new XRect(310, 80, 235, 200), "ColumnStacked2D - one bar per quarter");
         Place(gfx1, Regional(Charting.ChartType.Bar2D, "North", "South", "West"),
-            new XRect(50, 350, 235, 210), "Bar2D - the same chart on its side");
+            new XRect(50, 320, 235, 200), "Bar2D - the same chart on its side");
         Place(gfx1, Regional(Charting.ChartType.BarStacked2D, "North", "South", "West"),
-            new XRect(310, 350, 235, 210), "BarStacked2D");
+            new XRect(310, 320, 235, 200), "BarStacked2D");
 
-        gfx1.DrawString("A pile taller than the scale", label, XBrushes.Black, new XPoint(50, 600));
+        gfx1.DrawString("A pile taller than the scale", label, XBrushes.Black, new XPoint(50, 562));
 
         // docs:begin stacked-scale
         // A fixed scale the data does not fit. Q4's pile comes to 158 against a maximum of 150, so
@@ -142,17 +145,17 @@ internal sealed class ChartsDemo : PdfDemo
         }
 
         Place(gfx1, Overflowing(Charting.ChartType.ColumnStacked2D),
-            new XRect(50, 612, 235, 160), "ColumnStacked2D - MaximumScale = 150");
+            new XRect(50, 572, 235, 140), "ColumnStacked2D - MaximumScale = 150");
         Place(gfx1, Overflowing(Charting.ChartType.BarStacked2D),
-            new XRect(310, 612, 235, 160), "BarStacked2D - the same figures and scale");
+            new XRect(310, 572, 235, 140), "BarStacked2D - the same figures and scale");
         // docs:end stacked-scale
 
         gfx1.DrawString(
             "A segment not wholly on the scale is left out, with its label: Q4's West, from 111 to 158.",
-            caption, XBrushes.DimGray, new XPoint(50, 796));
+            caption, XBrushes.DimGray, new XPoint(50, 740));
         gfx1.DrawString(
             "Columns and bars follow the same rule, so the two charts agree on what is drawn.",
-            caption, XBrushes.DimGray, new XPoint(50, 807));
+            caption, XBrushes.DimGray, new XPoint(50, 751));
 
         // ----- page 2: lines, areas, and one chart of two kinds -----
 
