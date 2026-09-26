@@ -50,12 +50,22 @@ internal abstract class ColumnLikePlotAreaRenderer : PlotAreaRenderer
   /// </summary>
   internal override void Format()
   {
-    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
+    FormatMatrix(AxisOrientation.Horizontal);
+  }
 
-    var xMin = cri.XAxisRendererInfo.MinimumScale;
-    var xMax = cri.XAxisRendererInfo.MaximumScale;
-    var yMin = cri.YAxisRendererInfo.MinimumScale;
-    var yMax = cri.YAxisRendererInfo.MaximumScale;
+  /// <summary>
+  /// Sets up the matrix that takes a point of chart space, as <see cref="PlotOrientation.At"/>
+  /// places it for a category axis running as <paramref name="categoryAxis"/> says, to the page.
+  /// </summary>
+  /// <remarks>
+  /// Both orientations are the one matrix with chart space's two coordinates swapped: the first is
+  /// fitted across the plot area from its left edge, the second up it from its foot. So a column
+  /// chart's categories run left to right and its values upwards, and a bar chart's values run left
+  /// to right and its categories upwards - the first category at the foot, as in Excel.
+  /// </remarks>
+  protected void FormatMatrix(AxisOrientation categoryAxis)
+  {
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
     var plotAreaBox = cri.PlotAreaRendererInfo.Rect;
 
@@ -70,16 +80,20 @@ internal abstract class ColumnLikePlotAreaRenderer : PlotAreaRenderer
       return;
     }
 
-    // The width is divided by the span between the two, not by xMax. The translate above has
-    // already moved xMin to the origin, so the distance left to fit across the plot area is
-    // xMax - xMin; dividing by xMax alone agrees with it only while xMin is zero. That is true
-    // today - the category axis fixes its minimum there, CalculateXAxisValues assigning it where
-    // the value axis takes one from the Axis object - so this changes nothing now. It means the
-    // pair goes on agreeing if the category axis ever learns to honour a minimum, rather than
-    // quietly drawing the whole chart short of the edge it was scaled to reach.
+    // The two corners of the scales, in chart space.
+    var min = categoryAxis.At(cri.XAxisRendererInfo.MinimumScale, cri.YAxisRendererInfo.MinimumScale);
+    var max = categoryAxis.At(cri.XAxisRendererInfo.MaximumScale, cri.YAxisRendererInfo.MaximumScale);
+
+    // Each extent is divided by the span of its scale, not by its maximum. The translate has
+    // already moved the minimum to the origin, so the distance left to fit across the plot area is
+    // the span; dividing by the maximum alone agrees with it only while the minimum is zero. That is
+    // true of the category axis today - it fixes its minimum there, CalculateXAxisValues assigning
+    // it where the value axis takes one from the Axis object - so this changes nothing now. It means
+    // the chart goes on filling its plot area if the category axis ever learns to honour a minimum,
+    // rather than quietly drawing short of the edge it was scaled to reach.
     cri.PlotAreaRendererInfo.Matrix = new XMatrix();  //XMatrix.Identity;
-    cri.PlotAreaRendererInfo.Matrix.TranslatePrepend(-xMin, yMax);
-    cri.PlotAreaRendererInfo.Matrix.Scale(plotAreaBox.Width / (xMax - xMin), plotAreaBox.Height / (yMax - yMin), XMatrixOrder.Append);
+    cri.PlotAreaRendererInfo.Matrix.TranslatePrepend(-min.X, max.Y);
+    cri.PlotAreaRendererInfo.Matrix.Scale(plotAreaBox.Width / (max.X - min.X), plotAreaBox.Height / (max.Y - min.Y), XMatrixOrder.Append);
     cri.PlotAreaRendererInfo.Matrix.ScalePrepend(1, -1);
     cri.PlotAreaRendererInfo.Matrix.Translate(plotAreaBox.X, plotAreaBox.Y, XMatrixOrder.Append);
   }

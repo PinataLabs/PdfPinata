@@ -144,8 +144,8 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
     var chart = (Chart)rendererParms.DrawingItem;
     return chart.type switch
     {
-      ChartType.Column2D => new ColumnClusteredPlotAreaRenderer(rendererParms),
-      ChartType.ColumnStacked2D => new ColumnStackedPlotAreaRenderer(rendererParms),
+      ChartType.Column2D => new ColumnClusteredPlotAreaRenderer(rendererParms, AxisOrientation.Horizontal),
+      ChartType.ColumnStacked2D => new ColumnStackedPlotAreaRenderer(rendererParms, AxisOrientation.Horizontal),
       _ => null
     };
   }

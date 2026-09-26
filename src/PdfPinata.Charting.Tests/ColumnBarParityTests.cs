@@ -18,12 +18,13 @@ namespace PdfPinata.Charting.Tests;
 ///   of it they draw and from where.
 /// </summary>
 /// <remarks>
-///   The column and bar plot area renderers are separate copies of one another -
+///   The column and bar plot area renderers used to be separate copies of one another -
 ///   <c>ColumnClusteredPlotAreaRenderer</c> and <c>BarClusteredPlotAreaRenderer</c>,
 ///   <c>ColumnStackedPlotAreaRenderer</c> and <c>BarStackedPlotAreaRenderer</c> - and each pair had
 ///   drifted apart: the stacked pair on which segments lie outside the scale, the clustered pair on
-///   where a bar starts after one that did. Every test here draws the same data both ways and
-///   holds them to the same answer, so a change reaching one twin and not the other fails.
+///   where a bar starts after one that did. They are one renderer each now, given the orientation
+///   of the category axis. Every test here draws the same data both ways and holds them to the same
+///   answer, so a change that turns one orientation and not the other fails.
 ///
 ///   The tests from <see cref="EveryColumnIsABarTurnedOnItsSide"/> on hold the two to more than
 ///   agreement: to being geometric transposes of one another. Each measures what it reads against

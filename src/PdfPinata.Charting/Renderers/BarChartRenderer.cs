@@ -156,8 +156,8 @@ internal class BarChartRenderer : ChartRenderer
     var chart = (Chart)rendererParms.DrawingItem;
     return chart.type switch
     {
-      ChartType.Bar2D => new BarClusteredPlotAreaRenderer(rendererParms),
-      ChartType.BarStacked2D => new BarStackedPlotAreaRenderer(rendererParms),
+      ChartType.Bar2D => new ColumnClusteredPlotAreaRenderer(rendererParms, AxisOrientation.Vertical),
+      ChartType.BarStacked2D => new ColumnStackedPlotAreaRenderer(rendererParms, AxisOrientation.Vertical),
       _ => null
     };
   }

@@ -229,8 +229,8 @@ internal class CombinationChartRenderer : ChartRenderer
   {
     var cri = (CombinationRendererInfo)rendererParms.RendererInfo;
     return cri.ColumnsStacked
-      ? new ColumnStackedPlotAreaRenderer(rendererParms)
-      : new ColumnClusteredPlotAreaRenderer(rendererParms);
+      ? new ColumnStackedPlotAreaRenderer(rendererParms, AxisOrientation.Horizontal)
+      : new ColumnClusteredPlotAreaRenderer(rendererParms, AxisOrientation.Horizontal);
   }
 
   /// <summary>

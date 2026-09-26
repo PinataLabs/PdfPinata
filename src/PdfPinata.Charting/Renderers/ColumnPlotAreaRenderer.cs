@@ -33,29 +33,39 @@ using PdfPinata.Drawing;
 namespace PdfPinata.Charting.Renderers;
 
 /// <summary>
-/// Represents a plot area renderer of clustered columns, i. e. all columns are drawn side by side.
+/// Represents the plot area of a column chart or a bar chart, which is a column chart turned on its
+/// side: each point a rectangle, standing on the category axis and reaching along the value axis.
+/// Which way the category axis runs is the orientation the renderer is given. Every position is
+/// worked out in chart space, as <see cref="PlotOrientation.At"/> places it, and the matrix
+/// <see cref="ColumnLikePlotAreaRenderer.FormatMatrix"/> sets up takes it to the page, so that the
+/// two orientations share every line of the arithmetic.
 /// </summary>
 internal abstract class ColumnPlotAreaRenderer : ColumnLikePlotAreaRenderer
 {
   /// <summary>
   /// Initializes a new instance of the ColumnPlotAreaRenderer class with the
-  /// specified renderer parameters.
+  /// specified renderer parameters and the orientation of the chart's category axis.
   /// </summary>
-  internal ColumnPlotAreaRenderer(RendererParameters parms) : base(parms)
+  internal ColumnPlotAreaRenderer(RendererParameters parms, AxisOrientation categoryAxis) : base(parms)
   {
+    this.categoryAxis = categoryAxis;
   }
+
+  /// <summary>
+  /// Which way the chart's category axis runs: across for a column chart, up for a bar chart.
+  /// </summary>
+  protected readonly AxisOrientation categoryAxis;
 
   /// <summary>
   /// Layouts and calculates the space for each column.
   /// </summary>
   internal override void Format()
   {
-    base.Format();
+    FormatMatrix(categoryAxis);
 
-    // Nothing to plot leaves the matrix the identity, and a column worked out against it is a
-    // rectangle in chart units rather than on the page - of negative size for a stacked column on
-    // a scale turned upside down, which XRect refuses. So the columns are not worked out at all
-    // and stay undrawn, as the bar plot area has always left its bars.
+    // Nothing to plot leaves the matrix the identity, and a column worked out against it would be
+    // a rectangle in chart units rather than on the page. So the columns are not worked out at all,
+    // and stay undrawn and unlabelled.
     if (NothingToPlot((ChartRendererInfo)rendererParms.RendererInfo))
       return;
 
@@ -97,7 +107,7 @@ internal abstract class ColumnPlotAreaRenderer : ColumnLikePlotAreaRenderer
     // Under some circumstances it is possible that no zero base line will be drawn,
     // e. g. because of unfavourable minimum/maximum scale and/or major tick, so force to draw
     // a zero base line if necessary.
-    DrawZeroBaseLine(cri, gfx, new XPoint(xMin, 0), new XPoint(xMax, 0));
+    DrawZeroBaseLine(cri, gfx, categoryAxis.At(xMin, 0), categoryAxis.At(xMax, 0));
 
     var state = gfx.Save();
     var columns = cri.SeriesRendererInfos
@@ -131,6 +141,25 @@ internal abstract class ColumnPlotAreaRenderer : ColumnLikePlotAreaRenderer
     cri.PlotAreaRendererInfo.Matrix.TransformPoints(points);
     new LineFormatRenderer(gfx, gridlines).DrawLine(points[0], points[1]);
   }
+
+  /// <summary>
+  /// The rectangle on the page of a column reaching from category x0 to x1 and from value y0 to
+  /// y1. The corners are taken through the matrix and the rectangle made of the two, whichever
+  /// way round the orientation turns them, so a column and a bar come out of the same call.
+  /// </summary>
+  protected XRect ColumnRect(double x0, double y0, double x1, double y1)
+  {
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
+    corners[0] = categoryAxis.At(x0, y0);
+    corners[1] = categoryAxis.At(x1, y1);
+    cri.PlotAreaRendererInfo.Matrix.TransformPoints(corners);
+    return new XRect(corners[0], corners[1]);
+  }
+
+  /// <summary>
+  /// The two corners <see cref="ColumnRect"/> transforms, kept rather than made for every column.
+  /// </summary>
+  private readonly XPoint[] corners = new XPoint[2];
 
   /// <summary>
   /// Calculates the position, width and height of each column of all series.
