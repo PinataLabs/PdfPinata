@@ -140,7 +140,7 @@ public class ScalarConversionTests
     ///   A key in a name tree is a string, and any object in a file is allowed to be indirect.
     /// </summary>
     [Fact]
-    public void ANamedDestinationWhoseNameIsIndirectIsNotListed()
+    public void ANamedDestinationWhoseNameIsIndirectIsListed()
     {
         var document = Pdf.IO.PdfReader.Open(new MemoryStream(RawPdf.Build([
             "<</Type/Catalog/Pages 2 0 R/Names<</Dests 4 0 R>>>>",
@@ -150,7 +150,8 @@ public class ScalarConversionTests
             "(Indirect)"
         ])), Pdf.IO.PdfDocumentOpenMode.Modify);
 
-        document.NamedDestinations.Names.Should().Equal("Direct");
+        document.NamedDestinations.Names.Should().Equal("Direct", "Indirect");
+        document.NamedDestinations.Resolve("Indirect").Should().NotBeNull();
     }
 
     private static PdfItem Make(PdfDocument document, string shape) => shape switch

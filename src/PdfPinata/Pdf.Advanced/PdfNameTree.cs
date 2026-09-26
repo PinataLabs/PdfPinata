@@ -100,10 +100,14 @@ internal static class PdfNameTree
 
     /// <summary>
     /// The text of a name written either as a string or as a name, without the slash a name
-    /// carries, or null if the item is neither.
+    /// carries, or null if the item is neither. Either may be indirect, as any object in a file
+    /// is allowed to be.
     /// </summary>
     internal static string TextOf(PdfItem item)
     {
+        if (item is PdfReference reference)
+            item = reference.Value;
+
         if (item is PdfString text)
             return text.Value;
 
