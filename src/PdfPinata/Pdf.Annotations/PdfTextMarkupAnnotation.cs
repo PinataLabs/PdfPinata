@@ -116,6 +116,7 @@ public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
         QuadPoints.Append(array, rect);
 
         UpdateRectangle();
+        Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
         RebuildAppearance();
     }
 
@@ -126,6 +127,7 @@ public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
     public void ClearQuads()
     {
         Elements.Remove(Keys.QuadPoints);
+        Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
         RebuildAppearance();
     }
 

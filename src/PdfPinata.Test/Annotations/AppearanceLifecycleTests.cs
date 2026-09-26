@@ -172,15 +172,25 @@ public sealed class AppearanceLifecycleTests : IDisposable
     }
 
     [Fact]
-    public void AddingAQuadToAHighlightDoesNotStampTheModificationDate()
+    public void AddingAQuadToAHighlightStampsTheModificationDate()
     {
         var highlight = OnAPage((PdfHighlightAnnotation)Configured("Highlight"));
         highlight.Elements.SetDateTime("/M", LongAgo);
 
         highlight.AddQuad(new PdfRectangle(new XPoint(100, 400), new XPoint(200, 420)));
+
+        highlight.Elements.GetDateTime("/M", DateTime.MinValue).Should().BeAfter(LongAgo);
+    }
+
+    [Fact]
+    public void ClearingAHighlightsQuadsStampsTheModificationDate()
+    {
+        var highlight = OnAPage((PdfHighlightAnnotation)Configured("Highlight"));
+        highlight.Elements.SetDateTime("/M", LongAgo);
+
         highlight.ClearQuads();
 
-        highlight.Elements.GetDateTime("/M", DateTime.MinValue).Should().Be(LongAgo);
+        highlight.Elements.GetDateTime("/M", DateTime.MinValue).Should().BeAfter(LongAgo);
     }
 
     // ----- what /RD and /BS say -------------------------------------------------------------------------
@@ -363,8 +373,7 @@ public sealed class AppearanceLifecycleTests : IDisposable
                 redact.AddQuad(new PdfRectangle(new XPoint(120, 520), new XPoint(180, 560)));
                 break;
             case PdfTextMarkupAnnotation markup:
-                // Rectangle rather than AddQuad, which stamps nothing: pinned on its own below.
-                markup.Rectangle = new PdfRectangle(new XPoint(100, 500), new XPoint(300, 640));
+                markup.AddQuad(new PdfRectangle(new XPoint(100, 400), new XPoint(300, 440)));
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(annotation), annotation.GetType().Name, null);
