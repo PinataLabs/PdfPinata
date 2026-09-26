@@ -178,8 +178,7 @@ internal static class PdfTransparencyDetector
     /// </summary>
     private static bool BlendsWithTheBackdrop(PdfItem item)
     {
-        if (item is PdfReference reference)
-            item = reference.Value;
+        item = PdfReference.Dereference(item);
 
         if (item is PdfName name)
             return name.Value != "/Normal" && name.Value != "/Compatible";
@@ -207,8 +206,7 @@ internal static class PdfTransparencyDetector
     /// </summary>
     private static bool IsSomethingOtherThanNone(PdfItem item)
     {
-        if (item is PdfReference reference)
-            item = reference.Value;
+        item = PdfReference.Dereference(item);
 
         // A PDF null is how a writer says a key holds nothing, whether it is written into the
         // dictionary itself or reached through a reference, and it reads as an absent key does.

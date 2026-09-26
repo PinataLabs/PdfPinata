@@ -98,7 +98,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
         if (!Entries.TryGetValue(key, out var value))
             return null;
 
-        return value is PdfReference reference ? reference.Value : value;
+        return PdfReference.Dereference(value);
     }
 
     /// <summary>
@@ -199,8 +199,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
 
     private static bool TryGetInteger(PdfItem item, out int value)
     {
-        if (item is PdfReference reference)
-            item = reference.Value;
+        item = PdfReference.Dereference(item);
 
         if (item is PdfInteger integer)
         {

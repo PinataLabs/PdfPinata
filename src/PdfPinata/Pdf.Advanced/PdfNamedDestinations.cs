@@ -176,8 +176,7 @@ internal static class PdfNamedDestinations
     /// </summary>
     private static PdfArray DestinationOf(PdfItem item)
     {
-        if (item is PdfReference iref)
-            item = iref.Value;
+        item = PdfReference.Dereference(item);
 
         if (item is PdfArray array)
             return array;

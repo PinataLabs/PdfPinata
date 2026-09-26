@@ -139,13 +139,13 @@ internal static class PdfDestinationScaler
         {
             // The element rather than the property: reading page.Annotations would give a page
             // without any an empty array to hold.
-            var item = Resolve(page.Elements[PdfPage.Keys.Annots]);
+            var item = PdfReference.Dereference(page.Elements[PdfPage.Keys.Annots]);
             if (item is not PdfArray annotations)
                 return;
 
             foreach (var element in annotations.Elements)
             {
-                if (Resolve(element) is PdfDictionary annotation)
+                if (PdfReference.Dereference(element) is PdfDictionary annotation)
                     VisitHolderAndItsAction(annotation, "/Dest");
             }
         }
@@ -222,11 +222,11 @@ internal static class PdfDestinationScaler
         /// </summary>
         private void VisitDestination(PdfItem item)
         {
-            item = Resolve(item);
+            item = PdfReference.Dereference(item);
 
             // A destination is either the array or a dictionary holding it under /D.
             if (item is PdfDictionary dictionary)
-                item = Resolve(dictionary.Elements["/D"]);
+                item = PdfReference.Dereference(dictionary.Elements["/D"]);
 
             if (item is not PdfArray destination || destination.Elements.Count < 2)
                 return;
@@ -406,11 +406,6 @@ internal static class PdfDestinationScaler
         private static double TransformY(double y, XMatrix matrix)
         {
             return y * matrix.M22 + matrix.OffsetY;
-        }
-
-        private static PdfItem Resolve(PdfItem item)
-        {
-            return item is PdfReference reference ? reference.Value : item;
         }
 
         private const int MaxDepth = 32;

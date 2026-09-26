@@ -55,18 +55,14 @@ internal static class PdfAnnotationTransformer
     {
         // Read the element and not the Annotations property, whose getter gives a page without
         // annotations an empty array to hold.
-        var item = page.Elements[PdfPage.Keys.Annots];
-        if (item is PdfReference reference)
-            item = reference.Value;
+        var item = PdfReference.Dereference(page.Elements[PdfPage.Keys.Annots]);
 
         if (item is not PdfArray annotations)
             return;
 
         foreach (var element in annotations.Elements)
         {
-            var annotationItem = element;
-            if (annotationItem is PdfReference annotationReference)
-                annotationItem = annotationReference.Value;
+            var annotationItem = PdfReference.Dereference(element);
 
             if (annotationItem is PdfDictionary annotation)
                 TransformOne(annotation, matrix);
@@ -120,7 +116,7 @@ internal static class PdfAnnotationTransformer
     /// </summary>
     private static void TransformRectangle(PdfDictionary dictionary, string key, XMatrix matrix)
     {
-        var item = Resolve(dictionary.Elements[key]);
+        var item = PdfReference.Dereference(dictionary.Elements[key]);
         var numbers = NumbersOf(item);
         if (numbers == null || numbers.Length != 4)
             return;
@@ -142,7 +138,7 @@ internal static class PdfAnnotationTransformer
     /// </summary>
     private static void TransformPoints(PdfDictionary dictionary, string key, XMatrix matrix)
     {
-        var item = Resolve(dictionary.Elements[key]);
+        var item = PdfReference.Dereference(dictionary.Elements[key]);
         if (item is not PdfArray array)
             return;
 
@@ -154,13 +150,13 @@ internal static class PdfAnnotationTransformer
     /// </summary>
     private static void TransformPointsOfEach(PdfDictionary dictionary, string key, XMatrix matrix)
     {
-        var item = Resolve(dictionary.Elements[key]);
+        var item = PdfReference.Dereference(dictionary.Elements[key]);
         if (item is not PdfArray outer)
             return;
 
         foreach (var element in outer.Elements)
         {
-            if (Resolve(element) is PdfArray inner)
+            if (PdfReference.Dereference(element) is PdfArray inner)
                 WritePoints(inner, matrix);
         }
     }
@@ -205,7 +201,7 @@ internal static class PdfAnnotationTransformer
     /// </summary>
     private static void TransformDifferences(PdfDictionary dictionary, string key, XMatrix matrix)
     {
-        var item = Resolve(dictionary.Elements[key]);
+        var item = PdfReference.Dereference(dictionary.Elements[key]);
         var numbers = NumbersOf(item);
         if (numbers == null || numbers.Length != 4)
             return;
@@ -224,7 +220,7 @@ internal static class PdfAnnotationTransformer
             ? new[] { bottom * alongY, left * alongX, top * alongY, right * alongX }
             : new[] { left * alongX, top * alongY, right * alongX, bottom * alongY };
 
-        if (Resolve(dictionary.Elements[key]) is not PdfArray array || array.Elements.Count != 4)
+        if (PdfReference.Dereference(dictionary.Elements[key]) is not PdfArray array || array.Elements.Count != 4)
             return;
 
         for (var index = 0; index < 4; index++)
@@ -238,11 +234,6 @@ internal static class PdfAnnotationTransformer
     private static bool IsTurned(XMatrix matrix)
     {
         return Math.Abs(matrix.M11) < 1e-9 && Math.Abs(matrix.M22) < 1e-9;
-    }
-
-    private static PdfItem Resolve(PdfItem item)
-    {
-        return item is PdfReference reference ? reference.Value : item;
     }
 
     /// <summary>
