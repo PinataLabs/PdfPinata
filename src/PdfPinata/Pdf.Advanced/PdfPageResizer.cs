@@ -533,6 +533,22 @@ internal static class PdfPageResizer
                 value = integerObject.Value;
                 return true;
 
+            case PdfUInteger uinteger:
+                value = uinteger.Value;
+                return true;
+
+            case PdfUIntegerObject uintegerObject:
+                value = uintegerObject.Value;
+                return true;
+
+            case PdfLong longInteger:
+                value = longInteger.Value;
+                return true;
+
+            case PdfLongObject longObject:
+                value = longObject.Value;
+                return true;
+
             default:
                 value = 0;
                 return false;

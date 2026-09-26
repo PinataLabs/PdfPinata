@@ -42,11 +42,12 @@ public class ScalarConversionTests
     [InlineData("a null object written out", Absent, Absent)]
     [InlineData("an indirect null object", Absent, Absent)]
     [InlineData("a reference with nothing behind it", Absent, Absent)]
-    [InlineData("an unsigned integer", "! 7 ! ! !", "! ! ! ! !")]
-    [InlineData("an indirect unsigned integer", "! ! ! ! !", "! ! ! ! !")]
-    [InlineData("an unsigned integer too large for an int", "! -1294967296 ! ! !", "! ! ! ! !")]
-    [InlineData("a long", "! ! ! ! !", "! ! ! ! !")]
-    [InlineData("an indirect long", "! ! ! ! !", "! ! ! ! !")]
+    [InlineData("an unsigned integer", "! 7 7 ! !", "! 7 7 ! !")]
+    [InlineData("an indirect unsigned integer", "! 7 7 ! !", "! 7 7 ! !")]
+    [InlineData("an unsigned integer too large for an int", "! ! 3000000000 ! !", "! ! 3000000000 ! !")]
+    [InlineData("a long", "! ! 5000000000 ! !", "! ! 5000000000 ! !")]
+    [InlineData("a long that fits in an int", "! 12 12 ! !", "! 12 12 ! !")]
+    [InlineData("an indirect long", "! ! 5000000000 ! !", "! ! 5000000000 ! !")]
     public void EveryAccessorAnswersForEveryShapeOfValue(string shape, string fromADictionary,
         string fromAnArray)
     {
@@ -116,7 +117,7 @@ public class ScalarConversionTests
     ///   image is shown upside down only if the form's matrix is read.
     /// </summary>
     [Fact]
-    public void AFormMatrixHoldingAnIndirectNumberIsIgnored()
+    public void AFormMatrixHoldingAnIndirectNumberIsRead()
     {
         var file = RawPdf.Build([
             "<</Type/Catalog/Pages 2 0 R>>",
@@ -132,7 +133,7 @@ public class ScalarConversionTests
 
         var page = Pdf.IO.PdfReader.Open(new MemoryStream(file), Pdf.IO.PdfDocumentOpenMode.Modify).Pages[0];
 
-        page.GetImagePlacements().Single().Orientation.Should().Be(PdfImageOrientation.Normal);
+        page.GetImagePlacements().Single().Orientation.Should().Be(PdfImageOrientation.FlipVertical);
     }
 
     /// <summary>
@@ -172,6 +173,7 @@ public class ScalarConversionTests
         "an indirect unsigned integer" => IndirectTo(document, new PdfUIntegerObject(document, 7)),
         "an unsigned integer too large for an int" => new PdfUInteger(3_000_000_000),
         "a long" => new PdfLong(5_000_000_000),
+        "a long that fits in an int" => new PdfLong(12),
         "an indirect long" => IndirectTo(document, new PdfLongObject(document, 5_000_000_000)),
         _ => throw new ArgumentOutOfRangeException(nameof(shape), shape, null)
     };

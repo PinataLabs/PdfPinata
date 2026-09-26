@@ -460,8 +460,20 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             if (obj is PdfIntegerObject integerObject)
                 return integerObject.Value;
 
-            if (obj is PdfUInteger uinteger)
+            // An integer too wide for an int is refused rather than wrapped round to a different
+            // number; the reader makes a PdfLong only of one outside the range of an int.
+            if (obj is PdfUInteger { Value: <= int.MaxValue } uinteger)
                 return (int)uinteger.Value;
+
+            if (obj is PdfUIntegerObject { Value: <= int.MaxValue } uintegerObject)
+                return (int)uintegerObject.Value;
+
+            if (obj is PdfLong { Value: >= int.MinValue and <= int.MaxValue } longInteger)
+                return (int)longInteger.Value;
+
+            if (obj is PdfLongObject { Value: >= int.MinValue and <= int.MaxValue } longObject)
+                return (int)longObject.Value;
+
             throw new InvalidCastException("GetInteger: Object is not an integer.");
         }
 
@@ -516,6 +528,18 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
 
             if (obj is PdfIntegerObject integerObject)
                 return integerObject.Value;
+
+            if (obj is PdfUInteger uinteger)
+                return uinteger.Value;
+
+            if (obj is PdfUIntegerObject uintegerObject)
+                return uintegerObject.Value;
+
+            if (obj is PdfLong longInteger)
+                return longInteger.Value;
+
+            if (obj is PdfLongObject longObject)
+                return longObject.Value;
 
             throw new InvalidCastException("GetReal: Object is not a number.");
         }

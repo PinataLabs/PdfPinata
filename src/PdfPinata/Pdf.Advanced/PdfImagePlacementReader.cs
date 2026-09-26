@@ -243,24 +243,9 @@ internal sealed class PdfImagePlacementReader
         return false;
     }
 
-    private static bool TryGetNumber(PdfItem item, out double value)
-    {
-        if (item is PdfReference reference)
-            item = reference.Value;
-
-        if (item is PdfReal real)
-        {
-            value = real.Value;
-            return true;
-        }
-
-        if (item is PdfInteger integer)
-        {
-            value = integer.Value;
-            return true;
-        }
-
-        value = 0;
-        return false;
-    }
+    /// <summary>
+    /// A number of a form's /Matrix, read the way every coordinate a page is resized by is read,
+    /// so that an indirect one is read as the number it is rather than as no number.
+    /// </summary>
+    private static bool TryGetNumber(PdfItem item, out double value) => PdfPageResizer.TryNumber(item, out value);
 }
