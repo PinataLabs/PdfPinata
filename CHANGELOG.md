@@ -36,6 +36,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Drawing & Graphics
 
+#### Breaking
+
+- **`XColor.GS` means how light a colour is, 0 for black and 1 for white, whichever way the colour was built.** A colour built from RGB held its darkness there, while one built from CMYK or grey held its lightness, so `XColor.FromArgb(255, 255, 255).GS` was 0 and `XColor.FromGrayScale(1).GS` was 1. Code reading `GS` from an RGB colour now gets the other end of the scale. An RGB black declared grey was written to a form field's `/MK` background or border as white, and is now written as black. Black, white and pure red now compare equal whether they were built from RGB, CMYK or grey. (#187)
+
 #### Fixed
 
 - **An arc with a sweep of 0 is drawn as a single curve that stays at its start, and always returns.** `XGraphics.DrawArc` and `XGraphicsPath.AddArc` never returned for a zero sweep starting at exactly 360 or -360: the quadrant the arc ends in came out as 4, and the walk through quadrants 0 to 3 kept adding curves until the process ran out of memory. Off a quadrant edge, such as a start of 45, both control points were 0/0 and the content-stream writer refused the NaN, so `DrawArc` threw at once and a path holding the arc threw when it was drawn. On any other quadrant edge the arc was cut as though it crossed that edge, so a start of 90 drew the whole ellipse. A zero sweep, or one too small to move the start angle (such as float cancellation leaves), is now one piece from its start to its start, whose control points lie at that point. Arcs with a non-zero sweep are unchanged. (#129, #130)
@@ -112,6 +116,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **An underline or strikethrough whose dash style changes between adjacent runs is drawn in each run's own style.** The two pen comparisons that decide where a rule ends compared colour and width only, so a dotted run followed by a dashed one was drawn as one dotted line. (#162)
 - **An upward text frame restores every graphics state it saves.** It saved the state twice and restored it once, so everything drawn after it on the page ran one `q` deeper. (#163)
 - **A PinataLayout chart no longer gives every point an empty line format.** The mapper wrote one for every point, always with a solid dash, so a dashed series' columns, bars and sectors were outlined solid. A point's line format is now mapped only when the document set one. (#171)
+- **A CMYK colour in a PinataLayout document drawn in RGB has the RGB that `XColor.FromCmyk` gives.** The DOM's `Color` used its own copy of the conversion, which rounded black up by half a level, so about half of all K values came out one level darker. K = 0 is one of them, so CMYK white was 254, 254, 254. (#186)
 
 ### API & Packaging
 
