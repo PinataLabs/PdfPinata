@@ -1,4 +1,11 @@
+using System.Collections.Generic;
+using System.Linq;
 using AwesomeAssertions;
+using PdfPinata.Drawing;
+using PdfPinata.Pdf;
+using PdfPinata.Pdf.Content;
+using PdfPinata.Pdf.Content.Objects;
+using PdfPinata.Test.Helpers;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
 using PinataLayout.Rendering.Tests.Helpers;
@@ -363,6 +370,64 @@ public class ChartMapperTests
         points[0].LineFormat.Visible.Should().BeFalse("nothing was mapped onto the first point");
         points[1].LineFormat.Visible.Should().BeTrue();
         points[1].LineFormat.Width.Point.Should().BeApproximately(3, 0.01);
+    }
+
+    /// <summary>
+    ///   A point that sets its width and says nothing about dashes keeps its series' dashes. The
+    ///   mapper used to write a dash style onto every format it carried across, Solid when the
+    ///   document gave none, which the drawing could not tell from a point that asked for a solid
+    ///   line (#192). Drawn rather than read off the mapped format, because whether a dash style
+    ///   was set is internal to the charting package.
+    /// </summary>
+    [Fact]
+    public void APointThatSetsOnlyAWidthKeepsItsSeriesDashes()
+    {
+        var document = new Document();
+        var domChart = ChartIn(document, ChartType.Column2D);
+        domChart.Width = Unit.FromPoint(300);
+        domChart.Height = Unit.FromPoint(200);
+        var domSeries = domChart.SeriesCollection.AddSeries();
+        domSeries.LineFormat.DashStyle = PinataLayout.DocumentObjectModel.Shapes.DashStyle.Dash;
+        domSeries.LineFormat.Width = Unit.FromPoint(2);
+        domSeries.Add(1.0);
+        domSeries.Add(2.0).LineFormat.Width = Unit.FromPoint(3);
+        domSeries.Add(3.0).LineFormat.DashStyle = PinataLayout.DocumentObjectModel.Shapes.DashStyle.Solid;
+
+        var strokes = StrokesOf(ChartMapper.ChartMapper.Map(domChart));
+
+        strokes.Where(stroke => System.Math.Abs(stroke.Width - 3) < 0.001).Should().ContainSingle()
+            .Which.Dashed.Should().BeTrue("the point set a width and nothing about dashes");
+        strokes.Count(stroke => System.Math.Abs(stroke.Width - 2) < 0.001 && stroke.Dashed).Should().Be(1,
+            "the first point has no line format of its own, and the third asked for a solid line");
+    }
+
+    /// <summary>
+    ///   The width and dash pattern of every path the frame strokes, drawn on a page of its own
+    ///   and read back.
+    /// </summary>
+    private static List<(double Width, bool Dashed)> StrokesOf(Charting.ChartFrame frame)
+    {
+        var pdf = new PdfDocument();
+        using (var gfx = XGraphics.FromPdfPage(pdf.AddPage()))
+            frame.DrawChart(gfx);
+
+        var strokes = new List<(double Width, bool Dashed)>();
+        var saved = new Stack<(double, bool)>();
+        (double Width, bool Dashed) state = (1, false);
+        foreach (var op in ContentReader.ReadContent(PageContent.Of(pdf.Reopened().Pages[0])).OfType<COperator>())
+        {
+            switch (op.OpCode.OpCodeName)
+            {
+                case OpCodeName.q: saved.Push(state); break;
+                case OpCodeName.Q: state = saved.Pop(); break;
+                case OpCodeName.w: state.Width = op.Operands[0] is CInteger whole ? whole.Value : ((CReal)op.Operands[0]).Value; break;
+                case OpCodeName.d: state.Dashed = ((CArray)op.Operands[0]).Count > 0; break;
+                case OpCodeName.S or OpCodeName.s or OpCodeName.B or OpCodeName.b or OpCodeName.Bx or OpCodeName.bx:
+                    strokes.Add(state);
+                    break;
+            }
+        }
+        return strokes;
     }
 
     /// <summary>

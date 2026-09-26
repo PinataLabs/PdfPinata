@@ -477,6 +477,16 @@ outlined once, as one polygon, with the series' pen, so a point has no border to
 `PointLineFormatTests`. The legend's border pen is dropped at the same width-0 test, so a hidden
 border no longer doubles the legend's padding either (`LegendTests.AHiddenLegendBorderIsNotPaddedFor`).
 
+The dash style needed the same distinction on its own (#192). `ToXPen` took a colour or a width the
+point left unset from the series' pen, but not the dash style, whose default, `Solid`, is also a
+value a caller can choose: a point that set only its width drew a solid border on a dashed series.
+`LineFormat` now records whether `DashStyle` was assigned (`dashStyleSet`, beside `isSet`), and an
+unassigned one is the default pen's. Every other caller passes `Solid` as that default, which is
+what an unassigned dash style already was, so nothing else draws differently. PinataLayout's
+`LineFormatMapper` wrote a dash style onto every format it carried across, `Solid` when the
+document gave none, and now writes one only when the document did. Pinned by
+`PointLineFormatTests` and `ChartMapperTests.APointThatSetsOnlyAWidthKeepsItsSeriesDashes`.
+
 ---
 
 ## C13. A second category series was drawn past the end of the axis — fixed
