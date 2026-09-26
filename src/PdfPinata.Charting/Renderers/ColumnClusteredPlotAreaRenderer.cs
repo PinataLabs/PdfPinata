@@ -119,10 +119,10 @@ internal class ColumnClusteredPlotAreaRenderer : ColumnPlotAreaRenderer
   }
 
   /// <summary>
-  /// If yValue is within the range from yMin to yMax returns true, otherwise false.
+  /// Whether the point's value is within the range from yMin to yMax, which a blank's never is.
   /// </summary>
-  protected override bool IsDataInside(double yMin, double yMax, double yValue)
+  protected override bool IsDataInside(double yMin, double yMax, ColumnRendererInfo point)
   {
-    return yValue <= yMax && yValue >= yMin;
+    return point.Value <= yMax && point.Value >= yMin;
   }
 }

@@ -129,7 +129,9 @@ Four places needed more than the substitution:
   They now leave a blank with no text at all, which their own `Draw` already passes over.
 - `ColumnStackedPlotAreaRenderer.IsDataInside` returned `true` unconditionally — a stacked column is
   inside the scale by construction — and so drew a blank with a null brush. It now answers
-  `!double.IsNaN(yValue)`: always inside, provided there is a value at all.
+  `!double.IsNaN(yValue)`: always inside, provided there is a value at all. That was only true of a
+  scale worked out from the data; since #168 both stacked renderers test the stretch a segment
+  covers on its pile against the scale, which a blank, having none, fails.
 - `LinePlotAreaRenderer` and `AreaPlotAreaRenderer` read `sri.series.Elements[idx].Value` directly.
   Both already mapped a NaN value to zero, and a blank now joins it there.
 
@@ -561,4 +563,5 @@ change to what a chart looks like rather than to whether it can be drawn.
   is asserted through the operators it wrote.
 - **Line, area and pie geometry.** Where the wedges and line segments themselves land is not
   asserted; those renderers were not among the ten and would want a path reader rather than a
-  rectangle reader.
+  rectangle reader. `PaintedPaths` is that reader, and since #169 `PieExplodedPlotAreaTests` reads
+  an exploded pie's wedge angles through it; the closed pie, the line and the area are still open.

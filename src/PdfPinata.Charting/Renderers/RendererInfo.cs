@@ -225,6 +225,18 @@ internal class SectorRendererInfo : PointRendererInfo
 internal class ColumnRendererInfo : PointRendererInfo
 {
   internal XRect Rect;
+
+  /// <summary>
+  /// Where on the value axis a stacked column or bar starts and ends, lower value first. NaN for
+  /// a blank, and for a column or bar that is not stacked, whose extent is its value.
+  /// </summary>
+  internal double StackedFrom = double.NaN, StackedTo = double.NaN;
+
+  /// <summary>
+  /// Whether the plot area draws this column or bar, which it decides once in Format. One off the
+  /// scale, and a blank, is not drawn, and the data label renderer writes no label for it.
+  /// </summary>
+  internal bool Drawn;
 }
 
 /// <summary>
