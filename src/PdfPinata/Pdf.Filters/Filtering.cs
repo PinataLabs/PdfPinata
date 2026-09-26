@@ -191,8 +191,7 @@ public static class Filtering
     /// </summary>
     private static PdfItem Direct(PdfItem item)
     {
-        if (item is PdfReference reference)
-            item = reference.Value;
+        item = PdfReference.Dereference(item);
         return item is PdfNull or PdfNullObject ? null : item;
     }
 
