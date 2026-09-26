@@ -497,9 +497,23 @@ public struct XColor : IEquatable<XColor>
             _y = (y - k) / black;
         }
 
-        _k = _gs = k / 255f;
+        _k = k / 255f;
+        _gs = LightnessOf(_r, _g, _b);
         // ReSharper restore LocalVariableHidesMember
     }
+
+    /// <summary>
+    /// How light an RGB colour is, from 0 (black) to 1 (white): what <see cref="GS"/> holds for it.
+    /// </summary>
+    /// <remarks>
+    /// A grey is its own lightness, exactly. Anything else weighs its channels as
+    /// <see cref="CmykChanged"/> weighs the inks, so a colour with no black in it has the same grey
+    /// whichever way it came in.
+    /// </remarks>
+    internal static float LightnessOf(byte red, byte green, byte blue)
+        => red == green && green == blue
+            ? (float)(red / 255.0)
+            : (float)((0.3 * red + 0.59 * green + 0.11 * blue) / 255.0);
 
     ///<summary>
     /// One of the CMYK values changed; recalculate other color representations.
@@ -676,7 +690,8 @@ public struct XColor : IEquatable<XColor>
     }
 
     /// <summary>
-    /// Gets or sets the gray scale value.
+    /// Gets or sets the gray scale value: how light the color is, from 0 (black) to 1 (white),
+    /// whichever of RGB, CMYK or gray it was built from.
     /// </summary>
     // ReSharper disable InconsistentNaming
     public double GS

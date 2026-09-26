@@ -206,7 +206,63 @@ public class XColorTests
         black.M.Should().Be(0);
         black.Y.Should().Be(0);
         black.K.Should().Be(1);
-        black.GS.Should().Be(1, "the grey channel here counts black ink rather than brightness");
+        black.GS.Should().Be(0, "grey is how light a colour is, and black has no light in it");
+    }
+
+    public static TheoryData<string, XColor, double> WhiteAndBlackEachWayIn() => new()
+    {
+        { "white from RGB", XColor.FromArgb(255, 255, 255), 1 },
+        { "white from CMYK", XColor.FromCmyk(0, 0, 0, 0), 1 },
+        { "white from grey", XColor.FromGrayScale(1), 1 },
+        { "black from RGB", XColor.FromArgb(0, 0, 0), 0 },
+        { "black from CMYK", XColor.FromCmyk(0, 0, 0, 1), 0 },
+        { "black from grey", XColor.FromGrayScale(0), 0 },
+    };
+
+    [Theory]
+    [MemberData(nameof(WhiteAndBlackEachWayIn))]
+    public void GreyMeansHowLightAColourIsWhicheverWayItWasBuilt(string route, XColor color, double expected)
+    {
+        // RgbChanged used to store the black ink it found as the grey - white 0, black 1 - where
+        // the CMYK and grey ways in store lightness. Issue #187.
+        color.GS.Should().Be(expected, route);
+    }
+
+    [Fact]
+    public void AnRgbColoursGreyIsItsWeightedLightness()
+    {
+        // A grey is its own lightness exactly, and anything else weighs its channels as the CMYK
+        // way in weighs the inks - green counts for most and blue for least.
+        XColor.FromArgb(128, 128, 128).GS.Should().BeApproximately(128 / 255.0, 1e-7);
+        XColor.FromArgb(255, 0, 0).GS.Should().BeApproximately(0.3, 1e-6);
+        XColor.FromArgb(0, 255, 0).GS.Should().BeApproximately(0.59, 1e-6);
+        XColor.FromArgb(0, 0, 255).GS.Should().BeApproximately(0.11, 1e-6);
+    }
+
+    [Fact]
+    public void WhiteAndBlackAreEachOneColourWhicheverWayTheyWereBuilt()
+    {
+        // Equality compares every component, the derived grey included, and the grey was the one
+        // thing that told an RGB black from a CMYK or grey one. Issue #187.
+        XColor.FromArgb(0, 0, 0).Should().Be(XColor.FromCmyk(0, 0, 0, 1));
+        XColor.FromArgb(0, 0, 0).Should().Be(XColor.FromGrayScale(0));
+        XColor.FromArgb(255, 255, 255).Should().Be(XColor.FromCmyk(0, 0, 0, 0));
+        XColor.FromArgb(255, 255, 255).Should().Be(XColor.FromGrayScale(1));
+    }
+
+    [Fact]
+    public void AnRgbColourDeclaredGreyKeepsTheGreyItsChannelsSay()
+    {
+        // Changing the space changes no component, so what a grey writer reads - GS - has to
+        // already agree with the RGB channels it was derived from.
+        var black = XColor.FromArgb(0, 0, 0);
+        var white = XColor.FromArgb(255, 255, 255);
+
+        black.ColorSpace = XColorSpace.GrayScale;
+        white.ColorSpace = XColorSpace.GrayScale;
+
+        black.GS.Should().Be(0);
+        white.GS.Should().Be(1);
     }
 
     [Fact]
@@ -336,13 +392,14 @@ public class XColorTests
     }
 
     [Fact]
-    public void RedBuiltFromRgbAndRedBuiltFromCmykAreTheSameRedAndNotTheSameColour()
+    public void RedBuiltFromRgbAndRedBuiltFromCmykAreTheSameColour()
     {
-        // They agree on all four of the channels anyone looks at, and differ on the grey one,
-        // which each way in computes by its own formula: from RGB it is the black ink the
-        // conversion found, and from CMYK it is a weighted brightness. Equality takes in every
-        // channel, so the two do not compare equal - which is worth knowing before using an
-        // XColor as a dictionary key or deduplicating a palette.
+        // Equality takes in every channel, the derived grey included. The grey used to be the one
+        // that told these apart - from RGB it was the black ink the conversion found, from CMYK a
+        // weighted lightness - and now both ways in weigh a colour with no black in it alike.
+        // Two ways in are only equal where both conversions are exact, which is worth knowing
+        // before using an XColor as a dictionary key or deduplicating a palette: a colour with
+        // black in it goes through a truncation to a byte on one side and not the other.
         var asRgb = XColor.FromArgb(255, 0, 0);
         var asCmyk = XColor.FromCmyk(0, 1, 1, 0);
 
@@ -351,9 +408,10 @@ public class XColorTests
         asCmyk.B.Should().Be(asRgb.B);
         asCmyk.C.Should().Be(asRgb.C);
         asCmyk.M.Should().Be(asRgb.M);
+        asCmyk.GS.Should().Be(asRgb.GS);
 
-        asCmyk.GS.Should().NotBe(asRgb.GS);
-        (asRgb == asCmyk).Should().BeFalse();
+        (asRgb == asCmyk).Should().BeTrue();
+        asRgb.GetHashCode().Should().Be(asCmyk.GetHashCode());
     }
 
     [Fact]

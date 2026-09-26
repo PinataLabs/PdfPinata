@@ -51,17 +51,15 @@ public sealed class XSpotColor : IEquatable<XSpotColor>
     /// A grey alternate whose <see cref="XColor.GS"/> means lightness, as the tint transform reads it.
     /// </summary>
     /// <remarks>
-    /// <see cref="XColor.FromGrayScale"/> stores lightness, but an RGB colour whose
-    /// <see cref="XColor.ColorSpace"/> was set to grey afterwards keeps the <c>GS</c> its RGB
-    /// setters computed, which is how <em>dark</em> it is - black carries 1. Written as it stands,
-    /// that alternate would paint white where black was asked for. Its RGB components are right
-    /// either way, so a GS that disagrees with them is replaced by their luminance.
+    /// A colour whose <see cref="XColor.ColorSpace"/> was set to grey afterwards keeps the
+    /// <c>GS</c> it was built with. Built from RGB, that is the lightness of its channels; built
+    /// from CMYK, it is a weighing of the inks that can land away from what its RGB channels say,
+    /// and a colour set from <see cref="XColor.RgbCmykG"/> can carry anything. The RGB components
+    /// are what every other reader paints, so a GS that disagrees with them is replaced by theirs.
     /// </remarks>
     private static XColor ConsistentGray(XColor alternate)
     {
-        var fromRgb = alternate.R == alternate.G && alternate.G == alternate.B
-            ? alternate.R / 255.0
-            : (0.299 * alternate.R + 0.587 * alternate.G + 0.114 * alternate.B) / 255.0;
+        double fromRgb = XColor.LightnessOf(alternate.R, alternate.G, alternate.B);
 
         return Math.Abs(alternate.GS - fromRgb) <= 1 / 255.0 ? alternate : XColor.FromGrayScale(fromRgb);
     }
