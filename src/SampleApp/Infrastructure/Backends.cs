@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PdfPinata.Fonts;
@@ -40,13 +39,16 @@ public static class Backends
         if (Interlocked.Exchange(ref _registered, 1) == 1)
             return;
 
-        if (!FontResolverIsSet())
+        // Asked rather than read: the getter of either seam throws when it is unset. A resolver a
+        // host has already installed is kept, and the setter would refuse to replace it anyway
+        // the moment any font had been made.
+        if (!GlobalFontSettings.IsFontResolverSet)
             GlobalFontSettings.FontResolver = new BundledFontResolver();
 
         ImageSource.ImageSourceImpl ??= new SkiaImageSource();
 
         // Wanted by XGraphicsPath.AddString alone, which the Magazine demo uses for its title.
-        if (!GlyphOutlineProviderIsSet())
+        if (!GlobalFontSettings.IsGlyphOutlineProviderSet)
             GlobalFontSettings.GlyphOutlineProvider = new SkiaGlyphOutlineProvider();
 
         // The two seams whose unset state is not an error: read either before it is set and the
@@ -61,42 +63,5 @@ public static class Backends
         // Liberation Sans has no Arabic in it at all, so a document that names the sans and then
         // writes Arabic gets empty boxes unless something says where else to look.
         GlobalFontSettings.FontFallback ??= new FontFallbackList(BundledFontResolver.ArabicFamily);
-    }
-
-    /// <summary>
-    ///   Whether a resolver is already installed. There is no "is it set" to ask, and the getter
-    ///   answers the question by throwing, so the exception is the test. Ugly, and better than the
-    ///   alternative: assigning over a host's resolver, which the setter would refuse anyway the
-    ///   moment any font had been made.
-    /// </summary>
-    private static bool FontResolverIsSet()
-    {
-        try
-        {
-            _ = GlobalFontSettings.FontResolver;
-            return true;
-        }
-        catch (InvalidOperationException)
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    ///   Whether an outline provider is already installed. Asked the same way, and for the same
-    ///   reason: the getter reports its absence by throwing, so that a caller who never set one
-    ///   is told which property to set rather than handed an empty path.
-    /// </summary>
-    private static bool GlyphOutlineProviderIsSet()
-    {
-        try
-        {
-            _ = GlobalFontSettings.GlyphOutlineProvider;
-            return true;
-        }
-        catch (InvalidOperationException)
-        {
-            return false;
-        }
     }
 }
