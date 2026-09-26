@@ -127,6 +127,71 @@ public class StandardSecurityRoundTripTests
         opened.SecuritySettings.HasOwnerPermissions.Should().Be(owner);
     }
 
+    /// <summary>
+    ///   At revision 2 the whole of /U is the padding string encrypted under the file key
+    ///   (Algorithm 4), and Algorithm 6 accepts a user password only when all 32 bytes match. The
+    ///   owner password is no way round it: Algorithm 7 recovers the user password from /O and
+    ///   then validates it with Algorithm 6, against the same damaged /U. qpdf and pdf.js refuse
+    ///   both passwords too.
+    /// </summary>
+    [Fact]
+    public void ARevision2DocumentWhoseUserEntryIsDamagedInItsSecondHalfOpensWithNeitherPassword()
+    {
+        var bytes = WithLastByteOfUserEntryChanged(StandardSecurityAlgorithmTests.Asset("rc4-r2-40bit-ghostscript.pdf"));
+        EncryptionEntries.Read(bytes).Revision.Should().Be(2);
+
+        foreach (var password in new[] { "user", "owner" })
+        {
+            var open = () => OpenedWith(bytes, password);
+            open.Should().Throw<PdfReaderException>().WithMessage("*password is invalid*", password);
+        }
+    }
+
+    /// <summary>
+    ///   From revision 3 on only the first 16 bytes of /U are defined (Algorithm 5) and the rest
+    ///   is arbitrary padding, which Algorithm 6 does not compare. Damage there changes nothing.
+    /// </summary>
+    [Theory]
+    [InlineData("rc4-r3-40bit-ghostscript.pdf")]
+    [InlineData("rc4-r3-128bit-ghostscript.pdf")]
+    public void ARevision3DocumentWhoseUserEntryIsDamagedInItsSecondHalfStillOpens(string file)
+    {
+        var original = StandardSecurityAlgorithmTests.Asset(file);
+        var bytes = WithLastByteOfUserEntryChanged(original);
+        EncryptionEntries.Read(bytes).Revision.Should().Be(3);
+        var title = OpenedWith(original, "user").Title;
+
+        OpenedWith(bytes, "user").Should().Be((title, false));
+        OpenedWith(bytes, "owner").Should().Be((title, true));
+    }
+
+    /// <summary>
+    ///   Changes the last byte of the /U entry in place, so that every offset in the
+    ///   cross-reference table still holds. The entry must be a literal string that ends in a
+    ///   byte standing for itself rather than in an escape.
+    /// </summary>
+    private static byte[] WithLastByteOfUserEntryChanged(byte[] document)
+    {
+        var pdf = System.Text.Encoding.Latin1.GetString(document);
+        var start = pdf.IndexOf("/U (", System.StringComparison.Ordinal);
+        start.Should().BePositive().And.Be(pdf.LastIndexOf("/U (", System.StringComparison.Ordinal));
+        var last = pdf.IndexOf(")>>", start, System.StringComparison.Ordinal) - 1;
+        // Not the end of an escape, which is a backslash and up to three octal digits.
+        pdf.Substring(last - 3, 3).Should().NotContain("\\");
+        "()\\\r\n".Should().NotContain(pdf[last].ToString());
+
+        var damaged = (byte[])document.Clone();
+        damaged[last] ^= 0x01;
+        "()\\\r\n".Should().NotContain(((char)damaged[last]).ToString());
+
+        var before = EncryptionEntries.Read(document).User;
+        var after = EncryptionEntries.Read(damaged).User;
+        after.Should().HaveCount(32);
+        after[..31].Should().Equal(before[..31]);
+        after[31].Should().NotBe(before[31]);
+        return damaged;
+    }
+
     private static (string Title, bool Owner) OpenedWith(byte[] bytes, string password)
     {
         using var document = Pdf.IO.PdfReader.Open(new MemoryStream(bytes), password, PdfDocumentOpenMode.Import);
