@@ -94,8 +94,9 @@ public class SpotColorTests
     [Fact]
     public void AnRgbColourDeclaredGreyIsNotWrittenInverted()
     {
-        // An RGB colour's GS is how dark it is - black carries 1 - while the tint transform reads
-        // a grey alternate as how light it is. Taken as it stood, this black alternate was white.
+        // An RGB colour's GS used to be how dark it was - black carried 1 - while the tint
+        // transform reads a grey alternate as how light it is. Taken as it stood, this black
+        // alternate was white.
         var black = XColor.FromArgb(0, 0, 0);
         black.ColorSpace = XColorSpace.GrayScale;
         var ink = new XSpotColor("Black ink", black);

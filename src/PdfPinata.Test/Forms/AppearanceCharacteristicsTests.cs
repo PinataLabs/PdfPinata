@@ -67,6 +67,23 @@ public class AppearanceCharacteristicsTests
     }
 
     [Fact]
+    public void AnRgbColourDeclaredGreyIsWrittenAsHowLightItIs()
+    {
+        // /MK writes a grey colour as its GS, and an RGB colour's GS used to be how dark it was -
+        // so black, declared grey, went into the characteristics as white. Issue #187.
+        var (document, page, form) = AForm();
+        var field = new PdfTextField(document) { Name = "name" };
+        form.Fields.Add(field);
+        var widget = field.AddWidget(page, Box);
+        var black = XColor.FromArgb(0, 0, 0);
+        black.ColorSpace = XColorSpace.GrayScale;
+
+        field.BackColor = black;
+
+        Components(widget, "/BG").Should().Equal(0);
+    }
+
+    [Fact]
     public void ABorderIsWrittenWithTheWidthItIsDrawnAt()
     {
         var (document, page, form) = AForm();

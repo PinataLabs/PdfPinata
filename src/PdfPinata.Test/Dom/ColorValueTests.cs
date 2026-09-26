@@ -74,6 +74,34 @@ public class ColorValueTests
         fainter.K.Should().Be(cmyk.K);
     }
 
+    public static TheoryData<double, double, double> ProcessInks()
+    {
+        var inks = new TheoryData<double, double, double>();
+        foreach (var (c, m, y) in new[] { (0.0, 0.0, 0.0), (100.0, 0.0, 0.0), (0.0, 100.0, 0.0),
+                     (0.0, 0.0, 100.0), (10.0, 20.0, 30.0), (33.3, 66.6, 12.5), (100.0, 100.0, 100.0) })
+            inks.Add(c, m, y);
+        return inks;
+    }
+
+    [Theory]
+    [MemberData(nameof(ProcessInks))]
+    public void ACmykColourHasTheRgbThatXColorGivesTheSameInks(double c, double m, double y)
+    {
+        // The DOM worked out a CMYK colour's RGB with its own copy of XColor's formula, which added
+        // half a level to the black before truncating - so for about half of all K values a
+        // PinataLayout document drawn in RGB showed a colour one level darker than the same colour
+        // drawn through XGraphics. There is one formula now, and every K has to agree.
+        for (var tenths = 0; tenths <= 1000; tenths++)
+        {
+            var k = tenths / 10.0;
+            var dom = Color.FromCmyk(c, m, y, k);
+            var core = PdfPinata.Drawing.XColor.FromCmyk(c / 100, m / 100, y / 100, k / 100);
+
+            (dom.R, dom.G, dom.B).Should().Be(((uint)core.R, (uint)core.G, (uint)core.B),
+                "CMYK({0}, {1}, {2}, {3}) is one colour whichever model works out its RGB", c, m, y, k);
+        }
+    }
+
     // ----- what may be changed afterwards -------------------------------------------------------
 
     [Fact]
