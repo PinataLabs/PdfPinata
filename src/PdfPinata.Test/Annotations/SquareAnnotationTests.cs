@@ -8,6 +8,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Test.Helpers;
 using Xunit;
+using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Annotations;
 
@@ -231,31 +232,9 @@ public sealed class SquareAnnotationTests : IDisposable
     ///   The pixel at the middle of the rectangle, which for an unfilled square is inside the
     ///   frame and nowhere near it.
     /// </summary>
-    private static IMagickColor<byte> Centre(IMagickImage<byte> image, XRect box)
-    {
-        // The page is A4 and the rectangle is placed in world coordinates from the top left,
-        // which is the space the image is in too, so this scales straight across.
-        var scale = image.Width / PageSizeConverter.ToSize(PageSize.A4).Width;
-        var x = (int)((box.X + box.Width / 2) * scale);
-        var y = (int)((box.Y + box.Height / 2) * scale);
-
-        using var pixels = image.GetPixels();
-        return pixels.GetPixel(x, y).ToColor();
-    }
-
-    private static bool IsBlue(IMagickColor<byte> c) => c.B > 150 && c.R < 120 && c.G < 150;
+    private static IMagickColor<byte> Centre(IMagickImage<byte> image, XRect box) => Within(image, box);
 
     private static bool IsRed(IMagickColor<byte> c) => c.R > 130 && c.G < 100 && c.B < 100;
 
     private static bool IsAnythingButWhite(IMagickColor<byte> c) => c.R < 240 || c.G < 240 || c.B < 240;
-
-    private static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
-    {
-        using var pixels = image.GetPixels();
-        return pixels.Count(p =>
-        {
-            var c = p.ToColor();
-            return c != null && match(c);
-        });
-    }
 }

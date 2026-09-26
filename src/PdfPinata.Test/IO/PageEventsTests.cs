@@ -11,6 +11,7 @@ using PdfPinata.Test.Helpers;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.Rendering;
 using Xunit;
+using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.IO;
 
@@ -311,18 +312,6 @@ public sealed class PageEventsTests : IDisposable
     private static PdfDocument Reopen(byte[] bytes, PdfDocumentOpenMode mode) =>
         PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(bytes), mode);
 
-    private static bool IsBlue(IMagickColor<byte> c) => c.B > 150 && c.R < 120 && c.G < 150;
-
     private static bool IsGrey(IMagickColor<byte> c) =>
         Math.Abs(c.R - c.G) < 10 && Math.Abs(c.G - c.B) < 10 && c.R is > 90 and < 200;
-
-    private static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
-    {
-        using var pixels = image.GetPixels();
-        return pixels.Count(p =>
-        {
-            var c = p.ToColor();
-            return c != null && match(c);
-        });
-    }
 }

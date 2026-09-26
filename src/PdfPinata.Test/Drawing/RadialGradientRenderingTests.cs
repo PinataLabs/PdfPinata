@@ -5,6 +5,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
 using Xunit;
+using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -231,14 +232,6 @@ public sealed class RadialGradientRenderingTests : IDisposable
             draw(gfx);
 
         return _rasterized.FirstPageOf(document, name);
-    }
-
-    /// <summary>The colour at a point on the page, in points from the top left.</summary>
-    private static IMagickColor<byte> At(IMagickImage<byte> page, double x, double y)
-    {
-        var scale = page.Width / 595.0;
-        using var pixels = page.GetPixels();
-        return pixels.GetPixel((int)(x * scale), (int)(y * scale)).ToColor();
     }
 
     private static bool IsWhite(IMagickColor<byte> colour) => colour.R > 245 && colour.G > 245 && colour.B > 245;

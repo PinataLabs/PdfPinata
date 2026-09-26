@@ -5,6 +5,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
 using Xunit;
+using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -156,17 +157,8 @@ public sealed class GradientTransparencyRenderingTests : IDisposable
     }
 
     /// <summary>The colour a fraction of the way across and down a rectangle of the drawing.</summary>
-    private static IMagickColor<byte> SampleAt(IMagickImage<byte> page, double across, XRect area, double down = 0.5)
-    {
-        // The drawing is in points from the top left, and so is the raster, so the only
-        // conversion is the resolution the page was drawn at.
-        var scale = page.Width / 595.0;
-        var x = (int)((area.X + area.Width * across) * scale);
-        var y = (int)((area.Y + area.Height * down) * scale);
-
-        using var pixels = page.GetPixels();
-        return pixels.GetPixel(x, y).ToColor();
-    }
+    private static IMagickColor<byte> SampleAt(IMagickImage<byte> page, double across, XRect area, double down = 0.5) =>
+        Within(page, area, across, down);
 
     private static double Luminance(IMagickColor<byte> colour) => 0.299 * colour.R + 0.587 * colour.G + 0.114 * colour.B;
 }

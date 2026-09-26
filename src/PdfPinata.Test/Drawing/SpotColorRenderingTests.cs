@@ -5,6 +5,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
 using Xunit;
+using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -44,9 +45,9 @@ public sealed class SpotColorRenderingTests : IDisposable
             gfx.DrawRectangle(new XPen(XColor.FromSpot(magenta), 20), Stroked);
         });
 
-        var solid = Sample(page, Solid.X + Solid.Width / 2, Solid.Y + Solid.Height / 2);
-        var half = Sample(page, Half.X + Half.Width / 2, Half.Y + Half.Height / 2);
-        var stroke = Sample(page, Stroked.X, Stroked.Y + Stroked.Height / 2);
+        var solid = At(page, Solid.X + Solid.Width / 2, Solid.Y + Solid.Height / 2);
+        var half = At(page, Half.X + Half.Width / 2, Half.Y + Half.Height / 2);
+        var stroke = At(page, Stroked.X, Stroked.Y + Stroked.Height / 2);
 
         // Magenta ink: green is what it takes away, red and blue it leaves. Half the tint takes
         // away about half as much.
@@ -66,7 +67,7 @@ public sealed class SpotColorRenderingTests : IDisposable
         var page = Rasterize("rgb_alternate", gfx =>
             gfx.DrawRectangle(new XSolidBrush(XColor.FromSpot(blue)), Solid));
 
-        var solid = Sample(page, Solid.X + Solid.Width / 2, Solid.Y + Solid.Height / 2);
+        var solid = At(page, Solid.X + Solid.Width / 2, Solid.Y + Solid.Height / 2);
         solid.R.Should().BeLessThan(30);
         solid.B.Should().BeInRange(110, 165);
 
@@ -103,12 +104,5 @@ public sealed class SpotColorRenderingTests : IDisposable
         if (raster.ColorSpace != ColorSpace.sRGB)
             raster.ColorSpace = ColorSpace.sRGB;
         return raster;
-    }
-
-    private static IMagickColor<byte> Sample(IMagickImage<byte> page, double x, double y)
-    {
-        var scale = page.Width / 595.0;
-        using var pixels = page.GetPixels();
-        return pixels.GetPixel((int)(x * scale), (int)(y * scale)).ToColor();
     }
 }

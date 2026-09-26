@@ -9,6 +9,7 @@ using PdfPinata.Skia;
 using PdfPinata.Test.Helpers;
 using SkiaSharp;
 using Xunit;
+using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Imaging;
 
@@ -135,17 +136,7 @@ public sealed class TranslucentImageRenderingTests : IDisposable
     }
 
     /// <summary>The colour at the middle of <see cref="Area"/>.</summary>
-    private static IMagickColor<byte> Sample(IMagickImage<byte> page)
-    {
-        // The drawing is in points from the top left, and so is the raster, so the only
-        // conversion is the resolution the page was drawn at.
-        var scale = page.Width / 595.0;
-        var x = (int)((Area.X + Area.Width / 2) * scale);
-        var y = (int)((Area.Y + Area.Height / 2) * scale);
-
-        using var pixels = page.GetPixels();
-        return pixels.GetPixel(x, y).ToColor();
-    }
+    private static IMagickColor<byte> Sample(IMagickImage<byte> page) => Within(page, Area);
 
     private static double Luminance(IMagickColor<byte> colour) => 0.299 * colour.R + 0.587 * colour.G + 0.114 * colour.B;
 }

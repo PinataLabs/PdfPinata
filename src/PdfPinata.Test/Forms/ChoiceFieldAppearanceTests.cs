@@ -9,6 +9,7 @@ using PdfPinata.Pdf.AcroForms;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Test.Helpers;
 using Xunit;
+using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Forms;
 
@@ -338,29 +339,6 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         arrange(placed.Field);
 
         return _rasterized.FirstPageOf(placed.Document, name);
-    }
-
-    /// <summary>The pixels inside a box given in world space, matching a test.</summary>
-    private static int Count(IMagickImage<byte> image, XRect box, Func<IMagickColor<byte>, bool> match)
-    {
-        var scale = image.Width / PageSizeConverter.ToSize(PageSize.A4).Width;
-        var left = (int)(box.X * scale);
-        var top = (int)(box.Y * scale);
-        var right = (int)Math.Ceiling(box.Right * scale);
-        var bottom = (int)Math.Ceiling(box.Bottom * scale);
-
-        using var pixels = image.GetPixels();
-        var count = 0;
-        for (var y = top; y < bottom; y++)
-        {
-            for (var x = left; x < right; x++)
-            {
-                var c = pixels.GetPixel(x, y).ToColor();
-                if (c != null && match(c))
-                    count++;
-            }
-        }
-        return count;
     }
 
     private static bool IsInk(IMagickColor<byte> c) => c.R < 110 && c.G < 110 && c.B < 110;

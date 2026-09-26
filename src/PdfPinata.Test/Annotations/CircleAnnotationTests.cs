@@ -8,6 +8,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Test.Helpers;
 using Xunit;
+using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Annotations;
 
@@ -170,28 +171,7 @@ public sealed class CircleAnnotationTests : IDisposable
         return _rasterized.FirstPageOf(document, name);
     }
 
-    /// <summary>
-    ///   The pixel at a place on the page, given in the same world coordinates the drawing uses.
-    /// </summary>
-    private static IMagickColor<byte> At(IMagickImage<byte> image, double x, double y)
-    {
-        var scale = image.Width / PageSizeConverter.ToSize(PageSize.A4).Width;
-
-        using var pixels = image.GetPixels();
-        return pixels.GetPixel((int)(x * scale), (int)(y * scale)).ToColor();
-    }
-
     private static bool IsGreen(IMagickColor<byte> c) => c.G > 90 && c.R < 120 && c.B < 140;
 
     private static bool IsWhite(IMagickColor<byte> c) => c.R > 240 && c.G > 240 && c.B > 240;
-
-    private static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
-    {
-        using var pixels = image.GetPixels();
-        return pixels.Count(p =>
-        {
-            var c = p.ToColor();
-            return c != null && match(c);
-        });
-    }
 }
