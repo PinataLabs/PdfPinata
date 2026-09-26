@@ -138,6 +138,22 @@ section set to it reflows. To keep the old sheet, use `PageFormat.JISB5`.
 
 **`PageSize.Executive` is 7.25 × 10.5 inches.** It was 7.5 × 10 inches.
 
+**`PageSize.Post`, `PageSize.Elephant` and `PageSize.RA5` changed size.** Post is 1116 × 1386
+points (15.5 × 19.25 inches) and Elephant 1656 × 2016 (23 × 28 inches). They were 1126 and 1565
+points wide. RA5 is 434 points wide, where it was 433. All three now match the PinataLayout
+`PageFormat` of the same name.
+
+**A Code 3 of 9 barcode refuses `*` in its text.** `Code3of9Standard` draws its own start and stop
+character, which is `*`, so a `*` in the text you pass drew a second one that stops a scanner reading.
+Pass `"ABC"`, not the `"*ABC*"` that Code 39 fonts need. The text is checked when the code is set, and
+a `*` or an apostrophe throws `ArgumentException` there.
+
+**A chart line that is not `Visible` is not drawn.** A charting `LineFormat` that sets a `Width` or a
+`Color` but not `Visible = true` used to draw a hairline on some axes, gridlines and legend borders.
+Now it draws nothing, as it already did for a series. Set `Visible = true` on any axis, gridline,
+legend or data-point line format you want drawn. `HasMajorGridlines = true` with no line format still
+draws the default gridlines.
+
 **A stray heading row throws.** A table row with `HeadingFormat = true` that is not part of the run of
 heading rows at the top of the table throws `InvalidOperationException` during layout. It used to be
 ignored, so the heading did not repeat. Mark every row from the first down to the last heading row.
