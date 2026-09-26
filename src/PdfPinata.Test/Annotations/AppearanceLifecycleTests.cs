@@ -29,11 +29,6 @@ public sealed class AppearanceLifecycleTests : IDisposable
 
     private readonly List<MagickImageCollection> _rasterized = [];
 
-    static AppearanceLifecycleTests()
-    {
-        GhostscriptSetup.Configure();
-    }
-
     public void Dispose()
     {
         foreach (var collection in _rasterized)
