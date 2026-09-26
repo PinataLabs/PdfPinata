@@ -7,8 +7,6 @@ using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using Xunit;
 
-// This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
-
 namespace PdfPinata.Test.IO;
 
 /// <summary>
