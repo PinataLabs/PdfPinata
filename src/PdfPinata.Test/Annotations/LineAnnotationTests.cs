@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AwesomeAssertions;
@@ -10,6 +9,7 @@ using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using Xunit;
+using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Annotations;
 
@@ -28,15 +28,9 @@ public sealed class LineAnnotationTests : IDisposable
 {
     private const string OutDir = "Out/LineAnnotations";
 
-    private readonly List<MagickImageCollection> _rasterized = [];
+    private readonly Rasterizations _rasterized = new(OutDir);
 
-    public void Dispose()
-    {
-        foreach (var collection in _rasterized)
-            collection.Dispose();
-
-        _rasterized.Clear();
-    }
+    public void Dispose() => _rasterized.Dispose();
 
     static LineAnnotationTests()
     {
@@ -370,10 +364,7 @@ public sealed class LineAnnotationTests : IDisposable
 
         arrange(line);
 
-        var images = PdfHelper.Rasterize(document).ImageCollection;
-        _rasterized.Add(images);
-        PdfHelper.WriteImageCollection(images, OutDir, name);
-        return images[0];
+        return _rasterized.FirstPageOf(document, name);
     }
 
     private static PdfLineAnnotation OnAPage()
@@ -393,26 +384,9 @@ public sealed class LineAnnotationTests : IDisposable
         return form.Stream.Value;
     }
 
-    private static PdfDocument SaveAndReopen(PdfDocument document)
-    {
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        // Named in full: this assembly has a test class called PdfReader too, and it wins.
-        return PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
-    }
+    private static PdfDocument SaveAndReopen(PdfDocument document) => document.Reopened();
 
     private static bool IsRed(IMagickColor<byte> c) => c.R > 130 && c.G < 100 && c.B < 100;
 
     private static bool IsAnythingButWhite(IMagickColor<byte> c) => c.R < 240 || c.G < 240 || c.B < 240;
-
-    private static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
-    {
-        using var pixels = image.GetPixels();
-        return pixels.Count(p =>
-        {
-            var c = p.ToColor();
-            return c != null && match(c);
-        });
-    }
 }

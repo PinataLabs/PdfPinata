@@ -5,6 +5,7 @@ using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 using PdfIntegerValue = PdfPinata.Pdf.PdfInteger;
 
@@ -201,7 +202,7 @@ public class PdfIntegerTests
         _ = document.AddPage();
         document.Internals.Catalog.Elements["/TestValue"] = new PdfIntegerValue(number);
 
-        var saved = Save(document);
+        var saved = Saved.Bytes(document);
         Encoding.Latin1.GetString(saved).Should().Contain(
             "/TestValue " + number.ToString(CultureInfo.InvariantCulture));
 
@@ -223,12 +224,5 @@ public class PdfIntegerTests
         convert.Should().Throw<InvalidCastException>().WithMessage("*PdfInteger*DateTime*");
         throughConvert.Should().Throw<InvalidCastException>();
         ((Func<DateTime>)(() => Convert.ToDateTime(42))).Should().Throw<InvalidCastException>();
-    }
-
-    private static byte[] Save(PdfDocument document)
-    {
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
     }
 }

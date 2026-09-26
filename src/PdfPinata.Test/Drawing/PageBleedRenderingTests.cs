@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using AwesomeAssertions;
 using ImageMagick;
 using PdfPinata.Drawing;
@@ -24,15 +23,9 @@ public sealed class PageBleedRenderingTests : IDisposable
 {
     private const string OutDir = "Out/PageBleed";
 
-    private readonly List<MagickImageCollection> _rasterized = [];
+    private readonly Rasterizations _rasterized = new(OutDir);
 
-    public void Dispose()
-    {
-        foreach (var collection in _rasterized)
-            collection.Dispose();
-
-        _rasterized.Clear();
-    }
+    public void Dispose() => _rasterized.Dispose();
 
     static PageBleedRenderingTests()
     {
@@ -133,10 +126,7 @@ public sealed class PageBleedRenderingTests : IDisposable
         using (var gfx = XGraphics.FromPdfPage(page))
             draw(gfx, page);
 
-        var images = PdfHelper.Rasterize(document).ImageCollection;
-        _rasterized.Add(images);
-        PdfHelper.WriteImageCollection(images, OutDir, name);
-        return images[0];
+        return _rasterized.FirstPageOf(document, name);
     }
 
     /// <summary>What the sheet was drawn at, so points can be turned into pixels.</summary>

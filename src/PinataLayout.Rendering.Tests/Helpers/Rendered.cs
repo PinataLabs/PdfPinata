@@ -1,7 +1,7 @@
-using System.IO;
 using PinataLayout.DocumentObjectModel;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 
 namespace PinataLayout.Rendering.Tests.Helpers;
 
@@ -25,11 +25,7 @@ internal static class Rendered
         var renderer = new PdfDocumentRenderer(true) { Document = document };
         renderer.RenderDocument();
 
-        using var stream = new MemoryStream();
-        renderer.PdfDocument.Save(stream, false);
-        stream.Position = 0;
-
-        return PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
+        return renderer.PdfDocument.Reopened();
     }
 
     /// <summary>The first page of the document, for the assertions that only need one.</summary>

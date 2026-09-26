@@ -1,9 +1,9 @@
-using System.IO;
 using System.Reflection;
 using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Metadata;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.Pdfs;
@@ -22,7 +22,7 @@ public class ProducerTests
     [Fact]
     public void ANewDocumentNamesTheVersionTheLibraryWasBuiltAs()
     {
-        var reopened = Reopen(Save(NewDocument()));
+        var reopened = Reopen(Saved.Bytes(NewDocument()));
 
         reopened.Info.Producer.Should().Be(ExpectedProducer);
         reopened.Info.Creator.Should().Be(ExpectedProducer, "a document that names no creator is given the producer");
@@ -43,7 +43,7 @@ public class ProducerTests
         var document = NewDocument();
         document.Options.MetadataStrategy = PdfMetadataStrategy.AutoGenerate;
 
-        Encoding.Latin1.GetString(Save(document))
+        Encoding.Latin1.GetString(Saved.Bytes(document))
             .Should().Contain("<pdf:Producer>" + ExpectedProducer + "</pdf:Producer>");
     }
 
@@ -53,7 +53,7 @@ public class ProducerTests
         var document = NewDocument();
         document.Info.Elements.SetString("/Producer", "Microsoft Word");
 
-        Reopen(Save(document)).Info.Producer
+        Reopen(Saved.Bytes(document)).Info.Producer
             .Should().Be(ExpectedProducer + " (Original: Microsoft Word)");
     }
 
@@ -74,13 +74,5 @@ public class ProducerTests
         return document;
     }
 
-    private static byte[] Save(PdfDocument document)
-    {
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
-    }
-
-    private static PdfDocument Reopen(byte[] bytes) =>
-        Pdf.IO.PdfReader.Open(new MemoryStream(bytes), Pdf.IO.PdfDocumentOpenMode.Import);
+    private static PdfDocument Reopen(byte[] bytes) => Saved.Open(bytes, Pdf.IO.PdfDocumentOpenMode.Import);
 }

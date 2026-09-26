@@ -1,8 +1,8 @@
 using System;
-using System.IO;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.Pdfs;
@@ -30,10 +30,7 @@ public class PdfPagesTests
         for (var i = 0; i < pageCount; i++)
             _ = source.AddPage();
 
-        var bytes = new MemoryStream();
-        source.Save(bytes, false);
-        bytes.Position = 0;
-        return Pdf.IO.PdfReader.Open(bytes, PdfDocumentOpenMode.Import);
+        return source.Reopened(PdfDocumentOpenMode.Import);
     }
 
     // ----- Insert: a page with no owner ----------------------------------------------------------

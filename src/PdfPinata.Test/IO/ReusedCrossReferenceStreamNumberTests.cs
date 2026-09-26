@@ -6,6 +6,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
@@ -189,9 +190,5 @@ public class ReusedCrossReferenceStreamNumberTests
     private sealed record Revision(
         string Text, int StreamOffset, int StreamNumber, int Size, int Root, int Info, int Pages);
 
-    private static PdfDocument Open(byte[] bytes)
-    {
-        using var stream = new MemoryStream(bytes);
-        return Reader.Open(stream, PdfDocumentOpenMode.Import);
-    }
+    private static PdfDocument Open(byte[] bytes) => Saved.Open(bytes, PdfDocumentOpenMode.Import);
 }

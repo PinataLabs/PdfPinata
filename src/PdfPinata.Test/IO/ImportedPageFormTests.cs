@@ -7,9 +7,6 @@ using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using Xunit;
 
-// This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
-using Reader = PdfPinata.Pdf.IO.PdfReader;
-
 namespace PdfPinata.Test.IO;
 
 /// <summary>
@@ -63,14 +60,6 @@ public sealed class ImportedPageFormTests : IDisposable
         var path = Path.Combine(_directory, Guid.NewGuid().ToString("N") + ".pdf");
         document.Save(path);
         return path;
-    }
-
-    private static PdfDocument RoundTripped(PdfDocument document)
-    {
-        var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        return Reader.Open(stream, PdfDocumentOpenMode.Modify);
     }
 
     // ----- reading a page out of a file -------------------------------------------------------
@@ -209,7 +198,7 @@ public sealed class ImportedPageFormTests : IDisposable
             gfx.DrawImage(form, new XRect(0, 0, 250, 300));
         }
 
-        var written = RoundTripped(document).Pages[0];
+        var written = document.Reopened().Pages[0];
         var xObjects = written.Resources.Elements.GetDictionary("/XObject");
 
         xObjects.Should().NotBeNull();

@@ -1,11 +1,11 @@
 using System;
-using System.Collections.Generic;
 using AwesomeAssertions;
 using ImageMagick;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
 using Xunit;
+using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -24,20 +24,14 @@ public sealed class SpotColorRenderingTests : IDisposable
     private static readonly XRect Half = new(50, 200, 200, 100);
     private static readonly XRect Stroked = new(300, 50, 200, 100);
 
-    private readonly List<MagickImageCollection> _rasterized = [];
+    private readonly Rasterizations _rasterized = new(OutDir);
 
     static SpotColorRenderingTests()
     {
         GhostscriptSetup.Configure();
     }
 
-    public void Dispose()
-    {
-        foreach (var collection in _rasterized)
-            collection.Dispose();
-
-        _rasterized.Clear();
-    }
+    public void Dispose() => _rasterized.Dispose();
 
     [GoldenImageFact]
     public void ACmykAlternateIsPaintedAtFullAndHalfTint()
@@ -51,9 +45,9 @@ public sealed class SpotColorRenderingTests : IDisposable
             gfx.DrawRectangle(new XPen(XColor.FromSpot(magenta), 20), Stroked);
         });
 
-        var solid = Sample(page, Solid.X + Solid.Width / 2, Solid.Y + Solid.Height / 2);
-        var half = Sample(page, Half.X + Half.Width / 2, Half.Y + Half.Height / 2);
-        var stroke = Sample(page, Stroked.X, Stroked.Y + Stroked.Height / 2);
+        var solid = At(page, Solid.X + Solid.Width / 2, Solid.Y + Solid.Height / 2);
+        var half = At(page, Half.X + Half.Width / 2, Half.Y + Half.Height / 2);
+        var stroke = At(page, Stroked.X, Stroked.Y + Stroked.Height / 2);
 
         // Magenta ink: green is what it takes away, red and blue it leaves. Half the tint takes
         // away about half as much.
@@ -73,7 +67,7 @@ public sealed class SpotColorRenderingTests : IDisposable
         var page = Rasterize("rgb_alternate", gfx =>
             gfx.DrawRectangle(new XSolidBrush(XColor.FromSpot(blue)), Solid));
 
-        var solid = Sample(page, Solid.X + Solid.Width / 2, Solid.Y + Solid.Height / 2);
+        var solid = At(page, Solid.X + Solid.Width / 2, Solid.Y + Solid.Height / 2);
         solid.R.Should().BeLessThan(30);
         solid.B.Should().BeInRange(110, 165);
 
@@ -102,9 +96,7 @@ public sealed class SpotColorRenderingTests : IDisposable
         using (var gfx = XGraphics.FromPdfPage(page))
             draw(gfx);
 
-        var images = PdfHelper.Rasterize(document).ImageCollection;
-        _rasterized.Add(images);
-        PdfHelper.WriteImageCollection(images, OutDir, name);
+        var images = _rasterized.Of(document, name);
 
         // A page painting a CMYK alternate is handed back as a CMYK raster, whose channels would
         // read here as cyan, magenta and yellow under the names R, G and B.
@@ -112,12 +104,5 @@ public sealed class SpotColorRenderingTests : IDisposable
         if (raster.ColorSpace != ColorSpace.sRGB)
             raster.ColorSpace = ColorSpace.sRGB;
         return raster;
-    }
-
-    private static IMagickColor<byte> Sample(IMagickImage<byte> page, double x, double y)
-    {
-        var scale = page.Width / 595.0;
-        using var pixels = page.GetPixels();
-        return pixels.GetPixel((int)(x * scale), (int)(y * scale)).ToColor();
     }
 }

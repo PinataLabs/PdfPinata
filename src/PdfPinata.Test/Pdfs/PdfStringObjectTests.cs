@@ -5,6 +5,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using PdfPinata.Test.IO;
 using Xunit;
 
@@ -163,7 +164,7 @@ public class PdfStringObjectTests
 
         var reread = Pdf.IO.PdfReader.Open(new MemoryStream(saved), PdfDocumentOpenMode.Modify);
         var number = ReadBack(reread).Reference.ObjectNumber;
-        var savedAgain = Save(reread);
+        var savedAgain = Saved.Bytes(reread);
 
         var rereadAgain = Pdf.IO.PdfReader.Open(new MemoryStream(savedAgain), PdfDocumentOpenMode.Modify);
         ReadBack(rereadAgain).Value.Should().Be(Japanese);
@@ -228,7 +229,7 @@ public class PdfStringObjectTests
         document.Internals.Catalog.Elements["/TestText"] = text.Reference;
         document.SecuritySettings.OwnerPassword = password;
 
-        var saved = Save(document);
+        var saved = Saved.Bytes(document);
         Encoding.Latin1.GetString(saved).Should().NotContain(writtenInTheClear, "the string is written encrypted");
 
         var reread = Pdf.IO.PdfReader.Open(new MemoryStream(saved), password, PdfDocumentOpenMode.Modify);
@@ -254,7 +255,7 @@ public class PdfStringObjectTests
         // A fixed identifier fixes the key, so that what the first pass produces is known not to
         // begin with a byte order mark of its own.
         document.Internals.FirstDocumentID = "0123456789ABCDEF";
-        var reread = Pdf.IO.PdfReader.Open(new MemoryStream(Save(document)), password, PdfDocumentOpenMode.Modify);
+        var reread = Pdf.IO.PdfReader.Open(new MemoryStream(Saved.Bytes(document)), password, PdfDocumentOpenMode.Modify);
         reread.Internals.FirstDocumentID.Should().Be("0123456789ABCDEF");
 
         var text = new PdfStringObject(Japanese, PdfStringEncoding.Unicode);
@@ -278,7 +279,7 @@ public class PdfStringObjectTests
         _ = document.AddPage();
         document.Internals.AddObject(text);
         document.Internals.Catalog.Elements["/TestText"] = text.Reference;
-        return (Save(document), text.Reference.ObjectNumber);
+        return (Saved.Bytes(document), text.Reference.ObjectNumber);
     }
 
     private static PdfStringObject ReadBack(PdfDocument document)
@@ -286,12 +287,5 @@ public class PdfStringObjectTests
         var reference = document.Internals.Catalog.Elements["/TestText"];
         return reference.Should().BeOfType<PdfReference>().Which.Value
             .Should().BeOfType<PdfStringObject>().Subject;
-    }
-
-    private static byte[] Save(PdfDocument document)
-    {
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
     }
 }

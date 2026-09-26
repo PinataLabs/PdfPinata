@@ -30,7 +30,7 @@ public class SignatureFieldLockTests
 
         field.Elements.GetReference("/Lock").Should().NotBeNull("ISO 32000-1 requires it indirect");
 
-        var read = SignatureField(ReadBack(document));
+        var read = SignatureField(document.Reopened());
         read.Lock.Should().NotBeNull();
         read.Lock.Action.Should().Be(PdfFieldLockAction.Include);
         read.Lock.Fields.Should().Equal("name", "address.city");
@@ -133,7 +133,7 @@ public class SignatureFieldLockTests
 
         field.Elements.GetReference("/SV").Should().NotBeNull("ISO 32000-1 requires it indirect");
 
-        var read = SignatureField(ReadBack(document)).SeedValue;
+        var read = SignatureField(document.Reopened()).SeedValue;
 
         read.Flags.Should().Be(PdfSeedValueFlags.SubFilter | PdfSeedValueFlags.DigestMethod);
         read.Filter.Should().Be("/Adobe.PPKLite");
@@ -160,7 +160,7 @@ public class SignatureFieldLockTests
         var document = FormWithSignatureField(out var field);
         field.SeedValue = new PdfSignatureSeedValue(document);
 
-        var read = SignatureField(ReadBack(document)).SeedValue;
+        var read = SignatureField(document.Reopened()).SeedValue;
 
         read.Flags.Should().Be(PdfSeedValueFlags.None);
         read.Filter.Should().BeNull();
@@ -284,16 +284,7 @@ public class SignatureFieldLockTests
             field.AddWidget(page, new PdfRectangle(new XPoint(50, 700), new XPoint(250, 720)));
         }
 
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
-    }
-
-    private static PdfDocument ReadBack(PdfDocument document)
-    {
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return Reader.Open(new MemoryStream(output.ToArray()), PdfDocumentOpenMode.Modify);
+        return Saved.Bytes(document);
     }
 
     private static byte[] Sign(byte[] document, PdfSignatureOptions options)

@@ -5,6 +5,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using PdfPinata.Test.IO;
 using Xunit;
 
@@ -315,8 +316,5 @@ public class PdfRectangleTests
         return Open(objects);
     }
 
-    private static PdfDocument Open(List<string> objects)
-    {
-        return Pdf.IO.PdfReader.Open(new MemoryStream(RawPdf.Build(objects)), PdfDocumentOpenMode.Modify);
-    }
+    private static PdfDocument Open(List<string> objects) => Saved.Open(RawPdf.Build(objects));
 }

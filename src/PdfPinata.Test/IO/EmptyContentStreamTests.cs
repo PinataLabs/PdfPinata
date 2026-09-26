@@ -7,6 +7,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Filters;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.IO;
@@ -29,7 +30,7 @@ public class EmptyContentStreamTests
         // The snippet on the issue: open an XGraphics and close it without drawing.
         using (XGraphics.FromPdfPage(document.Pages[0])) { }
 
-        var saved = Save(document);
+        var saved = Saved.Bytes(document);
 
         ContentStreamsOf(saved).Should().HaveCount(3);
     }
@@ -43,7 +44,7 @@ public class EmptyContentStreamTests
 
         using (XGraphics.FromPdfPage(document.Pages[0])) { }
 
-        var saved = Save(document);
+        var saved = Saved.Bytes(document);
 
         ContentStreamsOf(saved).Should().OnlyContain(stream => stream.Length > 0);
     }
@@ -57,7 +58,7 @@ public class EmptyContentStreamTests
 
         using (XGraphics.FromPdfPage(document.Pages[0])) { }
 
-        var saved = Save(document);
+        var saved = Saved.Bytes(document);
 
         // What the deflater writes for no input at all: a header, an empty final block and a
         // checksum of nothing. That is the stream Acrobat objects to, and the file must not
@@ -75,7 +76,7 @@ public class EmptyContentStreamTests
 
         using (XGraphics.FromPdfPage(document.Pages[0])) { }
 
-        var streams = ContentStreamsOf(Save(document));
+        var streams = ContentStreamsOf(Saved.Bytes(document));
 
         // Byte for byte what BuildDocumentWithThreeContentStreams put there, in the same order,
         // save for the "q" and " Q\n" that PdfContents.SetModified wraps the whole run in so that
@@ -97,7 +98,7 @@ public class EmptyContentStreamTests
         using (var gfx = XGraphics.FromPdfPage(document.Pages[0]))
             gfx.DrawRectangle(XPens.Red, 40, 40, 100, 100);
 
-        var streams = ContentStreamsOf(Save(document));
+        var streams = ContentStreamsOf(Saved.Bytes(document));
 
         streams.Should().HaveCount(4);
         streams[3].Should().Contain("re");
@@ -112,7 +113,7 @@ public class EmptyContentStreamTests
         // Not disposed, so the content stream is still open when the document is written.
         XGraphics.FromPdfPage(document.Pages[0]);
 
-        ContentStreamsOf(Save(document)).Should().HaveCount(3);
+        ContentStreamsOf(Saved.Bytes(document)).Should().HaveCount(3);
     }
 
     [Fact]
@@ -123,7 +124,7 @@ public class EmptyContentStreamTests
 
         using (XGraphics.FromPdfPage(document.Pages[0])) { }
 
-        var saved = Save(document);
+        var saved = Saved.Bytes(document);
 
         var reopened = PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(saved), PdfDocumentOpenMode.Import);
         reopened.PageCount.Should().Be(1);
@@ -138,7 +139,7 @@ public class EmptyContentStreamTests
         var page = document.AddPage();
         page.Contents.AppendContent().CreateStream(Bytes("q Q\n"));
 
-        var saved = Save(document);
+        var saved = Saved.Bytes(document);
 
         // Deflating four bytes would make them twelve. The stream stays as it is, and without a
         // /FlateDecode filter to say otherwise.
@@ -153,18 +154,11 @@ public class EmptyContentStreamTests
         var page = document.AddPage();
         page.Contents.AppendContent().CreateStream(Bytes(string.Concat(Enumerable.Repeat("0 0 1 RG 10 10 100 100 re S\n", 100))));
 
-        var saved = Save(document);
+        var saved = Saved.Bytes(document);
 
         RawObjectsOf(saved).Should().Contain(body => body.Contains("FlateDecode"));
         // And the whole point of compressing it: what came out is smaller than what went in.
         saved.Length.Should().BeLessThan(2700);
-    }
-
-    private static byte[] Save(PdfDocument document)
-    {
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
     }
 
     /// <summary>

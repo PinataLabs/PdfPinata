@@ -178,7 +178,7 @@ public class EInvoiceTests
 
         new FacturXInvoice(Xml()).AttachTo(document);
 
-        var text = Latin1(Written(document));
+        var text = Latin1(Saved.Bytes(document));
         text.Should().Contain("<mine:Note>kept</mine:Note>");
         text.Should().Contain("Factur-X PDFA Extension Schema");
     }
@@ -197,7 +197,7 @@ public class EInvoiceTests
             "<rdf:Description rdf:about=\"\" xmlns:mine=\"urn:example:mine#\">"
             + "<mine:Note>kept</mine:Note></rdf:Description>");
 
-        var text = Latin1(Written(document));
+        var text = Latin1(Saved.Bytes(document));
         text.Should().Contain("<mine:Note>kept</mine:Note>");
         text.Should().Contain("Factur-X PDFA Extension Schema");
     }
@@ -313,7 +313,7 @@ public class EInvoiceTests
 
         FacturXInvoice.FindIn(document).Should().BeNull();
 
-        Latin1(Written(document)).Should().NotContain("/AF").And.NotContain("/EmbeddedFiles");
+        Latin1(Saved.Bytes(document)).Should().NotContain("/AF").And.NotContain("/EmbeddedFiles");
     }
 
     // ── Helpers ─────────────────────────────────────────────────────────────────────────────────
@@ -330,14 +330,7 @@ public class EInvoiceTests
     {
         var document = Prepared();
         invoice.AttachTo(document);
-        return Written(document);
-    }
-
-    private static byte[] Written(PdfDocument document)
-    {
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
+        return Saved.Bytes(document);
     }
 
     /// <summary>

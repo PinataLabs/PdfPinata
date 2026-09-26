@@ -3,6 +3,7 @@ using System.IO;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.IO;
@@ -22,13 +23,6 @@ public class PagePlacementTests
 
     private static PdfDocument OpenForImport() =>
         global::PdfPinata.Pdf.IO.PdfReader.Open(SourcePdf, PdfDocumentOpenMode.Import);
-
-    private static byte[] Save(PdfDocument document)
-    {
-        var stream = new MemoryStream();
-        document.Save(stream, false);
-        return stream.ToArray();
-    }
 
     // ----- the mistake from the issue, and what it now says -------------------------------
 
@@ -88,7 +82,7 @@ public class PagePlacementTests
         Assert.Same(page, placed);
         Assert.Equal(before + 1, document.PageCount);
         Assert.Equal(0, document.Pages.IndexOf(page));
-        Assert.True(Save(document).Length > 0);
+        Assert.True(Saved.Bytes(document).Length > 0);
     }
 
     [Fact]
@@ -131,7 +125,7 @@ public class PagePlacementTests
         Assert.Equal(before + 1, document.PageCount);
         Assert.Equal(0, document.Pages.IndexOf(inserted));
         Assert.Equal(1, document.Pages.IndexOf(wasFirst));
-        Assert.True(Save(document).Length > 0);
+        Assert.True(Saved.Bytes(document).Length > 0);
     }
 
     /// <summary>
@@ -150,7 +144,7 @@ public class PagePlacementTests
         Assert.Same(page, inserted);
         Assert.Equal(before + 1, document.PageCount);
         Assert.Equal(0, document.Pages.IndexOf(page));
-        Assert.True(Save(document).Length > 0);
+        Assert.True(Saved.Bytes(document).Length > 0);
     }
 
     /// <summary>
@@ -170,7 +164,7 @@ public class PagePlacementTests
         Assert.NotSame(source, inserted);
         Assert.Equal(before + 1, document.PageCount);
         Assert.Equal(0, document.Pages.IndexOf(inserted));
-        Assert.True(Save(document).Length > 0);
+        Assert.True(Saved.Bytes(document).Length > 0);
     }
 
     // ----- import -------------------------------------------------------------------------
@@ -191,7 +185,7 @@ public class PagePlacementTests
         Assert.NotSame(source, imported);
         Assert.Equal(before + 1, target.PageCount);
         Assert.Equal(0, target.Pages.IndexOf(imported));
-        Assert.True(Save(target).Length > 0);
+        Assert.True(Saved.Bytes(target).Length > 0);
     }
 
     [Fact]
@@ -226,7 +220,7 @@ public class PagePlacementTests
         Assert.Equal(before + 1, document.PageCount);
         Assert.Equal(1, document.Pages.IndexOf(duplicate));
 
-        var saved = Save(document);
+        var saved = Saved.Bytes(document);
         var reloaded = global::PdfPinata.Pdf.IO.PdfReader.Open(
             new MemoryStream(saved), PdfDocumentOpenMode.Modify);
 
@@ -242,11 +236,11 @@ public class PagePlacementTests
     public void DuplicatePage_SharesContentRatherThanCopyingIt()
     {
         var plain = OpenForModify();
-        var plainSize = Save(plain).Length;
+        var plainSize = Saved.Bytes(plain).Length;
 
         var doubled = OpenForModify();
         _ = doubled.DuplicatePage(0, 1);
-        var doubledSize = Save(doubled).Length;
+        var doubledSize = Saved.Bytes(doubled).Length;
 
         // A duplicated page adds a page object, not another copy of the content stream.
         Assert.True(doubledSize < plainSize * 1.05,
@@ -279,7 +273,7 @@ public class PagePlacementTests
         Assert.Contains("/XObject", duplicate.Elements["/Resources"].ToString());
         Assert.NotSame(source.Elements["/Contents"], duplicate.Elements["/Contents"]);
 
-        Assert.True(Save(document).Length > 0);
+        Assert.True(Saved.Bytes(document).Length > 0);
     }
 
     [Theory]
@@ -310,7 +304,7 @@ public class PagePlacementTests
 
         Assert.Same(appended, document.Pages[0]);
         Assert.Same(first, document.Pages[1]);
-        Assert.True(Save(document).Length > 0);
+        Assert.True(Saved.Bytes(document).Length > 0);
     }
 
     // ----- IndexOf ------------------------------------------------------------------------
@@ -343,6 +337,6 @@ public class PagePlacementTests
 
         Assert.Equal(before + 1, document.PageCount);
         Assert.Equal(1, document.Pages.IndexOf(page));
-        Assert.True(Save(document).Length > 0);
+        Assert.True(Saved.Bytes(document).Length > 0);
     }
 }

@@ -292,9 +292,7 @@ public class TaggedTextExtractionTests
         stream.Elements.Remove("/Filter");
         stream.Elements.SetInteger("/Length", bytes.Length);
 
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
+        return Saved.Bytes(document);
     }
 
     private static byte[] Draw(Action<XGraphics> draw)
@@ -303,21 +301,10 @@ public class TaggedTextExtractionTests
         var gfx = XGraphics.FromPdfPage(document.AddPage());
         draw(gfx);
         gfx.Dispose();
-        return Save(document);
+        return Saved.Bytes(document);
     }
 
-    private static byte[] Save(PdfDocument document)
-    {
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
-    }
-
-    private static PdfPage Reopen(byte[] bytes)
-    {
-        var saved = new MemoryStream(bytes);
-        return Reader.Open(saved, PdfDocumentOpenMode.Modify).Pages[0];
-    }
+    private static PdfPage Reopen(byte[] bytes) => Saved.Open(bytes).Pages[0];
 
     private static int Occurrences(string text, string value)
     {

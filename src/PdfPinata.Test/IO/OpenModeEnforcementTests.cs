@@ -5,8 +5,8 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
-using Reader = PdfPinata.Pdf.IO.PdfReader;
 
 namespace PdfPinata.Test.IO;
 
@@ -285,10 +285,7 @@ public class OpenModeEnforcementTests
             .WithMessage("*PdfDocumentOpenMode.Import*");
     }
 
-    private static PdfDocument OpenedWith(PdfDocumentOpenMode mode)
-    {
-        return Reader.Open(new MemoryStream(TwoPageDocument()), mode);
-    }
+    private static PdfDocument OpenedWith(PdfDocumentOpenMode mode) => Saved.Open(TwoPageDocument(), mode);
 
     /// <summary>A page of a separate document opened for import, for the operations that take one.</summary>
     private static PdfPage AForeignPage()
@@ -306,8 +303,6 @@ public class OpenModeEnforcementTests
             page.Size = PageSize.A4;
         }
 
-        var buffer = new MemoryStream();
-        document.Save(buffer, false);
-        return buffer.ToArray();
+        return Saved.Bytes(document);
     }
 }

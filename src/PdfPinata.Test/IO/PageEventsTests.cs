@@ -11,6 +11,7 @@ using PdfPinata.Test.Helpers;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.Rendering;
 using Xunit;
+using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.IO;
 
@@ -23,20 +24,14 @@ public sealed class PageEventsTests : IDisposable
 {
     private const string OutDir = "Out/PageEvents";
 
-    private readonly List<MagickImageCollection> _rasterized = [];
+    private readonly Rasterizations _rasterized = new(OutDir);
 
     static PageEventsTests()
     {
         GhostscriptSetup.Configure();
     }
 
-    public void Dispose()
-    {
-        foreach (var collection in _rasterized)
-            collection.Dispose();
-
-        _rasterized.Clear();
-    }
+    public void Dispose() => _rasterized.Dispose();
 
     // ----- pages added and removed ----------------------------------------------------------------------
 
@@ -69,7 +64,7 @@ public sealed class PageEventsTests : IDisposable
     [Fact]
     public void AnImportedPageIsReportedAsTheCopyThisDocumentHolds()
     {
-        var source = Reopen(TwoPages(), PdfDocumentOpenMode.Import);
+        var source = Saved.Open(TwoPages(), PdfDocumentOpenMode.Import);
         var document = new PdfDocument();
         var seen = Record(document);
 
@@ -82,7 +77,7 @@ public sealed class PageEventsTests : IDisposable
     [Fact]
     public void ARangeIsReportedPageByPageOnceItIsAllIn()
     {
-        var source = Reopen(TwoPages(), PdfDocumentOpenMode.Import);
+        var source = Saved.Open(TwoPages(), PdfDocumentOpenMode.Import);
         var document = new PdfDocument();
         _ = document.AddPage();
         var counts = new List<int>();
@@ -102,7 +97,7 @@ public sealed class PageEventsTests : IDisposable
     [Fact]
     public void ARangeReportsTheInsertedPagesEvenWhenAHandlerAddsPagesOfItsOwn()
     {
-        var source = Reopen(TwoPages(), PdfDocumentOpenMode.Import);
+        var source = Saved.Open(TwoPages(), PdfDocumentOpenMode.Import);
         var document = new PdfDocument();
         var original = document.AddPage();
         var reported = new List<PdfPage>();
@@ -220,9 +215,7 @@ public sealed class PageEventsTests : IDisposable
         using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawRectangle(XBrushes.Blue, 100, 100, 200, 200);
 
-        var images = PdfHelper.Rasterize(document).ImageCollection;
-        _rasterized.Add(images);
-        PdfHelper.WriteImageCollection(images, OutDir, "underneath");
+        var images = _rasterized.Of(document, "underneath");
 
         Count(images[0], IsBlue).Should().BeGreaterThan(10000);
         Count(images[0], IsGrey).Should().BeGreaterThan(10000);
@@ -292,7 +285,7 @@ public sealed class PageEventsTests : IDisposable
 
         using var stream = new MemoryStream();
         target.Save(stream, false);
-        var saved = Reopen(stream.ToArray(), PdfDocumentOpenMode.Modify);
+        var saved = Saved.Open(stream.ToArray(), PdfDocumentOpenMode.Modify);
         saved.Internals.Catalog.Elements.ContainsKey("/StructTreeRoot").Should().BeTrue("the layout is tagged by default");
     }
 
@@ -311,26 +304,9 @@ public sealed class PageEventsTests : IDisposable
         var document = new PdfDocument();
         _ = document.AddPage();
         _ = document.AddPage();
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
+        return Saved.Bytes(document);
     }
-
-    private static PdfDocument Reopen(byte[] bytes, PdfDocumentOpenMode mode) =>
-        PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(bytes), mode);
-
-    private static bool IsBlue(IMagickColor<byte> c) => c.B > 150 && c.R < 120 && c.G < 150;
 
     private static bool IsGrey(IMagickColor<byte> c) =>
         Math.Abs(c.R - c.G) < 10 && Math.Abs(c.G - c.B) < 10 && c.R is > 90 and < 200;
-
-    private static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
-    {
-        using var pixels = image.GetPixels();
-        return pixels.Count(p =>
-        {
-            var c = p.ToColor();
-            return c != null && match(c);
-        });
-    }
 }

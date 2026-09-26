@@ -49,18 +49,6 @@ public class PageResizeTests
         return document;
     }
 
-    /// <summary>
-    ///   Writes the document out and reads it back, so that the page arrives the way an imported
-    ///   one does rather than as the object that was just built.
-    /// </summary>
-    private static PdfDocument RoundTripped(PdfDocument document)
-    {
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        return PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
-    }
-
     private static void ShouldBeAbout(XRect actual, double x, double y, double width, double height)
     {
         actual.X.Should().BeApproximately(x, Tolerance);
@@ -219,7 +207,7 @@ public class PageResizeTests
     {
         var document = DocumentWithAFilledPage();
         document.Pages[0].Rotate = 90;
-        var reopened = RoundTripped(document);
+        var reopened = document.Reopened();
         var page = reopened.Pages[0];
 
         page.Resize(PageSize.A5);
@@ -348,7 +336,7 @@ public class PageResizeTests
     {
         var document = DocumentWithAFilledPage();
         document.Options.CompressContentStreams = true;
-        var reopened = RoundTripped(document);
+        var reopened = document.Reopened();
         var page = reopened.Pages[0];
 
         var before = TheSingleContentStreamOf(page).Stream.Value;
@@ -539,7 +527,7 @@ public class PageResizeTests
     [Fact]
     public void AnImportedPageIsRefusedTheSizeSetterToo()
     {
-        var reopened = RoundTripped(DocumentWithAFilledPage());
+        var reopened = DocumentWithAFilledPage().Reopened();
 
         Action act = () => reopened.Pages[0].Size = PageSize.A5;
 
@@ -661,7 +649,7 @@ public class PageResizeTests
         var document = DocumentWithAFilledPage();
         document.Pages[0].Resize(PageSize.A5);
 
-        var reopened = RoundTripped(document);
+        var reopened = document.Reopened();
         var page = reopened.Pages[0];
 
         page.Width.Point.Should().BeApproximately(A5Width, Tolerance);

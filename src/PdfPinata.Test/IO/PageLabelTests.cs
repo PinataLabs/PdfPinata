@@ -3,6 +3,7 @@ using System.IO;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.IO;
@@ -142,7 +143,7 @@ public class PageLabelTests
         document.PageLabels.Add(0, PdfPageLabelStyle.LowercaseRoman);
         document.PageLabels.Add(4, PdfPageLabelStyle.Decimal, "Part-", 1);
 
-        var reopened = SaveAndOpen(document);
+        var reopened = document.Reopened();
 
         reopened.PageLabels.Count.Should().Be(2);
         reopened.PageLabels.GetLabel(1).Should().Be("ii");
@@ -157,7 +158,7 @@ public class PageLabelTests
         document.PageLabels.Add(3, PdfPageLabelStyle.Decimal, "B", 7);
         document.PageLabels.Add(0, PdfPageLabelStyle.UppercaseRoman);
 
-        var range = SaveAndOpen(document).PageLabels.GetRange(4);
+        var range = document.Reopened().PageLabels.GetRange(4);
 
         range.StartPageIndex.Should().Be(3);
         range.Style.Should().Be(PdfPageLabelStyle.Decimal);
@@ -226,7 +227,7 @@ public class PageLabelTests
         document.PageLabels.Add(7, PdfPageLabelStyle.UppercaseLetters);
         document.PageLabels.Add(4, PdfPageLabelStyle.Decimal, "B-", 1);
 
-        var reopened = SaveAndOpen(document);
+        var reopened = document.Reopened();
 
         reopened.PageLabels.GetRangeStarts().Should().Contain(0);
         reopened.PageLabels.GetLabel(0).Should().NotBeNull();
@@ -257,7 +258,7 @@ public class PageLabelTests
         // A tree left holding nothing would say the document has labels and then label no
         // page, which is not a document the standard describes.
         document.Internals.Catalog.Elements.ContainsKey("/PageLabels").Should().BeFalse();
-        SaveAndOpen(document).PageLabels.Count.Should().Be(0);
+        document.Reopened().PageLabels.Count.Should().Be(0);
     }
 
     [Fact]
@@ -270,7 +271,7 @@ public class PageLabelTests
         document.PageLabels.Remove(3).Should().BeTrue();
 
         document.Internals.Catalog.Elements.ContainsKey("/PageLabels").Should().BeTrue();
-        SaveAndOpen(document).PageLabels.Count.Should().Be(1);
+        document.Reopened().PageLabels.Count.Should().Be(1);
     }
 
     [Fact]
@@ -283,7 +284,7 @@ public class PageLabelTests
 
         document.PageLabels.Count.Should().Be(0);
         document.Internals.Catalog.Elements.ContainsKey("/PageLabels").Should().BeFalse();
-        SaveAndOpen(document).PageLabels.Count.Should().Be(0);
+        document.Reopened().PageLabels.Count.Should().Be(0);
     }
 
     [Fact]
@@ -320,13 +321,5 @@ public class PageLabelTests
             _ = document.AddPage();
 
         return document;
-    }
-
-    private static PdfDocument SaveAndOpen(PdfDocument document)
-    {
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        return Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
     }
 }

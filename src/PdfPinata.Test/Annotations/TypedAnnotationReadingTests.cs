@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AwesomeAssertions;
@@ -12,6 +11,7 @@ using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using Xunit;
+using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Annotations;
 
@@ -30,20 +30,14 @@ public sealed class TypedAnnotationReadingTests : IDisposable
 {
     private const string OutDir = "Out/TypedAnnotationReading";
 
-    private readonly List<MagickImageCollection> _rasterized = [];
+    private readonly Rasterizations _rasterized = new(OutDir);
 
     static TypedAnnotationReadingTests()
     {
         GhostscriptSetup.Configure();
     }
 
-    public void Dispose()
-    {
-        foreach (var collection in _rasterized)
-            collection.Dispose();
-
-        _rasterized.Clear();
-    }
+    public void Dispose() => _rasterized.Dispose();
 
     private static readonly PdfRectangle Somewhere = new(new XPoint(100, 500), new XPoint(300, 600));
 
@@ -219,9 +213,7 @@ public sealed class TypedAnnotationReadingTests : IDisposable
         var reopened = ReadBack(WithForeignAppearance("/Square"));
         reopened.Pages[0].Annotations[0].Should().BeOfType<PdfSquareAnnotation>();
 
-        var images = PdfHelper.Rasterize(ReadBack(reopened)).ImageCollection;
-        _rasterized.Add(images);
-        PdfHelper.WriteImageCollection(images, OutDir, "foreign-square");
+        var images = _rasterized.Of(ReadBack(reopened), "foreign-square");
 
         Count(images[0], IsGreen).Should().BeGreaterThan(200);
     }
@@ -234,9 +226,7 @@ public sealed class TypedAnnotationReadingTests : IDisposable
 
         square.Interior = XColors.Blue;
 
-        var images = PdfHelper.Rasterize(ReadBack(reopened)).ImageCollection;
-        _rasterized.Add(images);
-        PdfHelper.WriteImageCollection(images, OutDir, "redrawn-square");
+        var images = _rasterized.Of(ReadBack(reopened), "redrawn-square");
 
         Count(images[0], IsGreen).Should().Be(0);
         Count(images[0], IsBlue).Should().BeGreaterThan(1000);
@@ -363,24 +353,8 @@ public sealed class TypedAnnotationReadingTests : IDisposable
         return normal.Stream.UnfilteredValue;
     }
 
-    private static PdfDocument ReadBack(PdfDocument document, PdfDocumentOpenMode mode = PdfDocumentOpenMode.Modify)
-    {
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(output.ToArray()), mode);
-    }
+    private static PdfDocument ReadBack(PdfDocument document, PdfDocumentOpenMode mode = PdfDocumentOpenMode.Modify) =>
+        document.Reopened(mode);
 
     private static bool IsGreen(IMagickColor<byte> c) => c.G > 180 && c.R < 100 && c.B < 100;
-
-    private static bool IsBlue(IMagickColor<byte> c) => c.B > 150 && c.R < 120 && c.G < 150;
-
-    private static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
-    {
-        using var pixels = image.GetPixels();
-        return pixels.Count(p =>
-        {
-            var c = p.ToColor();
-            return c != null && match(c);
-        });
-    }
 }

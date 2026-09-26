@@ -73,10 +73,7 @@ public class ShapedFontEmbeddingTests
         using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawString(text, new XFont(familyName, 20), XBrushes.Black, new XPoint(20, 40));
 
-        var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        return PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.ReadOnly);
+        return document.Reopened(PdfDocumentOpenMode.ReadOnly);
     }
 
     private static string ContentOf(PdfDocument document) =>

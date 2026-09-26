@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AwesomeAssertions;
@@ -10,6 +9,7 @@ using PdfPinata.Pdf.AcroForms;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Test.Helpers;
 using Xunit;
+using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Forms;
 
@@ -32,19 +32,14 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
 
     private static readonly string[] Countries = ["Australia", "Canada", "Ireland", "New Zealand", "United Kingdom"];
 
-    private readonly List<MagickImageCollection> _rasterized = [];
+    private readonly Rasterizations _rasterized = new(OutDir);
 
     static ChoiceFieldAppearanceTests()
     {
         GhostscriptSetup.Configure();
     }
 
-    public void Dispose()
-    {
-        foreach (var collection in _rasterized)
-            collection.Dispose();
-        _rasterized.Clear();
-    }
+    public void Dispose() => _rasterized.Dispose();
 
     private static (PdfDocument Document, T Field) OnAPage<T>(Func<PdfDocument, T> make, XRect? box = null)
         where T : PdfChoiceField
@@ -317,19 +312,11 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         combo.SelectedIndex = 1;
         var drawn = NormalAppearance(combo).Stream.UnfilteredValue;
 
-        var read = (PdfComboBoxField)Reopened(document).AcroForm.Fields["country"];
+        var read = (PdfComboBoxField)document.Reopened().AcroForm.Fields["country"];
         NormalAppearance(read).Stream.UnfilteredValue.Should().Equal(drawn);
 
-        var again = (PdfComboBoxField)Reopened(read.Owner).AcroForm.Fields["country"];
+        var again = (PdfComboBoxField)read.Owner.Reopened().AcroForm.Fields["country"];
         NormalAppearance(again).Stream.UnfilteredValue.Should().Equal(drawn, "saving a read field does not redraw it");
-    }
-
-    private static PdfDocument Reopened(PdfDocument document)
-    {
-        var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        return PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfPinata.Pdf.IO.PdfDocumentOpenMode.Modify);
     }
 
     private static PdfDictionary NormalAppearance(PdfChoiceField field)
@@ -343,33 +330,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
     {
         arrange(placed.Field);
 
-        var images = PdfHelper.Rasterize(placed.Document).ImageCollection;
-        _rasterized.Add(images);
-        PdfHelper.WriteImageCollection(images, OutDir, name);
-        return images[0];
-    }
-
-    /// <summary>The pixels inside a box given in world space, matching a test.</summary>
-    private static int Count(IMagickImage<byte> image, XRect box, Func<IMagickColor<byte>, bool> match)
-    {
-        var scale = image.Width / PageSizeConverter.ToSize(PageSize.A4).Width;
-        var left = (int)(box.X * scale);
-        var top = (int)(box.Y * scale);
-        var right = (int)Math.Ceiling(box.Right * scale);
-        var bottom = (int)Math.Ceiling(box.Bottom * scale);
-
-        using var pixels = image.GetPixels();
-        var count = 0;
-        for (var y = top; y < bottom; y++)
-        {
-            for (var x = left; x < right; x++)
-            {
-                var c = pixels.GetPixel(x, y).ToColor();
-                if (c != null && match(c))
-                    count++;
-            }
-        }
-        return count;
+        return _rasterized.FirstPageOf(placed.Document, name);
     }
 
     private static bool IsInk(IMagickColor<byte> c) => c.R < 110 && c.G < 110 && c.B < 110;

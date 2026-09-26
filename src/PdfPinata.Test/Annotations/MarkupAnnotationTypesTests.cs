@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using AwesomeAssertions;
 using ImageMagick;
@@ -9,6 +7,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Test.Helpers;
 using Xunit;
+using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Annotations;
 
@@ -27,20 +26,14 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
 {
     private const string OutDir = "Out/MarkupAnnotationTypes";
 
-    private readonly List<MagickImageCollection> _rasterized = [];
+    private readonly Rasterizations _rasterized = new(OutDir);
 
     static MarkupAnnotationTypesTests()
     {
         GhostscriptSetup.Configure();
     }
 
-    public void Dispose()
-    {
-        foreach (var collection in _rasterized)
-            collection.Dispose();
-
-        _rasterized.Clear();
-    }
+    public void Dispose() => _rasterized.Dispose();
 
     // ----- ink ------------------------------------------------------------------------------------------
 
@@ -373,30 +366,10 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
         _ = document.AddPage();
         arrange(document);
 
-        var images = PdfHelper.Rasterize(document).ImageCollection;
-        _rasterized.Add(images);
-        PdfHelper.WriteImageCollection(images, OutDir, name);
-        return images[0];
+        return _rasterized.FirstPageOf(document, name);
     }
 
-    private static PdfDocument ReadBack(PdfDocument document)
-    {
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return Pdf.IO.PdfReader.Open(new MemoryStream(output.ToArray()), Pdf.IO.PdfDocumentOpenMode.Modify);
-    }
+    private static PdfDocument ReadBack(PdfDocument document) => document.Reopened();
 
     private static bool IsRed(IMagickColor<byte> c) => c.R > 130 && c.G < 100 && c.B < 100;
-
-    private static bool IsBlue(IMagickColor<byte> c) => c.B > 150 && c.R < 120 && c.G < 150;
-
-    private static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
-    {
-        using var pixels = image.GetPixels();
-        return pixels.Count(p =>
-        {
-            var c = p.ToColor();
-            return c != null && match(c);
-        });
-    }
 }

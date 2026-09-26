@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Linq;
 using System.Text;
 using AwesomeAssertions;
@@ -266,9 +265,6 @@ public class ChartFrameTests
 
     private static PdfPage Reopened(PdfDocument document)
     {
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        return PdfReader.Open(stream, PdfDocumentOpenMode.Modify).Pages[0];
+        return document.Reopened().Pages[0];
     }
 }

@@ -98,9 +98,7 @@ public class ResourceDeduplicationRenderingTests(ITestOutputHelper output)
             gfx.DrawImage(XImage.FromFile(PathHelper.GetInstance().GetAssetPath("lenna.png")), 40, 120, 200, 200);
         }
 
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        return stream.ToArray();
+        return Saved.Bytes(document);
     }
 
     private static PdfDocument Merged(IEnumerable<byte[]> documents, bool deduplicate)

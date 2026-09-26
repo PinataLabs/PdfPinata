@@ -3,6 +3,7 @@ using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.Outlines;
@@ -22,22 +23,13 @@ public class OutlineTextColorTests
         return document;
     }
 
-    private static PdfDocument SaveAndOpen(PdfDocument document)
-    {
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        // Fully qualified: PdfPinata.Test carries a PdfReader of its own, which wins here.
-        return Pdf.IO.PdfReader.Open(stream, Pdf.IO.PdfDocumentOpenMode.Modify);
-    }
-
     [Fact]
     public void AColouredEntryIsWrittenWithItsColour()
     {
         var document = OnePage();
         document.Outlines.Add(new PdfOutline("Red", document.Pages[0], true, PdfOutlineStyle.Regular, XColors.Red));
 
-        using var reopened = SaveAndOpen(document);
+        using var reopened = document.Reopened();
 
         reopened.Outlines[0].Elements.ContainsKey("/C").Should().BeTrue();
         reopened.Outlines[0].TextColor.R.Should().Be(255);
@@ -48,10 +40,10 @@ public class OutlineTextColorTests
     {
         var document = OnePage(version: 17);
         document.Outlines.Add("Plain", document.Pages[0], true);
-        using var once = SaveAndOpen(document);
+        using var once = document.Reopened();
 
         once.Outlines[0].TextColor = XColors.Blue;
-        using var twice = SaveAndOpen(once);
+        using var twice = once.Reopened();
 
         twice.Outlines[0].Elements.ContainsKey("/C").Should().BeTrue();
         twice.Outlines[0].TextColor.B.Should().Be(255);
@@ -63,8 +55,8 @@ public class OutlineTextColorTests
         var document = OnePage();
         document.Outlines.Add(new PdfOutline("Red", document.Pages[0], true, PdfOutlineStyle.Regular, XColors.Red));
 
-        using var once = SaveAndOpen(document);
-        using var twice = SaveAndOpen(once);
+        using var once = document.Reopened();
+        using var twice = once.Reopened();
 
         twice.Outlines[0].Elements.ContainsKey("/C").Should().BeTrue();
         twice.Outlines[0].TextColor.R.Should().Be(255);
@@ -81,8 +73,8 @@ public class OutlineTextColorTests
         var colour = XColor.FromArgb(red, green, blue);
         document.Outlines.Add(new PdfOutline("Colour", document.Pages[0], true, PdfOutlineStyle.Regular, colour));
 
-        using var once = SaveAndOpen(document);
-        using var twice = SaveAndOpen(once);
+        using var once = document.Reopened();
+        using var twice = once.Reopened();
 
         foreach (var read in new[] { once.Outlines[0].TextColor, twice.Outlines[0].TextColor })
             ((int)read.R, (int)read.G, (int)read.B).Should().Be((red, green, blue));
@@ -114,7 +106,7 @@ public class OutlineTextColorTests
         var document = OnePage(version: 13);
         document.Outlines.Add(new PdfOutline("Red", document.Pages[0], true, PdfOutlineStyle.Regular, XColors.Red));
 
-        using var reopened = SaveAndOpen(document);
+        using var reopened = document.Reopened();
 
         reopened.Outlines[0].Elements.ContainsKey("/C").Should().BeFalse();
     }

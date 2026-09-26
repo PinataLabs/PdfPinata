@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.IO;
@@ -20,7 +20,7 @@ public class NumberTreeTests
     [Fact]
     public void AskingADocumentForItsPageLabelsNoLongerThrows()
     {
-        var document = Open(DocumentWithPageLabels("<</Nums[0 5 0 R 3 6 0 R]>>"));
+        var document = Saved.Open(DocumentWithPageLabels("<</Nums[0 5 0 R 3 6 0 R]>>"));
 
         var labels = document.Internals.Catalog.Elements.GetValue("/PageLabels");
 
@@ -188,7 +188,7 @@ public class NumberTreeTests
         tree.SetValue(0, Label(document, "/r"));
         tree.SetValue(3, Label(document, "/D"));
 
-        var reopened = PageLabelsOf(SaveAndOpen(document));
+        var reopened = PageLabelsOf(document.Reopened());
 
         reopened.GetKeys().Should().Equal(0, 3);
         reopened.GetDictionary(0).Elements.GetName("/S").Should().Be("/r");
@@ -204,7 +204,7 @@ public class NumberTreeTests
         for (var page = 0; page < 500; page++)
             tree.SetValue(page * 2, Started(document, page + 1));
 
-        var reopened = PageLabelsOf(SaveAndOpen(document));
+        var reopened = PageLabelsOf(document.Reopened());
 
         reopened.Count.Should().Be(500);
         reopened.GetKeys().Should().BeInAscendingOrder();
@@ -216,7 +216,7 @@ public class NumberTreeTests
     [Fact]
     public void ReadingATreeLeavesTheDocumentAsItWas()
     {
-        var document = Open(DocumentWithPageLabels("<</Nums[3 6 0 R 0 5 0 R]>>"));
+        var document = Saved.Open(DocumentWithPageLabels("<</Nums[3 6 0 R 0 5 0 R]>>"));
         var tree = PageLabelsOf(document);
 
         tree.GetKeys().Should().Equal(0, 3);
@@ -240,7 +240,7 @@ public class NumberTreeTests
 
     private static PdfNumberTreeNode PageLabelsOf(byte[] document)
     {
-        return PageLabelsOf(Open(document));
+        return PageLabelsOf(Saved.Open(document));
     }
 
     private static PdfDictionary Label(PdfDocument document, string style)
@@ -255,19 +255,6 @@ public class NumberTreeTests
         var label = Label(document, "/D");
         label.Elements.SetInteger("/St", start);
         return label;
-    }
-
-    private static PdfDocument SaveAndOpen(PdfDocument document)
-    {
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        return Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
-    }
-
-    private static PdfDocument Open(byte[] document)
-    {
-        return Pdf.IO.PdfReader.Open(new MemoryStream(document), PdfDocumentOpenMode.Modify);
     }
 
     /// <summary>

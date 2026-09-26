@@ -1,10 +1,10 @@
-using System.IO;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.Annotations;
@@ -77,11 +77,5 @@ public class AnnotationColorTests
         note.Color.Should().Be(XColors.Black, "an empty /C means no colour, and black is the fallback");
     }
 
-    private static PdfDocument Reopened(PdfDocument document)
-    {
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        return PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
-    }
+    private static PdfDocument Reopened(PdfDocument document) => document.Reopened();
 }

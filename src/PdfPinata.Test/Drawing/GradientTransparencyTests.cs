@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
@@ -174,11 +173,7 @@ public class GradientTransparencyTests
         using (var gfx = XGraphics.FromPdfPage(page))
             draw(gfx);
 
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-
-        return PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify).Pages[0];
+        return document.Reopened().Pages[0];
     }
 
     // ----- reading the structure back ------------------------------------------------------------

@@ -8,6 +8,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Security;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
@@ -207,9 +208,7 @@ public class StreamLengthTests
         using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawString("Length", new XFont("Arial", 20), XBrushes.Black, 20, 40);
 
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        return stream.ToArray();
+        return Saved.Bytes(document);
     }
 
     /// <summary>
@@ -234,9 +233,7 @@ public class StreamLengthTests
         var target = arrange(document);
         objectNumber = target.Reference.ObjectNumber;
 
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        return stream.ToArray();
+        return Saved.Bytes(document);
     }
 
     /// <summary>

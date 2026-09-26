@@ -7,6 +7,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
@@ -31,7 +32,7 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
     {
         var updated = AppendChange(OriginalDocument(), document => document.Info.Subject = "Changed");
 
-        Reopen(updated).Info.Subject.Should().Be("Changed");
+        Saved.Open(updated).Info.Subject.Should().Be("Changed");
     }
 
     [Fact]
@@ -41,7 +42,7 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
         // is what says an entry of type 2 is still followed through the /Prev chain.
         var updated = AppendChange(OriginalDocument(), document => document.Info.Subject = "Changed");
 
-        var reread = Reopen(updated);
+        var reread = Saved.Open(updated);
         reread.Info.Title.Should().Be("Original title");
         reread.PageCount.Should().Be(2);
     }
@@ -93,7 +94,7 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
         var updated = AppendChange(original, document => document.Info.Subject = "Changed");
 
         CrossReferenceStreamsIn(Appended(updated, original.Length)).Should().Be(1);
-        var reread = Reopen(updated);
+        var reread = Saved.Open(updated);
         reread.Info.Subject.Should().Be("Changed");
         reread.PageCount.Should().Be(2);
     }
@@ -104,7 +105,7 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
         var once = AppendChange(OriginalDocument(), document => document.Info.Subject = "First");
         var twice = AppendChange(once, document => document.Info.Keywords = "second");
 
-        var reread = Reopen(twice);
+        var reread = Saved.Open(twice);
         reread.Info.Subject.Should().Be("First");
         reread.Info.Keywords.Should().Be("second");
         reread.Info.Title.Should().Be("Original title");
@@ -115,7 +116,7 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
     {
         var updated = AppendChange(OriginalDocument(), document => _ = document.AddPage());
 
-        Reopen(updated).PageCount.Should().Be(3);
+        Saved.Open(updated).PageCount.Should().Be(3);
     }
 
     [Fact]
@@ -123,7 +124,7 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
     {
         var updated = AppendChange(OriginalDocument(), _ => { });
 
-        Reopen(updated).PageCount.Should().Be(2);
+        Saved.Open(updated).PageCount.Should().Be(2);
     }
 
     [Fact]
@@ -132,8 +133,8 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
         var original = OriginalDocument();
         var updated = AppendChange(original, document => document.Info.Subject = "Changed");
 
-        var before = Reopen(original).Internals;
-        var after = Reopen(updated).Internals;
+        var before = Saved.Open(original).Internals;
+        var after = Saved.Open(updated).Internals;
 
         after.FirstDocumentID.Should().Be(before.FirstDocumentID);
         after.SecondDocumentID.Should().NotBe(before.SecondDocumentID);
@@ -168,9 +169,7 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
             gfx.Dispose();
         }
 
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
+        return Saved.Bytes(document);
     }
 
     /// <summary>
@@ -197,9 +196,6 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
         document.SaveIncremental(output);
         return output.ToArray();
     }
-
-    private static PdfDocument Reopen(byte[] bytes) =>
-        Reader.Open(new MemoryStream(bytes), PdfDocumentOpenMode.Modify);
 
     private static string Appended(byte[] updated, int originalLength) =>
         Encoding.Latin1.GetString(updated, originalLength, updated.Length - originalLength);

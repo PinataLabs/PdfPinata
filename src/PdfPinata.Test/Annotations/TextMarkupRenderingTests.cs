@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using AwesomeAssertions;
 using ImageMagick;
@@ -9,6 +8,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Test.Helpers;
 using Xunit;
+using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Annotations;
 
@@ -34,15 +34,9 @@ public sealed class TextMarkupRenderingTests : IDisposable
     ///   test having failed. xUnit builds a new instance of this class per test, so disposing
     ///   here frees them between tests.
     /// </remarks>
-    private readonly List<MagickImageCollection> _rasterized = [];
+    private readonly Rasterizations _rasterized = new(OutDir);
 
-    public void Dispose()
-    {
-        foreach (var collection in _rasterized)
-            collection.Dispose();
-
-        _rasterized.Clear();
-    }
+    public void Dispose() => _rasterized.Dispose();
 
     /// <summary>
     ///   The line of text, and the band around it to mark up, in the space the drawing uses.
@@ -184,20 +178,11 @@ public sealed class TextMarkupRenderingTests : IDisposable
             arrange(annotation, gfx.Transformer.WorldToDefaultPage);
         }
 
-        var images = PdfHelper.Rasterize(document).ImageCollection;
-        _rasterized.Add(images);
-        PdfHelper.WriteImageCollection(images, OutDir, name);
-        return images[0];
+        return _rasterized.FirstPageOf(document, name);
     }
 
     private static bool IsYellow(IMagickColor<byte> c) => c.R > 200 && c.G > 200 && c.B < 120;
     private static bool IsRed(IMagickColor<byte> c) => c.R > 150 && c.G < 100 && c.B < 100;
     private static bool IsGreen(IMagickColor<byte> c) => c.G > 100 && c.R < 100 && c.B < 100;
     private static bool IsDark(IMagickColor<byte> c) => c.R < 100 && c.G < 100 && c.B < 100;
-
-    private static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
-    {
-        using var pixels = image.GetPixels();
-        return pixels.Count(p => { var c = p.ToColor(); return c != null && match(c); });
-    }
 }

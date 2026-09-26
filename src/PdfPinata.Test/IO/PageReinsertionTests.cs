@@ -5,10 +5,8 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
-
-// This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
-using Reader = PdfPinata.Pdf.IO.PdfReader;
 
 namespace PdfPinata.Test.IO;
 
@@ -38,7 +36,7 @@ public class PageReinsertionTests
         var inserted = document.Pages.Insert(index, page);
 
         inserted.Should().BeSameAs(page, "a page of this document is placed, not copied");
-        Describe(Reopened(document)).Should().Be(expected);
+        Describe(document.Reopened()).Should().Be(expected);
     }
 
     [Fact]
@@ -48,10 +46,10 @@ public class PageReinsertionTests
         var page = document.Pages[1];
 
         document.Pages.Remove(page);
-        Saved(document);
+        Saved.Bytes(document);
         _ = document.Pages.Insert(2, page);
 
-        var reopened = Reopened(document);
+        var reopened = document.Reopened();
         Describe(reopened).Should().Be("p1,p3,p2");
         ContentOf(reopened.Pages[2]).Should().Contain("0 1 0 rg",
             "the content stream was dropped with the page and has to come back with it");
@@ -61,14 +59,14 @@ public class PageReinsertionTests
     [Fact]
     public void APageOfADocumentReadFromAFileCanBeRemovedAcrossASaveAndPutBack()
     {
-        var document = Reopened(ADocumentOf(3));
+        var document = ADocumentOf(3).Reopened();
         var page = document.Pages[0];
 
         document.Pages.Remove(page);
-        Saved(document);
+        Saved.Bytes(document);
         _ = document.Pages.Insert(2, page);
 
-        Describe(Reopened(document)).Should().Be("p2,p3,p1");
+        Describe(document.Reopened()).Should().Be("p2,p3,p1");
     }
 
     [Fact]
@@ -81,7 +79,7 @@ public class PageReinsertionTests
         var document = ADocumentOf(3);
         var page = document.Pages[2];
         document.Pages.Remove(page);
-        Saved(document);
+        Saved.Bytes(document);
         _ = document.Pages.Insert(2, page);
 
         for (var idx = 0; idx < 50; idx++)
@@ -115,16 +113,6 @@ public class PageReinsertionTests
         document.Options.CompressContentStreams = false;
         return document;
     }
-
-    private static byte[] Saved(PdfDocument document)
-    {
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        return stream.ToArray();
-    }
-
-    private static PdfDocument Reopened(PdfDocument document) =>
-        Reader.Open(new MemoryStream(Saved(document)), PdfDocumentOpenMode.Modify);
 
     /// <summary>
     ///   The pages' tags in page order, each marked when its <c>/Parent</c> is not the page tree.

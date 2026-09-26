@@ -6,6 +6,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.Annotations;
@@ -231,10 +232,5 @@ public class AnnotationCollectionTests
     }
 
     private static PdfDocument ReadBack(PdfDocument document,
-        PdfDocumentOpenMode mode = PdfDocumentOpenMode.Modify)
-    {
-        var output = new System.IO.MemoryStream();
-        document.Save(output, false);
-        return PdfPinata.Pdf.IO.PdfReader.Open(new System.IO.MemoryStream(output.ToArray()), mode);
-    }
+        PdfDocumentOpenMode mode = PdfDocumentOpenMode.Modify) => document.Reopened(mode);
 }

@@ -5,6 +5,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using PdfPinata.Test.IO;
 using Xunit;
 
@@ -39,7 +40,7 @@ public class PageBoxTests
         box.IsEmpty.Should().BeTrue();
         page.Elements.ContainsKey(key).Should().BeFalse();
 
-        var reread = SaveAndReopen(document);
+        var reread = document.Reopened();
         reread.Pages[0].Elements.ContainsKey(key).Should().BeFalse();
     }
 
@@ -52,7 +53,7 @@ public class PageBoxTests
         Read(document.Pages[0], key).IsEmpty.Should().BeTrue();
 
         document.Pages[0].Elements.ContainsKey(key).Should().BeFalse();
-        SaveAndReopen(document).Pages[0].Elements.ContainsKey(key).Should().BeFalse();
+        document.Reopened().Pages[0].Elements.ContainsKey(key).Should().BeFalse();
     }
 
     [Fact]
@@ -206,7 +207,7 @@ public class PageBoxTests
         page.TrimBox = Box(10, 10, upright.Height - 10, upright.Width - 10);
         page.EffectiveTrimBox.Should().Be(Box(10, 10, upright.Height - 10, upright.Width - 10));
 
-        var reread = SaveAndReopen(document).Pages[0];
+        var reread = document.Reopened().Pages[0];
         reread.MediaBox.Should().Be(turned);
         reread.EffectiveTrimBox.Should().Be(page.EffectiveTrimBox);
     }
@@ -248,7 +249,7 @@ public class PageBoxTests
         document.Pages[0].Orientation.Should().Be(PageOrientation.Landscape);
         document.Pages[0].Rotate = 0;
 
-        SaveAndReopen(document).Pages[0].HasMediaBox.Should().BeFalse();
+        document.Reopened().Pages[0].HasMediaBox.Should().BeFalse();
     }
 
     private static PdfRectangle Box(double x1, double y1, double x2, double y2) =>
@@ -273,12 +274,5 @@ public class PageBoxTests
             "<</Type/Page/Parent 2 0 R" + pageEntries + ">>"
         };
         return Pdf.IO.PdfReader.Open(new MemoryStream(RawPdf.Build(objects)), PdfDocumentOpenMode.Modify);
-    }
-
-    private static PdfDocument SaveAndReopen(PdfDocument document)
-    {
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return Pdf.IO.PdfReader.Open(new MemoryStream(output.ToArray()), PdfDocumentOpenMode.Modify);
     }
 }

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using System.IO;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.Outlines;
@@ -115,7 +115,7 @@ public class OutlineOpenStateTests
         var second = document.Outlines.Add("Two", document.Pages[1], opened: false);
         second.Outlines.Add("2.1", document.Pages[2]);
 
-        using var reopened = SaveAndOpen(document);
+        using var reopened = document.Reopened();
 
         // Two top-level entries, plus the two under the open one. The closed one's child does
         // not show, and the root's count is never negative.
@@ -132,14 +132,14 @@ public class OutlineOpenStateTests
         var shut = document.Outlines.Add("Shut", document.Pages[1], opened: false);
         shut.Outlines.Add("2.1", document.Pages[2]);
 
-        using var once = SaveAndOpen(document);
+        using var once = document.Reopened();
 
         // Reading did not used to set Opened at all, so a document opened and saved again lost
         // every expanded branch it had.
         once.Outlines[0].Opened.Should().BeTrue();
         once.Outlines[1].Opened.Should().BeFalse();
 
-        using var twice = SaveAndOpen(once);
+        using var twice = once.Reopened();
 
         twice.Outlines[0].Opened.Should().BeTrue();
         twice.Outlines[1].Opened.Should().BeFalse();
@@ -199,20 +199,7 @@ public class OutlineOpenStateTests
     ///   entries of the original are what get asserted against, because <c>PrepareForSave</c>
     ///   writes into the live dictionaries - so nothing has to be reopened to read them back.
     /// </summary>
-    private static void Save(PdfDocument document)
-    {
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-    }
-
-    private static PdfDocument SaveAndOpen(PdfDocument document)
-    {
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        // Fully qualified: PdfPinata.Test carries a PdfReader of its own, which wins here.
-        return PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
-    }
+    private static void Save(PdfDocument document) => _ = Saved.Bytes(document);
 
     private static int CountOf(PdfOutline outline)
     {
