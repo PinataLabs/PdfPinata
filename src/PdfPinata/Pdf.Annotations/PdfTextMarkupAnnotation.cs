@@ -116,8 +116,7 @@ public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
         QuadPoints.Append(array, rect);
 
         UpdateRectangle();
-        Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
-        RebuildAppearance();
+        Touch();
     }
 
     /// <summary>
@@ -127,8 +126,7 @@ public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
     public void ClearQuads()
     {
         Elements.Remove(Keys.QuadPoints);
-        Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
-        RebuildAppearance();
+        Touch();
     }
 
     /// <summary>
@@ -161,16 +159,6 @@ public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
             Elements.SetRectangle(PdfAnnotation.Keys.Rect, enclosing);
     }
 
-    internal override void OnAddedToPage()
-    {
-        RebuildAppearance();
-    }
-
-    internal override void OnAppearanceInvalidated()
-    {
-        RebuildAppearance();
-    }
-
     /// <summary>
     /// Draws one quadrilateral into the appearance stream, in the coordinates of the page.
     /// </summary>
@@ -193,11 +181,8 @@ public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
     /// annotation to a page calls back here once it has one.
     /// </para>
     /// </remarks>
-    internal void RebuildAppearance()
+    private protected override void RebuildAppearance()
     {
-        if (Owner == null)
-            return;
-
         // Nothing to mark. The appearance already there has to go, or the annotation keeps showing
         // what it was last asked for; the form is kept, to be hung back up and rewritten when
         // there is something to mark again.

@@ -99,8 +99,7 @@ public abstract class PdfSquareCircleAnnotation : PdfMarkupAnnotation
         set
         {
             WriteInteriorColor(value);
-            Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
-            OnAppearanceInvalidated();
+            Touch();
         }
     }
 
@@ -128,8 +127,7 @@ public abstract class PdfSquareCircleAnnotation : PdfMarkupAnnotation
             border.Elements.SetName("/S", "/S");
             Elements[PdfAnnotation.Keys.BS] = border;
 
-            Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
-            OnAppearanceInvalidated();
+            Touch();
         }
     }
     private void WriteInteriorColor(XColor interior)
@@ -137,16 +135,6 @@ public abstract class PdfSquareCircleAnnotation : PdfMarkupAnnotation
         // An empty array is how the specification says "no interior colour", and is not the same
         // as the entry being absent - which means the same thing, but says nothing about intent.
         Elements[Keys.IC] = ColorArray(interior);
-    }
-
-    internal override void OnAddedToPage()
-    {
-        RebuildAppearance();
-    }
-
-    internal override void OnAppearanceInvalidated()
-    {
-        RebuildAppearance();
     }
 
     /// <summary>
@@ -157,13 +145,8 @@ public abstract class PdfSquareCircleAnnotation : PdfMarkupAnnotation
     /// <see cref="PdfAnnotation"/> do, because a modification date records a change somebody made
     /// rather than the redrawing that follows from it - and this runs from every one of them.
     /// </remarks>
-    private void RebuildAppearance()
+    private protected override void RebuildAppearance()
     {
-        // Until it is on a page there is no document to make a form in. OnAddedToPage calls this
-        // again once there is, so nothing set beforehand is lost.
-        if (Owner == null)
-            return;
-
         var rect = Elements.GetRectangle(PdfAnnotation.Keys.Rect);
         var width = rect.X2 - rect.X1;
         var height = rect.Y2 - rect.Y1;

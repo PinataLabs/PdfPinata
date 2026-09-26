@@ -151,29 +151,8 @@ public sealed class PdfRedactAnnotation : PdfMarkupAnnotation
         }
     }
 
-    internal override void OnAddedToPage()
+    private protected override void RebuildAppearance()
     {
-        RebuildAppearance();
-    }
-
-    internal override void OnAppearanceInvalidated()
-    {
-        RebuildAppearance();
-    }
-
-    private void Touch()
-    {
-        Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
-        RebuildAppearance();
-    }
-
-    private void RebuildAppearance()
-    {
-        // Until it is on a page there is no document to make a form in. OnAddedToPage calls this
-        // again once there is, so nothing set beforehand is lost.
-        if (Owner == null)
-            return;
-
         var box = Elements.GetRectangle(PdfAnnotation.Keys.Rect);
         if (box.Width < 1 || box.Height < 1)
         {

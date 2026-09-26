@@ -155,16 +155,6 @@ public sealed class PdfLineAnnotation : PdfMarkupAnnotation
         set => WriteEndings(StartEnding, value);
     }
 
-    internal override void OnAddedToPage()
-    {
-        RebuildAppearance();
-    }
-
-    internal override void OnAppearanceInvalidated()
-    {
-        RebuildAppearance();
-    }
-
     private XPoint EndpointAt(int first)
     {
         var line = Elements.GetArray(Keys.L);
@@ -191,22 +181,8 @@ public sealed class PdfLineAnnotation : PdfMarkupAnnotation
         Touch();
     }
 
-    /// <summary>
-    /// Records a change somebody made and redraws what follows from it.
-    /// </summary>
-    private void Touch()
+    private protected override void RebuildAppearance()
     {
-        Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
-        RebuildAppearance();
-    }
-
-    private void RebuildAppearance()
-    {
-        // Until it is on a page there is no document to make a form in. OnAddedToPage calls this
-        // again once there is, so nothing set beforehand is lost.
-        if (Owner == null)
-            return;
-
         var start = Start;
         var end = End;
         var width = BorderWidth;

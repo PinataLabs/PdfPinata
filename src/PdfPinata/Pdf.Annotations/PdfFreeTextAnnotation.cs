@@ -189,8 +189,7 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
         {
             _font = value ?? throw new ArgumentNullException(nameof(value));
             WriteDefaultAppearance();
-            Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
-            OnAppearanceInvalidated();
+            Touch();
         }
     }
     private XFont _font;
@@ -211,8 +210,7 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
         {
             _textColor = value;
             WriteDefaultAppearance();
-            Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
-            OnAppearanceInvalidated();
+            Touch();
         }
     }
     private XColor _textColor = XColors.Black;
@@ -237,8 +235,7 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
             border.Elements.SetName("/S", "/S");
             Elements[PdfAnnotation.Keys.BS] = border;
 
-            Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
-            OnAppearanceInvalidated();
+            Touch();
         }
     }
 
@@ -271,21 +268,10 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
                 value == XParagraphAlignment.Right ? 2 : 0;
 
             Elements.SetInteger(Keys.Q, quadding);
-            Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
-            OnAppearanceInvalidated();
+            Touch();
         }
     }
     private bool _justified;
-
-    internal override void OnAddedToPage()
-    {
-        RebuildAppearance();
-    }
-
-    internal override void OnAppearanceInvalidated()
-    {
-        RebuildAppearance();
-    }
 
     /// <summary>
     /// Writes <c>/DA</c>, which ISO 32000-1 requires of this subtype and which a reader uses when
@@ -309,13 +295,8 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
         Elements.SetString(Keys.DA, appearance);
     }
 
-    private void RebuildAppearance()
+    private protected override void RebuildAppearance()
     {
-        // Until it is on a page there is no document to make a form in. OnAddedToPage calls this
-        // again once there is, so nothing set beforehand is lost.
-        if (Owner == null)
-            return;
-
         var rect = Elements.GetRectangle(PdfAnnotation.Keys.Rect);
         var width = rect.X2 - rect.X1;
         var height = rect.Y2 - rect.Y1;
