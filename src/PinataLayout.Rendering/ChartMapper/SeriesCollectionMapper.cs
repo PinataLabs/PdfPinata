@@ -102,7 +102,10 @@ public class SeriesCollectionMapper
 
     var point = series.Add(domPoint.Value);
     FillFormatMapper.Map(point.FillFormat, domPoint.FillFormat);
-    LineFormatMapper.Map(point.LineFormat, domPoint.LineFormat);
+    // Only a line format the caller set: a point with any line format is drawn with it rather than
+    // with its series', and a mapped one always states a dash style, Solid when none was given.
+    if (!domPoint.IsNull("LineFormat"))
+      LineFormatMapper.Map(point.LineFormat, domPoint.LineFormat);
   }
 
   internal static void Map(SeriesCollection seriesCollection, DocumentObjectModel.Shapes.Charts.SeriesCollection domSeriesCollection)

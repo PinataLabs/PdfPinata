@@ -71,11 +71,18 @@ internal class LineFormatRenderer
 
   /// <summary>
   /// Initializes a new instance of the LineFormatRenderer class with the specified graphics and pen.
+  /// A pen of width 0 or less draws nothing.
   /// </summary>
+  /// <remarks>
+  /// Converter.ToXPen answers a line format that is not visible with a pen of width 0, and the
+  /// charting renderers' convention is that such a pen is no line. PDF does not share it: a line
+  /// width of 0 is the thinnest line the device can draw. Every axis line, tick mark, gridline,
+  /// zero baseline and legend border is drawn through here, so this is where the convention is kept.
+  /// </remarks>
   public LineFormatRenderer(XGraphics gfx, XPen pen)
   {
     this.gfx = gfx;
-    this.pen = pen;
+    this.pen = pen is { Width: > 0 } ? pen : null;
   }
 
   /// <summary>

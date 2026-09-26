@@ -456,6 +456,25 @@ hands over, so nothing it draws is affected.
 Pinned by `HiddenSeriesLineTests`, across line, area, column, bar and pie charts, with and without
 a legend.
 
+The axes were left out of that fix and disagreed among themselves (#173): a column chart's value
+axis tested `Width > 0`, while the category axis and a bar chart's value axis stroked the width-0
+pen, and no tick mark, gridline, zero baseline or legend border tested anything. The guard now lives
+in `LineFormatRenderer(XGraphics, XPen)`, which every one of those is drawn through, so a pen of
+width 0 is no pen wherever it is used. Pinned by `HiddenAxisLineTests`.
+
+A data point's own line format had the same trouble in another shape (#171): the column, bar, area
+and pie renderers each turned it into a pen their own way, and the pie chart made a pen of the
+point's colour alone, 1 wide and stroked even when the point said `Visible = false`. Column, bar
+and pie now take a line format the caller *set* on the point and resolve it through
+`Converter.ToXPen` against the series' pen. "Set" is the word that matters: `Point.LineFormat`
+creates a format the first time it is read, and one nobody assigned says `Visible = false`, so
+taking every non-null format as the point's hid the border of any point whose format had merely
+been looked at. `LineFormat` therefore records whether any of its setters has run (`isSet`,
+internal, copied by `Clone`). An area chart does not read a point's line format at all: it is
+outlined once, as one polygon, with the series' pen, so a point has no border to draw. Pinned by
+`PointLineFormatTests`. The legend's border pen is dropped at the same width-0 test, so a hidden
+border no longer doubles the legend's padding either (`LegendTests.AHiddenLegendBorderIsNotPaddedFor`).
+
 ---
 
 ## C13. A second category series was drawn past the end of the axis — fixed

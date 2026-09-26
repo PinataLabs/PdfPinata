@@ -343,6 +343,29 @@ public class ChartMapperTests
     }
 
     /// <summary>
+    ///   A point is given a line format only when the caller gave it one. A point with any line
+    ///   format is drawn with that format rather than with its series' (#171), and the mapped one
+    ///   always says Solid, so mapping an empty format onto every point turned a dashed series'
+    ///   borders solid.
+    /// </summary>
+    [Fact]
+    public void APointCarriesALineFormatOnlyWhenItWasGivenOne()
+    {
+        var document = new Document();
+        var domChart = ChartIn(document, ChartType.Bar2D);
+        var domSeries = domChart.SeriesCollection.AddSeries();
+        domSeries.LineFormat.DashStyle = PinataLayout.DocumentObjectModel.Shapes.DashStyle.Dash;
+        domSeries.Add(1.0);
+        domSeries.Add(2.0).LineFormat.Width = Unit.FromPoint(3);
+
+        var points = Mapped(domChart).SeriesCollection[0].Elements;
+
+        points[0].LineFormat.Visible.Should().BeFalse("nothing was mapped onto the first point");
+        points[1].LineFormat.Visible.Should().BeTrue();
+        points[1].LineFormat.Width.Point.Should().BeApproximately(3, 0.01);
+    }
+
+    /// <summary>
     ///   A marker colour the caller left alone maps to the empty colour rather than to black, so
     ///   that the drawing can tell "not set" from "set to something" and pick its own.
     /// </summary>

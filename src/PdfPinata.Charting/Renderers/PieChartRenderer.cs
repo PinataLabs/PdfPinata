@@ -165,8 +165,10 @@ internal class PieChartRenderer : ChartRenderer
       return pri;
 
     pri.LineFormat = sri.LineFormat;
-    if (point.lineFormat is { color.IsEmpty: false })
-      pri.LineFormat = new XPen(point.lineFormat.color);
+    // A line format the caller set on the point, resolved against the series' pen. One that was
+    // only read into existence - Point.LineFormat creates it on first read - is not the point's.
+    if (point.lineFormat is { isSet: true })
+      pri.LineFormat = Converter.ToXPen(point.lineFormat, sri.LineFormat);
     if (point.fillFormat is { color.IsEmpty: false })
       pri.FillFormat = new XSolidBrush(point.fillFormat.color);
     else

@@ -218,8 +218,13 @@ internal abstract class LegendRenderer : Renderer
     lri.Font = Converter.ToXFont(lri.Legend.font, cri.DefaultFont);
     lri.FontColor = Converter.ToXBrush(lri.Legend.font, cri.DefaultFontColor);
 
+    // A format that is not visible is a pen of width 0, which is no border - so there is no pen,
+    // and PaddingFactor leaves no room for one.
     if (lri.Legend.lineFormat != null)
-      lri.BorderPen = Converter.ToXPen(lri.Legend.lineFormat, XColors.Black, DefaultLineWidth, XDashStyle.Solid);
+    {
+      var pen = Converter.ToXPen(lri.Legend.lineFormat, XColors.Black, DefaultLineWidth, XDashStyle.Solid);
+      lri.BorderPen = pen.Width > 0 ? pen : null;
+    }
     return lri;
   }
 
@@ -264,7 +269,9 @@ internal abstract class LegendRenderer : Renderer
     borderRect.Y += TopPadding;
     borderRect.Width -= LeftPadding + RightPadding;
     borderRect.Height -= TopPadding + BottomPadding;
-    gfx.DrawRectangle(lri.BorderPen, borderRect);
+    // Drawn through the line format renderer like every other line in the chart. A hidden border
+    // never reaches here: NewLegendRendererInfo leaves BorderPen null for one.
+    new LineFormatRenderer(gfx, lri.BorderPen).DrawRectangle(borderRect);
   }
 
   /// <summary>
