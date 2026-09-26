@@ -386,8 +386,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// </remarks>
     private PdfArray ResolveDestination(PdfItem dest)
     {
-        if (dest is PdfReference iref)
-            dest = iref.Value;
+        dest = PdfReference.Dereference(dest);
 
         return dest as PdfArray ?? PdfNamedDestinations.Lookup(Owner, dest);
     }
