@@ -34,6 +34,7 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Globalization;
+using PdfPinata.Drawing;
 using PinataLayout.DocumentObjectModel.Internals;
 using PinataLayout.DocumentObjectModel.Resources;
 
@@ -133,15 +134,12 @@ public struct Color : INullableValue, IEquatable<Color>
 
     private void InitRgbFromCmyk()
     {
-        // Similar formula as in PDFsharp
+        // XColor's conversion rather than a copy of it: the copy added half a level to the black
+        // before truncating, so the same inks came out a level darker here than through XGraphics.
         isCmyk = true;
-        var black = k * 2.55f + 0.5f;
-        var factor = (255f - black) / 100f;
         var alpha = (byte)(a * 2.55 + 0.5);
-        var r = (byte)(255 - Math.Min(255f, c * factor + black));
-        var g = (byte)(255 - Math.Min(255f, m * factor + black));
-        var b = (byte)(255 - Math.Min(255f, y * factor + black));
-        argb = ((uint)alpha << 24) | ((uint)r << 16) | ((uint)g << 8) | b;
+        var rgb = XColor.FromCmyk(c / 100.0, m / 100.0, y / 100.0, k / 100.0);
+        argb = ((uint)alpha << 24) | ((uint)rgb.R << 16) | ((uint)rgb.G << 8) | rgb.B;
     }
 
     /// <summary>
