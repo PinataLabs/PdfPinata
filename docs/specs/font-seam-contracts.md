@@ -35,9 +35,11 @@ and every consumer re-learns it from documentation.
 
 Three consequences bite.
 
-**The seam cannot be asked.** `src/SampleApp/Infrastructure/Backends.cs` finds out whether a resolver is
-registered by reading the property inside a `try` and catching `InvalidOperationException`. Its own
-comment calls this *"Ugly"*. There is no other way.
+**The seam cannot be asked.** `src/SampleApp/Infrastructure/Backends.cs` used to find out whether a
+resolver was registered by reading the property inside a `try` and catching
+`InvalidOperationException`, and its own comment called this *"Ugly"*. Two seams can now be asked —
+`GlobalFontSettings.IsFontResolverSet` and `IsGlyphOutlineProviderSet` — and `Backends` asks them
+(#188). They are the two whose getter throws when unset; item 1's wider contract is still open.
 
 **One configuration per assembly.** `FontResolver` refuses to change once a font has been created,
 and xUnit gives no ordering guarantee that would let a fixture get there first — so four test
