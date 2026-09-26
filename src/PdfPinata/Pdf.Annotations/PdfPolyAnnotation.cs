@@ -116,29 +116,8 @@ public abstract class PdfPolyAnnotation : PdfMarkupAnnotation
     /// </summary>
     private protected abstract void DrawShape(XGraphics gfx, XPen pen, XBrush brush, XPoint[] vertices);
 
-    internal override void OnAddedToPage()
+    private protected override void RebuildAppearance()
     {
-        RebuildAppearance();
-    }
-
-    internal override void OnAppearanceInvalidated()
-    {
-        RebuildAppearance();
-    }
-
-    private protected void Touch()
-    {
-        Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
-        RebuildAppearance();
-    }
-
-    private void RebuildAppearance()
-    {
-        // Until it is on a page there is no document to make a form in. OnAddedToPage calls this
-        // again once there is, so nothing set beforehand is lost.
-        if (Owner == null)
-            return;
-
         var vertices = Vertices;
         var width = BorderWidth;
 

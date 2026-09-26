@@ -1,4 +1,3 @@
-using System;
 using PdfPinata.Drawing;
 
 namespace PdfPinata.Pdf.Annotations;
@@ -99,8 +98,7 @@ public abstract class PdfSquareCircleAnnotation : PdfMarkupAnnotation
         set
         {
             WriteInteriorColor(value);
-            Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
-            OnAppearanceInvalidated();
+            Touch();
         }
     }
 
@@ -117,19 +115,9 @@ public abstract class PdfSquareCircleAnnotation : PdfMarkupAnnotation
         get => BorderWidthFrom(Elements.GetDictionary(PdfAnnotation.Keys.BS));
         set
         {
-            if (value < 0)
-                throw new ArgumentOutOfRangeException(nameof(value), value, "A border cannot be narrower than nothing.");
+            Elements[PdfAnnotation.Keys.BS] = SolidBorder(value);
 
-            // A direct dictionary, so that it needs no owner - the width can be set before the
-            // annotation has been added to a page.
-            var border = new PdfDictionary();
-            border.Elements.SetName("/Type", "/Border");
-            border.Elements.SetReal("/W", value);
-            border.Elements.SetName("/S", "/S");
-            Elements[PdfAnnotation.Keys.BS] = border;
-
-            Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
-            OnAppearanceInvalidated();
+            Touch();
         }
     }
     private void WriteInteriorColor(XColor interior)
@@ -137,16 +125,6 @@ public abstract class PdfSquareCircleAnnotation : PdfMarkupAnnotation
         // An empty array is how the specification says "no interior colour", and is not the same
         // as the entry being absent - which means the same thing, but says nothing about intent.
         Elements[Keys.IC] = ColorArray(interior);
-    }
-
-    internal override void OnAddedToPage()
-    {
-        RebuildAppearance();
-    }
-
-    internal override void OnAppearanceInvalidated()
-    {
-        RebuildAppearance();
     }
 
     /// <summary>
@@ -157,13 +135,8 @@ public abstract class PdfSquareCircleAnnotation : PdfMarkupAnnotation
     /// <see cref="PdfAnnotation"/> do, because a modification date records a change somebody made
     /// rather than the redrawing that follows from it - and this runs from every one of them.
     /// </remarks>
-    private void RebuildAppearance()
+    private protected override void RebuildAppearance()
     {
-        // Until it is on a page there is no document to make a form in. OnAddedToPage calls this
-        // again once there is, so nothing set beforehand is lost.
-        if (Owner == null)
-            return;
-
         var rect = Elements.GetRectangle(PdfAnnotation.Keys.Rect);
         var width = rect.X2 - rect.X1;
         var height = rect.Y2 - rect.Y1;
@@ -189,12 +162,9 @@ public abstract class PdfSquareCircleAnnotation : PdfMarkupAnnotation
         if (width < 1 || height < 1 || drawnWidth <= 0 || drawnHeight <= 0
             || (pen == null && brush == null))
         {
-            Elements.Remove(PdfAnnotation.Keys.AP);
+            // /RD describes the layout of an appearance that is no longer there.
+            RemoveAppearance();
             Elements.Remove(Keys.RD);
-
-            // /AS names one of a set of appearances, so leaving it behind would point at a state
-            // in an /AP that is no longer there. SetAppearance clears it for the same reason.
-            Elements.Remove(PdfAnnotation.Keys.AS);
             return;
         }
 
@@ -207,10 +177,8 @@ public abstract class PdfSquareCircleAnnotation : PdfMarkupAnnotation
 
         SetAppearance(form);
 
-        // What /Rect gives up to the border, as the specification asks for it: the difference at
-        // the left, top, right and bottom between /Rect and the square actually drawn.
-        Elements[Keys.RD] = new PdfArray(Owner,
-            new PdfReal(inset), new PdfReal(inset), new PdfReal(inset), new PdfReal(inset));
+        // What /Rect gives up to the border: the square actually drawn is inset by half of it.
+        SetRectDifferences(Keys.RD, inset);
     }
 
     /// <summary>

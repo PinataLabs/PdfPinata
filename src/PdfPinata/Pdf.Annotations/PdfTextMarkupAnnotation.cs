@@ -116,7 +116,7 @@ public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
         QuadPoints.Append(array, rect);
 
         UpdateRectangle();
-        RebuildAppearance();
+        Touch();
     }
 
     /// <summary>
@@ -126,7 +126,7 @@ public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
     public void ClearQuads()
     {
         Elements.Remove(Keys.QuadPoints);
-        RebuildAppearance();
+        Touch();
     }
 
     /// <summary>
@@ -159,16 +159,6 @@ public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
             Elements.SetRectangle(PdfAnnotation.Keys.Rect, enclosing);
     }
 
-    internal override void OnAddedToPage()
-    {
-        RebuildAppearance();
-    }
-
-    internal override void OnAppearanceInvalidated()
-    {
-        RebuildAppearance();
-    }
-
     /// <summary>
     /// Draws one quadrilateral into the appearance stream, in the coordinates of the page.
     /// </summary>
@@ -191,14 +181,17 @@ public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
     /// annotation to a page calls back here once it has one.
     /// </para>
     /// </remarks>
-    internal void RebuildAppearance()
+    private protected override void RebuildAppearance()
     {
-        if (Owner == null)
-            return;
-
+        // Nothing to mark. The appearance already there has to go, or the annotation keeps showing
+        // what it was last asked for; the form is kept, to be hung back up and rewritten when
+        // there is something to mark again.
         var quads = EffectiveQuads;
         if (quads.Count == 0)
+        {
+            RemoveAppearance();
             return;
+        }
 
         var box = Elements.GetRectangle(PdfAnnotation.Keys.Rect);
 
@@ -213,7 +206,8 @@ public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
             DrawQuad(content, quad);
 
         var form = _appearanceForm;
-        if (form == null)
+        var made = form == null;
+        if (made)
         {
             form = new PdfDictionary(Owner);
             form.Elements.SetName("/Type", "/XObject");
@@ -221,7 +215,12 @@ public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
             form.Elements.SetInteger("/FormType", 1);
             Owner.Internals.AddObject(form);
             _appearanceForm = form;
+        }
 
+        // Hung up when it is made - over whatever appearance a file gave the annotation - and
+        // again after nothing to mark took it down.
+        if (made || !Elements.ContainsKey(PdfAnnotation.Keys.AP))
+        {
             var appearance = new PdfDictionary(Owner) { Elements = { ["/N"] = form.Reference } };
             Elements[PdfAnnotation.Keys.AP] = appearance;
         }

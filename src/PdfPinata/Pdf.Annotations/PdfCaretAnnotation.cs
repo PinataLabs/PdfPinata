@@ -73,23 +73,8 @@ public sealed class PdfCaretAnnotation : PdfMarkupAnnotation
         }
     }
 
-    internal override void OnAddedToPage()
+    private protected override void RebuildAppearance()
     {
-        RebuildAppearance();
-    }
-
-    internal override void OnAppearanceInvalidated()
-    {
-        RebuildAppearance();
-    }
-
-    private void RebuildAppearance()
-    {
-        // Until it is on a page there is no document to make a form in. OnAddedToPage calls this
-        // again once there is, so nothing set beforehand is lost.
-        if (Owner == null)
-            return;
-
         var rect = Elements.GetRectangle(PdfAnnotation.Keys.Rect);
         var width = rect.Width;
         var height = rect.Height;

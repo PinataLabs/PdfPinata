@@ -174,8 +174,7 @@ public abstract class PdfAnnotation : PdfDictionary
     /// Anything an annotation has to put in the document rather than in its own dictionary,
     /// an appearance stream above all, therefore cannot be made until this is called.
     /// </remarks>
-    internal virtual void OnAddedToPage()
-    { }
+    internal void OnAddedToPage() => OnAppearanceInvalidated();
 
     /// <summary>
     /// Called when a property that an appearance stream is drawn from has changed.
@@ -183,9 +182,38 @@ public abstract class PdfAnnotation : PdfDictionary
     /// <remarks>
     /// Only the properties an appearance depends on report here — its geometry, its colour and
     /// its opacity — and not the ones that merely describe it, such as the title or the contents.
+    /// Until the annotation is on a page there is no document to make a form in, so nothing is
+    /// drawn; <see cref="OnAddedToPage"/> calls this again once there is, and nothing set
+    /// beforehand is lost.
     /// </remarks>
-    internal virtual void OnAppearanceInvalidated()
+    internal void OnAppearanceInvalidated()
+    {
+        if (Owner != null)
+            RebuildAppearance();
+    }
+
+    /// <summary>
+    /// Draws the appearance of an annotation that draws its own, from what it is now - or, asked
+    /// for nothing, takes away the one it had with <see cref="RemoveAppearance"/> rather than
+    /// writing an empty stream.
+    /// </summary>
+    /// <remarks>
+    /// Called only once there is an <see cref="PdfObject.Owner"/>, through
+    /// <see cref="OnAppearanceInvalidated"/>. It does not stamp <c>/M</c>: a modification date
+    /// records a change somebody made, which <see cref="Touch"/> is for, rather than the redrawing
+    /// that follows from it. Nothing by default, for the subtypes a reader draws for itself.
+    /// </remarks>
+    private protected virtual void RebuildAppearance()
     { }
+
+    /// <summary>
+    /// Records a change somebody made to what the appearance is drawn from, and redraws it.
+    /// </summary>
+    private protected void Touch()
+    {
+        Elements.SetDateTime(Keys.M, GlobalTimeSettings.Now);
+        OnAppearanceInvalidated();
+    }
 
     /// <summary>
     /// Gets or sets the annotation rectangle, defining the location of the annotation
@@ -197,8 +225,7 @@ public abstract class PdfAnnotation : PdfDictionary
         set
         {
             Elements.SetRectangle(Keys.Rect, value);
-            Elements.SetDateTime(Keys.M, GlobalTimeSettings.Now);
-            OnAppearanceInvalidated();
+            Touch();
         }
     }
 
@@ -276,8 +303,7 @@ public abstract class PdfAnnotation : PdfDictionary
         set
         {
             Elements[Keys.C] = RgbArray(value);
-            Elements.SetDateTime(Keys.M, GlobalTimeSettings.Now);
-            OnAppearanceInvalidated();
+            Touch();
         }
     }
 
@@ -300,8 +326,7 @@ public abstract class PdfAnnotation : PdfDictionary
             if (value is < 0 or > 1)
                 throw new ArgumentOutOfRangeException(nameof(value), value, "Opacity must be a value in the range from 0 to 1.");
             Elements.SetReal(Keys.CA, value);
-            Elements.SetDateTime(Keys.M, GlobalTimeSettings.Now);
-            OnAppearanceInvalidated();
+            Touch();
         }
     }
 
@@ -567,10 +592,14 @@ public abstract class PdfAnnotation : PdfDictionary
     /// A border style dictionary for a solid border of the given width - a direct one, so that it
     /// needs no owner and the width can be set before the annotation is on a page.
     /// </summary>
+    /// <remarks>
+    /// A negative width is refused naming <c>value</c> rather than <paramref name="width"/>, because
+    /// every caller is a <c>BorderWidth</c> setter and that is where the mistake was made.
+    /// </remarks>
     private protected static PdfDictionary SolidBorder(double width)
     {
         if (width < 0)
-            throw new ArgumentOutOfRangeException(nameof(width), width, "A border cannot be narrower than nothing.");
+            throw new ArgumentOutOfRangeException("value", width, "A border cannot be narrower than nothing.");
 
         var border = new PdfDictionary();
         border.Elements.SetName("/Type", "/Border");
@@ -592,6 +621,22 @@ public abstract class PdfAnnotation : PdfDictionary
     {
         Elements.Remove(Keys.AP);
         Elements.Remove(Keys.AS);
+    }
+
+    /// <summary>
+    /// Writes <c>/RD</c> for an appearance drawn inset from <c>/Rect</c> by the same amount on
+    /// every side - the difference at the left, top, right and bottom between <c>/Rect</c> and
+    /// what is actually drawn, which is what ISO 32000-1 asks that entry to say.
+    /// </summary>
+    /// <param name="key">
+    /// <c>/RD</c>, as the subtype's own keys declare it: the entry belongs to the subtypes that
+    /// have one rather than to every annotation.
+    /// </param>
+    /// <param name="inset">How far in from <c>/Rect</c> the drawing starts.</param>
+    private protected void SetRectDifferences(string key, double inset)
+    {
+        Elements[key] = new PdfArray(Owner,
+            new PdfReal(inset), new PdfReal(inset), new PdfReal(inset), new PdfReal(inset));
     }
 
     /// <summary>

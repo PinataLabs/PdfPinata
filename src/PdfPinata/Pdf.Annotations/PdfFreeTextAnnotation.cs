@@ -189,8 +189,7 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
         {
             _font = value ?? throw new ArgumentNullException(nameof(value));
             WriteDefaultAppearance();
-            Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
-            OnAppearanceInvalidated();
+            Touch();
         }
     }
     private XFont _font;
@@ -211,8 +210,7 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
         {
             _textColor = value;
             WriteDefaultAppearance();
-            Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
-            OnAppearanceInvalidated();
+            Touch();
         }
     }
     private XColor _textColor = XColors.Black;
@@ -226,19 +224,9 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
         get => BorderWidthFrom(Elements.GetDictionary(PdfAnnotation.Keys.BS));
         set
         {
-            if (value < 0)
-                throw new ArgumentOutOfRangeException(nameof(value), value, "A border cannot be narrower than nothing.");
+            Elements[PdfAnnotation.Keys.BS] = SolidBorder(value);
 
-            // A direct dictionary, so that it needs no owner - the width can be set before the
-            // annotation has been added to a page.
-            var border = new PdfDictionary();
-            border.Elements.SetName("/Type", "/Border");
-            border.Elements.SetReal("/W", value);
-            border.Elements.SetName("/S", "/S");
-            Elements[PdfAnnotation.Keys.BS] = border;
-
-            Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
-            OnAppearanceInvalidated();
+            Touch();
         }
     }
 
@@ -271,21 +259,10 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
                 value == XParagraphAlignment.Right ? 2 : 0;
 
             Elements.SetInteger(Keys.Q, quadding);
-            Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
-            OnAppearanceInvalidated();
+            Touch();
         }
     }
     private bool _justified;
-
-    internal override void OnAddedToPage()
-    {
-        RebuildAppearance();
-    }
-
-    internal override void OnAppearanceInvalidated()
-    {
-        RebuildAppearance();
-    }
 
     /// <summary>
     /// Writes <c>/DA</c>, which ISO 32000-1 requires of this subtype and which a reader uses when
@@ -309,13 +286,8 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
         Elements.SetString(Keys.DA, appearance);
     }
 
-    private void RebuildAppearance()
+    private protected override void RebuildAppearance()
     {
-        // Until it is on a page there is no document to make a form in. OnAddedToPage calls this
-        // again once there is, so nothing set beforehand is lost.
-        if (Owner == null)
-            return;
-
         var rect = Elements.GetRectangle(PdfAnnotation.Keys.Rect);
         var width = rect.X2 - rect.X1;
         var height = rect.Y2 - rect.Y1;
@@ -360,10 +332,8 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
 
         SetAppearance(form);
 
-        // What /Rect gives up before the text starts, as the specification asks for it: the
-        // difference at the left, top, right and bottom between /Rect and the box laid out in.
-        Elements[Keys.RD] = new PdfArray(Owner,
-            new PdfReal(inset), new PdfReal(inset), new PdfReal(inset), new PdfReal(inset));
+        // What /Rect gives up before the text starts: the box it is laid out in is inset by it.
+        SetRectDifferences(Keys.RD, inset);
     }
 
     /// <summary>

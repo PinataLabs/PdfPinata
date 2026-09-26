@@ -108,16 +108,7 @@ public sealed class PdfLineAnnotation : PdfMarkupAnnotation
         get => BorderWidthFrom(Elements.GetDictionary(PdfAnnotation.Keys.BS));
         set
         {
-            if (value < 0)
-                throw new ArgumentOutOfRangeException(nameof(value), value, "A line cannot be narrower than nothing.");
-
-            // A direct dictionary, so that it needs no owner - the width can be set before the
-            // annotation has been added to a page.
-            var border = new PdfDictionary();
-            border.Elements.SetName("/Type", "/Border");
-            border.Elements.SetReal("/W", value);
-            border.Elements.SetName("/S", "/S");
-            Elements[PdfAnnotation.Keys.BS] = border;
+            Elements[PdfAnnotation.Keys.BS] = SolidBorder(value);
 
             Touch();
         }
@@ -155,16 +146,6 @@ public sealed class PdfLineAnnotation : PdfMarkupAnnotation
         set => WriteEndings(StartEnding, value);
     }
 
-    internal override void OnAddedToPage()
-    {
-        RebuildAppearance();
-    }
-
-    internal override void OnAppearanceInvalidated()
-    {
-        RebuildAppearance();
-    }
-
     private XPoint EndpointAt(int first)
     {
         var line = Elements.GetArray(Keys.L);
@@ -191,22 +172,8 @@ public sealed class PdfLineAnnotation : PdfMarkupAnnotation
         Touch();
     }
 
-    /// <summary>
-    /// Records a change somebody made and redraws what follows from it.
-    /// </summary>
-    private void Touch()
+    private protected override void RebuildAppearance()
     {
-        Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
-        RebuildAppearance();
-    }
-
-    private void RebuildAppearance()
-    {
-        // Until it is on a page there is no document to make a form in. OnAddedToPage calls this
-        // again once there is, so nothing set beforehand is lost.
-        if (Owner == null)
-            return;
-
         var start = Start;
         var end = End;
         var width = BorderWidth;
@@ -238,11 +205,7 @@ public sealed class PdfLineAnnotation : PdfMarkupAnnotation
         // ReSharper restore CompareOfFloatsByEqualityOperator
         #pragma warning restore S1244
         {
-            Elements.Remove(PdfAnnotation.Keys.AP);
-
-            // /AS names one of a set of appearances, so leaving it behind would point at a state
-            // in an /AP that is no longer there. SetAppearance clears it for the same reason.
-            Elements.Remove(PdfAnnotation.Keys.AS);
+            RemoveAppearance();
             return;
         }
 
