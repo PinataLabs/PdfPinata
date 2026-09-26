@@ -384,14 +384,7 @@ public sealed class LineAnnotationTests : IDisposable
         return form.Stream.Value;
     }
 
-    private static PdfDocument SaveAndReopen(PdfDocument document)
-    {
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        // Named in full: this assembly has a test class called PdfReader too, and it wins.
-        return PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
-    }
+    private static PdfDocument SaveAndReopen(PdfDocument document) => document.Reopened();
 
     private static bool IsRed(IMagickColor<byte> c) => c.R > 130 && c.G < 100 && c.B < 100;
 

@@ -424,9 +424,7 @@ public class SigningTests
 
         customise?.Invoke(document);
 
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
+        return Saved.Bytes(document);
     }
 
     private static byte[] TwoPages()
@@ -435,9 +433,7 @@ public class SigningTests
         _ = document.AddPage();
         _ = document.AddPage();
 
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
+        return Saved.Bytes(document);
     }
 
     private static byte[] Sign(byte[] document, PdfSignatureOptions options = null, IPdfSigner signer = null)

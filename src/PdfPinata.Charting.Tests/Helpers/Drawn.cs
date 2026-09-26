@@ -1,7 +1,7 @@
-using System.IO;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 
 namespace PdfPinata.Charting.Tests.Helpers;
 
@@ -56,11 +56,7 @@ internal static class Drawn
             frame.DrawChart(gfx);
         }
 
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-
-        return PdfReader.Open(stream, PdfDocumentOpenMode.Modify).Pages[0];
+        return document.Reopened().Pages[0];
     }
 
     /// <summary>

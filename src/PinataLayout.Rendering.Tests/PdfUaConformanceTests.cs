@@ -6,6 +6,7 @@ using PinataLayout.DocumentObjectModel;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PinataLayout.Rendering.Tests;
@@ -446,10 +447,7 @@ public class PdfUaConformanceTests
 
     private static PdfDocument Save(PdfDocumentRenderer renderer)
     {
-        using var stream = new MemoryStream();
-        renderer.PdfDocument.Save(stream, false);
-        stream.Position = 0;
-        return PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
+        return renderer.PdfDocument.Reopened();
     }
 
     private static Action Saving(PdfDocumentRenderer renderer) => () =>

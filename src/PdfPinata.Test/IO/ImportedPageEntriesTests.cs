@@ -5,6 +5,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.IO;
@@ -66,10 +67,7 @@ public class ImportedPageEntriesTests
 
         drawOn?.Invoke(target.Pages[0]);
 
-        using var output = new MemoryStream();
-        target.Save(output, false);
-        output.Position = 0;
-        return Pdf.IO.PdfReader.Open(output, PdfDocumentOpenMode.Modify);
+        return target.Reopened();
     }
 
     [Theory]

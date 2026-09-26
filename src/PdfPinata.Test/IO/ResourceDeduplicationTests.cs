@@ -7,6 +7,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Security;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.IO;
@@ -359,10 +360,7 @@ public class ResourceDeduplicationTests
         var document = Pdf.IO.PdfReader.Open(source, PdfDocumentOpenMode.Modify);
         document.Options.DeduplicateResources = deduplicate;
 
-        var saved = new MemoryStream();
-        document.Save(saved, false);
-        saved.Position = 0;
-        return Pdf.IO.PdfReader.Open(saved, PdfDocumentOpenMode.Modify);
+        return document.Reopened();
     }
 
     private static PdfObjectID ResourceOf(PdfPage page, string category, string name) =>

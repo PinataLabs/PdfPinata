@@ -7,8 +7,8 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
-using Reader = PdfPinata.Pdf.IO.PdfReader;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -54,7 +54,7 @@ public class FontProgramEmbeddingTests
         var page = document.AddPage();
         page.AddFontProgram("Liberation", Program());
 
-        var reopened = SavedAndReopened(document);
+        var reopened = document.Reopened();
         var descriptor = FontResourcesOf(reopened.Pages[0])
             .Select(font => DescendantOf(font).Elements.GetDictionary("/FontDescriptor"))
             .Single();
@@ -197,12 +197,4 @@ public class FontProgramEmbeddingTests
 
     private static PdfDictionary DescendantOf(PdfDictionary type0) =>
         (PdfDictionary)((PdfReference)type0.Elements.GetArray("/DescendantFonts").Elements[0]).Value;
-
-    private static PdfDocument SavedAndReopened(PdfDocument document)
-    {
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        return Reader.Open(stream, PdfDocumentOpenMode.Modify);
-    }
 }

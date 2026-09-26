@@ -402,13 +402,7 @@ public class SpotColorTests
         return Reopen(document);
     }
 
-    private static PdfPages Reopen(PdfDocument document)
-    {
-        var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        return PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Import).Pages;
-    }
+    private static PdfPages Reopen(PdfDocument document) => document.Reopened(PdfDocumentOpenMode.Import).Pages;
 
     private static string Content(PdfPage page) => Encoding.ASCII.GetString(PageContent.Of(page));
 

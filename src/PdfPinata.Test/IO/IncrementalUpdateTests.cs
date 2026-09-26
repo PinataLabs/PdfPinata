@@ -6,6 +6,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
@@ -44,7 +45,7 @@ public class IncrementalUpdateTests
     {
         var updated = AppendChange(OriginalDocument(), document => document.Info.Subject = "Changed");
 
-        Reopen(updated).Info.Subject.Should().Be("Changed");
+        Saved.Open(updated).Info.Subject.Should().Be("Changed");
     }
 
     [Fact]
@@ -52,7 +53,7 @@ public class IncrementalUpdateTests
     {
         var updated = AppendChange(OriginalDocument(), document => document.Info.Subject = "Changed");
 
-        var reread = Reopen(updated);
+        var reread = Saved.Open(updated);
         reread.Info.Title.Should().Be("Original title");
         reread.PageCount.Should().Be(2);
     }
@@ -100,8 +101,8 @@ public class IncrementalUpdateTests
         var original = OriginalDocument();
         var updated = AppendChange(original, document => document.Info.Subject = "Changed");
 
-        var before = Reopen(original).Internals;
-        var after = Reopen(updated).Internals;
+        var before = Saved.Open(original).Internals;
+        var after = Saved.Open(updated).Internals;
 
         after.FirstDocumentID.Should().Be(before.FirstDocumentID,
             "/ID[0] names the document for its whole life");
@@ -117,7 +118,7 @@ public class IncrementalUpdateTests
         var once = AppendChange(OriginalDocument(), document => document.Info.Subject = "First");
         var twice = AppendChange(once, document => document.Info.Keywords = "second");
 
-        var reread = Reopen(twice);
+        var reread = Saved.Open(twice);
         reread.Info.Subject.Should().Be("First", "the first revision is still reachable");
         reread.Info.Keywords.Should().Be("second");
         reread.Info.Title.Should().Be("Original title", "and so is the original");
@@ -128,7 +129,7 @@ public class IncrementalUpdateTests
     {
         var updated = AppendChange(OriginalDocument(), document => _ = document.AddPage());
 
-        Reopen(updated).PageCount.Should().Be(3);
+        Saved.Open(updated).PageCount.Should().Be(3);
     }
 
     [Fact]
@@ -141,7 +142,7 @@ public class IncrementalUpdateTests
             gfx.Dispose();
         });
 
-        Reopen(updated).PageCount.Should().Be(2);
+        Saved.Open(updated).PageCount.Should().Be(2);
         Appended(updated, OriginalDocument().Length).Should().Contain("obj",
             "the page's content stream was rewritten into the appended revision");
     }
@@ -152,7 +153,7 @@ public class IncrementalUpdateTests
         // The producer string is always rewritten, so "nothing changed" is never literally nothing.
         var updated = AppendChange(OriginalDocument(), _ => { });
 
-        Reopen(updated).Info.Title.Should().Be("Original title");
+        Saved.Open(updated).Info.Title.Should().Be("Original title");
     }
 
     [Fact]
@@ -265,7 +266,7 @@ public class IncrementalUpdateTests
         var updated = AppendChange(original, document =>
             document.Pages[0].Elements.SetRectangle("/CropBox", new PdfRectangle(new XRect(10, 10, 190, 290))));
 
-        Reopen(updated).Pages[0].Elements.GetRectangle("/CropBox").X1.Should().Be(10);
+        Saved.Open(updated).Pages[0].Elements.GetRectangle("/CropBox").X1.Should().Be(10);
     }
 
     [Fact]
@@ -276,7 +277,7 @@ public class IncrementalUpdateTests
         var updated = AppendChange(original, document =>
             document.Info.Elements.SetDateTime("/ModDate", new DateTime(2026, 5, 6, 7, 8, 9)));
 
-        Reopen(updated).Info.Elements.ContainsKey("/ModDate").Should().BeTrue();
+        Saved.Open(updated).Info.Elements.ContainsKey("/ModDate").Should().BeTrue();
     }
 
     [Fact]
@@ -295,7 +296,7 @@ public class IncrementalUpdateTests
             annotations.Elements.Add(new PdfPinata.Pdf.PdfInteger(0));
         });
 
-        Reopen(updated).Pages[0].Elements.GetArray("/Annots").Elements.Count.Should().Be(1);
+        Saved.Open(updated).Pages[0].Elements.GetArray("/Annots").Elements.Count.Should().Be(1);
     }
 
     [Fact]
@@ -367,7 +368,7 @@ public class IncrementalUpdateTests
         });
 
         Appended(updated, original.Length).Should().NotContain("/Encrypt");
-        Reopen(updated).Info.Subject.Should().Be("Changed");
+        Saved.Open(updated).Info.Subject.Should().Be("Changed");
     }
 
     [Fact]
@@ -387,7 +388,7 @@ public class IncrementalUpdateTests
 
         Appended(updated, original.Length).Should().NotContain("/Encrypt");
         Appended(updated, original.Length).Should().NotContain("/Filter /Standard");
-        Reopen(updated).Info.Subject.Should().Be("Changed");
+        Saved.Open(updated).Info.Subject.Should().Be("Changed");
     }
 
     [Fact]
@@ -403,7 +404,7 @@ public class IncrementalUpdateTests
         var updated = AppendChange(original, document => document.Info.Subject = "Changed");
 
         updated.Take(original.Length).Should().Equal(original);
-        var reread = Reopen(updated);
+        var reread = Saved.Open(updated);
         reread.Info.Subject.Should().Be("Changed");
         reread.Info.Title.Should().Be("Original title", "/Prev has to name the original revision");
         reread.PageCount.Should().Be(2);
@@ -427,9 +428,7 @@ public class IncrementalUpdateTests
             gfx.Dispose();
         }
 
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
+        return Saved.Bytes(document);
     }
 
     private static byte[] AppendChange(byte[] original, Action<PdfDocument> change)
@@ -442,12 +441,6 @@ public class IncrementalUpdateTests
         using var output = new MemoryStream();
         document.SaveIncremental(output);
         return output.ToArray();
-    }
-
-    private static PdfDocument Reopen(byte[] bytes)
-    {
-        var saved = new MemoryStream(bytes);
-        return Reader.Open(saved, PdfDocumentOpenMode.Modify);
     }
 
     /// <summary>What was appended, and nothing that was there before.</summary>

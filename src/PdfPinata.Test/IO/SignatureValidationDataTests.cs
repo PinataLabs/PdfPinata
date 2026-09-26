@@ -149,9 +149,7 @@ public class SignatureValidationDataTests
         var document = new PdfDocument();
         _ = document.AddPage();
 
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
+        return Saved.Bytes(document);
     }
 
     private static byte[] Sign(byte[] document, PdfCertificationLevel certification = PdfCertificationLevel.NotCertified)

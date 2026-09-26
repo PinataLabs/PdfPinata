@@ -760,10 +760,7 @@ public class TaggedOutputTests
         var renderer = new PdfDocumentRenderer(true) { Document = document, TagContent = false };
         renderer.RenderDocument();
 
-        using var stream = new MemoryStream();
-        renderer.PdfDocument.Save(stream, false);
-        stream.Position = 0;
-        return PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
+        return renderer.PdfDocument.Reopened();
     }
 
     /// <summary>

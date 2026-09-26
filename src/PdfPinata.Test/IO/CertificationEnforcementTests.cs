@@ -241,9 +241,7 @@ public class CertificationEnforcementTests
     {
         var opened = new AcroFormBuilder().With("/Tx", "Field1").Build();
 
-        using var output = new MemoryStream();
-        opened.Save(output, false);
-        return output.ToArray();
+        return Saved.Bytes(opened);
     }
 
     private static byte[] UnsignedWithOneOfEachFieldKind()
@@ -263,9 +261,7 @@ public class CertificationEnforcementTests
             .With("/Ch", "List1", field => AcroFormBuilder.WithOptions(field, "A", "B"))
             .Build();
 
-        using var output = new MemoryStream();
-        opened.Save(output, false);
-        return output.ToArray();
+        return Saved.Bytes(opened);
     }
 
     private static byte[] Certified(byte[] document, PdfCertificationLevel level) =>
@@ -314,6 +310,5 @@ public class CertificationEnforcementTests
         return output.ToArray();
     }
 
-    private static PdfDocument OpenedForAppend(byte[] document) =>
-        Reader.Open(new MemoryStream(document), PdfDocumentOpenMode.Append);
+    private static PdfDocument OpenedForAppend(byte[] document) => Saved.Open(document, PdfDocumentOpenMode.Append);
 }

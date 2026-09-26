@@ -4,6 +4,7 @@ using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.IO;
@@ -117,8 +118,6 @@ public class ModificationDateTests
         if (modificationDate.HasValue)
             document.Info.ModificationDate = modificationDate.Value;
 
-        using var pdf = new MemoryStream();
-        document.Save(pdf, false);
-        return pdf.ToArray();
+        return Saved.Bytes(document);
     }
 }

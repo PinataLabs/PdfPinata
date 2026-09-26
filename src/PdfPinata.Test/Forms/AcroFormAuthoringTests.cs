@@ -1,11 +1,11 @@
 using System;
-using System.IO;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.AcroForms;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.Forms;
@@ -157,7 +157,7 @@ public class AcroFormAuthoringTests
         full.AddWidget(page, new PdfRectangle(new XRect(60, 700, 200, 20)));
         full.Text = "Ada Lovelace";
 
-        var reopened = SaveAndReopen(document);
+        var reopened = document.Reopened();
 
         reopened.AcroForm.Fields["name.full"].Should().BeOfType<PdfTextField>();
         ((PdfTextField)reopened.AcroForm.Fields["name.full"]).Text.Should().Be("Ada Lovelace");
@@ -479,7 +479,7 @@ public class AcroFormAuthoringTests
         delivery.AddWidget(page, new PdfRectangle(new XRect(60, 620, 14, 14)));
         delivery.AddWidget(page, new PdfRectangle(new XRect(90, 620, 14, 14)));
 
-        var reopened = SaveAndReopen(document);
+        var reopened = document.Reopened();
 
         var read = reopened.AcroForm;
         read.Should().NotBeNull();
@@ -561,7 +561,7 @@ public class AcroFormAuthoringTests
         group.Fields.Add(full);
         full.AddWidget(page, new PdfRectangle(new XRect(60, 700, 200, 20)));
 
-        var reopened = SaveAndReopen(document);
+        var reopened = document.Reopened();
 
         var read = reopened.AcroForm.Fields["name.full"];
         var parent = (PdfDictionary)read.Elements.GetReference(PdfAcroField.Keys.Parent).Value;
@@ -595,7 +595,7 @@ public class AcroFormAuthoringTests
 
         field.Flags.Should().HaveFlag(PdfAcroFieldFlags.Required);
 
-        var read = SaveAndReopen(document).AcroForm.Fields[kind];
+        var read = document.Reopened().AcroForm.Fields[kind];
 
         switch (kind)
         {
@@ -653,15 +653,5 @@ public class AcroFormAuthoringTests
         field.AddWidget(page, new PdfRectangle(new XRect(60, 660, 200, 1)));
 
         page.Annotations[1].Elements.ContainsKey("/AP").Should().BeTrue();
-    }
-
-    private static PdfDocument SaveAndReopen(PdfDocument document)
-    {
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-
-        // Named in full: this assembly has a test class called PdfReader too, and it wins.
-        return PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
     }
 }

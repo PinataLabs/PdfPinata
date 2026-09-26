@@ -139,9 +139,7 @@ public class SignatureAnnotationFlagsTests
         using (var gfx = XGraphics.FromPdfPage(document.AddPage()))
             gfx.DrawString("A document to sign", new XFont("Arial", 12), XBrushes.Black, 40, 100);
 
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
+        return Saved.Bytes(document);
     }
 
     private static byte[] Sign(byte[] document, PdfSignatureOptions options = null)

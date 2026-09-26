@@ -1,11 +1,11 @@
 using System;
-using System.IO;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Annotations;
 using PdfIO = PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.Annotations;
@@ -34,13 +34,7 @@ public class NamedDestinationTests
     }
 
     /// <summary>Saves and reads back, which is the only way to see what was written.</summary>
-    private static PdfDocument RoundTrip(PdfDocument document)
-    {
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        return PdfIO.PdfReader.Open(stream, PdfIO.PdfDocumentOpenMode.Modify);
-    }
+    private static PdfDocument RoundTrip(PdfDocument document) => document.Reopened();
 
     private static PdfArray LookupOn(PdfDocument document, string name)
     {

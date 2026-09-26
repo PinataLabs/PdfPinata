@@ -480,12 +480,7 @@ public class PageBleedTests
         draw(gfx);
     }
 
-    private static SavedPage Save(PdfPage page)
-    {
-        using var stream = new MemoryStream();
-        page.Owner.Save(stream, false);
-        return Reread(stream);
-    }
+    private static SavedPage Save(PdfPage page) => new SavedPage(page.Owner.Reopened().Pages[0]);
 
     private static SavedPage Reread(MemoryStream stream)
     {

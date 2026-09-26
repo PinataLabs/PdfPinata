@@ -8,6 +8,7 @@ using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.AcroForms;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.Security;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.Pdfs;
@@ -55,7 +56,7 @@ public class UnicodeTextStringTests
     [Fact]
     public void ATextFieldValueOutsideAsciiIsReadBackAsItWasSet()
     {
-        var reread = SaveAndReopen(SaveDocumentWithTextField(Accented));
+        var reread = Saved.Open(SaveDocumentWithTextField(Accented));
 
         TextFieldOf(reread).Text.Should().Be(Accented);
     }
@@ -88,7 +89,7 @@ public class UnicodeTextStringTests
             Contents = Accented + " " + Japanese
         });
 
-        var reread = SaveAndReopen(Save(document));
+        var reread = Saved.Open(Saved.Bytes(document));
 
         var annotation = reread.Pages[0].Annotations[0];
         annotation.Title.Should().Be(Accented);
@@ -114,7 +115,7 @@ public class UnicodeTextStringTests
         document.SecuritySettings.DocumentSecurityLevel = level;
         document.SecuritySettings.OwnerPassword = ownerPassword;
 
-        var saved = Save(document);
+        var saved = Saved.Bytes(document);
 
         AsLatin1(saved).Should().NotContain("/O <FEFF").And.NotContain("/U <FEFF");
 
@@ -219,27 +220,14 @@ public class UnicodeTextStringTests
 
         // Read it back so the field becomes a PdfTextField, set the value through the
         // property under test, and write it again.
-        var withForm = SaveAndReopen(Save(document));
+        var withForm = Saved.Open(Saved.Bytes(document));
         TextFieldOf(withForm).Text = text;
-        return Save(withForm);
+        return Saved.Bytes(withForm);
     }
 
     private static PdfTextField TextFieldOf(PdfDocument document)
     {
         return (PdfTextField)document.AcroForm.Fields[0];
-    }
-
-    private static byte[] Save(PdfDocument document)
-    {
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
-    }
-
-    private static PdfDocument SaveAndReopen(byte[] saved)
-    {
-        var stream = new MemoryStream(saved);
-        return Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
     }
 
     private static string AsLatin1(byte[] saved)

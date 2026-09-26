@@ -8,10 +8,10 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
-using Reader = PdfPinata.Pdf.IO.PdfReader;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -615,16 +615,10 @@ public class AttachmentTests
 
         arrange(document);
 
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
+        return Saved.Bytes(document);
     }
 
-    private static PdfDocument SaveAndReopen(Action<PdfDocument> arrange)
-    {
-        var saved = new MemoryStream(Save(arrange));
-        return Reader.Open(saved, PdfDocumentOpenMode.Modify);
-    }
+    private static PdfDocument SaveAndReopen(Action<PdfDocument> arrange) => Saved.Open(Save(arrange));
 
     private static string Latin1(byte[] bytes) => Encoding.Latin1.GetString(bytes);
 }

@@ -7,7 +7,6 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using Xunit;
-using Reader = PdfPinata.Pdf.IO.PdfReader;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -92,10 +91,7 @@ public class CidWidthArrayTests
             gfx.DrawString(text, font, XBrushes.Black, 20, 40);
         }
 
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        return Reader.Open(stream, PdfDocumentOpenMode.Modify);
+        return document.Reopened();
     }
 
     private static PdfArray WidthArrayOf(PdfDocument document)

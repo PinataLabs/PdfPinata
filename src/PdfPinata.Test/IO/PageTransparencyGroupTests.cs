@@ -22,18 +22,6 @@ public class PageTransparencyGroupTests
     /// </summary>
     private const string GroupKey = "/Group";
 
-    /// <summary>
-    ///   Writes the document out and reads it back, so that what is asserted on is what was
-    ///   written rather than the objects that were built to write it.
-    /// </summary>
-    private static PdfDocument RoundTripped(PdfDocument document)
-    {
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        return PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
-    }
-
     private static PdfDictionary GroupOf(PdfPage page)
     {
         return page.Elements.GetDictionary(GroupKey);
@@ -66,7 +54,7 @@ public class PageTransparencyGroupTests
         using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawRectangle(XBrushes.LightGray, new XRect(10, 10, 100, 100));
 
-        GroupOf(RoundTripped(document).Pages[0]).Should().BeNull(
+        GroupOf(document.Reopened().Pages[0]).Should().BeNull(
             "nothing on the page paints with transparency, so compositing it as a group would " +
             "say something about the page that is not true of it");
     }
@@ -77,7 +65,7 @@ public class PageTransparencyGroupTests
         var document = new PdfDocument();
         _ = document.AddPage();
 
-        GroupOf(RoundTripped(document).Pages[0]).Should().BeNull();
+        GroupOf(document.Reopened().Pages[0]).Should().BeNull();
     }
 
     [Fact]
@@ -92,7 +80,7 @@ public class PageTransparencyGroupTests
 
         var document = PdfPinata.Pdf.IO.PdfReader.Open(path, PdfDocumentOpenMode.Modify);
 
-        GroupOf(RoundTripped(document).Pages[0]).Should().BeNull(
+        GroupOf(document.Reopened().Pages[0]).Should().BeNull(
             "a document that is only read and written back must come out the way it went in");
     }
 
@@ -107,7 +95,7 @@ public class PageTransparencyGroupTests
         group.Elements.SetName("/CS", "/DeviceGray");
         page.Elements[GroupKey] = group;
 
-        var written = GroupOf(RoundTripped(document).Pages[0]);
+        var written = GroupOf(document.Reopened().Pages[0]);
 
         written.Should().NotBeNull();
         written.Elements.GetName("/CS").Should().Be("/DeviceGray",
@@ -125,7 +113,7 @@ public class PageTransparencyGroupTests
         using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawRectangle(new XSolidBrush(XColor.FromArgb(128, 255, 0, 0)), new XRect(10, 10, 100, 100));
 
-        var group = GroupOf(RoundTripped(document).Pages[0]);
+        var group = GroupOf(document.Reopened().Pages[0]);
 
         group.Should().NotBeNull();
         group.Elements.GetName("/S").Should().Be("/Transparency");
@@ -141,7 +129,7 @@ public class PageTransparencyGroupTests
         using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawLine(new XPen(XColor.FromArgb(128, 0, 0, 255), 4), 10, 10, 100, 100);
 
-        GroupOf(RoundTripped(document).Pages[0]).Should().NotBeNull();
+        GroupOf(document.Reopened().Pages[0]).Should().NotBeNull();
     }
 
     // -------------------------------------------------------------------- what an image brings
@@ -158,7 +146,7 @@ public class PageTransparencyGroupTests
         using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawImage(SquareWithAlpha(100), new XRect(10, 10, 50, 50));
 
-        GroupOf(RoundTripped(document).Pages[0]).Should().NotBeNull(
+        GroupOf(document.Reopened().Pages[0]).Should().NotBeNull(
             "the image paints through a soft mask even though nothing else on the page does");
     }
 
@@ -171,7 +159,7 @@ public class PageTransparencyGroupTests
         using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawImage(SquareWithAlpha(255), new XRect(10, 10, 50, 50));
 
-        GroupOf(RoundTripped(document).Pages[0]).Should().BeNull(
+        GroupOf(document.Reopened().Pages[0]).Should().BeNull(
             "every pixel of the image is opaque, so no soft mask is written for it");
     }
 
@@ -192,7 +180,7 @@ public class PageTransparencyGroupTests
         using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawImage(form, new XRect(10, 10, 100, 100));
 
-        GroupOf(RoundTripped(document).Pages[0]).Should().NotBeNull();
+        GroupOf(document.Reopened().Pages[0]).Should().NotBeNull();
     }
 
     [Fact]
@@ -208,7 +196,7 @@ public class PageTransparencyGroupTests
         using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawImage(form, new XRect(10, 10, 100, 100));
 
-        GroupOf(RoundTripped(document).Pages[0]).Should().BeNull();
+        GroupOf(document.Reopened().Pages[0]).Should().BeNull();
     }
 
     // -------------------------------------------------------------------- what the group says
@@ -223,7 +211,7 @@ public class PageTransparencyGroupTests
         using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawRectangle(new XSolidBrush(XColor.FromArgb(128, 255, 0, 0)), new XRect(10, 10, 100, 100));
 
-        var group = GroupOf(RoundTripped(document).Pages[0]);
+        var group = GroupOf(document.Reopened().Pages[0]);
 
         group.Should().NotBeNull();
         group.Elements.GetName("/CS").Should().Be("/DeviceCMYK");
@@ -239,7 +227,7 @@ public class PageTransparencyGroupTests
         using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawRectangle(new XSolidBrush(XColor.FromArgb(128, 255, 0, 0)), new XRect(10, 10, 100, 100));
 
-        GroupOf(RoundTripped(document).Pages[0]).Should().BeNull(
+        GroupOf(document.Reopened().Pages[0]).Should().BeNull(
             "a caller asking for no colour space to be imposed is asking for no group either");
     }
 
@@ -266,7 +254,7 @@ public class PageTransparencyGroupTests
         using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawImage(form, new XRect(0, 0, 200, 200));
 
-        return RoundTripped(document).Pages[0];
+        return document.Reopened().Pages[0];
     }
 
     /// <summary>

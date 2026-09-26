@@ -6,6 +6,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.AcroForms;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using PdfPinata.Test.Pdfs.AcroForms;
 using Xunit;
 using Reader = PdfPinata.Pdf.IO.PdfReader;
@@ -35,14 +36,6 @@ public class FieldAndWidgetTests
         return (document, field, widget);
     }
 
-    private static PdfDocument Reopened(PdfDocument document, PdfDocumentOpenMode mode = PdfDocumentOpenMode.Modify)
-    {
-        var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        return Reader.Open(stream, mode);
-    }
-
     /// <summary>
     ///   A text field whose only widget is its own dictionary, as plenty of software other than
     ///   this library writes a field with one widget - listed both in the form and on the page.
@@ -59,7 +52,7 @@ public class FieldAndWidgetTests
         field.Elements.SetRectangle("/Rect", Box);
         field.Elements.SetReference("/P", page);
         page.Annotations.Elements.Add(field.Reference);
-        return Reopened(document, mode);
+        return document.Reopened(mode);
     }
 
     [Fact]
@@ -107,7 +100,7 @@ public class FieldAndWidgetTests
     public void ReadBackTheFieldAndThePageShareOneWidget()
     {
         var (document, _, _) = ATextFieldOnAPage();
-        var reopened = Reopened(document);
+        var reopened = document.Reopened();
 
         var field = reopened.AcroForm.Fields["text"];
         var fromThePage = reopened.Pages[0].Annotations[0];
@@ -262,7 +255,7 @@ public class FieldAndWidgetTests
         annotation.Elements.GetString(PdfAcroField.Keys.V).Should().Be("filled");
         annotation.Elements.ContainsKey(PdfAnnotation.Keys.AP).Should().BeTrue();
 
-        var reopened = Reopened(document);
+        var reopened = document.Reopened();
         ((PdfTextField)reopened.AcroForm.Fields["merged"]).Text.Should().Be("filled");
     }
 
@@ -350,7 +343,7 @@ public class FieldAndWidgetTests
         field.AddWidget(document.Pages[0], new PdfRectangle(new XRect(60, 660, 200, 20)));
         field.Text = "twice";
 
-        var reopened = Reopened(document);
+        var reopened = document.Reopened();
         var read = (PdfTextField)reopened.AcroForm.Fields["merged"];
 
         read.Text.Should().Be("twice");

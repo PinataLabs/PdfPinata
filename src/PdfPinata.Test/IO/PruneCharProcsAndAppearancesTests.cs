@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 using static PdfPinata.Test.IO.SharedResourceFixtures;
 
@@ -29,7 +29,7 @@ public class PruneCharProcsAndAppearancesTests
     {
         // The glyph is the only thing that draws Im1: the page's own content stream just sets a
         // font and shows a character. A pruner that read the page alone would drop it.
-        var document = Open(PageDrawingAGlyphThatDrawsAnImage());
+        var document = Saved.Open(PageDrawingAGlyphThatDrawsAnImage());
 
         document.PruneUnusedResources();
 
@@ -39,7 +39,7 @@ public class PruneCharProcsAndAppearancesTests
     [Fact]
     public void TheFontTheGlyphBelongsToSurvivesToo()
     {
-        var document = Open(PageDrawingAGlyphThatDrawsAnImage());
+        var document = Saved.Open(PageDrawingAGlyphThatDrawsAnImage());
 
         document.PruneUnusedResources();
 
@@ -51,7 +51,7 @@ public class PruneCharProcsAndAppearancesTests
     {
         // Said separately from the survival of Im1, because a pruner that gave up on the font and
         // kept everything would pass that test and fail this one.
-        var document = Open(PageDrawingAGlyphThatDrawsAnImage());
+        var document = Saved.Open(PageDrawingAGlyphThatDrawsAnImage());
 
         document.PruneUnusedResources();
 
@@ -65,7 +65,7 @@ public class PruneCharProcsAndAppearancesTests
     {
         // The page's content stream draws nothing at all; everything visible comes from the
         // annotation, and the appearance has no resources of its own so it draws with the page's.
-        var document = Open(PageWithAnAnnotationAppearance());
+        var document = Saved.Open(PageWithAnAnnotationAppearance());
 
         document.PruneUnusedResources();
 
@@ -75,7 +75,7 @@ public class PruneCharProcsAndAppearancesTests
     [Fact]
     public void AnImageNoAppearanceDrawsIsStillPruned()
     {
-        var document = Open(PageWithAnAnnotationAppearance());
+        var document = Saved.Open(PageWithAnAnnotationAppearance());
 
         document.PruneUnusedResources();
 
@@ -91,7 +91,7 @@ public class PruneCharProcsAndAppearancesTests
     [Fact]
     public void EveryStateOfAVaryingAppearanceIsRead()
     {
-        var document = Open(PageWithAnAnnotationAppearancePerState());
+        var document = Saved.Open(PageWithAnAnnotationAppearancePerState());
 
         document.PruneUnusedResources();
 
@@ -105,7 +105,7 @@ public class PruneCharProcsAndAppearancesTests
     public void APageWithNoAnnotationsAtAllIsPrunedAsBefore()
     {
         // The early return, and a check that reading appearances did not change the ordinary case.
-        var document = Open(PageDrawingThroughAFormWithoutResources());
+        var document = Saved.Open(PageDrawingThroughAFormWithoutResources());
 
         document.PruneUnusedResources();
 
@@ -113,9 +113,6 @@ public class PruneCharProcsAndAppearancesTests
     }
 
     // ----- helpers -----------------------------------------------------------------------------
-
-    private static PdfDocument Open(byte[] document) =>
-        Pdf.IO.PdfReader.Open(new MemoryStream(document), PdfDocumentOpenMode.Modify);
 
     private static IEnumerable<string> XObjectsOf(PdfPage page) => NamesOf(page, "/XObject");
 

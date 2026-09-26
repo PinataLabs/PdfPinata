@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using AwesomeAssertions;
+using PdfPinata.Test.Helpers;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Fields;
 using PinataLayout.Rendering;
@@ -203,14 +203,7 @@ public class BookmarkAndOutlineTests
         return ReRead(renderer.PdfDocument);
     }
 
-    private static PdfDocument ReRead(PdfDocument document)
-    {
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        // Fully qualified: the test assembly has a PdfReader of its own.
-        return Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.ReadOnly);
-    }
+    private static PdfDocument ReRead(PdfDocument document) => document.Reopened(PdfDocumentOpenMode.ReadOnly);
 
     private static PdfDictionary FirstOutline(PdfDocument pdf)
     {

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
@@ -7,6 +6,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.Drawing;
@@ -172,10 +172,7 @@ public class RotatedPageTests
         page.Height = MediaBoxHeight;
         page.Rotate = rotate;
 
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        return PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify).Pages[0];
+        return document.Reopened().Pages[0];
     }
 
     /// <summary>

@@ -1,6 +1,6 @@
-using System.IO;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.Outlines;
@@ -19,22 +19,13 @@ public class OutlineStyleTests
         return document;
     }
 
-    private static PdfDocument SaveAndOpen(PdfDocument document)
-    {
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        // Fully qualified: PdfPinata.Test carries a PdfReader of its own, which wins here.
-        return Pdf.IO.PdfReader.Open(stream, Pdf.IO.PdfDocumentOpenMode.Modify);
-    }
-
     [Fact]
     public void ARegularEntryIsWrittenWithoutAStyle()
     {
         var document = OnePage();
         document.Outlines.Add("Regular", document.Pages[0], true, PdfOutlineStyle.Regular);
 
-        using var reopened = SaveAndOpen(document);
+        using var reopened = document.Reopened();
 
         reopened.Outlines[0].Elements.ContainsKey("/F").Should().BeFalse();
         reopened.Outlines[0].Style.Should().Be(PdfOutlineStyle.Regular);
@@ -49,7 +40,7 @@ public class OutlineStyleTests
         var document = OnePage();
         document.Outlines.Add("Styled", document.Pages[0], true, style);
 
-        using var reopened = SaveAndOpen(document);
+        using var reopened = document.Reopened();
 
         reopened.Outlines[0].Elements.GetInteger("/F").Should().Be(flags);
         reopened.Outlines[0].Style.Should().Be(style);
@@ -61,7 +52,7 @@ public class OutlineStyleTests
         var document = OnePage(version: 13);
         var bold = document.Outlines.Add("Bold", document.Pages[0], true, PdfOutlineStyle.Bold);
 
-        using var reopened = SaveAndOpen(document);
+        using var reopened = document.Reopened();
 
         reopened.Outlines[0].Elements.ContainsKey("/F").Should().BeFalse();
         // The document was only saved; the entry it was saved from still says what it was given.
@@ -73,11 +64,11 @@ public class OutlineStyleTests
     {
         var document = OnePage();
         document.Outlines.Add("Bold", document.Pages[0], true, PdfOutlineStyle.Bold);
-        using var once = SaveAndOpen(document);
+        using var once = document.Reopened();
 
         once.Outlines[0].Style.Should().Be(PdfOutlineStyle.Bold);
         once.Outlines[0].Style = PdfOutlineStyle.Regular;
-        using var twice = SaveAndOpen(once);
+        using var twice = once.Reopened();
 
         twice.Outlines[0].Elements.ContainsKey("/F").Should().BeFalse();
     }
@@ -88,8 +79,8 @@ public class OutlineStyleTests
         var document = OnePage(version: 17);
         document.Outlines.Add("Italic", document.Pages[0], true, PdfOutlineStyle.Italic);
 
-        using var once = SaveAndOpen(document);
-        using var twice = SaveAndOpen(once);
+        using var once = document.Reopened();
+        using var twice = once.Reopened();
 
         twice.Outlines[0].Style.Should().Be(PdfOutlineStyle.Italic);
         twice.Outlines[0].Elements.GetInteger("/F").Should().Be(1);

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using System.IO;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.AcroForms;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 
 namespace PdfPinata.Test.Pdfs.AcroForms;
 
@@ -121,11 +121,7 @@ internal sealed class AcroFormBuilder
         Document.Internals.AddObject(form);
         Document.Internals.Catalog.Elements["/AcroForm"] = form.Reference;
 
-        using var saved = new MemoryStream();
-        Document.Save(saved, false);
-        saved.Position = 0;
-        // Fully qualified: this test assembly has a PdfReader of its own.
-        return PdfPinata.Pdf.IO.PdfReader.Open(saved, PdfDocumentOpenMode.Modify);
+        return Document.Reopened();
     }
 
     // ----- the entries individual field types want ------------------------------------------------

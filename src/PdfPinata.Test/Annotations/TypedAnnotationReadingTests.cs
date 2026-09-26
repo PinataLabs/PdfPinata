@@ -353,12 +353,8 @@ public sealed class TypedAnnotationReadingTests : IDisposable
         return normal.Stream.UnfilteredValue;
     }
 
-    private static PdfDocument ReadBack(PdfDocument document, PdfDocumentOpenMode mode = PdfDocumentOpenMode.Modify)
-    {
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(output.ToArray()), mode);
-    }
+    private static PdfDocument ReadBack(PdfDocument document, PdfDocumentOpenMode mode = PdfDocumentOpenMode.Modify) =>
+        document.Reopened(mode);
 
     private static bool IsGreen(IMagickColor<byte> c) => c.G > 180 && c.R < 100 && c.B < 100;
 }

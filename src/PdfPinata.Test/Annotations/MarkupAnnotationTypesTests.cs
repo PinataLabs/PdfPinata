@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Linq;
 using AwesomeAssertions;
 using ImageMagick;
@@ -370,12 +369,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
         return _rasterized.FirstPageOf(document, name);
     }
 
-    private static PdfDocument ReadBack(PdfDocument document)
-    {
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return Pdf.IO.PdfReader.Open(new MemoryStream(output.ToArray()), Pdf.IO.PdfDocumentOpenMode.Modify);
-    }
+    private static PdfDocument ReadBack(PdfDocument document) => document.Reopened();
 
     private static bool IsRed(IMagickColor<byte> c) => c.R > 130 && c.G < 100 && c.B < 100;
 }

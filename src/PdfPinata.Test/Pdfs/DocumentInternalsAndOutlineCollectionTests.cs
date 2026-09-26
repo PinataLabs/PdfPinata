@@ -6,6 +6,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.Pdfs;
@@ -250,7 +251,7 @@ public class DocumentInternalsAndOutlineCollectionTests
         last.Parent.Should().BeSameAs(outlines[0].Parent);
         child.Parent.Should().BeSameAs(last);
 
-        var reopened = RoundTripped(document);
+        var reopened = document.Reopened();
 
         reopened.Outlines.Select(outline => outline.Title).Should().Equal("first", "second", "last");
         reopened.Outlines[2].Outlines.Select(outline => outline.Title).Should().Equal("child");
@@ -324,7 +325,7 @@ public class DocumentInternalsAndOutlineCollectionTests
         preferences.CenterWindow.Should().BeTrue();
         preferences.DisplayDocTitle.Should().BeTrue();
 
-        var reopened = RoundTripped(document).ViewerPreferences;
+        var reopened = document.Reopened().ViewerPreferences;
 
         reopened.HideToolbar.Should().BeTrue();
         reopened.FitWindow.Should().BeTrue();
@@ -346,7 +347,7 @@ public class DocumentInternalsAndOutlineCollectionTests
         document.ViewerPreferences.Direction = direction;
 
         document.ViewerPreferences.Direction.Should().Be(direction);
-        RoundTripped(document).ViewerPreferences.Direction.Should().Be(direction);
+        document.Reopened().ViewerPreferences.Direction.Should().Be(direction);
     }
 
     [Fact]
@@ -358,14 +359,6 @@ public class DocumentInternalsAndOutlineCollectionTests
         document.ViewerPreferences.Direction = null;
 
         document.ViewerPreferences.Direction.Should().BeNull();
-        RoundTripped(document).ViewerPreferences.Direction.Should().BeNull();
-    }
-
-    private static PdfDocument RoundTripped(PdfDocument document)
-    {
-        var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        return Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
+        document.Reopened().ViewerPreferences.Direction.Should().BeNull();
     }
 }

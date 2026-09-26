@@ -4,6 +4,7 @@ using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 using static PdfPinata.Test.IO.SharedResourceFixtures;
 
@@ -20,7 +21,7 @@ public class PruneUnusedResourcesTests
     [Fact]
     public void EachPageKeepsTheImageItDraws()
     {
-        var document = Open(PagesSharingOneResourceDictionary());
+        var document = Saved.Open(PagesSharingOneResourceDictionary());
 
         document.PruneUnusedResources();
 
@@ -51,7 +52,7 @@ public class PruneUnusedResourcesTests
     [Fact]
     public void AFormWithoutResourcesKeepsWhatItDrawsWithFromThePage()
     {
-        var document = Open(PageDrawingThroughAFormWithoutResources());
+        var document = Saved.Open(PageDrawingThroughAFormWithoutResources());
 
         document.PruneUnusedResources();
 
@@ -63,7 +64,7 @@ public class PruneUnusedResourcesTests
     [Fact]
     public void AFormWithItsOwnResourcesDoesNotKeepThePageEntryOfTheSameName()
     {
-        var document = Open(PageDrawingThroughAFormWithItsOwnResources());
+        var document = Saved.Open(PageDrawingThroughAFormWithItsOwnResources());
 
         document.PruneUnusedResources();
 
@@ -74,7 +75,7 @@ public class PruneUnusedResourcesTests
     [Fact]
     public void ASoftMaskWithoutResourcesKeepsWhatItPaintsWithFromThePage()
     {
-        var document = Open(PageDrawingThroughASoftMaskWithoutResources());
+        var document = Saved.Open(PageDrawingThroughASoftMaskWithoutResources());
 
         document.PruneUnusedResources();
 
@@ -86,7 +87,7 @@ public class PruneUnusedResourcesTests
     [Fact]
     public void ASoftMaskWithItsOwnResourcesDoesNotKeepThePageEntryOfTheSameName()
     {
-        var document = Open(PageDrawingThroughASoftMaskWithItsOwnResources());
+        var document = Saved.Open(PageDrawingThroughASoftMaskWithItsOwnResources());
 
         document.PruneUnusedResources();
 
@@ -97,7 +98,7 @@ public class PruneUnusedResourcesTests
     [Fact]
     public void AGraphicsStateTurningTheSoftMaskOffPaintsNothing()
     {
-        var document = Open(PageTurningTheSoftMaskOff());
+        var document = Saved.Open(PageTurningTheSoftMaskOff());
 
         document.PruneUnusedResources();
 
@@ -107,7 +108,7 @@ public class PruneUnusedResourcesTests
     [Fact]
     public void APageWhoseSoftMaskCannotBeReadIsLeftAlone()
     {
-        var document = Open(PageWhoseSoftMaskCannotBeRead());
+        var document = Saved.Open(PageWhoseSoftMaskCannotBeRead());
 
         document.PruneUnusedResources();
 
@@ -117,7 +118,7 @@ public class PruneUnusedResourcesTests
     [Fact]
     public void AFormDrawingItselfIsReadOnceAndPrunedAllTheSame()
     {
-        var document = Open(PageWithAFormDrawingItself());
+        var document = Saved.Open(PageWithAFormDrawingItself());
 
         document.PruneUnusedResources();
 
@@ -127,7 +128,7 @@ public class PruneUnusedResourcesTests
     [Fact]
     public void APageHoldingAnInlineImageIsLeftAlone()
     {
-        var document = Open(PageWithAnInlineImage());
+        var document = Saved.Open(PageWithAnInlineImage());
 
         document.PruneUnusedResources();
 
@@ -139,7 +140,7 @@ public class PruneUnusedResourcesTests
     [Fact]
     public void APageWhoseContentCannotBeReadIsLeftAlone()
     {
-        var document = Open(PageWhoseContentCannotBeRead());
+        var document = Saved.Open(PageWhoseContentCannotBeRead());
 
         document.PruneUnusedResources();
 
@@ -149,7 +150,7 @@ public class PruneUnusedResourcesTests
     [Fact]
     public void ThePageReadsThePrunedResourcesAfterwards()
     {
-        var document = Open(PagesSharingOneResourceDictionary());
+        var document = Saved.Open(PagesSharingOneResourceDictionary());
 
         // A page reads its resources but once and keeps them, so a page asked for them before
         // being pruned would go on answering with the ones it started with.
@@ -163,17 +164,12 @@ public class PruneUnusedResourcesTests
     [Fact]
     public void PruningTwiceChangesNothingTheSecondTime()
     {
-        var document = Open(PagesSharingOneResourceDictionary());
+        var document = Saved.Open(PagesSharingOneResourceDictionary());
 
         document.PruneUnusedResources();
         document.PruneUnusedResources();
 
         XObjectsOf(document.Pages[0]).Should().Equal("/Im0");
-    }
-
-    private static PdfDocument Open(byte[] document)
-    {
-        return Pdf.IO.PdfReader.Open(new MemoryStream(document), PdfDocumentOpenMode.Modify);
     }
 
     private static IEnumerable<string> XObjectsOf(PdfPage page)

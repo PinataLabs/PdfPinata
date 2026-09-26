@@ -487,9 +487,7 @@ public class TaggedPdfTests
             gfx.Dispose();
         }
 
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
+        return Saved.Bytes(document);
     }
 
     private static byte[] Save(Action<XGraphics, PdfDocument> draw)
@@ -501,9 +499,7 @@ public class TaggedPdfTests
         draw(gfx, document);
         gfx.Dispose();
 
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
+        return Saved.Bytes(document);
     }
 
     private static int Occurrences(string text, string value)

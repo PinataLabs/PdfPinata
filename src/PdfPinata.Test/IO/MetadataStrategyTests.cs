@@ -1,10 +1,10 @@
 using System;
-using System.IO;
 using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Metadata;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.IO;
@@ -22,7 +22,7 @@ public class MetadataStrategyTests
         _ = document.AddPage();
 
         document.Options.MetadataStrategy.Should().Be(PdfMetadataStrategy.KeepExisting);
-        Packets(Save(document)).Should().Be(0);
+        Packets(Saved.Bytes(document)).Should().Be(0);
     }
 
     /// <summary>
@@ -33,10 +33,10 @@ public class MetadataStrategyTests
     [Fact]
     public void ByDefaultAReadDocumentKeepsItsPacketAsItWas()
     {
-        var reopened = Reopen(WithPacket("Old title"));
+        var reopened = Saved.Open(WithPacket("Old title"));
         reopened.Info.Title = "New title";
 
-        var bytes = Save(reopened);
+        var bytes = Saved.Bytes(reopened);
 
         Packets(bytes).Should().Be(1);
         Text(bytes).Should().Contain("Old title").And.NotContain(">New title<");
@@ -45,11 +45,11 @@ public class MetadataStrategyTests
     [Fact]
     public void AutoGenerateReplacesAReadDocumentsPacketWithOneThatAgreesWithItsInformation()
     {
-        var reopened = Reopen(WithPacket("Old title"));
+        var reopened = Saved.Open(WithPacket("Old title"));
         reopened.Info.Title = "New title";
         reopened.Options.MetadataStrategy = PdfMetadataStrategy.AutoGenerate;
 
-        var bytes = Save(reopened);
+        var bytes = Saved.Bytes(reopened);
 
         Packets(bytes).Should().Be(1, "the old packet is replaced, not joined");
         Text(bytes).Should().Contain(">New title<").And.NotContain("Old title<");
@@ -64,7 +64,7 @@ public class MetadataStrategyTests
         var called = 0;
         document.AddMetadataContributor(_ => called++);
 
-        Save(document);
+        Saved.Bytes(document);
 
         called.Should().Be(1);
     }
@@ -72,13 +72,13 @@ public class MetadataStrategyTests
     [Fact]
     public void NoMetadataRemovesTheReadDocumentsPacket()
     {
-        var reopened = Reopen(WithPacket("Old title"));
+        var reopened = Saved.Open(WithPacket("Old title"));
         reopened.Options.MetadataStrategy = PdfMetadataStrategy.NoMetadata;
 
-        var bytes = Save(reopened);
+        var bytes = Saved.Bytes(reopened);
 
         Packets(bytes).Should().Be(0);
-        Reopen(bytes).Internals.Catalog.Elements.ContainsKey("/Metadata").Should().BeFalse();
+        Saved.Open(bytes).Internals.Catalog.Elements.ContainsKey("/Metadata").Should().BeFalse();
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public class MetadataStrategyTests
         document.Options.Conformance = PdfAConformance.PdfA2B;
         document.Options.MetadataStrategy = PdfMetadataStrategy.NoMetadata;
 
-        Action act = () => Save(document);
+        Action act = () => Saved.Bytes(document);
 
         act.Should().Throw<InvalidOperationException>().WithMessage("*NoMetadata*");
     }
@@ -104,7 +104,7 @@ public class MetadataStrategyTests
         document.Options.UAConformance = PdfUAConformance.PdfUA1;
         document.Options.MetadataStrategy = PdfMetadataStrategy.NoMetadata;
 
-        Action act = () => Save(document);
+        Action act = () => Saved.Bytes(document);
 
         act.Should().Throw<InvalidOperationException>().WithMessage("*NoMetadata*");
     }
@@ -130,11 +130,11 @@ public class MetadataStrategyTests
     [Fact]
     public void AConformanceClaimWritesAFreshPacketUnderTheDefault()
     {
-        var reopened = Reopen(WithPacket("Old title"));
+        var reopened = Saved.Open(WithPacket("Old title"));
         reopened.Info.Title = "New title";
         reopened.Options.Conformance = PdfAConformance.PdfA2B;
 
-        var bytes = Save(reopened);
+        var bytes = Saved.Bytes(reopened);
 
         Packets(bytes).Should().Be(1);
         Text(bytes).Should().Contain(">New title<").And.Contain("pdfaid:part");
@@ -175,18 +175,8 @@ public class MetadataStrategyTests
         _ = document.AddPage();
         document.Info.Title = title;
         document.Options.MetadataStrategy = PdfMetadataStrategy.AutoGenerate;
-        return Save(document);
+        return Saved.Bytes(document);
     }
-
-    private static byte[] Save(PdfDocument document)
-    {
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
-    }
-
-    private static PdfDocument Reopen(byte[] bytes) =>
-        PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(bytes), PdfDocumentOpenMode.Modify);
 
     private static string Text(byte[] bytes) => Encoding.Latin1.GetString(bytes);
 

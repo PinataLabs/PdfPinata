@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
@@ -88,19 +89,12 @@ public class CrossReferenceConsistencyTests
         return entries;
     }
 
-    private static byte[] Save(PdfDocument document)
-    {
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
-    }
-
     private static byte[] ADocumentOf(int pages)
     {
         var document = new PdfDocument();
         for (var page = 0; page < pages; page++)
             _ = document.AddPage();
-        return Save(document);
+        return Saved.Bytes(document);
     }
 
     private static void ShouldBeConsistent(byte[] pdf)
@@ -149,7 +143,7 @@ public class CrossReferenceConsistencyTests
         // were called from.
         var reopened = Reader.Open(new MemoryStream(ADocumentOf(3)), PdfDocumentOpenMode.Modify);
 
-        ShouldBeConsistent(Save(reopened));
+        ShouldBeConsistent(Saved.Bytes(reopened));
     }
 
     [Fact]
@@ -163,7 +157,7 @@ public class CrossReferenceConsistencyTests
         foreach (var page in source.Pages)
             _ = target.AddPage(page);
 
-        var written = Save(target);
+        var written = Saved.Bytes(target);
 
         ShouldBeConsistent(written);
         Reader.Open(new MemoryStream(written), PdfDocumentOpenMode.Modify).PageCount.Should().Be(5);
@@ -175,7 +169,7 @@ public class CrossReferenceConsistencyTests
         var document = Reader.Open(new MemoryStream(ADocumentOf(4)), PdfDocumentOpenMode.Modify);
         document.Pages.RemoveAt(1);
 
-        var written = Save(document);
+        var written = Saved.Bytes(document);
 
         ShouldBeConsistent(written);
         Reader.Open(new MemoryStream(written), PdfDocumentOpenMode.Modify).PageCount.Should().Be(3);

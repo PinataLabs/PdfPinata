@@ -1,10 +1,10 @@
 using System;
-using System.IO;
 using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.Outlines;
@@ -41,7 +41,7 @@ public class OutlineTreeMembershipTests
 
         adding.Should().Throw<InvalidOperationException>().WithMessage("*already in an outline collection*");
         document.Outlines.Count.Should().Be(1);
-        Tree(RoundTripped(document)).Should().Be("a");
+        Tree(document.Reopened()).Should().Be("a");
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public class OutlineTreeMembershipTests
         inserting.Should().Throw<InvalidOperationException>();
         replacing.Should().Throw<InvalidOperationException>();
         x.Parent.Should().BeSameAs(a);
-        Tree(RoundTripped(document)).Should().Be("a(x),b(b1)");
+        Tree(document.Reopened()).Should().Be("a(x),b(b1)");
     }
 
     [Fact]
@@ -84,7 +84,7 @@ public class OutlineTreeMembershipTests
         var rootUnderAnEntry = () => b.Outlines.Add(a.Parent);
         rootUnderAnEntry.Should().Throw<InvalidOperationException>().WithMessage("*under itself*");
 
-        Tree(RoundTripped(document)).Should().Be("a(b)");
+        Tree(document.Reopened()).Should().Be("a(b)");
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public class OutlineTreeMembershipTests
         document.Outlines.Add(entry);
         children.Add("a1", document.Pages[0]);
 
-        Tree(RoundTripped(document)).Should().Be("a(a1)");
+        Tree(document.Reopened()).Should().Be("a(a1)");
     }
 
     [Fact]
@@ -134,13 +134,13 @@ public class OutlineTreeMembershipTests
         var a = document.Outlines.Add("a", document.Pages[0]);
         var b = document.Outlines.Add("b", document.Pages[0]);
         var x = a.Outlines.Add("x", document.Pages[0]);
-        Saved(document);
+        Saved.Bytes(document);
 
         a.Outlines.Remove(x);
         b.Outlines.Add(x);
 
         x.Parent.Should().BeSameAs(b);
-        Tree(RoundTripped(document)).Should().Be("a,b(x)",
+        Tree(document.Reopened()).Should().Be("a,b(x)",
             "a was saved with x as its /First and /Last, and has none now");
     }
 
@@ -155,7 +155,7 @@ public class OutlineTreeMembershipTests
         document.Outlines.Remove(b);
         document.Outlines.Add(b);
 
-        Tree(RoundTripped(document)).Should().Be("a,c,b");
+        Tree(document.Reopened()).Should().Be("a,c,b");
     }
 
     [Fact]
@@ -170,10 +170,10 @@ public class OutlineTreeMembershipTests
         document.Outlines.Add("c", document.Pages[0]);
 
         document.Outlines.Remove(b);
-        Saved(document);
+        Saved.Bytes(document);
         document.Outlines.Add(b);
 
-        Tree(RoundTripped(document)).Should().Be("a,c,b(b1)");
+        Tree(document.Reopened()).Should().Be("a,c,b(b1)");
     }
 
     [Fact]
@@ -183,11 +183,11 @@ public class OutlineTreeMembershipTests
         document.Outlines.Add("a", document.Pages[0]);
         document.Outlines.Add("b", document.Pages[0]);
         var c = document.Outlines.Add("c", document.Pages[0]);
-        Saved(document);
+        Saved.Bytes(document);
 
         document.Outlines.Remove(c);
 
-        Tree(RoundTripped(document)).Should().Be("a,b", "b was saved with a /Next to c");
+        Tree(document.Reopened()).Should().Be("a,b", "b was saved with a /Next to c");
     }
 
     [Fact]
@@ -198,14 +198,14 @@ public class OutlineTreeMembershipTests
         original.Outlines.Add("b", original.Pages[0]);
         original.Outlines.Add("c", original.Pages[0]);
 
-        var first = RoundTripped(original);
+        var first = original.Reopened();
         first.Outlines.RemoveAt(0);
         first.Outlines.RemoveAt(1);
-        Tree(RoundTripped(first)).Should().Be("b");
+        Tree(first.Reopened()).Should().Be("b");
 
-        var second = RoundTripped(original);
+        var second = original.Reopened();
         second.Outlines.Clear();
-        Tree(RoundTripped(second)).Should().Be("<none>",
+        Tree(second.Reopened()).Should().Be("<none>",
             "the outline root was read with a /First and a /Last naming entries now gone");
     }
 
@@ -217,11 +217,11 @@ public class OutlineTreeMembershipTests
         var document = ADocumentOf(1);
         document.Outlines.Count.Should().Be(0);
 
-        var reopened = RoundTripped(document);
+        var reopened = document.Reopened();
 
         Tree(reopened).Should().Be("<none>");
         reopened.Outlines.Add("added later", reopened.Pages[0]);
-        Tree(RoundTripped(reopened)).Should().Be("added later");
+        Tree(reopened.Reopened()).Should().Be("added later");
     }
 
     [Fact]
@@ -237,7 +237,7 @@ public class OutlineTreeMembershipTests
         a.Parent.Should().BeNull();
         y.Outlines.Add(a);
 
-        Tree(RoundTripped(document)).Should().Be("y(a),b");
+        Tree(document.Reopened()).Should().Be("y(a),b");
     }
 
     // ── Arranging ───────────────────────────────────────────────────────────────────────────────
@@ -253,16 +253,6 @@ public class OutlineTreeMembershipTests
         }
         return document;
     }
-
-    private static byte[] Saved(PdfDocument document)
-    {
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        return stream.ToArray();
-    }
-
-    private static PdfDocument RoundTripped(PdfDocument document) =>
-        Pdf.IO.PdfReader.Open(new MemoryStream(Saved(document)), PdfDocumentOpenMode.Modify);
 
     /// <summary>
     ///   The outline tree of a document read back, as titles: <c>a(a1,a2),b</c>, or <c>&lt;none&gt;</c>

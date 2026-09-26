@@ -121,7 +121,7 @@ public class TextExtractionTests
             gfx.Dispose();
         }
 
-        var reopened = Reopen(Save(document));
+        var reopened = Reopen(Saved.Bytes(document));
 
         reopened.Owner.Pages.Cast<PdfPage>().Select(PdfTextExtractor.ExtractText)
             .Should().Equal("One", "Two", "Three");
@@ -430,9 +430,7 @@ public class TextExtractionTests
         stream.Elements.Remove("/Filter");
         stream.Elements.SetInteger("/Length", bytes.Length);
 
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
+        return Saved.Bytes(document);
     }
 
     private static double Measure(string text)
@@ -448,21 +446,10 @@ public class TextExtractionTests
         var gfx = XGraphics.FromPdfPage(document.AddPage());
         draw(gfx);
         gfx.Dispose();
-        return Save(document);
+        return Saved.Bytes(document);
     }
 
-    private static byte[] Save(PdfDocument document)
-    {
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
-    }
-
-    private static PdfPage Reopen(byte[] bytes)
-    {
-        var saved = new MemoryStream(bytes);
-        return Reader.Open(saved, PdfDocumentOpenMode.Modify).Pages[0];
-    }
+    private static PdfPage Reopen(byte[] bytes) => Saved.Open(bytes).Pages[0];
 
     /// <summary>
     ///   Rewrites the font's <c>/ToUnicode</c> map, so that a CMap this library would never write
@@ -486,9 +473,7 @@ public class TextExtractionTests
         map.Elements.Remove("/Filter");
         map.Elements.SetInteger("/Length", replaced.Length);
 
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
+        return Saved.Bytes(document);
     }
 
     /// <summary>
@@ -519,9 +504,7 @@ public class TextExtractionTests
         stream.Elements.Remove("/Filter");
         stream.Elements.SetInteger("/Length", bytes.Length);
 
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
+        return Saved.Bytes(document);
     }
 
     /// <summary>
@@ -537,9 +520,7 @@ public class TextExtractionTests
         descendant.Elements["/W"] = new PdfArray(document, new PdfPinata.Pdf.PdfInteger(first),
             new PdfPinata.Pdf.PdfInteger(last), new PdfPinata.Pdf.PdfInteger(500));
 
-        using var output = new MemoryStream();
-        document.Save(output, false);
-        return output.ToArray();
+        return Saved.Bytes(document);
     }
 
     private static PdfDictionary FontOf(PdfPage page)

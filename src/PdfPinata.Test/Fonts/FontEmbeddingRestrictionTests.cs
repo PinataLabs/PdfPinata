@@ -51,7 +51,7 @@ public class FontEmbeddingRestrictionTests
     [Fact]
     public void WithTheOptionOffARestrictedFontIsEmbeddedAsBefore()
     {
-        var saved = Save(Draw(RestrictedLicense, respect: false));
+        var saved = Draw(RestrictedLicense, respect: false).Reopened();
 
         var descriptor = FontDescriptorOf(saved);
         descriptor.Elements.GetName("/FontName").Should().MatchRegex("^/[A-Z]{6}\\+");
@@ -82,7 +82,7 @@ public class FontEmbeddingRestrictionTests
         var document = Draw(RestrictedLicense, respect: false);
         document.Options.RespectFontEmbeddingRestrictions = true;
 
-        var saving = () => Save(document);
+        var saving = () => document.Reopened();
 
         saving.Should().Throw<InvalidOperationException>().WithMessage("*Restricted License*");
     }
@@ -99,7 +99,7 @@ public class FontEmbeddingRestrictionTests
 
         // The last two are what an OS/2 table older than version 3 may say, and are read by the
         // least restrictive bit set: Editable, or Preview & Print, not Restricted License.
-        var saved = Save(Draw(fsType, respect: true));
+        var saved = Draw(fsType, respect: true).Reopened();
 
         var descriptor = FontDescriptorOf(saved);
         descriptor.Elements.GetName("/FontName").Should().MatchRegex("^/[A-Z]{6}\\+");
@@ -111,7 +111,7 @@ public class FontEmbeddingRestrictionTests
     [InlineData(false)]
     public void WithTheOptionOnAFontThatForbidsSubsettingIsEmbeddedWholeAndNamedSo(bool unicode)
     {
-        var saved = Save(Draw(NoSubsetting, respect: true, unicode));
+        var saved = Draw(NoSubsetting, respect: true, unicode).Reopened();
 
         var descriptor = FontDescriptorOf(saved);
         FontProgramOf(descriptor).Should().Equal(Font(NoSubsetting),
@@ -126,11 +126,11 @@ public class FontEmbeddingRestrictionTests
     public void TurningTheOptionOffBetweenTwoSavesPutsTheSubsetTagBack()
     {
         var document = Draw(NoSubsetting, respect: true);
-        FontDescriptorOf(Save(document)).Elements.GetName("/FontName")
+        FontDescriptorOf(document.Reopened()).Elements.GetName("/FontName")
             .Should().NotMatchRegex("^/[A-Z]{6}\\+");
 
         document.Options.RespectFontEmbeddingRestrictions = false;
-        var descriptor = FontDescriptorOf(Save(document));
+        var descriptor = FontDescriptorOf(document.Reopened());
 
         FontProgramOf(descriptor).Length.Should().BeLessThan(Font(NoSubsetting).Length);
         descriptor.Elements.GetName("/FontName").Should().MatchRegex("^/[A-Z]{6}\\+",
@@ -140,7 +140,7 @@ public class FontEmbeddingRestrictionTests
     [Fact]
     public void WithTheOptionOffAFontThatForbidsSubsettingIsSubsettedAsBefore()
     {
-        var saved = Save(Draw(NoSubsetting, respect: false));
+        var saved = Draw(NoSubsetting, respect: false).Reopened();
 
         var descriptor = FontDescriptorOf(saved);
         descriptor.Elements.GetName("/FontName").Should().MatchRegex("^/[A-Z]{6}\\+");
@@ -170,13 +170,6 @@ public class FontEmbeddingRestrictionTests
             new XPdfFontOptions(unicode ? PdfFontEncoding.Unicode : PdfFontEncoding.WinAnsi));
         gfx.DrawString("Embedding", font, XBrushes.Black, new XPoint(20, 40));
         return document;
-    }
-
-    private static PdfDocument Save(PdfDocument document)
-    {
-        using var stream = new MemoryStream();
-        document.Save(stream, false);
-        return Pdf.IO.PdfReader.Open(new MemoryStream(stream.ToArray()), PdfDocumentOpenMode.Modify);
     }
 
     private static PdfDictionary FontDescriptorOf(PdfDocument saved)

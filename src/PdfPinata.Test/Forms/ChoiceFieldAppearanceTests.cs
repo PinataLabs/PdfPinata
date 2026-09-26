@@ -312,19 +312,11 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         combo.SelectedIndex = 1;
         var drawn = NormalAppearance(combo).Stream.UnfilteredValue;
 
-        var read = (PdfComboBoxField)Reopened(document).AcroForm.Fields["country"];
+        var read = (PdfComboBoxField)document.Reopened().AcroForm.Fields["country"];
         NormalAppearance(read).Stream.UnfilteredValue.Should().Equal(drawn);
 
-        var again = (PdfComboBoxField)Reopened(read.Owner).AcroForm.Fields["country"];
+        var again = (PdfComboBoxField)read.Owner.Reopened().AcroForm.Fields["country"];
         NormalAppearance(again).Stream.UnfilteredValue.Should().Equal(drawn, "saving a read field does not redraw it");
-    }
-
-    private static PdfDocument Reopened(PdfDocument document)
-    {
-        var stream = new MemoryStream();
-        document.Save(stream, false);
-        stream.Position = 0;
-        return PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfPinata.Pdf.IO.PdfDocumentOpenMode.Modify);
     }
 
     private static PdfDictionary NormalAppearance(PdfChoiceField field)
