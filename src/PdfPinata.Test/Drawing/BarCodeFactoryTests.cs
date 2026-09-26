@@ -126,4 +126,44 @@ public class BarCodeFactoryTests
             .WithMessage("*'ODD'*")
             .And.Message.Should().Contain("2 of 5");
     }
+
+    // Code 3 of 9 kept its alphabet twice, once to check a code and once to look each character's
+    // bars up, and the check's copy had an apostrophe the lookup's did not. So "'" was accepted where
+    // the code was set and then read _lines[-1] when it was drawn.
+
+    [Fact]
+    public void CodeThreeOfNineRefusesAnApostropheWhereItIsSet()
+    {
+        var act = () => new Code3of9Standard("AB'C", Size);
+
+        act.Should().Throw<ArgumentException>().WithMessage("*AB'C*");
+    }
+
+    [Theory]
+    [InlineData("AB*C")]
+    [InlineData("*ABC*")]
+    public void CodeThreeOfNineRefusesTheStartAndStopCharacterInItsData(string code)
+    {
+        // The renderer draws the "*" that opens and closes the symbol itself, so one in the data is
+        // a second delimiter: a scanner stops reading there, and "*ABC*" drew "**ABC**", which reads
+        // as no data at all.
+        var act = () => new Code3of9Standard(code, Size);
+
+        // Contain rather than WithMessage, where the "*" in the code would be read as a wildcard.
+        act.Should().Throw<ArgumentException>().Which.Message.Should().Contain($"'{code}'");
+    }
+
+    // Every data character: the 43 of Code 39, which is the alphabet less the "*" delimiter.
+    [Fact]
+    public void CodeThreeOfNineDrawsEveryCharacterItAccepts()
+    {
+        var code = new Code3of9Standard("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%", new XSize(400, 40));
+        using var document = new PdfPinata.Pdf.PdfDocument();
+        var page = document.AddPage();
+        using var gfx = XGraphics.FromPdfPage(page);
+
+        var act = () => gfx.DrawBarCode(code, new XPoint(10, 10));
+
+        act.Should().NotThrow();
+    }
 }

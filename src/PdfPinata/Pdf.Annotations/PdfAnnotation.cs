@@ -513,19 +513,18 @@ public abstract class PdfAnnotation : PdfDictionary
     /// array is absent or is not three numbers, which is how an empty <c>/IC</c> says "no colour".
     /// </summary>
     /// <remarks>
-    /// Rounded rather than truncated. A component is written as a fraction of 255 to the seven
-    /// decimal places PdfWriter gives a real, so 127 goes out as 0.4980392 and comes back as
-    /// 126.999996 - and truncating that loses a value the file all but said.
+    /// Rounded rather than truncated, and clamped, through <see cref="XColor.FromUnitRgb"/>. A
+    /// component is written as a fraction of 255 to the seven decimal places PdfWriter gives a real,
+    /// so 127 goes out as 0.4980392 and comes back as 126.999996 - and truncating that loses a value
+    /// the file all but said.
     /// </remarks>
     private protected static XColor ColorFrom(PdfArray colour, XColor fallback)
     {
         if (colour == null || colour.Elements.Count != 3)
             return fallback;
 
-        return XColor.FromArgb(
-            (int)Math.Round(colour.Elements.GetReal(0) * 255),
-            (int)Math.Round(colour.Elements.GetReal(1) * 255),
-            (int)Math.Round(colour.Elements.GetReal(2) * 255));
+        return XColor.FromUnitRgb(colour.Elements.GetReal(0), colour.Elements.GetReal(1),
+            colour.Elements.GetReal(2));
     }
 
     /// <summary>

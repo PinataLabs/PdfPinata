@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
+using PinataLayout.DocumentObjectModel;
 using Xunit;
 
 namespace PdfPinata.Test;
@@ -131,7 +132,7 @@ public class PageSizeConverterTests
     [InlineData(PageSize.RA2, 1219, 1729)]
     [InlineData(PageSize.RA3, 865, 1219)]
     [InlineData(PageSize.RA4, 609, 865)]
-    [InlineData(PageSize.RA5, 433, 609)]
+    [InlineData(PageSize.RA5, 434, 609)]
     [InlineData(PageSize.SRA0, 2551, 3628)]
     [InlineData(PageSize.SRA1, 1814, 2551)]
     [InlineData(PageSize.SRA2, 1276, 1814)]
@@ -167,13 +168,13 @@ public class PageSizeConverterTests
     [InlineData(PageSize.Legal, 612, 1008)]
     [InlineData(PageSize.Ledger, 1224, 792)]
     [InlineData(PageSize.Tabloid, 792, 1224)]
-    [InlineData(PageSize.Post, 1126, 1386)]
+    [InlineData(PageSize.Post, 1116, 1386)]
     [InlineData(PageSize.Crown, 1440, 1080)]
     [InlineData(PageSize.LargePost, 1188, 1512)]
     [InlineData(PageSize.Demy, 1260, 1584)]
     [InlineData(PageSize.Medium, 1296, 1656)]
     [InlineData(PageSize.Royal, 1440, 1800)]
-    [InlineData(PageSize.Elephant, 1565, 2016)]
+    [InlineData(PageSize.Elephant, 1656, 2016)]
     [InlineData(PageSize.DoubleDemy, 1692, 2520)]
     [InlineData(PageSize.QuadDemy, 2520, 3240)]
     [InlineData(PageSize.STMT, 396, 612)]
@@ -197,6 +198,29 @@ public class PageSizeConverterTests
             .Select(data => (PageSize)data.GetData(method).Single()[0]);
 
         pinned.Should().BeEquivalentTo(Enum.GetValues<PageSize>().Where(size => size != PageSize.Undefined));
+    }
+
+    /// <summary>
+    /// The core's whole-point table and the DOM's, which builds each sheet from the millimetres or
+    /// inches that define it, name most of the same sheets - and must agree on them, or a page
+    /// sized by <see cref="PageSize"/> and one sized by <see cref="PageFormat"/> are different
+    /// paper. Three did not: Post was 1126 wide for 15.5 inches, which is 1116, Elephant 1565 for 23
+    /// inches, which is 1656, and RA5 433 for 153 mm, which is 433.7 and so rounds to 434.
+    /// </summary>
+    [Fact]
+    public void EverySizeTheDocumentObjectModelAlsoNamesIsItsSizeRoundedToWholePoints()
+    {
+        var shared = Enum.GetNames<PageSize>().Intersect(Enum.GetNames<PageFormat>()).ToList();
+        shared.Should().Contain([nameof(PageSize.A4), nameof(PageSize.Post), nameof(PageSize.Elephant)]);
+
+        foreach (var name in shared)
+        {
+            var core = PageSizeConverter.ToSize(Enum.Parse<PageSize>(name));
+            PageSetup.GetPageSize(Enum.Parse<PageFormat>(name), out var width, out var height);
+
+            (core.Width, core.Height).Should().Be((Math.Round(width.Point), Math.Round(height.Point)),
+                $"{name} is {width.Point} by {height.Point} points in the DOM");
+        }
     }
 
     /// <summary>

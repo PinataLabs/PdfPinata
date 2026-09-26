@@ -72,8 +72,18 @@ public class Code3of9Standard : TwoWidthBarCode
     /// <param name="ch">The character to represent.</param>
     private static bool[] WideNarrowLines(char ch)
     {
-        return _lines["0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%*".IndexOf(ch)];
+        return _lines[Alphabet.IndexOf(ch)];
     }
+
+    /// <summary>
+    /// The characters the symbology can carry, in the order of <see cref="_lines"/>. The check and
+    /// the lookup both read this one string. They used to keep a copy each, and the check's copy had
+    /// an apostrophe the lookup's did not, so <c>'</c> was accepted and then failed at drawing time.
+    /// </summary>
+    private const string Alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%*";
+
+    /// <summary>The start and stop character, which <see cref="Render"/> draws at each end itself.</summary>
+    private const char Delimiter = '*';
 
     private static readonly bool[][] _lines =
     [
@@ -203,7 +213,9 @@ public class Code3of9Standard : TwoWidthBarCode
 
         foreach (var ch in text)
         {
-            if ("0123456789ABCDEFGHIJKLMNOP'QRSTUVWXYZ-. $/+%*".IndexOf(ch) < 0)
+            // "*" is in the alphabet because it has bars, but it is the delimiter Render draws at
+            // each end, not a data character: one in the data ends the symbol where it stands.
+            if (ch == Delimiter || Alphabet.IndexOf(ch) < 0)
                 throw new ArgumentException(BcgSR.Invalid3Of9Code(text));
         }
     }
@@ -258,12 +270,12 @@ public class Code3of9Standard : TwoWidthBarCode
 
     private void RenderStart(BarCodeRenderInfo info)
     {
-        RenderChar(info, '*');
+        RenderChar(info, Delimiter);
         RenderGap(info, false);
     }
 
     private void RenderStop(BarCodeRenderInfo info)
     {
-        RenderChar(info, '*');
+        RenderChar(info, Delimiter);
     }
 }

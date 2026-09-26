@@ -74,7 +74,7 @@ public static class PageSizeConverter
         [PageSize.RA2] = new XSize(1219, 1729),
         [PageSize.RA3] = new XSize(865, 1219),
         [PageSize.RA4] = new XSize(609, 865),
-        [PageSize.RA5] = new XSize(433, 609),
+        [PageSize.RA5] = new XSize(434, 609),
         [PageSize.SRA0] = new XSize(2551, 3628),
         [PageSize.SRA1] = new XSize(1814, 2551),
         [PageSize.SRA2] = new XSize(1276, 1814),
@@ -112,13 +112,13 @@ public static class PageSizeConverter
         [PageSize.Legal] = new XSize(612, 1008),  // 8.5 x 14 inch²
         [PageSize.Ledger] = new XSize(1224, 792),  // 17 x 11 inch²
         [PageSize.Tabloid] = new XSize(792, 1224),  // 11 x 17 inch²
-        [PageSize.Post] = new XSize(1126, 1386),  // 15.5 x 19.25 inch²
+        [PageSize.Post] = new XSize(1116, 1386),  // 15.5 x 19.25 inch²
         [PageSize.Crown] = new XSize(1440, 1080),  // 20 x 15 inch²
         [PageSize.LargePost] = new XSize(1188, 1512),  // 16.5 x 21 inch²
         [PageSize.Demy] = new XSize(1260, 1584),  // 17.5 x 22 inch²
         [PageSize.Medium] = new XSize(1296, 1656),  // 18 x 23 inch²
         [PageSize.Royal] = new XSize(1440, 1800),  // 20 x 25 inch²
-        [PageSize.Elephant] = new XSize(1565, 2016),  // 23 x 28 inch²
+        [PageSize.Elephant] = new XSize(1656, 2016),  // 23 x 28 inch²
         [PageSize.DoubleDemy] = new XSize(1692, 2520),  // 23.5 x 35 inch²
         [PageSize.QuadDemy] = new XSize(2520, 3240),  // 35 x 45 inch²
         [PageSize.STMT] = new XSize(396, 612),  // 5.5 x 8.5 inch²

@@ -314,12 +314,8 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
 
         var colors = Elements.GetArray(Keys.C);
         if (colors != null && colors.Elements.Count == 3)
-        {
-            var r = colors.Elements.GetReal(0);
-            var g = colors.Elements.GetReal(1);
-            var b = colors.Elements.GetReal(2);
-            TextColor = XColor.FromArgb((int)(r * 255), (int)(g * 255), (int)(b * 255));
-        }
+            TextColor = XColor.FromUnitRgb(colors.Elements.GetReal(0), colors.Elements.GetReal(1),
+                colors.Elements.GetReal(2));
 
         Style = (PdfOutlineStyle)Elements.GetInteger(Keys.F);
 

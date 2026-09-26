@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Text;
 
 namespace PdfPinata.Pdf.Metadata;
@@ -406,10 +405,11 @@ public sealed class XmpMetadata
 
     /// <summary>
     /// The date form XMP wants, which is ISO 8601 with the offset spelled out. A local time written
-    /// without one is read as UTC by some tools and as local by others.
+    /// without one is read as UTC by some tools and as local by others, so a date of unspecified kind
+    /// is written with the local offset, as <c>/Info</c> writes it; see <see cref="PdfDateFormat"/>.
     /// </summary>
     private static string Iso8601(DateTime? value) =>
-        value?.ToString("yyyy-MM-dd'T'HH:mm:ssK", CultureInfo.InvariantCulture);
+        value is { } date ? PdfDateFormat.Xmp(date) : null;
 
     private static string Escape(string value) => value
         .Replace("&", "&amp;")
