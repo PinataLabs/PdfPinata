@@ -214,34 +214,36 @@ public class ColumnBarParityTests
             LabelledAt(chart, position);
 
             foreach (var (label, value, rect) in LabelsAndTheirColumns(chart))
-                ShouldBePlaced(label, rect, position, positive: value > 0, IsBar(type));
+                ShouldBePlaced(label, rect, position, positive: value >= 0, IsBar(type));
         }
     }
 
     /// <summary>
     ///   A zero is a column or a bar of no length, so which side of it the label goes is all a
-    ///   position has left to say. Today the two disagree: a column puts a zero's label where a
-    ///   positive value's would go, whatever the position; a bar does too at its base, but at its
-    ///   end, inside or out, it puts it where a negative value's would go.
+    ///   position has left to say, and it goes where a positive value's would: a zero is not
+    ///   negative, which is how the value axis and the plot area already count it. A bar chart used
+    ///   to agree only at the base, and put the label of a zero at its end, inside or out, where a
+    ///   negative value's would go - below the line on a column chart's terms, and to the left of
+    ///   the axis on its own.
     /// </summary>
     [Theory]
-    [InlineData(ChartType.Column2D, DataLabelPosition.InsideEnd, true)]
-    [InlineData(ChartType.Column2D, DataLabelPosition.InsideBase, true)]
-    [InlineData(ChartType.Column2D, DataLabelPosition.OutsideEnd, true)]
-    [InlineData(ChartType.ColumnStacked2D, DataLabelPosition.InsideEnd, true)]
-    [InlineData(ChartType.ColumnStacked2D, DataLabelPosition.OutsideEnd, true)]
-    [InlineData(ChartType.Bar2D, DataLabelPosition.InsideEnd, false)]
-    [InlineData(ChartType.Bar2D, DataLabelPosition.InsideBase, true)]
-    [InlineData(ChartType.Bar2D, DataLabelPosition.OutsideEnd, false)]
-    [InlineData(ChartType.BarStacked2D, DataLabelPosition.InsideEnd, false)]
-    [InlineData(ChartType.BarStacked2D, DataLabelPosition.OutsideEnd, false)]
-    public void AZerosLabelGoesOnTheSideOfTheAxisItsPositionSays(ChartType type, DataLabelPosition position, bool onThePositiveSide)
+    [InlineData(ChartType.Column2D, DataLabelPosition.InsideEnd)]
+    [InlineData(ChartType.Column2D, DataLabelPosition.InsideBase)]
+    [InlineData(ChartType.Column2D, DataLabelPosition.OutsideEnd)]
+    [InlineData(ChartType.ColumnStacked2D, DataLabelPosition.InsideEnd)]
+    [InlineData(ChartType.ColumnStacked2D, DataLabelPosition.OutsideEnd)]
+    [InlineData(ChartType.Bar2D, DataLabelPosition.InsideEnd)]
+    [InlineData(ChartType.Bar2D, DataLabelPosition.InsideBase)]
+    [InlineData(ChartType.Bar2D, DataLabelPosition.OutsideEnd)]
+    [InlineData(ChartType.BarStacked2D, DataLabelPosition.InsideEnd)]
+    [InlineData(ChartType.BarStacked2D, DataLabelPosition.OutsideEnd)]
+    public void AZerosLabelGoesWhereAPositiveValuesWould(ChartType type, DataLabelPosition position)
     {
         var chart = Build(type, [[0.0, 2.25]], -4.0, 4.0);
         LabelledAt(chart, position);
 
         var (label, _, rect) = LabelsAndTheirColumns(chart)[0];
-        ShouldBePlaced(label, rect, position, onThePositiveSide, IsBar(type));
+        ShouldBePlaced(label, rect, position, positive: true, IsBar(type));
     }
 
     /// <summary>

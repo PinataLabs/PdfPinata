@@ -136,13 +136,15 @@ internal class BarDataLabelRenderer : DataLabelRenderer
   /// </summary>
   private static void PositionLabel(DataLabelEntryRendererInfo dleri, DataLabelPosition position, ColumnRendererInfo bar)
   {
+    // A zero counts with the positive values, as it does on a column chart: it is not negative,
+    // and its bar, which has no length, is labelled on the side a positive value's would be.
     dleri.Y = bar.Rect.Y + (bar.Rect.Height - dleri.Height) / 2; // Always the same...
     switch (position)
     {
       case DataLabelPosition.InsideEnd:
         // Inner border of the column.
         dleri.X = bar.Rect.X;
-        if (bar.Value > 0)
+        if (bar.Value >= 0)
           dleri.X += bar.Rect.Width - dleri.Width;
         break;
 
@@ -161,7 +163,7 @@ internal class BarDataLabelRenderer : DataLabelRenderer
       case DataLabelPosition.OutsideEnd:
         // Outer border of the column.
         dleri.X = bar.Rect.X;
-        if (bar.Value > 0)
+        if (bar.Value >= 0)
           dleri.X += bar.Rect.Width;
         else
           dleri.X -= dleri.Width;
