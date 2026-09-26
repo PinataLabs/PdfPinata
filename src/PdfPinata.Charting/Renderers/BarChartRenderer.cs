@@ -66,7 +66,7 @@ internal class BarChartRenderer : ChartRenderer
     var renderer = GetPlotAreaRenderer();
     cri.PlotAreaRendererInfo = (PlotAreaRendererInfo)renderer.Init();
 
-    var dlr = new BarDataLabelRenderer(rendererParms);
+    var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Vertical);
     dlr.Init();
 
     return cri;
@@ -106,7 +106,7 @@ internal class BarChartRenderer : ChartRenderer
     var renderer = GetPlotAreaRenderer();
     renderer.Format();
 
-    var dlr = new BarDataLabelRenderer(rendererParms);
+    var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Vertical);
     dlr.Format();
   }
 
@@ -132,7 +132,7 @@ internal class BarChartRenderer : ChartRenderer
     var renderer = GetPlotAreaRenderer();
     renderer.Draw();
 
-    var dlr = new BarDataLabelRenderer(rendererParms);
+    var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Vertical);
     dlr.Draw();
 
     if (cri.XAxisRendererInfo.Axis != null)

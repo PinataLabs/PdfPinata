@@ -66,7 +66,7 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
     var renderer = GetPlotAreaRenderer();
     cri.PlotAreaRendererInfo = (PlotAreaRendererInfo)renderer.Init();
 
-    var dlr = new ColumnDataLabelRenderer(rendererParms);
+    var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Horizontal);
     dlr.Init();
 
     return cri;
@@ -94,7 +94,7 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
     var renderer = GetPlotAreaRenderer();
     renderer.Format();
 
-    var dlr = new ColumnDataLabelRenderer(rendererParms);
+    var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Horizontal);
     dlr.Format();
   }
 
@@ -120,7 +120,7 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
     var renderer = GetPlotAreaRenderer();
     renderer.Draw();
 
-    var dlr = new ColumnDataLabelRenderer(rendererParms);
+    var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Horizontal);
     dlr.Draw();
 
     if (cri.XAxisRendererInfo.Axis != null)

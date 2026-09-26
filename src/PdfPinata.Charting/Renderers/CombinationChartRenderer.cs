@@ -92,7 +92,7 @@ internal class CombinationChartRenderer : ChartRenderer
     if (cri.ColumnSeriesRendererInfos != null)
     {
       cri.SeriesRendererInfos = cri.ColumnSeriesRendererInfos;
-      var dlr = new ColumnDataLabelRenderer(rendererParms);
+      var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Horizontal);
       dlr.Init();
     }
 
@@ -155,7 +155,7 @@ internal class CombinationChartRenderer : ChartRenderer
     if (cri.ColumnSeriesRendererInfos != null)
     {
       cri.SeriesRendererInfos = cri.ColumnSeriesRendererInfos;
-      var dlr = new ColumnDataLabelRenderer(rendererParms);
+      var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Horizontal);
       dlr.Format();
     }
   }
@@ -204,7 +204,7 @@ internal class CombinationChartRenderer : ChartRenderer
     if (cri.ColumnSeriesRendererInfos != null)
     {
       cri.SeriesRendererInfos = cri.ColumnSeriesRendererInfos;
-      var dlr = new ColumnDataLabelRenderer(rendererParms);
+      var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Horizontal);
       dlr.Draw();
     }
 
