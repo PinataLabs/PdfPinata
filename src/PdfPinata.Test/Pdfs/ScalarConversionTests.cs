@@ -39,9 +39,9 @@ public class ScalarConversionTests
     [InlineData("a name", "! ! ! '/N' '/N'", "! ! ! ! '/N'")]
     [InlineData("an indirect name", "! ! ! '/N' '/N'", "! ! ! ! '/N'")]
     [InlineData("the null object", Absent, Absent)]
-    [InlineData("a null object written out", Absent, "! ! ! ! !")]
-    [InlineData("an indirect null object", Absent, "! ! ! ! !")]
-    [InlineData("a reference with nothing behind it", "! ! ! ! !", "! ! ! ! !")]
+    [InlineData("a null object written out", Absent, Absent)]
+    [InlineData("an indirect null object", Absent, Absent)]
+    [InlineData("a reference with nothing behind it", Absent, Absent)]
     [InlineData("an unsigned integer", "! 7 ! ! !", "! ! ! ! !")]
     [InlineData("an indirect unsigned integer", "! ! ! ! !", "! ! ! ! !")]
     [InlineData("an unsigned integer too large for an int", "! -1294967296 ! ! !", "! ! ! ! !")]
@@ -106,7 +106,7 @@ public class ScalarConversionTests
 
         var array = (PdfArray)document.Internals.GetObject(new PdfObjectID(4));
         OutcomesOf(array, 0).Should().Be(Absent, "the array's dangling reference");
-        OutcomesOf(array, 1).Should().Be("! ! ! ! !", "the array's reference to the null object");
+        OutcomesOf(array, 1).Should().Be(Absent, "the array's reference to the null object");
         OutcomesOf(array, 2).Should().Be(Absent, "the array's null");
     }
 

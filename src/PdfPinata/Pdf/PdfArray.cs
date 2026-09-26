@@ -225,17 +225,13 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
                 throw new ArgumentOutOfRangeException(nameof(index), index, PSSR.IndexOutOfRange);
 
             object obj = this[index];
-            switch (obj)
-            {
-                case null or PdfNull:
-                    return false;
-                // Follow an indirect reference the way DictionaryElements does for the same five
-                // accessors. Without this an array holding "3 0 R" threw InvalidCastException where
-                // the identical entry in a dictionary read back its value.
-                case PdfReference reference:
-                    obj = reference.Value;
-                    break;
-            }
+            // Follow an indirect reference the way DictionaryElements does for the same five
+            // accessors, and read a null the way it does too: as no value, whether it is written
+            // out, referred to, or a reference with nothing behind it.
+            if (obj is PdfReference reference)
+                obj = reference.Value;
+            if (obj is null or PdfNull or PdfNullObject)
+                return false;
 
             if (obj is PdfBoolean boolean)
                 return boolean.Value;
@@ -258,14 +254,14 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
                 throw new ArgumentOutOfRangeException(nameof(index), index, PSSR.IndexOutOfRange);
 
             object obj = this[index];
-            if (obj is null or PdfNull)
-                return 0;
 
             // Follow an indirect reference the way DictionaryElements does for the same five
-            // accessors. Without this an array holding "3 0 R" threw InvalidCastException where
-            // the identical entry in a dictionary read back its value.
+            // accessors, and read a null the way it does too: as no value, whether it is written
+            // out, referred to, or a reference with nothing behind it.
             if (obj is PdfReference reference)
                 obj = reference.Value;
+            if (obj is null or PdfNull or PdfNullObject)
+                return 0;
 
             return obj switch
             {
@@ -287,17 +283,13 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
                 throw new ArgumentOutOfRangeException(nameof(index), index, PSSR.IndexOutOfRange);
 
             object obj = this[index];
-            switch (obj)
-            {
-                case null or PdfNull:
-                    return 0;
-                // Follow an indirect reference the way DictionaryElements does for the same five
-                // accessors. Without this an array holding "3 0 R" threw InvalidCastException where
-                // the identical entry in a dictionary read back its value.
-                case PdfReference reference:
-                    obj = reference.Value;
-                    break;
-            }
+            // Follow an indirect reference the way DictionaryElements does for the same five
+            // accessors, and read a null the way it does too: as no value, whether it is written
+            // out, referred to, or a reference with nothing behind it.
+            if (obj is PdfReference reference)
+                obj = reference.Value;
+            if (obj is null or PdfNull or PdfNullObject)
+                return 0;
 
             if (obj is PdfReal real)
                 return real.Value;
@@ -326,17 +318,13 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
                 throw new ArgumentOutOfRangeException(nameof(index), index, PSSR.IndexOutOfRange);
 
             object obj = this[index];
-            switch (obj)
-            {
-                case null or PdfNull:
-                    return string.Empty;
-                // Follow an indirect reference the way DictionaryElements does for the same five
-                // accessors. Without this an array holding "3 0 R" threw InvalidCastException where
-                // the identical entry in a dictionary read back its value.
-                case PdfReference reference:
-                    obj = reference.Value;
-                    break;
-            }
+            // Follow an indirect reference the way DictionaryElements does for the same five
+            // accessors, and read a null the way it does too: as no value, whether it is written
+            // out, referred to, or a reference with nothing behind it.
+            if (obj is PdfReference reference)
+                obj = reference.Value;
+            if (obj is null or PdfNull or PdfNullObject)
+                return string.Empty;
 
             if (obj is PdfString str)
                 return str.Value;
@@ -359,17 +347,13 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
                 throw new ArgumentOutOfRangeException(nameof(index), index, PSSR.IndexOutOfRange);
 
             object obj = this[index];
-            switch (obj)
-            {
-                case null or PdfNull:
-                    return string.Empty;
-                // Follow an indirect reference the way DictionaryElements does for the same five
-                // accessors. Without this an array holding "3 0 R" threw InvalidCastException where
-                // the identical entry in a dictionary read back its value.
-                case PdfReference reference:
-                    obj = reference.Value;
-                    break;
-            }
+            // Follow an indirect reference the way DictionaryElements does for the same five
+            // accessors, and read a null the way it does too: as no value, whether it is written
+            // out, referred to, or a reference with nothing behind it.
+            if (obj is PdfReference reference)
+                obj = reference.Value;
+            if (obj is null or PdfNull or PdfNullObject)
+                return string.Empty;
 
             var name = obj as PdfName;
             if (name != null)

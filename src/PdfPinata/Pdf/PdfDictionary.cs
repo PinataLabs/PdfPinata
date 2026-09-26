@@ -402,6 +402,10 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             if (obj is PdfReference reference)
                 obj = reference.Value;
 
+            // A reference with nothing behind it is the null object, as ValueOf says.
+            if (obj == null)
+                return false;
+
             if (obj is PdfBoolean boolean)
                 return boolean.Value;
 
@@ -445,6 +449,10 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
 
             if (obj is PdfReference reference)
                 obj = reference.Value;
+
+            // A reference with nothing behind it is the null object, as ValueOf says.
+            if (obj == null)
+                return 0;
 
             if (obj is PdfInteger integer)
                 return integer.Value;
@@ -492,6 +500,10 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
 
             if (obj is PdfReference reference)
                 obj = reference.Value;
+
+            // A reference with nothing behind it is the null object, as ValueOf says.
+            if (obj == null)
+                return 0;
 
             if (obj is PdfReal real)
                 return real.Value;
@@ -543,6 +555,10 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             if (obj is PdfReference reference)
                 obj = reference.Value;
 
+            // A reference with nothing behind it is the null object, as ValueOf says.
+            if (obj == null)
+                return "";
+
             if (obj is PdfString str)
                 return str.Value;
 
@@ -581,6 +597,10 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
 
             if (obj is PdfReference reference)
                 obj = reference.Value;
+
+            // A reference with nothing behind it is the null object, as ValueOf says.
+            if (obj == null)
+                return false;
 
             if (obj is PdfString str)
             {
@@ -643,6 +663,10 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
 
             if (obj is PdfReference reference)
                 obj = reference.Value;
+
+            // A reference with nothing behind it is the null object, as ValueOf says.
+            if (obj == null)
+                return string.Empty;
 
             var name = obj as PdfName;
             if (name != null)
@@ -812,6 +836,10 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
 
             if (obj is PdfReference reference)
                 obj = reference.Value;
+
+            // A reference with nothing behind it is the null object, as ValueOf says.
+            if (obj == null)
+                return defaultValue;
 
             if (obj is PdfDate date)
                 return date.Value;
