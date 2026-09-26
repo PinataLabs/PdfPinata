@@ -166,7 +166,9 @@ cannot be checked without finding the certificate somewhere else, and it gives t
 nothing to gather for the timestamp. With the certificate present, `ProcessResponse` also checks the
 token's signature, so a damaged token fails the signing. `PdfSignatureValidationData` gathers the
 certificates inside each signature-timestamp token as well as the signer's, and asks the revocation
-provider about them with the token's own certificates as the chain. There is **no option to leave
+provider about them. The chain offered with each is the token's certificates and the signer's,
+because an authority often sends its own certificate alone, and its issuer is often the CA that
+issued the signer's. There is **no option to leave
 the certificate out**: the token grows by a few kilobytes, inside a reservation of 16 KiB, and a
 B-T signature whose timestamp cannot be checked later defeats the reason to timestamp it.
 

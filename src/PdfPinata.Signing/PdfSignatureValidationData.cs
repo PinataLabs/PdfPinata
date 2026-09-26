@@ -44,17 +44,25 @@ public static class PdfSignatureValidationData
         {
             var signed = Decoded(signature);
 
-            Gather(signed.Certificates);
+            Gather(signed.Certificates, signed.Certificates);
+
+            // An authority often answers certReq with its own certificate and nothing above it,
+            // so its issuer is looked for among the signer's certificates too: one CA commonly
+            // issues both, and without its issuer no OCSP request for it can be built.
             foreach (var tokenCertificates in TimestampCertificatesOf(signed))
-                Gather(tokenCertificates);
+            {
+                var candidates = new X509Certificate2Collection(tokenCertificates);
+                candidates.AddRange(signed.Certificates);
+                Gather(tokenCertificates, candidates);
+            }
         }
 
         var entry = new PdfValidationDataEntry(certificates, ocspResponses, crls);
         PdfValidationData.Add(document, output, entry);
 
-        void Gather(X509Certificate2Collection chain)
+        void Gather(X509Certificate2Collection found, X509Certificate2Collection chain)
         {
-            foreach (var certificate in chain)
+            foreach (var certificate in found)
             {
                 if (!seen.Add(certificate.Thumbprint))
                     continue;
@@ -90,8 +98,7 @@ public static class PdfSignatureValidationData
     /// <summary>
     /// The certificates each signature-timestamp token embeds — the authority's own, which
     /// <see cref="Rfc3161TimestampProvider"/> asks for, and whatever chain the authority adds.
-    /// Each token's certificates are answered as a collection of their own, because they are the
-    /// chain an OCSP request for the authority's certificate has to find its issuer in.
+    /// Each token's certificates are answered as a collection of their own.
     /// </summary>
     /// <remarks>
     /// A token that cannot be decoded contributes nothing rather than failing the whole call — the
