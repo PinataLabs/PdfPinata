@@ -140,6 +140,14 @@ public sealed class PdfReference : PdfItem
     private PdfObject _value;
 
     /// <summary>
+    /// The object <paramref name="item"/> refers to where it is a reference, and the item itself
+    /// where it is not. A reference with nothing behind it answers null, which is the null object
+    /// the specification says such a reference stands for; <see cref="PdfItemValues.IsNull"/>
+    /// reads every shape of that null as one.
+    /// </summary>
+    internal static PdfItem Dereference(PdfItem item) => item is PdfReference reference ? reference.Value : item;
+
+    /// <summary>
     /// Hack for dead objects.
     /// </summary>
     internal void SetObject(PdfObject value)

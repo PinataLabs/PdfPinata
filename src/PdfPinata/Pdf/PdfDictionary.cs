@@ -380,7 +380,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         private PdfItem ValueOf(string key)
         {
             var item = this[key];
-            var value = item is PdfReference reference ? reference.Value : item;
+            var value = PdfReference.Dereference(item);
             return value is PdfNull or PdfNullObject ? null : item;
         }
 
@@ -391,27 +391,15 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public bool GetBoolean(string key, bool create)
         {
-            object obj = ValueOf(key);
-            if (obj == null)
-            {
-                if (create)
-                    this[key] = new PdfBoolean();
-                return false;
-            }
-
-            if (obj is PdfReference reference)
-                obj = reference.Value;
-
-            // A reference with nothing behind it is the null object, as ValueOf says.
-            if (obj == null)
+            var item = ValueOf(key);
+            if (item == null && create)
+                this[key] = new PdfBoolean();
+            if (PdfItemValues.IsNull(item))
                 return false;
 
-            if (obj is PdfBoolean boolean)
-                return boolean.Value;
-
-            if (obj is PdfBooleanObject booleanObject)
-                return booleanObject.Value;
-            throw new InvalidCastException("GetBoolean: Object is not a boolean.");
+            return PdfItemValues.TryGetBoolean(item, out var value)
+                ? value
+                : throw new InvalidCastException("GetBoolean: Object is not a boolean.");
         }
 
         /// <summary>
@@ -439,42 +427,15 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public int GetInteger(string key, bool create)
         {
-            object obj = ValueOf(key);
-            if (obj == null)
-            {
-                if (create)
-                    this[key] = new PdfInteger();
-                return 0;
-            }
-
-            if (obj is PdfReference reference)
-                obj = reference.Value;
-
-            // A reference with nothing behind it is the null object, as ValueOf says.
-            if (obj == null)
+            var item = ValueOf(key);
+            if (item == null && create)
+                this[key] = new PdfInteger();
+            if (PdfItemValues.IsNull(item))
                 return 0;
 
-            if (obj is PdfInteger integer)
-                return integer.Value;
-
-            if (obj is PdfIntegerObject integerObject)
-                return integerObject.Value;
-
-            // An integer too wide for an int is refused rather than wrapped round to a different
-            // number; the reader makes a PdfLong only of one outside the range of an int.
-            if (obj is PdfUInteger { Value: <= int.MaxValue } uinteger)
-                return (int)uinteger.Value;
-
-            if (obj is PdfUIntegerObject { Value: <= int.MaxValue } uintegerObject)
-                return (int)uintegerObject.Value;
-
-            if (obj is PdfLong { Value: >= int.MinValue and <= int.MaxValue } longInteger)
-                return (int)longInteger.Value;
-
-            if (obj is PdfLongObject { Value: >= int.MinValue and <= int.MaxValue } longObject)
-                return (int)longObject.Value;
-
-            throw new InvalidCastException("GetInteger: Object is not an integer.");
+            return PdfItemValues.TryGetInteger(item, out var value)
+                ? value
+                : throw new InvalidCastException("GetInteger: Object is not an integer.");
         }
 
         /// <summary>
@@ -502,46 +463,15 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public double GetReal(string key, bool create)
         {
-            object obj = ValueOf(key);
-            if (obj == null)
-            {
-                if (create)
-                    this[key] = new PdfReal();
-                return 0;
-            }
-
-            if (obj is PdfReference reference)
-                obj = reference.Value;
-
-            // A reference with nothing behind it is the null object, as ValueOf says.
-            if (obj == null)
+            var item = ValueOf(key);
+            if (item == null && create)
+                this[key] = new PdfReal();
+            if (PdfItemValues.IsNull(item))
                 return 0;
 
-            if (obj is PdfReal real)
-                return real.Value;
-
-            if (obj is PdfRealObject realObject)
-                return realObject.Value;
-
-            if (obj is PdfInteger integer)
-                return integer.Value;
-
-            if (obj is PdfIntegerObject integerObject)
-                return integerObject.Value;
-
-            if (obj is PdfUInteger uinteger)
-                return uinteger.Value;
-
-            if (obj is PdfUIntegerObject uintegerObject)
-                return uintegerObject.Value;
-
-            if (obj is PdfLong longInteger)
-                return longInteger.Value;
-
-            if (obj is PdfLongObject longObject)
-                return longObject.Value;
-
-            throw new InvalidCastException("GetReal: Object is not a number.");
+            return PdfItemValues.TryGetNumber(item, out var value)
+                ? value
+                : throw new InvalidCastException("GetReal: Object is not a number.");
         }
 
         /// <summary>
@@ -568,36 +498,17 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public string GetString(string key, bool create)
         {
-            object obj = ValueOf(key);
-            if (obj == null)
-            {
-                if (create)
-                    this[key] = new PdfString();
-                return "";
-            }
-
-            if (obj is PdfReference reference)
-                obj = reference.Value;
-
-            // A reference with nothing behind it is the null object, as ValueOf says.
-            if (obj == null)
+            var item = ValueOf(key);
+            if (item == null && create)
+                this[key] = new PdfString();
+            if (PdfItemValues.IsNull(item))
                 return "";
 
-            if (obj is PdfString str)
-                return str.Value;
-
-            if (obj is PdfStringObject strObject)
-                return strObject.Value;
-
-            var name = obj as PdfName;
-            if (name != null)
-                return name.Value;
-
-            var nameObject = obj as PdfNameObject;
-            if (nameObject != null)
-                return nameObject.Value;
-
-            throw new InvalidCastException("GetString: Object is not a string.");
+            // Unlike an array's, a dictionary's string may be written as a name: a field's /V is
+            // one or the other depending on the kind of field.
+            return PdfItemValues.TryGetText(item, allowName: true, out var value)
+                ? value
+                : throw new InvalidCastException("GetString: Object is not a string.");
         }
 
         /// <summary>
@@ -614,45 +525,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public bool TryGetString(string key, out string value)
         {
-            value = null;
-            object obj = ValueOf(key);
-            if (obj == null)
-                return false;
-
-            if (obj is PdfReference reference)
-                obj = reference.Value;
-
-            // A reference with nothing behind it is the null object, as ValueOf says.
-            if (obj == null)
-                return false;
-
-            if (obj is PdfString str)
-            {
-                value = str.Value;
-                return true;
-            }
-
-            if (obj is PdfStringObject strObject)
-            {
-                value = strObject.Value;
-                return true;
-            }
-
-            var name = obj as PdfName;
-            if (name != null)
-            {
-                value = name.Value;
-                return true;
-            }
-
-            var nameObject = obj as PdfNameObject;
-            if (nameObject != null)
-            {
-                value = nameObject.Value;
-                return true;
-            }
-
-            return false;
+            return PdfItemValues.TryGetText(ValueOf(key), allowName: true, out value);
         }
 
         /// <summary>
@@ -679,28 +552,13 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public string GetName(string key)
         {
-            object obj = ValueOf(key);
-            if (obj == null)
-            {
-                return string.Empty;
-            }
-
-            if (obj is PdfReference reference)
-                obj = reference.Value;
-
-            // A reference with nothing behind it is the null object, as ValueOf says.
-            if (obj == null)
+            var item = ValueOf(key);
+            if (PdfItemValues.IsNull(item))
                 return string.Empty;
 
-            var name = obj as PdfName;
-            if (name != null)
-                return name.Value;
-
-            var nameObject = obj as PdfNameObject;
-            if (nameObject != null)
-                return nameObject.Value;
-
-            throw new InvalidCastException("GetName: Object is not a name.");
+            return PdfItemValues.TryGetName(item, out var value)
+                ? value
+                : throw new InvalidCastException("GetName: Object is not a name.");
         }
 
         /// <summary>
@@ -725,15 +583,14 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         public PdfRectangle GetRectangle(string key, bool create)
         {
             var value = new PdfRectangle();
-            object obj = ValueOf(key);
+            var obj = ValueOf(key);
             if (obj == null)
             {
                 if (create)
                     this[key] = value = new PdfRectangle();
                 return value;
             }
-            if (obj is PdfReference reference)
-                obj = reference.Value;
+            obj = PdfReference.Dereference(obj);
 
             if (obj is PdfArray array && array.Elements.Count == 4)
             {
@@ -773,7 +630,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         public XMatrix GetMatrix(string key, bool create)
         {
             var value = new XMatrix();
-            object obj = ValueOf(key);
+            var obj = ValueOf(key);
             if (obj == null)
             {
                 if (create)
@@ -781,8 +638,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 return value;
             }
 
-            if (obj is PdfReference reference)
-                obj = reference.Value;
+            obj = PdfReference.Dereference(obj);
 
             if (obj is PdfArray array && array.Elements.Count == 6)
             {
@@ -852,30 +708,17 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public DateTime GetDateTime(string key, DateTime defaultValue)
         {
-            object obj = ValueOf(key);
-            if (obj == null)
-            {
-                return defaultValue;
-            }
-
-            if (obj is PdfReference reference)
-                obj = reference.Value;
-
-            // A reference with nothing behind it is the null object, as ValueOf says.
-            if (obj == null)
+            var item = ValueOf(key);
+            if (PdfItemValues.IsNull(item))
                 return defaultValue;
 
-            if (obj is PdfDate date)
+            if (PdfReference.Dereference(item) is PdfDate date)
                 return date.Value;
 
-            var strDate = obj switch
-            {
-                PdfString pdfString => pdfString.Value,
-                PdfStringObject stringObject => stringObject.Value,
-                _ => throw new InvalidCastException("GetName: Object is not a name.")
-            };
+            if (!PdfItemValues.TryGetText(item, allowName: false, out var text))
+                throw new InvalidCastException("GetDateTime: Object is not a date.");
 
-            if (strDate != "" && Parser.TryParseDateTime(strDate, out var parsed))
+            if (text != "" && Parser.TryParseDateTime(text, out var parsed))
                 return parsed;
             return defaultValue;
         }
@@ -1119,10 +962,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public PdfObject GetObject(string key)
         {
-            var item = ValueOf(key);
-            if (item is PdfReference reference)
-                return reference.Value;
-            return item as PdfObject;
+            return PdfReference.Dereference(ValueOf(key)) as PdfObject;
         }
 
         /// <summary>
