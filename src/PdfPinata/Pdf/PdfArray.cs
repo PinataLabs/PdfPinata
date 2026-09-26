@@ -221,29 +221,13 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
         /// </summary>
         public bool GetBoolean(int index)
         {
-            if (index < 0 || index >= Count)
-                throw new ArgumentOutOfRangeException(nameof(index), index, PSSR.IndexOutOfRange);
+            var item = ItemAt(index);
+            if (PdfItemValues.IsNull(item))
+                return false;
 
-            object obj = this[index];
-            switch (obj)
-            {
-                case null or PdfNull:
-                    return false;
-                // Follow an indirect reference the way DictionaryElements does for the same five
-                // accessors. Without this an array holding "3 0 R" threw InvalidCastException where
-                // the identical entry in a dictionary read back its value.
-                case PdfReference reference:
-                    obj = reference.Value;
-                    break;
-            }
-
-            if (obj is PdfBoolean boolean)
-                return boolean.Value;
-
-            if (obj is PdfBooleanObject booleanObject)
-                return booleanObject.Value;
-
-            throw new InvalidCastException("GetBoolean: Object is not a boolean.");
+            return PdfItemValues.TryGetBoolean(item, out var value)
+                ? value
+                : throw new InvalidCastException("GetBoolean: Object is not a boolean.");
         }
 
         /// <summary>
@@ -254,25 +238,13 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
         /// </summary>
         public int GetInteger(int index)
         {
-            if (index < 0 || index >= Count)
-                throw new ArgumentOutOfRangeException(nameof(index), index, PSSR.IndexOutOfRange);
-
-            object obj = this[index];
-            if (obj is null or PdfNull)
+            var item = ItemAt(index);
+            if (PdfItemValues.IsNull(item))
                 return 0;
 
-            // Follow an indirect reference the way DictionaryElements does for the same five
-            // accessors. Without this an array holding "3 0 R" threw InvalidCastException where
-            // the identical entry in a dictionary read back its value.
-            if (obj is PdfReference reference)
-                obj = reference.Value;
-
-            return obj switch
-            {
-                PdfInteger integer => integer.Value,
-                PdfIntegerObject integerObject => integerObject.Value,
-                _ => throw new InvalidCastException("GetInteger: Object is not an integer.")
-            };
+            return PdfItemValues.TryGetInteger(item, out var value)
+                ? value
+                : throw new InvalidCastException("GetInteger: Object is not an integer.");
         }
 
         /// <summary>
@@ -283,35 +255,13 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
         /// </summary>
         public double GetReal(int index)
         {
-            if (index < 0 || index >= Count)
-                throw new ArgumentOutOfRangeException(nameof(index), index, PSSR.IndexOutOfRange);
+            var item = ItemAt(index);
+            if (PdfItemValues.IsNull(item))
+                return 0;
 
-            object obj = this[index];
-            switch (obj)
-            {
-                case null or PdfNull:
-                    return 0;
-                // Follow an indirect reference the way DictionaryElements does for the same five
-                // accessors. Without this an array holding "3 0 R" threw InvalidCastException where
-                // the identical entry in a dictionary read back its value.
-                case PdfReference reference:
-                    obj = reference.Value;
-                    break;
-            }
-
-            if (obj is PdfReal real)
-                return real.Value;
-
-            if (obj is PdfRealObject realObject)
-                return realObject.Value;
-
-            if (obj is PdfInteger integer)
-                return integer.Value;
-
-            if (obj is PdfIntegerObject integerObject)
-                return integerObject.Value;
-
-            throw new InvalidCastException("GetReal: Object is not a number.");
+            return PdfItemValues.TryGetNumber(item, out var value)
+                ? value
+                : throw new InvalidCastException("GetReal: Object is not a number.");
         }
 
         /// <summary>
@@ -322,29 +272,15 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
         /// </summary>
         public string GetString(int index)
         {
-            if (index < 0 || index >= Count)
-                throw new ArgumentOutOfRangeException(nameof(index), index, PSSR.IndexOutOfRange);
+            var item = ItemAt(index);
+            if (PdfItemValues.IsNull(item))
+                return string.Empty;
 
-            object obj = this[index];
-            switch (obj)
-            {
-                case null or PdfNull:
-                    return string.Empty;
-                // Follow an indirect reference the way DictionaryElements does for the same five
-                // accessors. Without this an array holding "3 0 R" threw InvalidCastException where
-                // the identical entry in a dictionary read back its value.
-                case PdfReference reference:
-                    obj = reference.Value;
-                    break;
-            }
-
-            if (obj is PdfString str)
-                return str.Value;
-
-            if (obj is PdfStringObject strObject)
-                return strObject.Value;
-
-            throw new InvalidCastException("GetString: Object is not a string.");
+            // Unlike a dictionary's, an array's string is never a name; TypedElementAccessorTests
+            // says why the two are kept apart.
+            return PdfItemValues.TryGetText(item, allowName: false, out var value)
+                ? value
+                : throw new InvalidCastException("GetString: Object is not a string.");
         }
 
         /// <summary>
@@ -355,31 +291,13 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
         /// </summary>
         public string GetName(int index)
         {
-            if (index < 0 || index >= Count)
-                throw new ArgumentOutOfRangeException(nameof(index), index, PSSR.IndexOutOfRange);
+            var item = ItemAt(index);
+            if (PdfItemValues.IsNull(item))
+                return string.Empty;
 
-            object obj = this[index];
-            switch (obj)
-            {
-                case null or PdfNull:
-                    return string.Empty;
-                // Follow an indirect reference the way DictionaryElements does for the same five
-                // accessors. Without this an array holding "3 0 R" threw InvalidCastException where
-                // the identical entry in a dictionary read back its value.
-                case PdfReference reference:
-                    obj = reference.Value;
-                    break;
-            }
-
-            var name = obj as PdfName;
-            if (name != null)
-                return name.Value;
-
-            var nameObject = obj as PdfNameObject;
-            if (nameObject != null)
-                return nameObject.Value;
-
-            throw new InvalidCastException("GetName: Object is not a name.");
+            return PdfItemValues.TryGetName(item, out var value)
+                ? value
+                : throw new InvalidCastException("GetName: Object is not a name.");
         }
 
         /// <summary>
@@ -388,14 +306,18 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
         /// </summary>
         public PdfObject GetObject(int index)
         {
+            return PdfReference.Dereference(ItemAt(index)) as PdfObject;
+        }
+
+        /// <summary>
+        /// The item at the index given, which has to be inside the array.
+        /// </summary>
+        private PdfItem ItemAt(int index)
+        {
             if (index < 0 || index >= Count)
                 throw new ArgumentOutOfRangeException(nameof(index), index, PSSR.IndexOutOfRange);
 
-            var item = this[index];
-            if (item is PdfReference reference)
-                return reference.Value;
-
-            return item as PdfObject;
+            return this[index];
         }
 
         /// <summary>

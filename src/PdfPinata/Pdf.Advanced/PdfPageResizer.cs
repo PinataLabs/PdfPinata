@@ -336,24 +336,16 @@ internal static class PdfPageResizer
     {
         // The name has to lead to a form this made. Read the resources through the element
         // rather than the property so that a page without any does not get given some.
-        if (Dereferenced(page.Elements[PdfPage.InheritablePageKeys.Resources]) is not PdfDictionary resources)
+        if (PdfReference.Dereference(page.Elements[PdfPage.InheritablePageKeys.Resources]) is not PdfDictionary resources)
             return null;
 
-        if (Dereferenced(resources.Elements["/XObject"]) is not PdfDictionary xObjects)
+        if (PdfReference.Dereference(resources.Elements["/XObject"]) is not PdfDictionary xObjects)
             return null;
 
-        if (Dereferenced(xObjects.Elements[name]) is not PdfDictionary form)
+        if (PdfReference.Dereference(xObjects.Elements[name]) is not PdfDictionary form)
             return null;
 
         return form.Elements.GetBoolean(PdfFormXObject.ResizeWrapperKey) ? form : null;
-    }
-
-    /// <summary>
-    /// The object a reference leads to, or the item itself where it is not a reference.
-    /// </summary>
-    private static PdfItem Dereferenced(PdfItem item)
-    {
-        return item is PdfReference reference ? reference.Value : item;
     }
 
     /// <summary>
@@ -361,9 +353,7 @@ internal static class PdfPageResizer
     /// </summary>
     internal static PdfRectangle RectangleOf(PdfDictionary dictionary, string key)
     {
-        var item = dictionary.Elements[key];
-        if (item is PdfReference reference)
-            item = reference.Value;
+        var item = PdfReference.Dereference(dictionary.Elements[key]);
 
         if (item is PdfRectangle rectangle)
             return rectangle;
@@ -373,7 +363,7 @@ internal static class PdfPageResizer
             var corners = new double[4];
             for (var index = 0; index < 4; index++)
             {
-                if (!TryNumber(array.Elements[index], out corners[index]))
+                if (!PdfItemValues.TryGetNumber(array.Elements[index], out corners[index]))
                     return null;
             }
 
@@ -400,9 +390,7 @@ internal static class PdfPageResizer
     /// </summary>
     private static PdfDictionary SingleContentStreamOf(PdfPage page)
     {
-        var item = page.Elements[PdfPage.Keys.Contents];
-        if (item is PdfReference reference)
-            item = reference.Value;
+        var item = PdfReference.Dereference(page.Elements[PdfPage.Keys.Contents]);
 
         if (item is PdfArray array)
         {
@@ -410,8 +398,7 @@ internal static class PdfPageResizer
                 return null;
 
             item = array.Elements[0];
-            if (item is PdfReference elementReference)
-                item = elementReference.Value;
+            item = PdfReference.Dereference(item);
         }
 
         return item as PdfDictionary;
@@ -501,45 +488,6 @@ internal static class PdfPageResizer
     }
 
     /// <summary>
-    /// Reads a number out of an item, following a reference to get at it.
-    /// <para>
-    /// Any object in a PDF is allowed to be indirect, a number in an array of coordinates
-    /// included. <c>GetReal</c> does not follow the reference - it throws
-    /// <see cref="InvalidCastException"/> on one - so reading coordinates with it turns a legal
-    /// if unusual file into a failed resize. Everything that reads a coordinate goes through
-    /// here instead, and answers false rather than throwing when the item is not a number at all.
-    /// </para>
-    /// </summary>
-    internal static bool TryNumber(PdfItem item, out double value)
-    {
-        if (item is PdfReference reference)
-            item = reference.Value;
-
-        switch (item)
-        {
-            case PdfReal real:
-                value = real.Value;
-                return true;
-
-            case PdfRealObject realObject:
-                value = realObject.Value;
-                return true;
-
-            case PdfInteger integer:
-                value = integer.Value;
-                return true;
-
-            case PdfIntegerObject integerObject:
-                value = integerObject.Value;
-                return true;
-
-            default:
-                value = 0;
-                return false;
-        }
-    }
-
-    /// <summary>
     /// The smallest rectangle holding the four transformed corners of the one given. A quarter
     /// turn moves the corners about, so taking two of them would not do.
     /// </summary>
@@ -615,18 +563,14 @@ internal static class PdfPageResizer
     /// </summary>
     private static bool HasSignature(PdfDocument document)
     {
-        var formItem = document.Catalog.Elements[PdfCatalog.Keys.AcroForm];
-        if (formItem is PdfReference formReference)
-            formItem = formReference.Value;
+        var formItem = PdfReference.Dereference(document.Catalog.Elements[PdfCatalog.Keys.AcroForm]);
         if (formItem is not PdfDictionary form)
             return false;
 
         if (form.Elements.GetInteger("/SigFlags") != 0)
             return true;
 
-        var fieldsItem = form.Elements["/Fields"];
-        if (fieldsItem is PdfReference fieldsReference)
-            fieldsItem = fieldsReference.Value;
+        var fieldsItem = PdfReference.Dereference(form.Elements["/Fields"]);
         return fieldsItem is PdfArray fields && HoldsSignatureField(fields, 0);
     }
 
@@ -642,7 +586,7 @@ internal static class PdfPageResizer
 
         foreach (var item in fields.Elements)
         {
-            if (Dereferenced(item) is PdfDictionary field && IsOrHoldsSignatureField(field, depth))
+            if (PdfReference.Dereference(item) is PdfDictionary field && IsOrHoldsSignatureField(field, depth))
                 return true;
         }
 
@@ -654,6 +598,6 @@ internal static class PdfPageResizer
         if (field.Elements.GetName("/FT") == "/Sig")
             return true;
 
-        return Dereferenced(field.Elements["/Kids"]) is PdfArray kids && HoldsSignatureField(kids, depth + 1);
+        return PdfReference.Dereference(field.Elements["/Kids"]) is PdfArray kids && HoldsSignatureField(kids, depth + 1);
     }
 }

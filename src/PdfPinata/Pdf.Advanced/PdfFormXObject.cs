@@ -117,7 +117,7 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
     /// </summary>
     private void TakeContentOf(PdfPage page)
     {
-        var item = Resolve(page.Elements[PdfPage.Keys.Contents]);
+        var item = PdfReference.Dereference(page.Elements[PdfPage.Keys.Contents]);
         if (item is PdfArray { Elements.Count: > 1 })
         {
             TakeRunTogetherContentOf(page);
@@ -126,7 +126,7 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
 
         var single = item switch
         {
-            PdfArray { Elements.Count: 1 } array => Resolve(array.Elements[0]) as PdfDictionary,
+            PdfArray { Elements.Count: 1 } array => PdfReference.Dereference(array.Elements[0]) as PdfDictionary,
             _ => item as PdfDictionary
         };
 
@@ -211,7 +211,7 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
         // group says - so it is imported along with everything else.
         // A /Group entry that is not a dictionary describes no group. A PDF null is the way a
         // writer says a key is not there, and a page that says nothing has nothing to bring.
-        if (Resolve(importPage.Elements[PdfPage.Keys.Group]) is PdfDictionary groupDictionary)
+        if (PdfReference.Dereference(importPage.Elements[PdfPage.Keys.Group]) is PdfDictionary groupDictionary)
             Elements["/Group"] = ImportIndirect(importedObjectTable, thisDocument, groupDictionary);
 
         SetBoundingBoxOf(importPage);
@@ -268,8 +268,6 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
 
         Elements.SetMatrix(Keys.Matrix, matrix);
     }
-
-    private static PdfItem Resolve(PdfItem item) => item is PdfReference reference ? reference.Value : item;
 
     /// <summary>
     /// Gets the PdfResources object of this form.

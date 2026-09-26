@@ -246,7 +246,7 @@ public sealed class PdfStructureBuilder
         Root.Elements[PdfStructureTreeRoot.Keys.Namespaces] = namespaces;
 
         if (Root.Elements[PdfStructureTreeRoot.Keys.K] is PdfArray kids && kids.Elements.Count == 1
-            && Resolve(kids.Elements[0]) is PdfStructureElement { Tag.Name: "/Document" } document)
+            && PdfReference.Dereference(kids.Elements[0]) is PdfStructureElement { Tag.Name: "/Document" } document)
         {
             document.Elements[PdfStructureElement.Keys.NS] = ns.Reference;
         }
@@ -259,7 +259,7 @@ public sealed class PdfStructureBuilder
         if (item == null || depth > MaxTreeDepth)
             return;
 
-        item = Resolve(item);
+        item = PdfReference.Dereference(item);
 
         if (item is PdfArray array)
         {
@@ -279,8 +279,6 @@ public sealed class PdfStructureBuilder
 
         RetagNotes(element.Elements[PdfStructureElement.Keys.K], pdf20Namespace, depth + 1);
     }
-
-    private static PdfItem Resolve(PdfItem item) => item is PdfReference reference ? reference.Value : item;
 
     /// <summary>
     /// Every element that carries an <see cref="PdfStructureElement.Id"/>, sorted by it, ready to be
@@ -327,7 +325,7 @@ public sealed class PdfStructureBuilder
         if (item == null || depth > MaxTreeDepth)
             return;
 
-        switch (Resolve(item))
+        switch (PdfReference.Dereference(item))
         {
             case PdfArray array:
                 foreach (var kid in array.Elements)

@@ -156,8 +156,7 @@ public class PdfFileSpecification : PdfDictionary
     /// </summary>
     private static PdfEmbeddedFile EmbeddedFileOf(PdfItem item)
     {
-        if (item is PdfReference reference)
-            item = reference.Value;
+        item = PdfReference.Dereference(item);
 
         if (item is PdfEmbeddedFile embedded)
             return embedded;

@@ -168,9 +168,8 @@ internal static class PdfTransparencyDetector
     private static double AlphaOf(PdfDictionary state, string key)
     {
         // Not GetReal: it answers 0 for a key that is absent, which would read every graphics
-        // state in the document as fully transparent. TryNumber also follows a reference, which
-        // a number in a dictionary is allowed to be.
-        return PdfPageResizer.TryNumber(state.Elements[key], out var alpha) ? alpha : 1;
+        // state in the document as fully transparent.
+        return PdfItemValues.TryGetNumber(state.Elements[key], out var alpha) ? alpha : 1;
     }
 
     /// <summary>
@@ -179,8 +178,7 @@ internal static class PdfTransparencyDetector
     /// </summary>
     private static bool BlendsWithTheBackdrop(PdfItem item)
     {
-        if (item is PdfReference reference)
-            item = reference.Value;
+        item = PdfReference.Dereference(item);
 
         if (item is PdfName name)
             return name.Value != "/Normal" && name.Value != "/Compatible";
@@ -208,8 +206,7 @@ internal static class PdfTransparencyDetector
     /// </summary>
     private static bool IsSomethingOtherThanNone(PdfItem item)
     {
-        if (item is PdfReference reference)
-            item = reference.Value;
+        item = PdfReference.Dereference(item);
 
         // A PDF null is how a writer says a key holds nothing, whether it is written into the
         // dictionary itself or reached through a reference, and it reads as an absent key does.

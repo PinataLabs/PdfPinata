@@ -42,7 +42,7 @@ internal static class PdfResourceConformanceRules
 
     private static bool HasJpxFilter(PdfDictionary image)
     {
-        var filter = Resolve(image.Elements["/Filter"]);
+        var filter = PdfReference.Dereference(image.Elements["/Filter"]);
 
         if (filter is PdfName single)
             return single.Value == "/JPXDecode";
@@ -51,7 +51,7 @@ internal static class PdfResourceConformanceRules
         {
             foreach (var item in array.Elements)
             {
-                if (Resolve(item) is PdfName { Value: "/JPXDecode" })
+                if (PdfReference.Dereference(item) is PdfName { Value: "/JPXDecode" })
                     return true;
             }
         }
@@ -119,7 +119,7 @@ internal static class PdfResourceConformanceRules
         if (depth > 8)
             return null;
 
-        var item = Resolve(colorSpace);
+        var item = PdfReference.Dereference(colorSpace);
 
         return item switch
         {
@@ -133,7 +133,7 @@ internal static class PdfResourceConformanceRules
 
     private static int? DeviceComponentsOfArray(PdfArray array, int depth)
     {
-        var head = Resolve(array.Elements[0]) as PdfName;
+        var head = PdfReference.Dereference(array.Elements[0]) as PdfName;
         return head?.Value switch
         {
             "/Indexed" => array.Elements.Count > 1 ? DeviceComponentsOf(array.Elements[1], depth + 1) : null,
@@ -167,6 +167,4 @@ internal static class PdfResourceConformanceRules
         "/DeviceCMYK" or "/CMYK" => 4,
         _ => null
     };
-
-    private static PdfItem Resolve(PdfItem item) => item is PdfReference reference ? reference.Value : item;
 }

@@ -107,8 +107,7 @@ public sealed class PdfRectangle : PdfItem
         if (item is null or PdfNull)
             return;
 
-        if (item is PdfReference reference)
-            item = reference.Value;
+        item = PdfReference.Dereference(item);
 
         if (item is not PdfArray array)
             throw new InvalidOperationException(PSSR.UnexpectedTokenInPdfFile);

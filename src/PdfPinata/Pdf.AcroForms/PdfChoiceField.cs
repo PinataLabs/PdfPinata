@@ -385,9 +385,7 @@ public abstract class PdfChoiceField : PdfAcroField
         if (options == null || index < 0 || index >= options.Elements.Count)
             return "";
 
-        var item = options.Elements[index];
-        if (item is PdfReference reference)
-            item = reference.Value;
+        var item = PdfReference.Dereference(options.Elements[index]);
 
         return item switch
         {

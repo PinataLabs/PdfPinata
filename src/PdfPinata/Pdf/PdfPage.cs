@@ -189,9 +189,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     {
         get
         {
-            var item = Elements[Keys.Contents];
-            if (item is PdfReference reference)
-                item = reference.Value;
+            var item = PdfReference.Dereference(Elements[Keys.Contents]);
 
             return item switch
             {
@@ -217,7 +215,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     {
         foreach (var element in array.Elements)
         {
-            if (ElementHoldsBytes(element is PdfReference reference ? reference.Value : element))
+            if (ElementHoldsBytes(PdfReference.Dereference(element)))
                 return true;
         }
 
@@ -812,8 +810,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         if (item == null)
             return new PdfContents(Owner);
 
-        if (item is PdfReference reference)
-            item = reference.Value;
+        item = PdfReference.Dereference(item);
 
         if (item is PdfArray array)
         {
@@ -1229,8 +1226,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     private static PdfItem InheritableEntry(PdfDictionary dictionary, string key)
     {
         var item = dictionary.Elements[key];
-        var value = item is PdfReference reference ? reference.Value : item;
-        return value is null or PdfNull or PdfNullObject ? null : item;
+        return PdfItemValues.IsNull(item) ? null : item;
     }
 
     /// <summary>
@@ -1301,10 +1297,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         var item = InheritableEntry(page, InheritablePageKeys.Resources);
         if (item != null)
         {
-            if (item is PdfReference reference)
-                values.Resources = (PdfDictionary)reference.Value;
-            else
-                values.Resources = (PdfDictionary)item;
+            values.Resources = (PdfDictionary)PdfReference.Dereference(item);
         }
 
         item = InheritableEntry(page, InheritablePageKeys.MediaBox);
@@ -1318,8 +1311,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         item = InheritableEntry(page, InheritablePageKeys.Rotate);
         if (item != null)
         {
-            if (item is PdfReference reference)
-                item = reference.Value;
+            item = PdfReference.Dereference(item);
             values.Rotate = (PdfInteger)item;
         }
     }

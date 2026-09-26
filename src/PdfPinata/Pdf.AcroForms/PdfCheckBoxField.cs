@@ -167,13 +167,9 @@ public sealed class PdfCheckBoxField : PdfButtonField
     /// </summary>
     private static ICollection<string> StatesOf(PdfDictionary widget)
     {
-        var appearances = widget.Elements[PdfAnnotation.Keys.AP];
-        if (appearances is PdfReference reference)
-            appearances = reference.Value;
+        var appearances = PdfReference.Dereference(widget.Elements[PdfAnnotation.Keys.AP]);
 
-        var normal = (appearances as PdfDictionary)?.Elements["/N"];
-        if (normal is PdfReference normalReference)
-            normal = normalReference.Value;
+        var normal = PdfReference.Dereference((appearances as PdfDictionary)?.Elements["/N"]);
 
         return normal is PdfDictionary states ? states.Elements.Keys : null;
     }

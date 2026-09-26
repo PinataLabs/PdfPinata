@@ -276,9 +276,7 @@ internal abstract class PdfPageWalk
     /// </summary>
     private void UseSoftMask(PdfDictionary extGState, PdfDictionary scope, int depth)
     {
-        var item = extGState.Elements["/SMask"];
-        if (item is PdfReference reference)
-            item = reference.Value;
+        var item = PdfReference.Dereference(extGState.Elements["/SMask"]);
 
         if (item == null)
         {
@@ -421,9 +419,7 @@ internal abstract class PdfPageWalk
         if (entries == null)
             return null;
 
-        var item = entries.Elements[name];
-        if (item is PdfReference reference)
-            item = reference.Value;
+        var item = PdfReference.Dereference(entries.Elements[name]);
 
         return item is PdfNull or PdfNullObject ? null : item;
     }
