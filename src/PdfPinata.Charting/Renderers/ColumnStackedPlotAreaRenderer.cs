@@ -28,20 +28,21 @@
 #endregion
 
 using System;
-using PdfPinata.Drawing;
 
 namespace PdfPinata.Charting.Renderers;
 
 /// <summary>
-/// Represents a plot area renderer of stacked columns, i. e. all columns are drawn one on another.
+/// Represents a plot area renderer of stacked columns, i. e. all columns are drawn one on another -
+/// or of stacked bars, which are the same columns turned on their side.
 /// </summary>
 internal class ColumnStackedPlotAreaRenderer : ColumnPlotAreaRenderer
 {
   /// <summary>
   /// Initializes a new instance of the ColumnStackedPlotAreaRenderer class with the
-  /// specified renderer parameters.
+  /// specified renderer parameters and the orientation of the chart's category axis.
   /// </summary>
-  internal ColumnStackedPlotAreaRenderer(RendererParameters parms) : base(parms)
+  internal ColumnStackedPlotAreaRenderer(RendererParameters parms, AxisOrientation categoryAxis)
+    : base(parms, categoryAxis)
   {
   }
 
@@ -66,10 +67,9 @@ internal class ColumnStackedPlotAreaRenderer : ColumnPlotAreaRenderer
     // Space used by one column.
     var columnWidth = xMajorTick * 0.75 / 2;
 
-    var points = new XPoint[2];
     for (var pointIdx = 0; pointIdx < maxPoints; ++pointIdx)
     {
-      StackColumns(cri, points, pointIdx, x - columnWidth, x + columnWidth);
+      StackColumns(cri, pointIdx, x - columnWidth, x + columnWidth);
       x++; // Next stacked column.
     }
   }
@@ -77,7 +77,7 @@ internal class ColumnStackedPlotAreaRenderer : ColumnPlotAreaRenderer
   /// <summary>
   /// Stacks the columns every series has at one point, negative values below zero and the rest above.
   /// </summary>
-  private static void StackColumns(ChartRendererInfo cri, XPoint[] points, int pointIdx, double x0, double x1)
+  private void StackColumns(ChartRendererInfo cri, int pointIdx, double x0, double x1)
   {
     double yMin = 0, yMax = 0;
     foreach (var sri in cri.SeriesRendererInfos)
@@ -92,18 +92,7 @@ internal class ColumnStackedPlotAreaRenderer : ColumnPlotAreaRenderer
       var (y0, y1) = StackOnto(column.Value, ref yMin, ref yMax);
       column.StackedFrom = y0;
       column.StackedTo = y1;
-
-      points[0].X = x0; // upper left
-      points[0].Y = y1;
-      points[1].X = x1; // lower right
-      points[1].Y = y0;
-
-      cri.PlotAreaRendererInfo.Matrix.TransformPoints(points);
-
-      column.Rect = new XRect(points[0].X,
-        points[0].Y,
-        points[1].X - points[0].X,
-        points[1].Y - points[0].Y);
+      column.Rect = ColumnRect(x0, y0, x1, y1);
     }
   }
 

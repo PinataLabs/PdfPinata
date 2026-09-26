@@ -66,7 +66,7 @@ internal class BarChartRenderer : ChartRenderer
     var renderer = GetPlotAreaRenderer();
     cri.PlotAreaRendererInfo = (PlotAreaRendererInfo)renderer.Init();
 
-    var dlr = new BarDataLabelRenderer(rendererParms);
+    var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Vertical);
     dlr.Init();
 
     return cri;
@@ -106,7 +106,7 @@ internal class BarChartRenderer : ChartRenderer
     var renderer = GetPlotAreaRenderer();
     renderer.Format();
 
-    var dlr = new BarDataLabelRenderer(rendererParms);
+    var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Vertical);
     dlr.Format();
   }
 
@@ -123,7 +123,7 @@ internal class BarChartRenderer : ChartRenderer
     var wr = new WallRenderer(rendererParms);
     wr.Draw();
 
-    var glr = new BarGridlinesRenderer(rendererParms);
+    var glr = new ColumnLikeGridlinesRenderer(rendererParms, AxisOrientation.Vertical);
     glr.Draw();
 
     var pabr = new PlotAreaBorderRenderer(rendererParms);
@@ -132,7 +132,7 @@ internal class BarChartRenderer : ChartRenderer
     var renderer = GetPlotAreaRenderer();
     renderer.Draw();
 
-    var dlr = new BarDataLabelRenderer(rendererParms);
+    var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Vertical);
     dlr.Draw();
 
     if (cri.XAxisRendererInfo.Axis != null)
@@ -156,8 +156,8 @@ internal class BarChartRenderer : ChartRenderer
     var chart = (Chart)rendererParms.DrawingItem;
     return chart.type switch
     {
-      ChartType.Bar2D => new BarClusteredPlotAreaRenderer(rendererParms),
-      ChartType.BarStacked2D => new BarStackedPlotAreaRenderer(rendererParms),
+      ChartType.Bar2D => new ColumnClusteredPlotAreaRenderer(rendererParms, AxisOrientation.Vertical),
+      ChartType.BarStacked2D => new ColumnStackedPlotAreaRenderer(rendererParms, AxisOrientation.Vertical),
       _ => null
     };
   }

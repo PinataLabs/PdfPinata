@@ -32,19 +32,28 @@ using PdfPinata.Drawing;
 namespace PdfPinata.Charting.Renderers;
 
 /// <summary>
-/// Represents gridlines used by column or line charts, i. e. X axis grid will be rendered
-/// from top to bottom and Y axis grid will be rendered from left to right of the plot area.
+/// Represents the gridlines of every chart with a category and a value axis: across the plot area
+/// at each tick of the X axis and along it at each tick of the Y axis. On a column, line or area
+/// chart the X axis's gridlines run from top to bottom and the Y axis's from left to right; on a bar
+/// chart, which is the same chart turned on its side, the other way round. Which is the orientation
+/// the renderer is given, and <see cref="PlotOrientation.At"/> is the only place it is read.
 /// </summary>
 internal class ColumnLikeGridlinesRenderer : GridlinesRenderer
 {
   /// <summary>
   /// Initializes a new instance of the ColumnLikeGridlinesRenderer class with the
-  /// specified renderer parameters.
+  /// specified renderer parameters and the orientation of the chart's category axis.
   /// </summary>
-  internal ColumnLikeGridlinesRenderer(RendererParameters parms)
+  internal ColumnLikeGridlinesRenderer(RendererParameters parms, AxisOrientation categoryAxis)
     : base(parms)
   {
+    this.categoryAxis = categoryAxis;
   }
+
+  /// <summary>
+  /// Which way the chart's category axis runs.
+  /// </summary>
+  private readonly AxisOrientation categoryAxis;
 
   /// <summary>
   /// Draws the gridlines into the plot area.
@@ -65,7 +74,7 @@ internal class ColumnLikeGridlinesRenderer : GridlinesRenderer
   }
 
   /// <summary>
-  /// Draws a gridline from top to bottom at every minor or every major tick of the X axis.
+  /// Draws a gridline across the value axis at every minor or every major tick of the X axis.
   /// </summary>
   private void DrawXGridlines(ChartRendererInfo cri, XPoint[] points, bool minor)
   {
@@ -80,17 +89,15 @@ internal class ColumnLikeGridlinesRenderer : GridlinesRenderer
     var tick = minor ? xari.MinorTick : xari.MajorTick;
     for (var x = FirstGridline(xari, minor); IsOnGrid(x, xari.MaximumScale, minor); x += tick)
     {
-      points[0].X = x;
-      points[0].Y = yari.MinimumScale;
-      points[1].X = x;
-      points[1].Y = yari.MaximumScale;
+      points[0] = categoryAxis.At(x, yari.MinimumScale);
+      points[1] = categoryAxis.At(x, yari.MaximumScale);
       matrix.TransformPoints(points);
       lineFormatRenderer.DrawLine(points[0], points[1]);
     }
   }
 
   /// <summary>
-  /// Draws a gridline from left to right at every minor or every major tick of the Y axis.
+  /// Draws a gridline across the category axis at every minor or every major tick of the Y axis.
   /// </summary>
   private void DrawYGridlines(ChartRendererInfo cri, XPoint[] points, bool minor)
   {
@@ -105,10 +112,8 @@ internal class ColumnLikeGridlinesRenderer : GridlinesRenderer
     var tick = minor ? yari.MinorTick : yari.MajorTick;
     for (var y = FirstGridline(yari, minor); IsOnGrid(y, yari.MaximumScale, minor); y += tick)
     {
-      points[0].X = xari.MinimumScale;
-      points[0].Y = y;
-      points[1].X = xari.MaximumScale;
-      points[1].Y = y;
+      points[0] = categoryAxis.At(xari.MinimumScale, y);
+      points[1] = categoryAxis.At(xari.MaximumScale, y);
       matrix.TransformPoints(points);
       lineFormatRenderer.DrawLine(points[0], points[1]);
     }

@@ -7,15 +7,16 @@ using Xunit;
 namespace PdfPinata.Charting.Tests;
 
 /// <summary>
-///   The bar chart: the same picture as a column chart turned on its side, drawn by a different
-///   renderer that does not share the code.
+///   The bar chart: the same picture as a column chart turned on its side.
 /// </summary>
 /// <remarks>
-///   <c>BarPlotAreaRenderer.Draw</c> is <c>ColumnPlotAreaRenderer.Draw</c> with the axes swapped -
-///   it forces a zero line when the data crosses zero, fills every bar, then outlines them all
-///   afterwards - and <c>BarGridlinesRenderer.Draw</c> is the other half of the same swap, drawing
-///   the category gridlines across the plot area instead of up it. Being separate code, they are
-///   separately wrong when they are wrong, so they are separately covered here.
+///   A bar chart is drawn by the column chart's own renderers - <c>ColumnPlotAreaRenderer</c> and
+///   <c>ColumnLikeGridlinesRenderer</c> - given the orientation of a category axis running up the
+///   chart rather than across it: a zero line forced when the data crosses zero, every bar filled
+///   and then all outlined, and the category gridlines drawn across the plot area instead of up it.
+///   They used to be separate copies, and were separately wrong when they were wrong. They are
+///   covered here as a bar chart draws them, and <c>ColumnBarParityTests</c> holds them to the column
+///   chart's picture turned on its side.
 /// </remarks>
 public class BarPlotAreaTests
 {

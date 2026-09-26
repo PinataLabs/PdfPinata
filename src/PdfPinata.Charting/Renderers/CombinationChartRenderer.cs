@@ -92,7 +92,7 @@ internal class CombinationChartRenderer : ChartRenderer
     if (cri.ColumnSeriesRendererInfos != null)
     {
       cri.SeriesRendererInfos = cri.ColumnSeriesRendererInfos;
-      var dlr = new ColumnDataLabelRenderer(rendererParms);
+      var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Horizontal);
       dlr.Init();
     }
 
@@ -155,7 +155,7 @@ internal class CombinationChartRenderer : ChartRenderer
     if (cri.ColumnSeriesRendererInfos != null)
     {
       cri.SeriesRendererInfos = cri.ColumnSeriesRendererInfos;
-      var dlr = new ColumnDataLabelRenderer(rendererParms);
+      var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Horizontal);
       dlr.Format();
     }
   }
@@ -174,7 +174,7 @@ internal class CombinationChartRenderer : ChartRenderer
     var wr = new WallRenderer(rendererParms);
     wr.Draw();
 
-    var glr = new ColumnLikeGridlinesRenderer(rendererParms);
+    var glr = new ColumnLikeGridlinesRenderer(rendererParms, AxisOrientation.Horizontal);
     glr.Draw();
 
     var pabr = new PlotAreaBorderRenderer(rendererParms);
@@ -204,7 +204,7 @@ internal class CombinationChartRenderer : ChartRenderer
     if (cri.ColumnSeriesRendererInfos != null)
     {
       cri.SeriesRendererInfos = cri.ColumnSeriesRendererInfos;
-      var dlr = new ColumnDataLabelRenderer(rendererParms);
+      var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Horizontal);
       dlr.Draw();
     }
 
@@ -229,8 +229,8 @@ internal class CombinationChartRenderer : ChartRenderer
   {
     var cri = (CombinationRendererInfo)rendererParms.RendererInfo;
     return cri.ColumnsStacked
-      ? new ColumnStackedPlotAreaRenderer(rendererParms)
-      : new ColumnClusteredPlotAreaRenderer(rendererParms);
+      ? new ColumnStackedPlotAreaRenderer(rendererParms, AxisOrientation.Horizontal)
+      : new ColumnClusteredPlotAreaRenderer(rendererParms, AxisOrientation.Horizontal);
   }
 
   /// <summary>

@@ -66,7 +66,7 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
     var renderer = GetPlotAreaRenderer();
     cri.PlotAreaRendererInfo = (PlotAreaRendererInfo)renderer.Init();
 
-    var dlr = new ColumnDataLabelRenderer(rendererParms);
+    var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Horizontal);
     dlr.Init();
 
     return cri;
@@ -94,7 +94,7 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
     var renderer = GetPlotAreaRenderer();
     renderer.Format();
 
-    var dlr = new ColumnDataLabelRenderer(rendererParms);
+    var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Horizontal);
     dlr.Format();
   }
 
@@ -111,7 +111,7 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
     var wr = new WallRenderer(rendererParms);
     wr.Draw();
 
-    var glr = new ColumnLikeGridlinesRenderer(rendererParms);
+    var glr = new ColumnLikeGridlinesRenderer(rendererParms, AxisOrientation.Horizontal);
     glr.Draw();
 
     var pabr = new PlotAreaBorderRenderer(rendererParms);
@@ -120,7 +120,7 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
     var renderer = GetPlotAreaRenderer();
     renderer.Draw();
 
-    var dlr = new ColumnDataLabelRenderer(rendererParms);
+    var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Horizontal);
     dlr.Draw();
 
     if (cri.XAxisRendererInfo.Axis != null)
@@ -144,8 +144,8 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
     var chart = (Chart)rendererParms.DrawingItem;
     return chart.type switch
     {
-      ChartType.Column2D => new ColumnClusteredPlotAreaRenderer(rendererParms),
-      ChartType.ColumnStacked2D => new ColumnStackedPlotAreaRenderer(rendererParms),
+      ChartType.Column2D => new ColumnClusteredPlotAreaRenderer(rendererParms, AxisOrientation.Horizontal),
+      ChartType.ColumnStacked2D => new ColumnStackedPlotAreaRenderer(rendererParms, AxisOrientation.Horizontal),
       _ => null
     };
   }

@@ -260,9 +260,9 @@ public class DataLabelTests
     // ----- a bar chart's labels ---------------------------------------------------------------
 
     /// <summary>
-    ///   A bar chart's labels are laid out by <c>BarDataLabelRenderer</c>, which is the pie
-    ///   renderer's opposite number and the column renderer's mirror image: a bar runs across the
-    ///   page, so the position chooses an x within the bar and the y is always its middle.
+    ///   A bar chart's labels are laid out by <c>ColumnDataLabelRenderer</c>, the column chart's own,
+    ///   given the bar chart's orientation: a bar runs across the page, so the position chooses an x
+    ///   within the bar and the y is always its middle.
     /// </summary>
     /// <remarks>
     ///   Read a blank point's value through <c>PointRendererInfo.Value</c>, which answers NaN,

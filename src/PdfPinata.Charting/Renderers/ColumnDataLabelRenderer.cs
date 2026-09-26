@@ -34,17 +34,24 @@ using PdfPinata.Drawing;
 namespace PdfPinata.Charting.Renderers;
 
 /// <summary>
-/// Represents a data label renderer for column charts.
+/// Represents a data label renderer for column charts, and for bar charts, which are column charts
+/// turned on their side. Which way the category axis runs is the orientation the renderer is given.
 /// </summary>
 internal class ColumnDataLabelRenderer : DataLabelRenderer
 {
   /// <summary>
   /// Initializes a new instance of the ColumnDataLabelRenderer class with the
-  /// specified renderer parameters.
+  /// specified renderer parameters and the orientation of the chart's category axis.
   /// </summary>
-  internal ColumnDataLabelRenderer(RendererParameters parms) : base(parms)
+  internal ColumnDataLabelRenderer(RendererParameters parms, AxisOrientation categoryAxis) : base(parms)
   {
+    this.categoryAxis = categoryAxis;
   }
+
+  /// <summary>
+  /// Which way the chart's category axis runs: across for a column chart, up for a bar chart.
+  /// </summary>
+  private readonly AxisOrientation categoryAxis;
     
   /// <summary>
   /// Calculates the space used by the data labels.
@@ -89,7 +96,7 @@ internal class ColumnDataLabelRenderer : DataLabelRenderer
   }
 
   /// <summary>
-  /// Draws the data labels of the column chart.
+  /// Draws the data labels of the column or bar chart.
   /// </summary>
   internal override void Draw()
   {
@@ -114,7 +121,7 @@ internal class ColumnDataLabelRenderer : DataLabelRenderer
   }
 
   /// <summary>
-  /// Calculates the data label positions specific for column charts.
+  /// Calculates the data label positions specific for column and bar charts.
   /// </summary>
   internal override void CalcPositions()
   {
@@ -132,38 +139,51 @@ internal class ColumnDataLabelRenderer : DataLabelRenderer
   }
 
   /// <summary>
-  /// Places one column's data label where the position asks for it.
+  /// Places one column's data label where the position asks for it: centred on the column across
+  /// the value axis, and along it wherever the position says.
   /// </summary>
-  private static void PositionLabel(DataLabelEntryRendererInfo dleri, DataLabelPosition position, ColumnRendererInfo column)
+  private void PositionLabel(DataLabelEntryRendererInfo dleri, DataLabelPosition position, ColumnRendererInfo column)
   {
-    dleri.X = column.Rect.X + column.Rect.Width / 2 - dleri.Width / 2; // Always the same...
-    switch (position)
+    var rect = column.Rect;
+    if (categoryAxis == AxisOrientation.Horizontal)
     {
-      case DataLabelPosition.InsideEnd:
-        // Inner border of the column.
-        dleri.Y = column.Rect.Y;
-        if (column.Value < 0)
-          dleri.Y = column.Rect.Y + column.Rect.Height - dleri.Height;
-        break;
-
-      case DataLabelPosition.Center:
-        // Centered inside the column.
-        dleri.Y = column.Rect.Y + column.Rect.Height / 2 - dleri.Height / 2;
-        break;
-
-      case DataLabelPosition.InsideBase:
-        // Aligned at the base of the column.
-        dleri.Y = column.Rect.Y + column.Rect.Height - dleri.Height;
-        if (column.Value < 0)
-          dleri.Y = column.Rect.Y;
-        break;
-
-      case DataLabelPosition.OutsideEnd:
-        // Outer border of the column.
-        dleri.Y = column.Rect.Y - dleri.Height;
-        if (column.Value < 0)
-          dleri.Y = column.Rect.Y  + column.Rect.Height;
-        break;
+      // The value axis runs up the page, so a positive value reaches the column's top edge, which
+      // is the nearer one to the page's origin.
+      dleri.X = rect.X + rect.Width / 2 - dleri.Width / 2; // Always the same...
+      dleri.Y = AlongValueAxis(position, rect.Y, rect.Height, dleri.Height, reachesFarEdge: column.Value < 0) ?? dleri.Y;
     }
+    else
+    {
+      // The value axis runs across the page, so a positive value reaches the bar's right edge.
+      dleri.Y = rect.Y + rect.Height / 2 - dleri.Height / 2; // Always the same...
+      dleri.X = AlongValueAxis(position, rect.X, rect.Width, dleri.Width, reachesFarEdge: column.Value >= 0) ?? dleri.X;
+    }
+  }
+
+  /// <summary>
+  /// Where along the value axis a label starts, the column running from <paramref name="start"/>
+  /// for <paramref name="length"/> and the label being <paramref name="size"/> long that way. The
+  /// end a column's value reaches is its far edge, the one further from the page's origin, when
+  /// <paramref name="reachesFarEdge"/> is set, and its base is the other. A zero counts with the
+  /// positive values, on either chart. Null for a position this does not know.
+  /// </summary>
+  private static double? AlongValueAxis(DataLabelPosition position, double start, double length, double size, bool reachesFarEdge)
+  {
+    return position switch
+    {
+      // Inner border of the column.
+      DataLabelPosition.InsideEnd => reachesFarEdge ? start + length - size : start,
+
+      // Centered inside the column.
+      DataLabelPosition.Center => start + length / 2 - size / 2,
+
+      // Aligned at the base of the column.
+      DataLabelPosition.InsideBase => reachesFarEdge ? start : start + length - size,
+
+      // Outer border of the column.
+      DataLabelPosition.OutsideEnd => reachesFarEdge ? start + length : start - size,
+
+      _ => null
+    };
   }
 }
