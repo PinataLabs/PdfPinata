@@ -75,6 +75,12 @@
       14.8 MB unpacked. Checked in rather than downloaded because a conformance claim that
       depends on the network is not one the build can make.
     -->
+    <!--
+      RFC 6229's RC4 keystreams, the key and offset lines of its section 2 exactly as printed.
+    -->
+    <None Update="Assets\Security\*.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Assets\Unicode\*.gz">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -272,8 +272,8 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     {
         if (bytes != null && bytes.Length != 0)
         {
-            PrepareKey();
-            EncryptRC4(bytes);
+            _rc4.SetKey(_key, 0, _keySize);
+            _rc4.Apply(bytes);
         }
         return bytes;
     }
@@ -313,240 +313,11 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     }
 
     /// <summary>
-    /// Pads a password to a 32 byte array.
-    /// </summary>
-    private static byte[] PadPassword(string password)
-    {
-        var padded = new byte[32];
-        if (password == null)
-        {
-            Array.Copy(PasswordPadding, 0, padded, 0, 32);
-        }
-        else
-        {
-            var length = password.Length;
-            Array.Copy(PdfEncoders.RawEncoding.GetBytes(password), 0, padded, 0, Math.Min(length, 32));
-            if (length < 32)
-                Array.Copy(PasswordPadding, 0, padded, length, 32 - length);
-        }
-        return padded;
-    }
-    private static readonly byte[] PasswordPadding = // 32 bytes password padding defined by Adobe
-    [
-        0x28, 0xBF, 0x4E, 0x5E, 0x4E, 0x75, 0x8A, 0x41, 0x64, 0x00, 0x4E, 0x56, 0xFF, 0xFA, 0x01, 0x08,
-        0x2E, 0x2E, 0x00, 0xB6, 0xD0, 0x68, 0x3E, 0x80, 0x2F, 0x0C, 0xA9, 0xFE, 0x64, 0x53, 0x69, 0x7A
-    ];
-
-    /// <summary>
-    /// Generates the user key based on the padded user password.
-    /// </summary>
-    private void InitWithUserPassword(byte[] documentID, string userPassword, byte[] ownerKey, int permissions, bool strongEncryption)
-    {
-        InitEncryptionKey(documentID, PadPassword(userPassword), ownerKey, permissions, strongEncryption);
-        SetupUserKey(documentID);
-    }
-
-    /// <summary>
-    /// Computes the padded user password from the padded owner password.
-    /// </summary>
-    private byte[] ComputeOwnerKey(byte[] userPad, byte[] ownerPad, bool strongEncryption)
-    {
-        var ownerKey = new byte[32];
-        var digest = _md5.ComputeHash(ownerPad);
-        if (strongEncryption)
-        {
-            var mkey = new byte[16];
-            // Hash the pad 50 times
-            for (var idx = 0; idx < 50; idx++)
-                digest = _md5.ComputeHash(digest);
-            Array.Copy(userPad, 0, ownerKey, 0, 32);
-            // Encrypt the key
-            for (var i = 0; i < 20; i++)
-            {
-                for (var j = 0; j < mkey.Length; ++j)
-                    mkey[j] = (byte)(digest[j] ^ i);
-                PrepareRC4Key(mkey);
-                EncryptRC4(ownerKey);
-            }
-        }
-        else
-        {
-            PrepareRC4Key(digest, 0, 5);
-            EncryptRC4(userPad, ownerKey);
-        }
-        return ownerKey;
-    }
-
-    /// <summary>
-    /// Computes the encryption key.
-    /// </summary>
-    private void InitEncryptionKey(byte[] documentID, byte[] userPad, byte[] ownerKey, int permissions, bool strongEncryption)
-    {
-        _ownerKey = ownerKey;
-        _encryptionKey = new byte[strongEncryption ? 16 : 5];
-
-        _md5.Initialize();
-        _md5.TransformBlock(userPad, 0, userPad.Length, userPad, 0);
-        _md5.TransformBlock(ownerKey, 0, ownerKey.Length, ownerKey, 0);
-
-        // Split permission into 4 bytes
-        var permission = new byte[4];
-        permission[0] = (byte)permissions;
-        permission[1] = (byte)(permissions >> 8);
-        permission[2] = (byte)(permissions >> 16);
-        permission[3] = (byte)(permissions >> 24);
-
-        _md5.TransformBlock(permission, 0, 4, permission, 0);
-        _md5.TransformBlock(documentID, 0, documentID.Length, documentID, 0);
-        _md5.TransformFinalBlock(permission, 0, 0);
-        var digest = _md5.Hash!;
-        _md5.Initialize();
-        // Create the hash 50 times (only for 128 bit)
-        if (_encryptionKey.Length == 16)
-        {
-            for (var idx = 0; idx < 50; idx++)
-            {
-                digest = _md5.ComputeHash(digest);
-                _md5.Initialize();
-            }
-        }
-        Array.Copy(digest, 0, _encryptionKey, 0, _encryptionKey.Length);
-    }
-
-    /// <summary>
-    /// Computes the user key.
-    /// </summary>
-    private void SetupUserKey(byte[] documentID)
-    {
-        if (_encryptionKey.Length == 16)
-        {
-            _md5.TransformBlock(PasswordPadding, 0, PasswordPadding.Length, PasswordPadding, 0);
-            _md5.TransformFinalBlock(documentID, 0, documentID.Length);
-            var digest = _md5.Hash!;
-            _md5.Initialize();
-            Array.Copy(digest, 0, _userKey, 0, 16);
-            for (var idx = 16; idx < 32; idx++)
-                _userKey[idx] = 0;
-            //Encrypt the key
-            for (var i = 0; i < 20; i++)
-            {
-                for (var j = 0; j < _encryptionKey.Length; j++)
-                    digest[j] = (byte)(_encryptionKey[j] ^ i);
-                PrepareRC4Key(digest, 0, _encryptionKey.Length);
-                EncryptRC4(_userKey, 0, 16);
-            }
-        }
-        else
-        {
-            PrepareRC4Key(_encryptionKey);
-            EncryptRC4(PasswordPadding, _userKey);
-        }
-    }
-
-    /// <summary>
-    /// Prepare the encryption key.
-    /// </summary>
-    private void PrepareKey()
-    {
-        PrepareRC4Key(_key, 0, _keySize);
-    }
-
-    /// <summary>
-    /// Prepare the encryption key.
-    /// </summary>
-    private void PrepareRC4Key(byte[] key)
-    {
-        PrepareRC4Key(key, 0, key.Length);
-    }
-
-    /// <summary>
-    /// Prepare the encryption key.
-    /// </summary>
-    private void PrepareRC4Key(byte[] key, int offset, int length)
-    {
-        var idx1 = 0;
-        var idx2 = 0;
-        for (var idx = 0; idx < 256; idx++)
-            _state[idx] = (byte)idx;
-        byte tmp;
-        for (var idx = 0; idx < 256; idx++)
-        {
-            idx2 = (key[idx1 + offset] + _state[idx] + idx2) & 255;
-            tmp = _state[idx];
-            _state[idx] = _state[idx2];
-            _state[idx2] = tmp;
-            idx1 = (idx1 + 1) % length;
-        }
-    }
-
-    /// <summary>
-    /// Encrypts the data.
-    /// </summary>
-    // ReSharper disable InconsistentNaming
-    private void EncryptRC4(byte[] data)
-        // ReSharper restore InconsistentNaming
-    {
-        EncryptRC4(data, 0, data.Length, data);
-    }
-
-    /// <summary>
-    /// Encrypts the data.
-    /// </summary>
-    // ReSharper disable once InconsistentNaming
-    private void EncryptRC4(byte[] data, int offset, int length)
-    {
-        EncryptRC4(data, offset, length, data);
-    }
-
-    /// <summary>
-    /// Encrypts the data.
-    /// </summary>
-    // ReSharper disable once InconsistentNaming
-    private void EncryptRC4(byte[] inputData, byte[] outputData)
-    {
-        EncryptRC4(inputData, 0, inputData.Length, outputData);
-    }
-
-    /// <summary>
-    /// Encrypts the data.
-    /// </summary>
-    // ReSharper disable once InconsistentNaming
-    private void EncryptRC4(byte[] inputData, int offset, int length, byte[] outputData)
-    {
-        length += offset;
-        int x = 0, y = 0;
-        byte b;
-        for (var idx = offset; idx < length; idx++)
-        {
-            x = (x + 1) & 255;
-            y = (_state[x] + y) & 255;
-            b = _state[x];
-            _state[x] = _state[y];
-            _state[y] = b;
-            outputData[idx] = (byte)(inputData[idx] ^ _state[(_state[x] + _state[y]) & 255]);
-        }
-    }
-
-    /// <summary>
     /// Set the hash key for the specified object.
     /// </summary>
     internal void SetHashKey(PdfObjectID id)
     {
-        var objectId = new byte[5];
-        _md5.Initialize();
-        // Split the object number and generation
-        objectId[0] = (byte)id.ObjectNumber;
-        objectId[1] = (byte)(id.ObjectNumber >> 8);
-        objectId[2] = (byte)(id.ObjectNumber >> 16);
-        objectId[3] = (byte)id.GenerationNumber;
-        objectId[4] = (byte)(id.GenerationNumber >> 8);
-        _md5.TransformBlock(_encryptionKey, 0, _encryptionKey.Length, _encryptionKey, 0);
-        _md5.TransformFinalBlock(objectId, 0, objectId.Length);
-        _key = _md5.Hash;
-        _md5.Initialize();
-        _keySize = _encryptionKey.Length + 5;
-        if (_keySize > 16)
-            _keySize = 16;
+        _key = StandardSecurityAlgorithms.ObjectKey(_md5, _encryptionKey, id, aes: false, out _keySize);
     }
 
     /// <summary>
@@ -558,22 +329,11 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         var permissions = (int)Permission;
         var strongEncryption = _document._securitySettings.DocumentSecurityLevel == PdfDocumentSecurityLevel.Encrypted128Bit;
 
-        PdfInteger vValue;
-        PdfInteger length;
-        PdfInteger rValue;
-
-        if (strongEncryption)
-        {
-            vValue = new PdfInteger(2);
-            length = new PdfInteger(128);
-            rValue = new PdfInteger(3);
-        }
-        else
-        {
-            vValue = new PdfInteger(1);
-            length = new PdfInteger(40);
-            rValue = new PdfInteger(2);
-        }
+        // The only two combinations this writes: RC4 at 128 bits with revision 3, and at 40 bits
+        // with revision 2.
+        var version = strongEncryption ? 2 : 1;
+        var keyLength = strongEncryption ? 16 : 5;
+        var revision = strongEncryption ? 3 : 2;
 
         if (string.IsNullOrEmpty(_userPassword))
             _userPassword = "";
@@ -588,13 +348,14 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         var pValue = new PdfInteger(permissions);
 
         Debug.Assert(_ownerPassword.Length > 0, "Empty owner password.");
-        var userPad = PadPassword(_userPassword);
-        var ownerPad = PadPassword(_ownerPassword);
+        var userPad = StandardSecurityAlgorithms.PadPassword(_userPassword);
+        var ownerPad = StandardSecurityAlgorithms.PadPassword(_ownerPassword);
 
-        _md5.Initialize();
-        _ownerKey = ComputeOwnerKey(userPad, ownerPad, strongEncryption);
+        _ownerKey = StandardSecurityAlgorithms.OwnerValue(_md5, _rc4, ownerPad, userPad, revision, keyLength);
         var documentID = PdfEncoders.RawEncoding.GetBytes(_document.Internals.FirstDocumentID);
-        InitWithUserPassword(documentID, _userPassword, _ownerKey, permissions, strongEncryption);
+        _encryptionKey = StandardSecurityAlgorithms.FileKey(_md5, userPad, _ownerKey, permissions, documentID,
+            revision, keyLength, encryptMetadata: true);
+        _userKey = StandardSecurityAlgorithms.UserValue(_md5, _rc4, _encryptionKey, documentID, revision);
 
         // The owner and user entries carry key bytes, not text. They are named raw so that
         // the bytes above ASCII in them are written as they are instead of being taken for
@@ -603,9 +364,9 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         var uValue = new PdfString(PdfEncoders.RawEncoding.GetString(_userKey, 0, _userKey.Length), PdfStringEncoding.RawEncoding);
 
         Elements[PdfSecurityHandler.Keys.Filter] = new PdfName("/Standard");
-        Elements[PdfSecurityHandler.Keys.V] = vValue;
-        Elements[PdfSecurityHandler.Keys.Length] = length;
-        Elements[Keys.R] = rValue;
+        Elements[PdfSecurityHandler.Keys.V] = new PdfInteger(version);
+        Elements[PdfSecurityHandler.Keys.Length] = new PdfInteger(keyLength * 8);
+        Elements[Keys.R] = new PdfInteger(revision);
         Elements[Keys.O] = oValue;
         Elements[Keys.U] = uValue;
         Elements[Keys.P] = pValue;
@@ -624,9 +385,9 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     private MD5Managed _md5Instance;
 
     /// <summary>
-    /// Bytes used for RC4 encryption.
+    /// The cipher the writer encrypts with.
     /// </summary>
-    private readonly byte[] _state = new byte[256];
+    private readonly Rc4 _rc4 = new();
 
     /// <summary>
     /// The encryption key for the owner.
@@ -636,7 +397,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// <summary>
     /// The encryption key for the user.
     /// </summary>
-    private readonly byte[] _userKey = new byte[32];
+    private byte[] _userKey = new byte[32];
 
     /// <summary>
     /// The encryption key for a particular object/generation.

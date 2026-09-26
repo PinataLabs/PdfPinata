@@ -8,39 +8,36 @@ namespace PdfPinata.Test.Security;
 
 /// <summary>
 ///   An independent implementation of the standard security handler, enough of it to decrypt the
-///   strings of a document encrypted with RC4 and an empty user password. Tests that check what
-///   PdfPinata writes need a reader that does not share its assumptions: a writer and a reader
-///   that make the same mistake agree with each other perfectly, which is how the fault in issue
-///   460 survived a round trip test.
+///   strings of a document encrypted with RC4. Tests that check what PdfPinata writes need a
+///   reader that does not share its assumptions: a writer and a reader that make the same mistake
+///   agree with each other perfectly, which is how the fault in issue 460 survived a round trip
+///   test.
 ///
 ///   The key derivation is checked against the /U entry the document itself carries, so a test
 ///   using this class fails loudly if the derivation is wrong rather than quietly comparing noise.
-///   Algorithms 1, 2, 4 and 5 of ISO 32000-1, clause 7.6.
+///   Algorithms 1 to 5 of ISO 32000-1, clause 7.6, which <see cref="StandardSecurityAlgorithmTests"/>
+///   checks in turn against documents Ghostscript, qpdf and three online services wrote.
 /// </summary>
 internal sealed class StandardSecurity
 {
     private readonly string _pdf;
     private readonly byte[] _fileKey;
 
-    public StandardSecurity(byte[] document)
+    public StandardSecurity(byte[] document, string userPassword = "")
     {
         _pdf = Encoding.Latin1.GetString(document);
+        Entries = EncryptionEntries.Read(document);
+        Revision = Entries.Revision;
 
-        var id = FromHex(Last(_pdf, @"/ID\s*\[\s*<([0-9A-Fa-f]+)>").Groups[1].Value);
-        var encrypt = ObjectBody(int.Parse(Last(_pdf, @"/Encrypt\s+(\d+)\s+\d+\s+R").Groups[1].Value));
+        _fileKey = FileKey(Pad(userPassword), Entries.Owner, Entries.Permissions, Entries.Id, Revision,
+            Entries.KeyLength, Entries.EncryptMetadata);
 
-        Revision = int.Parse(Regex.Match(encrypt, @"/R\s+(\d+)").Groups[1].Value);
-        var permissions = int.Parse(Regex.Match(encrypt, @"/P\s+(-?\d+)").Groups[1].Value);
-        var keyLength = (encrypt.Contains("/Length")
-            ? int.Parse(Regex.Match(encrypt, @"/Length\s+(\d+)").Groups[1].Value)
-            : 40) / 8;
-
-        _fileKey = FileKey(StringValue(encrypt, "/O"), permissions, id, Revision, keyLength);
-
-        var expected = UserEntry(_fileKey, id, Revision);
-        var actual = StringValue(encrypt, "/U");
-        DerivedKeyMatchesTheDocument = StartsWith(actual, expected, Revision == 2 ? 32 : 16);
+        var expected = UserEntry(_fileKey, Entries.Id, Revision);
+        DerivedKeyMatchesTheDocument = StartsWith(Entries.User, expected, Revision == 2 ? 32 : 16);
     }
+
+    /// <summary>What the encryption dictionary and the trailer say.</summary>
+    public EncryptionEntries Entries { get; }
 
     public int Revision { get; }
 
@@ -104,13 +101,30 @@ internal sealed class StandardSecurity
 
     private string ObjectBody(int number) => ObjectMatch(number).Groups[1].Value;
 
-    // Algorithm 2, with the empty user password.
-    private static byte[] FileKey(byte[] owner, int permissions, byte[] id, int revision, int keyLength)
+    /// <summary>A password as Algorithm 2 step (a) pads it: its first 32 bytes, then the padding string.</summary>
+    public static byte[] Pad(string password)
     {
-        var input = new List<byte>(Padding);
+        var bytes = Encoding.Latin1.GetBytes(password ?? "");
+        var padded = new byte[32];
+        var length = Math.Min(bytes.Length, 32);
+        Array.Copy(bytes, padded, length);
+        Array.Copy(Padding, 0, padded, length, 32 - length);
+        return padded;
+    }
+
+    /// <summary>
+    ///   Algorithm 2: the file encryption key. From revision 3 on the MD5 digest is taken 50 more
+    ///   times, each over the first key-length bytes of the one before, as step (h) says.
+    /// </summary>
+    public static byte[] FileKey(byte[] paddedUserPassword, byte[] owner, int permissions, byte[] id, int revision,
+        int keyLength, bool encryptMetadata = true)
+    {
+        var input = new List<byte>(paddedUserPassword);
         input.AddRange(owner);
         input.AddRange(BitConverter.GetBytes(permissions));
         input.AddRange(id);
+        if (revision >= 4 && !encryptMetadata)
+            input.AddRange([0xFF, 0xFF, 0xFF, 0xFF]);
 
         var hash = MD5.HashData(input.ToArray());
         if (revision >= 3)
@@ -121,19 +135,45 @@ internal sealed class StandardSecurity
         return Take(hash, keyLength);
     }
 
-    // Algorithm 1: the key an individual object is encrypted with.
-    private static byte[] ObjectKey(byte[] fileKey, int objectNumber, int generation)
+    /// <summary>
+    ///   Algorithm 3: the /O entry. An empty owner password is replaced by the user password, as
+    ///   step (a) says. The 50 rehashes of step (c) read the first key-length bytes of each digest,
+    ///   as Ghostscript and qpdf both do, rather than the whole of it.
+    /// </summary>
+    public static byte[] OwnerEntry(string ownerPassword, string userPassword, int revision, int keyLength)
+    {
+        var hash = MD5.HashData(Pad(string.IsNullOrEmpty(ownerPassword) ? userPassword : ownerPassword));
+        if (revision >= 3)
+        {
+            for (var i = 0; i < 50; i++)
+                hash = MD5.HashData(Take(hash, keyLength));
+        }
+        var key = Take(hash, revision == 2 ? 5 : keyLength);
+
+        var result = Rc4(key, Pad(userPassword));
+        if (revision >= 3)
+            result = NineteenMoreRounds(key, result);
+        return result;
+    }
+
+    /// <summary>Algorithm 1: the key an individual object is encrypted with, RC4 or AES.</summary>
+    public static byte[] ObjectKey(byte[] fileKey, int objectNumber, int generation, bool aes = false)
     {
         var input = new List<byte>(fileKey)
         {
             (byte)objectNumber, (byte)(objectNumber >> 8), (byte)(objectNumber >> 16),
             (byte)generation, (byte)(generation >> 8)
         };
+        if (aes)
+            input.AddRange("sAlT"u8.ToArray());
         return Take(MD5.HashData(input.ToArray()), Math.Min(fileKey.Length + 5, 16));
     }
 
-    // Algorithms 4 and 5: the /U entry for an empty user password.
-    private static byte[] UserEntry(byte[] fileKey, byte[] id, int revision)
+    /// <summary>
+    ///   Algorithms 4 and 5: the /U entry. At revision 3 and later only its first 16 bytes are
+    ///   defined, and those are what this answers.
+    /// </summary>
+    public static byte[] UserEntry(byte[] fileKey, byte[] id, int revision)
     {
         if (revision == 2)
             return Rc4(fileKey, Padding);
@@ -141,18 +181,23 @@ internal sealed class StandardSecurity
         var input = new List<byte>(Padding);
         input.AddRange(id);
 
-        var result = Rc4(fileKey, MD5.HashData(input.ToArray()));
-        for (var i = 1; i <= 19; i++)
-        {
-            var key = new byte[fileKey.Length];
-            for (var j = 0; j < fileKey.Length; j++)
-                key[j] = (byte)(fileKey[j] ^ i);
-            result = Rc4(key, result);
-        }
-        return result;
+        return NineteenMoreRounds(fileKey, Rc4(fileKey, MD5.HashData(input.ToArray())));
     }
 
-    private static byte[] Rc4(byte[] key, byte[] data)
+    /// <summary>Algorithm 3 step (f) and Algorithm 5 step (e): RC4 again with the key XORed with 1 to 19.</summary>
+    private static byte[] NineteenMoreRounds(byte[] key, byte[] data)
+    {
+        for (var i = 1; i <= 19; i++)
+        {
+            var round = new byte[key.Length];
+            for (var j = 0; j < key.Length; j++)
+                round[j] = (byte)(key[j] ^ i);
+            data = Rc4(round, data);
+        }
+        return data;
+    }
+
+    public static byte[] Rc4(byte[] key, byte[] data)
     {
         var s = new byte[256];
         for (var i = 0; i < 256; i++)
@@ -175,7 +220,7 @@ internal sealed class StandardSecurity
     }
 
     /// <summary>Reads a string entry, whether it is written as a hexadecimal or a literal string.</summary>
-    private static byte[] StringValue(string dictionary, string key)
+    internal static byte[] StringValue(string dictionary, string key)
     {
         var hex = Regex.Match(dictionary, Regex.Escape(key) + @"\s*<([0-9A-Fa-f\s]*)>", RegexOptions.Singleline);
         if (hex.Success)
@@ -237,7 +282,7 @@ internal sealed class StandardSecurity
 
     private static bool IsOctalDigit(char c) => c is >= '0' and <= '7';
 
-    private static bool StartsWith(byte[] actual, byte[] expected, int count)
+    internal static bool StartsWith(byte[] actual, byte[] expected, int count)
     {
         if (actual == null || actual.Length < count || expected.Length < Math.Min(count, expected.Length))
             return false;
@@ -262,7 +307,7 @@ internal sealed class StandardSecurity
         return text.ToString();
     }
 
-    private static byte[] FromHex(string hex)
+    internal static byte[] FromHex(string hex)
     {
         var bytes = new byte[hex.Length / 2];
         for (var i = 0; i < bytes.Length; i++)
@@ -270,7 +315,7 @@ internal sealed class StandardSecurity
         return bytes;
     }
 
-    private static Match Last(string text, string pattern)
+    internal static Match Last(string text, string pattern)
     {
         Match last = null;
         foreach (Match m in Regex.Matches(text, pattern, RegexOptions.Singleline))
@@ -278,9 +323,59 @@ internal sealed class StandardSecurity
         return last;
     }
 
-    private static readonly byte[] Padding =
+    internal static readonly byte[] Padding =
     [
         0x28, 0xBF, 0x4E, 0x5E, 0x4E, 0x75, 0x8A, 0x41, 0x64, 0x00, 0x4E, 0x56, 0xFF, 0xFA, 0x01, 0x08,
         0x2E, 0x2E, 0x00, 0xB6, 0xD0, 0x68, 0x3E, 0x80, 0x2F, 0x0C, 0xA9, 0xFE, 0x64, 0x53, 0x69, 0x7A
     ];
+}
+
+/// <summary>
+///   The entries of a document's standard security handler, read out of the file as text: the
+///   encryption dictionary, and the first document identifier from the trailer or from the
+///   cross-reference stream that stands in for one. Neither of those is ever encrypted, so no key
+///   is needed to read them.
+/// </summary>
+internal sealed class EncryptionEntries
+{
+    public byte[] Id { get; private init; }
+    public byte[] Owner { get; private init; }
+    public byte[] User { get; private init; }
+    public int Permissions { get; private init; }
+    public int Revision { get; private init; }
+    public int Version { get; private init; }
+
+    /// <summary>The key length in bytes: /Length over 8, or 5 where the entry is absent.</summary>
+    public int KeyLength { get; private init; }
+
+    /// <summary>The /Length entry as written, in bits, or null where the entry is absent.</summary>
+    public int? LengthInBits { get; private init; }
+
+    public bool EncryptMetadata { get; private init; }
+
+    public static EncryptionEntries Read(byte[] document)
+    {
+        var pdf = Encoding.Latin1.GetString(document);
+        var number = int.Parse(StandardSecurity.Last(pdf, @"/Encrypt\s+(\d+)\s+\d+\s+R").Groups[1].Value);
+        var body = Regex.Match(pdf, @"(?<![0-9])" + number + @"\s+0\s+obj(.*?)endobj", RegexOptions.Singleline)
+            .Groups[1].Value;
+        // The crypt filters of revision 4 carry a /Length of their own, in bytes. Only the
+        // dictionary's own entries are wanted here.
+        var own = Regex.Replace(body, @"/CF\s*<<\s*(/\w+\s*<<[^>]*>>\s*)*>>", "");
+
+        var length = Regex.Match(own, @"/Length\s+(\d+)");
+        int? bits = length.Success ? int.Parse(length.Groups[1].Value) : null;
+        return new EncryptionEntries
+        {
+            Id = StandardSecurity.FromHex(StandardSecurity.Last(pdf, @"/ID\s*\[\s*<([0-9A-Fa-f]+)>").Groups[1].Value),
+            Owner = StandardSecurity.StringValue(own, "/O"),
+            User = StandardSecurity.StringValue(own, "/U"),
+            Permissions = int.Parse(Regex.Match(own, @"/P\s+(-?\d+)").Groups[1].Value),
+            Revision = int.Parse(Regex.Match(own, @"/R\s+(\d+)").Groups[1].Value),
+            Version = int.Parse(Regex.Match(own, @"/V\s+(\d+)").Groups[1].Value),
+            LengthInBits = bits,
+            KeyLength = (bits ?? 40) / 8,
+            EncryptMetadata = !Regex.IsMatch(own, @"/EncryptMetadata\s+false")
+        };
+    }
 }
