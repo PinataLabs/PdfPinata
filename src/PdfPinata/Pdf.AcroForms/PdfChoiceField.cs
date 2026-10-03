@@ -435,8 +435,13 @@ public abstract class PdfChoiceField : PdfAcroField
         if (_font == null && !GlobalFontSettings.IsFontResolverSet)
             return;
 
+        // A widget with no /Rect is still being put together by hand, and is left as it is: there
+        // is nothing yet to draw it to, and no reason to take away a drawing it was given.
         foreach (var widget in Widgets)
-            RenderAppearanceOn(widget);
+        {
+            if (widget.Elements.ContainsKey(PdfAnnotation.Keys.Rect))
+                RenderAppearanceOn(widget);
+        }
     }
 
     internal override void OnWidgetAdded() => RenderAppearance();
@@ -445,12 +450,16 @@ public abstract class PdfChoiceField : PdfAcroField
 
     private void RenderAppearanceOn(PdfDictionary widget)
     {
-        var rect = widget.Elements.GetRectangle(PdfAnnotation.Keys.Rect);
+        var rect = WidgetRectangle(widget);
 
-        // XForm refuses a box under a point in either direction, and a widget can be that small
-        // while it is being assembled.
+        // XForm refuses a box under a point in either direction, so nothing can be drawn there -
+        // and the drawing the widget had goes, or it goes on showing a box that is no longer
+        // there and a value the field may no longer hold (issue #211).
         if (rect.Width < 1 || rect.Height < 1)
+        {
+            RemoveVariableTextAppearance(widget);
             return;
+        }
 
         var characteristics = widget.Elements.GetDictionary(PdfWidgetAnnotation.Keys.MK);
         var back = BackColor.IsEmpty ? ColorIn(characteristics, "/BG") : BackColor;
@@ -460,7 +469,7 @@ public abstract class PdfChoiceField : PdfAcroField
         // reader to build it, so the one it had is taken away instead.
         if (back.IsEmpty && border.IsEmpty && !HasContent)
         {
-            widget.Elements.Remove(PdfAnnotation.Keys.AP);
+            RemoveVariableTextAppearance(widget);
             return;
         }
 

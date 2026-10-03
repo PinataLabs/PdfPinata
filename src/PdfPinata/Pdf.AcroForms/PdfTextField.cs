@@ -220,21 +220,26 @@ public sealed class PdfTextField : PdfAcroField
 
     private void RenderAppearanceOn(PdfDictionary annotation)
     {
-        var rect = annotation.Elements.GetRectangle(PdfAnnotation.Keys.Rect);
+        var rect = WidgetRectangle(annotation);
 
         // A rectangle too small to draw in draws nothing, and XForm refuses to be made of one:
         // its floor is a point in each direction, so the test is against 1 rather than against 0.
-        // A field reaches this while it is still being assembled, so it is a stage rather than a
-        // fault. It also keeps the border below from being given a negative width.
+        // It also keeps the border below from being given a negative width. The drawing the
+        // widget had goes, or it goes on showing a box that is no longer there and a value the
+        // field may no longer hold (issue #211). A widget still being put together, with no /Rect
+        // yet, never reaches this: RenderAppearance passes over it.
         if (rect.Width < 1 || rect.Height < 1)
+        {
+            RemoveVariableTextAppearance(annotation);
             return;
+        }
 
         // Nothing asked for. An appearance is what a reader shows in place of building one from
         // /MK, so writing an empty one here would blank a field decorated that way rather than
         // leave it alone - which is the difference between "draw nothing" and "draw it yourself".
         if (BackColor.IsEmpty && BorderColor.IsEmpty && Text.Length == 0)
         {
-            annotation.Elements.Remove(PdfAnnotation.Keys.AP);
+            RemoveVariableTextAppearance(annotation);
             return;
         }
 

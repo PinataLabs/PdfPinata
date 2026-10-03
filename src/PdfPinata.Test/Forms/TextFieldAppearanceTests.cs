@@ -328,6 +328,43 @@ public sealed class TextFieldAppearanceTests : IDisposable
         open.Should().BeGreaterThan(content.IndexOf(Fill, StringComparison.Ordinal));
     }
 
+    [Theory]
+    [InlineData(0.5, 20)]
+    [InlineData(200, 0.5)]
+    public void AWidgetShrunkBelowAPointLosesTheAppearanceItCannotHold(double width, double height)
+    {
+        // XForm cannot be made under a point, so the field cannot be drawn there - and the
+        // drawing it had is of a box that is no longer there and a value it may no longer hold.
+        var field = OnAPage(Line, f => f.BorderColor = XColors.Gray);
+        field.Text = "Ada Lovelace";
+        var widget = field.Widgets[0];
+        widget.Elements.SetName("/AS", "/Off");
+        widget.Rectangle = new PdfRectangle(new XRect(60, 700, width, height));
+
+        field.Text = "Grace Hopper";
+
+        widget.Elements.ContainsKey("/AP").Should().BeFalse();
+        widget.Elements.ContainsKey("/AS").Should().BeFalse(
+            "a state name pointing into an appearance dictionary that is gone goes with it");
+    }
+
+    [Fact]
+    public void AWidgetWhoseRectangleNamesItsCornersTheOtherWayRoundIsStillDrawn()
+    {
+        // ISO 32000-1 7.9.5 lets a rectangle name any two opposite corners, so a file may say
+        // [360 730 60 700]: a box 300 by 30, and not one of a negative size to take a drawing from.
+        var field = OnAPage(Line, f => f.BorderColor = XColors.Gray);
+        var widget = field.Widgets[0];
+        var reversed = new PdfArray(widget.Owner);
+        foreach (var number in new[] { 360, 730, 60, 700 })
+            reversed.Elements.Add(new PdfReal(number));
+        widget.Elements["/Rect"] = reversed;
+
+        field.Text = "Ada Lovelace";
+
+        widget.Elements.ContainsKey("/AP").Should().BeTrue();
+    }
+
     /// <summary>A rectangle filled, and a rectangle stroked, as the renderer writes them.</summary>
     private const string Fill = " re\nf";
 
