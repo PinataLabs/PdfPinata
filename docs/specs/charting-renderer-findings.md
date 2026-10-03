@@ -12,8 +12,9 @@ public API**. None of it needed reflection to find, and none of it needed reflec
 
 Eight defects came out of it — seven from writing the tests, one more from review of the fixes.
 A second round of tests, over legends, markers and the object model's copying, found three more,
-and upstream reports three after that. All fourteen are now fixed, and the test that recorded each
-has been turned round to assert the behaviour that replaced it.
+and upstream reports three after that; a fifteenth turned up while #196's parity tests were being
+written. All fifteen are now fixed, and the test that recorded each has been turned round to assert
+the behaviour that replaced it.
 
 | # | finding | severity | status |
 |---|---|---|---|
@@ -31,6 +32,7 @@ has been turned round to assert the behaviour that replaced it.
 | C12 | A line format that says `Visible = false` is still stroked, as a hairline | medium | **fixed** |
 | C13 | A second category series is drawn past the end of the axis (empira/PDFsharp#286) | medium | **fixed** |
 | C14 | A legend too wide for its chart runs off both sides of it (empira/PDFsharp#306) | medium | **fixed** |
+| C15 | A value axis given equal minimum and maximum scales cannot be drawn (#207) | medium | **fixed** |
 
 C3 and C4 were one shape seen twice: two renderers written as copies of each other, which had
 drifted apart on which inputs they survive. C1 and C8 were another, seen four times over: a
@@ -551,6 +553,48 @@ Pinned by `LegendTests.ALegendTooWideForTheChartWrapsItsEntriesOntoMoreRows` (pi
 above and below), `TheRowsOfAWrappedLegendAreCentredAndSpacedAsEntriesAre`,
 `AnEntryWiderThanTheChartIsWordWrapped`, `ALineBreakInASeriesNameStartsANewLineOfItsEntry`, and
 through PinataLayout by `ChartAreaRenderingTests.AFooterLegendTooWideForTheChartStaysInsideIt`.
+
+---
+
+## C15. A value axis given equal minimum and maximum scales could not be drawn — fixed
+
+```csharp
+chart.YAxis.MinimumScale = 5;
+chart.YAxis.MaximumScale = 5;
+// InvalidOperationException: Cannot write "NaN NaN m" into a content stream
+```
+
+Every chart type with a value axis threw, combination charts included, and so did a document
+reaching the chart through PinataLayout's mapper, which carries both scales across as given. The
+plot area was not where it failed: since C8 its matrix is left as the identity when either scale
+spans nothing (`ColumnLikePlotAreaRenderer.NothingToPlot`, which tests `max <= min`). The value
+axis renderer has no such guard. `YAxisRenderer.ValueToPageTransform` divides the axis's length by
+`MaximumScale - MinimumScale`, and the first tick mark drawn through that matrix — a minor one if
+asked for, else the major tick beside the first label — reached `XGraphicsPdfRenderer` as NaN,
+which refuses it.
+
+A range that comes from the data had always been widened when its ends were equal, by the code now
+called `WidenFlatRange`: up to 0.9 from zero, up to zero from below it, up by one from above it. A
+range the caller gives skipped it, because `FineTuneYAxis` only takes a given value in after the
+widening. It now asks once more, of the scale it ends with: **a scale whose two ends are equal is
+widened by the same rule**, the minimum staying where it was put, and a major tick the axis was not
+given is worked out from the widened range rather than from the data. It catches a minimum given
+equal to a calculated maximum too, which is the same scale reached another way.
+
+Widening rather than drawing nothing, which is what #196 made a minimum *above* the maximum do,
+because a scale of one value is a degenerate request rather than a contradictory one: the caller has
+said where the axis starts, and widening keeps it labelled from there. A scale turned upside down
+still draws its axes and nothing inside them.
+
+Pinning the labels showed one more thing: the count of tick labels truncated
+`(max - min) / tick`, and a step of 0.2 is calculated in single precision, so a span of one came to
+4.9999999 ticks and lost the label at the top. `CountTickLabels` now allows a millionth of a tick,
+and the measuring loop asks it too rather than stepping on its own, so the labels measured are the
+labels drawn. None of the calculated scales the tests pin changed.
+
+Pinned by `EqualValueScaleTests` — every chart type with a value axis at zero, above and below it,
+with and without a major tick and with every tick mark, gridline and data label asked for — and
+through PinataLayout by `ChartAreaRenderingTests.AValueAxisGivenOneValueIsWidenedRatherThanStoppingTheDocument`.
 
 ---
 

@@ -152,4 +152,30 @@ public class ChartAreaRenderingTests
         placed.Select(run => System.Math.Round(run.Y, 2)).Distinct().Should().HaveCountGreaterThan(1,
             "twelve entries do not fit in one row across twelve centimetres");
     }
+
+    /// <summary>
+    ///   A value axis given the same minimum and maximum spans nothing, and the chart mapper carries
+    ///   both across as given. The chart renderer widens such a scale as it widens a flat range of
+    ///   data - up by one from a value above zero - so the document is drawn, and its axis is
+    ///   labelled from the value given to one above it, where it used to stop the whole document
+    ///   with a NaN the content-stream writer refused.
+    /// </summary>
+    [Fact]
+    public void AValueAxisGivenOneValueIsWidenedRatherThanStoppingTheDocument()
+    {
+        var document = new Document();
+        var chart = document.AddSection().AddChart(ChartType.Column2D);
+        chart.Width = Unit.FromCentimeter(12);
+        chart.Height = Unit.FromCentimeter(8);
+        chart.SeriesCollection.AddSeries().Add(1.0, 5.5);
+        chart.XValues.AddXSeries().Add("one", "two");
+        chart.YAxis.MinimumScale = 5;
+        chart.YAxis.MaximumScale = 5;
+        chart.YAxis.MajorTick = 0.5;
+
+        var runs = Glyphs.RunsOn(Rendered.FirstPageOf(document));
+
+        foreach (var label in new[] { "5.0", "5.5", "6.0" })
+            runs.Should().ContainEquivalentOf(Glyphs.For(label), "the axis is labelled " + label);
+    }
 }

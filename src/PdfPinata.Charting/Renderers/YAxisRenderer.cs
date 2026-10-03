@@ -128,12 +128,11 @@ internal abstract class YAxisRenderer : AxisRenderer
     var size = new XSize(0, 0);
 
     // height of all ticklabels
-    var yMin = yari.MinimumScale;
-    var yMax = yari.MaximumScale;
-    var yMajorTick = yari.MajorTick;
     labelSize = new XSize(0, 0);
-    for (var y = yMin; y <= yMax; y += yMajorTick)
+    var countTickLabels = CountTickLabels(yari);
+    for (var i = 0; i < countTickLabels; ++i)
     {
+      var y = yari.MinimumScale + yari.MajorTick * i;
       var str = y.ToString(yari.TickLabelsFormat);
       labelSize = gfx.MeasureString(str, yari.TickLabelsFont);
       if (isHorizontal)
@@ -278,7 +277,7 @@ internal abstract class YAxisRenderer : AxisRenderer
     var yMajorTick = yari.MajorTick;
 
     var xsf = new XStringFormat { LineAlignment = XLineAlignment.Near };
-    var countTickLabels = (int)((yari.MaximumScale - yMin) / yMajorTick) + 1;
+    var countTickLabels = CountTickLabels(yari);
     for (var i = 0; i < countTickLabels; ++i)
     {
       var y = yMin + yMajorTick * i;
@@ -315,7 +314,7 @@ internal abstract class YAxisRenderer : AxisRenderer
 
     var labelSize = new XSize(0, 0) { Height = lineSpace * xHeight / cellSpace };
 
-    var countTickLabels = (int)((yari.MaximumScale - yMin) / yMajorTick) + 1;
+    var countTickLabels = CountTickLabels(yari);
     for (var i = 0; i < countTickLabels; ++i)
     {
       var y = yMin + yMajorTick * i;
@@ -343,6 +342,20 @@ internal abstract class YAxisRenderer : AxisRenderer
       gfx.DrawString(str, yari.TickLabelsFont, yari.TickLabelsBrush, layoutText[0]);
     }
   }
+
+  /// <summary>
+  /// How many major ticks, and so how many tick labels, fit from the minimum scale to the maximum,
+  /// both ends included.
+  /// </summary>
+  /// <remarks>
+  /// The span is a whole number of ticks more often than the arithmetic says it is: a step of 0.2
+  /// is calculated in single precision, and a span of one divided by it comes to 4.9999999, which
+  /// truncated left the label at the top of the scale undrawn. So a quotient within a millionth of
+  /// a tick of the next whole number counts as reaching it. The measuring and both drawing loops
+  /// ask this one question, so the labels measured are the labels drawn.
+  /// </remarks>
+  private static int CountTickLabels(AxisRendererInfo yari) =>
+    (int)Math.Floor((yari.MaximumScale - yari.MinimumScale) / yari.MajorTick + 1e-6) + 1;
 
   /// <summary>
   /// Draws the axis line from the minimum scale to the maximum, lengthened at each end by half
@@ -592,9 +605,26 @@ internal abstract class YAxisRenderer : AxisRenderer
     // Whatever the axis was given explicitly wins over what is calculated here, one value at a
     // time; a chart with no axis object at all is given nothing.
     var axis = rendererInfo.Axis;
+    var minimum = GivenOrCalculated(axis?.minimumScale, RoundedMinimum(yMin, stepWidth, roundFactor));
+    var maximum = GivenOrCalculated(axis?.maximumScale, RoundedMaximum(yMax, stepWidth, roundFactor));
+
+    // A scale that spans nothing can only have been given: the calculated one never does. Every
+    // value on the axis would be placed by dividing its length by a span of zero, so it is widened
+    // exactly as a range of data with one value in it is, and a tick the axis was not given is
+    // worked out from the range it is widened to, as it would have been for that data. A minimum
+    // above the maximum is left alone, and the plot area draws nothing against it.
+    #pragma warning disable S1244 // Exact on purpose: only a span of exactly zero divides by zero.
+    // ReSharper disable once CompareOfFloatsByEqualityOperator
+    if (minimum == maximum)
+    #pragma warning restore S1244
+    {
+      WidenFlatRange(minimum, ref maximum);
+      stepWidth = StepWidth(maximum - minimum);
+    }
+
+    rendererInfo.MinimumScale = minimum;
+    rendererInfo.MaximumScale = maximum;
     rendererInfo.MajorTick = GivenOrCalculated(axis?.majorTick, stepWidth);
-    rendererInfo.MinimumScale = GivenOrCalculated(axis?.minimumScale, RoundedMinimum(yMin, stepWidth, roundFactor));
-    rendererInfo.MaximumScale = GivenOrCalculated(axis?.maximumScale, RoundedMaximum(yMax, stepWidth, roundFactor));
     rendererInfo.MinorTick = GivenOrCalculated(axis?.minorTick, rendererInfo.MajorTick / 5);
   }
 
@@ -619,14 +649,22 @@ internal abstract class YAxisRenderer : AxisRenderer
     // ReSharper disable once CompareOfFloatsByEqualityOperator
     if (yMin == yMax)
     #pragma warning restore S1244
-    {
-      if (yMin == 0)
-        yMax = 0.9f;
-      else if (yMin < 0)
-        yMax = 0;
-      else if (yMin > 0)
-        yMax = yMin + 1;
-    }
+      WidenFlatRange(yMin, ref yMax);
+  }
+
+  /// <summary>
+  /// Raises the top of a range whose two ends are both <paramref name="yMin"/>: to 0.9 from zero,
+  /// to zero from below it, and by one from above it. The bottom is never moved, so a minimum the
+  /// axis was given stays where it was put.
+  /// </summary>
+  private static void WidenFlatRange(double yMin, ref double yMax)
+  {
+    if (yMin == 0)
+      yMax = 0.9f;
+    else if (yMin < 0)
+      yMax = 0;
+    else if (yMin > 0)
+      yMax = yMin + 1;
   }
 
   /// <summary>
