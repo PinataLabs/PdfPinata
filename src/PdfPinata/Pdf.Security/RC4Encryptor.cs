@@ -34,7 +34,10 @@ internal class RC4Encryptor : EncryptorBase, IEncryptor
     private void ValidateUserPassword(string password)
     {
         CreateUserKey(password);
-        PasswordValid = CompareArrays(computedUserValue, userValue, 16);
+        // Algorithm 6 compares the whole of /U at revision 2, where Algorithm 4 makes all 32
+        // bytes of it, but only the first 16 from revision 3 on, where Algorithm 5 defines no more.
+        var length = rValue == 2 ? 32 : 16;
+        PasswordValid = userValue.Length >= length && CompareArrays(computedUserValue, userValue, length);
     }
 
     /// <summary>
