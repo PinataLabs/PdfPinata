@@ -35,7 +35,7 @@ internal static class PaintedPaths
     internal sealed class Path
     {
         internal Path(IReadOnlyList<(double X, double Y)> points, int curves, bool filled, bool stroked,
-            string fillColour, string strokeColour, double lineWidth)
+            string fillColour, string strokeColour, double lineWidth, bool dashed)
         {
             Points = points;
             Curves = curves;
@@ -44,6 +44,7 @@ internal static class PaintedPaths
             FillColour = fillColour;
             StrokeColour = strokeColour;
             LineWidth = lineWidth;
+            Dashed = dashed;
         }
 
         /// <summary>
@@ -68,6 +69,12 @@ internal static class PaintedPaths
         internal double LineWidth { get; }
 
         /// <summary>
+        ///   Whether the dash pattern in force when it was painted has any dashes in it - a
+        ///   <c>d</c> operator with a non-empty array - rather than being a solid line.
+        /// </summary>
+        internal bool Dashed { get; }
+
+        /// <summary>
         ///   How many different points the path names - the corners of a polygon, which is what
         ///   tells a triangle from a diamond from a star. Compared to a hundredth of a point, well
         ///   below any two corners of a marker and well above the rounding of the content stream.
@@ -88,7 +95,7 @@ internal static class PaintedPaths
         {
             var paint = Filled ? Stroked ? "FS" : "F" : "S";
             return $"{paint} {DistinctPoints} points, {Curves} curves, ({Left:F2},{Bottom:F2}) {Width:F2}x{Height:F2}" +
-                $" fill={FillColour} stroke={StrokeColour} w={LineWidth:F2}";
+                $" fill={FillColour} stroke={StrokeColour} w={LineWidth:F2}" + (Dashed ? " dashed" : "");
         }
     }
 
@@ -120,10 +127,11 @@ internal static class PaintedPaths
         private readonly List<(double X, double Y)> _points = [];
         private int _curves;
 
-        private readonly Stack<(string Fill, string Stroke, double Width)> _saved = new();
+        private readonly Stack<(string Fill, string Stroke, double Width, bool Dashed)> _saved = new();
         private string _fill = PaintedRectangles.Black;
         private string _stroke = PaintedRectangles.Black;
         private double _width = 1;
+        private bool _dashed;
 
         internal List<Path> Painted { get; } = [];
 
@@ -141,18 +149,23 @@ internal static class PaintedPaths
             switch (name)
             {
                 case OpCodeName.q:
-                    _saved.Push((_fill, _stroke, _width));
+                    _saved.Push((_fill, _stroke, _width, _dashed));
                     return true;
 
                 case OpCodeName.Q:
                     // A Q with nothing put away is malformed content; read on rather than throw.
                     if (_saved.Count > 0)
-                        (_fill, _stroke, _width) = _saved.Pop();
+                        (_fill, _stroke, _width, _dashed) = _saved.Pop();
                     return true;
 
                 case OpCodeName.w:
                     if (operands.Count >= 1)
                         _width = Number(operands[0]);
+                    return true;
+
+                case OpCodeName.d:
+                    if (operands.Count >= 1 && operands[0] is CArray pattern)
+                        _dashed = pattern.Count > 0;
                     return true;
 
                 default:
@@ -248,7 +261,7 @@ internal static class PaintedPaths
                 return;
 
             if (_points.Count > 0)
-                Painted.Add(new Path([.. _points], _curves, paint.Filled, paint.Stroked, _fill, _stroke, _width));
+                Painted.Add(new Path([.. _points], _curves, paint.Filled, paint.Stroked, _fill, _stroke, _width, _dashed));
             Discard();
         }
 

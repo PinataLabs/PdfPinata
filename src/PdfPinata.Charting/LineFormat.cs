@@ -95,9 +95,17 @@ public class LineFormat : DocumentObject
   public XDashStyle DashStyle
   {
     get => dashStyle;
-    set { dashStyle = value; isSet = true; }
+    set { dashStyle = value; isSet = true; dashStyleSet = true; }
   }
   internal XDashStyle dashStyle;
+
+  /// <summary>
+  /// Whether DashStyle has been assigned. Its default, Solid, is also a dash style a caller can
+  /// choose, so without this a format that said nothing about dashes could not be told from one
+  /// that asked for a solid line, and a point's format replaced its series' dashes with Solid.
+  /// Copied by Clone with the rest of the fields.
+  /// </summary>
+  internal bool dashStyleSet;
 
   /// <summary>
   /// Gets or sets the style of the line.

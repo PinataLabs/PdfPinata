@@ -74,8 +74,8 @@ internal class Converter
   }
 
   /// <summary>
-  /// Creates a XPen based on the specified line format. If not specified color and width will be taken
-  /// from the defaultPen parameter.
+  /// Creates a XPen based on the specified line format. If not specified color, width and dash style
+  /// will be taken from the defaultPen parameter.
   /// </summary>
   internal static XPen ToXPen(LineFormat lineFormat, XPen defaultPen)
   {
@@ -107,7 +107,9 @@ internal class Converter
 
       pen = new XPen(color, width)
       {
-        DashStyle = lineFormat.dashStyle,
+        // A dash style the format never set is the default's, as its colour and width are: a
+        // point that says only how wide its border is keeps its series' dashes.
+        DashStyle = lineFormat.dashStyleSet ? lineFormat.dashStyle : defaultDashStyle,
         DashOffset = 10 * width
       };
     }
