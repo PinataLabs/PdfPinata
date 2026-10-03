@@ -28,6 +28,7 @@
 #endregion
 
 using System;
+using System.Globalization;
 using PdfPinata.Drawing;
 using PdfPinata.Drawing.Layout;
 using PdfPinata.Fonts;
@@ -281,6 +282,15 @@ public sealed class PdfTextField : PdfAcroField
     /// each character rather than the character. <c>/Q</c> says which side a line is aligned to.
     /// </para>
     /// <para>
+    /// A character, for a comb cell and for an asterisk, is a text element - a grapheme cluster,
+    /// what <see cref="StringInfo"/> enumerates - rather than a UTF-16 code unit. Cut by code
+    /// unit, a character outside the Basic Multilingual Plane was drawn as two lone surrogates,
+    /// neither of which has a glyph, in two cells, and a password showed two asterisks for it.
+    /// pdf.js agrees about the surrogate pair, cutting a comb value by the font's character
+    /// codes; it gives a combining mark a cell of its own, which puts an accent a cell away from
+    /// its letter, and that is the one place this deliberately differs.
+    /// </para>
+    /// <para>
     /// It used to draw every value as one line from the top left, whatever the field was: a
     /// multi-line value ran off the side, a comb field was ordinary text and a password was
     /// written in the clear into the drawing of it (issue #155).
@@ -294,16 +304,20 @@ public sealed class PdfTextField : PdfAcroField
         var brush = new XSolidBrush(ForeColor);
         var alignment = Alignment;
 
+        // Characters as the person filling the field sees them - text elements, so a character
+        // outside the Basic Multilingual Plane is one and not the two UTF-16 halves it is stored
+        // as, and a letter with a combining mark after it is one and not two (issue #206).
         if (Password)
-            text = new string('*', text.Length);
+            text = new string('*', new StringInfo(text).LengthInTextElements);
 
         var cells = MaxLength;
         if (Comb && cells > 0 && !MultiLine && !Password)
         {
             var cellWidth = size.Width / cells;
-            for (var index = 0; index < text.Length && index < cells; index++)
+            var characters = StringInfo.GetTextElementEnumerator(text);
+            for (var index = 0; index < cells && characters.MoveNext(); index++)
             {
-                gfx.DrawString(text[index].ToString(), font, brush,
+                gfx.DrawString(characters.GetTextElement(), font, brush,
                     new XRect(index * cellWidth, 0, cellWidth, size.Height), XStringFormats.Center);
             }
             return;

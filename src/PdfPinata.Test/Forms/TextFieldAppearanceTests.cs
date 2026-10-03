@@ -139,6 +139,44 @@ public sealed class TextFieldAppearanceTests : IDisposable
     }
 
     /// <summary>
+    ///   A comb field counts characters as a reader of the value sees them: a character outside the
+    ///   Basic Multilingual Plane is two UTF-16 code units, and a base letter with a combining mark
+    ///   after it is two code points, and each is one cell. Split by code unit, each half of the
+    ///   surrogate pair was drawn alone - a lone surrogate has no glyph - in a cell of its own.
+    /// </summary>
+    [Theory]
+    [InlineData("a\U0001F600b", new[] { 0, 1, 2 })]
+    [InlineData("e\u0301x", new[] { 0, 1 })]
+    [InlineData("\U00020000\U00020001\U00020002", new[] { 0, 1, 2 })]
+    public void ACombFieldPutsOneCharacterAsTheReaderSeesItInEachCell(string value, int[] cells)
+    {
+        var field = OnAPage(Line, f =>
+        {
+            f.MaxLength = 4;
+            f.Flags |= PdfAcroFieldFlags.Comb;
+        });
+
+        field.Text = value;
+
+        CellsOf(field).Should().Equal(cells);
+    }
+
+    [Theory]
+    [InlineData("\U0001F600")]
+    [InlineData("e\u0301")]
+    public void APasswordDrawsOneMaskCharacterForEachCharacterAsTheReaderSeesIt(string value)
+    {
+        var masked = OnAPage(Line, f => f.Password = true);
+        var single = OnAPage(Line, f => f.Password = true);
+
+        masked.Text = value;
+        single.Text = "x";
+
+        TextOperators.ShownStrings(AppearanceBytes(masked))
+            .Should().Equal(TextOperators.ShownStrings(AppearanceBytes(single)), "one character, so one asterisk");
+    }
+
+    /// <summary>
     ///   A comb field described once, on a parent that only groups: <c>/MaxLen</c> and the comb
     ///   flag are on <c>code</c>, and <c>code.digits</c>, which has the widget, carries neither.
     /// </summary>
