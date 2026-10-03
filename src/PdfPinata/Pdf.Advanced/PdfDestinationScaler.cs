@@ -139,13 +139,13 @@ internal static class PdfDestinationScaler
         {
             // The element rather than the property: reading page.Annotations would give a page
             // without any an empty array to hold.
-            var item = Resolve(page.Elements[PdfPage.Keys.Annots]);
+            var item = PdfReference.Dereference(page.Elements[PdfPage.Keys.Annots]);
             if (item is not PdfArray annotations)
                 return;
 
             foreach (var element in annotations.Elements)
             {
-                if (Resolve(element) is PdfDictionary annotation)
+                if (PdfReference.Dereference(element) is PdfDictionary annotation)
                     VisitHolderAndItsAction(annotation, "/Dest");
             }
         }
@@ -222,11 +222,11 @@ internal static class PdfDestinationScaler
         /// </summary>
         private void VisitDestination(PdfItem item)
         {
-            item = Resolve(item);
+            item = PdfReference.Dereference(item);
 
             // A destination is either the array or a dictionary holding it under /D.
             if (item is PdfDictionary dictionary)
-                item = Resolve(dictionary.Elements["/D"]);
+                item = PdfReference.Dereference(dictionary.Elements["/D"]);
 
             if (item is not PdfArray destination || destination.Elements.Count < 2)
                 return;
@@ -281,8 +281,8 @@ internal static class PdfDestinationScaler
             if (destination.Elements.Count < 4)
                 return;
 
-            var hasLeft = PdfPageResizer.TryNumber(destination.Elements[2], out var left);
-            var hasTop = PdfPageResizer.TryNumber(destination.Elements[3], out var top);
+            var hasLeft = PdfItemValues.TryGetNumber(destination.Elements[2], out var left);
+            var hasTop = PdfItemValues.TryGetNumber(destination.Elements[3], out var top);
 
             if (hasLeft && hasTop)
             {
@@ -313,7 +313,7 @@ internal static class PdfDestinationScaler
             var corners = new double[4];
             for (var index = 0; index < 4; index++)
             {
-                if (!PdfPageResizer.TryNumber(destination.Elements[index + 2], out corners[index]))
+                if (!PdfItemValues.TryGetNumber(destination.Elements[index + 2], out corners[index]))
                     return;
             }
 
@@ -340,7 +340,7 @@ internal static class PdfDestinationScaler
         private static void MoveHorizontalLine(PdfArray destination, XMatrix matrix)
         {
             if (destination.Elements.Count < 3 ||
-                !PdfPageResizer.TryNumber(destination.Elements[2], out var value))
+                !PdfItemValues.TryGetNumber(destination.Elements[2], out var value))
                 return;
 
             if (IsAxisAligned(matrix))
@@ -361,7 +361,7 @@ internal static class PdfDestinationScaler
         private static void MoveVerticalLine(PdfArray destination, XMatrix matrix)
         {
             if (destination.Elements.Count < 3 ||
-                !PdfPageResizer.TryNumber(destination.Elements[2], out var value))
+                !PdfItemValues.TryGetNumber(destination.Elements[2], out var value))
                 return;
 
             if (IsAxisAligned(matrix))
@@ -406,11 +406,6 @@ internal static class PdfDestinationScaler
         private static double TransformY(double y, XMatrix matrix)
         {
             return y * matrix.M22 + matrix.OffsetY;
-        }
-
-        private static PdfItem Resolve(PdfItem item)
-        {
-            return item is PdfReference reference ? reference.Value : item;
         }
 
         private const int MaxDepth = 32;

@@ -352,24 +352,13 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// </summary>
     private PdfItem CloneResources(PdfItem resources)
     {
-        var dictionary = ResolveDictionary(resources);
+        var dictionary = PdfReference.Dereference(resources) as PdfDictionary;
         if (dictionary == null)
             return resources;
 
         var clone = dictionary.Clone();
         clone.Document = Owner;
         return clone;
-    }
-
-    /// <summary>
-    /// Returns the dictionary an item holds, following an indirect reference, or null if the
-    /// item is not a dictionary.
-    /// </summary>
-    private static PdfDictionary ResolveDictionary(PdfItem item)
-    {
-        if (item is PdfReference reference)
-            item = reference.Value;
-        return item as PdfDictionary;
     }
 
     /// <summary>
@@ -595,8 +584,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
             importedObjectTable = Owner.FormTable.GetImportedObjectTable(importPage);
 
         // The item can be indirect. If so, replace it by its value.
-        if (item is PdfReference reference)
-            item = reference.Value;
+        item = PdfReference.Dereference(item);
         if (item is not PdfObject root)
         {
             // Simple items are just cloned.
@@ -995,9 +983,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         // The array itself, or an indirect reference to it. Both are well-formed; a reference is
         // resolved here so that what is reported below is what the entry came to rather than the
         // reference that got there.
-        var entry = kid.Elements[Keys.Kids];
-        if (entry is PdfReference reference)
-            entry = reference.Value;
+        var entry = PdfReference.Dereference(kid.Elements[Keys.Kids]);
 
         // A node that lists no children is read as a node with no children, which is the tolerant
         // reading already taken a few lines above for a node with no /Type. /Kids is required of a

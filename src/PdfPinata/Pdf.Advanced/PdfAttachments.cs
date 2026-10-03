@@ -335,8 +335,7 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
     /// </summary>
     internal static PdfFileSpecification Resolve(PdfItem item)
     {
-        if (item is PdfReference reference)
-            item = reference.Value;
+        item = PdfReference.Dereference(item);
 
         if (item is PdfFileSpecification specification)
             return specification;
@@ -352,8 +351,7 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
     /// </summary>
     private static PdfDictionary Dictionary(PdfItem item)
     {
-        if (item is PdfReference reference)
-            item = reference.Value;
+        item = PdfReference.Dereference(item);
         return item as PdfDictionary;
     }
 

@@ -165,8 +165,6 @@ internal static class PdfResourceDeduplicator
     /// </summary>
     private const int MaxDepth = 64;
 
-    private static PdfItem Resolve(PdfItem item) => item is PdfReference reference ? reference.Value : item;
-
     /// <summary>
     /// The indirect objects that may be merged, the references between them, and what each says
     /// apart from those references.
@@ -185,12 +183,12 @@ internal static class PdfResourceDeduplicator
             AddResources(page.Elements["/Resources"]);
             AddItem(page.Elements["/Contents"], 0);
 
-            if (Resolve(page.Elements["/Annots"]) is PdfArray annotations)
+            if (PdfReference.Dereference(page.Elements["/Annots"]) is PdfArray annotations)
             {
                 foreach (var annotation in annotations.Elements)
                 {
-                    if (Resolve(annotation) is PdfDictionary dictionary
-                        && Resolve(dictionary.Elements["/AP"]) is PdfDictionary appearances)
+                    if (PdfReference.Dereference(annotation) is PdfDictionary dictionary
+                        && PdfReference.Dereference(dictionary.Elements["/AP"]) is PdfDictionary appearances)
                         AddAppearances(appearances);
                 }
             }
@@ -207,7 +205,7 @@ internal static class PdfResourceDeduplicator
         {
             foreach (var key in new[] { "/N", "/R", "/D" })
             {
-                switch (Resolve(appearances.Elements[key]))
+                switch (PdfReference.Dereference(appearances.Elements[key]))
                 {
                     case PdfDictionary { Stream: not null } stream:
                         AddResources(stream.Elements["/Resources"]);
@@ -226,7 +224,7 @@ internal static class PdfResourceDeduplicator
         {
             foreach (var state in states.Elements.Values)
             {
-                if (Resolve(state) is PdfDictionary { Stream: not null } stateStream)
+                if (PdfReference.Dereference(state) is PdfDictionary { Stream: not null } stateStream)
                     AddResources(stateStream.Elements["/Resources"]);
             }
         }
@@ -237,12 +235,12 @@ internal static class PdfResourceDeduplicator
         /// </summary>
         private void AddResources(PdfItem item)
         {
-            if (Resolve(item) is not PdfDictionary resources)
+            if (PdfReference.Dereference(item) is not PdfDictionary resources)
                 return;
 
             foreach (var category in ResourceCategories)
             {
-                if (Resolve(resources.Elements[category]) is not PdfDictionary entries)
+                if (PdfReference.Dereference(resources.Elements[category]) is not PdfDictionary entries)
                     continue;
 
                 foreach (var entry in entries.Elements.Values)

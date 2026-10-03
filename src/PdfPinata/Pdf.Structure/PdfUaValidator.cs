@@ -196,12 +196,12 @@ public static class PdfUaValidator
         {
             // The raw array rather than the Annotations collection, which creates an empty one on a
             // page that has none — an inspection that adds bytes to the file it is inspecting.
-            if (!(Resolve(document.Pages[index].Elements[PdfPage.Keys.Annots]) is PdfArray annotations))
+            if (!(PdfReference.Dereference(document.Pages[index].Elements[PdfPage.Keys.Annots]) is PdfArray annotations))
                 continue;
 
             foreach (var item in annotations.Elements)
             {
-                if (Resolve(item) is PdfDictionary dictionary
+                if (PdfReference.Dereference(item) is PdfDictionary dictionary
                     && dictionary.Elements.GetName(PdfAnnotation.Keys.Subtype) == "/Link")
                     RequireDescribedLink(dictionary, index + 1);
             }
@@ -322,12 +322,12 @@ public static class PdfUaValidator
     /// <summary>The child elements of a kids entry, in the order they are written.</summary>
     private static IEnumerable<PdfDictionary> ChildrenOf(PdfItem kids)
     {
-        switch (Resolve(kids))
+        switch (PdfReference.Dereference(kids))
         {
             case PdfArray array:
                 foreach (var item in array.Elements)
                 {
-                    if (Resolve(item) is PdfDictionary child && IsElement(child))
+                    if (PdfReference.Dereference(item) is PdfDictionary child && IsElement(child))
                         yield return child;
                 }
                 break;
@@ -358,12 +358,12 @@ public static class PdfUaValidator
 
     private static void Push(Stack<PdfDictionary> pending, PdfItem kids)
     {
-        switch (Resolve(kids))
+        switch (PdfReference.Dereference(kids))
         {
             case PdfArray array:
                 foreach (var item in array.Elements)
                 {
-                    if (Resolve(item) is PdfDictionary child && IsElement(child))
+                    if (PdfReference.Dereference(item) is PdfDictionary child && IsElement(child))
                         pending.Push(child);
                 }
                 break;
@@ -376,6 +376,4 @@ public static class PdfUaValidator
 
     private static bool IsElement(PdfDictionary dictionary) =>
         dictionary.Elements.GetName(PdfStructureElement.Keys.Type) == "/StructElem";
-
-    private static PdfItem Resolve(PdfItem item) => item is PdfReference reference ? reference.Value : item;
 }

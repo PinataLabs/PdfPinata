@@ -100,22 +100,15 @@ internal static class PdfNameTree
 
     /// <summary>
     /// The text of a name written either as a string or as a name, without the slash a name
-    /// carries, or null if the item is neither.
+    /// carries, or null if the item is neither. Either may be indirect, as any object in a file
+    /// is allowed to be.
     /// </summary>
     internal static string TextOf(PdfItem item)
     {
-        if (item is PdfString text)
-            return text.Value;
+        if (PdfItemValues.TryGetText(item, allowName: false, out var text))
+            return text;
 
-        if (item is PdfStringObject textObject)
-            return textObject.Value;
-
-        var name = item as PdfName;
-        if (name != null)
-            return WithoutSlash(name.Value);
-
-        var nameObject = item as PdfNameObject;
-        return nameObject != null ? WithoutSlash(nameObject.Value) : null;
+        return PdfItemValues.TryGetName(item, out var name) ? WithoutSlash(name) : null;
     }
 
     private static string WithoutSlash(string name)

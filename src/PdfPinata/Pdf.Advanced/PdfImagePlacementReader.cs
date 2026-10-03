@@ -201,7 +201,7 @@ internal sealed class PdfImagePlacementReader
         var m = new double[6];
         for (var idx = 0; idx < 6; idx++)
         {
-            if (!TryGetNumber(matrix.Elements[idx], out m[idx]))
+            if (!PdfItemValues.TryGetNumber(matrix.Elements[idx], out m[idx]))
                 return XMatrix.Identity;
         }
 
@@ -234,27 +234,6 @@ internal sealed class PdfImagePlacementReader
         }
 
         if (operand is CInteger integer)
-        {
-            value = integer.Value;
-            return true;
-        }
-
-        value = 0;
-        return false;
-    }
-
-    private static bool TryGetNumber(PdfItem item, out double value)
-    {
-        if (item is PdfReference reference)
-            item = reference.Value;
-
-        if (item is PdfReal real)
-        {
-            value = real.Value;
-            return true;
-        }
-
-        if (item is PdfInteger integer)
         {
             value = integer.Value;
             return true;
