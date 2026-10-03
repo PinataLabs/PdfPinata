@@ -18,6 +18,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **`PdfReader.Open` in `PdfDocumentOpenMode.Append` opens a file with padding after `%%EOF`.** Append mode looked for the last `startxref` a second time, in the last 2 KB only, and parsed the number in the current culture. So a file whose producer pads the end (SAP, for example; empira/PDFsharp#390) opened in every mode except Append, which threw "The document has no startxref". Append now uses the offset the parser already read. (#164)
 - **PDF dates are written in the Gregorian calendar whatever the current culture.** `/CreationDate`, `/ModDate` and an annotation's `/M` were formatted in the current culture, so under th-TH, for example, they carried the Buddhist year 2569. (#160)
 - **An XMP date of `DateTimeKind.Unspecified` carries the local offset, so it describes the same instant as `/Info`.** `/Info` wrote the local offset for such a date and XMP wrote none, and PDF/A requires the two to agree. Both now take the offset from one computation. (#160)
+- **An array's `GetBoolean`, `GetInteger`, `GetReal`, `GetString` and `GetName` read the null object as no value**, whether it is written out or referred to, as a dictionary's already did, instead of throwing `InvalidCastException`. Both collections do the same for a reference that has no object behind it. (#157)
+- **`GetReal` on a dictionary or an array accepts every kind of number**, including the `PdfLong` the reader makes of an integer outside the range of an `int`. `GetInteger` accepts an unsigned or long integer, direct or indirect, when it fits in an `int`. A dictionary's `GetInteger` used to wrap an unsigned integer above `int.MaxValue` round to a negative number; it now throws `InvalidCastException`. (#157)
+- **A named destination or an embedded file whose name-tree key is an indirect string is listed and can be resolved.** The key was not followed, so the entry was invisible. (#157)
+- **The reader checks all 32 bytes of `/U` for a revision 2 (40-bit RC4) password**, as Algorithm 6 of ISO 32000-1 requires, where it checked only the first 16. A revision 2 file whose `/U` is damaged in its second half no longer opens with either password. Revisions 3 and 4 still compare the first 16 bytes, which are all those revisions define. (#198)
 
 ### Pages & Documents
 
@@ -33,6 +37,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **LINQ over a page's `PdfContents` now yields the `PdfContent` streams instead of their `PdfReference`s.** `foreach` already gave `PdfContent`, but enumeration as a `PdfArray`, through `IEnumerable<PdfItem>` (what LINQ sees) or through plain `IEnumerable` gave the references underneath, so `page.Contents.OfType<PdfContent>()` was empty and `Cast<PdfContent>()` threw. Every way of enumerating the array now yields the same content streams, as `PdfAnnotations` has since #81.
 - **`PdfPage.Resize` no longer hangs on a malformed `/Dests` name tree or outline that leads back to itself.** The resize walked the name tree with a depth cap but no record of the nodes it had visited, so a `/Kids` naming its own node took 2^33 steps. It now uses the guarded `PdfNameTree` walk. The outline walk beside it hung the same way on an item that is its own `/First` and `/Next`, and now enters each item once. (#165)
+- **`PdfPage.GetImagePlacements` reads a form `/Matrix` whose numbers are indirect**, instead of replacing it with the identity, so a flipped or scaled image drawn through such a form is reported as it is drawn. (#157)
 
 ### Drawing & Graphics
 
@@ -86,6 +91,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 #### Fixed
 
 - **`Rfc3161TimestampProvider` no longer reads a response of any size, and its own client no longer follows redirects.** It read the whole body into memory with no limit and followed a 3xx to wherever it pointed. It now reads through the same guarded exchange as `OcspRevocationDataProvider`: headers first, then at most 1 MiB of body, with the client's `Timeout` over the whole exchange, body included. A larger or slower response fails the signing with an `InvalidOperationException` naming the authority. The client the provider makes for itself follows no redirect, because the caller named the authority it trusts; if your authority has moved, pass its new URI. A caller that supplies its own `HttpClient` keeps its own redirect policy. The OCSP provider also gains the timeout over the body, which it lacked before. (#166)
+- **`Rfc3161TimestampProvider` asks the authority to put its certificate in the timestamp token** (`certReq`, RFC 3161 §2.4.1), so the timestamp can still be checked when the certificate is nowhere else. Tokens grow by a few kilobytes. A token whose signature does not verify now fails the signing, and so does one from an authority that ignores the request, which §2.4.2 does not allow. `PdfSignatureValidationData` stores the authority's certificates in `/DSS` and asks the revocation provider about them. (#193)
 
 ### Charts
 
@@ -107,6 +113,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **A bar chart labels a zero on the positive side of the axis at `InsideEnd` and `OutsideEnd`**, as a column chart does. It put the label on the negative side. (#196)
 - **A clustered column or bar chart no longer throws `ArgumentException` for a value between zero and a minimum the caller set above zero.** Such a value, 1 on a scale from 2 to 5 for example, is left undrawn, as any value off the scale is. (#196)
 - **A stacked column chart whose value axis has its minimum above its maximum draws nothing rather than throwing**, as a stacked bar chart already did. (#196)
+- **A chart point that sets only its line width or colour keeps its series' dash style**, on column, bar and pie charts and through PinataLayout's chart mapper. It was drawn solid, because the point's unset dash style could not be told from `Solid`. A point that sets `DashStyle = Solid` is still drawn solid. (#192)
 
 ### PinataLayout & DDL
 

@@ -118,10 +118,13 @@ static seams it reads only `GlobalFontSettings.FontResolver`.
 
 Writing those tests turned up seven defects, all reachable through public API and all since fixed:
 `docs/specs/charting-renderer-findings.md` sets out each with the code, the fix and the test that
-pins it. Two are worth carrying in your head, because both were one renderer having a guard its
-twin lacked, and the pairs are still near-copies of each other. **The category axis renderers are
-copies of one another** — `HorizontalXAxisRenderer` and `VerticalXAxisRenderer`, and likewise the
-horizontal and vertical Y renderers — so a change to one nearly always belongs in the other.
+pins it. Most of them were one renderer having a guard its twin lacked, and the twins are now one
+class each. **A column chart and a bar chart are drawn by the same code, turned through an
+`AxisOrientation`**: `XAxisRenderer` and `YAxisRenderer` take one, and the `Horizontal*`/`Vertical*`
+axis classes are thin shells over them; the plot areas, gridlines and data labels take one in
+their constructor, and `PlotOrientation.At(category, value)` is the one place a point is placed.
+So a fix belongs in the shared class, and `ColumnBarParityTests`, which draws the same data both
+ways and asserts one is the other turned on its side, is what says whether it held.
 **A blank is a null**, both in a series (`Series.AddBlank`) and in a category series
 (`XSeries.AddBlank`); read a point's value through `PointRendererInfo.Value`, which answers `NaN`
 for one, rather than through `point.value`, which throws.
