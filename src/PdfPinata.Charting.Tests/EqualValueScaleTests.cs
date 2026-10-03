@@ -92,6 +92,37 @@ public class EqualValueScaleTests
     }
 
     /// <summary>
+    ///   A calculated end is a whole number of steps worked out in floating point, so the maximum
+    ///   this data is scaled to, labelled 0.6, is six steps of 0.1 - which is 0.6000000000000001.
+    ///   A minimum given as the 0.6 the label reads is the same value, and is widened as one.
+    /// </summary>
+    [Fact]
+    public void AGivenEndEqualToACalculatedOneButForRoundingIsWidenedToo()
+    {
+        var chart = Charts.Of(ChartType.Column2D, 0.1, 0.5);
+        chart.YAxis.MinimumScale = 0.6;
+
+        ShownText.NumericOn(Drawn.Page(chart)).Should().Equal("0.6", "0.8", "1.0", "1.2", "1.4", "1.6");
+    }
+
+    /// <summary>
+    ///   The top of a long scale keeps its label. The step is a fifth here, and it used to be
+    ///   worked out in single precision, a little over a fifth - an error that a hundred steps
+    ///   added up into the top label going missing.
+    /// </summary>
+    [Fact]
+    public void TheTopOfALongScaleKeepsItsLabel()
+    {
+        var chart = Charts.Of(ChartType.Column2D, 0.0, 1.0);
+        chart.YAxis.MaximumScale = 20;
+
+        var labels = ShownText.NumericOn(Drawn.Page(chart));
+
+        labels.Should().HaveCount(101);
+        labels[^1].Should().Be("20.0");
+    }
+
+    /// <summary>
     ///   A given maximum that the calculated minimum happens to equal is widened the other way: the
     ///   value the caller gave is never the one moved, so the bottom is lowered by one rather than
     ///   the top raised to zero. The data here is scaled from -3.5, so a maximum of -3.5 leaves

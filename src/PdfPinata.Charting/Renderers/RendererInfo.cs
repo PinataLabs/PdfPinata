@@ -324,10 +324,12 @@ internal class AxisRendererInfo : AreaRendererInfo
   /// that many less one steps above it.
   /// </summary>
   /// <remarks>
-  /// The span is a whole number of ticks more often than the arithmetic says it is: a step of 0.2
-  /// is calculated in single precision, and a span of one divided by it comes to 4.9999999, which
-  /// truncated used to leave the tick at the top of the scale undrawn. So a quotient within
-  /// <see cref="TickTolerance"/> of a whole number counts as reaching it. A tick that is not a
+  /// The span is a whole number of ticks more often than the arithmetic says it is: 0.3 divided
+  /// by 0.1 is 2.9999999999999996, which truncated leaves the tick at the top of the scale
+  /// undrawn, and the step used to be calculated in single precision, which made a span of one
+  /// 4.9999999 steps of 0.2. So a quotient within <see cref="TickTolerance"/> of a whole number
+  /// counts as reaching it - far wider than double precision errs by, even at
+  /// <see cref="MaxSteps"/> ticks, and far narrower than any tick a caller would ask for. A tick that is not a
   /// positive number, and a scale running backwards, have no ticks at all rather than an endless
   /// or a negative number of them.
   /// </remarks>

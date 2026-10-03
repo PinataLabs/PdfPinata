@@ -602,10 +602,7 @@ internal abstract class YAxisRenderer : AxisRenderer
     // that data. The top is raised, unless the maximum is the one end the axis was given - then the
     // bottom is lowered instead, so that a value given is never the one moved. A minimum above the
     // maximum is left alone, and the plot area draws nothing against it.
-    #pragma warning disable S1244 // Exact on purpose: only a span of exactly zero divides by zero.
-    // ReSharper disable once CompareOfFloatsByEqualityOperator
-    if (minimum == maximum)
-    #pragma warning restore S1244
+    if (IsFlat(minimum, maximum))
     {
       if (IsGiven(axis?.maximumScale) && !IsGiven(axis?.minimumScale))
         WidenFlatRangeDownwards(maximum, ref minimum);
@@ -621,6 +618,20 @@ internal abstract class YAxisRenderer : AxisRenderer
   }
 
   /// <summary>
+  /// Whether a scale's two ends are the same value. Not compared exactly, because a calculated end
+  /// is a whole number of steps worked out in floating point - three steps of 0.2 is
+  /// 0.6000000000000001 - and a caller who gives the other end the value its label reads means the
+  /// same number. Ends a billionth of their size apart span nothing an axis could draw.
+  /// </summary>
+  private static bool IsFlat(double minimum, double maximum) =>
+    Math.Abs(maximum - minimum) <= FlatTolerance * Math.Max(Math.Abs(minimum), Math.Abs(maximum));
+
+  /// <summary>
+  /// How near two ends of a scale have to be, as a fraction of the larger, to count as one value.
+  /// </summary>
+  private const double FlatTolerance = 1e-9;
+
+  /// <summary>
   /// Gives a chart with no data a range of its own, and widens a range of one value into one
   /// that can be drawn against.
   /// </summary>
@@ -633,8 +644,8 @@ internal abstract class YAxisRenderer : AxisRenderer
     #pragma warning restore S1244
     {
       // No series data given.
-      yMin = 0.0f;
-      yMax = 0.9f;
+      yMin = 0.0;
+      yMax = 0.9;
     }
 
     #pragma warning disable S1244 // Exact on purpose: the two are equal only when every value is the same one, and then the axis needs widening.
@@ -652,7 +663,7 @@ internal abstract class YAxisRenderer : AxisRenderer
   private static void WidenFlatRange(double yMin, ref double yMax)
   {
     if (yMin == 0)
-      yMax = 0.9f;
+      yMax = 0.9;
     else if (yMin < 0)
       yMax = 0;
     else if (yMin > 0)
@@ -667,7 +678,7 @@ internal abstract class YAxisRenderer : AxisRenderer
   private static void WidenFlatRangeDownwards(double yMax, ref double yMin)
   {
     if (yMax == 0)
-      yMin = -0.9f;
+      yMin = -0.9;
     else if (yMax > 0)
       yMin = 0;
     else if (yMax < 0)
@@ -707,9 +718,9 @@ internal abstract class YAxisRenderer : AxisRenderer
 
     double normedStepWidth = 1;
     if (normed < 2)
-      normedStepWidth = 0.2f;
+      normedStepWidth = 0.2;
     else if (normed < 5)
-      normedStepWidth = 0.5f;
+      normedStepWidth = 0.5;
 
     return normedStepWidth * Math.Pow(10.0, digits - 1.0);
   }

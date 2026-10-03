@@ -578,7 +578,10 @@ called `WidenFlatRange`: up to 0.9 from zero, up to zero from below it, up by on
 range the caller gives skipped it, because `FineTuneYAxis` only takes a given value in after the
 widening. It now asks once more, of the scale it ends with: **a scale whose two ends are equal is
 widened by the same rule**, and a major tick the axis was not given is worked out from the widened
-range rather than from the data. A value the caller gave is never the one moved: the top is raised,
+range rather than from the data. "Equal" allows a billionth of the larger end (`IsFlat`), because a
+calculated end is a whole number of steps in floating point — six steps of 0.1 is
+0.6000000000000001 — and a caller giving the other end the 0.6 its label reads means the same
+number. A value the caller gave is never the one moved: the top is raised,
 unless the maximum is the only end given — a calculated minimum came out equal to it — and then the
 bottom is lowered by the same rule turned over (`WidenFlatRangeDownwards`).
 
@@ -588,13 +591,14 @@ said where the axis starts, and widening keeps it labelled from there. A scale t
 still draws its axes and nothing inside them.
 
 Pinning the labels showed one more thing: the count of tick labels truncated
-`(max - min) / tick`, and a step of 0.2 is calculated in single precision, so a span of one came to
-4.9999999 ticks and lost the label at the top; the gridlines stepped towards the maximum and
-compared with it exactly, and lost theirs the other way, by overshooting. Both now count, through
+`(max - min) / tick`, and the step was calculated with single-precision constants (`0.2f`, `0.5f`),
+so a span of one came to 4.9999999 steps of 0.2 and lost the label at the top; the gridlines stepped
+towards the maximum and compared with it exactly, and lost theirs the other way, by overshooting.
+`StepWidth` and the flat-range constants are double now, and both kinds of loop count, through
 `AxisRendererInfo.TicksOnScale` and `TicksInsideScale`, which allow a millionth of a tick — the
 tick-label measuring and drawing loops, the minor tick marks and both kinds of gridline — so a label
-and its gridline are drawn at the same ticks. A tick that is not a positive number now counts as no
-ticks at all, where it used to loop for ever. None of the calculated scales the tests pin changed.
+and its gridline are drawn at the same ticks. A tick that is not a positive number, or a scale more
+than a million ticks long, now counts as no ticks at all, where the first used to loop for ever. None of the calculated scales the tests pin changed.
 
 Pinned by `EqualValueScaleTests` — every chart type with a value axis at zero, above and below it,
 with and without a major tick and with every tick mark, gridline and data label asked for, a given
