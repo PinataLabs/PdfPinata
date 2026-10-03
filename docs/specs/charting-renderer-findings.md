@@ -578,7 +578,7 @@ called `WidenFlatRange`: up to 0.9 from zero, up to zero from below it, up by on
 range the caller gives skipped it, because `FineTuneYAxis` only takes a given value in after the
 widening. It now asks once more, of the scale it ends with: **a scale whose two ends are equal is
 widened by the same rule**, and a major tick the axis was not given is worked out from the widened
-range rather than from the data. "Equal" allows a billionth of the larger end (`IsFlat`), because a
+range rather than from the data. "Equal" allows rounding error, 1e-14 of the larger end (`IsFlat`), because a
 calculated end is a whole number of steps in floating point — six steps of 0.1 is
 0.6000000000000001 — and a caller giving the other end the 0.6 its label reads means the same
 number. A value the caller gave is never the one moved: the top is raised,

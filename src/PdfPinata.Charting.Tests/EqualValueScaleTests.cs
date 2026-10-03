@@ -106,6 +106,22 @@ public class EqualValueScaleTests
     }
 
     /// <summary>
+    ///   A narrow scale far from zero is not flat, and is drawn as given: allowing for rounding
+    ///   must not swallow a span a double holds without trouble.
+    /// </summary>
+    [Fact]
+    public void ANarrowScaleFarFromZeroIsNotWidened()
+    {
+        var chart = Charts.Of(ChartType.Column2D, 1.0, 3.0);
+        chart.YAxis.MinimumScale = 1e12;
+        chart.YAxis.MaximumScale = 1e12 + 100;
+        chart.YAxis.MajorTick = 50;
+        chart.YAxis.TickLabels.Format = "0";
+
+        ShownText.NumericOn(Drawn.Page(chart)).Should().Equal("1000000000000", "1000000000050", "1000000000100");
+    }
+
+    /// <summary>
     ///   The top of a long scale keeps its label. The step is a fifth here, and it used to be
     ///   worked out in single precision, a little over a fifth - an error that a hundred steps
     ///   added up into the top label going missing.

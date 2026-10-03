@@ -621,7 +621,9 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// Whether a scale's two ends are the same value. Not compared exactly, because a calculated end
   /// is a whole number of steps worked out in floating point - three steps of 0.2 is
   /// 0.6000000000000001 - and a caller who gives the other end the value its label reads means the
-  /// same number. Ends a billionth of their size apart span nothing an axis could draw.
+  /// same number. The tolerance is rounding error and no more - a few dozen units in the last place
+  /// of a double - so a narrow scale far from zero, which a double draws without trouble, is not
+  /// mistaken for a flat one and moved.
   /// </summary>
   private static bool IsFlat(double minimum, double maximum) =>
     Math.Abs(maximum - minimum) <= FlatTolerance * Math.Max(Math.Abs(minimum), Math.Abs(maximum));
@@ -629,7 +631,7 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// <summary>
   /// How near two ends of a scale have to be, as a fraction of the larger, to count as one value.
   /// </summary>
-  private const double FlatTolerance = 1e-9;
+  private const double FlatTolerance = 1e-14;
 
   /// <summary>
   /// Gives a chart with no data a range of its own, and widens a range of one value into one
