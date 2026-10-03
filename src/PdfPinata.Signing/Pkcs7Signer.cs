@@ -26,9 +26,6 @@ namespace PdfPinata.Signing;
 /// </remarks>
 public sealed class Pkcs7Signer : IPdfSigner
 {
-    /// <summary>id-aa-signatureTimeStampToken, RFC 3161 / RFC 5035.</summary>
-    private const string SignatureTimeStampTokenOid = "1.2.840.113549.1.9.16.2.14";
-
     private readonly X509Certificate2 _certificate;
     private readonly X509Certificate2Collection _chain;
     private readonly HashAlgorithmName _hashAlgorithm;
@@ -159,7 +156,7 @@ public sealed class Pkcs7Signer : IPdfSigner
         if (token == null || token.Length == 0)
             throw new InvalidOperationException("The timestamp provider returned no timestamp token.");
 
-        signerInfo.AddUnsignedAttribute(new AsnEncodedData(new Oid(SignatureTimeStampTokenOid), token));
+        signerInfo.AddUnsignedAttribute(new AsnEncodedData(new Oid(CmsEncoding.SignatureTimeStampTokenOid), token));
     }
 
     private static byte[] HashOf(byte[] data, HashAlgorithmName algorithm)

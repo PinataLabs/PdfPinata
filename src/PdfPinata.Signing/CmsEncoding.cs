@@ -4,10 +4,16 @@ using System.Formats.Asn1;
 namespace PdfPinata.Signing;
 
 /// <summary>
-/// The one piece of raw CMS byte-handling more than one class here needs.
+/// The pieces of raw CMS handling more than one class here needs.
 /// </summary>
 internal static class CmsEncoding
 {
+    /// <summary>
+    /// id-aa-signatureTimeStampToken, RFC 3161 / RFC 5035: the unsigned attribute of a
+    /// <c>SignerInfo</c> that carries a timestamp token over its signature value.
+    /// </summary>
+    public const string SignatureTimeStampTokenOid = "1.2.840.113549.1.9.16.2.14";
+
     /// <summary>
     /// The encoded signature without the zero padding reserved for it that follows it.
     /// </summary>

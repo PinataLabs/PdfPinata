@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
@@ -85,6 +86,52 @@ public class SignatureValidationDataTests
         dss.Elements.GetArray("/OCSPs").Elements.Count.Should().Be(1);
     }
 
+    /// <summary>
+    ///   A B-T signature is checked through two chains: the signer's, and the time-stamping
+    ///   authority's, whose certificate travels inside the timestamp token rather than beside the
+    ///   signer's. Evidence gathered for the first alone leaves the timestamp — the part meant to
+    ///   outlive the signing certificate — with nothing to check it by once its own certificate has
+    ///   expired.
+    /// </summary>
+    [Fact]
+    public void ATimestampedSignatureHasItsAuthoritysCertificateStoredAndAskedAbout()
+    {
+        var authority = SigningCertificates.CreateTimestampAuthority("CN=PdfPinata Test TSA");
+        var signer = new Pkcs7Signer(SigningCertificates.Default,
+            timestampProvider: new LocalTimestampAuthority(authority));
+        var provider = new RecordingRevocationDataProvider();
+
+        var withData = AddValidationData(Sign(Unsigned(), signer: signer), provider);
+
+        provider.AskedAbout.Should().Contain(authority.Thumbprint);
+        provider.AskedAbout.Should().Contain(SigningCertificates.Default.Thumbprint);
+
+        var document = Reader.Open(new MemoryStream(withData), PdfDocumentOpenMode.ReadOnly);
+        var certificates = document.Internals.Catalog.Elements.GetDictionary("/DSS").Elements.GetArray("/Certs");
+        var stored = Enumerable.Range(0, certificates.Elements.Count)
+            .Select(index => Load(certificates.Elements.GetDictionary(index).Stream.UnfilteredValue).Thumbprint);
+        stored.Should().Contain(authority.Thumbprint);
+    }
+
+    /// <summary>
+    ///   An authority commonly answers <c>certReq</c> with its own certificate alone, and its issuer
+    ///   is often the CA that issued the signer's. The signer's certificates are therefore among
+    ///   those an OCSP request for the authority's certificate may find its issuer in.
+    /// </summary>
+    [Fact]
+    public void TheAuthoritysCertificateIsAskedAboutWithTheSignersCertificatesAmongItsCandidateIssuers()
+    {
+        var authority = SigningCertificates.CreateTimestampAuthority("CN=PdfPinata Test TSA");
+        var signer = new Pkcs7Signer(SigningCertificates.Default,
+            timestampProvider: new LocalTimestampAuthority(authority));
+        var provider = new RecordingRevocationDataProvider();
+
+        AddValidationData(Sign(Unsigned(), signer: signer), provider);
+
+        provider.ChainOffered[authority.Thumbprint].Should()
+            .Contain(authority.Thumbprint).And.Contain(SigningCertificates.Default.Thumbprint);
+    }
+
     [Fact]
     public void ValidationDataCanBeAddedToADocumentCertifiedAgainstAllOtherChange()
     {
@@ -138,6 +185,31 @@ public class SignatureValidationDataTests
             new([new byte[] { 0x30, 0x03, 0x0A, 0x01, 0x00 }], []);
     }
 
+    /// <summary>
+    ///   Records which certificates it was asked about, and the chain offered with each, and has no
+    ///   evidence for any.
+    /// </summary>
+    private sealed class RecordingRevocationDataProvider : IRevocationDataProvider
+    {
+        public List<string> AskedAbout { get; } = [];
+
+        public Dictionary<string, string[]> ChainOffered { get; } = [];
+
+        public RevocationData GetRevocationData(X509Certificate2 certificate, X509Certificate2Collection chain)
+        {
+            AskedAbout.Add(certificate.Thumbprint);
+            ChainOffered[certificate.Thumbprint] = chain.Select(member => member.Thumbprint).ToArray();
+            return null;
+        }
+    }
+
+    private static X509Certificate2 Load(byte[] encoded) =>
+#if NET9_0_OR_GREATER
+        X509CertificateLoader.LoadCertificate(encoded);
+#else
+        new(encoded);
+#endif
+
     private sealed class ThrowingRevocationDataProvider : IRevocationDataProvider
     {
         public RevocationData GetRevocationData(X509Certificate2 certificate, X509Certificate2Collection chain) =>
@@ -152,12 +224,13 @@ public class SignatureValidationDataTests
         return Saved.Bytes(document);
     }
 
-    private static byte[] Sign(byte[] document, PdfCertificationLevel certification = PdfCertificationLevel.NotCertified)
+    private static byte[] Sign(byte[] document, PdfCertificationLevel certification = PdfCertificationLevel.NotCertified,
+        IPdfSigner signer = null)
     {
         using var input = new MemoryStream(document);
         using var output = new MemoryStream();
 
-        PdfSigner.Sign(input, output, new Pkcs7Signer(SigningCertificates.Default),
+        PdfSigner.Sign(input, output, signer ?? new Pkcs7Signer(SigningCertificates.Default),
             new PdfSignatureOptions { Certification = certification });
         return output.ToArray();
     }

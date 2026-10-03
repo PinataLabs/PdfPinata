@@ -10,10 +10,23 @@ namespace PdfPinata.Signing;
 /// Fetches a timestamp token from a real time-stamping authority over HTTP, per RFC 3161.
 /// </summary>
 /// <remarks>
+/// <para>
 /// The shipped implementation for real use: name the authority your organisation trusts, and every
 /// signature made with it carries a token that authority is answerable for. Built entirely on
 /// <see cref="Rfc3161TimestampRequest"/>, which already knows the request and response wire formats;
 /// nothing here re-implements them.
+/// </para>
+/// <para>
+/// The request always sets <c>certReq</c>, so the authority puts its own certificate in the token
+/// (RFC 3161 section 2.4.1). Without it an authority may leave the certificate out, and then a
+/// validator checking the timestamp years later, often offline, has to find it somewhere else. It
+/// costs the token a certificate or two, a few kilobytes. It also lets
+/// <see cref="Rfc3161TimestampRequest.ProcessResponse"/> check the token's signature against that
+/// certificate, which it cannot do for a token that carries none, so a token damaged on the way is
+/// refused rather than folded into the signature. That is an integrity check and not trust: it says
+/// the token is intact and was signed by the certificate it names, not that anyone should believe
+/// that certificate.
+/// </para>
 /// </remarks>
 public sealed class Rfc3161TimestampProvider : ITimestampProvider, IDisposable
 {
@@ -63,7 +76,8 @@ public sealed class Rfc3161TimestampProvider : ITimestampProvider, IDisposable
     {
         ArgumentNullException.ThrowIfNull(messageImprint);
 
-        var request = Rfc3161TimestampRequest.CreateFromHash(messageImprint, hashAlgorithm);
+        var request = Rfc3161TimestampRequest.CreateFromHash(messageImprint, hashAlgorithm,
+            requestSignerCertificates: true);
 
         try
         {
