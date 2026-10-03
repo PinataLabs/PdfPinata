@@ -124,12 +124,19 @@ public sealed class PdfTextField : PdfAcroField
     internal override void OnAppearanceCharacteristicsChanged() => RenderAppearance();
 
     /// <summary>
-    /// Gets or sets the maximum length of the field.
+    /// Gets or sets the maximum length of the field's text, in characters - and, for a comb field,
+    /// the number of cells it is divided into.
     /// </summary>
-    /// <value>The length of the max.</value>
+    /// <remarks>
+    /// <c>/MaxLen</c> is inheritable (ISO 32000-1 Table 229), so reading answers the field's own
+    /// entry when it has one and otherwise the nearest ancestor's, as <see cref="PdfAcroField.Flags"/>
+    /// does for <c>/Ff</c>. A form read from a file often says it once, on a parent grouping a set
+    /// of comb fields, and reading the field's own entry alone answered zero for every one of them
+    /// - which drew a comb field as ordinary text. Writing always writes this field's own entry.
+    /// </remarks>
     public int MaxLength
     {
-        get => Elements.GetInteger(Keys.MaxLen);
+        get => InheritedFrom(this, Keys.MaxLen)?.Elements.GetInteger(Keys.MaxLen) ?? 0;
         set => Elements.SetInteger(Keys.MaxLen, value);
     }
 

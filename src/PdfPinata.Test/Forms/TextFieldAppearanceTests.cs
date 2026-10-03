@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using AwesomeAssertions;
 using ImageMagick;
 using PdfPinata.Drawing;
@@ -137,6 +138,84 @@ public sealed class TextFieldAppearanceTests : IDisposable
         }
     }
 
+    /// <summary>
+    ///   A comb field described once, on a parent that only groups: <c>/MaxLen</c> and the comb
+    ///   flag are on <c>code</c>, and <c>code.digits</c>, which has the widget, carries neither.
+    /// </summary>
+    private static (PdfDocument Document, PdfTextField Parent, PdfTextField Kid) ACombGroup()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var form = document.GetOrCreateAcroForm();
+        var parent = new PdfTextField(document) { Name = "code" };
+        form.Fields.Add(parent);
+        parent.DefaultAppearance = "/Helv 12 Tf 0 g";
+        parent.MaxLength = 6;
+        parent.Flags |= PdfAcroFieldFlags.Comb;
+
+        var kid = new PdfTextField(document) { Name = "digits" };
+        parent.Fields.Add(kid);
+        kid.AddWidget(page, new PdfRectangle(new XRect(60, 700, 300, 30)));
+        return (document, parent, kid);
+    }
+
+    [Fact]
+    public void AKidInheritsItsMaximumLength()
+    {
+        var (_, _, kid) = ACombGroup();
+
+        kid.Elements.ContainsKey(PdfTextField.Keys.MaxLen).Should().BeFalse("the kid says none of its own");
+        kid.MaxLength.Should().Be(6, "/MaxLen is inheritable, ISO 32000-1 Table 229");
+    }
+
+    [Fact]
+    public void AKidsOwnMaximumLengthIsWrittenOnTheKid()
+    {
+        var (_, parent, kid) = ACombGroup();
+
+        kid.MaxLength = 4;
+
+        kid.MaxLength.Should().Be(4);
+        kid.Elements.GetInteger(PdfTextField.Keys.MaxLen).Should().Be(4);
+        parent.MaxLength.Should().Be(6, "the parent is untouched");
+    }
+
+    [Fact]
+    public void ACombKidDrawsTheCellsItsParentDescribes()
+    {
+        var (_, _, kid) = ACombGroup();
+
+        kid.Text = "123456";
+
+        CellsOf(kid).Should().Equal([0, 1, 2, 3, 4, 5], "one character in each of the six cells the parent's /MaxLen makes");
+    }
+
+    [Fact]
+    public void ACombKidReadFromAFileDrawsTheCellsItsParentDescribes()
+    {
+        var (document, _, _) = ACombGroup();
+        var reopened = document.Reopened();
+        var kid = (PdfTextField)reopened.AcroForm.Fields["code.digits"];
+
+        kid.MaxLength.Should().Be(6);
+        kid.Text = "654321";
+
+        CellsOf(kid).Should().Equal([0, 1, 2, 3, 4, 5]);
+    }
+
+    /// <summary>
+    ///   Which comb cell each show-text operator of a field's appearance draws in, counted from the
+    ///   left - the cell the middle of the drawn character falls in is good enough, since every
+    ///   string is centred in its cell.
+    /// </summary>
+    private static int[] CellsOf(PdfTextField field)
+    {
+        var width = field.Widgets[0].Rectangle.Width;
+        var cell = width / field.MaxLength;
+        return [..TextOperators.ShownWithPositions(AppearanceBytes(field))
+            .Select(shown => (int)Math.Floor((shown.X + 2) / cell))];
+    }
+
     [GoldenImageFact]
     public void APasswordIsNotDrawnInTheClear()
     {
@@ -216,11 +295,14 @@ public sealed class TextFieldAppearanceTests : IDisposable
 
     private const string Stroke = " re\nS";
 
-    private static string AppearanceContent(PdfAcroField field)
+    private static string AppearanceContent(PdfAcroField field) =>
+        System.Text.Encoding.Latin1.GetString(AppearanceBytes(field));
+
+    private static byte[] AppearanceBytes(PdfAcroField field)
     {
         var appearances = field.Widgets[0].Elements.GetDictionary("/AP");
         var normal = (PdfDictionary)appearances.Elements.GetObject("/N");
-        return System.Text.Encoding.Latin1.GetString(normal.Stream.UnfilteredValue);
+        return normal.Stream.UnfilteredValue;
     }
 
     private IMagickImage<byte> Rasterize(string name, PdfTextField field)
