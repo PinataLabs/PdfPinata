@@ -1,7 +1,9 @@
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Charting.Tests.Helpers;
+using PdfPinata.Drawing;
 using PdfPinata.Test.Helpers;
 using Xunit;
 
@@ -90,6 +92,61 @@ public class EqualValueScaleTests
     }
 
     /// <summary>
+    ///   A given maximum that the calculated minimum happens to equal is widened the other way: the
+    ///   value the caller gave is never the one moved, so the bottom is lowered by one rather than
+    ///   the top raised to zero. The data here is scaled from -3.5, so a maximum of -3.5 leaves
+    ///   nothing between the two.
+    /// </summary>
+    [Fact]
+    public void AGivenMaximumEqualToTheCalculatedMinimumIsWidenedDownwards()
+    {
+        var chart = Charts.Of(ChartType.Column2D, -3.0, -1.0);
+        chart.YAxis.MaximumScale = -3.5;
+
+        ShownText.NumericOn(Drawn.Page(chart)).Should().Equal("-4.5", "-4.3", "-4.1", "-3.9", "-3.7", "-3.5");
+    }
+
+    /// <summary>
+    ///   Every label on a widened scale has a major gridline, and the minor gridlines fall between
+    ///   them and not on either end. The top label used to go without its gridline, which was
+    ///   stepped towards the maximum and compared with it exactly, and a single-precision step
+    ///   overshoots it.
+    /// </summary>
+    [Fact]
+    public void EveryTickLabelOnAWidenedScaleHasAGridline()
+    {
+        var chart = Charts.Of(ChartType.Column2D, 1.0, 5.5);
+        chart.YAxis.MinimumScale = 5;
+        chart.YAxis.MaximumScale = 5;
+        Grid(chart.YAxis.MajorGridlines, XColors.Orange);
+        Grid(chart.YAxis.MinorGridlines, XColors.Purple);
+
+        var lines = StrokedLines.Of(Drawn.Page(chart));
+
+        // Six labels, 5.0 to 6.0 in steps of 0.2, so six major gridlines. The minor tick is a fifth
+        // of that, which is twenty-five steps across the scale and twenty-four gridlines inside it,
+        // the four under the inner major ones included, as they always were.
+        lines.Count(line => line.Colour == PaintedRectangles.ColourOf(XColors.Orange)).Should().Be(6);
+        lines.Count(line => line.Colour == PaintedRectangles.ColourOf(XColors.Purple)).Should().Be(24);
+    }
+
+    /// <summary>
+    ///   A major tick of zero is no tick at all: the axis draws no labels and no gridlines, where
+    ///   every loop over the ticks used to step by nothing towards the maximum for ever.
+    /// </summary>
+    [Fact(Timeout = 10000)]
+    public async Task AMajorTickOfZeroDrawsNoTicksRatherThanNeverFinishing()
+    {
+        var chart = Charts.Of(ChartType.Column2D, 1.0, 3.0);
+        chart.YAxis.MajorTick = 0;
+        chart.YAxis.HasMajorGridlines = true;
+
+        var page = await Task.Run(() => Drawn.Page(chart));
+
+        ShownText.NumericOn(page).Should().BeEmpty();
+    }
+
+    /// <summary>
     ///   Widened, the scale is one that can be plotted against: a column whose value lies on it is
     ///   drawn, and the ones below it are left undrawn, as any value off the scale is.
     /// </summary>
@@ -101,6 +158,13 @@ public class EqualValueScaleTests
         chart.YAxis.MaximumScale = 5;
 
         PaintedRectangles.FilledOn(Drawn.Page(chart)).Should().ContainSingle();
+    }
+
+    private static void Grid(Gridlines gridlines, XColor colour)
+    {
+        gridlines.LineFormat.Visible = true;
+        gridlines.LineFormat.Width = 0.25;
+        gridlines.LineFormat.Color = colour;
     }
 
     private static Chart EqualScale(ChartType type, bool combination, double scale, double? majorTick)

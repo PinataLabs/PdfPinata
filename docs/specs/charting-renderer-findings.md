@@ -577,9 +577,10 @@ A range that comes from the data had always been widened when its ends were equa
 called `WidenFlatRange`: up to 0.9 from zero, up to zero from below it, up by one from above it. A
 range the caller gives skipped it, because `FineTuneYAxis` only takes a given value in after the
 widening. It now asks once more, of the scale it ends with: **a scale whose two ends are equal is
-widened by the same rule**, the minimum staying where it was put, and a major tick the axis was not
-given is worked out from the widened range rather than from the data. It catches a minimum given
-equal to a calculated maximum too, which is the same scale reached another way.
+widened by the same rule**, and a major tick the axis was not given is worked out from the widened
+range rather than from the data. A value the caller gave is never the one moved: the top is raised,
+unless the maximum is the only end given — a calculated minimum came out equal to it — and then the
+bottom is lowered by the same rule turned over (`WidenFlatRangeDownwards`).
 
 Widening rather than drawing nothing, which is what #196 made a minimum *above* the maximum do,
 because a scale of one value is a degenerate request rather than a contradictory one: the caller has
@@ -588,12 +589,16 @@ still draws its axes and nothing inside them.
 
 Pinning the labels showed one more thing: the count of tick labels truncated
 `(max - min) / tick`, and a step of 0.2 is calculated in single precision, so a span of one came to
-4.9999999 ticks and lost the label at the top. `CountTickLabels` now allows a millionth of a tick,
-and the measuring loop asks it too rather than stepping on its own, so the labels measured are the
-labels drawn. None of the calculated scales the tests pin changed.
+4.9999999 ticks and lost the label at the top; the gridlines stepped towards the maximum and
+compared with it exactly, and lost theirs the other way, by overshooting. Both now count, through
+`AxisRendererInfo.TicksOnScale` and `TicksInsideScale`, which allow a millionth of a tick — the
+tick-label measuring and drawing loops, the minor tick marks and both kinds of gridline — so a label
+and its gridline are drawn at the same ticks. A tick that is not a positive number now counts as no
+ticks at all, where it used to loop for ever. None of the calculated scales the tests pin changed.
 
 Pinned by `EqualValueScaleTests` — every chart type with a value axis at zero, above and below it,
-with and without a major tick and with every tick mark, gridline and data label asked for — and
+with and without a major tick and with every tick mark, gridline and data label asked for, a given
+end meeting a calculated one from either side, and a gridline for every label — and
 through PinataLayout by `ChartAreaRenderingTests.AValueAxisGivenOneValueIsWidenedRatherThanStoppingTheDocument`.
 
 ---

@@ -129,7 +129,7 @@ internal abstract class YAxisRenderer : AxisRenderer
 
     // height of all ticklabels
     labelSize = new XSize(0, 0);
-    var countTickLabels = CountTickLabels(yari);
+    var countTickLabels = yari.TicksOnScale(yari.MajorTick);
     for (var i = 0; i < countTickLabels; ++i)
     {
       var y = yari.MinimumScale + yari.MajorTick * i;
@@ -195,8 +195,9 @@ internal abstract class YAxisRenderer : AxisRenderer
     // Draw minor tick marks.
     if (yari.MinorTickMark != TickMarkType.None)
     {
-      for (var y = yari.MinimumScale + yari.MinorTick; y < yari.MaximumScale; y += yari.MinorTick)
-        DrawTickMark(minorTickMarkLineFormat, matrix, y, minorTickMarkStart, minorTickMarkEnd);
+      var countMinorTickMarks = yari.TicksInsideScale(yari.MinorTick);
+      for (var i = 1; i <= countMinorTickMarks; ++i)
+        DrawTickMark(minorTickMarkLineFormat, matrix, yari.MinimumScale + yari.MinorTick * i, minorTickMarkStart, minorTickMarkEnd);
     }
 
     // Draw the major tick marks and the labels beside them.
@@ -277,7 +278,7 @@ internal abstract class YAxisRenderer : AxisRenderer
     var yMajorTick = yari.MajorTick;
 
     var xsf = new XStringFormat { LineAlignment = XLineAlignment.Near };
-    var countTickLabels = CountTickLabels(yari);
+    var countTickLabels = yari.TicksOnScale(yMajorTick);
     for (var i = 0; i < countTickLabels; ++i)
     {
       var y = yMin + yMajorTick * i;
@@ -314,7 +315,7 @@ internal abstract class YAxisRenderer : AxisRenderer
 
     var labelSize = new XSize(0, 0) { Height = lineSpace * xHeight / cellSpace };
 
-    var countTickLabels = CountTickLabels(yari);
+    var countTickLabels = yari.TicksOnScale(yMajorTick);
     for (var i = 0; i < countTickLabels; ++i)
     {
       var y = yMin + yMajorTick * i;
@@ -342,20 +343,6 @@ internal abstract class YAxisRenderer : AxisRenderer
       gfx.DrawString(str, yari.TickLabelsFont, yari.TickLabelsBrush, layoutText[0]);
     }
   }
-
-  /// <summary>
-  /// How many major ticks, and so how many tick labels, fit from the minimum scale to the maximum,
-  /// both ends included.
-  /// </summary>
-  /// <remarks>
-  /// The span is a whole number of ticks more often than the arithmetic says it is: a step of 0.2
-  /// is calculated in single precision, and a span of one divided by it comes to 4.9999999, which
-  /// truncated left the label at the top of the scale undrawn. So a quotient within a millionth of
-  /// a tick of the next whole number counts as reaching it. The measuring and both drawing loops
-  /// ask this one question, so the labels measured are the labels drawn.
-  /// </remarks>
-  private static int CountTickLabels(AxisRendererInfo yari) =>
-    (int)Math.Floor((yari.MaximumScale - yari.MinimumScale) / yari.MajorTick + 1e-6) + 1;
 
   /// <summary>
   /// Draws the axis line from the minimum scale to the maximum, lengthened at each end by half
@@ -608,17 +595,22 @@ internal abstract class YAxisRenderer : AxisRenderer
     var minimum = GivenOrCalculated(axis?.minimumScale, RoundedMinimum(yMin, stepWidth, roundFactor));
     var maximum = GivenOrCalculated(axis?.maximumScale, RoundedMaximum(yMax, stepWidth, roundFactor));
 
-    // A scale that spans nothing can only have been given: the calculated one never does. Every
-    // value on the axis would be placed by dividing its length by a span of zero, so it is widened
-    // exactly as a range of data with one value in it is, and a tick the axis was not given is
-    // worked out from the range it is widened to, as it would have been for that data. A minimum
-    // above the maximum is left alone, and the plot area draws nothing against it.
+    // A scale that spans nothing can only have been given, at one end or both: the calculated one
+    // never does. Every value on the axis would be placed by dividing its length by a span of
+    // zero, so it is widened exactly as a range of data with one value in it is, and a tick the
+    // axis was not given is worked out from the range it is widened to, as it would have been for
+    // that data. The top is raised, unless the maximum is the one end the axis was given - then the
+    // bottom is lowered instead, so that a value given is never the one moved. A minimum above the
+    // maximum is left alone, and the plot area draws nothing against it.
     #pragma warning disable S1244 // Exact on purpose: only a span of exactly zero divides by zero.
     // ReSharper disable once CompareOfFloatsByEqualityOperator
     if (minimum == maximum)
     #pragma warning restore S1244
     {
-      WidenFlatRange(minimum, ref maximum);
+      if (IsGiven(axis?.maximumScale) && !IsGiven(axis?.minimumScale))
+        WidenFlatRangeDownwards(maximum, ref minimum);
+      else
+        WidenFlatRange(minimum, ref maximum);
       stepWidth = StepWidth(maximum - minimum);
     }
 
@@ -665,6 +657,21 @@ internal abstract class YAxisRenderer : AxisRenderer
       yMax = 0;
     else if (yMin > 0)
       yMax = yMin + 1;
+  }
+
+  /// <summary>
+  /// <see cref="WidenFlatRange"/> turned upside down, for a scale whose maximum was given and whose
+  /// calculated minimum came out equal to it: the bottom is lowered by the same rule, to -0.9 from
+  /// zero, to zero from above it and by one from below it, and the top is never moved.
+  /// </summary>
+  private static void WidenFlatRangeDownwards(double yMax, ref double yMin)
+  {
+    if (yMax == 0)
+      yMin = -0.9f;
+    else if (yMax > 0)
+      yMin = 0;
+    else if (yMax < 0)
+      yMin = yMax - 1;
   }
 
   /// <summary>
@@ -730,7 +737,13 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// given as NaN - and the calculated one otherwise.
   /// </summary>
   private static double GivenOrCalculated(double? given, double calculated) =>
-    given is { } value && !double.IsNaN(value) ? value : calculated;
+    IsGiven(given) ? given.Value : calculated;
+
+  /// <summary>
+  /// Whether the axis was given this value: there is an axis, and the value is not the NaN it
+  /// leaves a value it was not given as.
+  /// </summary>
+  private static bool IsGiven(double? given) => given is { } value && !double.IsNaN(value);
 
   /// <summary>
   /// Returns the default tick labels format string.

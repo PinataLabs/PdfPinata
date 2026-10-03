@@ -27,6 +27,7 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System.Collections.Generic;
 using PdfPinata.Drawing;
 
 namespace PdfPinata.Charting.Renderers;
@@ -86,8 +87,7 @@ internal class ColumnLikeGridlinesRenderer : GridlinesRenderer
     var yari = cri.YAxisRendererInfo;
     var matrix = cri.PlotAreaRendererInfo.Matrix;
     var lineFormatRenderer = new LineFormatRenderer(rendererParms.Graphics, lineFormat);
-    var tick = minor ? xari.MinorTick : xari.MajorTick;
-    for (var x = FirstGridline(xari, minor); IsOnGrid(x, xari.MaximumScale, minor); x += tick)
+    foreach (var x in GridlineValues(xari, minor))
     {
       points[0] = categoryAxis.At(x, yari.MinimumScale);
       points[1] = categoryAxis.At(x, yari.MaximumScale);
@@ -109,8 +109,7 @@ internal class ColumnLikeGridlinesRenderer : GridlinesRenderer
     var xari = cri.XAxisRendererInfo;
     var matrix = cri.PlotAreaRendererInfo.Matrix;
     var lineFormatRenderer = new LineFormatRenderer(rendererParms.Graphics, lineFormat);
-    var tick = minor ? yari.MinorTick : yari.MajorTick;
-    for (var y = FirstGridline(yari, minor); IsOnGrid(y, yari.MaximumScale, minor); y += tick)
+    foreach (var y in GridlineValues(yari, minor))
     {
       points[0] = categoryAxis.At(xari.MinimumScale, y);
       points[1] = categoryAxis.At(xari.MaximumScale, y);
@@ -120,15 +119,25 @@ internal class ColumnLikeGridlinesRenderer : GridlinesRenderer
   }
 
   /// <summary>
-  /// Where the first gridline goes. Minor gridlines leave out both ends of the scale, which is
-  /// where the major ones fall.
+  /// The values the gridlines of an axis are drawn at: a major one at every major tick from the
+  /// minimum to the maximum, both included, and a minor one at every minor tick between them -
+  /// minor gridlines leave out both ends of the scale, which is where the major ones fall. Counted
+  /// as the axis counts its tick labels and tick marks, so that a gridline is drawn wherever a
+  /// label is, rather than stepped towards the maximum and compared with it exactly.
   /// </summary>
-  private static double FirstGridline(AxisRendererInfo ari, bool minor)
-    => minor ? ari.MinimumScale + ari.MinorTick : ari.MinimumScale;
-
-  /// <summary>
-  /// Whether a gridline at this value is still on the scale.
-  /// </summary>
-  private static bool IsOnGrid(double value, double max, bool minor)
-    => value < max || !minor && value == max;
+  private static IEnumerable<double> GridlineValues(AxisRendererInfo ari, bool minor)
+  {
+    if (minor)
+    {
+      var inside = ari.TicksInsideScale(ari.MinorTick);
+      for (var i = 1; i <= inside; ++i)
+        yield return ari.MinimumScale + ari.MinorTick * i;
+    }
+    else
+    {
+      var onScale = ari.TicksOnScale(ari.MajorTick);
+      for (var i = 0; i < onScale; ++i)
+        yield return ari.MinimumScale + ari.MajorTick * i;
+    }
+  }
 }
