@@ -352,6 +352,13 @@ public abstract class PdfAnnotation : PdfDictionary
     /// it, but the form XObject underneath is internal, so the drawing could be made and not
     /// handed to anything.
     /// </para>
+    /// <para>
+    /// On an annotation that draws its own appearance - the four above, and ink, polygon,
+    /// polyline, caret, redaction and the text markup subtypes - a drawing set here shows until
+    /// something it is drawn from changes, such as <see cref="Color"/> or <see cref="Opacity"/>.
+    /// The annotation then redraws itself over it, as it would have without it, rather than make
+    /// a change that is never seen.
+    /// </para>
     /// </remarks>
     public void SetAppearance(XForm form)
     {

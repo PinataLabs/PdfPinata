@@ -115,6 +115,89 @@ public sealed class AppearanceLifecycleTests : IDisposable
         annotation.Elements.GetDateTime("/M", DateTime.MinValue).Should().BeAfter(LongAgo);
     }
 
+    // ----- after a caller's own appearance --------------------------------------------------------------
+
+    /// <summary>
+    ///   A caller may hand any of them a drawing of its own, and it shows - until something the
+    ///   annotation is drawn from changes. Then the annotation's redraw wins, as it would have
+    ///   without the caller's drawing, rather than the change being made and never seen.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Drawing))]
+    public void ACallersAppearanceGivesWayToTheNextRedraw(string kind)
+    {
+        PdfAnnotation annotation = null;
+        var page = Rasterize(kind + "-own-then-redrawn", document =>
+        {
+            annotation = Configured(kind);
+            document.Pages[0].Annotations.Add(annotation);
+            annotation.SetAppearance(GreenBlock(annotation));
+
+            annotation.Color = XColors.Blue;
+        });
+
+        PageInk.Count(page, IsGreen).Should().Be(0, "the caller's drawing has been replaced");
+        PageInk.Count(page, PageInk.IsBlue).Should().BeGreaterThan(20, "the redraw is what shows");
+    }
+
+    /// <summary>
+    ///   The same after a set of named appearances, which a redraw replaces by a single one - so
+    ///   <c>/AS</c> goes with the set, as <see cref="PdfAnnotation.SetAppearance(XForm)"/> takes it.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Drawing))]
+    public void ACallersSetOfAppearancesGivesWayToTheNextRedraw(string kind)
+    {
+        PdfAnnotation annotation = null;
+        var page = Rasterize(kind + "-states-then-redrawn", document =>
+        {
+            annotation = Configured(kind);
+            document.Pages[0].Annotations.Add(annotation);
+            annotation.SetAppearance("/On", GreenBlock(annotation));
+
+            annotation.Color = XColors.Blue;
+        });
+
+        annotation.Elements.ContainsKey("/AS").Should().BeFalse("no set of appearances is left for it to name");
+        annotation.Elements.GetDictionary("/AP").Elements.GetDictionary("/N").Elements.ContainsKey("/BBox")
+            .Should().BeTrue("/N is a single form again");
+        PageInk.Count(page, IsGreen).Should().Be(0, "the caller's drawing has been replaced");
+        PageInk.Count(page, PageInk.IsBlue).Should().BeGreaterThan(20, "the redraw is what shows");
+    }
+
+    /// <summary>
+    ///   And the drawing given way to is not left in the file, nor any form the annotation drew
+    ///   before it: one appearance, one form XObject.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Drawing))]
+    public void TheAppearanceGivenWayToIsNotWritten(string kind)
+    {
+        var annotation = OnAPage(Configured(kind));
+        annotation.SetAppearance(GreenBlock(annotation));
+        annotation.Color = XColors.Blue;
+
+        var reopened = annotation.Owner.Reopened();
+
+        var forms = reopened.Internals.GetAllObjects().OfType<PdfDictionary>()
+            .Count(dict => dict.Elements.GetName("/Subtype") == "/Form");
+        forms.Should().Be(1);
+    }
+
+    /// <summary>
+    ///   A drawing of the caller's: a green block over the whole of the annotation.
+    /// </summary>
+    private static XForm GreenBlock(PdfAnnotation annotation)
+    {
+        var rect = annotation.Rectangle;
+        var form = new XForm(annotation.Owner, rect.Width, rect.Height);
+        using (var gfx = XGraphics.FromForm(form))
+            gfx.DrawRectangle(XBrushes.Lime, 0, 0, rect.Width, rect.Height);
+        return form;
+    }
+
+    private static bool IsGreen(IMagickColor<byte> c) => c.G > 150 && c.R < 120 && c.B < 120;
+
     // ----- asked for nothing ----------------------------------------------------------------------------
 
     [Theory]
