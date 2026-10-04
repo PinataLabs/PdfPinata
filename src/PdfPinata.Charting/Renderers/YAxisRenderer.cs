@@ -128,12 +128,11 @@ internal abstract class YAxisRenderer : AxisRenderer
     var size = new XSize(0, 0);
 
     // height of all ticklabels
-    var yMin = yari.MinimumScale;
-    var yMax = yari.MaximumScale;
-    var yMajorTick = yari.MajorTick;
     labelSize = new XSize(0, 0);
-    for (var y = yMin; y <= yMax; y += yMajorTick)
+    var countTickLabels = yari.TicksOnScale(yari.MajorTick);
+    for (var i = 0; i < countTickLabels; ++i)
     {
+      var y = yari.MinimumScale + yari.MajorTick * i;
       var str = y.ToString(yari.TickLabelsFormat);
       labelSize = gfx.MeasureString(str, yari.TickLabelsFont);
       if (isHorizontal)
@@ -196,8 +195,9 @@ internal abstract class YAxisRenderer : AxisRenderer
     // Draw minor tick marks.
     if (yari.MinorTickMark != TickMarkType.None)
     {
-      for (var y = yari.MinimumScale + yari.MinorTick; y < yari.MaximumScale; y += yari.MinorTick)
-        DrawTickMark(minorTickMarkLineFormat, matrix, y, minorTickMarkStart, minorTickMarkEnd);
+      var countMinorTickMarks = yari.TicksInsideScale(yari.MinorTick);
+      for (var i = 1; i <= countMinorTickMarks; ++i)
+        DrawTickMark(minorTickMarkLineFormat, matrix, yari.MinimumScale + yari.MinorTick * i, minorTickMarkStart, minorTickMarkEnd);
     }
 
     // Draw the major tick marks and the labels beside them.
@@ -278,7 +278,7 @@ internal abstract class YAxisRenderer : AxisRenderer
     var yMajorTick = yari.MajorTick;
 
     var xsf = new XStringFormat { LineAlignment = XLineAlignment.Near };
-    var countTickLabels = (int)((yari.MaximumScale - yMin) / yMajorTick) + 1;
+    var countTickLabels = yari.TicksOnScale(yMajorTick);
     for (var i = 0; i < countTickLabels; ++i)
     {
       var y = yMin + yMajorTick * i;
@@ -315,7 +315,7 @@ internal abstract class YAxisRenderer : AxisRenderer
 
     var labelSize = new XSize(0, 0) { Height = lineSpace * xHeight / cellSpace };
 
-    var countTickLabels = (int)((yari.MaximumScale - yMin) / yMajorTick) + 1;
+    var countTickLabels = yari.TicksOnScale(yMajorTick);
     for (var i = 0; i < countTickLabels; ++i)
     {
       var y = yMin + yMajorTick * i;
@@ -592,11 +592,59 @@ internal abstract class YAxisRenderer : AxisRenderer
     // Whatever the axis was given explicitly wins over what is calculated here, one value at a
     // time; a chart with no axis object at all is given nothing.
     var axis = rendererInfo.Axis;
+    var minimum = GivenOrCalculated(axis?.minimumScale, RoundedMinimum(yMin, stepWidth, roundFactor));
+    var maximum = GivenOrCalculated(axis?.maximumScale, RoundedMaximum(yMax, stepWidth, roundFactor));
+
+    // A scale that spans nothing can only have been given, at one end or both: the calculated one
+    // never does. Every value on the axis would be placed by dividing its length by a span of
+    // zero, so it is widened exactly as a range of data with one value in it is, and a tick the
+    // axis was not given is worked out from the range it is widened to, as it would have been for
+    // that data. The top is raised, unless the maximum is the one end the axis was given - then the
+    // bottom is lowered instead, so that a value given is never the one moved. A minimum above the
+    // maximum is left alone, and the plot area draws nothing against it.
+    if (IsFlat(minimum, maximum, IsGiven(axis?.minimumScale) && IsGiven(axis?.maximumScale)))
+    {
+      if (IsGiven(axis?.maximumScale) && !IsGiven(axis?.minimumScale))
+        WidenFlatRangeDownwards(maximum, ref minimum);
+      else
+        WidenFlatRange(minimum, ref maximum);
+      stepWidth = StepWidth(maximum - minimum);
+    }
+
+    rendererInfo.MinimumScale = minimum;
+    rendererInfo.MaximumScale = maximum;
     rendererInfo.MajorTick = GivenOrCalculated(axis?.majorTick, stepWidth);
-    rendererInfo.MinimumScale = GivenOrCalculated(axis?.minimumScale, RoundedMinimum(yMin, stepWidth, roundFactor));
-    rendererInfo.MaximumScale = GivenOrCalculated(axis?.maximumScale, RoundedMaximum(yMax, stepWidth, roundFactor));
     rendererInfo.MinorTick = GivenOrCalculated(axis?.minorTick, rendererInfo.MajorTick / 5);
   }
+
+  /// <summary>
+  /// Whether a scale's two ends are the same value. Not compared exactly, because a calculated end
+  /// is a whole number of steps worked out in floating point - three steps of 0.2 is
+  /// 0.6000000000000001 - and a caller who gives the other end the value its label reads means the
+  /// same number. The tolerance is rounding error and no more - a few dozen units in the last place
+  /// of a double - so a narrow scale far from zero, which a double draws without trouble, is not
+  /// mistaken for a flat one and moved.
+  /// </summary>
+  /// <remarks>
+  /// The allowance is only for a calculated end, so two ends the caller gave are compared exactly:
+  /// a narrow scale given as such is kept, and a minimum given above a given maximum, by however
+  /// little, is still a scale turned upside down, which draws nothing.
+  /// </remarks>
+  private static bool IsFlat(double minimum, double maximum, bool bothGiven)
+  {
+    #pragma warning disable S1244 // Exact on purpose: two given ends are the caller's numbers, not the result of arithmetic.
+    // ReSharper disable once CompareOfFloatsByEqualityOperator
+    if (bothGiven)
+      return minimum == maximum;
+    #pragma warning restore S1244
+
+    return Math.Abs(maximum - minimum) <= FlatTolerance * Math.Max(Math.Abs(minimum), Math.Abs(maximum));
+  }
+
+  /// <summary>
+  /// How near two ends of a scale have to be, as a fraction of the larger, to count as one value.
+  /// </summary>
+  private const double FlatTolerance = 1e-14;
 
   /// <summary>
   /// Gives a chart with no data a range of its own, and widens a range of one value into one
@@ -611,22 +659,65 @@ internal abstract class YAxisRenderer : AxisRenderer
     #pragma warning restore S1244
     {
       // No series data given.
-      yMin = 0.0f;
-      yMax = 0.9f;
+      yMin = 0.0;
+      yMax = 0.9;
     }
 
     #pragma warning disable S1244 // Exact on purpose: the two are equal only when every value is the same one, and then the axis needs widening.
     // ReSharper disable once CompareOfFloatsByEqualityOperator
     if (yMin == yMax)
     #pragma warning restore S1244
-    {
-      if (yMin == 0)
-        yMax = 0.9f;
-      else if (yMin < 0)
-        yMax = 0;
-      else if (yMin > 0)
-        yMax = yMin + 1;
-    }
+      WidenFlatRange(yMin, ref yMax);
+  }
+
+  /// <summary>
+  /// Raises the top of a range whose two ends are both <paramref name="yMin"/>: to 0.9 from zero,
+  /// to zero from below it, and by one - or a tenth, see <see cref="Widening"/> - from above it.
+  /// The bottom is never moved, so a minimum the
+  /// axis was given stays where it was put.
+  /// </summary>
+  private static void WidenFlatRange(double yMin, ref double yMax)
+  {
+    if (yMin == 0)
+      yMax = 0.9;
+    else if (yMin < 0)
+      yMax = 0;
+    else if (yMin > 0)
+      yMax = yMin + Widening(yMin);
+  }
+
+  /// <summary>
+  /// How far a flat range away from zero is widened: by one, unless one is too small a step for a
+  /// double that large to place ticks across - past 2^53 adding one changes nothing at all, and
+  /// well before that ticks a fifth apart round onto one another - and then by a tenth of the
+  /// value, which keeps a handful of distinct ticks however large it is.
+  /// </summary>
+  private static double Widening(double value)
+  {
+    var magnitude = Math.Abs(value);
+    return magnitude > LargestWidenedByOne ? magnitude / 10 : 1;
+  }
+
+  /// <summary>
+  /// The largest value a flat range is widened by one from. A double this size still holds a
+  /// tick of a fifth to within a thousandth of one.
+  /// </summary>
+  private const double LargestWidenedByOne = 1e12;
+
+  /// <summary>
+  /// <see cref="WidenFlatRange"/> turned upside down, for a scale whose maximum was given and whose
+  /// calculated minimum came out equal to it: the bottom is lowered by the same rule, to -0.9 from
+  /// zero, to zero from above it and by one - or a tenth, see <see cref="Widening"/> - from below
+  /// it, and the top is never moved.
+  /// </summary>
+  private static void WidenFlatRangeDownwards(double yMax, ref double yMin)
+  {
+    if (yMax == 0)
+      yMin = -0.9;
+    else if (yMax > 0)
+      yMin = 0;
+    else if (yMax < 0)
+      yMin = yMax - Widening(yMax);
   }
 
   /// <summary>
@@ -662,9 +753,9 @@ internal abstract class YAxisRenderer : AxisRenderer
 
     double normedStepWidth = 1;
     if (normed < 2)
-      normedStepWidth = 0.2f;
+      normedStepWidth = 0.2;
     else if (normed < 5)
-      normedStepWidth = 0.5f;
+      normedStepWidth = 0.5;
 
     return normedStepWidth * Math.Pow(10.0, digits - 1.0);
   }
@@ -692,7 +783,13 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// given as NaN - and the calculated one otherwise.
   /// </summary>
   private static double GivenOrCalculated(double? given, double calculated) =>
-    given is { } value && !double.IsNaN(value) ? value : calculated;
+    IsGiven(given) ? given.Value : calculated;
+
+  /// <summary>
+  /// Whether the axis was given this value: there is an axis, and the value is not the NaN it
+  /// leaves a value it was not given as.
+  /// </summary>
+  private static bool IsGiven(double? given) => given is { } value && !double.IsNaN(value);
 
   /// <summary>
   /// Returns the default tick labels format string.

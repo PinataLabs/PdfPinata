@@ -317,6 +317,61 @@ internal class AxisRendererInfo : AreaRendererInfo
   internal double MaximumScale;
   internal double MajorTick;
   internal double MinorTick;
+
+  /// <summary>
+  /// How many ticks <paramref name="tick"/> apart fall on the scale, the minimum and the maximum
+  /// both included: the major tick labels and gridlines are drawn at the minimum and at each of
+  /// that many less one steps above it.
+  /// </summary>
+  /// <remarks>
+  /// The span is a whole number of ticks more often than the arithmetic says it is: 0.3 divided
+  /// by 0.1 is 2.9999999999999996, which truncated leaves the tick at the top of the scale
+  /// undrawn, and the step used to be calculated in single precision, which made a span of one
+  /// 4.9999999 steps of 0.2. So a quotient within <see cref="TickTolerance"/> of a whole number
+  /// counts as reaching it - far wider than double precision errs by, even at
+  /// <see cref="MaxSteps"/> ticks, and far narrower than any tick a caller would ask for. A tick that is not a
+  /// positive number, and a scale running backwards, have no ticks at all rather than an endless
+  /// or a negative number of them.
+  /// </remarks>
+  internal int TicksOnScale(double tick)
+  {
+    var steps = StepsAcrossScale(tick);
+    return steps >= 0 ? (int)Math.Floor(steps + TickTolerance) + 1 : 0;
+  }
+
+  /// <summary>
+  /// How many ticks <paramref name="tick"/> apart fall strictly inside the scale, after the
+  /// minimum and short of the maximum, which is where the minor ones are drawn: the major ticks
+  /// already mark both ends. Read with the tolerance <see cref="TicksOnScale"/> is, so a tick that
+  /// lands on the maximum but for rounding is not counted as one inside it.
+  /// </summary>
+  internal int TicksInsideScale(double tick)
+  {
+    var steps = StepsAcrossScale(tick);
+    return steps > 0 ? Math.Max(0, (int)Math.Ceiling(steps - TickTolerance) - 1) : 0;
+  }
+
+  /// <summary>
+  /// The span of the scale in ticks, or NaN where there is no sensible answer.
+  /// </summary>
+  private double StepsAcrossScale(double tick)
+  {
+    if (!(tick > 0))
+      return double.NaN;
+
+    var steps = (MaximumScale - MinimumScale) / tick;
+    return steps < MaxSteps ? steps : double.NaN;
+  }
+
+  /// <summary>
+  /// How near a whole number of ticks a span has to come, in ticks, to count as one.
+  /// </summary>
+  private const double TickTolerance = 1e-6;
+
+  /// <summary>
+  /// More ticks than any axis can draw, past which the count is not attempted.
+  /// </summary>
+  private const double MaxSteps = 1e6;
   internal TickMarkType MinorTickMark;
   internal TickMarkType MajorTickMark;
   internal double MajorTickMarkWidth;
