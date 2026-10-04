@@ -175,13 +175,13 @@ B-T signature whose timestamp cannot be checked later defeats the reason to time
 **Verification checks the token is intact before it reports a time** (#209). It makes two checks,
 both through `Rfc3161TimestampToken.VerifySignatureForSignerInfo`: the token's own signature
 verifies over its content, and the token's message imprint is the hash of this `SignerInfo`'s
-signature value. The certificate to check it with is the one the token's signing-certificate
-attribute names, looked for in the token and then among the signature's own certificates, where a
-producer whose authority left it out may have put it; a token whose certificate is in neither is
-not intact, because it cannot be checked. .NET also requires that certificate to be valid at the
-token's own time, not now, and to carry the critical time-stamping key purpose, so a token stays
-intact after its authority's certificate expires. Neither is a trust decision; they are the same
-kind of check the verifier already makes on the signature itself. Without them a token copied from
+signature value. Neither is a trust decision; they are the same kind of check the verifier already
+makes on the signature itself. The certificate to check it with is the one the token's
+signing-certificate attribute names, looked for in the token and then among the signature's own
+certificates, where a producer whose authority left it out may have put it; a token whose
+certificate is in neither is not intact, because it cannot be checked. .NET also requires that
+certificate to be valid at the token's own time, not now, and to carry the critical time-stamping
+key purpose, so a token stays intact after its authority's certificate expires. Without them a token copied from
 another signature, or one damaged after it was issued, reported a time the bytes do not support.
 The answer is `IsTimestampIntact`, kept apart from `IsIntact` and `IsValid`: the token is an
 unsigned attribute, outside what the signature covers, so a broken one says nothing against the

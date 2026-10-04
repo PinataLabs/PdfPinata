@@ -185,9 +185,9 @@ returns the field name, reason, location, signing time, byte range and certifica
   exist. To change a signed document, open it with `PdfDocumentOpenMode.Append` and use
   `SaveIncremental`. See [Incremental saving](../existing-pdfs/incremental-saving.md).
 - **The verifier checks integrity, not trust.** It builds no certificate chain, consults no trust
-  store and checks no revocation, for the signature or for its timestamp. A signature it calls valid may still use a certificate nobody should
-  trust. A green tick in a PDF reader depends on the certificate chaining to a root that reader
-  trusts.
+  store and checks no revocation, for the signature or for its timestamp. A signature it calls valid
+  may still use a certificate nobody should trust. A green tick in a PDF reader depends on the
+  certificate chaining to a root that reader trusts.
 - **Space for the signature is reserved in advance.** `Pkcs7Signer.EstimatedSignatureSize` defaults
   to 16 KB. If a signature with a long chain or an embedded timestamp does not fit, `Sign` throws and
   names the property. Raise it and sign again.
