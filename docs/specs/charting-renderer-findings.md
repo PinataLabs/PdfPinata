@@ -581,7 +581,12 @@ widened by the same rule**, and a major tick the axis was not given is worked ou
 range rather than from the data. "Equal" allows rounding error, 1e-14 of the larger end (`IsFlat`), because a
 calculated end is a whole number of steps in floating point — six steps of 0.1 is
 0.6000000000000001 — and a caller giving the other end the 0.6 its label reads means the same
-number. A value the caller gave is never the one moved: the top is raised,
+number. That allowance is only for a calculated end: two ends the caller gave are compared exactly,
+so a narrow scale given as such is kept, and a given minimum above a given maximum by however little
+still draws nothing. Far from zero, one is too small to widen by — past 2^53 adding it changes
+nothing, and the span would still be zero — so beyond 1e12 a flat range is widened by a tenth of
+its value instead (`Widening`), on the data path and the given one alike. A value the caller gave
+is never the one moved: the top is raised,
 unless the maximum is the only end given — a calculated minimum came out equal to it — and then the
 bottom is lowered by the same rule turned over (`WidenFlatRangeDownwards`).
 

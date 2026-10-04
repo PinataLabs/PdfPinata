@@ -602,7 +602,7 @@ internal abstract class YAxisRenderer : AxisRenderer
     // that data. The top is raised, unless the maximum is the one end the axis was given - then the
     // bottom is lowered instead, so that a value given is never the one moved. A minimum above the
     // maximum is left alone, and the plot area draws nothing against it.
-    if (IsFlat(minimum, maximum))
+    if (IsFlat(minimum, maximum, IsGiven(axis?.minimumScale) && IsGiven(axis?.maximumScale)))
     {
       if (IsGiven(axis?.maximumScale) && !IsGiven(axis?.minimumScale))
         WidenFlatRangeDownwards(maximum, ref minimum);
@@ -625,8 +625,21 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// of a double - so a narrow scale far from zero, which a double draws without trouble, is not
   /// mistaken for a flat one and moved.
   /// </summary>
-  private static bool IsFlat(double minimum, double maximum) =>
-    Math.Abs(maximum - minimum) <= FlatTolerance * Math.Max(Math.Abs(minimum), Math.Abs(maximum));
+  /// <remarks>
+  /// The allowance is only for a calculated end, so two ends the caller gave are compared exactly:
+  /// a narrow scale given as such is kept, and a minimum given above a given maximum, by however
+  /// little, is still a scale turned upside down, which draws nothing.
+  /// </remarks>
+  private static bool IsFlat(double minimum, double maximum, bool bothGiven)
+  {
+    #pragma warning disable S1244 // Exact on purpose: two given ends are the caller's numbers, not the result of arithmetic.
+    // ReSharper disable once CompareOfFloatsByEqualityOperator
+    if (bothGiven)
+      return minimum == maximum;
+    #pragma warning restore S1244
+
+    return Math.Abs(maximum - minimum) <= FlatTolerance * Math.Max(Math.Abs(minimum), Math.Abs(maximum));
+  }
 
   /// <summary>
   /// How near two ends of a scale have to be, as a fraction of the larger, to count as one value.
@@ -659,7 +672,8 @@ internal abstract class YAxisRenderer : AxisRenderer
 
   /// <summary>
   /// Raises the top of a range whose two ends are both <paramref name="yMin"/>: to 0.9 from zero,
-  /// to zero from below it, and by one from above it. The bottom is never moved, so a minimum the
+  /// to zero from below it, and by one - or a tenth, see <see cref="Widening"/> - from above it.
+  /// The bottom is never moved, so a minimum the
   /// axis was given stays where it was put.
   /// </summary>
   private static void WidenFlatRange(double yMin, ref double yMax)
@@ -669,13 +683,32 @@ internal abstract class YAxisRenderer : AxisRenderer
     else if (yMin < 0)
       yMax = 0;
     else if (yMin > 0)
-      yMax = yMin + 1;
+      yMax = yMin + Widening(yMin);
   }
+
+  /// <summary>
+  /// How far a flat range away from zero is widened: by one, unless one is too small a step for a
+  /// double that large to place ticks across - past 2^53 adding one changes nothing at all, and
+  /// well before that ticks a fifth apart round onto one another - and then by a tenth of the
+  /// value, which keeps a handful of distinct ticks however large it is.
+  /// </summary>
+  private static double Widening(double value)
+  {
+    var magnitude = Math.Abs(value);
+    return magnitude > LargestWidenedByOne ? magnitude / 10 : 1;
+  }
+
+  /// <summary>
+  /// The largest value a flat range is widened by one from. A double this size still holds a
+  /// tick of a fifth to within a thousandth of one.
+  /// </summary>
+  private const double LargestWidenedByOne = 1e12;
 
   /// <summary>
   /// <see cref="WidenFlatRange"/> turned upside down, for a scale whose maximum was given and whose
   /// calculated minimum came out equal to it: the bottom is lowered by the same rule, to -0.9 from
-  /// zero, to zero from above it and by one from below it, and the top is never moved.
+  /// zero, to zero from above it and by one - or a tenth, see <see cref="Widening"/> - from below
+  /// it, and the top is never moved.
   /// </summary>
   private static void WidenFlatRangeDownwards(double yMax, ref double yMin)
   {
@@ -684,7 +717,7 @@ internal abstract class YAxisRenderer : AxisRenderer
     else if (yMax > 0)
       yMin = 0;
     else if (yMax < 0)
-      yMin = yMax - 1;
+      yMin = yMax - Widening(yMax);
   }
 
   /// <summary>

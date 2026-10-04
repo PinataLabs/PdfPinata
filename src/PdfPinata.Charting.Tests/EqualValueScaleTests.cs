@@ -1,3 +1,5 @@
+using System;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -120,6 +122,100 @@ public class EqualValueScaleTests
 
         ShownText.NumericOn(Drawn.Page(chart)).Should().Equal("1000000000000", "1000000000050", "1000000000100");
     }
+
+    /// <summary>
+    ///   Past 2^53 a double cannot hold a value one above another, so widening by one changes
+    ///   nothing and the scale would still span zero. There the end is moved by a tenth of the
+    ///   value instead, which a double can always tell apart, so the axis is still drawn.
+    /// </summary>
+    [Theory]
+    [InlineData(Huge, null)]
+    [InlineData(Huge, 1.0)]
+    [InlineData(-Huge, null)]
+    public void AScaleOfOneHugeValueIsStillWidened(double scale, double? majorTick)
+    {
+        var chart = Charts.Of(ChartType.Column2D, 1.0, 3.0);
+        chart.YAxis.MinimumScale = scale;
+        chart.YAxis.MaximumScale = scale;
+        if (majorTick is { } tick)
+            chart.YAxis.MajorTick = tick;
+
+        var page = Drawn.Page(chart);
+
+        Encoding.ASCII.GetString(PageContent.Of(page)).Should().NotContain("NaN");
+        if (majorTick == null)
+            ShownText.NumericOn(page).Distinct().Should().HaveCountGreaterThan(1, "the widened scale is labelled");
+    }
+
+    /// <summary>
+    ///   The same for data all of one huge value, which reaches the widening through the
+    ///   calculated range rather than through a given one.
+    /// </summary>
+    [Theory]
+    [InlineData(Huge)]
+    [InlineData(-Huge)]
+    public void DataOfOneHugeValueIsStillGivenARange(double value)
+    {
+        var page = Drawn.Page(Charts.Of(ChartType.Column2D, value, value));
+
+        Encoding.ASCII.GetString(PageContent.Of(page)).Should().NotContain("NaN");
+        ShownText.NumericOn(page).Distinct().Should().HaveCountGreaterThan(1);
+    }
+
+    /// <summary>
+    ///   And a given maximum far below zero that the calculated minimum meets, which widens
+    ///   downwards: data at -2^54 is scaled from -2e16, and one below that is the same double.
+    /// </summary>
+    [Fact]
+    public void AHugeGivenMaximumMeetingTheCalculatedMinimumIsWidenedDownwards()
+    {
+        var chart = Charts.Of(ChartType.Column2D, -Huge, -Huge);
+        chart.YAxis.MaximumScale = -2e16;
+
+        var page = Drawn.Page(chart);
+
+        Encoding.ASCII.GetString(PageContent.Of(page)).Should().NotContain("NaN");
+        var labels = ShownText.NumericOn(page).Select(label => double.Parse(label, CultureInfo.InvariantCulture)).ToList();
+        labels.Distinct().Should().HaveCountGreaterThan(1);
+        labels.Max().Should().Be(-2e16, "the maximum given is not the end moved");
+    }
+
+    /// <summary>
+    ///   Rounding is allowed for only where a calculated end meets a given one. Two ends the caller
+    ///   gave are compared exactly, so a scale narrower than that allowance but given as such is
+    ///   kept: two ticks across it, not the two thousand a scale widened by one would have.
+    /// </summary>
+    [Fact]
+    public void TwoGivenEndsCloserThanRoundingAreKept()
+    {
+        var chart = Charts.Of(ChartType.Column2D, 1.0, 3.0);
+        chart.YAxis.MinimumScale = 1e12;
+        chart.YAxis.MaximumScale = 1e12 + Math.Pow(2, -10);
+        chart.YAxis.MajorTick = Math.Pow(2, -11);
+
+        ShownText.NumericOn(Drawn.Page(chart)).Should().HaveCount(3);
+    }
+
+    /// <summary>
+    ///   And a given minimum above a given maximum by no more than rounding is still a scale turned
+    ///   upside down, which draws nothing in the plot area, rather than one widened into a scale
+    ///   that can be drawn against.
+    /// </summary>
+    [Fact]
+    public void AGivenMinimumAHairAboveAGivenMaximumStillDrawsNothing()
+    {
+        var chart = Charts.Of(ChartType.Column2D, 1.0, 5.5);
+        chart.YAxis.MaximumScale = 5;
+        chart.YAxis.MinimumScale = Math.BitIncrement(5.0);
+
+        var page = Drawn.Page(chart);
+
+        Encoding.ASCII.GetString(PageContent.Of(page)).Should().NotContain("NaN");
+        PaintedRectangles.FilledOn(page).Should().BeEmpty();
+    }
+
+    /// <summary>2^54, past which a double has no room for a value one above another.</summary>
+    private const double Huge = 18014398509481984;
 
     /// <summary>
     ///   The top of a long scale keeps its label. The step is a fifth here, and it used to be
