@@ -84,28 +84,42 @@ public static class PdfSignatureVerifier
                 "The signature's /ByteRange does not lie inside the file: " + problem.Message);
         }
 
+        SignedCms signed;
         try
         {
-            var encoded = CmsEncoding.Trimmed(signature.Contents);
+            signed = new SignedCms(new ContentInfo(covered), detached: true);
+            signed.Decode(CmsEncoding.Trimmed(signature.Contents));
+        }
+        catch (Exception problem) when (IsMalformed(problem))
+        {
+            // Nothing can be read out of a signature that does not decode, a token included.
+            return new PdfSignatureVerification(signature, false, covers, null, problem.Message);
+        }
 
-            var signed = new SignedCms(new ContentInfo(covered), detached: true);
-            signed.Decode(encoded);
+        // Checked before the signature and whatever becomes of it: the token's imprint is the hash
+        // of the signature value, not of the document, so a change to the signed bytes breaks the
+        // signature and leaves the token exactly as intact as it was.
+        var (timestamp, timestampIntact) = signed.SignerInfos.Count > 0
+            ? TimestampOf(signed.SignerInfos[0], signed.Certificates)
+            : (null, null);
+
+        try
+        {
             signed.CheckSignature(verifySignatureOnly: true);
 
             var certificate = signed.SignerInfos.Count > 0 ? signed.SignerInfos[0].Certificate : null;
-            var (timestamp, timestampIntact) = signed.SignerInfos.Count > 0
-                ? TimestampOf(signed.SignerInfos[0], signed.Certificates)
-                : (null, null);
             return new PdfSignatureVerification(signature, true, covers, certificate, null,
                 timestamp, timestampIntact);
         }
-        catch (Exception problem) when (problem is CryptographicException
-                                            or AsnContentException
-                                            or ArgumentException)
+        catch (Exception problem) when (IsMalformed(problem))
         {
-            return new PdfSignatureVerification(signature, false, covers, null, problem.Message);
+            return new PdfSignatureVerification(signature, false, covers, null, problem.Message,
+                timestamp, timestampIntact);
         }
     }
+
+    private static bool IsMalformed(Exception problem) =>
+        problem is CryptographicException or AsnContentException or ArgumentException;
 
     /// <summary>
     /// The two spans of the file the byte range names, joined.

@@ -98,7 +98,8 @@ public sealed class PdfSignatureVerification
     public bool HasTimestamp => Timestamp.HasValue;
 
     /// <summary>
-    /// Whether the signature's timestamp token is intact, or null if it carries none.
+    /// Whether the signature's timestamp token is intact, or null if it carries none, or is too
+    /// malformed to decode at all.
     /// </summary>
     /// <remarks>
     /// <para>

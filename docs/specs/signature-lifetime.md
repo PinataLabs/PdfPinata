@@ -187,7 +187,11 @@ The answer is `IsTimestampIntact`, kept apart from `IsIntact` and `IsValid`: the
 unsigned attribute, outside what the signature covers, so a broken one says nothing against the
 signature, only that it cannot say when it was made. It is null when there is no token, and false
 for a broken one, including a signature-timestamp attribute that is not a token at all, which used
-to read as no timestamp. **`Timestamp` reports only an intact token's time.** Reporting the time a
+to read as no timestamp. **It is answered whatever becomes of the signature.** The token's imprint
+is the hash of the signature value, not of the document, so a change to the signed bytes breaks the
+signature and leaves the token as intact as it was; checking it only on a valid signature reported a
+token that was there as null, which reads as none. Only a signature too malformed to decode gives
+null with a token inside it, because then nothing can be read out of it at all. **`Timestamp` reports only an intact token's time.** Reporting the time a
 broken token states would hand the one value most callers read to anyone who can copy a token, and a
 caller who checks `HasTimestamp` and reads `Timestamp` would never see the warning. The time a
 broken token claims is still in the file for anyone who wants to look at it.

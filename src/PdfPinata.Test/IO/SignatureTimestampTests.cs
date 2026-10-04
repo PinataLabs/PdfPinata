@@ -125,6 +125,25 @@ public class SignatureTimestampTests
     }
 
     [Fact]
+    public void ATimestampIsCheckedOnASignatureTheDocumentNoLongerMatches()
+    {
+        // The token's imprint is the hash of the signature value, not of the document, so a change
+        // to the signed bytes breaks the signature and leaves the token as intact as it was. It is
+        // still there, and reporting it as absent would say the signature never had one.
+        var signed = Sign(Unsigned(document =>
+            document.Info.Elements["/Keywords"] = new PdfString("TAMPERTARGET")), Timestamped());
+        var at = signed.AsSpan().IndexOf("TAMPERTARGET"u8);
+        at.Should().BeGreaterThan(-1, "the marker has to be findable for this test to be testing anything");
+        signed[at] = (byte)'X';
+
+        var verification = PdfSignatureVerifier.Verify(signed).Single();
+
+        verification.IsIntact.Should().BeFalse();
+        verification.IsTimestampIntact.Should().BeTrue();
+        verification.HasTimestamp.Should().BeTrue();
+    }
+
+    [Fact]
     public void ATimestampSourceThatFailsFailsTheSigningAndNothingIsWritten()
     {
         var signer = new Pkcs7Signer(SigningCertificates.Default, timestampProvider: new FailingTimestampProvider());
@@ -195,9 +214,10 @@ public class SignatureTimestampTests
             throw new InvalidOperationException("The time-stamping authority timed out.");
     }
 
-    private static byte[] Unsigned()
+    private static byte[] Unsigned(Action<PdfDocument> customize = null)
     {
         var document = new PdfDocument();
+        customize?.Invoke(document);
         using (var gfx = XGraphics.FromPdfPage(document.AddPage()))
             gfx.DrawString("A document to timestamp", new XFont("Arial", 12), XBrushes.Black, 40, 100);
 

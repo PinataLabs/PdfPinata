@@ -163,8 +163,9 @@ intact but proves nothing about what was added later.
 
 If the signature carries a timestamp token, `IsTimestampIntact` says whether the token is intact: its
 own signature verifies, and it was issued for this signature and not copied from another. It is null
-when there is no token. `Timestamp` gives the time only from an intact token. A broken token does not
-make the signature itself invalid.
+when there is no token, or when the signature is too malformed to read. `Timestamp` gives the time
+only from an intact token. A broken token does not make the signature itself invalid, and a document
+changed after signing does not break the token, so it is still checked.
 
 ```csharp
 foreach (PdfSignatureVerification result in PdfSignatureVerifier.Verify(File.ReadAllBytes("signed.pdf")))
