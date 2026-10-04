@@ -232,6 +232,27 @@ public sealed class AppearanceLifecycleTests : IDisposable
     }
 
     /// <summary>
+    ///   Nor does a set of states that lacks the one <c>/AS</c> names keep it: a reader would find
+    ///   nothing by that name to show.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Drawing))]
+    public void ARedrawTakesAwayAStateNoKeptSetHolds(string kind)
+    {
+        var annotation = OnAPage(Configured(kind));
+        annotation.SetAppearance("/On", GreenBlock(annotation));
+        var pressed = CallersForm(annotation.Owner);
+        annotation.Elements.GetDictionary("/AP").Elements["/D"] =
+            new PdfDictionary(annotation.Owner) { Elements = { ["/Off"] = pressed.Reference } };
+
+        annotation.Color = XColors.Blue;
+
+        annotation.Elements.GetDictionary("/AP").Elements.GetDictionary("/D").Elements["/Off"]
+            .Should().BeSameAs(pressed.Reference);
+        annotation.Elements.ContainsKey("/AS").Should().BeFalse();
+    }
+
+    /// <summary>
     ///   And what shows, with a rollover kept beside it, is the redraw.
     /// </summary>
     [Theory]

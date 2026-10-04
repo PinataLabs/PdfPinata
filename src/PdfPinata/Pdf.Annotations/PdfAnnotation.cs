@@ -486,7 +486,7 @@ public abstract class PdfAnnotation : PdfDictionary
     /// appearance is never drawn here, so one is a caller's, and is kept rather than thrown away
     /// by a change of colour - a stale drawing on hover is the caller's to update, a lost one is
     /// not theirs to get back. <c>/AS</c> stays while one of those is still a set of named states
-    /// it can pick from, and goes otherwise, as <see cref="SetAppearance(XForm)"/> takes it.
+    /// holding the one it names, and goes otherwise, as <see cref="SetAppearance(XForm)"/> takes it.
     /// </remarks>
     private protected void ShowRedrawnAppearance(XForm form) => ShowRedrawnAppearance(FinishedForm(form).Reference);
 
@@ -498,7 +498,8 @@ public abstract class PdfAnnotation : PdfDictionary
         // indirect object, and nothing says another annotation does not refer to it as well.
         var appearance = new PdfDictionary(Owner) { Elements = { ["/N"] = normal } };
         var previous = Elements.GetDictionary(Keys.AP);
-        var states = false;
+        var state = Elements.GetName(Keys.AS);
+        var named = false;
         foreach (var key in new[] { "/R", "/D" })
         {
             var item = previous?.Elements[key];
@@ -506,11 +507,14 @@ public abstract class PdfAnnotation : PdfDictionary
                 continue;
 
             appearance.Elements[key] = item;
-            states |= previous.Elements.GetDictionary(key) is { } entry && !entry.Elements.ContainsKey("/BBox");
+
+            // A set of states rather than a single form, and one with the state /AS names in it.
+            named |= state.Length > 0 && previous.Elements.GetDictionary(key) is { } entry
+                && !entry.Elements.ContainsKey("/BBox") && entry.Elements.ContainsKey(state);
         }
 
         Elements[Keys.AP] = appearance;
-        if (!states)
+        if (!named)
             Elements.Remove(Keys.AS);
     }
 
