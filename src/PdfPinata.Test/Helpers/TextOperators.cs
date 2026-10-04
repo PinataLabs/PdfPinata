@@ -38,9 +38,15 @@ internal static class TextOperators
     ///   A font embedded as Identity-H writes glyph identifiers instead, and what comes back is
     ///   the numbers of the glyphs rather than the characters they stand for.
     /// </remarks>
-    internal static IReadOnlyList<string> ShownStrings(PdfPage page)
+    internal static IReadOnlyList<string> ShownStrings(PdfPage page) => ShownStrings(PageContent.Of(page));
+
+    /// <summary>
+    ///   The strings shown by a content stream - a form's, say, rather than a page's - in the order
+    ///   they were drawn.
+    /// </summary>
+    internal static IReadOnlyList<string> ShownStrings(byte[] content)
     {
-        return [..Operators(page)
+        return [..Operators(content)
             .Where(op => op.OpCode.OpCodeName is OpCodeName.Tj or OpCodeName.TJ)
             .SelectMany(op => op.Operands
                 .SelectMany(operand => operand is CArray array ? array.AsEnumerable() : [operand])
@@ -167,9 +173,16 @@ internal static class TextOperators
     ///   Something on the page was shown at a position that cannot be known without the font's
     ///   glyph widths.
     /// </exception>
-    internal static IReadOnlyList<(double X, double Y, string Text)> ShownWithPositions(PdfPage page)
+    internal static IReadOnlyList<(double X, double Y, string Text)> ShownWithPositions(PdfPage page) =>
+        ShownWithPositions(PageContent.Of(page));
+
+    /// <summary>
+    ///   What each show-text operator of a content stream - a form's, say, rather than a page's -
+    ///   drew and where, as <see cref="ShownWithPositions(PdfPage)"/> answers for a page.
+    /// </summary>
+    internal static IReadOnlyList<(double X, double Y, string Text)> ShownWithPositions(byte[] content)
     {
-        var placed = Placed(page);
+        var placed = Placed(content);
 
         // Refused rather than approximated. A test asking where something is and quietly given the
         // position of the thing before it is worse than one that stops: it passes, and it goes on
@@ -217,7 +230,10 @@ internal static class TextOperators
     /// <exception cref="InvalidOperationException">
     ///   The page uses a text operator whose effect on the pen this does not follow.
     /// </exception>
-    private static List<(double X, double Y, int Written, string Text, bool Exact)> Placed(PdfPage page)
+    private static List<(double X, double Y, int Written, string Text, bool Exact)> Placed(PdfPage page) =>
+        Placed(PageContent.Of(page));
+
+    private static List<(double X, double Y, int Written, string Text, bool Exact)> Placed(byte[] content)
     {
         var shown = new List<(double X, double Y, int Written, string Text, bool Exact)>();
         double x = 0, y = 0;
@@ -225,7 +241,7 @@ internal static class TextOperators
         // Whether the pen is where the positioning operators alone say it is.
         var exact = true;
 
-        foreach (var op in Operators(page))
+        foreach (var op in Operators(content))
         {
             var operands = op.Operands;
             switch (op.OpCode.OpCodeName)
@@ -288,9 +304,11 @@ internal static class TextOperators
             .SelectMany(op => op.Operands.OfType<CArray>());
     }
 
-    private static IEnumerable<COperator> Operators(PdfPage page)
+    private static IEnumerable<COperator> Operators(PdfPage page) => Operators(PageContent.Of(page));
+
+    private static IEnumerable<COperator> Operators(byte[] content)
     {
-        return ContentReader.ReadContent(PageContent.Of(page)).OfType<COperator>();
+        return ContentReader.ReadContent(content).OfType<COperator>();
     }
 
     private static double Number(CObject operand)

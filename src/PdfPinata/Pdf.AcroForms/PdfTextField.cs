@@ -28,6 +28,7 @@
 #endregion
 
 using System;
+using System.Globalization;
 using PdfPinata.Drawing;
 using PdfPinata.Drawing.Layout;
 using PdfPinata.Fonts;
@@ -124,12 +125,19 @@ public sealed class PdfTextField : PdfAcroField
     internal override void OnAppearanceCharacteristicsChanged() => RenderAppearance();
 
     /// <summary>
-    /// Gets or sets the maximum length of the field.
+    /// Gets or sets the maximum length of the field's text, in characters - and, for a comb field,
+    /// the number of cells it is divided into.
     /// </summary>
-    /// <value>The length of the max.</value>
+    /// <remarks>
+    /// <c>/MaxLen</c> is inheritable (ISO 32000-1 Table 229), so reading answers the field's own
+    /// entry when it has one and otherwise the nearest ancestor's, as <see cref="PdfAcroField.Flags"/>
+    /// does for <c>/Ff</c>. A form read from a file often says it once, on a parent grouping a set
+    /// of comb fields, and reading the field's own entry alone answered zero for every one of them
+    /// - which drew a comb field as ordinary text. Writing always writes this field's own entry.
+    /// </remarks>
     public int MaxLength
     {
-        get => Elements.GetInteger(Keys.MaxLen);
+        get => InheritedFrom(this, Keys.MaxLen)?.Elements.GetInteger(Keys.MaxLen) ?? 0;
         set => Elements.SetInteger(Keys.MaxLen, value);
     }
 
@@ -212,21 +220,26 @@ public sealed class PdfTextField : PdfAcroField
 
     private void RenderAppearanceOn(PdfDictionary annotation)
     {
-        var rect = annotation.Elements.GetRectangle(PdfAnnotation.Keys.Rect);
+        var rect = WidgetRectangle(annotation);
 
         // A rectangle too small to draw in draws nothing, and XForm refuses to be made of one:
         // its floor is a point in each direction, so the test is against 1 rather than against 0.
-        // A field reaches this while it is still being assembled, so it is a stage rather than a
-        // fault. It also keeps the border below from being given a negative width.
+        // It also keeps the border below from being given a negative width. The drawing the
+        // widget had goes, or it goes on showing a box that is no longer there and a value the
+        // field may no longer hold (issue #211). A widget still being put together, with no /Rect
+        // yet, never reaches this: RenderAppearance passes over it.
         if (rect.Width < 1 || rect.Height < 1)
+        {
+            RemoveVariableTextAppearance(annotation);
             return;
+        }
 
         // Nothing asked for. An appearance is what a reader shows in place of building one from
         // /MK, so writing an empty one here would blank a field decorated that way rather than
         // leave it alone - which is the difference between "draw nothing" and "draw it yourself".
         if (BackColor.IsEmpty && BorderColor.IsEmpty && Text.Length == 0)
         {
-            annotation.Elements.Remove(PdfAnnotation.Keys.AP);
+            RemoveVariableTextAppearance(annotation);
             return;
         }
 
@@ -274,6 +287,15 @@ public sealed class PdfTextField : PdfAcroField
     /// each character rather than the character. <c>/Q</c> says which side a line is aligned to.
     /// </para>
     /// <para>
+    /// A character, for a comb cell and for an asterisk, is a text element - a grapheme cluster,
+    /// what <see cref="StringInfo"/> enumerates - rather than a UTF-16 code unit. Cut by code
+    /// unit, a character outside the Basic Multilingual Plane was drawn as two lone surrogates,
+    /// neither of which has a glyph, in two cells, and a password showed two asterisks for it.
+    /// pdf.js agrees about the surrogate pair, cutting a comb value by the font's character
+    /// codes; it gives a combining mark a cell of its own, which puts an accent a cell away from
+    /// its letter, and that is the one place this deliberately differs.
+    /// </para>
+    /// <para>
     /// It used to draw every value as one line from the top left, whatever the field was: a
     /// multi-line value ran off the side, a comb field was ordinary text and a password was
     /// written in the clear into the drawing of it (issue #155).
@@ -287,16 +309,20 @@ public sealed class PdfTextField : PdfAcroField
         var brush = new XSolidBrush(ForeColor);
         var alignment = Alignment;
 
+        // Characters as the person filling the field sees them - text elements, so a character
+        // outside the Basic Multilingual Plane is one and not the two UTF-16 halves it is stored
+        // as, and a letter with a combining mark after it is one and not two (issue #206).
         if (Password)
-            text = new string('*', text.Length);
+            text = new string('*', new StringInfo(text).LengthInTextElements);
 
         var cells = MaxLength;
         if (Comb && cells > 0 && !MultiLine && !Password)
         {
             var cellWidth = size.Width / cells;
-            for (var index = 0; index < text.Length && index < cells; index++)
+            var characters = StringInfo.GetTextElementEnumerator(text);
+            for (var index = 0; index < cells && characters.MoveNext(); index++)
             {
-                gfx.DrawString(text[index].ToString(), font, brush,
+                gfx.DrawString(characters.GetTextElement(), font, brush,
                     new XRect(index * cellWidth, 0, cellWidth, size.Height), XStringFormats.Center);
             }
             return;

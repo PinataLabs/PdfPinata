@@ -548,6 +548,37 @@ public abstract class PdfAcroField : PdfDictionary
     }
 
     /// <summary>
+    /// Takes away a widget's appearance, for a field of variable text that is asked to draw
+    /// nothing, or cannot draw at all - its <c>/AP</c>, and the <c>/AS</c> that would be left
+    /// naming a state in an appearance dictionary that is no longer there.
+    /// </summary>
+    /// <remarks>
+    /// The same rule the annotations that draw themselves follow, through
+    /// <see cref="PdfAnnotation"/>'s own <c>RemoveAppearance</c>: an appearance left in place
+    /// goes on showing what the widget was last asked for rather than what it is asked for now.
+    /// </remarks>
+    internal static void RemoveVariableTextAppearance(PdfDictionary widget)
+    {
+        widget.Elements.Remove(PdfAnnotation.Keys.AP);
+        widget.Elements.Remove(PdfAnnotation.Keys.AS);
+    }
+
+    /// <summary>
+    /// A widget's <c>/Rect</c> with its corners put in order, lower left first.
+    /// </summary>
+    /// <remarks>
+    /// ISO 32000-1 7.9.5 lets a rectangle name any two opposite corners, and
+    /// <see cref="PdfRectangle"/> keeps them as written, so a box read from a file as
+    /// <c>[200 700 50 680]</c> has a negative width. Taken as it is, that box was too small to
+    /// draw in, and its appearance was taken away.
+    /// </remarks>
+    internal static PdfRectangle WidgetRectangle(PdfDictionary widget)
+    {
+        var rect = widget.Elements.GetRectangle(PdfAnnotation.Keys.Rect);
+        return new PdfRectangle(new XRect(new XPoint(rect.X1, rect.Y1), new XPoint(rect.X2, rect.Y2)));
+    }
+
+    /// <summary>
     /// Gets or sets the field flags of this instance.
     /// </summary>
     /// <remarks>

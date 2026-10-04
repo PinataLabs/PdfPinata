@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using AwesomeAssertions;
 using ImageMagick;
 using PdfPinata.Drawing;
@@ -137,6 +138,122 @@ public sealed class TextFieldAppearanceTests : IDisposable
         }
     }
 
+    /// <summary>
+    ///   A comb field counts characters as a reader of the value sees them: a character outside the
+    ///   Basic Multilingual Plane is two UTF-16 code units, and a base letter with a combining mark
+    ///   after it is two code points, and each is one cell. Split by code unit, each half of the
+    ///   surrogate pair was drawn alone - a lone surrogate has no glyph - in a cell of its own.
+    /// </summary>
+    [Theory]
+    [InlineData("a\U0001F600b", new[] { 0, 1, 2 })]
+    [InlineData("e\u0301x", new[] { 0, 1 })]
+    [InlineData("\U00020000\U00020001\U00020002", new[] { 0, 1, 2 })]
+    public void ACombFieldPutsOneCharacterAsTheReaderSeesItInEachCell(string value, int[] cells)
+    {
+        var field = OnAPage(Line, f =>
+        {
+            f.MaxLength = 4;
+            f.Flags |= PdfAcroFieldFlags.Comb;
+        });
+
+        field.Text = value;
+
+        CellsOf(field).Should().Equal(cells);
+    }
+
+    [Theory]
+    [InlineData("\U0001F600")]
+    [InlineData("e\u0301")]
+    public void APasswordDrawsOneMaskCharacterForEachCharacterAsTheReaderSeesIt(string value)
+    {
+        var masked = OnAPage(Line, f => f.Password = true);
+        var single = OnAPage(Line, f => f.Password = true);
+
+        masked.Text = value;
+        single.Text = "x";
+
+        TextOperators.ShownStrings(AppearanceBytes(masked))
+            .Should().Equal(TextOperators.ShownStrings(AppearanceBytes(single)), "one character, so one asterisk");
+    }
+
+    /// <summary>
+    ///   A comb field described once, on a parent that only groups: <c>/MaxLen</c> and the comb
+    ///   flag are on <c>code</c>, and <c>code.digits</c>, which has the widget, carries neither.
+    /// </summary>
+    private static (PdfDocument Document, PdfTextField Parent, PdfTextField Kid) ACombGroup()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var form = document.GetOrCreateAcroForm();
+        var parent = new PdfTextField(document) { Name = "code" };
+        form.Fields.Add(parent);
+        parent.DefaultAppearance = "/Helv 12 Tf 0 g";
+        parent.MaxLength = 6;
+        parent.Flags |= PdfAcroFieldFlags.Comb;
+
+        var kid = new PdfTextField(document) { Name = "digits" };
+        parent.Fields.Add(kid);
+        kid.AddWidget(page, new PdfRectangle(new XRect(60, 700, 300, 30)));
+        return (document, parent, kid);
+    }
+
+    [Fact]
+    public void AKidInheritsItsMaximumLength()
+    {
+        var (_, _, kid) = ACombGroup();
+
+        kid.Elements.ContainsKey(PdfTextField.Keys.MaxLen).Should().BeFalse("the kid says none of its own");
+        kid.MaxLength.Should().Be(6, "/MaxLen is inheritable, ISO 32000-1 Table 229");
+    }
+
+    [Fact]
+    public void AKidsOwnMaximumLengthIsWrittenOnTheKid()
+    {
+        var (_, parent, kid) = ACombGroup();
+
+        kid.MaxLength = 4;
+
+        kid.MaxLength.Should().Be(4);
+        kid.Elements.GetInteger(PdfTextField.Keys.MaxLen).Should().Be(4);
+        parent.MaxLength.Should().Be(6, "the parent is untouched");
+    }
+
+    [Fact]
+    public void ACombKidDrawsTheCellsItsParentDescribes()
+    {
+        var (_, _, kid) = ACombGroup();
+
+        kid.Text = "123456";
+
+        CellsOf(kid).Should().Equal([0, 1, 2, 3, 4, 5], "one character in each of the six cells the parent's /MaxLen makes");
+    }
+
+    [Fact]
+    public void ACombKidReadFromAFileDrawsTheCellsItsParentDescribes()
+    {
+        var (document, _, _) = ACombGroup();
+        var reopened = document.Reopened();
+        var kid = (PdfTextField)reopened.AcroForm.Fields["code.digits"];
+
+        kid.MaxLength.Should().Be(6);
+        kid.Text = "654321";
+
+        CellsOf(kid).Should().Equal([0, 1, 2, 3, 4, 5]);
+    }
+
+    /// <summary>
+    ///   Which comb cell each show-text operator of a field's appearance draws in, counted from the
+    ///   left - the cell the middle of the drawn character falls in is good enough, since every
+    ///   string is centred in its cell.
+    /// </summary>
+    private static int[] CellsOf(PdfTextField field)
+    {
+        var width = field.Widgets[0].Rectangle.Width;
+        var cell = width / field.MaxLength;
+        return [..TextOperators.ShownWithPositions(AppearanceBytes(field))
+            .Select(shown => (int)Math.Floor((shown.X + 2) / cell))];
+    }
+
     [GoldenImageFact]
     public void APasswordIsNotDrawnInTheClear()
     {
@@ -211,16 +328,56 @@ public sealed class TextFieldAppearanceTests : IDisposable
         open.Should().BeGreaterThan(content.IndexOf(Fill, StringComparison.Ordinal));
     }
 
+    [Theory]
+    [InlineData(0.5, 20)]
+    [InlineData(200, 0.5)]
+    public void AWidgetShrunkBelowAPointLosesTheAppearanceItCannotHold(double width, double height)
+    {
+        // XForm cannot be made under a point, so the field cannot be drawn there - and the
+        // drawing it had is of a box that is no longer there and a value it may no longer hold.
+        var field = OnAPage(Line, f => f.BorderColor = XColors.Gray);
+        field.Text = "Ada Lovelace";
+        var widget = field.Widgets[0];
+        widget.Elements.SetName("/AS", "/Off");
+        widget.Rectangle = new PdfRectangle(new XRect(60, 700, width, height));
+
+        field.Text = "Grace Hopper";
+
+        widget.Elements.ContainsKey("/AP").Should().BeFalse();
+        widget.Elements.ContainsKey("/AS").Should().BeFalse(
+            "a state name pointing into an appearance dictionary that is gone goes with it");
+    }
+
+    [Fact]
+    public void AWidgetWhoseRectangleNamesItsCornersTheOtherWayRoundIsStillDrawn()
+    {
+        // ISO 32000-1 7.9.5 lets a rectangle name any two opposite corners, so a file may say
+        // [360 730 60 700]: a box 300 by 30, and not one of a negative size to take a drawing from.
+        var field = OnAPage(Line, f => f.BorderColor = XColors.Gray);
+        var widget = field.Widgets[0];
+        var reversed = new PdfArray(widget.Owner);
+        foreach (var number in new[] { 360, 730, 60, 700 })
+            reversed.Elements.Add(new PdfReal(number));
+        widget.Elements["/Rect"] = reversed;
+
+        field.Text = "Ada Lovelace";
+
+        widget.Elements.ContainsKey("/AP").Should().BeTrue();
+    }
+
     /// <summary>A rectangle filled, and a rectangle stroked, as the renderer writes them.</summary>
     private const string Fill = " re\nf";
 
     private const string Stroke = " re\nS";
 
-    private static string AppearanceContent(PdfAcroField field)
+    private static string AppearanceContent(PdfAcroField field) =>
+        System.Text.Encoding.Latin1.GetString(AppearanceBytes(field));
+
+    private static byte[] AppearanceBytes(PdfAcroField field)
     {
         var appearances = field.Widgets[0].Elements.GetDictionary("/AP");
         var normal = (PdfDictionary)appearances.Elements.GetObject("/N");
-        return System.Text.Encoding.Latin1.GetString(normal.Stream.UnfilteredValue);
+        return normal.Stream.UnfilteredValue;
     }
 
     private IMagickImage<byte> Rasterize(string name, PdfTextField field)

@@ -319,6 +319,58 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         NormalAppearance(again).Stream.UnfilteredValue.Should().Equal(drawn, "saving a read field does not redraw it");
     }
 
+    [Theory]
+    [InlineData(0.5, 20)]
+    [InlineData(200, 0.5)]
+    public void AWidgetShrunkBelowAPointLosesTheAppearanceItCannotHold(double width, double height)
+    {
+        // XForm cannot be made under a point, so the field cannot be drawn there - and the
+        // drawing it had is of a box that is no longer there and a value it may no longer hold.
+        var (_, combo) = OnAPage(ACountryCombo);
+        combo.BackColor = XColors.LightGray;
+        combo.SelectedIndex = 1;
+        var widget = combo.Widgets[0];
+        widget.Elements.SetName(PdfAnnotation.Keys.AS, "/Off");
+        widget.Rectangle = new PdfRectangle(new XRect(60, 700, width, height));
+
+        combo.SelectedIndex = 2;
+
+        widget.Elements.ContainsKey(PdfAnnotation.Keys.AP).Should().BeFalse();
+        widget.Elements.ContainsKey(PdfAnnotation.Keys.AS).Should().BeFalse(
+            "a state name pointing into an appearance dictionary that is gone goes with it");
+    }
+
+    [Fact]
+    public void AWidgetWithNoRectangleYetIsLeftAlone()
+    {
+        // A widget a caller is putting together by hand, which has an appearance and no /Rect
+        // yet, is not one this field can redraw - and not one it should take the drawing from.
+        var (document, combo) = OnAPage(ACountryCombo);
+        combo.SelectedIndex = 1;
+        var widget = combo.Widgets[0];
+        widget.Elements.Remove(PdfAnnotation.Keys.Rect);
+
+        combo.SelectedIndex = 2;
+
+        widget.Elements.ContainsKey(PdfAnnotation.Keys.AP).Should().BeTrue();
+    }
+
+    [Fact]
+    public void AWidgetWhoseRectangleNamesItsCornersTheOtherWayRoundIsStillDrawn()
+    {
+        // ISO 32000-1 7.9.5 lets a rectangle name any two opposite corners.
+        var (_, combo) = OnAPage(ACountryCombo);
+        var widget = combo.Widgets[0];
+        var reversed = new PdfArray(widget.Owner);
+        foreach (var number in new[] { 300, 730, 60, 658 })
+            reversed.Elements.Add(new PdfReal(number));
+        widget.Elements["/Rect"] = reversed;
+
+        combo.SelectedIndex = 2;
+
+        widget.Elements.ContainsKey(PdfAnnotation.Keys.AP).Should().BeTrue();
+    }
+
     private static PdfDictionary NormalAppearance(PdfChoiceField field)
     {
         var appearances = field.Widgets[0].Elements.GetDictionary(PdfAnnotation.Keys.AP);
