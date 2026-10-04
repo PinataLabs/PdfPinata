@@ -57,6 +57,18 @@ public class LineFormat : DocumentObject
   {
     return (LineFormat)DeepCopy();
   }
+
+  /// <summary>
+  /// Implements the deep copy of the object.
+  /// </summary>
+  protected override object DeepCopy()
+  {
+    var lineFormat = (LineFormat)base.DeepCopy();
+    // The memberwise copy shares the array; a copy owns its pattern as the original does.
+    if (lineFormat.dashPattern != null)
+      lineFormat.dashPattern = (double[])lineFormat.dashPattern.Clone();
+    return lineFormat;
+  }
   #endregion
 
   #region Properties
