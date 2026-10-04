@@ -485,8 +485,10 @@ public abstract class PdfAnnotation : PdfDictionary
     /// Only <c>/N</c> is the library's to replace. A rollover (<c>/R</c>) or a down (<c>/D</c>)
     /// appearance is never drawn here, so one is a caller's, and is kept rather than thrown away
     /// by a change of colour - a stale drawing on hover is the caller's to update, a lost one is
-    /// not theirs to get back. <c>/AS</c> stays while one of those is still a set of named states
-    /// holding the one it names, and goes otherwise, as <see cref="SetAppearance(XForm)"/> takes it.
+    /// not theirs to get back. <c>/AS</c> is left alone while one of those is a set of named
+    /// states, because it is then required and which state it names is the caller's to say; with
+    /// no set of states left it names nothing, and goes, as <see cref="SetAppearance(XForm)"/>
+    /// takes it.
     /// </remarks>
     private protected void ShowRedrawnAppearance(XForm form) => ShowRedrawnAppearance(FinishedForm(form).Reference);
 
@@ -498,8 +500,7 @@ public abstract class PdfAnnotation : PdfDictionary
         // indirect object, and nothing says another annotation does not refer to it as well.
         var appearance = new PdfDictionary(Owner) { Elements = { ["/N"] = normal } };
         var previous = Elements.GetDictionary(Keys.AP);
-        var state = Elements.GetName(Keys.AS);
-        var named = false;
+        var states = false;
         foreach (var key in new[] { "/R", "/D" })
         {
             var item = previous?.Elements[key];
@@ -508,13 +509,15 @@ public abstract class PdfAnnotation : PdfDictionary
 
             appearance.Elements[key] = item;
 
-            // A set of states rather than a single form, and one with the state /AS names in it.
-            named |= state.Length > 0 && previous.Elements.GetDictionary(key) is { } entry
-                && !entry.Elements.ContainsKey("/BBox") && entry.Elements.ContainsKey(state);
+            // A set of states rather than a single form.
+            states |= previous.Elements.GetDictionary(key) is { } entry && !entry.Elements.ContainsKey("/BBox");
         }
 
         Elements[Keys.AP] = appearance;
-        if (!named)
+
+        // While a kept set of states is left, /AS is required (ISO 32000-1 Table 168) and which
+        // state it names is the caller's choice, not the redraw's; with none left it names nothing.
+        if (!states)
             Elements.Remove(Keys.AS);
     }
 

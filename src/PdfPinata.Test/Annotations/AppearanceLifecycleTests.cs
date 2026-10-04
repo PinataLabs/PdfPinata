@@ -232,12 +232,13 @@ public sealed class AppearanceLifecycleTests : IDisposable
     }
 
     /// <summary>
-    ///   Nor does a set of states that lacks the one <c>/AS</c> names keep it: a reader would find
-    ///   nothing by that name to show.
+    ///   While a kept set of states is left, <c>/AS</c> is required, and which state it names is the
+    ///   caller's: the redraw leaves it as it is, even naming a state the set lacks - and is not put
+    ///   off by one that is not a name at all, which a loosely written file may carry.
     /// </summary>
     [Theory]
     [MemberData(nameof(Drawing))]
-    public void ARedrawTakesAwayAStateNoKeptSetHolds(string kind)
+    public void ARedrawLeavesTheStateToTheCallerWhileASetOfStatesIsKept(string kind)
     {
         var annotation = OnAPage(Configured(kind));
         annotation.SetAppearance("/On", GreenBlock(annotation));
@@ -249,7 +250,13 @@ public sealed class AppearanceLifecycleTests : IDisposable
 
         annotation.Elements.GetDictionary("/AP").Elements.GetDictionary("/D").Elements["/Off"]
             .Should().BeSameAs(pressed.Reference);
-        annotation.Elements.ContainsKey("/AS").Should().BeFalse();
+        annotation.Elements.GetName("/AS").Should().Be("/On");
+
+        annotation.Elements["/AS"] = new PdfString("On");
+
+        annotation.Opacity = 0.5;
+
+        annotation.Elements["/AS"].Should().BeOfType<PdfString>();
     }
 
     /// <summary>
