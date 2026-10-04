@@ -133,7 +133,9 @@ its XMP, so signing an archival file without restating the claim is held to the 
 
 - **Trust.** `PdfSignatureVerifier` builds no certificate chain, consults no trust store and checks
   no revocation. A signature it calls valid may have been made with a certificate nobody should
-  believe. What it does check is what actually goes wrong in practice: a document edited after
+  believe. The same holds for a timestamp: the verifier checks that the token is intact and was
+  issued for this signature (`IsTimestampIntact`), not whether the authority that signed it is
+  trusted. What it does check is what actually goes wrong in practice: a document edited after
   signing, a byte range computed wrongly, or a signature covering only part of a file.
 - **B-T and B-LT.** A timestamp needs an RFC 3161 client and a network call at signing time; LTV
   needs a `/DSS` dictionary with the OCSP responses and CRLs to validate the chain years later.
