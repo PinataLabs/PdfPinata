@@ -42,11 +42,6 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
 
     public void Dispose() => _rasterized.Dispose();
 
-    static GenericAnnotationRenderingTests()
-    {
-        GhostscriptSetup.Configure();
-    }
-
     private static readonly XRect Where = new(40, 40, 120, 60);
 
     [GoldenImageFact]

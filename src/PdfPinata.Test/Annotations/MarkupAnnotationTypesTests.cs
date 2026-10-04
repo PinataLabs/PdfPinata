@@ -28,11 +28,6 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
 
     private readonly Rasterizations _rasterized = new(OutDir);
 
-    static MarkupAnnotationTypesTests()
-    {
-        GhostscriptSetup.Configure();
-    }
-
     public void Dispose() => _rasterized.Dispose();
 
     // ----- ink ------------------------------------------------------------------------------------------

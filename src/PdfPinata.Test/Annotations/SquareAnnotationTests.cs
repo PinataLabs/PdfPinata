@@ -30,11 +30,6 @@ public sealed class SquareAnnotationTests : IDisposable
 
     public void Dispose() => _rasterized.Dispose();
 
-    static SquareAnnotationTests()
-    {
-        GhostscriptSetup.Configure();
-    }
-
     private static readonly XRect Where = new(40, 40, 120, 80);
 
     [Fact]

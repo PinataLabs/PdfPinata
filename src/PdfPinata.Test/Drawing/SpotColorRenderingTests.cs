@@ -26,11 +26,6 @@ public sealed class SpotColorRenderingTests : IDisposable
 
     private readonly Rasterizations _rasterized = new(OutDir);
 
-    static SpotColorRenderingTests()
-    {
-        GhostscriptSetup.Configure();
-    }
-
     public void Dispose() => _rasterized.Dispose();
 
     [GoldenImageFact]

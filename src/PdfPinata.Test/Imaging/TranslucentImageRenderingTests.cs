@@ -40,11 +40,6 @@ public sealed class TranslucentImageRenderingTests : IDisposable
 
     public void Dispose() => _rasterized.Dispose();
 
-    static TranslucentImageRenderingTests()
-    {
-        GhostscriptSetup.Configure();
-    }
-
     /// <summary>
     ///   39% of black over white is a light grey, and it used to be nothing at all: every pixel
     ///   sat below the stencil's threshold, so the stencil declared the whole image transparent.

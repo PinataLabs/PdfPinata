@@ -27,11 +27,6 @@ public sealed class GradientTransparencyRenderingTests : IDisposable
 
     public void Dispose() => _rasterized.Dispose();
 
-    static GradientTransparencyRenderingTests()
-    {
-        GhostscriptSetup.Configure();
-    }
-
     /// <summary>The band the gradient is drawn across, in the space the drawing uses.</summary>
     private static readonly XRect Band = new(50, 50, 400, 200);
 

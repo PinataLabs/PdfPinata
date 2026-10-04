@@ -32,11 +32,6 @@ public sealed class TypedAnnotationReadingTests : IDisposable
 
     private readonly Rasterizations _rasterized = new(OutDir);
 
-    static TypedAnnotationReadingTests()
-    {
-        GhostscriptSetup.Configure();
-    }
-
     public void Dispose() => _rasterized.Dispose();
 
     private static readonly PdfRectangle Somewhere = new(new XPoint(100, 500), new XPoint(300, 600));

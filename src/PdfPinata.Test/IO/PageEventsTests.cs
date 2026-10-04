@@ -26,11 +26,6 @@ public sealed class PageEventsTests : IDisposable
 
     private readonly Rasterizations _rasterized = new(OutDir);
 
-    static PageEventsTests()
-    {
-        GhostscriptSetup.Configure();
-    }
-
     public void Dispose() => _rasterized.Dispose();
 
     // ----- pages added and removed ----------------------------------------------------------------------

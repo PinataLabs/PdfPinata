@@ -32,11 +32,6 @@ public sealed class LineAnnotationTests : IDisposable
 
     public void Dispose() => _rasterized.Dispose();
 
-    static LineAnnotationTests()
-    {
-        GhostscriptSetup.Configure();
-    }
-
     private static readonly XPoint From = new(100, 400);
     private static readonly XPoint To = new(300, 400);
 

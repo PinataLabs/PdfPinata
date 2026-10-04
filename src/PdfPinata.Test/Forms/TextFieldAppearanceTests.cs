@@ -23,11 +23,6 @@ public sealed class TextFieldAppearanceTests : IDisposable
 
     private readonly Rasterizations _rasterized = new(OutDir);
 
-    static TextFieldAppearanceTests()
-    {
-        GhostscriptSetup.Configure();
-    }
-
     public void Dispose() => _rasterized.Dispose();
 
     /// <summary>A single-line box, in world space from the top left of an A4 page.</summary>

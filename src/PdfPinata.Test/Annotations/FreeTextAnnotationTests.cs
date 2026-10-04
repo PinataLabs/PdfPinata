@@ -30,11 +30,6 @@ public sealed class FreeTextAnnotationTests : IDisposable
 
     public void Dispose() => _rasterized.Dispose();
 
-    static FreeTextAnnotationTests()
-    {
-        GhostscriptSetup.Configure();
-    }
-
     private static readonly XRect Where = new(60, 60, 220, 90);
 
     [Fact]
