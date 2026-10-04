@@ -175,7 +175,7 @@ public abstract class PdfSquareCircleAnnotation : PdfMarkupAnnotation
             DrawShape(gfx, pen, brush, drawn);
         }
 
-        SetAppearance(form);
+        ShowRedrawnAppearance(form);
 
         // What /Rect gives up to the border: the square actually drawn is inset by half of it.
         SetRectDifferences(Keys.RD, inset);

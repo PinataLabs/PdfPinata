@@ -219,11 +219,8 @@ public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
         // Hung up every time it is drawn, not only when it is made: over whatever appearance a file
         // gave the annotation, after nothing to mark took it down, and over one a caller set with
         // SetAppearance - or the redraw goes into a form nothing refers to and never shows. The
-        // redraw wins, as it does for every annotation that draws itself, and /AS goes as
-        // SetAppearance(XForm) takes it, because a single appearance is not one of a set.
-        var appearance = new PdfDictionary(Owner) { Elements = { ["/N"] = form.Reference } };
-        Elements[PdfAnnotation.Keys.AP] = appearance;
-        Elements.Remove(PdfAnnotation.Keys.AS);
+        // redraw wins, as it does for every annotation that draws itself.
+        ShowRedrawnAppearance(form.Reference);
 
         form.Elements["/BBox"] = new PdfArray(Owner,
             new PdfReal(box.X1), new PdfReal(box.Y1), new PdfReal(box.X2), new PdfReal(box.Y2));

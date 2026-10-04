@@ -100,7 +100,7 @@ public sealed class PdfCaretAnnotation : PdfMarkupAnnotation
         using (var gfx = XGraphics.FromForm(form))
             gfx.DrawPolygon(new XSolidBrush(Color), caret, XFillMode.Winding);
 
-        SetAppearance(form);
+        ShowRedrawnAppearance(form);
     }
 
     /// <summary>

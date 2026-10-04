@@ -183,7 +183,7 @@ public sealed class PdfRedactAnnotation : PdfMarkupAnnotation
             }
         }
 
-        SetAppearance(form);
+        ShowRedrawnAppearance(form);
     }
 
     /// <summary>

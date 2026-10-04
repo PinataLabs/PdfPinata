@@ -146,7 +146,7 @@ public abstract class PdfPolyAnnotation : PdfMarkupAnnotation
         using (var gfx = XGraphics.FromForm(form))
             DrawShape(gfx, pen, brush, [..vertices.Select(point => PointArrays.IntoForm(point, box))]);
 
-        SetAppearance(form);
+        ShowRedrawnAppearance(form);
     }
 
     /// <summary>

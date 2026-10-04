@@ -330,7 +330,7 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
             DrawText(gfx, text, inset, width - 2 * inset, height - 2 * inset);
         }
 
-        SetAppearance(form);
+        ShowRedrawnAppearance(form);
 
         // What /Rect gives up before the text starts: the box it is laid out in is inset by it.
         SetRectDifferences(Keys.RD, inset);

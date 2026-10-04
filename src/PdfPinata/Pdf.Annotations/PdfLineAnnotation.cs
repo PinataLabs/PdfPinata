@@ -230,7 +230,7 @@ public sealed class PdfLineAnnotation : PdfMarkupAnnotation
             LineEndings.Draw(gfx, EndEnding, to, LineEndings.Direction(from, to), pen, brush, size);
         }
 
-        SetAppearance(form);
+        ShowRedrawnAppearance(form);
     }
 
     /// <summary>

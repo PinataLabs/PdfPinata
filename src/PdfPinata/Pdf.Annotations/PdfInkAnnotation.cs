@@ -163,7 +163,7 @@ public sealed class PdfInkAnnotation : PdfMarkupAnnotation
                 gfx.DrawLines(pen, [..stroke.Select(point => PointArrays.IntoForm(point, box))]);
         }
 
-        SetAppearance(form);
+        ShowRedrawnAppearance(form);
     }
 
     /// <summary>
