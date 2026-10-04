@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using AwesomeAssertions;
 using ImageMagick;
@@ -27,15 +26,9 @@ public sealed class AppearanceLifecycleTests : IDisposable
 
     private static readonly DateTime LongAgo = new(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-    private readonly List<MagickImageCollection> _rasterized = [];
+    private readonly Rasterizations _rasterized = new(OutDir);
 
-    public void Dispose()
-    {
-        foreach (var collection in _rasterized)
-            collection.Dispose();
-
-        _rasterized.Clear();
-    }
+    public void Dispose() => _rasterized.Dispose();
 
     /// <summary>
     ///   Every class that draws itself. The text markup annotations share one implementation, so
@@ -70,7 +63,7 @@ public sealed class AppearanceLifecycleTests : IDisposable
     {
         var page = Rasterize(kind + "-painted", document => document.Pages[0].Annotations.Add(Configured(kind)));
 
-        Ink(page).Should().BeGreaterThan(20);
+        PageInk.Count(page, IsInk).Should().BeGreaterThan(20);
     }
 
     // ----- what rebuilds it -----------------------------------------------------------------------------
@@ -333,7 +326,7 @@ public sealed class AppearanceLifecycleTests : IDisposable
         annotation.Elements.ContainsKey("/AS").Should().BeFalse();
         annotation.Elements.ContainsKey("/RD").Should().BeFalse();
         annotation.Elements.ContainsKey("/Rect").Should().BeTrue("/Rect is required whether anything is drawn or not");
-        Ink(page).Should().Be(0);
+        PageInk.Count(page, IsInk).Should().Be(0);
     }
 
     [Theory]
@@ -691,22 +684,12 @@ public sealed class AppearanceLifecycleTests : IDisposable
         _ = document.AddPage();
         arrange(document);
 
-        var images = PdfHelper.Rasterize(document).ImageCollection;
-        _rasterized.Add(images);
-        PdfHelper.WriteImageCollection(images, OutDir, name);
-        return images[0];
+        return _rasterized.FirstPageOf(document, name);
     }
 
     /// <summary>
-    ///   Pixels that are not the white of the page.
+    ///   A pixel that is not the white of the page. The threshold is this class's own, 230 where the
+    ///   single-annotation tests use 240, so it stays here rather than in <see cref="PageInk"/>.
     /// </summary>
-    private static int Ink(IMagickImage<byte> image)
-    {
-        using var pixels = image.GetPixels();
-        return pixels.Count(pixel =>
-        {
-            var c = pixel.ToColor();
-            return c != null && (c.R < 230 || c.G < 230 || c.B < 230);
-        });
-    }
+    private static bool IsInk(IMagickColor<byte> c) => c.R < 230 || c.G < 230 || c.B < 230;
 }

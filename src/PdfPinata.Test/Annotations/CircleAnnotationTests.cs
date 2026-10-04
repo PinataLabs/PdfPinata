@@ -31,11 +31,6 @@ public sealed class CircleAnnotationTests : IDisposable
 
     public void Dispose() => _rasterized.Dispose();
 
-    static CircleAnnotationTests()
-    {
-        GhostscriptSetup.Configure();
-    }
-
     /// <summary>A wide rectangle, so that "circle" is visibly an ellipse inscribed in it.</summary>
     private static readonly XRect Where = new(60, 60, 200, 100);
 

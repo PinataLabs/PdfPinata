@@ -28,8 +28,6 @@ public sealed class GlyphOutlineRenderingTests : IDisposable
 
     public void Dispose() => _rasterized.Dispose();
 
-    static GlyphOutlineRenderingTests() => GhostscriptSetup.Configure();
-
     [GoldenImageFact]
     public void GlyphsCanBeFilledWithAGradient()
     {

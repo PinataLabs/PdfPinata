@@ -34,11 +34,6 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
 
     private readonly Rasterizations _rasterized = new(OutDir);
 
-    static ChoiceFieldAppearanceTests()
-    {
-        GhostscriptSetup.Configure();
-    }
-
     public void Dispose() => _rasterized.Dispose();
 
     private static (PdfDocument Document, T Field) OnAPage<T>(Func<PdfDocument, T> make, XRect? box = null)

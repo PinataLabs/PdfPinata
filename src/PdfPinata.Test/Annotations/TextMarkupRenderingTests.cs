@@ -44,11 +44,6 @@ public sealed class TextMarkupRenderingTests : IDisposable
     private static readonly XRect Line = new(30, 30, 70, 16);
     private const double Baseline = 42;
 
-    static TextMarkupRenderingTests()
-    {
-        GhostscriptSetup.Configure();
-    }
-
     [GoldenImageFact]
     public void AHighlightWashesTheLineItCovers()
     {

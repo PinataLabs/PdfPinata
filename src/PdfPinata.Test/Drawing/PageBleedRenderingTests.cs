@@ -27,11 +27,6 @@ public sealed class PageBleedRenderingTests : IDisposable
 
     public void Dispose() => _rasterized.Dispose();
 
-    static PageBleedRenderingTests()
-    {
-        GhostscriptSetup.Configure();
-    }
-
     private static readonly XUnit Bleed = XUnit.FromMillimeter(3);
     private static readonly XUnit Marks = XUnit.FromMillimeter(5);
 

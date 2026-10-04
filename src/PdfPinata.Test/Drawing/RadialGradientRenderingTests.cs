@@ -29,11 +29,6 @@ public sealed class RadialGradientRenderingTests : IDisposable
 
     public void Dispose() => _rasterized.Dispose();
 
-    static RadialGradientRenderingTests()
-    {
-        GhostscriptSetup.Configure();
-    }
-
     private static readonly XPoint Centre = new(300, 300);
     private static readonly XRect Square = new(200, 200, 200, 200);
 
