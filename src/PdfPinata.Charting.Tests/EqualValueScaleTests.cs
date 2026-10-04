@@ -131,6 +131,7 @@ public class EqualValueScaleTests
     [Theory]
     [InlineData(Huge, null)]
     [InlineData(Huge, 1.0)]
+    // Below zero the top goes to zero, which is always distinct: the rule that needs no tenth.
     [InlineData(-Huge, null)]
     public void AScaleOfOneHugeValueIsStillWidened(double scale, double? majorTick)
     {

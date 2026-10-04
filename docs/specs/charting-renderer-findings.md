@@ -585,7 +585,8 @@ number. That allowance is only for a calculated end: two ends the caller gave ar
 so a narrow scale given as such is kept, and a given minimum above a given maximum by however little
 still draws nothing. Far from zero, one is too small to widen by — past 2^53 adding it changes
 nothing, and the span would still be zero — so beyond 1e12 a flat range is widened by a tenth of
-its value instead (`Widening`), on the data path and the given one alike. A value the caller gave
+its value instead (`Widening`), on the data path and the given one alike. A flat range below zero
+never needs it: its top goes to zero, which is always distinct. A value the caller gave
 is never the one moved: the top is raised,
 unless the maximum is the only end given — a calculated minimum came out equal to it — and then the
 bottom is lowered by the same rule turned over (`WidenFlatRangeDownwards`).
