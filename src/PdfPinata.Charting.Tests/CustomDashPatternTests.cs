@@ -80,7 +80,8 @@ public class CustomDashPatternTests
     [InlineData(0.0)]
     [InlineData(-1.0)]
     [InlineData(double.NaN)]
-    public void ADashOrGapThatIsNotPositiveIsRefused(double length)
+    [InlineData(double.PositiveInfinity)]
+    public void ADashOrGapThatIsNotAFinitePositiveLengthIsRefused(double length)
     {
         var lineFormat = new LineFormat();
 

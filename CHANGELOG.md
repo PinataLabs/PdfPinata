@@ -101,7 +101,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Added
 
-- **The charting `LineFormat` has a `DashPattern`, so a chart line set to `XDashStyle.Custom` is drawn dashed.** The format had a dash style but no pattern, so `Custom` reached the page as `[] 0 d`, a solid line, for every series, point, axis and gridline. `DashPattern` takes dash and gap lengths in units of the line width, as `XPen.DashPattern` does. Setting it sets `DashStyle` to `Custom`, and a length that is not greater than zero is refused with `ArgumentException`. A point that says nothing about its dashes takes its series' pattern with its series' style. `Custom` with no pattern is still drawn solid, as an `XPen` is. PinataLayout's chart `LineFormat` has no custom dash style, so nothing reaches this through the mapper. (#208)
+- **The charting `LineFormat` has a `DashPattern`, so a chart line set to `XDashStyle.Custom` is drawn dashed.** The format had a dash style but no pattern, so `Custom` reached the page as `[] 0 d`, a solid line, for every series, point, axis and gridline. `DashPattern` takes dash and gap lengths in units of the line width, as `XPen.DashPattern` does. Setting it sets `DashStyle` to `Custom`, and a length that is not finite and greater than zero is refused with `ArgumentException`. A point that says nothing about its dashes takes its series' pattern with its series' style. `Custom` with no pattern is still drawn solid, as an `XPen` is. PinataLayout's chart `LineFormat` has no custom dash style, so nothing reaches this through the mapper. (#208)
 
 #### Fixed
 
