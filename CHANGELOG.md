@@ -85,6 +85,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **A highlight, underline, squiggly or strike-out annotation stamps its modification date when its quadrilaterals change.** `AddQuad` and `ClearQuads` redrew the annotation without touching `/M`, although a redaction's `AddQuad` already stamped it. (#197)
 - **A text markup annotation left with nothing to mark removes its appearance.** With no quadrilaterals and an empty rectangle it kept showing the last appearance it drew; every other annotation that draws itself already removed its `/AP` when asked for nothing. (#197)
 - **A negative `BorderWidth` is refused the same way on every annotation that draws itself.** Line, Square, Circle, FreeText, Ink, Polygon and PolyLine now all throw `ArgumentOutOfRangeException` with the message "A border cannot be narrower than nothing." and `ParamName` `value`. Ink, Polygon and PolyLine used to name `width`, and Line said "A line cannot…". (#197)
+- **An annotation that draws its own appearance shows its redraw after a caller's `SetAppearance`.** A highlight, underline, squiggly or strike-out kept drawing into a form `/AP` no longer named, so a change of colour, opacity or quadrilaterals never showed. A redraw also keeps a rollover (`/R`) or down (`/D`) appearance the caller added, on every annotation that draws itself: it replaces only the normal appearance, and leaves `/AS` alone while one of those is a set of states. (#210)
+- **A text field reads `/MaxLen` from its parent when it has none of its own**, as ISO 32000-1 makes it inheritable, so a comb field grouped under a parent is drawn in its cells rather than as plain text. (#205)
+- **A comb field puts one character in each cell, and a password field draws one asterisk a character, counting characters as the reader sees them.** A character outside the Basic Multilingual Plane, or a letter with a combining mark, counted as two. (#206)
+- **A text or choice field whose widget is under a point in either direction removes its appearance** rather than keeping a stale one, and a widget whose `/Rect` names its corners the other way round is drawn rather than treated as too small. (#211)
 
 ### Signatures & Metadata
 
@@ -114,6 +118,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **A clustered column or bar chart no longer throws `ArgumentException` for a value between zero and a minimum the caller set above zero.** Such a value, 1 on a scale from 2 to 5 for example, is left undrawn, as any value off the scale is. (#196)
 - **A stacked column chart whose value axis has its minimum above its maximum draws nothing rather than throwing**, as a stacked bar chart already did. (#196)
 - **A chart point that sets only its line width or colour keeps its series' dash style**, on column, bar and pie charts and through PinataLayout's chart mapper. It was drawn solid, because the point's unset dash style could not be told from `Solid`. A point that sets `DashStyle = Solid` is still drawn solid. (#192)
+- **A chart whose value axis is given the same `MinimumScale` and `MaximumScale` is drawn**, on every chart type and through PinataLayout; it threw for a NaN in the content stream. The scale is widened as a flat range of data is, by a tenth of the value beyond 1e12, without moving a value the caller set, and two ends the caller gave are compared exactly, so a minimum above the maximum still draws nothing. A value axis also no longer drops its top tick label or gridline to rounding, and a `MajorTick` of zero no longer hangs the draw. (#207)
 
 ### PinataLayout & DDL
 
