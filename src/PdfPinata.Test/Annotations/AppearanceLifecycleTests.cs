@@ -115,6 +115,201 @@ public sealed class AppearanceLifecycleTests : IDisposable
         annotation.Elements.GetDateTime("/M", DateTime.MinValue).Should().BeAfter(LongAgo);
     }
 
+    // ----- after a caller's own appearance --------------------------------------------------------------
+
+    /// <summary>
+    ///   A caller may hand any of them a drawing of its own, and it shows - until something the
+    ///   annotation is drawn from changes. Then the annotation's redraw wins, as it would have
+    ///   without the caller's drawing, rather than the change being made and never seen.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Drawing))]
+    public void ACallersAppearanceGivesWayToTheNextRedraw(string kind)
+    {
+        PdfAnnotation annotation = null;
+        var page = Rasterize(kind + "-own-then-redrawn", document =>
+        {
+            annotation = Configured(kind);
+            document.Pages[0].Annotations.Add(annotation);
+            annotation.SetAppearance(GreenBlock(annotation));
+
+            annotation.Color = XColors.Blue;
+        });
+
+        PageInk.Count(page, IsGreen).Should().Be(0, "the caller's drawing has been replaced");
+        PageInk.Count(page, PageInk.IsBlue).Should().BeGreaterThan(20, "the redraw is what shows");
+    }
+
+    /// <summary>
+    ///   The same after a set of named appearances, which a redraw replaces by a single one - so
+    ///   <c>/AS</c> goes with the set, as <see cref="PdfAnnotation.SetAppearance(XForm)"/> takes it.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Drawing))]
+    public void ACallersSetOfAppearancesGivesWayToTheNextRedraw(string kind)
+    {
+        PdfAnnotation annotation = null;
+        var page = Rasterize(kind + "-states-then-redrawn", document =>
+        {
+            annotation = Configured(kind);
+            document.Pages[0].Annotations.Add(annotation);
+            annotation.SetAppearance("/On", GreenBlock(annotation));
+
+            annotation.Color = XColors.Blue;
+        });
+
+        annotation.Elements.ContainsKey("/AS").Should().BeFalse("no set of appearances is left for it to name");
+        annotation.Elements.GetDictionary("/AP").Elements.GetDictionary("/N").Elements.ContainsKey("/BBox")
+            .Should().BeTrue("/N is a single form again");
+        PageInk.Count(page, IsGreen).Should().Be(0, "the caller's drawing has been replaced");
+        PageInk.Count(page, PageInk.IsBlue).Should().BeGreaterThan(20, "the redraw is what shows");
+    }
+
+    /// <summary>
+    ///   And the drawing given way to is not left in the file, nor any form the annotation drew
+    ///   before it: one appearance, one form XObject.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Drawing))]
+    public void TheAppearanceGivenWayToIsNotWritten(string kind)
+    {
+        var annotation = OnAPage(Configured(kind));
+        annotation.SetAppearance(GreenBlock(annotation));
+        annotation.Color = XColors.Blue;
+
+        var reopened = annotation.Owner.Reopened();
+
+        var forms = reopened.Internals.GetAllObjects().OfType<PdfDictionary>()
+            .Count(dict => dict.Elements.GetName("/Subtype") == "/Form");
+        forms.Should().Be(1);
+    }
+
+    /// <summary>
+    ///   A redraw replaces the normal appearance and nothing else: the library never draws a
+    ///   rollover or a down appearance, so one there is the caller's, and survives. <c>/AS</c> stays
+    ///   while the down appearance is a set of states it picks from.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Drawing))]
+    public void ARedrawKeepsTheCallersRolloverAndDownAppearances(string kind)
+    {
+        var annotation = OnAPage(Configured(kind));
+        var rollover = CallersForm(annotation.Owner);
+        var pressed = CallersForm(annotation.Owner);
+        var appearance = annotation.Elements.GetDictionary("/AP");
+        var normal = appearance.Elements["/N"];
+        appearance.Elements["/R"] = rollover.Reference;
+        appearance.Elements["/D"] = new PdfDictionary(annotation.Owner) { Elements = { ["/On"] = pressed.Reference } };
+        annotation.Elements.SetName("/AS", "/On");
+
+        annotation.Color = XColors.Blue;
+
+        var redrawn = annotation.Elements.GetDictionary("/AP");
+        redrawn.Elements["/R"].Should().BeSameAs(rollover.Reference);
+        redrawn.Elements.GetDictionary("/D").Elements["/On"].Should().BeSameAs(pressed.Reference);
+        redrawn.Elements.GetDictionary("/N").Elements.ContainsKey("/BBox").Should().BeTrue();
+        annotation.Elements.GetName("/AS").Should().Be("/On", "the down appearance is still a set it names one of");
+        if (annotation is not PdfTextMarkupAnnotation)
+            redrawn.Elements["/N"].Should().NotBeSameAs(normal, "a fresh form is drawn");
+    }
+
+    /// <summary>
+    ///   With no set of states left anywhere in <c>/AP</c>, <c>/AS</c> names nothing and goes.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Drawing))]
+    public void ARedrawWithOnlySingleAppearancesLeftTakesTheStateAway(string kind)
+    {
+        var annotation = OnAPage(Configured(kind));
+        var rollover = CallersForm(annotation.Owner);
+        annotation.Elements.GetDictionary("/AP").Elements["/R"] = rollover.Reference;
+        annotation.Elements.SetName("/AS", "/Stale");
+
+        annotation.Color = XColors.Blue;
+
+        annotation.Elements.GetDictionary("/AP").Elements["/R"].Should().BeSameAs(rollover.Reference);
+        annotation.Elements.ContainsKey("/AS").Should().BeFalse();
+    }
+
+    /// <summary>
+    ///   While a kept set of states is left, <c>/AS</c> is required, and which state it names is the
+    ///   caller's: the redraw leaves it as it is, even naming a state the set lacks - and is not put
+    ///   off by one that is not a name at all, which a loosely written file may carry.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Drawing))]
+    public void ARedrawLeavesTheStateToTheCallerWhileASetOfStatesIsKept(string kind)
+    {
+        var annotation = OnAPage(Configured(kind));
+        annotation.SetAppearance("/On", GreenBlock(annotation));
+        var pressed = CallersForm(annotation.Owner);
+        annotation.Elements.GetDictionary("/AP").Elements["/D"] =
+            new PdfDictionary(annotation.Owner) { Elements = { ["/Off"] = pressed.Reference } };
+
+        annotation.Color = XColors.Blue;
+
+        annotation.Elements.GetDictionary("/AP").Elements.GetDictionary("/D").Elements["/Off"]
+            .Should().BeSameAs(pressed.Reference);
+        annotation.Elements.GetName("/AS").Should().Be("/On");
+
+        annotation.Elements["/AS"] = new PdfString("On");
+
+        annotation.Opacity = 0.5;
+
+        annotation.Elements["/AS"].Should().BeOfType<PdfString>();
+    }
+
+    /// <summary>
+    ///   And what shows, with a rollover kept beside it, is the redraw.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Drawing))]
+    public void TheRedrawShowsBesideAKeptRollover(string kind)
+    {
+        PdfAnnotation annotation = null;
+        var page = Rasterize(kind + "-rollover-kept", document =>
+        {
+            annotation = Configured(kind);
+            document.Pages[0].Annotations.Add(annotation);
+            annotation.SetAppearance(GreenBlock(annotation));
+            annotation.Elements.GetDictionary("/AP").Elements["/R"] = CallersForm(document).Reference;
+
+            annotation.Color = XColors.Blue;
+        });
+
+        annotation.Elements.GetDictionary("/AP").Elements.ContainsKey("/R").Should().BeTrue();
+        PageInk.Count(page, IsGreen).Should().Be(0);
+        PageInk.Count(page, PageInk.IsBlue).Should().BeGreaterThan(20);
+    }
+
+    /// <summary>
+    ///   A form XObject of the caller's, made by hand: one drawing nothing in particular.
+    /// </summary>
+    private static PdfDictionary CallersForm(PdfDocument document)
+    {
+        var form = new PdfDictionary(document);
+        form.Elements.SetName("/Type", "/XObject");
+        form.Elements.SetName("/Subtype", "/Form");
+        form.Elements["/BBox"] = new PdfArray(document, new PdfReal(0), new PdfReal(0), new PdfReal(10), new PdfReal(10));
+        document.Internals.AddObject(form);
+        form.CreateStream([]);
+        return form;
+    }
+
+    /// <summary>
+    ///   A drawing of the caller's: a green block over the whole of the annotation.
+    /// </summary>
+    private static XForm GreenBlock(PdfAnnotation annotation)
+    {
+        var rect = annotation.Rectangle;
+        var form = new XForm(annotation.Owner, rect.Width, rect.Height);
+        using (var gfx = XGraphics.FromForm(form))
+            gfx.DrawRectangle(XBrushes.Lime, 0, 0, rect.Width, rect.Height);
+        return form;
+    }
+
+    private static bool IsGreen(IMagickColor<byte> c) => c.G > 150 && c.R < 120 && c.B < 120;
+
     // ----- asked for nothing ----------------------------------------------------------------------------
 
     [Theory]

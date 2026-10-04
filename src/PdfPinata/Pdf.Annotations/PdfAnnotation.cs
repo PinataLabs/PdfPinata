@@ -352,6 +352,16 @@ public abstract class PdfAnnotation : PdfDictionary
     /// it, but the form XObject underneath is internal, so the drawing could be made and not
     /// handed to anything.
     /// </para>
+    /// <para>
+    /// On an annotation that draws its own appearance - the four above, and ink, polygon,
+    /// polyline, caret, redaction and the text markup subtypes - a drawing set here shows until
+    /// something it is drawn from changes, such as <see cref="Color"/> or <see cref="Opacity"/>.
+    /// The annotation then redraws itself over it, as it would have without it, rather than make
+    /// a change that is never seen. Only the normal appearance is redrawn: a rollover or down
+    /// appearance (<c>/R</c>, <c>/D</c>) added to <c>/AP</c> is kept as it is, and keeping it up
+    /// to date is the caller's. Asked to draw nothing, the annotation removes the whole of
+    /// <c>/AP</c>, those included, because an appearance dictionary without <c>/N</c> is not one.
+    /// </para>
     /// </remarks>
     public void SetAppearance(XForm form)
     {
@@ -466,6 +476,49 @@ public abstract class PdfAnnotation : PdfDictionary
         // The getter adds the form to the reference table if it is not there, so the reference
         // read on the way back is always one that will be written.
         return form.PdfForm;
+    }
+
+    /// <summary>
+    /// Shows the appearance an annotation that draws itself has just drawn, as its normal one.
+    /// </summary>
+    /// <remarks>
+    /// Only <c>/N</c> is the library's to replace. A rollover (<c>/R</c>) or a down (<c>/D</c>)
+    /// appearance is never drawn here, so one is a caller's, and is kept rather than thrown away
+    /// by a change of colour - a stale drawing on hover is the caller's to update, a lost one is
+    /// not theirs to get back. <c>/AS</c> is left alone while one of those is a set of named
+    /// states, because it is then required and which state it names is the caller's to say; with
+    /// no set of states left it names nothing, and goes, as <see cref="SetAppearance(XForm)"/>
+    /// takes it.
+    /// </remarks>
+    private protected void ShowRedrawnAppearance(XForm form) => ShowRedrawnAppearance(FinishedForm(form).Reference);
+
+    /// <inheritdoc cref="ShowRedrawnAppearance(XForm)"/>
+    /// <param name="normal">A reference to the form drawn.</param>
+    private protected void ShowRedrawnAppearance(PdfReference normal)
+    {
+        // A new dictionary rather than the old one changed in place: one read from a file may be an
+        // indirect object, and nothing says another annotation does not refer to it as well.
+        var appearance = new PdfDictionary(Owner) { Elements = { ["/N"] = normal } };
+        var previous = Elements.GetDictionary(Keys.AP);
+        var states = false;
+        foreach (var key in new[] { "/R", "/D" })
+        {
+            var item = previous?.Elements[key];
+            if (item == null)
+                continue;
+
+            appearance.Elements[key] = item;
+
+            // A set of states rather than a single form.
+            states |= previous.Elements.GetDictionary(key) is { } entry && !entry.Elements.ContainsKey("/BBox");
+        }
+
+        Elements[Keys.AP] = appearance;
+
+        // While a kept set of states is left, /AS is required (ISO 32000-1 Table 168) and which
+        // state it names is the caller's choice, not the redraw's; with none left it names nothing.
+        if (!states)
+            Elements.Remove(Keys.AS);
     }
 
     private PdfDocument RequireOwner()
