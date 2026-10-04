@@ -161,6 +161,11 @@ does not fetch CRLs. To supply revocation data another way, implement `IRevocati
 `IsValid` is true only when both are true. A signature over the first revision of a longer file is
 intact but proves nothing about what was added later.
 
+If the signature carries a timestamp token, `IsTimestampIntact` says whether the token is intact: its
+own signature verifies, and it was issued for this signature and not copied from another. It is null
+when there is no token. `Timestamp` gives the time only from an intact token. A broken token does not
+make the signature itself invalid.
+
 ```csharp
 foreach (PdfSignatureVerification result in PdfSignatureVerifier.Verify(File.ReadAllBytes("signed.pdf")))
 {
@@ -180,7 +185,7 @@ returns the field name, reason, location, signing time, byte range and certifica
   exist. To change a signed document, open it with `PdfDocumentOpenMode.Append` and use
   `SaveIncremental`. See [Incremental saving](../existing-pdfs/incremental-saving.md).
 - **The verifier checks integrity, not trust.** It builds no certificate chain, consults no trust
-  store and checks no revocation. A signature it calls valid may still use a certificate nobody should
+  store and checks no revocation, for the signature or for its timestamp. A signature it calls valid may still use a certificate nobody should
   trust. A green tick in a PDF reader depends on the certificate chaining to a root that reader
   trusts.
 - **Space for the signature is reserved in advance.** `Pkcs7Signer.EstimatedSignatureSize` defaults

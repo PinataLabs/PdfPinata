@@ -88,6 +88,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Signatures & Metadata
 
+#### Added
+
+- **`PdfSignatureVerification.IsTimestampIntact` says whether a signature's timestamp token is intact**: that the token's own signature verifies over its content, with the certificate the token carries (or, if the authority left it out, one the signature itself carries), and that its message imprint is the hash of this signature's value. It is null when the signature carries no token. The verifier used to read the time out of the token without either check, so a damaged token, or one copied from another signature, reported a time the bytes do not support. `Timestamp` and `HasTimestamp` now report only an intact token's time; a broken token, or a signature-timestamp attribute that is not a token at all, gives `IsTimestampIntact` false and `Timestamp` null. The signature's own `IsIntact` and `IsValid` are unaffected, because the token lies outside what the signature covers. As before, nothing here decides whether the time-stamping authority is trusted. (#209)
+
 #### Fixed
 
 - **`Rfc3161TimestampProvider` no longer reads a response of any size, and its own client no longer follows redirects.** It read the whole body into memory with no limit and followed a 3xx to wherever it pointed. It now reads through the same guarded exchange as `OcspRevocationDataProvider`: headers first, then at most 1 MiB of body, with the client's `Timeout` over the whole exchange, body included. A larger or slower response fails the signing with an `InvalidOperationException` naming the authority. The client the provider makes for itself follows no redirect, because the caller named the authority it trusts; if your authority has moved, pass its new URI. A caller that supplies its own `HttpClient` keeps its own redirect policy. The OCSP provider also gains the timeout over the body, which it lacked before. (#166)

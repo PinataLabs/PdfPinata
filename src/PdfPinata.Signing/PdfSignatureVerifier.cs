@@ -4,6 +4,7 @@ using System.Formats.Asn1;
 using System.IO;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
+using System.Security.Cryptography.X509Certificates;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Signatures;
 
@@ -16,9 +17,17 @@ namespace PdfPinata.Signing;
 /// <para>
 /// <b>This is integrity checking, not validation.</b> It answers whether each signature verifies
 /// over the bytes it covers and whether those bytes are the whole file. It does not build a
-/// certificate chain, consult a trust store, check revocation, or evaluate a timestamp — all of
-/// which a reader showing a green tick has done and none of which is implemented here. A signature
-/// this reports as valid may still have been made with a certificate nobody should trust.
+/// certificate chain, consult a trust store or check revocation — all of which a reader showing a
+/// green tick has done and none of which is implemented here. A signature this reports as valid may
+/// still have been made with a certificate nobody should trust.
+/// </para>
+/// <para>
+/// <b>A signature-timestamp is checked the same way, and no further.</b> When a signature carries
+/// one, <see cref="PdfSignatureVerification.IsTimestampIntact"/> says whether the token's own
+/// signature verifies over its content, with the certificate it names, and whether its
+/// message imprint is the hash of this signature's value — so that a damaged token, or one lifted
+/// from another signature, is not reported as a time this signature was made. Whether the
+/// time-stamping authority deserves belief is the same trust question as above, and is not asked.
 /// </para>
 /// <para>
 /// It is nevertheless the check that catches what actually goes wrong: a document edited after
@@ -84,8 +93,11 @@ public static class PdfSignatureVerifier
             signed.CheckSignature(verifySignatureOnly: true);
 
             var certificate = signed.SignerInfos.Count > 0 ? signed.SignerInfos[0].Certificate : null;
-            var timestamp = signed.SignerInfos.Count > 0 ? TimestampOf(signed.SignerInfos[0]) : null;
-            return new PdfSignatureVerification(signature, true, covers, certificate, null, timestamp);
+            var (timestamp, timestampIntact) = signed.SignerInfos.Count > 0
+                ? TimestampOf(signed.SignerInfos[0], signed.Certificates)
+                : (null, null);
+            return new PdfSignatureVerification(signature, true, covers, certificate, null,
+                timestamp, timestampIntact);
         }
         catch (Exception problem) when (problem is CryptographicException
                                             or AsnContentException
@@ -127,16 +139,40 @@ public static class PdfSignatureVerifier
     }
 
     /// <summary>
-    /// Reads the moment a signature-timestamp attribute claims, if the signer carries one.
+    /// Checks the signature-timestamp attribute a signer carries, if any, and reads the moment it
+    /// claims.
     /// </summary>
+    /// <returns>
+    /// No time and no answer when there is no such attribute. Otherwise whether the token is intact,
+    /// and the time it states only when it is: a time the bytes do not support is not reported.
+    /// </returns>
     /// <remarks>
-    /// This decodes the token's own structure to answer what it says; it does not check that the
-    /// token's signature verifies or that its issuer is trusted, for the same reason the signature
-    /// itself is checked without either. A token this cannot decode is treated as absent rather than
-    /// as a failure of the whole verification — one signature's malformed attribute is that
-    /// signature's problem, exactly as a malformed byte range is.
+    /// <para>
+    /// <see cref="Rfc3161TimestampToken.VerifySignatureForSignerInfo"/> makes both integrity checks
+    /// in one: that the token's message imprint is the hash, under the token's own algorithm, of
+    /// this signer's signature value, and that the token's signature verifies over its content with
+    /// the certificate it names in its signing-certificate attribute. That certificate has to be
+    /// fit for the job by its own account: valid at the moment the token states, not at the moment
+    /// of verifying, and carrying the time-stamping key purpose in a critical extension. None of
+    /// this builds a chain or consults a trust store, so a token stays intact after its authority's
+    /// certificate expires.
+    /// </para>
+    /// <para>
+    /// The certificate is looked for in the token first, which is why the timestamp request asks for
+    /// it (#193), and then among the certificates the signature itself carries, where a producer
+    /// whose authority left it out may have put it. Offering more candidates loosens nothing: a
+    /// candidate is used only if it is the one the token's signing-certificate attribute names. A
+    /// token whose certificate is in neither place cannot be checked, and so is not intact.
+    /// </para>
+    /// <para>
+    /// A malformed token is that signature's problem and no one else's, exactly as a malformed byte
+    /// range is: it is reported as not intact rather than failing the whole verification. Only the
+    /// first value of the first such attribute is checked; a signer carrying several
+    /// signature-timestamps is not something this library writes.
+    /// </para>
     /// </remarks>
-    private static DateTimeOffset? TimestampOf(SignerInfo signerInfo)
+    private static (DateTimeOffset? Timestamp, bool? Intact) TimestampOf(SignerInfo signerInfo,
+        X509Certificate2Collection signatureCertificates)
     {
         foreach (var attribute in signerInfo.UnsignedAttributes)
         {
@@ -145,16 +181,21 @@ public static class PdfSignatureVerifier
 
             try
             {
-                if (Rfc3161TimestampToken.TryDecode(attribute.Values[0].RawData, out var token, out _))
-                    return token.TokenInfo.Timestamp;
+                if (!Rfc3161TimestampToken.TryDecode(attribute.Values[0].RawData, out var token, out _))
+                    return (null, false);
+
+                if (!token.VerifySignatureForSignerInfo(signerInfo, out _, signatureCertificates))
+                    return (null, false);
+
+                return (token.TokenInfo.Timestamp, true);
             }
             catch (CryptographicException)
             {
-                return null;
+                return (null, false);
             }
         }
 
-        return null;
+        return (null, null);
     }
 
 }

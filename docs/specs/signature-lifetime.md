@@ -7,7 +7,7 @@ This is the spec for them.
 | item | what | status |
 |---|---|---|
 | 1 | `ITimestampProvider` in `PdfPinata.Signing`; `Rfc3161TimestampProvider` over HTTP; `LocalTimestampAuthority` for tests | done |
-| 2 | PAdES B-T — the token folded into the CMS as an unsigned `signature-time-stamp` attribute; verification reports it | done |
+| 2 | PAdES B-T — the token folded into the CMS as an unsigned `signature-time-stamp` attribute; verification checks it is intact and reports it | done |
 | 3 | `IRevocationDataProvider`; `OcspRevocationDataProvider` (OCSP only, CRL fetch left empty) | done |
 | 4 | PAdES B-LT — `PdfValidationData.Add` writes `/DSS` and `/VRI` through an incremental save, leaving every signature intact | done |
 | 5 | A certifying signature's `/DocMDP` level enforced through `EnsureCanModify`, by `PdfChangeKind` | done |
@@ -172,6 +172,26 @@ issued the signer's. There is **no option to leave
 the certificate out**: the token grows by a few kilobytes, inside a reservation of 16 KiB, and a
 B-T signature whose timestamp cannot be checked later defeats the reason to timestamp it.
 
+**Verification checks the token is intact before it reports a time** (#209). It makes two checks,
+both through `Rfc3161TimestampToken.VerifySignatureForSignerInfo`: the token's own signature
+verifies over its content, and the token's message imprint is the hash of this `SignerInfo`'s
+signature value. The certificate to check it with is the one the token's signing-certificate
+attribute names, looked for in the token and then among the signature's own certificates, where a
+producer whose authority left it out may have put it; a token whose certificate is in neither is
+not intact, because it cannot be checked. .NET also requires that certificate to be valid at the
+token's own time, not now, and to carry the critical time-stamping key purpose, so a token stays
+intact after its authority's certificate expires. Neither is a trust decision; they are the same
+kind of check the verifier already makes on the signature itself. Without them a token copied from
+another signature, or one damaged after it was issued, reported a time the bytes do not support.
+The answer is `IsTimestampIntact`, kept apart from `IsIntact` and `IsValid`: the token is an
+unsigned attribute, outside what the signature covers, so a broken one says nothing against the
+signature, only that it cannot say when it was made. It is null when there is no token, and false
+for a broken one, including a signature-timestamp attribute that is not a token at all, which used
+to read as no timestamp. **`Timestamp` reports only an intact token's time.** Reporting the time a
+broken token states would hand the one value most callers read to anyone who can copy a token, and a
+caller who checks `HasTimestamp` and reads `Timestamp` would never see the warning. The time a
+broken token claims is still in the file for anyone who wants to look at it.
+
 **Permissions are enforced through the existing modification guard.** The guard already fronts the
 operations that can change a document and already produces a message naming the mode the document was
 opened with and what the operation needs. It gains the notion of **what kind of change** is being
@@ -219,7 +239,10 @@ either success or a refusal that names the reason.
 
 **Cases that must exist.**
 
-- A signature with a timestamp verifies, and the verifier reports the timestamp.
+- A signature with a timestamp verifies, and the verifier reports the timestamp and that it is intact.
+- A token with a damaged signature, a token taken from another signature, and an attribute that is
+  not a token at all are each reported as not intact and give no time, and the signature itself
+  stays valid.
 - A signature without one verifies exactly as it does today, and reports no timestamp.
 - A timestamp source that fails causes the signing to fail, and the document is not written.
 - Validation data added to a freshly signed document leaves the signature intact and still covering
