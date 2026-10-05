@@ -428,11 +428,22 @@ public abstract class PdfAcroField : PdfDictionary
         };
     }
 
-    private static readonly Regex FontSize = new(@"([0-9]*\.?[0-9]+)\s+Tf\b", RegexOptions.CultureInvariant);
+    // A number is matched one way only and never given back, and a match never starts inside one.
+    // /DA is read from files, and the old [0-9]*\.?[0-9]+ could split a run of digits between its
+    // two quantifiers n ways from every one of n starting points: five thousand digits took a
+    // minute and a half to fail to match. The timeout is the backstop, not the fix.
+    private const string Number = @"(?>[0-9]+(?:\.[0-9]+)?|\.[0-9]+)";
+
+    private const string NumberStart = @"(?<![0-9.])";
+
+    private static readonly TimeSpan MatchTimeout = TimeSpan.FromSeconds(1);
+
+    private static readonly Regex FontSize = new(
+        $@"({NumberStart}{Number})\s+Tf\b", RegexOptions.CultureInvariant, MatchTimeout);
 
     private static readonly Regex ColorOperator = new(
-        @"(?<a>[0-9]*\.?[0-9]+)\s+(?:(?<b>[0-9]*\.?[0-9]+)\s+(?<c>[0-9]*\.?[0-9]+)\s+(?:(?<d>[0-9]*\.?[0-9]+)\s+)?)?(?<op>rg|g|k)\b",
-        RegexOptions.CultureInvariant);
+        $@"(?<a>{NumberStart}{Number})\s+(?:(?<b>{Number})\s+(?<c>{Number})\s+(?:(?<d>{Number})\s+)?)?(?<op>rg|g|k)\b",
+        RegexOptions.CultureInvariant, MatchTimeout);
 
     /// <summary>
     /// Called when <see cref="BackColor"/> or <see cref="BorderColor"/> is set, for a field that
