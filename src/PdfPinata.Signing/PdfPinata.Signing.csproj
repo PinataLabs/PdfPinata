@@ -9,20 +9,13 @@
       the core package and needs no cryptography of its own, which is the whole point of it.
     -->
     <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <!-- Ship the XML documentation alongside the assembly, so a consumer of the package gets the
          doc comments as IntelliSense. This project is clean of CS1591, so a public member added
          without one now warns. Set per project rather than in Directory.Build.props, which is
-         imported before GeneratePackageOnBuild is known, or Directory.Build.targets, which is
+         imported before IsPackable is known, or Directory.Build.targets, which is
          imported after the SDK has already derived DocumentationFile from it. -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Authors>Stefan Steiger and Contributors</Authors>
-    <Copyright>Copyright (c) 2026 PdfPinata; Copyright (c) 2005-2007 empira Software GmbH, Cologne (Germany)</Copyright>
     <Description>Digital signing for PdfPinata: CMS/PKCS#7 detached signatures and PAdES B-B, built on the .NET cryptography stack.</Description>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <PackageProjectUrl>https://github.com/PinataLabs/PdfPinata</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/PinataLabs/PdfPinata</RepositoryUrl>
     <PackageTags>pdf;signature;pades;pkcs7;cms</PackageTags>
     <IsTrimmable>true</IsTrimmable>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
@@ -49,11 +42,6 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.12" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\..\LICENSE.md" Pack="true" PackagePath="" />
-    <None Include="..\..\README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>
