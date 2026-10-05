@@ -354,6 +354,16 @@ public class FontResolverBaseTests
         reading.Should().Throw<ArgumentOutOfRangeException>();
     }
 
+    [Theory]
+    [InlineData(2)]
+    [InlineData(int.MaxValue)]
+    public void TheCoreParserRefusesToReadMoreFacesThanTheFileHoldsBeforeMakingRoomForThem(int faceCount)
+    {
+        var reading = () => OpenTypeFontMetadata.ReadAll(Asset("LiberationSans-Regular.ttf"), faceCount);
+
+        reading.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
     /// <summary>
     ///   A name table the directory places past the end of the file is malformed input, and is
     ///   refused as such rather than by indexing off the end of the array - including an offset

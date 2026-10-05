@@ -24,7 +24,9 @@ namespace PdfPinata.Utils;
 /// </para>
 /// <para>
 /// The style is read from the <c>OS/2</c> table's <c>fsSelection</c>, or from <c>head</c>'s
-/// <c>macStyle</c> for a font that has no <c>OS/2</c> table.
+/// <c>macStyle</c> for a font that has no <c>OS/2</c> table. Either table is ignored when it lies
+/// outside the file, as though the font had none, so such a face reads as regular rather than
+/// being refused.
 /// </para>
 /// </remarks>
 public static class OpenTypeFontMetadata
@@ -54,7 +56,7 @@ public static class OpenTypeFontMetadata
     /// <returns>The family name and style the font file declares.</returns>
     /// <exception cref="InvalidOperationException">
     /// The file is not a font this can read: it has no <c>name</c> table or no family name in it,
-    /// or it declares tables or faces that lie outside the file.
+    /// or its table directory, its <c>name</c> table or the face lies outside the file.
     /// </exception>
     public static FontMetadata Read(string path)
     {
@@ -76,7 +78,7 @@ public static class OpenTypeFontMetadata
     /// </exception>
     /// <exception cref="InvalidOperationException">
     /// The file is not a font this can read: it has no <c>name</c> table or no family name in it,
-    /// or it declares tables or faces that lie outside the file.
+    /// or its table directory, its <c>name</c> table or the face lies outside the file.
     /// </exception>
     public static FontMetadata Read(string path, int faceIndex)
     {
@@ -122,6 +124,11 @@ public static class OpenTypeFontMetadata
     internal static FontMetadata[] ReadAll(byte[] data, int faceCount)
     {
         ThrowIfNegativeFaceCount(faceCount);
+
+        // The last face asked for is looked up before the array is made, so that a count larger
+        // than the file holds is refused as out of range rather than allocated.
+        if (faceCount > 0)
+            FaceOffset(data, faceCount - 1);
 
         var metadata = new FontMetadata[faceCount];
 
