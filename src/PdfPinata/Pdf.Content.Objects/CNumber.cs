@@ -50,4 +50,27 @@ public abstract class CNumber : CObject
         var obj = base.Copy();
         return obj;
     }
+
+    /// <summary>
+    /// Reads a content-stream object as a number: the value of a <see cref="CInteger"/> or a
+    /// <see cref="CReal"/>, widened to a double. Returns false, and zero, for anything else -
+    /// which is what lets a reader tell an operand that is not a number from one that is zero.
+    /// </summary>
+    internal static bool TryGetValue(CObject obj, out double value)
+    {
+        switch (obj)
+        {
+            case CInteger integer:
+                value = integer.Value;
+                return true;
+
+            case CReal real:
+                value = real.Value;
+                return true;
+
+            default:
+                value = 0;
+                return false;
+        }
+    }
 }

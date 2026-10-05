@@ -6,6 +6,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Test.Helpers;
+using static PdfPinata.Test.Helpers.ContentOperands;
 
 namespace PdfPinata.Charting.Tests.Helpers;
 
@@ -256,11 +257,4 @@ internal static class PaintedRectangles
 
     private static (double Start, double Extent) FromNearCorner(double start, double extent) =>
         extent < 0 ? (start + extent, -extent) : (start, extent);
-
-    private static double Number(CObject operand) => operand switch
-    {
-        CInteger integer => integer.Value,
-        CReal real => real.Value,
-        _ => throw new InvalidOperationException("Operand is not a number: " + operand)
-    };
 }

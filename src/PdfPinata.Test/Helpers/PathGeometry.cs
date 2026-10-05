@@ -4,6 +4,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Content.Objects;
+using static PdfPinata.Test.Helpers.ContentOperands;
 
 namespace PdfPinata.Test.Helpers;
 
@@ -71,16 +72,5 @@ internal static class PathGeometry
     private static IEnumerable<COperator> Operators(PdfPage page)
     {
         return ContentReader.ReadContent(PageContent.Of(page)).OfType<COperator>();
-    }
-
-
-    private static double Number(CObject operand)
-    {
-        return operand switch
-        {
-            CInteger integer => integer.Value,
-            CReal real => real.Value,
-            _ => 0.0
-        };
     }
 }

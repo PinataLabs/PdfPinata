@@ -8,6 +8,7 @@ using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using Xunit;
+using static PdfPinata.Test.Helpers.ContentOperands;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -206,11 +207,6 @@ public class RotatedPageTests
             }
         }
         return new XPoint(double.NaN, double.NaN);
-    }
-
-    private static double Number(CObject operand)
-    {
-        return operand is CReal real ? real.Value : ((CInteger)operand).Value;
     }
 }
 

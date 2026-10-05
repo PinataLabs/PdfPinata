@@ -82,6 +82,27 @@ public class COperator : CObject
     private CSequence _seqence;
 
     /// <summary>
+    /// The name of the operand at <paramref name="index"/>, with its leading slash, or null when
+    /// there is no operand there or it is not a name. Every content-stream reader asks this of an
+    /// operator naming a resource, and a malformed stream is free to put anything in its place.
+    /// </summary>
+    internal string NameOperand(int index) =>
+        index >= 0 && index < (_seqence?.Count ?? 0) && _seqence[index] is CName name ? name.Name : null;
+
+    /// <summary>
+    /// Reads the operand at <paramref name="index"/> as a number, an integer or a real. Returns
+    /// false, and zero, when there is no operand there or it is not a number.
+    /// </summary>
+    internal bool TryNumberOperand(int index, out double value)
+    {
+        if (index >= 0 && index < (_seqence?.Count ?? 0))
+            return CNumber.TryGetValue(_seqence[index], out value);
+
+        value = 0;
+        return false;
+    }
+
+    /// <summary>
     /// Gets the operator description for this instance.
     /// </summary>
     public OpCode OpCode { get; }

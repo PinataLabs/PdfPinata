@@ -6,6 +6,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Content.Objects;
+using static PdfPinata.Test.Helpers.ContentOperands;
 
 namespace PdfPinata.Test.Helpers;
 
@@ -186,11 +187,6 @@ internal static class ResizedContentProbe
         return new XMatrix(
             Number(op.Operands[0]), Number(op.Operands[1]), Number(op.Operands[2]),
             Number(op.Operands[3]), Number(op.Operands[4]), Number(op.Operands[5]));
-    }
-
-    private static double Number(CObject operand)
-    {
-        return operand is CReal real ? real.Value : ((CInteger)operand).Value;
     }
 
     private static PdfDictionary ResourcesOf(PdfItem item)
