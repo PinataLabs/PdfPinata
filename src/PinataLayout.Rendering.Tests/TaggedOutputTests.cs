@@ -474,6 +474,42 @@ public class TaggedOutputTests
         sect.Children[0].ChildTags().Should().Equal("LI", "LI");
     }
 
+    [Fact]
+    public void AnUndescribedChartWithATitleBetweenTwoListItemsLeavesThemOneList()
+    {
+        var document = new Document();
+        var section = document.AddSection();
+        section.AddParagraph("First").Format.ListInfo.ListType = ListType.BulletList1;
+        ((Chart)APicture(section, "chart")).HeaderArea.AddParagraph("Sales");
+        section.AddParagraph("Second").Format.ListInfo.ListType = ListType.BulletList1;
+
+        // The title is a paragraph, drawn by the paragraph renderer inside the chart's artifact
+        // scope, and a paragraph that is not a list item ends the list before it asks to be tagged.
+        // Inside furniture it is refused, and so may not end anything either.
+        var sect = Structure.Of(document).Single("Sect");
+        sect.ChildTags().Should().Equal("L");
+        sect.Children[0].ChildTags().Should().Equal("LI", "LI");
+    }
+
+    [Fact]
+    public void AListRunningOverAPageBreakUnderARunningHeadIsStillOneList()
+    {
+        var document = new Document();
+        var section = document.AddSection();
+        section.Headers.Primary.AddParagraph("Running head");
+        for (var item = 0; item < 80; item++)
+            section.AddParagraph($"Item {item}").Format.ListInfo.ListType = ListType.BulletList1;
+
+        var rendered = Rendered.Of(document);
+        rendered.PageCount.Should().BeGreaterThan(1, "the case is about a list the page break falls in");
+
+        // The head of the second page is drawn between the items either side of the break, and its
+        // paragraph used to end the list there.
+        var sect = Structure.RootOf(rendered).Single("Sect");
+        sect.ChildTags().Should().Equal("L");
+        sect.Children[0].Children.Should().HaveCount(80);
+    }
+
     /// <summary>An image or a chart, drawn between whatever comes before and after it.</summary>
     private static Shape APicture(Section section, string kind)
     {

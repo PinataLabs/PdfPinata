@@ -480,8 +480,19 @@ internal sealed class StructureTagger
     /// Ends the run of list paragraphs, so that the next one starts a new list. Called by every
     /// renderer that tags something which is not a list item.
     /// </summary>
+    /// <remarks>
+    /// Except inside furniture, where it does nothing. What is drawn there is not in the tree, so to a
+    /// reader it does not stand between the list items either side of it — and the renderers drawing
+    /// it ask for the list to end before they open a scope, so they cannot tell that the scope they
+    /// are about to open will be refused. A running head is the case that shows: it is drawn on
+    /// every page, and a list running over a page break used to be split in two by the paragraph in
+    /// the head of the second page. So did a title in an undescribed chart.
+    /// </remarks>
     internal void EndList()
     {
+        if (_artifactDepth > 0)
+            return;
+
         _listFrames.Clear();
     }
 
