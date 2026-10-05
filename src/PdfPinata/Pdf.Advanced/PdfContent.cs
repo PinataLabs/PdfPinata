@@ -30,7 +30,6 @@
 using System;
 using System.Diagnostics;
 using PdfPinata.Drawing.Pdf;
-using PdfPinata.Pdf.Filters;
 using PdfPinata.Pdf.IO;
 
 namespace PdfPinata.Pdf.Advanced;
@@ -87,27 +86,13 @@ public sealed class PdfContent : PdfDictionary
     }
 
     /// <summary>
-    /// Unfilters the stream.
+    /// Unfilters the stream. A filter that cannot be decoded leaves the stream as it was.
     /// </summary>
-    private void Decode()
-    {
-        if (Stream is not { Value: not null })
-            return;
-
-        var item = Elements[PdfStream.Keys.Filter];
-        if (item == null)
-            return;
-
-        var decodeParms = Elements[PdfStream.Keys.DecodeParms];
-        var bytes = Filtering.Decode(Stream.Value, item, decodeParms);
-        if (bytes == null)
-            return;
-
-        Stream.Value = bytes;
-        Elements.Remove(PdfStream.Keys.Filter);
-        Elements.Remove(PdfStream.Keys.DecodeParms);
-        Elements.SetInteger(PdfStream.Keys.Length, Stream.Length);
-    }
+    /// <remarks>
+    /// <see cref="PdfDictionary.PdfStream.TryUnfilter"/> writes <c>/Length</c> through the
+    /// <see cref="PdfDictionary.PdfStream.Value"/> setter.
+    /// </remarks>
+    private void Decode() => Stream?.TryUnfilter();
 
     /// <summary>
     /// Surround content with q/Q operations if necessary.

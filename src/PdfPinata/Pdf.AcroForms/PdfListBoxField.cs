@@ -57,7 +57,7 @@ public sealed class PdfListBoxField : PdfChoiceField
     /// Gets whether the list allows more than one of its options to be chosen at once, which is
     /// the <c>MultiSelect</c> flag. A combo box never does; a list box may.
     /// </summary>
-    public bool AllowsMultipleSelection => (Flags & PdfAcroFieldFlags.MultiSelect) != 0;
+    public bool AllowsMultipleSelection => HasFlag(PdfAcroFieldFlags.MultiSelect);
 
     /// <summary>
     /// Gets the index of the selected item, answering -1 when nothing is selected, and sets which

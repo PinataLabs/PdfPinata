@@ -139,6 +139,21 @@ public class CheckBoxWidgetStateTests
     }
 
     [Fact]
+    public void AButtonsOnStateIsTheOneItsWidgetsName()
+    {
+        // GetNonOffValue read the field's own /AP, which a field whose widgets are separate from it
+        // does not have, and answered /Yes whatever the widgets named - while CheckedName, reading
+        // the widgets, answered their state. It is protected, so it is reached by reflection.
+        var field = ATickBox("/Ja", "/Ja");
+        var getNonOffValue = typeof(PdfButtonField).GetMethod("GetNonOffValue",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+        getNonOffValue.Should().NotBeNull();
+        getNonOffValue.Invoke(field, null).Should().Be("/Ja");
+        field.CheckedName.Should().Be("/Ja");
+    }
+
+    [Fact]
     public void AWidgetWithNoAppearanceIsGivenNoState()
     {
         var field = (PdfCheckBoxField)new AcroFormBuilder()

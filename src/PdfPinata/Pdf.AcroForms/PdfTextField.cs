@@ -146,7 +146,7 @@ public sealed class PdfTextField : PdfAcroField
     /// </summary>
     public bool MultiLine
     {
-        get => (Flags & PdfAcroFieldFlags.Multiline) != 0;
+        get => HasFlag(PdfAcroFieldFlags.Multiline);
         set => SetFlag(PdfAcroFieldFlags.Multiline, value);
     }
 
@@ -155,7 +155,7 @@ public sealed class PdfTextField : PdfAcroField
     /// </summary>
     public bool Password
     {
-        get => (Flags & PdfAcroFieldFlags.Password) != 0;
+        get => HasFlag(PdfAcroFieldFlags.Password);
         set => SetFlag(PdfAcroFieldFlags.Password, value);
     }
 
@@ -343,7 +343,7 @@ public sealed class PdfTextField : PdfAcroField
     /// <summary>
     /// Whether the field divides itself into <see cref="MaxLength"/> cells, one character each.
     /// </summary>
-    private bool Comb => (Flags & PdfAcroFieldFlags.Comb) != 0;
+    private bool Comb => HasFlag(PdfAcroFieldFlags.Comb);
 
     /// <summary>
     /// The quadding, <c>/Q</c>: 0 to align left, 1 to centre and 2 to align right. Inheritable,

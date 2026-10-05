@@ -148,6 +148,23 @@ public class RunLengthDecodeTests
     }
 
     [Fact]
+    public void AContentStreamIsDecodedWhenItIsWrappedAndItsLengthFollows()
+    {
+        // PdfContent decodes through the stream's own TryUnfilter, which leaves /Length to the
+        // Value setter rather than writing it itself.
+        var document = new PdfDocument();
+        var dictionary = new PdfDictionary(document);
+        dictionary.CreateStream(EncodedContent());
+        dictionary.Elements["/Filter"] = new PdfName("/RunLengthDecode");
+
+        var content = new PdfPinata.Pdf.Advanced.PdfContent(dictionary);
+
+        content.Elements.ContainsKey("/Filter").Should().BeFalse();
+        Encoding.ASCII.GetString(content.Stream.Value).Should().Be(Content);
+        content.Elements.GetInteger("/Length").Should().Be(Content.Length);
+    }
+
+    [Fact]
     public void APageWhoseContentIsRunLengthEncodedIsReadFromAFile()
     {
         using var stream = new MemoryStream(File(EncodedContent(), "/Filter /RunLengthDecode"));
