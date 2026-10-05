@@ -195,6 +195,17 @@ claim that some of the page belongs to the note rather than to the label and par
 Two marks are its own — the `/Lbl` in the gutter — and the separator rule above the block is an
 artifact, because it says where the body text stops and carries nothing to read out.
 
+**A note keeps its lists to itself, and leaves the body's alone (#262).** The note is drawn at the foot
+of the page, which is where the page breaks — between the last list item on one page and the first on
+the next. Unlike a running head it is content, so its paragraphs are tagged, and a paragraph that is
+not a list item calls `EndList` before it asks to be: a footnote cited anywhere on a page ended the
+list the body was in the middle of, and the item at the top of the next page opened a second `/L`.
+Making the note an artifact would hide it from the tree, so `FootnoteRenderer` enters it with
+`Tagger.EnterAside` instead, which sets the body's list frames aside on the way in and puts them back
+on the way out. The note starts with no list open — a list inside it is an `/L` of its own under the
+`/Note` — and whatever it opens or ends is gone with it. The `/Note` itself is still built where it
+was cited.
+
 **A note carries an `/ID`, and PDF/UA is held to it.** ISO 14289-1 7.9 requires one of every `/Note`,
 and the reason is the shape of the feature: a note exists to be pointed at from the mark that cited
 it, and an element with no identifier cannot be pointed at. That needed machinery the codebase did not
