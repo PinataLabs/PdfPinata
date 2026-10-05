@@ -353,19 +353,13 @@ public class HarfBuzzShapingTests
         var unshaped = gfx.MeasureString(Sentinel, font).Width;
 
         using var shaper = new OnlyFor(Sentinel);
-        GlobalFontSettings.TextShaper = shaper;
-        try
-        {
-            var shaped = gfx.MeasureString(Sentinel, font).Width;
+        using var _ = SeamScope.TextShaper(shaper);
 
-            shaped.Should().BeLessThan(unshaped,
-                "measuring goes through the seam, so the kerning the face asks for is now in the "
-                + "width - which is exactly the change that will move the golden images when a "
-                + "shaper is registered by default");
-        }
-        finally
-        {
-            GlobalFontSettings.TextShaper = null;
-        }
+        var shaped = gfx.MeasureString(Sentinel, font).Width;
+
+        shaped.Should().BeLessThan(unshaped,
+            "measuring goes through the seam, so the kerning the face asks for is now in the "
+            + "width - which is exactly the change that will move the golden images when a "
+            + "shaper is registered by default");
     }
 }

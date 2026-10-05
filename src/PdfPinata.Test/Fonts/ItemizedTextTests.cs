@@ -229,15 +229,8 @@ public class ItemizedTextTests
         // test could be drawing at the same moment.
         const string latin = "recorded";
 
-        GlobalFontSettings.TextShaper = recorder;
-        try
-        {
+        using (SeamScope.TextShaper(recorder))
             DrawnText.Page(latin + Salam, font);
-        }
-        finally
-        {
-            GlobalFontSettings.TextShaper = null;
-        }
 
         recorder.Of(latin, Salam).Should().BeEquivalentTo([
             (latin, XTextDirection.LeftToRight, "latn"),

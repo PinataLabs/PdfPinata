@@ -89,13 +89,6 @@ public class FontFallbackTests
             => _mine.Contains(codePoint) ? _families : Enumerable.Empty<string>();
     }
 
-    private sealed class Installed : IDisposable
-    {
-        internal Installed(IFontFallback fallback) => GlobalFontSettings.FontFallback = fallback;
-
-        public void Dispose() => GlobalFontSettings.FontFallback = null;
-    }
-
     // ----- the seam ---------------------------------------------------------------------------------
 
     [Fact]
@@ -111,10 +104,14 @@ public class FontFallbackTests
     {
         var fallback = new FontFallbackList("Whatever");
 
-        using (new Installed(fallback))
+        using (SeamScope.FontFallback(fallback))
+        {
             GlobalFontSettings.FontFallback.Should().BeSameAs(fallback);
 
-        GlobalFontSettings.FontFallback.Should().BeNull();
+            GlobalFontSettings.FontFallback = null;
+
+            GlobalFontSettings.FontFallback.Should().BeNull();
+        }
     }
 
     [Fact]
@@ -132,10 +129,14 @@ public class FontFallbackTests
             "nothing is registered before this test registers something, and PinnedFontResolver "
             + "does not implement IFontFallback itself");
 
-        using (new Installed(new FontFallbackList("Whatever")))
+        using (SeamScope.FontFallback(new FontFallbackList("Whatever")))
+        {
             GlobalFontSettings.IsFontFallbackSet.Should().BeTrue();
 
-        GlobalFontSettings.IsFontFallbackSet.Should().BeFalse("and clearing it answers false again");
+            GlobalFontSettings.FontFallback = null;
+
+            GlobalFontSettings.IsFontFallbackSet.Should().BeFalse("and clearing it answers false again");
+        }
     }
 
     [Fact]
@@ -164,7 +165,7 @@ public class FontFallbackTests
         var arabic = ArabicFont();
         var expected = DrawnText.Glyphs(DrawnText.Page(Arabic, arabic));
 
-        using var _ = new Installed(new Only(Arabic, ArabicFamily));
+        using var _ = SeamScope.FontFallback(new Only(Arabic, ArabicFamily));
 
         DrawnText.Glyphs(DrawnText.Page(Arabic, Latin())).Should().Equal(expected,
             "the same glyphs the Arabic face draws when it is the face that was asked for");
@@ -177,7 +178,7 @@ public class FontFallbackTests
         var hi = DrawnText.Glyphs(DrawnText.Page("Hi", latin));
         var arabic = DrawnText.Glyphs(DrawnText.Page(Arabic, ArabicFont()));
 
-        using var _ = new Installed(new Only(Arabic, ArabicFamily));
+        using var _ = SeamScope.FontFallback(new Only(Arabic, ArabicFamily));
 
         DrawnText.Glyphs(DrawnText.Page("Hi " + Arabic, latin))
             .Should().StartWith(hi)
@@ -187,7 +188,7 @@ public class FontFallbackTests
     [Fact]
     public void BothFacesAreEmbeddedAndBothAreSelected()
     {
-        using var _ = new Installed(new Only(Arabic, ArabicFamily));
+        using var _ = SeamScope.FontFallback(new Only(Arabic, ArabicFamily));
 
         var content = DrawnText.ContentOf(DrawnText.Page("Hi " + Arabic, Latin()));
         var selections = Regex.Matches(content, @"/F\d+ [\d.]+ Tf");
@@ -201,7 +202,7 @@ public class FontFallbackTests
     [Fact]
     public void TheFaceTheCallerAskedForIsSelectedAgainAtTheEnd()
     {
-        using var _ = new Installed(new Only(Arabic, ArabicFamily));
+        using var _ = SeamScope.FontFallback(new Only(Arabic, ArabicFamily));
 
         var content = DrawnText.ContentOf(DrawnText.Page("Hi " + Arabic, Latin()));
         var selections = Regex.Matches(content, @"/F\d+ [\d.]+ Tf")
@@ -221,7 +222,7 @@ public class FontFallbackTests
         var arabic = ArabicFont();
         var own = DrawnText.MeasuredWidth(Arabic, arabic);
 
-        using var _ = new Installed(new Only(Arabic, ArabicFamily));
+        using var _ = SeamScope.FontFallback(new Only(Arabic, ArabicFamily));
 
         DrawnText.MeasuredWidth(Arabic, Latin()).Should().BeApproximately(own, 1e-9,
             "a width measured against the face that cannot draw the text is a width the drawing "
@@ -257,21 +258,15 @@ public class FontFallbackTests
         // plausible and be nonsense.
 
         using var shaper = new ShapesOnly(Arabic);
-        GlobalFontSettings.TextShaper = shaper;
-        try
-        {
-            var joined = DrawnText.Glyphs(DrawnText.Page(Arabic, new XFont(ArabicFamily, 20)));
+        using var shaping = SeamScope.TextShaper(shaper);
 
-            using var _ = new Installed(new Only(Arabic, ArabicFamily));
+        var joined = DrawnText.Glyphs(DrawnText.Page(Arabic, new XFont(ArabicFamily, 20)));
 
-            DrawnText.Glyphs(DrawnText.Page(Arabic, Latin())).Should().Equal(joined,
-                "the same six joined and marked glyphs the Arabic face draws for itself");
-            joined.Should().HaveCount(6, "four letters and the two marks GPOS places for them");
-        }
-        finally
-        {
-            GlobalFontSettings.TextShaper = null;
-        }
+        using var _ = SeamScope.FontFallback(new Only(Arabic, ArabicFamily));
+
+        DrawnText.Glyphs(DrawnText.Page(Arabic, Latin())).Should().Equal(joined,
+            "the same six joined and marked glyphs the Arabic face draws for itself");
+        joined.Should().HaveCount(6, "four letters and the two marks GPOS places for them");
     }
 
     // ----- what it declines to do -----------------------------------------------------------------------
@@ -286,7 +281,7 @@ public class FontFallbackTests
         // for a font that is not shipped lays out the same way everywhere. Which also means the
         // other way a candidate can fail - a family that resolves to nothing at all and throws
         // from the XFont constructor - is a branch nothing here can produce.
-        using var _ = new Installed(
+        using var _ = SeamScope.FontFallback(
             new Only(Arabic, "No Such Family Exists", "Times New Roman", ArabicFamily));
 
         DrawnText.Glyphs(DrawnText.Page(Arabic, Latin())).Should().Equal(expected,
@@ -299,7 +294,7 @@ public class FontFallbackTests
     {
         // Nothing offered covers it, so there is nothing to be gained by cutting the run there -
         // and the .notdef drawn is the same .notdef either way.
-        using var _ = new Installed(new Only(Arabic, "No Such Family Exists"));
+        using var _ = SeamScope.FontFallback(new Only(Arabic, "No Such Family Exists"));
 
         DrawnText.GlyphRuns(DrawnText.Page(Arabic, Latin())).Should().HaveCount(1);
     }
@@ -311,7 +306,7 @@ public class FontFallbackTests
         // Liberation Sans has a space and the Arabic face has a space, so a space could be claimed
         // by either - and claiming it would break a sentence of Arabic into one run per word,
         // losing the shaping across every one of the boundaries.
-        using var _ = new Installed(new Only(Arabic, ArabicFamily));
+        using var _ = SeamScope.FontFallback(new Only(Arabic, ArabicFamily));
 
         DrawnText.GlyphRuns(DrawnText.Page(Arabic + " " + Arabic, Latin()))
             .Should().HaveCount(1, "one face, one direction, one script, one run");
@@ -325,7 +320,7 @@ public class FontFallbackTests
         // the face those letters are drawn from. Giving it a face of its own would put the
         // instruction in one run and the letters it is about in another, which is the one
         // arrangement that certainly cannot work.
-        using var _ = new Installed(new Only(Arabic, ArabicFamily));
+        using var _ = SeamScope.FontFallback(new Only(Arabic, ArabicFamily));
 
         DrawnText.GlyphRuns(DrawnText.Page(Arabic + Joiner + Arabic, Latin()))
             .Should().HaveCount(1);
@@ -340,7 +335,7 @@ public class FontFallbackTests
         // boundary falling between them would draw one character out of two files. What is pinned
         // here is that the pair stays whole on the way past: it is asked about once, as the one
         // code point it spells, and it gets one glyph whether or not anything can draw it.
-        using var _ = new Installed(new Only(Arabic, ArabicFamily));
+        using var _ = SeamScope.FontFallback(new Only(Arabic, ArabicFamily));
 
         // MATHEMATICAL BOLD CAPITAL A, U+1D400, between two runs of Arabic. It is bidi class L
         // between two right-to-left runs, so it is a run of its own however it is drawn - and one
@@ -367,7 +362,7 @@ public class FontFallbackTests
         var latin = Latin();
         var before = DrawnText.ContentOf(DrawnText.Page("Hi " + Arabic, latin));
 
-        using (new Installed(new Only(" ", ArabicFamily)))
+        using (SeamScope.FontFallback(new Only(" ", ArabicFamily)))
             DrawnText.ContentOf(DrawnText.Page("Hi " + Arabic, latin)).Should().Be(before);
 
         DrawnText.ContentOf(DrawnText.Page("Hi " + Arabic, latin)).Should().Be(before,

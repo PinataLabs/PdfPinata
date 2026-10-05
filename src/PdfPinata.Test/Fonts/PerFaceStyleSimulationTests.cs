@@ -47,13 +47,6 @@ public class PerFaceStyleSimulationTests
     /// <summary>Bold here is a real file.</summary>
     private static XFont RealBold() => new("Arial", 20, XFontStyle.Bold);
 
-    private sealed class Installed : IDisposable
-    {
-        internal Installed(IFontFallback fallback) => GlobalFontSettings.FontFallback = fallback;
-
-        public void Dispose() => GlobalFontSettings.FontFallback = null;
-    }
-
     private sealed class Only : IFontFallback
     {
         private readonly HashSet<int> _mine;
@@ -82,7 +75,7 @@ public class PerFaceStyleSimulationTests
         // Source Code Pro Bold is stroked because the family has no bold file. The Arabic beside it
         // is drawn from a face that was never asked to simulate anything, and used to be stroked
         // regardless - a thickened Arabic letter for no reason but its neighbour.
-        using var _ = new Installed(new Only(Arabic.Select(letter => (int)letter),
+        using var _ = SeamScope.FontFallback(new Only(Arabic.Select(letter => (int)letter),
             PinnedFontResolver.ArabicFamilyName));
 
         var content = DrawnText.ContentOf(DrawnText.Page("A" + Arabic, SimulatedBold()));
@@ -96,7 +89,7 @@ public class PerFaceStyleSimulationTests
     {
         // The other half of simulation. A character spacing left in place would space the fallback
         // out as though it had been thickened, which is visible even where the stroke is not.
-        using var _ = new Installed(new Only(Arabic.Select(letter => (int)letter),
+        using var _ = SeamScope.FontFallback(new Only(Arabic.Select(letter => (int)letter),
             PinnedFontResolver.ArabicFamilyName));
 
         var content = DrawnText.ContentOf(DrawnText.Page("A" + Arabic, SimulatedBold()));
@@ -115,7 +108,7 @@ public class PerFaceStyleSimulationTests
         // whose bold is simulated, so that segment alone is stroked - which needs the stroking
         // colour and width to have been set up even though the face that was asked for did not
         // want them.
-        using var _ = new Installed(new Only([Lock], PinnedFontResolver.CffFamilyName));
+        using var _ = SeamScope.FontFallback(new Only([Lock], PinnedFontResolver.CffFamilyName));
 
         var content = DrawnText.ContentOf(
             DrawnText.Page("A" + char.ConvertFromUtf32(Lock) + "B", RealBold()));
@@ -130,7 +123,7 @@ public class PerFaceStyleSimulationTests
     {
         // Without this the emoji above would be stroked with whatever line width happened to be
         // current, because nothing would have realized a pen for a primary face that needed none.
-        using var _ = new Installed(new Only([Lock], PinnedFontResolver.CffFamilyName));
+        using var _ = SeamScope.FontFallback(new Only([Lock], PinnedFontResolver.CffFamilyName));
 
         var content = DrawnText.ContentOf(
             DrawnText.Page("A" + char.ConvertFromUtf32(Lock), RealBold()));
@@ -146,7 +139,7 @@ public class PerFaceStyleSimulationTests
     {
         // The assertion that ties the two paths together. If measuring still applied the primary
         // face's simulation to every glyph, the mixed string would measure wider than its parts.
-        using var _ = new Installed(new Only([Lock], PinnedFontResolver.CffFamilyName));
+        using var _ = SeamScope.FontFallback(new Only([Lock], PinnedFontResolver.CffFamilyName));
 
         var emoji = char.ConvertFromUtf32(Lock);
 
