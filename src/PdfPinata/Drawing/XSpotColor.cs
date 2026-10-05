@@ -135,5 +135,5 @@ public sealed class XSpotColor : IEquatable<XSpotColor>
     /// <inheritdoc />
     public override string ToString() =>
         string.Format(CultureInfo.InvariantCulture, "{0} ({1} {2})", Name, Alternate.ColorSpace,
-            string.Join(" ", Array.ConvertAll(AlternateComponents, c => c.ToString("0.###", CultureInfo.InvariantCulture))));
+            string.Join(" ", Array.ConvertAll(AlternateComponents, c => c.ToString(Config.SignificantFigures3, CultureInfo.InvariantCulture))));
 }

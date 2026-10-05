@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using PdfPinata.Drawing;
@@ -116,10 +117,12 @@ internal sealed class InspectDemo : PdfDemo
             // docs:begin operands
             // The operand types are the whole of the CObject model: numbers, strings, names and
             // arrays. Rendering them by type is what makes the model visible rather than the text.
+            // A PDF number is written with a full stop whatever the machine's language, so it is
+            // shown that way too: in the current culture, 0.5 would print as 0,5 on a German one.
             string Describe(CObject operand) => operand switch
             {
-                CInteger integer => integer.Value.ToString(),
-                CReal real => real.Value.ToString("0.###"),
+                CInteger integer => integer.Value.ToString(CultureInfo.InvariantCulture),
+                CReal real => real.Value.ToString("0.###", CultureInfo.InvariantCulture),
                 CName name => name.Name,
                 CString text => $"({text.Value.Length} bytes)",
                 CArray array => $"[{array.Count} items]",
