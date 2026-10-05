@@ -181,7 +181,7 @@ public class GlyphOutlineTests
         var format = XStringFormats.TopLeft;
         var pathBounds = PathGeometry.BoundsOf(PageWithPath(PathOf(Text, TrueTypeFamily, format)));
 
-        var drawn = PageShowing(gfx => gfx.DrawString(Text, new XFont(TrueTypeFamily, EmSize),
+        var drawn = DrawnText.PageShowing(gfx => gfx.DrawString(Text, new XFont(TrueTypeFamily, EmSize),
             XBrushes.Black, Box, format));
         var baseline = TextBaselines.PositionsOf(drawn)[0];
         var measured = Measure(Text, TrueTypeFamily);
@@ -320,14 +320,5 @@ public class GlyphOutlineTests
     /// <summary>How many path points a page drawing this path holds - zero for an empty path.</summary>
     private static int PageDrawing(XGraphicsPath path) => PathGeometry.PointsOf(PageWithPath(path)).Count;
 
-    private static PdfPage PageWithPath(XGraphicsPath path) => PageShowing(gfx => gfx.DrawPath(XBrushes.Black, path));
-
-    private static PdfPage PageShowing(Action<XGraphics> draw)
-    {
-        var document = new PdfDocument();
-        var page = document.AddPage();
-        using var gfx = XGraphics.FromPdfPage(page);
-        draw(gfx);
-        return page;
-    }
+    private static PdfPage PageWithPath(XGraphicsPath path) => DrawnText.PageShowing(gfx => gfx.DrawPath(XBrushes.Black, path));
 }

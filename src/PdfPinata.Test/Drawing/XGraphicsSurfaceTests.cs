@@ -35,15 +35,6 @@ public class XGraphicsSurfaceTests
         new(100, 100), new(150, 50), new(250, 50), new(300, 100)
     ];
 
-    private static PdfPage PageShowing(Action<XGraphics> draw)
-    {
-        var document = new PdfDocument();
-        var page = document.AddPage();
-        using var gfx = XGraphics.FromPdfPage(page);
-        draw(gfx);
-        return page;
-    }
-
     /// <summary>
     ///   The shape a page draws, as text: every operator that builds geometry, and nothing that
     ///   decides how it is painted. That is what "the same shape" means throughout this class -
@@ -56,7 +47,7 @@ public class XGraphicsSurfaceTests
     /// </remarks>
     private static string ShapeOf(Action<XGraphics> draw)
     {
-        var lines = ContentOf(PageShowing(draw)).Split('\n')
+        var lines = ContentOf(DrawnText.PageShowing(draw)).Split('\n')
             .Select(line => line.Trim())
             .Where(line => Regex.IsMatch(line, @"(^|\s)(re|m|l|c|v|y|h)$"));
         return string.Join("\n", lines);
@@ -75,7 +66,7 @@ public class XGraphicsSurfaceTests
     ///   counter lives above the renderer and would say the same thing whatever the renderer wrote.
     /// </remarks>
     private static string StateOf(Action<XGraphics> draw) =>
-        string.Concat(ContentOf(PageShowing(draw)).Split('\n')
+        string.Concat(ContentOf(DrawnText.PageShowing(draw)).Split('\n')
             .Select(line => line.Trim())
             .Where(line => line is "q" or "Q"));
 
@@ -87,7 +78,7 @@ public class XGraphicsSurfaceTests
     {
         var depths = new List<int>();
         var depth = 0;
-        foreach (var line in ContentOf(PageShowing(draw)).Split('\n').Select(line => line.Trim()))
+        foreach (var line in ContentOf(DrawnText.PageShowing(draw)).Split('\n').Select(line => line.Trim()))
         {
             if (line is "q")
                 depth++;
@@ -99,9 +90,9 @@ public class XGraphicsSurfaceTests
         return [..depths];
     }
 
-    private static int PointCount(Action<XGraphics> draw) => PathGeometry.PointsOf(PageShowing(draw)).Count;
+    private static int PointCount(Action<XGraphics> draw) => PathGeometry.PointsOf(DrawnText.PageShowing(draw)).Count;
 
-    private static XRect Bounds(Action<XGraphics> draw) => PathGeometry.BoundsOf(PageShowing(draw));
+    private static XRect Bounds(Action<XGraphics> draw) => PathGeometry.BoundsOf(DrawnText.PageShowing(draw));
 
     private static string ContentOf(PdfPage page) => Encoding.ASCII.GetString(PageContent.Of(page));
 
@@ -194,7 +185,7 @@ public class XGraphicsSurfaceTests
     [Fact]
     public void ACommentGoesIntoTheContentStreamWithoutDrawingAnything()
     {
-        var page = PageShowing(gfx =>
+        var page = DrawnText.PageShowing(gfx =>
         {
             gfx.WriteComment("a landmark");
             gfx.DrawLine(XPens.Black, 100, 100, 200, 200);
@@ -212,7 +203,7 @@ public class XGraphicsSurfaceTests
     {
         // A carriage return ends a line in PDF as surely as a line feed does, so the second line
         // here would be read as a path of its own if it were not commented out as well.
-        var page = PageShowing(gfx =>
+        var page = DrawnText.PageShowing(gfx =>
         {
             gfx.WriteComment("a landmark" + lineBreak + "300 300 m 400 400 l S");
             gfx.DrawLine(XPens.Black, 100, 100, 200, 200);
@@ -651,12 +642,12 @@ public class XGraphicsSurfaceTests
         // with it as a concatenate-matrix operator for the reader to apply. Worth stating,
         // because it is why reading path points back out of a page says nothing about what
         // transform was in force when they were written.
-        var moved = PageShowing(gfx =>
+        var moved = DrawnText.PageShowing(gfx =>
         {
             gfx.TranslateTransform(50, 0);
             gfx.DrawEllipse(XPens.Black, 100, 100, 200, 50);
         });
-        var unmoved = PageShowing(gfx => gfx.DrawEllipse(XPens.Black, 100, 100, 200, 50));
+        var unmoved = DrawnText.PageShowing(gfx => gfx.DrawEllipse(XPens.Black, 100, 100, 200, 50));
 
         PathGeometry.BoundsOf(moved).Should().Be(PathGeometry.BoundsOf(unmoved));
         CountOf(ContentOf(moved), "cm").Should().Be(CountOf(ContentOf(unmoved), "cm") + 1);
@@ -676,7 +667,7 @@ public class XGraphicsSurfaceTests
 
         static string TransformsIn(Action<XGraphics> apply)
         {
-            var page = PageShowing(gfx =>
+            var page = DrawnText.PageShowing(gfx =>
             {
                 apply(gfx);
                 gfx.DrawEllipse(XPens.Black, 100, 100, 100, 50);
@@ -920,13 +911,13 @@ public class XGraphicsSurfaceTests
     [Fact]
     public void ClippingToARectangleIsClippingToTheRectangleAsAPath()
     {
-        var toRect = ContentOf(PageShowing(gfx =>
+        var toRect = ContentOf(DrawnText.PageShowing(gfx =>
         {
             gfx.IntersectClip(new XRect(100, 100, 200, 200));
             gfx.DrawRectangle(XPens.Black, 0, 0, 500, 500);
         }));
 
-        var toPath = ContentOf(PageShowing(gfx =>
+        var toPath = ContentOf(DrawnText.PageShowing(gfx =>
         {
             var path = new XGraphicsPath();
             path.AddRectangle(new XRect(100, 100, 200, 200));

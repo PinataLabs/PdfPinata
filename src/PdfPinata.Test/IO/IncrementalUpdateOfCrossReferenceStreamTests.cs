@@ -9,6 +9,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using Xunit;
+using static PdfPinata.Test.Helpers.Revisions;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
 using Reader = PdfPinata.Pdf.IO.PdfReader;
@@ -184,21 +185,6 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
         return Encoding.Latin1.GetBytes(text.Remove(match.Index, match.Length)
             .Insert(match.Index, new string(' ', match.Length)));
     }
-
-    private static byte[] AppendChange(byte[] original, Action<PdfDocument> change)
-    {
-        using var source = new MemoryStream(original);
-        var document = Reader.Open(source, PdfDocumentOpenMode.Append);
-
-        change(document);
-
-        using var output = new MemoryStream();
-        document.SaveIncremental(output);
-        return output.ToArray();
-    }
-
-    private static string Appended(byte[] updated, int originalLength) =>
-        Encoding.Latin1.GetString(updated, originalLength, updated.Length - originalLength);
 
     /// <summary>How many cross-reference stream dictionaries the text holds, however it is spaced.</summary>
     private static int CrossReferenceStreamsIn(string text) =>

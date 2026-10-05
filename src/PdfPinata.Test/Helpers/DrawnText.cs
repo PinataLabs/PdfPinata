@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,13 +17,20 @@ namespace PdfPinata.Test.Helpers;
 internal static class DrawnText
 {
     /// <summary>A page with one string drawn on it.</summary>
-    internal static PdfPage Page(string text, XFont font, XStringFormat format = null)
+    internal static PdfPage Page(string text, XFont font, XStringFormat format = null) =>
+        PageShowing(gfx => gfx.DrawString(text, font, XBrushes.Black, new XPoint(20, 40),
+            format ?? XStringFormats.Default));
+
+    /// <summary>
+    ///   A page of a new document with whatever <paramref name="draw"/> draws on it. The graphics
+    ///   are disposed before the page is handed back, so its content stream is complete.
+    /// </summary>
+    internal static PdfPage PageShowing(Action<XGraphics> draw)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
-        using var gfx = XGraphics.FromPdfPage(page);
-        gfx.DrawString(text, font, XBrushes.Black, new XPoint(20, 40),
-            format ?? XStringFormats.Default);
+        using (var gfx = XGraphics.FromPdfPage(page))
+            draw(gfx);
 
         return page;
     }

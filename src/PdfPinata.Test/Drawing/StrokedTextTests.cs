@@ -31,18 +31,9 @@ public class StrokedTextTests
     private static XFont BoldSimulatedFont =>
         new(PinnedFontResolver.CffFamilyName, FontSize, XFontStyle.Bold, XPdfFontOptions.WinAnsiDefault);
 
-    private static PdfPage PageShowing(Action<XGraphics> draw)
-    {
-        var document = new PdfDocument();
-        var page = document.AddPage();
-        using var gfx = XGraphics.FromPdfPage(page);
-        draw(gfx);
-        return page;
-    }
-
     private static PdfPage PageShowing(XFont font, XPen pen, XBrush brush)
     {
-        return PageShowing(gfx => gfx.DrawString("Hello", font, pen, brush, 20, 40));
+        return DrawnText.PageShowing(gfx => gfx.DrawString("Hello", font, pen, brush, 20, 40));
     }
 
     // ----- which mode the pen and brush ask for -------------------------------------------------
@@ -73,7 +64,7 @@ public class StrokedTextTests
     public void TheOldOverloadStillFillsAndNothingElse()
     {
         // Every existing caller goes through here, and has to come out where it always did.
-        var page = PageShowing(gfx => gfx.DrawString("Hello", PlainFont, XBrushes.Black, 20, 40));
+        var page = DrawnText.PageShowing(gfx => gfx.DrawString("Hello", PlainFont, XBrushes.Black, 20, 40));
 
         TextOperators.NumbersGivenTo(page, OpCodeName.Tr).Should().BeEmpty();
         TextOperators.NumbersGivenTo(page, OpCodeName.Tc).Should().BeEmpty();
@@ -179,7 +170,7 @@ public class StrokedTextTests
         var format = XStringFormats.Default;
         format.CharacterSpacing = 4;
 
-        var page = PageShowing(gfx =>
+        var page = DrawnText.PageShowing(gfx =>
             gfx.DrawString("Hello", PlainFont, new XPen(XColors.Red, 1), XBrushes.Black, 20, 40, format));
 
         TextOperators.NumbersGivenTo(page, OpCodeName.Tc).Should().Equal(4);
@@ -190,7 +181,7 @@ public class StrokedTextTests
     [Fact]
     public void GoingBackToPlainFilledTextSaysSo()
     {
-        var page = PageShowing(gfx =>
+        var page = DrawnText.PageShowing(gfx =>
         {
             gfx.DrawString("outlined", PlainFont, new XPen(XColors.Red, 1), null, 20, 40);
             gfx.DrawString("filled", PlainFont, XBrushes.Black, 20, 60);
@@ -203,7 +194,7 @@ public class StrokedTextTests
     [Fact]
     public void TheModeIsSetOnceForTwoStringsThatShareIt()
     {
-        var page = PageShowing(gfx =>
+        var page = DrawnText.PageShowing(gfx =>
         {
             gfx.DrawString("first", PlainFont, new XPen(XColors.Red, 1), XBrushes.Black, 20, 40);
             gfx.DrawString("second", PlainFont, new XPen(XColors.Red, 1), XBrushes.Black, 20, 60);

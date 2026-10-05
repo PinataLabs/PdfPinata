@@ -9,6 +9,7 @@ using PdfPinata.Pdf.Signatures;
 using PdfPinata.Signing;
 using PdfPinata.Test.Helpers;
 using Xunit;
+using static PdfPinata.Test.Helpers.SigningCertificates;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
 using Reader = PdfPinata.Pdf.IO.PdfReader;
@@ -416,17 +417,6 @@ public class SigningTests
         public byte[] Sign(Stream content) => _inner.Sign(content);
     }
 
-    private static byte[] Unsigned(Action<PdfDocument> customise = null)
-    {
-        var document = new PdfDocument();
-        using (var gfx = XGraphics.FromPdfPage(document.AddPage()))
-            gfx.DrawString("A document to sign", new XFont("Arial", 12), XBrushes.Black, 40, 100);
-
-        customise?.Invoke(document);
-
-        return Saved.Bytes(document);
-    }
-
     private static byte[] TwoPages()
     {
         var document = new PdfDocument();
@@ -434,15 +424,6 @@ public class SigningTests
         _ = document.AddPage();
 
         return Saved.Bytes(document);
-    }
-
-    private static byte[] Sign(byte[] document, PdfSignatureOptions options = null, IPdfSigner signer = null)
-    {
-        using var input = new MemoryStream(document);
-        using var output = new MemoryStream();
-
-        PdfSigner.Sign(input, output, signer ?? new Pkcs7Signer(SigningCertificates.Default), options);
-        return output.ToArray();
     }
 
     /// <summary>

@@ -8,6 +8,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using Xunit;
+using static PdfPinata.Test.Helpers.Revisions;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
 using Reader = PdfPinata.Pdf.IO.PdfReader;
@@ -226,21 +227,6 @@ public class AppendedRevisionSizeTests
             text.Append("0000000000 00001 f \n");
         text.Append($"trailer\n<< /Size {declaredSize} /Root 1 0 R /Info 4 0 R {ids} >>\n");
     }
-
-    private static byte[] AppendChange(byte[] original, Action<PdfDocument> change)
-    {
-        using var source = new MemoryStream(original);
-        var document = Reader.Open(source, PdfDocumentOpenMode.Append);
-
-        change(document);
-
-        using var output = new MemoryStream();
-        document.SaveIncremental(output);
-        return output.ToArray();
-    }
-
-    private static string Appended(byte[] updated, int originalLength) =>
-        Encoding.Latin1.GetString(updated, originalLength, updated.Length - originalLength);
 
     /// <summary>The <c>/Size</c> the appended revision declares, in its trailer or its stream.</summary>
     private static int AppendedSize(string appended)
