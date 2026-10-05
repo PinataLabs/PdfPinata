@@ -157,14 +157,10 @@ public partial class PlotArea : ChartObject
     serializer.WriteLine("\\plotarea");
     var pos = serializer.BeginAttributes();
 
-    if (!topPadding.IsNull)
-      serializer.WriteSimpleAttribute("TopPadding", TopPadding);
-    if (!leftPadding.IsNull)
-      serializer.WriteSimpleAttribute("LeftPadding", LeftPadding);
-    if (!rightPadding.IsNull)
-      serializer.WriteSimpleAttribute("RightPadding", RightPadding);
-    if (!bottomPadding.IsNull)
-      serializer.WriteSimpleAttribute("BottomPadding", BottomPadding);
+    serializer.WriteSimpleAttributeIfSet("TopPadding", topPadding);
+    serializer.WriteSimpleAttributeIfSet("LeftPadding", leftPadding);
+    serializer.WriteSimpleAttributeIfSet("RightPadding", rightPadding);
+    serializer.WriteSimpleAttributeIfSet("BottomPadding", bottomPadding);
 
     if (!IsNull("LineFormat"))
       lineFormat.Serialize(serializer);

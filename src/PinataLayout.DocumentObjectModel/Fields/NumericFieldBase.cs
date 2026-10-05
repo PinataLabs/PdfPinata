@@ -124,4 +124,17 @@ public abstract partial class NumericFieldBase : DocumentObject
     {
         return false;
     }
+
+    /// <summary>
+    /// The kind DDL names the field by, the <c>Page</c> of <c>\field(Page)</c>.
+    /// </summary>
+    internal abstract string FieldKind { get; }
+
+    /// <summary>
+    /// Converts the field into DDL: its kind, and its format if it has one.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        serializer.WriteField(FieldKind, format);
+    }
 }

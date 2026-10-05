@@ -264,20 +264,15 @@ public partial class Column : DocumentObject
     if (!IsNull("Format"))
       format.Serialize(serializer, "Format", null);
 
-    if (headingFormat != null)
-      serializer.WriteSimpleAttribute("HeadingFormat", HeadingFormat);
+    serializer.WriteSimpleAttributeIfSet("HeadingFormat", headingFormat);
 
-    if (!leftPadding.IsNull)
-      serializer.WriteSimpleAttribute("LeftPadding", LeftPadding);
+    serializer.WriteSimpleAttributeIfSet("LeftPadding", leftPadding);
 
-    if (!rightPadding.IsNull)
-      serializer.WriteSimpleAttribute("RightPadding", RightPadding);
+    serializer.WriteSimpleAttributeIfSet("RightPadding", rightPadding);
 
-    if (!width.IsNull)
-      serializer.WriteSimpleAttribute("Width", Width);
+    serializer.WriteSimpleAttributeIfSet("Width", width);
 
-    if (keepWith.HasValue)
-      serializer.WriteSimpleAttribute("KeepWith", KeepWith);
+    serializer.WriteSimpleAttributeIfSet("KeepWith", keepWith);
 
     if (!IsNull("Borders"))
       borders.Serialize(serializer, null);

@@ -109,12 +109,10 @@ public partial class InfoField : DocumentObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    var str = "\\field(Info)";
     if (Name == "")
       throw new InvalidOperationException(DomSR.MissingObligatoryProperty("Name", "InfoField"));
-    str += "[Name = \"" + Name + "\"]";
 
-    serializer.Write(str);
+    serializer.WriteField("Info", null, Name);
   }
 
   #endregion

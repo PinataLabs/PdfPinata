@@ -148,8 +148,7 @@ public partial class AxisTitle : ChartObject
   {
     serializer.BeginContent("Title");
 
-    if (style != null)
-      serializer.WriteSimpleAttribute("Style", Style);
+    serializer.WriteSimpleAttributeIfSet("Style", style);
 
     if (!IsNull("Font"))
       font.Serialize(serializer);
@@ -158,17 +157,13 @@ public partial class AxisTitle : ChartObject
     // implicit string conversion, which converts the null literal and throws. Every other Unit in
     // the charting DOM is tested this way; this one was the exception, and it made an axis title
     // impossible to write.
-    if (!orientation.IsNull)
-      serializer.WriteSimpleAttribute("Orientation", Orientation);
+    serializer.WriteSimpleAttributeIfSet("Orientation", orientation);
 
-    if (alignment != null)
-      serializer.WriteSimpleAttribute("Alignment", Alignment);
+    serializer.WriteSimpleAttributeIfSet("Alignment", alignment);
 
-    if (verticalAlignment != null)
-      serializer.WriteSimpleAttribute("VerticalAlignment", VerticalAlignment);
+    serializer.WriteSimpleAttributeIfSet("VerticalAlignment", verticalAlignment);
 
-    if (caption != null)
-      serializer.WriteSimpleAttribute("Caption", Caption);
+    serializer.WriteSimpleAttributeIfSet("Caption", caption);
 
     serializer.EndContent();
   }

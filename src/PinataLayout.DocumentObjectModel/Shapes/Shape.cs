@@ -226,14 +226,11 @@ public partial class Shape : DocumentObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    if (!height.IsNull)
-      serializer.WriteSimpleAttribute("Height", Height);
-    if (!width.IsNull)
-      serializer.WriteSimpleAttribute("Width", Width);
+    serializer.WriteSimpleAttributeIfSet("Height", height);
+    serializer.WriteSimpleAttributeIfSet("Width", width);
     serializer.WriteSimpleAttributeIfSet("RelativeHorizontal", relativeHorizontal);
     serializer.WriteSimpleAttributeIfSet("RelativeVertical", relativeVertical);
-    if (alternativeText != null)
-      serializer.WriteSimpleAttribute("AlternativeText", AlternativeText);
+    serializer.WriteSimpleAttributeIfSet("AlternativeText", alternativeText);
     if (!IsNull("Left"))
       left.Serialize(serializer);
     if (!IsNull("Top"))

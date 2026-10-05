@@ -95,7 +95,7 @@ public partial class BookmarkField : DocumentObject
     if ((name ?? "") == string.Empty)
       throw new InvalidOperationException(DomSR.MissingObligatoryProperty("Name", "BookmarkField"));
 
-    serializer.Write("\\field(Bookmark)[Name = \"" + Name.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"]");
+    serializer.WriteField("Bookmark", null, Name);
   }
 
   /// <summary>

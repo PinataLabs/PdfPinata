@@ -222,20 +222,15 @@ public partial class Rows : DocumentObjectCollection, IVisitable
 
     var pos = serializer.BeginAttributes();
 
-    if (alignment != null)
-      serializer.WriteSimpleAttribute("Alignment", Alignment);
+    serializer.WriteSimpleAttributeIfSet("Alignment", alignment);
 
-    if (!height.IsNull)
-      serializer.WriteSimpleAttribute("Height", Height);
+    serializer.WriteSimpleAttributeIfSet("Height", height);
 
-    if (heightRule != null)
-      serializer.WriteSimpleAttribute("HeightRule", HeightRule);
+    serializer.WriteSimpleAttributeIfSet("HeightRule", heightRule);
 
-    if (!leftIndent.IsNull)
-      serializer.WriteSimpleAttribute("LeftIndent", LeftIndent);
+    serializer.WriteSimpleAttributeIfSet("LeftIndent", leftIndent);
 
-    if (verticalAlignment != null)
-      serializer.WriteSimpleAttribute("VerticalAlignment", VerticalAlignment);
+    serializer.WriteSimpleAttributeIfSet("VerticalAlignment", verticalAlignment);
 
     serializer.EndAttributes(pos);
 

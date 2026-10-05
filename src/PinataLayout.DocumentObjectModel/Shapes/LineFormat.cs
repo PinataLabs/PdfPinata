@@ -125,16 +125,11 @@ public partial class LineFormat : DocumentObject
   internal override void Serialize(Serializer serializer)
   {
     serializer.BeginContent("LineFormat");
-    if (visible != null)
-      serializer.WriteSimpleAttribute("Visible", Visible);
-    if (style != null)
-      serializer.WriteSimpleAttribute("Style", Style);
-    if (dashStyle != null)
-      serializer.WriteSimpleAttribute("DashStyle", DashStyle);
-    if (!width.IsNull)
-      serializer.WriteSimpleAttribute("Width", Width);
-    if (!color.IsNull)
-      serializer.WriteSimpleAttribute("Color", Color);
+    serializer.WriteSimpleAttributeIfSet("Visible", visible);
+    serializer.WriteSimpleAttributeIfSet("Style", style);
+    serializer.WriteSimpleAttributeIfSet("DashStyle", dashStyle);
+    serializer.WriteSimpleAttributeIfSet("Width", width);
+    serializer.WriteSimpleAttributeIfSet("Color", color);
     serializer.EndContent();
   }
 

@@ -114,13 +114,11 @@ public partial class TickLabels : ChartObject
   {
     serializer.BeginContent("TickLabels");
 
-    if (style != null)
-      serializer.WriteSimpleAttribute("Style", Style);
+    serializer.WriteSimpleAttributeIfSet("Style", style);
 
     font?.Serialize(serializer);
 
-    if (format != null)
-      serializer.WriteSimpleAttribute("Format", Format);
+    serializer.WriteSimpleAttributeIfSet("Format", format);
 
     serializer.EndContent();
   }

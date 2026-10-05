@@ -61,19 +61,9 @@ public partial class PageField : NumericFieldBase
 
   #region Internal
   /// <summary>
-  /// Converts PageField into DDL.
+  /// The kind DDL names this field by.
   /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    var str = "\\field(Page)";
-
-    if ((format ?? "") != "")
-      str += "[Format = \"" + Format + "\"]";
-    else
-      str += "[]"; //Has to be appended to avoid confusion with '[' in immediatly following text.
-
-    serializer.Write(str);
-  }
+  internal override string FieldKind => "Page";
 
   #endregion
 }

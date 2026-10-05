@@ -31,6 +31,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -419,6 +420,56 @@ internal class Serializer
   }
 
   /// <summary>
+  /// Writes a simple attribute held in a value that carries its own null - a Unit, a Color, a
+  /// position - or nothing when it is null.
+  /// </summary>
+  internal void WriteSimpleAttributeIfSet(string valueName, INullableValue value)
+  {
+    if (!value.IsNull)
+      WriteSimpleAttribute(valueName, value);
+  }
+
+  /// <summary>
+  /// Writes a string attribute, or nothing when the field holds no string. An empty string is
+  /// written: it is a value, where null is the absence of one.
+  /// </summary>
+  internal void WriteSimpleAttributeIfSet(string valueName, string value)
+  {
+    if (value != null)
+      WriteSimpleAttribute(valueName, value);
+  }
+
+  /// <summary>
+  /// Writes a field, <c>\field(Kind)</c>, with its name and format in brackets after it.
+  /// </summary>
+  /// <param name="kind">The field's kind, as the reader's <c>\field(...)</c> names it.</param>
+  /// <param name="format">The format, left out when null or empty.</param>
+  /// <param name="name">The name, left out only when null: an empty name is written.</param>
+  /// <remarks>
+  /// <para>
+  /// Both values go through <see cref="DdlEncoder.StringToLiteral"/>, so a backslash or a quote in
+  /// either is escaped. The field serializers each built this string for themselves and drifted:
+  /// the bookmark field escaped its name, the info and page reference fields wrote theirs raw, and
+  /// none escaped its format - so a name with a quote in it serialized to DDL that did not read
+  /// back.
+  /// </para>
+  /// <para>
+  /// The brackets are written even when they hold nothing, so that a <c>[</c> in the text straight
+  /// after the field is not read as the start of its attributes.
+  /// </para>
+  /// </remarks>
+  internal void WriteField(string kind, string format, string name = null)
+  {
+    var attributes = new List<string>(2);
+    if (name != null)
+      attributes.Add("Name = " + DdlEncoder.StringToLiteral(name));
+    if (!string.IsNullOrEmpty(format))
+      attributes.Add("Format = " + DdlEncoder.StringToLiteral(format));
+
+    Write("\\field(" + kind + ")[" + string.Join(" ", attributes) + "]");
+  }
+
+  /// <summary>
   /// Serializes the child object an owner holds under a name, unless the owner says it is null.
   /// </summary>
   internal void SerializeUnlessNull(DocumentObject owner, string name, DocumentObject child)
@@ -438,7 +489,7 @@ internal class Serializer
       float single => single.ToString(System.Globalization.CultureInfo.InvariantCulture),
       double real => real.ToString(System.Globalization.CultureInfo.InvariantCulture),
       bool => value.ToString().ToLower(),
-      string text => StringLiteral(text),
+      string text => DdlEncoder.StringToLiteral(text),
       int or Enum or Color => value.ToString(),
       _ => null
     };
@@ -451,17 +502,6 @@ internal class Serializer
   {
     var strUnit = unit.ToString();
     return unit.Type == UnitType.Point ? strUnit : "\"" + strUnit + "\"";
-  }
-
-  /// <summary>
-  /// A string as a quoted DDL literal, with its backslashes and quotes escaped.
-  /// </summary>
-  private static string StringLiteral(string value)
-  {
-    var sb = new StringBuilder(value);
-    sb.Replace("\\", "\\\\");
-    sb.Replace("\"", "\\\"");
-    return "\"" + sb + "\"";
   }
 
   /// <summary>

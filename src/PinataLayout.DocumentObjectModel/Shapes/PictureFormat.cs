@@ -119,14 +119,10 @@ public partial class PictureFormat : DocumentObject
   internal override void Serialize(Serializer serializer)
   {
     serializer.BeginContent("PictureFormat");
-    if (!cropLeft.IsNull)
-      serializer.WriteSimpleAttribute("CropLeft", CropLeft);
-    if (!cropRight.IsNull)
-      serializer.WriteSimpleAttribute("CropRight", CropRight);
-    if (!cropTop.IsNull)
-      serializer.WriteSimpleAttribute("CropTop", CropTop);
-    if (!cropBottom.IsNull)
-      serializer.WriteSimpleAttribute("CropBottom", CropBottom);
+    serializer.WriteSimpleAttributeIfSet("CropLeft", cropLeft);
+    serializer.WriteSimpleAttributeIfSet("CropRight", cropRight);
+    serializer.WriteSimpleAttributeIfSet("CropTop", cropTop);
+    serializer.WriteSimpleAttributeIfSet("CropBottom", cropBottom);
     serializer.EndContent();
   }
 

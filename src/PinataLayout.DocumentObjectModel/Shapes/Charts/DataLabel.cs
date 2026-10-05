@@ -141,10 +141,8 @@ public partial class DataLabel : DocumentObject
       serializer.WriteSimpleAttribute("Style", Style);
     if (Format != string.Empty)
       serializer.WriteSimpleAttribute("Format", Format);
-    if (position != null)
-      serializer.WriteSimpleAttribute("Position", Position);
-    if (type != null)
-      serializer.WriteSimpleAttribute("Type", Type);
+    serializer.WriteSimpleAttributeIfSet("Position", position);
+    serializer.WriteSimpleAttributeIfSet("Type", type);
     if (!IsNull("Font"))
       font.Serialize(serializer);
 
