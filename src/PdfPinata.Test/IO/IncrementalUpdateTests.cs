@@ -8,6 +8,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using Xunit;
+using static PdfPinata.Test.Helpers.Revisions;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
 using Reader = PdfPinata.Pdf.IO.PdfReader;
@@ -430,20 +431,4 @@ public class IncrementalUpdateTests
 
         return Saved.Bytes(document);
     }
-
-    private static byte[] AppendChange(byte[] original, Action<PdfDocument> change)
-    {
-        using var source = new MemoryStream(original);
-        var document = Reader.Open(source, PdfDocumentOpenMode.Append);
-
-        change(document);
-
-        using var output = new MemoryStream();
-        document.SaveIncremental(output);
-        return output.ToArray();
-    }
-
-    /// <summary>What was appended, and nothing that was there before.</summary>
-    private static string Appended(byte[] updated, int originalLength) =>
-        Encoding.Latin1.GetString(updated, originalLength, updated.Length - originalLength);
 }

@@ -10,6 +10,7 @@ using PdfPinata.Signing;
 using PdfPinata.Test.Helpers;
 using PdfPinata.Test.Pdfs.AcroForms;
 using Xunit;
+using static PdfPinata.Test.Helpers.SigningCertificates;
 using Reader = PdfPinata.Pdf.IO.PdfReader;
 
 namespace PdfPinata.Test.IO;
@@ -298,15 +299,6 @@ public class CertificationEnforcementTests
 
         using var output = new MemoryStream();
         opened.SaveIncremental(output);
-        return output.ToArray();
-    }
-
-    private static byte[] Sign(byte[] document, PdfSignatureOptions options)
-    {
-        using var input = new MemoryStream(document);
-        using var output = new MemoryStream();
-
-        PdfSigner.Sign(input, output, new Pkcs7Signer(SigningCertificates.Default), options);
         return output.ToArray();
     }
 

@@ -10,6 +10,7 @@ using PdfPinata.Pdf.Signatures;
 using PdfPinata.Signing;
 using PdfPinata.Test.Helpers;
 using Xunit;
+using static PdfPinata.Test.Helpers.SigningCertificates;
 using Reader = PdfPinata.Pdf.IO.PdfReader;
 
 namespace PdfPinata.Test.IO;
@@ -138,7 +139,7 @@ public class SignatureValidationDataTests
         // Deliberately not gated by /DocMDP: a document certified NoChangesAllowed is exactly the
         // kind LTV exists to keep verifiable, and refusing to add evidence about it would defeat
         // the archival workflow this feature is for. See the remarks on PdfValidationData.
-        var certified = Sign(Unsigned(), PdfCertificationLevel.NoChangesAllowed);
+        var certified = Sign(Unsigned(), new PdfSignatureOptions { Certification = PdfCertificationLevel.NoChangesAllowed });
 
         var withData = AddValidationData(certified, new StubRevocationDataProvider());
 
@@ -214,25 +215,6 @@ public class SignatureValidationDataTests
     {
         public RevocationData GetRevocationData(X509Certificate2 certificate, X509Certificate2Collection chain) =>
             throw new InvalidOperationException("Should not be reached when output is null.");
-    }
-
-    private static byte[] Unsigned()
-    {
-        var document = new PdfDocument();
-        _ = document.AddPage();
-
-        return Saved.Bytes(document);
-    }
-
-    private static byte[] Sign(byte[] document, PdfCertificationLevel certification = PdfCertificationLevel.NotCertified,
-        IPdfSigner signer = null)
-    {
-        using var input = new MemoryStream(document);
-        using var output = new MemoryStream();
-
-        PdfSigner.Sign(input, output, signer ?? new Pkcs7Signer(SigningCertificates.Default),
-            new PdfSignatureOptions { Certification = certification });
-        return output.ToArray();
     }
 
     private static byte[] AddValidationData(byte[] document, IRevocationDataProvider provider)

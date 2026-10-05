@@ -37,23 +37,13 @@ public class ShownPositionTests
     /// </summary>
     private static XFont UnicodeFont => new("Arial", 12, XFontStyle.Regular, XPdfFontOptions.UnicodeDefault);
 
-    private static PdfPage PageShowing(Action<XGraphics> draw)
-    {
-        var document = new PdfDocument();
-        var page = document.AddPage();
-        using var gfx = XGraphics.FromPdfPage(page);
-        draw(gfx);
-
-        return page;
-    }
-
     [Fact]
     public void ATJArrayIsOneRunAtOnePositionHoweverManyStringsItHolds()
     {
         var spaced = XStringFormats.Default;
         spaced.WordSpacing = 5;
 
-        var page = PageShowing(gfx =>
+        var page = DrawnText.PageShowing(gfx =>
             gfx.DrawString("one two", UnicodeFont, XBrushes.Black, Left, Top, spaced));
 
         // The arrangement is only worth asserting about if it really produced the shape: one
@@ -84,7 +74,7 @@ public class ShownPositionTests
         //
         // Built by hand here rather than through font fallback, because what is being pinned is the
         // helper's answer to the shape, not the renderer's reason for writing it.
-        var page = PageShowing(gfx =>
+        var page = DrawnText.PageShowing(gfx =>
         {
             gfx.DrawString("first", UnicodeFont, XBrushes.Black, Left, Top, XStringFormats.Default);
             gfx.DrawString("second", UnicodeFont, XBrushes.Black, Left, Top * 2, XStringFormats.Default);
@@ -104,7 +94,7 @@ public class ShownPositionTests
         // The refusal is on positions alone. Reading order survives, because two runs the pen ran
         // straight through are in the order they were written and that is the order they read in —
         // which is what ShownAcrossThePage sorts by once the positions tie.
-        var page = PageShowing(gfx =>
+        var page = DrawnText.PageShowing(gfx =>
         {
             gfx.DrawString("first", UnicodeFont, XBrushes.Black, Left, Top, XStringFormats.Default);
             gfx.DrawString("second", UnicodeFont, XBrushes.Black, Left, Top * 2, XStringFormats.Default);

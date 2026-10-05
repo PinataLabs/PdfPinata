@@ -1,11 +1,17 @@
 using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using PdfPinata.Drawing;
+using PdfPinata.Pdf;
+using PdfPinata.Pdf.Signatures;
+using PdfPinata.Signing;
 
 namespace PdfPinata.Test.Helpers;
 
 /// <summary>
-///   A self-signed certificate to sign test documents with.
+///   A self-signed certificate to sign test documents with, and the document and the signing the
+///   signature tests share.
 /// </summary>
 /// <remarks>
 ///   Generated rather than checked in, because a checked-in certificate expires and then the build
@@ -22,6 +28,36 @@ public static class SigningCertificates
     ///   doing once.
     /// </summary>
     public static X509Certificate2 Default => Generated.Value;
+
+    /// <summary>
+    ///   A one-page document with a line of text on it, saved and not yet signed.
+    ///   <paramref name="customize"/>, when given, is handed the document after the page is drawn
+    ///   and before it is saved.
+    /// </summary>
+    public static byte[] Unsigned(Action<PdfDocument> customize = null)
+    {
+        var document = new PdfDocument();
+        using (var gfx = XGraphics.FromPdfPage(document.AddPage()))
+            gfx.DrawString("A document to sign", new XFont("Arial", 12), XBrushes.Black, 40, 100);
+
+        customize?.Invoke(document);
+
+        return Saved.Bytes(document);
+    }
+
+    /// <summary>
+    ///   <paramref name="document"/> signed through <see cref="PdfSigner.Sign(Stream, Stream, IPdfSigner, PdfSignatureOptions)"/>
+    ///   by <paramref name="signer"/>, or by a <see cref="Pkcs7Signer"/> over <see cref="Default"/>
+    ///   when none is given.
+    /// </summary>
+    public static byte[] Sign(byte[] document, PdfSignatureOptions options = null, IPdfSigner signer = null)
+    {
+        using var input = new MemoryStream(document);
+        using var output = new MemoryStream();
+
+        PdfSigner.Sign(input, output, signer ?? new Pkcs7Signer(Default), options);
+        return output.ToArray();
+    }
 
     private static X509Certificate2 Create(string subject) => Create(subject, timestampAuthority: false);
 

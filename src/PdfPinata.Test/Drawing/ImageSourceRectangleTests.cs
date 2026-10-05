@@ -30,7 +30,7 @@ public class ImageSourceRectangleTests
         var (w, h) = (image.PointWidth, image.PointHeight);
         var dest = new XRect(100, 100, 200, 200);
 
-        var page = PageShowing(gfx => gfx.DrawImage(image, dest, new XRect(w / 2, 0, w / 2, h), XGraphicsUnit.Point));
+        var page = DrawnText.PageShowing(gfx => gfx.DrawImage(image, dest, new XRect(w / 2, 0, w / 2, h), XGraphicsUnit.Point));
 
         // Half the width is stretched over 200 points, so the whole image is 400 wide and starts 200
         // to the left of the destination; its height is the destination's.
@@ -48,7 +48,7 @@ public class ImageSourceRectangleTests
         var dest = new XRect(100, 100, 50, 50);
         var inInches = new XRect(0, 0, w / 2 / 72, h / 2 / 72);
 
-        var page = PageShowing(gfx => gfx.DrawImage(image, dest, inInches, XGraphicsUnit.Inch));
+        var page = DrawnText.PageShowing(gfx => gfx.DrawImage(image, dest, inInches, XGraphicsUnit.Inch));
 
         // The top left quarter: the whole image is twice the destination each way, from its corner.
         var drawn = Box(PlacedOperators.Of(page).Single(op => op.Name == OpCodeName.Do).Ctm, 0, 0, 1, 1);
@@ -61,8 +61,8 @@ public class ImageSourceRectangleTests
         var image = AnImage();
         var whole = new XRect(0, 0, image.PointWidth, image.PointHeight);
 
-        var plain = PageShowing(gfx => gfx.DrawImage(image, 100, 100, 200, 150));
-        var viaSource = PageShowing(gfx =>
+        var plain = DrawnText.PageShowing(gfx => gfx.DrawImage(image, 100, 100, 200, 150));
+        var viaSource = DrawnText.PageShowing(gfx =>
             gfx.DrawImage(image, new XRect(100, 100, 200, 150), whole, XGraphicsUnit.Point));
 
         Encoding.ASCII.GetString(PageContent.Of(viaSource)).Should()
@@ -72,7 +72,7 @@ public class ImageSourceRectangleTests
     [Fact]
     public void PartOfAFormIsDrawnTheSameWay()
     {
-        var page = PageShowing(gfx =>
+        var page = DrawnText.PageShowing(gfx =>
         {
             var form = new XForm(gfx.PdfPage.Owner, 100, 50);
             using (var inside = XGraphics.FromForm(form))
@@ -93,7 +93,7 @@ public class ImageSourceRectangleTests
     {
         var image = AnImage();
 
-        var page = PageShowing(gfx =>
+        var page = DrawnText.PageShowing(gfx =>
             gfx.DrawImage(image, new XRect(100, 100, 50, 50), new XRect(0, 0, 0, 10), XGraphicsUnit.Point));
 
         PlacedOperators.Of(page).Should().NotContain(op => op.Name == OpCodeName.Do);
@@ -104,7 +104,7 @@ public class ImageSourceRectangleTests
     {
         var image = AnImage();
 
-        var page = PageShowing(gfx =>
+        var page = DrawnText.PageShowing(gfx =>
         {
             gfx.DrawRectangle(XBrushes.Black, 10, 10, 20, 20);
             var draw = () => gfx.DrawImage(image, new XRect(double.NaN, 100, 50, 50),
@@ -124,14 +124,6 @@ public class ImageSourceRectangleTests
             else if (op.Name == OpCodeName.re) depths.Add(depth);
         }
         depths.Should().HaveCount(2).And.OnlyContain(d => d == depths[0]);
-    }
-
-    private static PdfPage PageShowing(Action<XGraphics> draw)
-    {
-        var page = new PdfDocument().AddPage();
-        using var gfx = XGraphics.FromPdfPage(page);
-        draw(gfx);
-        return page;
     }
 
     /// <summary>The box in default user space a rectangle of the given space covers under a matrix.</summary>

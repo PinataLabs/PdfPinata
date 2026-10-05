@@ -10,6 +10,7 @@ using PdfPinata.Pdf.Signatures;
 using PdfPinata.Signing;
 using PdfPinata.Test.Helpers;
 using Xunit;
+using static PdfPinata.Test.Helpers.SigningCertificates;
 
 namespace PdfPinata.Test.IO;
 
@@ -25,7 +26,7 @@ public class SignatureTimestampTests
     {
         var before = DateTimeOffset.UtcNow.AddSeconds(-5);
 
-        var signed = Sign(Unsigned(), Timestamped());
+        var signed = Sign(Unsigned(), signer: Timestamped());
 
         var after = DateTimeOffset.UtcNow.AddSeconds(5);
         var verification = PdfSignatureVerifier.Verify(signed).Single();
@@ -54,7 +55,7 @@ public class SignatureTimestampTests
         var signer = new Pkcs7Signer(SigningCertificates.Default,
             timestampProvider: new TamperingTimestampProvider(Authority(), FlipASignatureByte));
 
-        var verification = PdfSignatureVerifier.Verify(Sign(Unsigned(), signer)).Single();
+        var verification = PdfSignatureVerifier.Verify(Sign(Unsigned(), signer: signer)).Single();
 
         verification.IsValid.Should().BeTrue("the token is an unsigned attribute, outside what the signature covers");
         verification.IsTimestampIntact.Should().BeFalse();
@@ -66,7 +67,7 @@ public class SignatureTimestampTests
     public void ATimestampTokenTakenFromAnotherSignatureIsNotIntact()
     {
         var recorder = new RecordingTimestampProvider(Authority());
-        var other = Sign(Unsigned(), new Pkcs7Signer(SigningCertificates.Default, timestampProvider: recorder));
+        var other = Sign(Unsigned(), signer: new Pkcs7Signer(SigningCertificates.Default, timestampProvider: recorder));
         var someoneElsesToken = recorder.Token;
         PdfSignatureVerifier.Verify(other).Single().IsTimestampIntact.Should().BeTrue(
             "the token is sound where it came from, so only the move can make it fail");
@@ -74,7 +75,7 @@ public class SignatureTimestampTests
         var signer = new Pkcs7Signer(SigningCertificates.Default,
             timestampProvider: new TamperingTimestampProvider(Authority(), _ => someoneElsesToken));
 
-        var verification = PdfSignatureVerifier.Verify(Sign(Unsigned(), signer)).Single();
+        var verification = PdfSignatureVerifier.Verify(Sign(Unsigned(), signer: signer)).Single();
 
         verification.IsValid.Should().BeTrue();
         verification.IsTimestampIntact.Should().BeFalse();
@@ -91,7 +92,7 @@ public class SignatureTimestampTests
             timestampProvider: new TamperingTimestampProvider(
                 new LocalTimestampAuthority(authorityCertificate), WithoutCertificates));
 
-        var verification = PdfSignatureVerifier.Verify(Sign(Unsigned(), signer)).Single();
+        var verification = PdfSignatureVerifier.Verify(Sign(Unsigned(), signer: signer)).Single();
 
         verification.IsValid.Should().BeTrue();
         verification.IsTimestampIntact.Should().BeTrue();
@@ -104,7 +105,7 @@ public class SignatureTimestampTests
         var signer = new Pkcs7Signer(SigningCertificates.Default,
             timestampProvider: new TamperingTimestampProvider(Authority(), WithoutCertificates));
 
-        var verification = PdfSignatureVerifier.Verify(Sign(Unsigned(), signer)).Single();
+        var verification = PdfSignatureVerifier.Verify(Sign(Unsigned(), signer: signer)).Single();
 
         verification.IsValid.Should().BeTrue();
         verification.IsTimestampIntact.Should().BeFalse("a signature that cannot be checked cannot be called intact");
@@ -117,7 +118,7 @@ public class SignatureTimestampTests
         var signer = new Pkcs7Signer(SigningCertificates.Default,
             timestampProvider: new TamperingTimestampProvider(Authority(), _ => [0x04, 0x03, 0x01, 0x02, 0x03]));
 
-        var verification = PdfSignatureVerifier.Verify(Sign(Unsigned(), signer)).Single();
+        var verification = PdfSignatureVerifier.Verify(Sign(Unsigned(), signer: signer)).Single();
 
         verification.IsValid.Should().BeTrue();
         verification.IsTimestampIntact.Should().BeFalse();
@@ -131,7 +132,7 @@ public class SignatureTimestampTests
         // to the signed bytes breaks the signature and leaves the token as intact as it was. It is
         // still there, and reporting it as absent would say the signature never had one.
         var signed = Sign(Unsigned(document =>
-            document.Info.Elements["/Keywords"] = new PdfString("TAMPERTARGET")), Timestamped());
+            document.Info.Elements["/Keywords"] = new PdfString("TAMPERTARGET")), signer: Timestamped());
         var at = signed.AsSpan().IndexOf("TAMPERTARGET"u8);
         at.Should().BeGreaterThan(-1, "the marker has to be findable for this test to be testing anything");
         signed[at] = (byte)'X';
@@ -148,7 +149,7 @@ public class SignatureTimestampTests
     {
         var signer = new Pkcs7Signer(SigningCertificates.Default, timestampProvider: new FailingTimestampProvider());
 
-        Action signing = () => Sign(Unsigned(), signer);
+        Action signing = () => Sign(Unsigned(), signer: signer);
 
         signing.Should().Throw<InvalidOperationException>().WithMessage("*timed out*");
     }
@@ -212,24 +213,5 @@ public class SignatureTimestampTests
     {
         public byte[] GetTimestamp(byte[] messageImprint, HashAlgorithmName hashAlgorithm) =>
             throw new InvalidOperationException("The time-stamping authority timed out.");
-    }
-
-    private static byte[] Unsigned(Action<PdfDocument> customize = null)
-    {
-        var document = new PdfDocument();
-        customize?.Invoke(document);
-        using (var gfx = XGraphics.FromPdfPage(document.AddPage()))
-            gfx.DrawString("A document to timestamp", new XFont("Arial", 12), XBrushes.Black, 40, 100);
-
-        return Saved.Bytes(document);
-    }
-
-    private static byte[] Sign(byte[] document, IPdfSigner signer = null)
-    {
-        using var input = new MemoryStream(document);
-        using var output = new MemoryStream();
-
-        PdfSigner.Sign(input, output, signer ?? new Pkcs7Signer(SigningCertificates.Default));
-        return output.ToArray();
     }
 }

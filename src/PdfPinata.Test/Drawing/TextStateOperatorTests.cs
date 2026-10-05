@@ -42,18 +42,9 @@ public class TextStateOperatorTests
     private static XFont BoldSimulatedFont =>
         new(PinnedFontResolver.CffFamilyName, FontSize, XFontStyle.Bold, XPdfFontOptions.WinAnsiDefault);
 
-    private static PdfPage PageShowing(Action<XGraphics> draw)
-    {
-        var document = new PdfDocument();
-        var page = document.AddPage();
-        using var gfx = XGraphics.FromPdfPage(page);
-        draw(gfx);
-        return page;
-    }
-
     private static PdfPage PageShowing(string text, XFont font, XStringFormat format)
     {
-        return PageShowing(gfx => gfx.DrawString(text, font, XBrushes.Black, 20, 40, format));
+        return DrawnText.PageShowing(gfx => gfx.DrawString(text, font, XBrushes.Black, 20, 40, format));
     }
 
     // ----- nothing asked for, nothing written ---------------------------------------------------
@@ -253,7 +244,7 @@ public class TextStateOperatorTests
         var raised = XStringFormats.Default;
         raised.TextRise = 8;
 
-        var page = PageShowing(gfx =>
+        var page = DrawnText.PageShowing(gfx =>
         {
             gfx.DrawString("raised", WinAnsiFont, XBrushes.Black, 20, 40, raised);
             gfx.DrawString("level", WinAnsiFont, XBrushes.Black, 20, 40, XStringFormats.Default);
@@ -327,7 +318,7 @@ public class TextStateOperatorTests
         var format = XStringFormats.Default;
         format.ObliqueAngle = 20;
 
-        var page = PageShowing(gfx =>
+        var page = DrawnText.PageShowing(gfx =>
         {
             gfx.DrawString("first", WinAnsiFont, XBrushes.Black, 20, 40, format);
             gfx.DrawString("second", WinAnsiFont, XBrushes.Black, 20, 60, format);
@@ -345,7 +336,7 @@ public class TextStateOperatorTests
         var leaning = XStringFormats.Default;
         leaning.ObliqueAngle = 20;
 
-        var page = PageShowing(gfx =>
+        var page = DrawnText.PageShowing(gfx =>
         {
             gfx.DrawString("leaning", WinAnsiFont, XBrushes.Black, 20, 40, leaning);
             gfx.DrawString("upright", WinAnsiFont, XBrushes.Black, 20, 60, XStringFormats.Default);
@@ -362,7 +353,7 @@ public class TextStateOperatorTests
         var leaning = XStringFormats.Default;
         leaning.ObliqueAngle = 20;
 
-        var page = PageShowing(gfx =>
+        var page = DrawnText.PageShowing(gfx =>
         {
             // Same x, thirty points apart down the page.
             gfx.DrawString("first", WinAnsiFont, XBrushes.Black, 20, 40, leaning);
@@ -390,7 +381,7 @@ public class TextStateOperatorTests
         format.CharacterSpacing = 1;
         format.HorizontalScaling = 80;
 
-        var page = PageShowing(gfx =>
+        var page = DrawnText.PageShowing(gfx =>
         {
             gfx.DrawString("first", WinAnsiFont, XBrushes.Black, 20, 40, format);
             gfx.DrawString("second", WinAnsiFont, XBrushes.Black, 20, 60, format);
@@ -407,7 +398,7 @@ public class TextStateOperatorTests
         var spaced = XStringFormats.Default;
         spaced.CharacterSpacing = 3;
 
-        var page = PageShowing(gfx =>
+        var page = DrawnText.PageShowing(gfx =>
         {
             gfx.DrawString("spaced", WinAnsiFont, XBrushes.Black, 20, 40, spaced);
             gfx.DrawString("plain", WinAnsiFont, XBrushes.Black, 20, 60, XStringFormats.Default);
@@ -423,7 +414,7 @@ public class TextStateOperatorTests
         var spaced = XStringFormats.Default;
         spaced.CharacterSpacing = 3;
 
-        var page = PageShowing(gfx =>
+        var page = DrawnText.PageShowing(gfx =>
         {
             var state = gfx.Save();
             gfx.DrawString("spaced", WinAnsiFont, XBrushes.Black, 20, 40, spaced);
@@ -505,7 +496,7 @@ public class TextStateOperatorTests
 
         var rect = new XRect(20, 40, 300, 0);
         double measured = 0;
-        var page = PageShowing(gfx =>
+        var page = DrawnText.PageShowing(gfx =>
         {
             measured = gfx.MeasureString(text, font, format).Width;
             gfx.DrawString(text, font, XBrushes.Black, rect, format);
@@ -528,7 +519,7 @@ public class TextStateOperatorTests
         var font = WinAnsiFont;
 
         double twoLines = 0, oneLine = 0;
-        var page = PageShowing(gfx =>
+        var page = DrawnText.PageShowing(gfx =>
         {
             twoLines = gfx.MeasureString(text, font, XStringFormats.Default).Height;
             oneLine = gfx.MeasureString("A newline", font, XStringFormats.Default).Height;
