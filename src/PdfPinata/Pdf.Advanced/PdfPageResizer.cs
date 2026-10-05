@@ -261,9 +261,15 @@ internal static class PdfPageResizer
     /// Writes a number the way a content stream wants it: no exponent, no thousands separator and
     /// a full stop for the decimal point whatever the machine is set to.
     /// </summary>
+    /// <remarks>
+    /// Ten places rather than the seven the renderer gives a <c>cm</c>. This transform is not only
+    /// drawn but read back: a second resize parses it out of the stream and moves the boxes, the
+    /// annotations and the destinations by its difference from the new one, so whatever is
+    /// rounded off here comes back as an offset there.
+    /// </remarks>
     private static void AppendNumber(StringBuilder builder, double value)
     {
-        builder.Append(value.ToString("0.########", CultureInfo.InvariantCulture)).Append(' ');
+        builder.Append(value.ToString(Config.SignificantFigures10, CultureInfo.InvariantCulture)).Append(' ');
     }
 
     /// <summary>
