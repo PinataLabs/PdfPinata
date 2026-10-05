@@ -93,7 +93,9 @@ internal sealed class PdfSpotColorTable : PdfResourceTable
 
         return new PdfArray(Owner,
             new PdfName("/Separation"),
-            new PdfName(PdfName.WithSolidus(ColorantName(spot.Name))),
+            // Always a solidus of its own, not PdfName.WithSolidus: the colorant name is the text
+            // of the name, so a spot colour called "/Gold" is the ink /#2FGold, not /Gold.
+            new PdfName("/" + ColorantName(spot.Name)),
             new PdfName(space),
             function);
     }
