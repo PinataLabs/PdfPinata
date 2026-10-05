@@ -64,7 +64,7 @@ internal class FormattedTextArea : IAreaProvider
       if (!double.IsNaN(field))
         return field;
 
-      if (!textArea.IsNull("Width"))
+      if (!textArea.IsNull(nameof(textArea.Width)))
         field = textArea.Width.Point;
       else
         field = CalcInherentWidth();
@@ -76,7 +76,7 @@ internal class FormattedTextArea : IAreaProvider
   {
     get
     {
-      if (textArea.IsNull("Height"))
+      if (textArea.IsNull(nameof(textArea.Height)))
         return ContentHeight + textArea.TopPadding + textArea.BottomPadding;
       return textArea.Height.Point;
     }

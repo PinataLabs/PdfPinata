@@ -99,9 +99,9 @@ internal class ShadingRenderer
 
     private bool IsVisible()
     {
-        if (!shading.IsNull("Visible"))
+        if (!shading.IsNull(nameof(shading.Visible)))
             return shading.Visible;
-        return !shading.IsNull("Color");
+        return !shading.IsNull(nameof(shading.Color));
     }
 
     private void RealizeBrush()

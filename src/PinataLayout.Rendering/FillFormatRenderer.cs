@@ -56,9 +56,9 @@ internal class FillFormatRenderer
 
   private bool IsVisible()
   {
-    if (!fillFormat.IsNull("Visible"))
+    if (!fillFormat.IsNull(nameof(fillFormat.Visible)))
       return fillFormat.Visible;
-    return !fillFormat.IsNull("Color");
+    return !fillFormat.IsNull(nameof(fillFormat.Color));
   }
 
   private XSolidBrush GetBrush()

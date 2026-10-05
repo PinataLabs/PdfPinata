@@ -59,13 +59,13 @@ internal class LineFormatRenderer
   {
     if (lineFormat == null)
       return 0;
-    if (!lineFormat.IsNull("Visible") && !lineFormat.Visible)
+    if (!lineFormat.IsNull(nameof(lineFormat.Visible)) && !lineFormat.Visible)
       return 0;
 
-    if (!lineFormat.IsNull("Width"))
+    if (!lineFormat.IsNull(nameof(lineFormat.Width)))
       return lineFormat.Width.Point;
 
-    if (!lineFormat.IsNull("Color") || !lineFormat.IsNull("Style") || lineFormat.Visible)
+    if (!lineFormat.IsNull(nameof(lineFormat.Color)) || !lineFormat.IsNull(nameof(lineFormat.Style)) || lineFormat.Visible)
       return 1;
 
     return 0;

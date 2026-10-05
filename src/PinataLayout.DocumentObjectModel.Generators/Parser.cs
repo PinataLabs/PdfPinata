@@ -13,7 +13,7 @@ internal static class Parser
 {
     public const string DvAttribute = "PinataLayout.DocumentObjectModel.Internals.DVAttribute";
     private const string SuppressSerializeCheckAttribute = "PinataLayout.DocumentObjectModel.Internals.SuppressSerializeCheckAttribute";
-    private const string DocumentObject = "PinataLayout.DocumentObjectModel.DocumentObject";
+    internal const string DocumentObject = "PinataLayout.DocumentObjectModel.DocumentObject";
     private const string DocumentObjectCollection = "PinataLayout.DocumentObjectModel.DocumentObjectCollection";
     private const string NullableValue = "PinataLayout.DocumentObjectModel.Internals.INullableValue";
 

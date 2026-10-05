@@ -39,23 +39,23 @@ internal static class FontMapper
   // false for every bold and italic the second had not set, and an empty colour for its colour.
   private static void MapObject(Font font, DocumentObjectModel.Font domFont)
   {
-    if (!domFont.IsNull("Bold"))
+    if (!domFont.IsNull(nameof(domFont.Bold)))
       font.Bold = domFont.Bold;
     if (!domFont.Color.IsEmpty)
       font.Color = ColorHelper.ToXColor(domFont.Color, domFont);
-    if (!domFont.IsNull("Italic"))
+    if (!domFont.IsNull(nameof(domFont.Italic)))
       font.Italic = domFont.Italic;
-    if (!domFont.IsNull("Name"))
+    if (!domFont.IsNull(nameof(domFont.Name)))
       font.Name = domFont.Name;
-    if (!domFont.IsNull("Size"))
+    if (!domFont.IsNull(nameof(domFont.Size)))
       font.Size = domFont.Size.Point;
-    if (!domFont.IsNull("Subscript"))
+    if (!domFont.IsNull(nameof(domFont.Subscript)))
       font.Subscript = domFont.Subscript;
-    if (!domFont.IsNull("Superscript"))
+    if (!domFont.IsNull(nameof(domFont.Superscript)))
       font.Superscript = domFont.Superscript;
-    if (!domFont.IsNull("Strikethrough"))
+    if (!domFont.IsNull(nameof(domFont.Strikethrough)))
       font.Strikethrough = (Strikethrough)domFont.Strikethrough;
-    if (!domFont.IsNull("Underline"))
+    if (!domFont.IsNull(nameof(domFont.Underline)))
       font.Underline = (Underline)domFont.Underline;
   }
 

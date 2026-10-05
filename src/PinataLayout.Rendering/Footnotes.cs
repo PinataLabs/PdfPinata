@@ -40,7 +40,7 @@ internal static class Footnotes
     /// </remarks>
     internal static IReadOnlyList<Footnote> In(DocumentObject element)
     {
-        if (!(element is Paragraph paragraph) || paragraph.IsNull("Elements"))
+        if (!(element is Paragraph paragraph) || paragraph.IsNull(nameof(paragraph.Elements)))
             return Empty;
 
         List<Footnote> found = null;
@@ -59,11 +59,11 @@ internal static class Footnotes
                     found.Add(footnote);
                     break;
 
-                case FormattedText formatted when !formatted.IsNull("Elements"):
+                case FormattedText formatted when !formatted.IsNull(nameof(formatted.Elements)):
                     Collect(formatted.Elements, ref found);
                     break;
 
-                case Hyperlink hyperlink when !hyperlink.IsNull("Elements"):
+                case Hyperlink hyperlink when !hyperlink.IsNull(nameof(hyperlink.Elements)):
                     Collect(hyperlink.Elements, ref found);
                     break;
             }

@@ -207,22 +207,22 @@ internal class ChartRenderer : ShapeRenderer
   {
     var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
 
-    var textArea = (TextArea)chart.GetValue("HeaderArea", GV.ReadOnly);
+    var textArea = (TextArea)chart.GetValue(nameof(chart.HeaderArea), GV.ReadOnly);
     formatInfo.formattedHeader = GetFormattedTextArea(textArea, chart.Width.Point);
 
-    textArea = (TextArea)chart.GetValue("FooterArea", GV.ReadOnly);
+    textArea = (TextArea)chart.GetValue(nameof(chart.FooterArea), GV.ReadOnly);
     formatInfo.formattedFooter = GetFormattedTextArea(textArea, chart.Width.Point);
 
-    textArea = (TextArea)chart.GetValue("LeftArea", GV.ReadOnly);
+    textArea = (TextArea)chart.GetValue(nameof(chart.LeftArea), GV.ReadOnly);
     formatInfo.formattedLeft = GetFormattedTextArea(textArea);
 
-    textArea = (TextArea)chart.GetValue("RightArea", GV.ReadOnly);
+    textArea = (TextArea)chart.GetValue(nameof(chart.RightArea), GV.ReadOnly);
     formatInfo.formattedRight = GetFormattedTextArea(textArea);
 
-    textArea = (TextArea)chart.GetValue("TopArea", GV.ReadOnly);
+    textArea = (TextArea)chart.GetValue(nameof(chart.TopArea), GV.ReadOnly);
     formatInfo.formattedTop = GetFormattedTextArea(textArea, GetTopBottomWidth());
 
-    textArea = (TextArea)chart.GetValue("BottomArea", GV.ReadOnly);
+    textArea = (TextArea)chart.GetValue(nameof(chart.BottomArea), GV.ReadOnly);
     formatInfo.formattedBottom = GetFormattedTextArea(textArea, GetTopBottomWidth());
 
     base.Format(area, previousFormatInfo);
@@ -284,7 +284,7 @@ internal class ChartRenderer : ShapeRenderer
     var textArea = area.textArea;
 
 
-    var fillRenderer = new FillFormatRenderer((FillFormat)textArea.GetValue("FillFormat", GV.ReadOnly), Gfx);
+    var fillRenderer = new FillFormatRenderer((FillFormat)textArea.GetValue(nameof(textArea.FillFormat), GV.ReadOnly), Gfx);
     fillRenderer.Render(rect.X, rect.Y, rect.Width, rect.Height);
 
     var top = rect.Y;
@@ -299,7 +299,7 @@ internal class ChartRenderer : ShapeRenderer
     var renderInfos = area.GetRenderInfos();
     RenderByInfos(left, top, renderInfos);
 
-    var lineRenderer = new LineFormatRenderer((LineFormat)textArea.GetValue("LineFormat", GV.ReadOnly), Gfx);
+    var lineRenderer = new LineFormatRenderer((LineFormat)textArea.GetValue(nameof(textArea.LineFormat), GV.ReadOnly), Gfx);
     lineRenderer.Render(rect.X, rect.Y, rect.Width, rect.Height);
   }
 
@@ -334,7 +334,7 @@ internal class ChartRenderer : ShapeRenderer
       if (formatInfo.formattedRight != null)
         RenderArea(formatInfo.formattedRight, GetRightRect());
 
-      var plotArea = (PlotArea)chart.GetValue("PlotArea", GV.ReadOnly);
+      var plotArea = (PlotArea)chart.GetValue(nameof(chart.PlotArea), GV.ReadOnly);
       if (plotArea != null)
         RenderPlotArea(plotArea, GetPlotRect());
     }

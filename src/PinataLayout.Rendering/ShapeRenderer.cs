@@ -46,7 +46,7 @@ internal abstract class ShapeRenderer : Renderer
     : base(gfx, shape, fieldInfos)
   {
     this.shape = shape;
-    var lf = (LineFormat)this.shape.GetValue("LineFormat", GV.ReadOnly);
+    var lf = (LineFormat)this.shape.GetValue(nameof(this.shape.LineFormat), GV.ReadOnly);
     lineFormatRenderer = new LineFormatRenderer(lf, gfx);
   }
 
@@ -54,9 +54,9 @@ internal abstract class ShapeRenderer : Renderer
     : base(gfx, renderInfo, fieldInfos)
   {
     shape = (Shape)renderInfo.DocumentObject;
-    var lf = (LineFormat)shape.GetValue("LineFormat", GV.ReadOnly);
+    var lf = (LineFormat)shape.GetValue(nameof(shape.LineFormat), GV.ReadOnly);
     lineFormatRenderer = new LineFormatRenderer(lf, gfx);
-    var ff = (FillFormat)shape.GetValue("FillFormat", GV.ReadOnly);
+    var ff = (FillFormat)shape.GetValue(nameof(shape.FillFormat), GV.ReadOnly);
     fillFormatRenderer = new FillFormatRenderer(ff, gfx);
   }
 
@@ -229,7 +229,7 @@ internal abstract class ShapeRenderer : Renderer
   /// </remarks>
   protected IDisposable BeginFigureOrArtifact()
   {
-    if (shape.IsNull("AlternativeText") || string.IsNullOrEmpty(shape.AlternativeText))
+    if (shape.IsNull(nameof(shape.AlternativeText)) || string.IsNullOrEmpty(shape.AlternativeText))
       return Tagger.Artifact(Gfx);
 
     Tagger.EndList();

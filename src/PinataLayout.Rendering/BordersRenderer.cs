@@ -73,9 +73,9 @@ internal class BordersRenderer
     var style = BorderStyle.Single;
 
     var border = GetBorder(type);
-    if (border != null && !border.IsNull("Style"))
+    if (border != null && !border.IsNull(nameof(border.Style)))
       style = border.Style;
-    else if (!borders.IsNull("Style"))
+    else if (!borders.IsNull(nameof(borders.Style)))
       style = borders.Style;
 
     return style;
@@ -110,16 +110,16 @@ internal class BordersRenderer
   /// </summary>
   private static XUnit GetOwnWidth(Borders borders, Border border)
   {
-    var hidden = !border.IsNull("Visible") && !border.Visible;
+    var hidden = !border.IsNull(nameof(border.Visible)) && !border.Visible;
     if (hidden)
       return 0;
 
-    if (!border.IsNull("Width"))
+    if (!border.IsNull(nameof(border.Width)))
       return border.Width.Point;
 
-    var asksToBeDrawn = !border.IsNull("Color") || !border.IsNull("Style") || border.Visible;
+    var asksToBeDrawn = !border.IsNull(nameof(border.Color)) || !border.IsNull(nameof(border.Style)) || border.Visible;
     if (asksToBeDrawn)
-      return !borders.IsNull("Width") ? borders.Width.Point : 0.5;
+      return !borders.IsNull(nameof(borders.Width)) ? borders.Width.Point : 0.5;
 
     return 0;
   }
@@ -130,14 +130,14 @@ internal class BordersRenderer
   /// </summary>
   private static XUnit GetSharedWidth(Borders borders)
   {
-    var hidden = !borders.IsNull("Visible") && !borders.Visible;
+    var hidden = !borders.IsNull(nameof(borders.Visible)) && !borders.Visible;
     if (hidden)
       return 0;
 
-    if (!borders.IsNull("Width"))
+    if (!borders.IsNull(nameof(borders.Width)))
       return borders.Width.Point;
 
-    var asksToBeDrawn = !borders.IsNull("Color") || !borders.IsNull("Style") || borders.Visible;
+    var asksToBeDrawn = !borders.IsNull(nameof(borders.Color)) || !borders.IsNull(nameof(borders.Style)) || borders.Visible;
     if (asksToBeDrawn)
       return 0.5;
 

@@ -49,23 +49,23 @@ public class AxisMapper
     MapTickLabels(axis, domAxis);
     MapTicks(axis, domAxis);
 
-    if (!domAxis.IsNull("Title"))
+    if (!domAxis.IsNull(nameof(domAxis.Title)))
       MapTitle(axis, domAxis);
 
     MapGridlines(axis, domAxis);
     MapScale(axis, domAxis);
 
-    if (!domAxis.IsNull("LineFormat"))
+    if (!domAxis.IsNull(nameof(domAxis.LineFormat)))
       LineFormatMapper.Map(axis.LineFormat, domAxis.LineFormat);
   }
 
   private static void MapTickLabels(Axis axis, DocumentObjectModel.Shapes.Charts.Axis domAxis)
   {
-    if (!domAxis.IsNull("TickLabels.Format"))
+    if (!domAxis.IsNull($"{nameof(domAxis.TickLabels)}.{nameof(domAxis.TickLabels.Format)}"))
       axis.TickLabels.Format = domAxis.TickLabels.Format;
-    if (!domAxis.IsNull("TickLabels.Style"))
+    if (!domAxis.IsNull($"{nameof(domAxis.TickLabels)}.{nameof(domAxis.TickLabels.Style)}"))
       FontMapper.Map(axis.TickLabels.Font, domAxis.TickLabels.Document, domAxis.TickLabels.Style);
-    if (!domAxis.IsNull("TickLabels.Font"))
+    if (!domAxis.IsNull($"{nameof(domAxis.TickLabels)}.{nameof(domAxis.TickLabels.Font)}"))
       FontMapper.Map(axis.TickLabels.Font, domAxis.TickLabels.Font);
   }
 
@@ -74,23 +74,23 @@ public class AxisMapper
   /// </summary>
   private static void MapTicks(Axis axis, DocumentObjectModel.Shapes.Charts.Axis domAxis)
   {
-    if (!domAxis.IsNull("MajorTickMark"))
+    if (!domAxis.IsNull(nameof(domAxis.MajorTickMark)))
       axis.MajorTickMark = (TickMarkType)domAxis.MajorTickMark;
-    if (!domAxis.IsNull("MinorTickMark"))
+    if (!domAxis.IsNull(nameof(domAxis.MinorTickMark)))
       axis.MinorTickMark = (TickMarkType)domAxis.MinorTickMark;
 
-    if (!domAxis.IsNull("MajorTick"))
+    if (!domAxis.IsNull(nameof(domAxis.MajorTick)))
       axis.MajorTick = domAxis.MajorTick;
-    if (!domAxis.IsNull("MinorTick"))
+    if (!domAxis.IsNull(nameof(domAxis.MinorTick)))
       axis.MinorTick = domAxis.MinorTick;
   }
 
   private static void MapTitle(Axis axis, DocumentObjectModel.Shapes.Charts.Axis domAxis)
   {
     axis.Title.Caption = domAxis.Title.Caption;
-    if (!domAxis.IsNull("Title.Style"))
+    if (!domAxis.IsNull($"{nameof(domAxis.Title)}.{nameof(domAxis.Title.Style)}"))
       FontMapper.Map(axis.Title.Font, domAxis.Title.Document, domAxis.Title.Style);
-    if (!domAxis.IsNull("Title.Font"))
+    if (!domAxis.IsNull($"{nameof(domAxis.Title)}.{nameof(domAxis.Title.Font)}"))
       FontMapper.Map(axis.Title.Font, domAxis.Title.Font);
     axis.Title.Orientation = domAxis.Title.Orientation.Value;
     axis.Title.Alignment = (HorizontalAlignment)domAxis.Title.Alignment;
@@ -102,17 +102,17 @@ public class AxisMapper
     axis.HasMajorGridlines = domAxis.HasMajorGridlines;
     axis.HasMinorGridlines = domAxis.HasMinorGridlines;
 
-    if (!domAxis.IsNull("MajorGridlines") && !domAxis.MajorGridlines.IsNull("LineFormat"))
+    if (!domAxis.IsNull(nameof(domAxis.MajorGridlines)) && !domAxis.MajorGridlines.IsNull(nameof(domAxis.MajorGridlines.LineFormat)))
       LineFormatMapper.Map(axis.MajorGridlines.LineFormat, domAxis.MajorGridlines.LineFormat);
-    if (!domAxis.IsNull("MinorGridlines") && !domAxis.MinorGridlines.IsNull("LineFormat"))
+    if (!domAxis.IsNull(nameof(domAxis.MinorGridlines)) && !domAxis.MinorGridlines.IsNull(nameof(domAxis.MinorGridlines.LineFormat)))
       LineFormatMapper.Map(axis.MinorGridlines.LineFormat, domAxis.MinorGridlines.LineFormat);
   }
 
   private static void MapScale(Axis axis, DocumentObjectModel.Shapes.Charts.Axis domAxis)
   {
-    if (!domAxis.IsNull("MaximumScale"))
+    if (!domAxis.IsNull(nameof(domAxis.MaximumScale)))
       axis.MaximumScale = domAxis.MaximumScale;
-    if (!domAxis.IsNull("MinimumScale"))
+    if (!domAxis.IsNull(nameof(domAxis.MinimumScale)))
       axis.MinimumScale = domAxis.MinimumScale;
   }
 

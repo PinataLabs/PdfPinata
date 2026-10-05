@@ -56,18 +56,18 @@ public class SeriesCollectionMapper
     series.Name = domSeries.Name;
     series.ChartType = ChartTypeOf(domSeries);
 
-    if (!domSeries.IsNull("DataLabel"))
+    if (!domSeries.IsNull(nameof(domSeries.DataLabel)))
       DataLabelMapper.Map(series.DataLabel, domSeries.DataLabel);
-    if (!domSeries.IsNull("LineFormat"))
+    if (!domSeries.IsNull(nameof(domSeries.LineFormat)))
       LineFormatMapper.Map(series.LineFormat, domSeries.LineFormat);
-    if (!domSeries.IsNull("FillFormat"))
+    if (!domSeries.IsNull(nameof(domSeries.FillFormat)))
       FillFormatMapper.Map(series.FillFormat, domSeries.FillFormat);
 
     series.HasDataLabel = domSeries.HasDataLabel;
     series.MarkerBackgroundColor = ToXColorOrEmpty(domSeries.MarkerBackgroundColor, domSeries);
     series.MarkerForegroundColor = ToXColorOrEmpty(domSeries.MarkerForegroundColor, domSeries);
     series.MarkerSize = domSeries.MarkerSize.Point;
-    if (!domSeries.IsNull("MarkerStyle"))
+    if (!domSeries.IsNull(nameof(domSeries.MarkerStyle)))
       series.MarkerStyle = (MarkerStyle)domSeries.MarkerStyle;
 
     foreach (DocumentObjectModel.Shapes.Charts.Point domPoint in domSeries.Elements)
@@ -79,7 +79,7 @@ public class SeriesCollectionMapper
   /// </summary>
   private static ChartType ChartTypeOf(DocumentObjectModel.Shapes.Charts.Series domSeries)
   {
-    if (!domSeries.IsNull("ChartType"))
+    if (!domSeries.IsNull(nameof(domSeries.ChartType)))
       return (ChartType)domSeries.ChartType;
 
     var chart = (DocumentObjectModel.Shapes.Charts.Chart)DocumentObjectModel.DocumentRelations.GetParentOfType(domSeries, typeof(DocumentObjectModel.Shapes.Charts.Chart));
@@ -104,7 +104,7 @@ public class SeriesCollectionMapper
     FillFormatMapper.Map(point.FillFormat, domPoint.FillFormat);
     // Only a line format the caller set: a point with any line format is drawn with it rather than
     // with its series', and a mapped one always states a dash style, Solid when none was given.
-    if (!domPoint.IsNull("LineFormat"))
+    if (!domPoint.IsNull(nameof(domPoint.LineFormat)))
       LineFormatMapper.Map(point.LineFormat, domPoint.LineFormat);
   }
 
