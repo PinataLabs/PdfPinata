@@ -51,9 +51,9 @@ public class PlotAreaMapper
     plotArea.LeftPadding = domPlotArea.LeftPadding.Point;
     plotArea.TopPadding = domPlotArea.TopPadding.Point;
 
-    if (!domPlotArea.IsNull("LineFormat"))
+    if (!domPlotArea.IsNull(nameof(domPlotArea.LineFormat)))
       LineFormatMapper.Map(plotArea.LineFormat, domPlotArea.LineFormat);
-    if (!domPlotArea.IsNull("FillFormat"))
+    if (!domPlotArea.IsNull(nameof(domPlotArea.FillFormat)))
       FillFormatMapper.Map(plotArea.FillFormat, domPlotArea.FillFormat);
   }
 

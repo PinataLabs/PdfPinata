@@ -632,10 +632,26 @@ Every one of these is a condition that today either fails at runtime or fails si
 | MDG004 | error | two `[DV]` members with names equal under `OrdinalIgnoreCase` in one type's closure | `Hashtable.Add` throwing on first use of that type |
 | MDG005 | error | `[DV]` on a member of a type not derived from `DocumentObject` | silently ignored — the member simply never appears |
 | MDG006 | warning | `[DV(RefOnly = true)]` on a non-reference member | nothing; `RefOnly` on a value type is meaningless |
+| MDG008 | error | a constant name passed to `IsNull`, `SetNull`, `HasValue`, `GetValue` or `SetValue` that names no `[DV]` member of the receiver, a dotted path followed step by step (#264) | `InvalidValueName` thrown, or `false` from `HasValue`, on whichever path reaches the line |
 
 MDG002 is the one that earns the generator on its own. Today, adding a `[DV]` to a member of an
 unhandled type produces a `Debug.Assert` in Debug and a `null` descriptor in Release, which surfaces
 much later as a `NullReferenceException` inside the DDL parser.
+
+MDG008 comes from `DomValueNameAnalyzer`, an ordinary analyzer in the same assembly, and it runs in
+the DOM's own compilation alone. Outside the DOM it cannot see what it checks against: the `[DV]`
+fields are `internal`, a project referencing the DOM compiles against its reference assembly, which
+keeps no internal member, and the compiler imports only the public and protected members of a
+referenced assembly anyway. So `PinataLayout.Rendering` names each value through `nameof` on the
+receiver expression (`border.IsNull(nameof(border.Width))`, and one `nameof` per step of a path),
+which binds to the receiver's own type. That catches a misspelling or a rename of the public
+property, though not a property that has no `[DV]` behind it. The receiver expression rather than
+the type name matters there: in `AxisMapper`, `Axis` is `PdfPinata.Charting.Axis`, so
+`nameof(Axis.Title)` would compile against the wrong class. Two names in `XValuesMapper` stay
+literals, because `XSeries.xSeriesElements` and `XValue.Value` are protected and have no public
+property to name. The analyzer errs towards silence
+wherever the static type does not settle the question — a name any descendant of the receiver
+declares is accepted, and a receiver whose type overrides the member called is not checked.
 
 ### 4.7 Project layout and packaging
 

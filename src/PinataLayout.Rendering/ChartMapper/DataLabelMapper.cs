@@ -36,14 +36,14 @@ internal static class DataLabelMapper
 {
   private static void MapObject(DataLabel dataLabel, DocumentObjectModel.Shapes.Charts.DataLabel domDataLabel)
   {
-    if (!domDataLabel.IsNull("Style"))
+    if (!domDataLabel.IsNull(nameof(domDataLabel.Style)))
       FontMapper.Map(dataLabel.Font, domDataLabel.Document, domDataLabel.Style);
-    if (!domDataLabel.IsNull("Font"))
+    if (!domDataLabel.IsNull(nameof(domDataLabel.Font)))
       FontMapper.Map(dataLabel.Font, domDataLabel.Font);
     dataLabel.Format = domDataLabel.Format;
-    if (!domDataLabel.IsNull("Position"))
+    if (!domDataLabel.IsNull(nameof(domDataLabel.Position)))
       dataLabel.Position = (DataLabelPosition)domDataLabel.Position;
-    if (!domDataLabel.IsNull("Type"))
+    if (!domDataLabel.IsNull(nameof(domDataLabel.Type)))
       dataLabel.Type = (DataLabelType)domDataLabel.Type;
   }
 

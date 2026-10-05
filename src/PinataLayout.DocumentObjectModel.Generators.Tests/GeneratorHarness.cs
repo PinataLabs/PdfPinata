@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace PinataLayout.DocumentObjectModel.Generators.Tests;
 
@@ -81,6 +82,15 @@ internal static class GeneratorHarness
 
                 [global::PinataLayout.DocumentObjectModel.Internals.DV(RefOnly = true)]
                 protected internal DocumentObject parent;
+
+                // The name-taking members MDG008 checks, with the real signatures and no bodies
+                // worth the name - the analyzer reads the call, never runs it.
+                public virtual object GetValue(string name) => null;
+                public virtual void SetValue(string name, object val) { }
+                public virtual bool HasValue(string name) => false;
+                public virtual bool IsNull(string name) => false;
+                public virtual void SetNull(string name) { }
+                public virtual bool IsNull() => false;
             }
 
             public abstract partial class DocumentObjectCollection : DocumentObject { }
@@ -132,6 +142,53 @@ internal static class GeneratorHarness
                 CSharpSyntaxTree.ParseText(source, path: SnippetPath)
             ],
             References,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+    /// <summary>
+    /// What <see cref="DomValueNameAnalyzer"/> reports over the preamble and
+    /// <paramref name="source"/>, after the generator has run - so the compilation it analyzes is
+    /// the one a real build would hand it, generated tables included.
+    /// </summary>
+    public static ImmutableArray<Diagnostic> Analyze(string source) =>
+        Analyze(CreateCompilation(source));
+
+    /// <inheritdoc cref="Analyze(string)"/>
+    public static ImmutableArray<Diagnostic> Analyze(CSharpCompilation compilation)
+    {
+        CSharpGeneratorDriver.Create(new DomValueModelGenerator())
+            .RunGeneratorsAndUpdateCompilation(compilation, out var output, out _);
+
+        return output
+            .WithAnalyzers([new DomValueNameAnalyzer()])
+            .GetAnalyzerDiagnosticsAsync()
+            .GetAwaiter()
+            .GetResult();
+    }
+
+    /// <summary>
+    /// The preamble and <paramref name="source"/>, generated tables included, compiled to an
+    /// assembly another compilation can reference - a stand-in for the DOM as PinataLayout.Rendering
+    /// sees it. Throws if it does not compile, since a test built on it would mean nothing.
+    /// </summary>
+    public static MetadataReference CompileToReference(string source)
+    {
+        CSharpGeneratorDriver.Create(new DomValueModelGenerator())
+            .RunGeneratorsAndUpdateCompilation(CreateCompilation(source), out var output, out _);
+
+        using var image = new MemoryStream();
+        var emitted = output.Emit(image);
+        if (!emitted.Success)
+            throw new InvalidOperationException(string.Join(Environment.NewLine, emitted.Diagnostics));
+
+        return MetadataReference.CreateFromImage(image.ToArray());
+    }
+
+    /// <summary>A compilation of <paramref name="source"/> alone, referencing <paramref name="dom"/>.</summary>
+    public static CSharpCompilation CreateConsumerCompilation(string source, MetadataReference dom) =>
+        CSharpCompilation.Create(
+            "Consumer",
+            [CSharpSyntaxTree.ParseText(source, path: SnippetPath)],
+            [..References, dom],
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
     public static Result Run(string source)

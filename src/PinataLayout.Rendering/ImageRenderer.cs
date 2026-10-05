@@ -250,7 +250,7 @@ internal class ImageRenderer : ShapeRenderer
         try
         {
             double xPixels = xImage.PixelWidth;
-            var usrResolutionSet = !image.IsNull("Resolution");
+            var usrResolutionSet = !image.IsNull(nameof(image.Resolution));
 
             var horzRes = usrResolutionSet ? image.Resolution : xImage.HorizontalResolution;
             var inherentWidth = XUnit.FromInch(xPixels / horzRes);
@@ -258,14 +258,14 @@ internal class ImageRenderer : ShapeRenderer
             var vertRes = usrResolutionSet ? image.Resolution : xImage.VerticalResolution;
             var inherentHeight = XUnit.FromInch(yPixels / vertRes);
 
-            var lockRatio = image.IsNull("LockAspectRatio") ? true : image.LockAspectRatio;
+            var lockRatio = image.IsNull(nameof(image.LockAspectRatio)) ? true : image.LockAspectRatio;
             var (resultWidth, resultHeight) = lockRatio
                 ? SizeWithRatioLocked(inherentWidth, inherentHeight)
                 : SizeWithRatioUnlocked(inherentWidth, inherentHeight);
 
             formatInfo.CropWidth = (int)xPixels;
             formatInfo.CropHeight = (int)yPixels;
-            if (!image.IsNull("PictureFormat"))
+            if (!image.IsNull(nameof(image.PictureFormat)))
                 ApplyCrop(formatInfo, horzRes, vertRes, inherentWidth, inherentHeight, ref resultWidth, ref resultHeight);
 
             // Not "<= 0", which lets a NaN through: every comparison against NaN is false, so
@@ -312,13 +312,13 @@ internal class ImageRenderer : ShapeRenderer
     {
         var (resultWidth, resultHeight) = UnscaledSizeWithRatioLocked(inherentWidth, inherentHeight);
 
-        if (!image.IsNull("ScaleHeight"))
+        if (!image.IsNull(nameof(image.ScaleHeight)))
         {
             var scaleHeight = image.ScaleHeight;
             resultHeight *= scaleHeight;
             resultWidth *= scaleHeight;
         }
-        else if (!image.IsNull("ScaleWidth"))
+        else if (!image.IsNull(nameof(image.ScaleWidth)))
         {
             var scaleWidth = image.ScaleWidth;
             resultHeight *= scaleWidth;
@@ -332,8 +332,8 @@ internal class ImageRenderer : ShapeRenderer
     {
         XUnit usrWidth = image.Width.Point;
         XUnit usrHeight = image.Height.Point;
-        var usrWidthSet = !image.IsNull("Width");
-        var usrHeightSet = !image.IsNull("Height");
+        var usrWidthSet = !image.IsNull(nameof(image.Width));
+        var usrHeightSet = !image.IsNull(nameof(image.Height));
 
         var resultWidth = usrWidth;
         var resultHeight = usrHeight;
@@ -370,12 +370,12 @@ internal class ImageRenderer : ShapeRenderer
     /// </summary>
     private (XUnit Width, XUnit Height) SizeWithRatioUnlocked(XUnit inherentWidth, XUnit inherentHeight)
     {
-        XUnit resultWidth = image.IsNull("Width") ? inherentWidth : image.Width.Point;
-        XUnit resultHeight = image.IsNull("Height") ? inherentHeight : image.Height.Point;
+        XUnit resultWidth = image.IsNull(nameof(image.Width)) ? inherentWidth : image.Width.Point;
+        XUnit resultHeight = image.IsNull(nameof(image.Height)) ? inherentHeight : image.Height.Point;
 
-        if (!image.IsNull("ScaleHeight"))
+        if (!image.IsNull(nameof(image.ScaleHeight)))
             resultHeight *= image.ScaleHeight;
-        if (!image.IsNull("ScaleWidth"))
+        if (!image.IsNull(nameof(image.ScaleWidth)))
             resultWidth *= image.ScaleWidth;
 
         return (resultWidth, resultHeight);
@@ -434,8 +434,8 @@ internal class ImageRenderer : ShapeRenderer
     {
         // A size of nothing would hide the placeholder, which defeats the point of drawing one,
         // so anything the document does not give a positive size for falls back to an inch or so.
-        formatInfo.Width = Positive(image.IsNull("Width") ? 0 : image.Width.Point);
-        formatInfo.Height = Positive(image.IsNull("Height") ? 0 : image.Height.Point);
+        formatInfo.Width = Positive(image.IsNull(nameof(image.Width)) ? 0 : image.Width.Point);
+        formatInfo.Height = Positive(image.IsNull(nameof(image.Height)) ? 0 : image.Height.Point);
 
         static XUnit Positive(double points)
         {

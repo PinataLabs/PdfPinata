@@ -55,7 +55,7 @@ public class LineFormatMapper
         }
         // Only a dash style the document gave, so that a point which sets only its width or colour
         // keeps its series' dashes rather than being handed Solid (#192).
-        if (!domLineFormat.IsNull("DashStyle"))
+        if (!domLineFormat.IsNull(nameof(domLineFormat.DashStyle)))
         {
             lineFormat.DashStyle = DashStyleHelper.ToXDashStyle(domLineFormat.DashStyle);
         }
@@ -66,7 +66,7 @@ public class LineFormatMapper
                 break;
         }
         lineFormat.Visible = domLineFormat.Visible;
-        if (domLineFormat.IsNull("Visible"))
+        if (domLineFormat.IsNull(nameof(domLineFormat.Visible)))
             lineFormat.Visible = true;
         lineFormat.Width = domLineFormat.Width.Point;
     }

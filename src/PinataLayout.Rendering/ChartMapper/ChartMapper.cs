@@ -55,9 +55,9 @@ public class ChartMapper
 
     var chart = new Chart((ChartType)domChart.Type);
 
-    if (!domChart.IsNull("XAxis"))
+    if (!domChart.IsNull(nameof(domChart.XAxis)))
       AxisMapper.Map(chart.XAxis, domChart.XAxis);
-    if (!domChart.IsNull("YAxis"))
+    if (!domChart.IsNull(nameof(domChart.YAxis)))
       AxisMapper.Map(chart.YAxis, domChart.YAxis);
 
     PlotAreaMapper.Map(chart.PlotArea, domChart.PlotArea);
@@ -68,14 +68,14 @@ public class ChartMapper
 
     chart.DisplayBlanksAs = (BlankType)domChart.DisplayBlanksAs;
     chart.HasDataLabel = domChart.HasDataLabel;
-    if (!domChart.IsNull("DataLabel"))
+    if (!domChart.IsNull(nameof(domChart.DataLabel)))
       DataLabelMapper.Map(chart.DataLabel, domChart.DataLabel);
 
-    if (!domChart.IsNull("Style"))
+    if (!domChart.IsNull(nameof(domChart.Style)))
       FontMapper.Map(chart.Font, domChart.Document, domChart.Style);
-    if (!domChart.IsNull("Format.Font"))
+    if (!domChart.IsNull($"{nameof(domChart.Format)}.{nameof(domChart.Format.Font)}"))
       FontMapper.Map(chart.Font, domChart.Format.Font);
-    if (!domChart.IsNull("XValues"))
+    if (!domChart.IsNull(nameof(domChart.XValues)))
       XValuesMapper.Map(chart.XValues, domChart.XValues);
 
     chartFrame.Add(chart);

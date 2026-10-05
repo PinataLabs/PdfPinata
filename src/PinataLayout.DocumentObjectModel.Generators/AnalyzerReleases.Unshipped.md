@@ -12,3 +12,4 @@ MDG004 | DomValueModel | Error | Two [DV] members share a name
 MDG005 | DomValueModel | Error | [DV] is only meaningful inside a DocumentObject
 MDG006 | DomValueModel | Warning | RefOnly has no meaning on a value member
 MDG007 | DomValueModel | Warning | [DV] member's name appears nowhere in this type's Serialize
+MDG008 | DomValueModel | Error | Value name passed to IsNull, SetNull, HasValue, GetValue or SetValue names no [DV] member of the receiver

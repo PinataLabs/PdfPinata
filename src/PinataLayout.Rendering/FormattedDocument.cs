@@ -136,7 +136,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
 
     private void FormatHeadersFooters()
     {
-        var headers = (HeadersFooters)currentSection.GetValue("Headers", GV.ReadOnly);
+        var headers = (HeadersFooters)currentSection.GetValue(nameof(currentSection.Headers), GV.ReadOnly);
         if (headers != null)
         {
             var pagePos = CurrentPagePosition;
@@ -145,7 +145,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
                 FormatHeader(hfp, ChooseHeaderFooter(headers, pagePos));
         }
 
-        var footers = (HeadersFooters)currentSection.GetValue("Footers", GV.ReadOnly);
+        var footers = (HeadersFooters)currentSection.GetValue(nameof(currentSection.Footers), GV.ReadOnly);
         if (footers == null)
             return;
 
@@ -370,14 +370,14 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         if (pagePos == PagePosition.First)
         {
             if (pageSetup.DifferentFirstPageHeaderFooter)
-                return (HeaderFooter)hfs.GetValue("FirstPage", GV.ReadOnly);
+                return (HeaderFooter)hfs.GetValue(nameof(hfs.FirstPage), GV.ReadOnly);
         }
         if (pagePos == PagePosition.Even || currentPage % 2 == 0)
         {
             if (pageSetup.OddAndEvenPagesHeaderFooter)
-                return (HeaderFooter)hfs.GetValue("EvenPage", GV.ReadOnly);
+                return (HeaderFooter)hfs.GetValue(nameof(hfs.EvenPage), GV.ReadOnly);
         }
-        return (HeaderFooter)hfs.GetValue("Primary", GV.ReadOnly);
+        return (HeaderFooter)hfs.GetValue(nameof(hfs.Primary), GV.ReadOnly);
     }
 
     /// <summary>
@@ -577,7 +577,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
             ? pageSetup.PageHeight.Point
             : pageSetup.PageWidth.Point;
 
-        if (isNewSection && !currentSection.PageSetup.IsNull("StartingNumber"))
+        if (isNewSection && !currentSection.PageSetup.IsNull(nameof(currentSection.PageSetup.StartingNumber)))
             shownPageNumber = currentSection.PageSetup.StartingNumber;
 
         currentFieldInfos.displayPageNr = shownPageNumber;

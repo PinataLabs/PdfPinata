@@ -407,7 +407,7 @@ internal class TableRenderer : Renderer
   /// </param>
   private void DescribeTable(PdfStructureElement element)
   {
-    if (element == null || _table.IsNull("Summary"))
+    if (element == null || _table.IsNull(nameof(_table.Summary)))
       return;
 
     element.Elements.SetString("/Summary", _table.Summary);
@@ -576,7 +576,7 @@ internal class TableRenderer : Renderer
     }
     layoutInfo.MinWidth = layoutInfo.ContentArea.Width;
 
-    if (!_table.Rows.IsNull("LeftIndent"))
+    if (!_table.Rows.IsNull(nameof(_table.Rows.LeftIndent)))
       layoutInfo.Left = _table.Rows.LeftIndent.Point;
 
     else if (_table.Rows.Alignment == RowAlignment.Left)
@@ -762,7 +762,7 @@ internal class TableRenderer : Renderer
       if (rowCell.Row.Index > row)
         break;
 
-      if (!rowCell.IsNull("Borders"))
+      if (!rowCell.IsNull(nameof(rowCell.Borders)))
       {
         var width = BordersRenderer.WidthOf(rowCell.Borders, BorderType.Top);
         if (width > maxWidth)

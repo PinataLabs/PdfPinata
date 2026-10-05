@@ -51,11 +51,11 @@ internal static class LegendMapper
     if (domLegend == null)
       return;
 
-    if (!domLegend.IsNull("LineFormat"))
+    if (!domLegend.IsNull(nameof(domLegend.LineFormat)))
       LineFormatMapper.Map(chart.Legend.LineFormat, domLegend.LineFormat);
-    if (!textArea.IsNull("Style"))
+    if (!textArea.IsNull(nameof(textArea.Style)))
       FontMapper.Map(chart.Legend.Font, textArea.Document, textArea.Style);
-    if (!domLegend.IsNull("Format.Font"))
+    if (!domLegend.IsNull($"{nameof(domLegend.Format)}.{nameof(domLegend.Format.Font)}"))
       FontMapper.Map(chart.Legend.Font, domLegend.Format.Font);
   }
 

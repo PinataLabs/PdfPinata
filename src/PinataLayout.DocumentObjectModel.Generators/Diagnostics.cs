@@ -76,4 +76,21 @@ internal static class Diagnostics
         "[DV] member's name appears nowhere in this type's Serialize",
         "'{0}.{1}' is a [DV] member but '{1}' appears in no string literal within '{0}'s Serialize method(s) - it may never reach DDL",
         Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+    /// <summary>
+    /// A value name the receiver's value model does not have. <c>Meta</c> throws
+    /// <c>InvalidValueName</c> for one - or, from <c>HasValue</c>, answers false - but only when the
+    /// line runs, and many of these lines run for one shape, one border side or one chart element.
+    /// </summary>
+    /// <remarks>
+    /// Raised by <see cref="DomValueNameAnalyzer"/>, not by the generator, so unlike MDG007 it goes
+    /// through the ordinary suppression path and a pragma would silence it. Nothing should need one:
+    /// the analyzer reports only a name the static types settle, and a name built at run time is not
+    /// checked at all.
+    /// </remarks>
+    public static readonly DiagnosticDescriptor UnknownValueName = new(
+        "MDG008",
+        "Value name names no [DV] member of the receiver",
+        "\"{0}\" is not a value of '{1}': {2}",
+        Category, DiagnosticSeverity.Error, isEnabledByDefault: true);
 }

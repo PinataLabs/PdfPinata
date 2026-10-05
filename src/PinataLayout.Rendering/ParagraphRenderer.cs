@@ -221,7 +221,7 @@ internal class ParagraphRenderer : Renderer
             return false;
 
         var format = paragraph.Format;
-        if (format.IsNull("ListInfo"))
+        if (format.IsNull(nameof(format.ListInfo)))
             return false;
 
         listType = format.ListInfo.ListType;
@@ -696,7 +696,7 @@ internal class ParagraphRenderer : Renderer
     {
         //Automatic tab stop: FirstLineIndent < 0 => automatic tab stop at LeftIndent.
         var hasAutomaticTabStop = format.FirstLineIndent < 0
-            || (!format.IsNull("ListInfo") && format.ListInfo.NumberPosition < format.LeftIndent);
+            || (!format.IsNull(nameof(format.ListInfo)) && format.ListInfo.NumberPosition < format.LeftIndent);
         if (!hasAutomaticTabStop)
             return null;
 
@@ -709,7 +709,7 @@ internal class ParagraphRenderer : Renderer
     private TabStop DefaultTabStopAfter(XUnit lastPosition)
     {
         XUnit defaultTabStop = "1.25cm";
-        if (!paragraph.Document.IsNull("DefaultTabstop"))
+        if (!paragraph.Document.IsNull(nameof(paragraph.Document.DefaultTabStop)))
             defaultTabStop = paragraph.Document.DefaultTabStop.Point;
 
         var currTabPos = defaultTabStop;
@@ -1972,7 +1972,7 @@ internal class ParagraphRenderer : Renderer
         if (phase == Phase.Formatting)
         {
             var format = paragraph.Format;
-            if (format.IsNull("ListInfo"))
+            if (format.IsNull(nameof(format.ListInfo)))
                 return false;
 
             var listInfo = format.ListInfo;
@@ -2034,11 +2034,11 @@ internal class ParagraphRenderer : Renderer
             XUnit leftIndent = format.LeftIndent.Point;
             if (isFirstLine)
             {
-                if (!format.IsNull("ListInfo"))
+                if (!format.IsNull(nameof(format.ListInfo)))
                 {
-                    if (!format.ListInfo.IsNull("NumberPosition"))
+                    if (!format.ListInfo.IsNull(nameof(format.ListInfo.NumberPosition)))
                         return format.ListInfo.NumberPosition.Point;
-                    if (format.IsNull("FirstLineIndent"))
+                    if (format.IsNull(nameof(format.FirstLineIndent)))
                         return 0;
                 }
                 return leftIndent + paragraph.Format.FirstLineIndent.Point;
@@ -2547,7 +2547,7 @@ internal class ParagraphRenderer : Renderer
         XUnit right = contentArea.X + contentArea.Width;
         right -= format.RightIndent;
 
-        if (paragraph.Format.IsNull("Borders"))
+        if (paragraph.Format.IsNull(nameof(paragraph.Format.Borders)))
             return new Rectangle(left, top, right - left, bottom - top);
 
         var borders = format.Borders;
@@ -2564,7 +2564,7 @@ internal class ParagraphRenderer : Renderer
 
     private void RenderShading()
     {
-        if (paragraph.Format.IsNull("Shading"))
+        if (paragraph.Format.IsNull(nameof(paragraph.Format.Shading)))
             return;
 
         var shadingRenderer = new ShadingRenderer(Gfx, paragraph.Format.Shading);
@@ -2576,7 +2576,7 @@ internal class ParagraphRenderer : Renderer
 
     private void RenderBorders()
     {
-        if (paragraph.Format.IsNull("Borders"))
+        if (paragraph.Format.IsNull(nameof(paragraph.Format.Borders)))
             return;
 
         var shadingArea = GetShadingArea();
@@ -2953,11 +2953,11 @@ internal class ParagraphRenderer : Renderer
         get
         {
             XUnit offset = 0;
-            if (!isFirstLine || paragraph.Format.IsNull("Borders"))
+            if (!isFirstLine || paragraph.Format.IsNull(nameof(paragraph.Format.Borders)))
                 return offset;
 
             offset += paragraph.Format.Borders.DistanceFromTop;
-            if (paragraph.Format.IsNull("Borders"))
+            if (paragraph.Format.IsNull(nameof(paragraph.Format.Borders)))
                 return offset;
 
             offset += BordersRenderer.WidthOf(paragraph.Format.Borders, BorderType.Top);
@@ -2986,7 +2986,7 @@ internal class ParagraphRenderer : Renderer
                   || (phase == Phase.Rendering && isLastLine)))
                 return offset;
 
-            if (paragraph.Format.IsNull("Borders"))
+            if (paragraph.Format.IsNull(nameof(paragraph.Format.Borders)))
                 return offset;
 
             offset += paragraph.Format.Borders.DistanceFromBottom;

@@ -445,7 +445,7 @@ public class DocumentRenderer
         if (isNumberList)
         {
             listNumber = 1;
-            if (listInfo.IsNull("ContinuePreviousList") || listInfo.ContinuePreviousList)
+            if (listInfo.IsNull(nameof(listInfo.ContinuePreviousList)) || listInfo.ContinuePreviousList)
                 // ReSharper disable once PossibleNullReferenceException
                 listNumber = (int)previousListNumbers[listType] + 1;
 
