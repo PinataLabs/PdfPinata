@@ -41,7 +41,7 @@ internal static class FillFormatMapper
       fillFormat.Color = XColor.Empty;
     else
     {
-      fillFormat.Color = ColorHelper.ToXColor(domFillFormat.Color, domFillFormat.Document.UseCmykColor);
+      fillFormat.Color = ColorHelper.ToXColor(domFillFormat.Color, domFillFormat);
     }
     fillFormat.Visible = domFillFormat.Visible;
   }

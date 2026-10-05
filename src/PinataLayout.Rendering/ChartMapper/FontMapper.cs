@@ -42,7 +42,7 @@ internal static class FontMapper
     if (!domFont.IsNull("Bold"))
       font.Bold = domFont.Bold;
     if (!domFont.Color.IsEmpty)
-      font.Color = ColorHelper.ToXColor(domFont.Color, domFont.Document.UseCmykColor);
+      font.Color = ColorHelper.ToXColor(domFont.Color, domFont);
     if (!domFont.IsNull("Italic"))
       font.Italic = domFont.Italic;
     if (!domFont.IsNull("Name"))

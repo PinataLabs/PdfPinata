@@ -49,4 +49,12 @@ internal static class ColorHelper
             ? XColor.FromCmyk(color.Alpha / 100.0, color.C / 100.0, color.M / 100.0, color.Y / 100.0, color.K / 100.0)
             : XColor.FromArgb((int)color.Argb);
     }
+
+    /// <summary>
+    /// Converts Color to XColor in the colour model of the document <paramref name="owner"/>
+    /// belongs to: CMYK when that document says <see cref="Document.UseCmykColor"/>, RGB otherwise,
+    /// including when there is no owner or it belongs to no document.
+    /// </summary>
+    public static XColor ToXColor(Color color, DocumentObject owner)
+        => ToXColor(color, owner?.Document?.UseCmykColor ?? false);
 }

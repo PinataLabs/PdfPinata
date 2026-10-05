@@ -197,11 +197,9 @@ public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
 
         var content = new StringBuilder();
         content.Append("/GS0 gs\n");
-        var color = Color;
-        content.Append(PdfEncoders.Format("{0:0.###} {1:0.###} {2:0.###} rg\n",
-            color.R / 255.0, color.G / 255.0, color.B / 255.0));
-        content.Append(PdfEncoders.Format("{0:0.###} {1:0.###} {2:0.###} RG\n",
-            color.R / 255.0, color.G / 255.0, color.B / 255.0));
+        var color = PdfEncoders.ToString(Color, PdfColorMode.Rgb);
+        content.Append(color).Append(" rg\n");
+        content.Append(color).Append(" RG\n");
         foreach (var quad in quads)
             DrawQuad(content, quad);
 

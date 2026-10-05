@@ -101,6 +101,6 @@ internal class FontHandler
 
   internal static XBrush FontColorToXBrush(Font font)
   {
-    return new XSolidBrush(ColorHelper.ToXColor(font.Color, font.Document.UseCmykColor));
+    return new XSolidBrush(ColorHelper.ToXColor(font.Color, font));
   }
 }

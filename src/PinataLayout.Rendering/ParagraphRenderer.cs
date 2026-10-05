@@ -3345,31 +3345,10 @@ internal class ParagraphRenderer : Renderer
         if (underlineType == Underline.Words && !isWord)
             return null;
 
-        var pen = new XPen(ColorHelper.ToXColor(font.Color, paragraph.Document.UseCmykColor), font.Size / 16);
-        switch (font.Underline)
+        return new XPen(ColorHelper.ToXColor(font.Color, paragraph), font.Size / 16)
         {
-            case Underline.DotDash:
-                pen.DashStyle = XDashStyle.DashDot;
-                break;
-
-            case Underline.DotDotDash:
-                pen.DashStyle = XDashStyle.DashDotDot;
-                break;
-
-            case Underline.Dash:
-                pen.DashStyle = XDashStyle.Dash;
-                break;
-
-            case Underline.Dotted:
-                pen.DashStyle = XDashStyle.Dot;
-                break;
-
-            case Underline.Single:
-            default:
-                pen.DashStyle = XDashStyle.Solid;
-                break;
-        }
-        return pen;
+            DashStyle = DashStyleHelper.ToXDashStyle(font.Underline)
+        };
     }
 
     private XPen GetStrikethroughPen(bool isWord)
@@ -3382,31 +3361,10 @@ internal class ParagraphRenderer : Renderer
         if (strikethroughType == Strikethrough.Words && !isWord)
             return null;
 
-        var pen = new XPen(ColorHelper.ToXColor(font.Color, paragraph.Document.UseCmykColor), font.Size / 16);
-        switch (font.Strikethrough)
+        return new XPen(ColorHelper.ToXColor(font.Color, paragraph), font.Size / 16)
         {
-            case Strikethrough.DotDash:
-                pen.DashStyle = XDashStyle.DashDot;
-                break;
-
-            case Strikethrough.DotDotDash:
-                pen.DashStyle = XDashStyle.DashDotDot;
-                break;
-
-            case Strikethrough.Dash:
-                pen.DashStyle = XDashStyle.Dash;
-                break;
-
-            case Strikethrough.Dotted:
-                pen.DashStyle = XDashStyle.Dot;
-                break;
-
-            case Strikethrough.Single:
-            default:
-                pen.DashStyle = XDashStyle.Solid;
-                break;
-        }
-        return pen;
+            DashStyle = DashStyleHelper.ToXDashStyle(font.Strikethrough)
+        };
     }
 
     /// <summary>

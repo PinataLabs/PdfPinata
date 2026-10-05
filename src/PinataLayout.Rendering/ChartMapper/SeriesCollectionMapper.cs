@@ -87,7 +87,7 @@ public class SeriesCollectionMapper
   }
 
   private static XColor ToXColorOrEmpty(DocumentObjectModel.Color color, DocumentObjectModel.Shapes.Charts.Series domSeries)
-    => color.IsEmpty ? XColor.Empty : ColorHelper.ToXColor(color, domSeries.Document.UseCmykColor);
+    => color.IsEmpty ? XColor.Empty : ColorHelper.ToXColor(color, domSeries);
 
   /// <summary>
   /// Adds one point to the series; a blank point is added as NaN.
