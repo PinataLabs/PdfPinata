@@ -56,13 +56,6 @@ public class ShapedFontEmbeddingTests
                 : null;
     }
 
-    private sealed class Installed : IDisposable
-    {
-        internal Installed(ITextShaper shaper) => GlobalFontSettings.TextShaper = shaper;
-
-        public void Dispose() => GlobalFontSettings.TextShaper = null;
-    }
-
     // ----- drawing and reading back --------------------------------------------------------------
 
     /// <summary>Draws one string, saves, and reopens - so that everything written at save time is.</summary>
@@ -174,7 +167,7 @@ public class ShapedFontEmbeddingTests
     {
         // Glyph 300 is a real glyph of the face and one the cmap would never return for any of
         // these characters - which is exactly the position a ligature is in.
-        using var _ = new Installed(new SelectiveShaper(WidthSentinel,
+        using var _ = SeamScope.TextShaper(new SelectiveShaper(WidthSentinel,
             _ => [new ShapedGlyph(300, 0, 1000)]));
 
         GlyphsGivenAWidth(Written(WidthSentinel)).Should().Contain(300,
@@ -185,7 +178,7 @@ public class ShapedFontEmbeddingTests
     [Fact]
     public void TheGlyphsAShaperDidNotChooseAreNotCarriedAlongForNothing()
     {
-        using var _ = new Installed(new SelectiveShaper(WidthSentinel,
+        using var _ = SeamScope.TextShaper(new SelectiveShaper(WidthSentinel,
             _ => [new ShapedGlyph(300, 0, 1000)]));
 
         var widths = GlyphsGivenAWidth(Written(WidthSentinel));
@@ -204,7 +197,7 @@ public class ShapedFontEmbeddingTests
     {
         // Two glyphs for thirteen characters: the first cluster runs from 0 up to the second
         // cluster at 11, so glyph 300 means "ShapedProbe" and glyph 301 means "AB".
-        using var _ = new Installed(new SelectiveShaper(MeaningSentinel, _ => [
+        using var _ = SeamScope.TextShaper(new SelectiveShaper(MeaningSentinel, _ => [
             new ShapedGlyph(300, 0, 1000),
             new ShapedGlyph(301, 11, 1000)
         ]));
@@ -252,7 +245,7 @@ public class ShapedFontEmbeddingTests
     public void HarfBuzzComposesAnAccentAndTheDocumentSaysWhatTheGlyphMeant()
     {
         using var shaper = new OnlyFor(ComposedSentinel);
-        using var _ = new Installed(shaper);
+        using var _ = SeamScope.TextShaper(shaper);
 
         var document = Written(ComposedSentinel);
         var meanings = Meanings(document);
@@ -280,7 +273,7 @@ public class ShapedFontEmbeddingTests
     {
 
         using var shaper = new OnlyFor(ArabicSentinel);
-        using var _ = new Installed(shaper);
+        using var _ = SeamScope.TextShaper(shaper);
 
         var document = Written(ArabicSentinel, ArabicFamily);
         var content = ContentOf(document);
@@ -313,7 +306,7 @@ public class ShapedFontEmbeddingTests
     {
 
         using var shaper = new OnlyFor(Salam);
-        using var _ = new Installed(shaper);
+        using var _ = SeamScope.TextShaper(shaper);
 
         var document = Written(Salam, ArabicFamily);
         var meanings = Meanings(document);

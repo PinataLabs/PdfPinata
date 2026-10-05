@@ -200,15 +200,8 @@ public class LigatureActualTextTests
 
         var page = document.AddPage();
         using var gfx = XGraphics.FromPdfPage(page);
-        GlobalFontSettings.TextShaper = new Handed(Clustered, glyphs);
-        try
-        {
+        using (SeamScope.TextShaper(new Handed(Clustered, glyphs)))
             gfx.DrawString(Clustered, new XFont("Arial", 20), XBrushes.Black, 20, 40);
-        }
-        finally
-        {
-            GlobalFontSettings.TextShaper = null;
-        }
 
         return page;
     }
@@ -225,15 +218,8 @@ public class LigatureActualTextTests
         using (var gfx = XGraphics.FromPdfPage(page))
         {
             using var shaper = new OnlyFor(sentinel);
-            GlobalFontSettings.TextShaper = shaper;
-            try
-            {
+            using (SeamScope.TextShaper(shaper))
                 gfx.DrawString(text ?? sentinel, new XFont("Arial", 20), XBrushes.Black, 20, 40);
-            }
-            finally
-            {
-                GlobalFontSettings.TextShaper = null;
-            }
         }
 
         return PageContent.Of(page);
@@ -247,15 +233,8 @@ public class LigatureActualTextTests
         var page = document.AddPage();
         using var gfx = XGraphics.FromPdfPage(page);
         using var shaper = new OnlyFor(sentinel);
-        GlobalFontSettings.TextShaper = shaper;
-        try
-        {
+        using (SeamScope.TextShaper(shaper))
             gfx.DrawString(text ?? sentinel, new XFont("Arial", 20), XBrushes.Black, 20, 40);
-        }
-        finally
-        {
-            GlobalFontSettings.TextShaper = null;
-        }
 
         return page;
     }

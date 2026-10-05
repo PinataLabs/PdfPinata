@@ -69,13 +69,6 @@ public class DevanagariShapingTests
 
     private static XFont Font() => new(PinnedFontResolver.DevanagariFamilyName, 20);
 
-    private sealed class Shaping : IDisposable
-    {
-        internal Shaping() => GlobalFontSettings.TextShaper = new HarfBuzzTextShaper();
-
-        public void Dispose() => GlobalFontSettings.TextShaper = null;
-    }
-
     // ----- a cluster longer than one character ------------------------------------------------------
 
     [Fact]
@@ -160,7 +153,7 @@ public class DevanagariShapingTests
     [Fact]
     public void TheDrawnGlyphsAreTheShapedOnes()
     {
-        using var _ = new Shaping();
+        using var _ = SeamScope.TextShaper(new HarfBuzzTextShaper());
 
         DrawnText.Glyphs(DrawnText.Page(Conjunct, Font()))
             .Should().Equal([Shape(Conjunct).Glyphs.Single().GlyphId],
@@ -170,7 +163,7 @@ public class DevanagariShapingTests
     [Fact]
     public void MeasuringAgreesWithDrawing()
     {
-        using var _ = new Shaping();
+        using var _ = SeamScope.TextShaper(new HarfBuzzTextShaper());
 
         // A conjunct is narrower than the letters it is made of, so a measurement that had not been
         // shaped would be wider than the page. This is the assertion that says both paths shape.
@@ -203,7 +196,7 @@ public class DevanagariShapingTests
         // break inside a glyph. Nothing in the line breaker knows about cluster boundaries; what
         // this pins is that the widths in this case do not lead it into one, so that if it ever does
         // start splitting them the change is visible here rather than in somebody's document.
-        using var _ = new Shaping();
+        using var _ = SeamScope.TextShaper(new HarfBuzzTextShaper());
 
         var document = new PdfDocument();
         var page = document.AddPage();
