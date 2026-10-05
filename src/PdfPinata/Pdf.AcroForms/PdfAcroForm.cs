@@ -153,8 +153,8 @@ public sealed class PdfAcroForm : PdfDictionary
         if (string.IsNullOrWhiteSpace(baseFont))
             throw new ArgumentException("A standard font has to be named.", nameof(baseFont));
 
-        var key = resourceName[0] == '/' ? resourceName : "/" + resourceName;
-        var face = baseFont[0] == '/' ? baseFont : "/" + baseFont;
+        var key = PdfName.WithSolidus(resourceName);
+        var face = PdfName.WithSolidus(baseFont);
 
         var font = new PdfDictionary(Owner);
         Owner.Internals.AddObject(font);

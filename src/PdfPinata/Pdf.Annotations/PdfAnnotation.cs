@@ -392,7 +392,7 @@ public abstract class PdfAnnotation : PdfDictionary
         if (string.IsNullOrEmpty(state))
             throw new ArgumentException("An appearance state must be named.", nameof(state));
 
-        var name = state[0] == '/' ? state : "/" + state;
+        var name = PdfName.WithSolidus(state);
         var owner = RequireOwner();
 
         // The states already written are kept: /AP /N holds all of them, and /AS picks one.
@@ -547,43 +547,7 @@ public abstract class PdfAnnotation : PdfDictionary
         if (string.IsNullOrWhiteSpace(subtype))
             throw new ArgumentException("An annotation must name its subtype.", nameof(subtype));
 
-        return subtype[0] == '/' ? subtype : "/" + subtype;
-    }
-
-    /// <summary>
-    /// Turns the <c>/Name</c> of an annotation that names its icon into the member of
-    /// <typeparamref name="T"/> that stands for it, or <paramref name="fallback"/> when the entry
-    /// is absent or names something this enumeration does not have.
-    /// </summary>
-    /// <remarks>
-    /// <para>
-    /// Shared by the three subtypes that carry an icon name rather than copied into each of them.
-    /// It was copied into each of them, and the copies drifted: two stripped the solidus and
-    /// checked the member existed, and the third did neither, so
-    /// <c>PdfFileAttachmentAnnotation.Icon</c> threw on every read it was ever given.
-    /// </para>
-    /// <para>
-    /// The solidus is the trap. <c>Elements.GetName</c> hands back <c>PdfName.Value</c>, which
-    /// carries it, so the first character of the returned string is never part of the member name -
-    /// and <c>GetName</c> answers a missing key with <see cref="string.Empty"/> rather than
-    /// <c>null</c>, so a null check for "no icon" never fires.
-    /// </para>
-    /// <para>
-    /// <c>Enum.IsDefined</c> rather than <c>Enum.TryParse</c>: given a string of digits
-    /// <c>TryParse</c> succeeds and hands back that number as the enumeration value, so a document
-    /// naming its icon <c>/3</c> would read back as whichever member happens to be 3.
-    /// </para>
-    /// </remarks>
-    private protected static T IconFromName<T>(string name, T fallback) where T : struct, Enum
-    {
-        if (string.IsNullOrEmpty(name))
-            return fallback;
-
-        var member = name[0] == '/' ? name[1..] : name;
-
-        return Enum.IsDefined(typeof(T), member)
-            ? Enum.Parse<T>(member, false)
-            : fallback;
+        return PdfName.WithSolidus(subtype);
     }
 
     /// <summary>

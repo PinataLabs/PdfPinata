@@ -88,14 +88,14 @@ internal sealed class PdfType0Font : PdfFont
     {
         // The getter answers a PDF name, which carries its solidus; a name being assembled here may
         // not have one yet.
-        var start = baseFont.Length > 0 && baseFont[0] == '/' ? 1 : 0;
+        var name = PdfName.WithoutSolidus(baseFont);
 
-        if (baseFont.Length < start + 7 || baseFont[start + 6] != '+')
+        if (name.Length < 7 || name[6] != '+')
             return false;
 
-        for (var index = start; index < start + 6; index++)
+        for (var index = 0; index < 6; index++)
         {
-            if (baseFont[index] < 'A' || baseFont[index] > 'Z')
+            if (name[index] < 'A' || name[index] > 'Z')
                 return false;
         }
 

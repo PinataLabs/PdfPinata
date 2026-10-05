@@ -108,11 +108,6 @@ internal static class PdfNameTree
         if (PdfItemValues.TryGetText(item, allowName: false, out var text))
             return text;
 
-        return PdfItemValues.TryGetName(item, out var name) ? WithoutSlash(name) : null;
-    }
-
-    private static string WithoutSlash(string name)
-    {
-        return name is { Length: > 0 } && name[0] == '/' ? name[1..] : name;
+        return PdfItemValues.TryGetName(item, out var name) ? PdfName.WithoutSolidus(name) : null;
     }
 }

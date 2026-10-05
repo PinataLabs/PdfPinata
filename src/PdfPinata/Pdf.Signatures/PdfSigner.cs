@@ -385,7 +385,7 @@ public static class PdfSigner
 
         var parameters = new PdfDictionary(document);
         parameters.Elements.SetName("/Type", "/TransformParams");
-        parameters.Elements.SetName("/Action", "/" + action);
+        parameters.Elements.SetName("/Action", action.ToString());
         if (fields != null)
             parameters.Elements["/Fields"] = field.Lock.Elements["/Fields"].Clone();
         parameters.Elements.SetName("/V", "/1.2");

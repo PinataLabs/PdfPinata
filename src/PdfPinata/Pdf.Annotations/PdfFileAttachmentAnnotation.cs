@@ -56,7 +56,7 @@ public class PdfFileAttachmentAnnotation : PdfMarkupAnnotation
     /// </summary>
     public IconType Icon
     {
-        get => IconFromName(Elements.GetName(Keys.Name), IconType.PushPin);
+        get => PdfNameEnum.Parse(Elements.GetName(Keys.Name), IconType.PushPin);
         set
         {
             // Removing the key rather than writing a name for a value the enumeration does not

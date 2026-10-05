@@ -74,13 +74,13 @@ public sealed class PdfRubberStampAnnotation : PdfMarkupAnnotation
     /// </summary>
     public PdfRubberStampAnnotationIcon Icon
     {
-        get => IconFromName(Elements.GetName(Keys.Name), PdfRubberStampAnnotationIcon.NoIcon);
+        get => PdfNameEnum.Parse(Elements.GetName(Keys.Name), PdfRubberStampAnnotationIcon.NoIcon);
         set
         {
             if (Enum.IsDefined(value) &&
                 PdfRubberStampAnnotationIcon.NoIcon != value)
             {
-                Elements.SetName(Keys.Name, "/" + value.ToString());
+                Elements.SetName(Keys.Name, value.ToString());
             }
             else
                 Elements.Remove(Keys.Name);

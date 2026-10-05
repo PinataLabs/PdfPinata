@@ -230,7 +230,7 @@ public sealed class PdfSignatureSeedValue : PdfDictionary
             if (string.IsNullOrEmpty(name) || name == "/")
                 throw new ArgumentException("A name in " + key + " cannot be empty.", nameof(value));
 
-            return new PdfName(name[0] == '/' ? name : "/" + name);
+            return new PdfName(PdfName.WithSolidus(name));
         });
 
     private IReadOnlyList<string> Strings(string key) => SeedValues.Read(Elements.GetArray(key), (a, i) => a.Elements.GetString(i));

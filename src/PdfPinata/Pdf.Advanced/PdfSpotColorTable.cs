@@ -93,7 +93,7 @@ internal sealed class PdfSpotColorTable : PdfResourceTable
 
         return new PdfArray(Owner,
             new PdfName("/Separation"),
-            new PdfName("/" + ColorantName(spot.Name)),
+            new PdfName(PdfName.WithSolidus(ColorantName(spot.Name))),
             new PdfName(space),
             function);
     }

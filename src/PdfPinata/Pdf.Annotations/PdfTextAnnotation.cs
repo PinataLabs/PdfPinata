@@ -82,13 +82,13 @@ public sealed class PdfTextAnnotation : PdfMarkupAnnotation
     /// </summary>
     public PdfTextAnnotationIcon Icon
     {
-        get => IconFromName(Elements.GetName(Keys.Name), PdfTextAnnotationIcon.NoIcon);
+        get => PdfNameEnum.Parse(Elements.GetName(Keys.Name), PdfTextAnnotationIcon.NoIcon);
         set
         {
             if (Enum.IsDefined(value) &&
                 PdfTextAnnotationIcon.NoIcon != value)
             {
-                Elements.SetName(Keys.Name, "/" + value.ToString());
+                Elements.SetName(Keys.Name, value.ToString());
             }
             else
                 Elements.Remove(Keys.Name);

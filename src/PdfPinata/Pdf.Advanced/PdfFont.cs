@@ -236,10 +236,7 @@ public class PdfFont : PdfDictionary
         for (var idx = 0; idx < 6; idx++)
             s.Append((char)('A' + bytes[idx] % 26));
         s.Append('+');
-        if (name.StartsWith('/'))
-            s.Append(name, 1, name.Length - 1);
-        else
-            s.Append(name);
+        s.Append(PdfName.WithoutSolidus(name));
         return s.ToString();
     }
 

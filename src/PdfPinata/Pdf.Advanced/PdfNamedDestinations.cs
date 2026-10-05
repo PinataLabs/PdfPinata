@@ -70,7 +70,7 @@ internal static class PdfNamedDestinations
             // The keys of a dictionary carry the slash a name is written with.
             var dests = catalog.Elements.GetDictionary("/Dests");
             if (dests != null)
-                found = dests.Elements["/" + text];
+                found = dests.Elements[PdfName.WithSolidus(text)];
         }
 
         return DestinationOf(found);

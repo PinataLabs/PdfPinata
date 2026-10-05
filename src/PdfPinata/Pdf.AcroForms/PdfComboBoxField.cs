@@ -179,8 +179,7 @@ public sealed class PdfComboBoxField : PdfChoiceField
     /// </summary>
     private static string TextOfName(PdfName name)
     {
-        var value = name.Value ?? "";
-        return value.Length != 0 && value[0] == '/' ? value[1..] : value;
+        return PdfName.WithoutSolidus(name.Value ?? "");
     }
 
     /// <summary>

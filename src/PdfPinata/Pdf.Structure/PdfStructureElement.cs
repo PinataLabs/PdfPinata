@@ -87,7 +87,7 @@ public sealed class PdfStructureElement : PdfDictionary
     {
         var attributes = new PdfDictionary(Owner);
         attributes.Elements.SetName("/O", "/List");
-        attributes.Elements.SetName("/ListNumbering", "/" + listNumbering);
+        attributes.Elements.SetName("/ListNumbering", listNumbering.ToString());
         Elements[Keys.A] = attributes;
     }
 
