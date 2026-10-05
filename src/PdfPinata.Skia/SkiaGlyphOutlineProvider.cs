@@ -121,12 +121,8 @@ public sealed class SkiaGlyphOutlineProvider : IGlyphOutlineProvider
                     // A conic is a rational quadratic. Font outlines are not drawn with them, so
                     // treating one as its unweighted quadratic is a fallback that never fires
                     // rather than an approximation anyone relies on.
-                    var control = At(points[1], pen);
                     var end = At(points[2], pen);
-                    segments.Add(XGlyphSegment.CurveTo(
-                        Lerp(current, control, 2.0 / 3.0),
-                        Lerp(end, control, 2.0 / 3.0),
-                        end));
+                    segments.Add(XGlyphSegment.QuadraticTo(current, At(points[1], pen), end));
                     current = end;
                     break;
                 }
@@ -148,8 +144,4 @@ public sealed class SkiaGlyphOutlineProvider : IGlyphOutlineProvider
 
     /// <summary>A Skia point in the seam's space: advanced along the run, and the right way up.</summary>
     private static XPoint At(SKPoint point, double pen) => new(pen + point.X, -point.Y);
-
-    /// <summary>The point a fraction of the way from one point towards another.</summary>
-    private static XPoint Lerp(XPoint from, XPoint to, double fraction) =>
-        new(from.X + fraction * (to.X - from.X), from.Y + fraction * (to.Y - from.Y));
 }
