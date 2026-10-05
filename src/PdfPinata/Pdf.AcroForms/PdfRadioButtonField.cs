@@ -101,11 +101,9 @@ public sealed class PdfRadioButtonField : PdfButtonField
     {
         get
         {
-            var value = Elements.GetString(PdfAcroField.Keys.V);
             // /V is a name, while /Opt holds the export values as text strings. The slash that
             // makes the name a name is not part of the value it stands for.
-            if (value.Length != 0 && value[0] == '/')
-                value = value[1..];
+            var value = PdfName.WithoutSolidus(Elements.GetString(PdfAcroField.Keys.V));
             return IndexInOptStrings(value);
         }
         set

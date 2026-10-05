@@ -569,10 +569,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         {
             ArgumentNullException.ThrowIfNull(value);
 
-            if (value.Length == 0 || value[0] != '/')
-                value = "/" + value;
-
-            this[key] = new PdfName(value);
+            this[key] = new PdfName(PdfName.WithSolidus(value));
         }
 
         /// <summary>
@@ -759,7 +756,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         {
             if (!(value is Enum))
                 throw new ArgumentException("The value must be an enumeration value.", nameof(value));
-            _elements[key] = new PdfName("/" + value);
+            _elements[key] = new PdfName(PdfName.WithSolidus(value.ToString()));
             MarkOwnerAsChanged();
         }
 

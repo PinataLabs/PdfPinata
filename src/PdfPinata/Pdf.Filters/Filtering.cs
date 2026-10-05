@@ -45,8 +45,7 @@ public static class Filtering
     {
         ArgumentNullException.ThrowIfNull(filterName);
 
-        if (filterName.StartsWith('/'))
-            filterName = filterName[1..];
+        filterName = PdfName.WithoutSolidus(filterName);
 
         // Some tools use abbreviations
         return filterName switch

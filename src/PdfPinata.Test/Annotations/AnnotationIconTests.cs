@@ -20,7 +20,7 @@ namespace PdfPinata.Test.Annotations;
 ///   </para>
 ///   <para>
 ///     The property existed three times over and the other two stripped the solidus and checked the
-///     member existed. All three now share <c>PdfAnnotation.IconFromName</c>, so there is one
+///     member existed. All three now share <c>PdfNameEnum.Parse</c>, so there is one
 ///     implementation to be right rather than three to drift.
 ///   </para>
 /// </remarks>

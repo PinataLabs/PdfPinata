@@ -96,12 +96,10 @@ public sealed class PdfStructureTreeRoot : PdfDictionary
 
         var map = new PdfDictionary(Owner);
         foreach (var pair in RoleMap)
-            map.Elements.SetName(Name(pair.Key), Name(pair.Value));
+            map.Elements.SetName(PdfName.WithSolidus(pair.Key), pair.Value);
 
         Elements[Keys.RoleMap] = map;
     }
-
-    private static string Name(string value) => value.Length > 0 && value[0] == '/' ? value : "/" + value;
 
     private PdfArray Kids()
     {

@@ -118,6 +118,31 @@ public sealed class PdfName : PdfItem
     }
 
     /// <summary>
+    /// The name a string stands for, with the solidus a PDF name is written with put in front of it
+    /// unless it is there already. An empty string is the empty name, <c>/</c>.
+    /// </summary>
+    /// <remarks>
+    /// The one place a name gains its solidus, rather than about twenty spellings of the same test,
+    /// several of which read the first character without asking whether there was one.
+    /// </remarks>
+    internal static string WithSolidus(string name)
+    {
+        ArgumentNullException.ThrowIfNull(name);
+
+        return name.Length > 0 && name[0] == '/' ? name : "/" + name;
+    }
+
+    /// <summary>
+    /// The text a name stands for, without the solidus that makes it a name: <c>/Yes</c> is
+    /// <c>Yes</c>, and the empty name <c>/</c> is the empty string. A string with no solidus, an
+    /// empty one and <c>null</c> are all handed back as they are.
+    /// </summary>
+    internal static string WithoutSolidus(string name)
+    {
+        return name is { Length: > 0 } && name[0] == '/' ? name[1..] : name;
+    }
+
+    /// <summary>
     /// Represents the empty name.
     /// </summary>
     public static readonly PdfName Empty = new("/");

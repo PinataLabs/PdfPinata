@@ -67,7 +67,9 @@ internal static class PdfNamedDestinations
 
         if (found == null)
         {
-            // The keys of a dictionary carry the slash a name is written with.
+            // The keys of a dictionary carry the slash a name is written with. Always one of its
+            // own, not PdfName.WithSolidus: text beginning with a solidus names a destination
+            // whose name begins with one, which is the key "//Foo", not "/Foo".
             var dests = catalog.Elements.GetDictionary("/Dests");
             if (dests != null)
                 found = dests.Elements["/" + text];

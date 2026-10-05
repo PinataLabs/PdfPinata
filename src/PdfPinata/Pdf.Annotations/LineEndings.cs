@@ -28,13 +28,7 @@ internal static class LineEndings
         if (endings == null || endings.Elements.Count <= index)
             return PdfLineEnding.None;
 
-        var name = endings.Elements.GetName(index);
-        if (name.Length > 0 && name[0] == '/')
-            name = name[1..];
-
-        return Enum.IsDefined(typeof(PdfLineEnding), name)
-            ? Enum.Parse<PdfLineEnding>(name, false)
-            : PdfLineEnding.None;
+        return PdfNameEnum.Parse(endings.Elements.GetName(index), PdfLineEnding.None);
     }
 
     /// <summary>
@@ -43,7 +37,7 @@ internal static class LineEndings
     /// reader likes.
     /// </summary>
     public static PdfArray Write(PdfDocument owner, PdfLineEnding start, PdfLineEnding end) =>
-        new(owner, new PdfName("/" + start), new PdfName("/" + end));
+        new(owner, new PdfName(PdfName.WithSolidus(start.ToString())), new PdfName(PdfName.WithSolidus(end.ToString())));
 
     /// <summary>
     /// The unit vector from one point towards another, or the x axis when the two coincide.
