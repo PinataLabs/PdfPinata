@@ -9,6 +9,7 @@ using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Test.Helpers;
+using static PdfPinata.Test.Helpers.ContentOperands;
 
 namespace PdfPinata.Charting.Tests.Helpers;
 
@@ -232,13 +233,6 @@ internal static class ShownText
                 Shown.Add(new Run(Decode(text, _current), _lineX, _lineY, _fill, _size, _current?.Face));
         }
     }
-
-    private static double Number(CObject operand) => operand switch
-    {
-        CInteger integer => integer.Value,
-        CReal real => real.Value,
-        _ => 0
-    };
 
     /// <summary>
     ///   The strings the page shows that read as a number, as they were written.

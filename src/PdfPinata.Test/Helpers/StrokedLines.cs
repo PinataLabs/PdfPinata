@@ -4,6 +4,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Content.Objects;
+using static PdfPinata.Test.Helpers.ContentOperands;
 
 namespace PdfPinata.Test.Helpers;
 
@@ -69,7 +70,7 @@ internal static class StrokedLines
     internal static IReadOnlyList<Line> Of(PdfPage page)
     {
         var reader = new LineReader();
-        foreach (var item in ContentReader.ReadContent(ContentOf(page)))
+        foreach (var item in ContentReader.ReadContent(PageContent.Of(page)))
         {
             if (item is COperator op)
                 reader.Read(op);
@@ -255,25 +256,6 @@ internal static class StrokedLines
         }
     }
 
-    private static byte[] ContentOf(PdfPage page)
-    {
-        var item = page.Elements["/Contents"];
-        if (item is PdfReference reference)
-            item = reference.Value;
-
-        if (item is not PdfArray streams)
-            return ((PdfDictionary)item).Stream.UnfilteredValue;
-
-        // The streams of a page are one stream broken up, and a token may span the break.
-        var joined = new List<byte>();
-        for (var idx = 0; idx < streams.Elements.Count; idx++)
-        {
-            joined.AddRange(streams.Elements.GetDictionary(idx).Stream.UnfilteredValue);
-            joined.Add((byte)'\n');
-        }
-        return [..joined];
-    }
-
     /// <summary>A colour as this reports one: the three components, comma separated.</summary>
     private static string Rgb(double red, double green, double blue)
     {
@@ -292,15 +274,5 @@ internal static class StrokedLines
     private static string Cmyk(double cyan, double magenta, double yellow, double black)
     {
         return Rgb((1 - cyan) * (1 - black), (1 - magenta) * (1 - black), (1 - yellow) * (1 - black));
-    }
-
-    private static double Number(CObject operand)
-    {
-        return operand switch
-        {
-            CInteger integer => integer.Value,
-            CReal real => real.Value,
-            _ => 0.0
-        };
     }
 }

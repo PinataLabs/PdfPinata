@@ -4,6 +4,7 @@ using System.Linq;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Content.Objects;
+using static PdfPinata.Test.Helpers.ContentOperands;
 
 namespace PdfPinata.Test.Helpers;
 
@@ -146,14 +147,4 @@ internal static class TextBaselines
     }
 
     private static byte[] ContentOf(PdfPage page) => PageContent.Of(page);
-
-    private static double Number(CObject operand)
-    {
-        return operand switch
-        {
-            CInteger integer => integer.Value,
-            CReal real => real.Value,
-            _ => 0.0
-        };
-    }
 }

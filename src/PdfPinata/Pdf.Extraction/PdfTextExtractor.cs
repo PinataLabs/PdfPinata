@@ -325,7 +325,7 @@ public static class PdfTextExtractor
                 case OpCodeName.BMC:
                     // No properties are possible on this form, so no /MCID and no /ActualText —
                     // just the tag, straight off the operand the content parser gave it.
-                    PushScope(new MarkedContentScope(NameOperand(op, 0), null, null));
+                    PushScope(new MarkedContentScope(op.NameOperand(0), null, null));
                     return true;
 
                 case OpCodeName.EMC:
@@ -393,7 +393,7 @@ public static class PdfTextExtractor
                 // Neither shape matched — a BDC with too few operands and nothing to look back to.
                 // Malformed input degrades rather than aborts: whatever tag can be salvaged is kept
                 // and the sequence carries no properties.
-                tag = NameOperand(op, 0);
+                tag = op.NameOperand(0);
             }
 
             PushScope(new MarkedContentScope(tag, actualText, mcid));
@@ -405,7 +405,7 @@ public static class PdfTextExtractor
         /// </summary>
         private (string ActualText, int? Mcid) NamedProperties(COperator op)
         {
-            var properties = PropertiesFor(NameOperand(op, 1));
+            var properties = PropertiesFor(op.NameOperand(1));
             if (properties == null)
                 return (null, null);
 
@@ -467,13 +467,10 @@ public static class PdfTextExtractor
             return name == null ? null : ResourceCategory("/Properties")?.Elements.GetDictionary(name);
         }
 
-        private static string NameOperand(COperator op, int index) =>
-            index < op.Operands.Count && op.Operands[index] is CName name ? name.Name : null;
-
         private void SelectFont(COperator op)
         {
             _fontSize = Number(op, 1);
-            _fontName = op.Operands.Count > 0 && op.Operands[0] is CName name ? name.Name : null;
+            _fontName = op.NameOperand(0);
             _font = _fontName == null ? null : FontFor(_fontName);
         }
 
@@ -647,9 +644,7 @@ public static class PdfTextExtractor
             Number(op, from + 3), Number(op, from + 4), Number(op, from + 5));
 
         private static double Number(COperator op, int index) =>
-            index < op.Operands.Count && op.Operands[index] is CNumber number
-                ? (number is CInteger integer ? integer.Value : ((CReal)number).Value)
-                : 0;
+            op.TryNumberOperand(index, out var value) ? value : 0;
     }
 
     /// <summary>

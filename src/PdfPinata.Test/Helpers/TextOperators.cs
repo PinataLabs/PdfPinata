@@ -4,6 +4,7 @@ using System.Linq;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Content.Objects;
+using static PdfPinata.Test.Helpers.ContentOperands;
 
 namespace PdfPinata.Test.Helpers;
 
@@ -55,13 +56,14 @@ internal static class TextOperators
     }
 
     /// <summary>
-    ///   Every operand list an operator was given, in the order they were written.
+    ///   Every operand list an operator was given, in the order they were written. An operand that
+    ///   is not a number - the font name of a Tf, the dash array of a d - reads as zero.
     /// </summary>
     internal static IReadOnlyList<double[]> OperandsGivenTo(PdfPage page, OpCodeName opCode)
     {
         return [..Operators(page)
             .Where(op => op.OpCode.OpCodeName == opCode)
-            .Select(op => op.Operands.Select(Number).ToArray())];
+            .Select(op => op.Operands.Select(NumberOrZero).ToArray())];
     }
 
     /// <summary>
@@ -309,15 +311,5 @@ internal static class TextOperators
     private static IEnumerable<COperator> Operators(byte[] content)
     {
         return ContentReader.ReadContent(content).OfType<COperator>();
-    }
-
-    private static double Number(CObject operand)
-    {
-        return operand switch
-        {
-            CInteger integer => integer.Value,
-            CReal real => real.Value,
-            _ => 0.0
-        };
     }
 }

@@ -62,6 +62,11 @@
     <Compile Include="..\PdfPinata.Test\Helpers\StrokedLines.cs" Link="Helpers\Linked\StrokedLines.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\TextOperators.cs" Link="Helpers\Linked\TextOperators.cs" />
     <!--
+      How those readers, and the three under Helpers/ here, turn an operand into a number: one copy
+      for all of them, not one each.
+    -->
+    <Compile Include="..\PdfPinata.Test\Helpers\ContentOperands.cs" Link="Helpers\Linked\ContentOperands.cs" />
+    <!--
       The one fact that decides what every axis and label measurement here sees: which font stands
       in for Arial. It used to be a smaller copy of its own; linked now, for the same reason as the
       three readers above.

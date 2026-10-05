@@ -8,6 +8,7 @@ using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Test.Helpers;
 using Xunit;
+using static PdfPinata.Test.Helpers.ContentOperands;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -120,7 +121,7 @@ public class AppendedTransformTests
 
         foreach (var op in ContentReader.ReadContent(PageContent.Of(page)).OfType<COperator>())
         {
-            var operands = op.Operands.Select(Number).ToArray();
+            var operands = op.Operands.Select(NumberOrZero).ToArray();
             switch (op.OpCode.OpCodeName)
             {
                 case OpCodeName.q:
@@ -146,15 +147,5 @@ public class AppendedTransformTests
         }
 
         throw new InvalidOperationException("The page draws no line.");
-    }
-
-    private static double Number(CObject operand)
-    {
-        return operand switch
-        {
-            CInteger integer => integer.Value,
-            CReal real => real.Value,
-            _ => 0.0
-        };
     }
 }

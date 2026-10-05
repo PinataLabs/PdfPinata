@@ -100,7 +100,7 @@ internal sealed class PdfPageResourceUsage : PdfPageWalk
                 // three names up — no resource dictionary ever holds them — so they would otherwise
                 // go unrecorded, and a page painting "/DeviceCMYK cs 0 0 0 1 sc" would read as
                 // painting nothing at all.
-                switch (NameOfFirstOperand(op))
+                switch (op.NameOperand(0))
                 {
                     case "/DeviceGray":
                         UsesDeviceGray = true;
@@ -115,9 +115,6 @@ internal sealed class PdfPageResourceUsage : PdfPageWalk
                 break;
         }
     }
-
-    private static string NameOfFirstOperand(COperator op) =>
-        op.Operands.Count > 0 && op.Operands[0] is CName name ? name.Name : null;
 
     protected override void RecordResolved(string category, string name, PdfItem resolved)
     {

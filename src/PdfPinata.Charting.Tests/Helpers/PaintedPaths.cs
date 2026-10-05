@@ -6,6 +6,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Test.Helpers;
+using static PdfPinata.Test.Helpers.ContentOperands;
 
 namespace PdfPinata.Charting.Tests.Helpers;
 
@@ -296,11 +297,4 @@ internal static class PaintedPaths
     // Written exactly as PaintedRectangles writes a colour, so that its ColourOf names one here too.
     private static string Rgb(double r, double g, double b) =>
         string.Format(CultureInfo.InvariantCulture, "{0:0.###},{1:0.###},{2:0.###}", r, g, b);
-
-    private static double Number(CObject operand) => operand switch
-    {
-        CInteger integer => integer.Value,
-        CReal real => real.Value,
-        _ => throw new InvalidOperationException("Operand is not a number: " + operand)
-    };
 }

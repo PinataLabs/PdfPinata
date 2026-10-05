@@ -4,6 +4,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Content.Objects;
+using static PdfPinata.Test.Helpers.ContentOperands;
 
 namespace PdfPinata.Test.Helpers;
 
@@ -28,7 +29,7 @@ internal static class PlacedOperators
 
         foreach (var op in ContentReader.ReadContent(PageContent.Of(page)).OfType<COperator>())
         {
-            var operands = op.Operands.Select(Number).ToArray();
+            var operands = op.Operands.Select(NumberOrZero).ToArray();
             switch (op.OpCode.OpCodeName)
             {
                 case OpCodeName.q:
@@ -48,15 +49,5 @@ internal static class PlacedOperators
         }
 
         return placed;
-    }
-
-    private static double Number(CObject operand)
-    {
-        return operand switch
-        {
-            CInteger integer => integer.Value,
-            CReal real => real.Value,
-            _ => 0.0
-        };
     }
 }

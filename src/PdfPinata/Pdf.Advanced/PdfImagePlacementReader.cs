@@ -96,7 +96,7 @@ internal sealed class PdfImagePlacementReader
                     break;
 
                 case OpCodeName.Do:
-                    Draw(NameAt(op, 0), scope, ctm, depth);
+                    Draw(op.NameOperand(0), scope, ctm, depth);
                     break;
 
                 case OpCodeName.BI:
@@ -122,7 +122,7 @@ internal sealed class PdfImagePlacementReader
         var m = new double[6];
         for (var idx = 0; idx < 6; idx++)
         {
-            if (!TryGetNumber(op.Operands[idx], out m[idx]))
+            if (!op.TryNumberOperand(idx, out m[idx]))
                 return ctm;
         }
 
@@ -215,31 +215,5 @@ internal sealed class PdfImagePlacementReader
     private static string Identify(PdfDictionary form)
     {
         return form.IsIndirect ? form.ObjectID.ToString() : null;
-    }
-
-    private static string NameAt(COperator op, int index)
-    {
-        if (index < 0 || index >= op.Operands.Count)
-            return null;
-
-        return op.Operands[index] is CName name ? name.Name : null;
-    }
-
-    private static bool TryGetNumber(CObject operand, out double value)
-    {
-        if (operand is CReal real)
-        {
-            value = real.Value;
-            return true;
-        }
-
-        if (operand is CInteger integer)
-        {
-            value = integer.Value;
-            return true;
-        }
-
-        value = 0;
-        return false;
     }
 }

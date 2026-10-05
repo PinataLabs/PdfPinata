@@ -144,30 +144,30 @@ internal abstract class PdfPageWalk
         switch (op.OpCode.OpCodeName)
         {
             case OpCodeName.Do:
-                return ("/XObject", NameAt(op, 0));
+                return ("/XObject", op.NameOperand(0));
 
             case OpCodeName.Tf:
-                return ("/Font", NameAt(op, 0));
+                return ("/Font", op.NameOperand(0));
 
             case OpCodeName.gs:
-                return ("/ExtGState", NameAt(op, 0));
+                return ("/ExtGState", op.NameOperand(0));
 
             case OpCodeName.sh:
-                return ("/Shading", NameAt(op, 0));
+                return ("/Shading", op.NameOperand(0));
 
             case OpCodeName.cs:
             case OpCodeName.CS:
-                return ("/ColorSpace", NonDeviceColorSpace(NameAt(op, 0)));
+                return ("/ColorSpace", NonDeviceColorSpace(op.NameOperand(0)));
 
             case OpCodeName.scn:
             case OpCodeName.SCN:
                 // A pattern is named last, after the components of the underlying colour.
-                return ("/Pattern", NameAt(op, op.Operands.Count - 1));
+                return ("/Pattern", op.NameOperand(op.Operands.Count - 1));
 
             case OpCodeName.BDC:
             case OpCodeName.DP:
                 // The property list is named second, after the tag, unless it is written out.
-                return ("/Properties", NameAt(op, 1));
+                return ("/Properties", op.NameOperand(1));
 
             default:
                 return (null, null);
@@ -191,15 +191,6 @@ internal abstract class PdfPageWalk
     /// </summary>
     protected virtual void Observe(COperator op, PdfDictionary scope, int depth)
     {
-    }
-
-    private static string NameAt(COperator op, int index)
-    {
-        if (index < 0 || index >= op.Operands.Count)
-            return null;
-
-        var name = op.Operands[index] as CName;
-        return name?.Name;
     }
 
     #endregion
