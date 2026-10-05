@@ -42,32 +42,9 @@ public class RtfFlattenVisitor : VisitorBase
   {
   }
 
-  internal override void VisitFormattedText(FormattedText formattedText)
-  {
-    var document = formattedText.Document;
-    ParagraphFormat format = null;
+  internal override void VisitFormattedText(FormattedText formattedText) =>
+    FlattenStyleFont(formattedText);
 
-    var style = document.styles[formattedText.style ?? ""];
-    if (style != null)
-      format = style.paragraphFormat;
-    else if ((formattedText.style ?? "") != "")
-      format = document.styles["InvalidStyleName"].paragraphFormat;
-
-    if (format == null)
-      return;
-
-    if (formattedText.font == null)
-      formattedText.Font = format.font.Clone();
-    else if (format.font != null)
-      FlattenFont(formattedText.font, format.font);
-  }
-
-  internal override void VisitHyperlink(Hyperlink hyperlink)
-  {
-    var styleFont = hyperlink.Document.Styles["Hyperlink"].Font;
-    if (hyperlink.font == null)
-      hyperlink.Font = styleFont.Clone();
-    else
-      FlattenFont(hyperlink.font, styleFont);
-  }
+  internal override void VisitHyperlink(Hyperlink hyperlink) =>
+    FlattenStyleFont(hyperlink);
 }
