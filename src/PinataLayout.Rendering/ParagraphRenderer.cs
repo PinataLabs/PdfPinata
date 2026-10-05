@@ -3203,101 +3203,83 @@ internal class ParagraphRenderer : Renderer
         }
     }
 
-    private void RenderUnderline(XUnit width, bool isWord)
-    {
-        var pen = GetUnderlinePen(isWord);
+    private void RenderUnderline(XUnit width, bool isWord) =>
+        RenderRule(underlineRule, GetUnderlinePen(isWord), width);
 
-        var penChanged = UnderlinePenChanged(pen);
-        if (penChanged)
+    private void RenderStrikethrough(XUnit width, bool isWord) =>
+        RenderRule(strikethroughRule, GetStrikethroughPen(isWord), width);
+
+    /// <summary>
+    /// Carries <paramref name="rule"/> across the run just drawn, <paramref name="width"/> wide, whose
+    /// pen for it is <paramref name="pen"/>: ending the rule in progress where the pen changes,
+    /// starting another, and ending it for good at the last leaf of the line.
+    /// </summary>
+    /// <remarks>
+    /// While the line is being reordered every leaf is somewhere else, so no rule may run on from
+    /// one leaf into the next and each is ended where it is drawn.
+    /// </remarks>
+    private void RenderRule(TextRule rule, XPen pen, XUnit width)
+    {
+        if (RulePenChanged(pen, rule.Pen))
         {
-            if (currentUnderlinePen != null)
-                EndUnderline(currentUnderlinePen, currentXPosition);
+            if (rule.Pen != null)
+                EndRule(rule, currentXPosition);
 
             if (pen != null)
-                StartUnderline(currentXPosition);
+                rule.Start = currentXPosition;
 
-            currentUnderlinePen = pen;
+            rule.Pen = pen;
         }
 
         if (!reordering && currentLeaf.Current != endLeaf.Current)
             return;
 
-        if (currentUnderlinePen != null)
-            EndUnderline(currentUnderlinePen, currentXPosition + width);
+        if (rule.Pen != null)
+            EndRule(rule, currentXPosition + width);
 
-        currentUnderlinePen = null;
+        rule.Pen = null;
     }
 
-    private void StartUnderline(XUnit xPosition)
+    private void EndRule(TextRule rule, XUnit xPosition)
     {
-        underlineStartPos = xPosition;
+        var yPosition = rule.Height(CurrentBaselinePosition, rule.Pen, currentVerticalInfo.descent);
+        Gfx.DrawLine(rule.Pen, rule.Start, yPosition, xPosition, yPosition);
     }
 
-    private void EndUnderline(XPen pen, XUnit xPosition)
+    private readonly TextRule underlineRule = new((baseline, _, descent) => baseline + 0.33 * descent);
+
+    private readonly TextRule strikethroughRule =
+        new((baseline, pen, descent) => baseline - pen.Width / 2 - descent);
+
+    /// <summary>
+    /// A rule drawn through or under the text, underline or strikethrough: the pen of the one in
+    /// progress and where it began, and the one thing the two differ in, which is how far from the
+    /// baseline it is drawn.
+    /// </summary>
+    private sealed class TextRule
     {
-        var yPosition = CurrentBaselinePosition;
-        yPosition += 0.33 * currentVerticalInfo.descent;
-        Gfx.DrawLine(pen, underlineStartPos, yPosition, xPosition, yPosition);
+        public TextRule(Func<XUnit, XPen, XUnit, XUnit> height) => Height = height;
+
+        /// <summary>
+        /// The height the rule is drawn at, from the baseline, its pen and the line's descent.
+        /// </summary>
+        public Func<XUnit, XPen, XUnit, XUnit> Height { get; }
+
+        /// <summary>The pen of the rule in progress, or null when there is none.</summary>
+        public XPen Pen { get; set; }
+
+        /// <summary>Where the rule in progress began.</summary>
+        public XUnit Start { get; set; }
     }
-
-    private XPen currentUnderlinePen;
-    private XUnit underlineStartPos;
-
-    private bool UnderlinePenChanged(XPen pen) => RulePenChanged(pen, currentUnderlinePen);
-
-
-    private void RenderStrikethrough(XUnit width, bool isWord)
-    {
-        var pen = GetStrikethroughPen(isWord);
-
-        var penChanged = StrikethroughPenChanged(pen);
-        if (penChanged)
-        {
-            if (currentStrikethroughPen != null)
-                EndStrikethrough(currentStrikethroughPen, currentXPosition);
-
-            if (pen != null)
-                StartStrikethrough(currentXPosition);
-
-            currentStrikethroughPen = pen;
-        }
-
-        if (!reordering && currentLeaf.Current != endLeaf.Current)
-            return;
-
-        if (currentStrikethroughPen != null)
-            EndStrikethrough(currentStrikethroughPen, currentXPosition + width);
-
-        currentStrikethroughPen = null;
-    }
-
-    private void StartStrikethrough(XUnit xPosition)
-    {
-        strikethroughStartPos = xPosition;
-    }
-
-    private void EndStrikethrough(XPen pen, XUnit xPosition)
-    {
-        var yPosition = CurrentBaselinePosition;
-        yPosition -= pen.Width / 2;
-        yPosition -= currentVerticalInfo.descent;
-
-        Gfx.DrawLine(pen, strikethroughStartPos, yPosition, xPosition, yPosition);
-    }
-
-    private XPen currentStrikethroughPen;
-    private XUnit strikethroughStartPos;
-
-    private bool StrikethroughPenChanged(XPen pen) => RulePenChanged(pen, currentStrikethroughPen);
 
     /// <summary>
     /// Whether a rule being drawn with <paramref name="current"/> has to end, and another begin, for a
     /// run drawn with <paramref name="pen"/>. A rule stays one line for as long as its pen is the same.
     /// </summary>
     /// <remarks>
-    /// Colour, width and dash style are everything <see cref="GetUnderlinePen"/> and
-    /// <see cref="GetStrikethroughPen"/> set, so a change to any of them is a change of pen. The dash
-    /// style used to be left out, which drew a dotted run followed by a dashed one as one dotted line.
+    /// Colour, width and dash style are everything <see cref="RulePen"/> sets, so a change to any of
+    /// them is a change of pen. The dash style used to be left out, which drew a dotted run followed
+    /// by a dashed one as one dotted line.
     /// </remarks>
     private static bool RulePenChanged(XPen pen, XPen current)
     {
@@ -3342,10 +3324,7 @@ internal class ParagraphRenderer : Renderer
         if (underlineType == Underline.Words && !isWord)
             return null;
 
-        return new XPen(ColorHelper.ToXColor(font.Color, paragraph), font.Size / 16)
-        {
-            DashStyle = DashStyleHelper.ToXDashStyle(font.Underline)
-        };
+        return RulePen(font, DashStyleHelper.ToXDashStyle(underlineType));
     }
 
     private XPen GetStrikethroughPen(bool isWord)
@@ -3358,11 +3337,15 @@ internal class ParagraphRenderer : Renderer
         if (strikethroughType == Strikethrough.Words && !isWord)
             return null;
 
-        return new XPen(ColorHelper.ToXColor(font.Color, paragraph), font.Size / 16)
-        {
-            DashStyle = DashStyleHelper.ToXDashStyle(font.Strikethrough)
-        };
+        return RulePen(font, DashStyleHelper.ToXDashStyle(strikethroughType));
     }
+
+    /// <summary>
+    /// The pen a rule through or under text in <paramref name="font"/> is drawn with: the colour of
+    /// the text, a sixteenth of its size wide.
+    /// </summary>
+    private XPen RulePen(Font font, XDashStyle dashStyle) =>
+        new(ColorHelper.ToXColor(font.Color, paragraph), font.Size / 16) { DashStyle = dashStyle };
 
     /// <summary>
     /// The format every string of this paragraph is measured and drawn with.
