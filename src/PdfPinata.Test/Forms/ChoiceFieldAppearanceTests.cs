@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using AwesomeAssertions;
 using ImageMagick;
 using PdfPinata.Drawing;
@@ -296,6 +297,24 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         combo.ForeColor.Should().Be(XColors.Black);
         var act = () => combo.SelectedIndex = 2;
         act.Should().NotThrow();
+    }
+
+    [Fact(Timeout = 30000)]
+    public async Task ALongRunOfDigitsInTheDefaultAppearanceIsReadInLinearTime()
+    {
+        // /DA comes from files, and five thousand digits used to take a minute and a half for each
+        // of the two patterns to fail to match - for every setter that redraws the field.
+        var (_, combo) = OnAPage(ACountryCombo);
+        combo.DefaultAppearance = new string('1', 5000) + " /Helv 9 Tf 0 0 1 rg";
+
+        var (size, color) = await Interruptibly.Run(() =>
+        {
+            combo.SelectedIndex = 2;
+            return (combo.Font.Size, combo.ForeColor);
+        });
+
+        size.Should().Be(9);
+        color.Should().Be(XColor.FromArgb(0, 0, 255));
     }
 
     [Fact]
