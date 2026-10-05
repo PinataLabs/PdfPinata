@@ -107,6 +107,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **A chart line format that is not `Visible` is no line, on every axis and every element.** `Converter.ToXPen` turns such a format into a pen of width 0, which PDF draws as the thinnest line the device can. Only a column chart's value axis checked the width, so setting just `XAxis.LineFormat.Width` drew a hairline on the category axis and on a bar chart's value axis and nothing on a column chart's; tick marks, gridlines, the zero baseline and the legend border checked nothing. A pen of width 0 or less is now dropped wherever it is drawn, and a hidden legend border no longer takes up padding. A gridline format naming only a colour is therefore no longer drawn: set `Visible = true`, as a series already needed. (#173)
 
+#### Added
+
+- **The charting `LineFormat` has a `DashPattern`, so a chart line set to `XDashStyle.Custom` is drawn dashed.** The format had a dash style but no pattern, so `Custom` reached the page as `[] 0 d`, a solid line, for every series, point, axis and gridline. `DashPattern` takes dash and gap lengths in units of the line width, as `XPen.DashPattern` does. Setting it sets `DashStyle` to `Custom`, and a length that is not finite and greater than zero is refused with `ArgumentException`. A point that says nothing about its dashes takes its series' pattern with its series' style. `Custom` with no pattern is still drawn solid, as an `XPen` is. PinataLayout's chart `LineFormat` has no custom dash style, so nothing reaches this through the mapper. (#208)
+
 #### Fixed
 
 - **The charting `XSeries` implements `IEnumerable`, so LINQ can be used over it.** It had a public `GetEnumerator` and no interface, so `foreach` compiled and every LINQ operator, `Cast` included, did not. It is non-generic like the package's other collections: `Cast<XValue>()` yields a blank as null and `OfType<XValue>()` leaves it out.

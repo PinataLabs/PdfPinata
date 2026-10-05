@@ -35,7 +35,7 @@ internal static class PaintedPaths
     internal sealed class Path
     {
         internal Path(IReadOnlyList<(double X, double Y)> points, int curves, bool filled, bool stroked,
-            string fillColour, string strokeColour, double lineWidth, bool dashed)
+            string fillColour, string strokeColour, double lineWidth, IReadOnlyList<double> dashArray, double dashPhase)
         {
             Points = points;
             Curves = curves;
@@ -44,7 +44,8 @@ internal static class PaintedPaths
             FillColour = fillColour;
             StrokeColour = strokeColour;
             LineWidth = lineWidth;
-            Dashed = dashed;
+            DashArray = dashArray;
+            DashPhase = dashPhase;
         }
 
         /// <summary>
@@ -72,7 +73,16 @@ internal static class PaintedPaths
         ///   Whether the dash pattern in force when it was painted has any dashes in it - a
         ///   <c>d</c> operator with a non-empty array - rather than being a solid line.
         /// </summary>
-        internal bool Dashed { get; }
+        internal bool Dashed => DashArray.Count > 0;
+
+        /// <summary>
+        ///   The array of the dash pattern in force when it was painted, as the <c>d</c> operator
+        ///   wrote it - so in points, already scaled by the line width - and empty for a solid line.
+        /// </summary>
+        internal IReadOnlyList<double> DashArray { get; }
+
+        /// <summary>The phase of the dash pattern in force when it was painted.</summary>
+        internal double DashPhase { get; }
 
         /// <summary>
         ///   How many different points the path names - the corners of a polygon, which is what
@@ -95,7 +105,8 @@ internal static class PaintedPaths
         {
             var paint = Filled ? Stroked ? "FS" : "F" : "S";
             return $"{paint} {DistinctPoints} points, {Curves} curves, ({Left:F2},{Bottom:F2}) {Width:F2}x{Height:F2}" +
-                $" fill={FillColour} stroke={StrokeColour} w={LineWidth:F2}" + (Dashed ? " dashed" : "");
+                $" fill={FillColour} stroke={StrokeColour} w={LineWidth:F2}" +
+                (Dashed ? $" dashed [{string.Join(" ", DashArray)}] {DashPhase}" : "");
         }
     }
 
@@ -127,11 +138,12 @@ internal static class PaintedPaths
         private readonly List<(double X, double Y)> _points = [];
         private int _curves;
 
-        private readonly Stack<(string Fill, string Stroke, double Width, bool Dashed)> _saved = new();
+        private readonly Stack<(string Fill, string Stroke, double Width, IReadOnlyList<double> Dash, double Phase)> _saved = new();
         private string _fill = PaintedRectangles.Black;
         private string _stroke = PaintedRectangles.Black;
         private double _width = 1;
-        private bool _dashed;
+        private IReadOnlyList<double> _dash = [];
+        private double _phase;
 
         internal List<Path> Painted { get; } = [];
 
@@ -149,13 +161,13 @@ internal static class PaintedPaths
             switch (name)
             {
                 case OpCodeName.q:
-                    _saved.Push((_fill, _stroke, _width, _dashed));
+                    _saved.Push((_fill, _stroke, _width, _dash, _phase));
                     return true;
 
                 case OpCodeName.Q:
                     // A Q with nothing put away is malformed content; read on rather than throw.
                     if (_saved.Count > 0)
-                        (_fill, _stroke, _width, _dashed) = _saved.Pop();
+                        (_fill, _stroke, _width, _dash, _phase) = _saved.Pop();
                     return true;
 
                 case OpCodeName.w:
@@ -164,8 +176,11 @@ internal static class PaintedPaths
                     return true;
 
                 case OpCodeName.d:
-                    if (operands.Count >= 1 && operands[0] is CArray pattern)
-                        _dashed = pattern.Count > 0;
+                    if (operands.Count >= 2 && operands[0] is CArray pattern)
+                    {
+                        _dash = [.. pattern.Select(Number)];
+                        _phase = Number(operands[1]);
+                    }
                     return true;
 
                 default:
@@ -261,7 +276,7 @@ internal static class PaintedPaths
                 return;
 
             if (_points.Count > 0)
-                Painted.Add(new Path([.. _points], _curves, paint.Filled, paint.Stroked, _fill, _stroke, _width, _dashed));
+                Painted.Add(new Path([.. _points], _curves, paint.Filled, paint.Stroked, _fill, _stroke, _width, _dash, _phase));
             Discard();
         }
 

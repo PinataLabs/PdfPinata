@@ -27,6 +27,7 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System;
 using PdfPinata.Drawing;
 
 namespace PdfPinata.Charting;
@@ -55,6 +56,18 @@ public class LineFormat : DocumentObject
   public new LineFormat Clone()
   {
     return (LineFormat)DeepCopy();
+  }
+
+  /// <summary>
+  /// Implements the deep copy of the object.
+  /// </summary>
+  protected override object DeepCopy()
+  {
+    var lineFormat = (LineFormat)base.DeepCopy();
+    // The memberwise copy shares the array; a copy owns its pattern as the original does.
+    if (lineFormat.dashPattern != null)
+      lineFormat.dashPattern = (double[])lineFormat.dashPattern.Clone();
+    return lineFormat;
   }
   #endregion
 
@@ -106,6 +119,41 @@ public class LineFormat : DocumentObject
   /// Copied by Clone with the rest of the fields.
   /// </summary>
   internal bool dashStyleSet;
+
+  /// <summary>
+  /// Gets or sets the dash pattern of the line, as alternating dash and gap lengths in units of
+  /// the line's width, as <see cref="XPen.DashPattern"/> is. Setting it sets
+  /// <see cref="DashStyle"/> to <see cref="XDashStyle.Custom"/>, which is the only style that
+  /// reads it. A Custom line with no pattern is drawn solid, as an XPen's is.
+  /// </summary>
+  /// <remarks>
+  /// The format keeps a copy of the array it is given and answers a copy of its own, so a length
+  /// cannot be changed afterwards without passing the check that it is finite and positive. An odd number of
+  /// lengths is completed as XPen completes it. A point that says nothing about its dashes
+  /// inherits its series' pattern along with its series' style.
+  /// </remarks>
+  /// <exception cref="ArgumentNullException">The value is null.</exception>
+  /// <exception cref="ArgumentException">A dash or gap length is not finite and greater than zero.</exception>
+  public double[] DashPattern
+  {
+    get => dashPattern == null ? [] : (double[])dashPattern.Clone();
+    set
+    {
+      if (value == null)
+        throw new ArgumentNullException(nameof(value));
+      foreach (var length in value)
+      {
+        // Written so that NaN is refused too. Infinity is refused here rather than when the
+        // chart is drawn, where the content stream cannot write it.
+        if (!(length > 0) || double.IsPositiveInfinity(length))
+          throw new ArgumentException("Every dash and gap length must be finite and greater than zero.", nameof(value));
+      }
+
+      dashPattern = (double[])value.Clone();
+      DashStyle = XDashStyle.Custom;
+    }
+  }
+  internal double[] dashPattern;
 
   /// <summary>
   /// Gets or sets the style of the line.

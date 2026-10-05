@@ -70,16 +70,18 @@ internal class Converter
   /// </summary>
   internal static XPen ToXPen(LineFormat lineFormat, XColor defaultColor, double defaultWidth)
   {
-    return ToXPen(lineFormat, defaultColor, defaultWidth, XDashStyle.Solid);
+    return ToXPen(lineFormat, defaultColor, defaultWidth, XDashStyle.Solid, null);
   }
 
   /// <summary>
   /// Creates a XPen based on the specified line format. If not specified color, width and dash style
-  /// will be taken from the defaultPen parameter.
+  /// - with the dash pattern, when the style is Custom - will be taken from the defaultPen parameter.
   /// </summary>
   internal static XPen ToXPen(LineFormat lineFormat, XPen defaultPen)
   {
-    return ToXPen(lineFormat, defaultPen.Color, defaultPen.Width, defaultPen.DashStyle);
+    // Read only for Custom: the getter of a pen with no pattern gives it an empty one.
+    var defaultDashPattern = defaultPen.DashStyle == XDashStyle.Custom ? defaultPen.DashPattern : null;
+    return ToXPen(lineFormat, defaultPen.Color, defaultPen.Width, defaultPen.DashStyle, defaultDashPattern);
   }
 
   /// <summary>
@@ -88,10 +90,22 @@ internal class Converter
   /// </summary>
   internal static XPen ToXPen(LineFormat lineFormat, XColor defaultColor, double defaultWidth, XDashStyle defaultDashStyle)
   {
+    return ToXPen(lineFormat, defaultColor, defaultWidth, defaultDashStyle, null);
+  }
+
+  /// <summary>
+  /// Creates a XPen based on the specified line format. If not specified color, width and dash style
+  /// will be taken from the defaultColor, defaultWidth and defaultDashStyle parameters, and a Custom
+  /// default dash style is drawn in defaultDashPattern.
+  /// </summary>
+  private static XPen ToXPen(LineFormat lineFormat, XColor defaultColor, double defaultWidth,
+    XDashStyle defaultDashStyle, double[] defaultDashPattern)
+  {
     XPen pen;
     if (lineFormat == null)
     {
-      pen = new XPen(defaultColor, defaultWidth) { DashStyle = defaultDashStyle };
+      pen = new XPen(defaultColor, defaultWidth);
+      SetDashes(pen, defaultDashStyle, defaultDashPattern);
     }
     else
     {
@@ -105,15 +119,36 @@ internal class Converter
       if (lineFormat.Visible && width == 0)
         width = defaultWidth;
 
-      pen = new XPen(color, width)
-      {
-        // A dash style the format never set is the default's, as its colour and width are: a
-        // point that says only how wide its border is keeps its series' dashes.
-        DashStyle = lineFormat.dashStyleSet ? lineFormat.dashStyle : defaultDashStyle,
-        DashOffset = 10 * width
-      };
+      pen = new XPen(color, width);
+      // A dash style the format never set is the default's, as its colour and width are: a point
+      // that says only how wide its border is keeps its series' dashes. The pattern goes with the
+      // style it belongs to, so a point inheriting a series' Custom inherits its pattern too, and
+      // a point that sets a style of its own is drawn in its own pattern or in none.
+      if (lineFormat.dashStyleSet)
+        SetDashes(pen, lineFormat.dashStyle, lineFormat.dashPattern);
+      else
+        SetDashes(pen, defaultDashStyle, defaultDashPattern);
     }
     return pen;
+  }
+
+  /// <summary>
+  /// Gives the pen a dash style and, for Custom, the pattern to draw it in. The pattern is in units
+  /// of the line width, as both LineFormat's and XPen's are, so it passes across unchanged. A Custom
+  /// style with no pattern is left without one, which an XPen draws as a solid line.
+  /// </summary>
+  /// <remarks>
+  /// The pen keeps a dash offset of 0. The renderers used to set it to ten times the width, which
+  /// nothing read while Custom was drawn solid; the one dash operator that writes an offset is
+  /// Custom's, and it scales the offset by the width again, so the pattern would have begun at an
+  /// arbitrary point of itself on every line.
+  /// </remarks>
+  internal static void SetDashes(XPen pen, XDashStyle dashStyle, double[] dashPattern)
+  {
+    if (dashStyle == XDashStyle.Custom && dashPattern is { Length: > 0 })
+      pen.DashPattern = dashPattern;
+    else
+      pen.DashStyle = dashStyle;
   }
 
   /// <summary>

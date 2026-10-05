@@ -56,7 +56,8 @@ internal class LineFormatRenderer
 
     if (visible)
     {
-      pen = new XPen(lineFormat.Color, width) { DashStyle = lineFormat.DashStyle };
+      pen = new XPen(lineFormat.Color, width);
+      Converter.SetDashes(pen, lineFormat.dashStyle, lineFormat.dashPattern);
     }
   }
 

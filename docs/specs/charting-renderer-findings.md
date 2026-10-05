@@ -489,6 +489,21 @@ what an unassigned dash style already was, so nothing else draws differently. Pi
 document gave none, and now writes one only when the document did. Pinned by
 `PointLineFormatTests` and `ChartMapperTests.APointThatSetsOnlyAWidthKeepsItsSeriesDashes`.
 
+That left `XDashStyle.Custom`, which a format could name and not describe (#208). The charting
+`LineFormat` had no pattern, `ToXPen` set the style alone, and a pen saying `Custom` with no pattern
+is written `[] 0 d` — solid — by `PdfGraphicsState`. `LineFormat.DashPattern` is that pattern, in
+units of the line width as `XPen.DashPattern` is, and setting it sets `DashStyle` to `Custom`, as
+the pen's setter does. The pattern travels with the style it belongs to: a point that never set its
+dash style inherits the series' pattern along with the series' `Custom`, and a point that set a style
+of its own takes its own pattern or none. A format keeps a copy of the array it is given and answers
+a copy, so a length cannot go non-positive behind the setter's check, and `Clone` cannot share one.
+`Custom` with no pattern stays solid, which is what an `XPen` does with one; throwing instead would
+have made the format refuse a state the pen accepts. `ToXPen` no longer sets the pen's `DashOffset`
+to ten times its width: no other style writes an offset, and `Custom`'s operator scales it by the
+width again, so every custom pattern would have begun part-way through itself. The DOM's chart
+`LineFormat` has no custom dash style, so `LineFormatMapper` has nothing to carry. Pinned by
+`CustomDashPatternTests`, which reads the `d` operator itself through `PaintedPaths`.
+
 ---
 
 ## C13. A second category series was drawn past the end of the axis — fixed
