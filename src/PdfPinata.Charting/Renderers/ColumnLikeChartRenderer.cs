@@ -31,9 +31,10 @@
 namespace PdfPinata.Charting.Renderers;
 
 /// <summary>
-/// Represents column like chart renderer.
+/// Represents column like chart renderer: a chart whose category axis runs across the page and
+/// whose value axis runs up it.
 /// </summary>
-internal abstract class ColumnLikeChartRenderer : ChartRenderer
+internal abstract class ColumnLikeChartRenderer : CartesianChartRenderer
 {
   /// <summary>
   /// Initializes a new instance of the ColumnLikeChartRenderer class with the
@@ -44,10 +45,16 @@ internal abstract class ColumnLikeChartRenderer : ChartRenderer
   {
   }
 
+  /// <inheritdoc/>
+  protected override AxisOrientation CategoryAxis => AxisOrientation.Horizontal;
+
+  /// <inheritdoc/>
+  protected override AxisRenderer CreateXAxisRenderer() => new HorizontalXAxisRenderer(rendererParms);
+
   /// <summary>
   /// Calculates the chart layout.
   /// </summary>
-  internal void CalcLayout()
+  protected override void LayOut()
   {
     var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 

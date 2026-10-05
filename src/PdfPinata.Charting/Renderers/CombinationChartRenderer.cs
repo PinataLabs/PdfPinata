@@ -35,7 +35,14 @@ namespace PdfPinata.Charting.Renderers;
 /// <summary>
 /// Represents a renderer for combinations of charts.
 /// </summary>
-internal class CombinationChartRenderer : ChartRenderer
+/// <remarks>
+/// It runs the same pipeline as the charts it combines, but its series are of several types and
+/// each type is initialized, formatted and drawn by that type's own code over that type's own
+/// series. So it overrides the steps that touch the series - and keeps its own <see cref="Draw"/> -
+/// and between them always hands the series renderer infos back as the common set, which is what
+/// the legend and the axes are built from.
+/// </remarks>
+internal class CombinationChartRenderer : CartesianChartRenderer
 {
   /// <summary>
   /// Initializes a new instance of the CombinationChartRenderer class with the
@@ -45,15 +52,41 @@ internal class CombinationChartRenderer : ChartRenderer
   {
   }
 
-  /// <summary>
-  /// Returns an initialized and renderer specific rendererInfo.
-  /// </summary>
-  internal override RendererInfo Init()
-  {
-    var cri = new CombinationRendererInfo { Chart = (Chart)rendererParms.DrawingItem };
-    rendererParms.RendererInfo = cri;
+  /// <inheritdoc/>
+  protected override AxisOrientation CategoryAxis => AxisOrientation.Horizontal;
 
-    InitSeriesRendererInfo();
+  /// <inheritdoc/>
+  protected override ChartRendererInfo CreateRendererInfo() => new CombinationRendererInfo();
+
+  /// <inheritdoc/>
+  protected override AxisRenderer CreateXAxisRenderer() => new HorizontalXAxisRenderer(rendererParms);
+
+  /// <summary>
+  /// Returns the y axis renderer. Stacked columns are scaled to their totals, which the stacked
+  /// renderer works out from the column series alone before taking in every other value.
+  /// </summary>
+  protected override AxisRenderer CreateYAxisRenderer()
+  {
+    var cri = (CombinationRendererInfo)rendererParms.RendererInfo;
+    return cri.ColumnsStacked
+      ? new VerticalStackedYAxisRenderer(rendererParms)
+      : new VerticalYAxisRenderer(rendererParms);
+  }
+
+  /// <summary>
+  /// The plot area renderer that initializes the plot area's renderer info. Format and Draw use
+  /// each series type's own plot area renderer instead, over that type's series.
+  /// </summary>
+  protected override PlotAreaRenderer CreatePlotAreaRenderer() => new AreaPlotAreaRenderer(rendererParms);
+
+  /// <summary>
+  /// Sorts the series by type and initializes each type with its own chart renderer, leaving the
+  /// common set in place for the legend and the axes.
+  /// </summary>
+  internal override void InitSeries()
+  {
+    var cri = (CombinationRendererInfo)rendererParms.RendererInfo;
+
     DistributeSeries();
 
     if (cri.AreaSeriesRendererInfos != null)
@@ -75,49 +108,32 @@ internal class CombinationChartRenderer : ChartRenderer
       renderer.InitSeries();
     }
     cri.SeriesRendererInfos = cri.CommonSeriesRendererInfos;
-
-    var lr = new ColumnLikeLegendRenderer(rendererParms);
-    cri.LegendRendererInfo = (LegendRendererInfo)lr.Init();
-
-    var xar = new HorizontalXAxisRenderer(rendererParms);
-    cri.XAxisRendererInfo = (AxisRendererInfo)xar.Init();
-
-    var yar = GetYAxisRenderer();
-    cri.YAxisRendererInfo = (AxisRendererInfo)yar.Init();
-
-    var apar = new AreaPlotAreaRenderer(rendererParms);
-    cri.PlotAreaRendererInfo = (PlotAreaRendererInfo)apar.Init();
-
-    // Draw data labels.
-    if (cri.ColumnSeriesRendererInfos != null)
-    {
-      cri.SeriesRendererInfos = cri.ColumnSeriesRendererInfos;
-      var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Horizontal);
-      dlr.Init();
-    }
-
-    return cri;
   }
-    
+
   /// <summary>
-  /// Layouts and calculates the space used by the combination chart.
+  /// Initializes the data labels of the column series, which are the only ones labelled.
   /// </summary>
-  internal override void Format()
+  protected override void InitDataLabels()
   {
     var cri = (CombinationRendererInfo)rendererParms.RendererInfo;
+    if (cri.ColumnSeriesRendererInfos == null)
+      return;
+
+    cri.SeriesRendererInfos = cri.ColumnSeriesRendererInfos;
+    var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Horizontal);
+    dlr.Init();
+
+    // Format starts with the legend and the axes, which are formatted over every series.
     cri.SeriesRendererInfos = cri.CommonSeriesRendererInfos;
+  }
 
-    var lr = new ColumnLikeLegendRenderer(rendererParms);
-    lr.Format();
+  /// <summary>
+  /// Calculates the chart layout.
+  /// </summary>
+  protected override void LayOut()
+  {
+    var cri = (CombinationRendererInfo)rendererParms.RendererInfo;
 
-    // axes
-    var xar = new HorizontalXAxisRenderer(rendererParms);
-    xar.Format();
-
-    var yar = GetYAxisRenderer();
-    yar.Format();
-
-    // Calculate rects and positions.
     var chartRect = LayoutLegend();
     cri.XAxisRendererInfo.X = chartRect.Left + cri.YAxisRendererInfo.Width;
     cri.XAxisRendererInfo.Y = chartRect.Bottom - cri.XAxisRendererInfo.Height;
@@ -129,8 +145,15 @@ internal class CombinationChartRenderer : ChartRenderer
     cri.PlotAreaRendererInfo.Y = cri.YAxisRendererInfo.InnerRect.Y;
     cri.PlotAreaRendererInfo.Width = cri.XAxisRendererInfo.Width;
     cri.PlotAreaRendererInfo.Height = cri.YAxisRendererInfo.InnerRect.Height;
+  }
 
-    // Calculated remaining plot area, now it's safe to format.
+  /// <summary>
+  /// Formats each series type's plot area over its own series, then the column series' labels.
+  /// </summary>
+  protected override void FormatPlotArea()
+  {
+    var cri = (CombinationRendererInfo)rendererParms.RendererInfo;
+
     PlotAreaRenderer renderer;
     if (cri.AreaSeriesRendererInfos != null)
     {
@@ -151,7 +174,7 @@ internal class CombinationChartRenderer : ChartRenderer
       renderer.Format();
     }
 
-    // Draw data labels.
+    // Format data labels.
     if (cri.ColumnSeriesRendererInfos != null)
     {
       cri.SeriesRendererInfos = cri.ColumnSeriesRendererInfos;
@@ -161,15 +184,14 @@ internal class CombinationChartRenderer : ChartRenderer
   }
 
   /// <summary>
-  /// Draws the column chart.
+  /// Draws the combination chart.
   /// </summary>
   internal override void Draw()
   {
     var cri = (CombinationRendererInfo)rendererParms.RendererInfo;
     cri.SeriesRendererInfos = cri.CommonSeriesRendererInfos;
 
-    var lr = new ColumnLikeLegendRenderer(rendererParms);
-    lr.Draw();
+    CreateLegendRenderer().Draw();
 
     var wr = new WallRenderer(rendererParms);
     wr.Draw();
@@ -211,15 +233,9 @@ internal class CombinationChartRenderer : ChartRenderer
     // Draw axes.
     cri.SeriesRendererInfos = cri.CommonSeriesRendererInfos;
     if (cri.XAxisRendererInfo.Axis != null)
-    {
-      var xar = new HorizontalXAxisRenderer(rendererParms);
-      xar.Draw();
-    }
+      CreateXAxisRenderer().Draw();
     if (cri.YAxisRendererInfo.Axis != null)
-    {
-      var yar = GetYAxisRenderer();
-      yar.Draw();
-    }
+      CreateYAxisRenderer().Draw();
   }
 
   /// <summary>
@@ -231,33 +247,6 @@ internal class CombinationChartRenderer : ChartRenderer
     return cri.ColumnsStacked
       ? new ColumnStackedPlotAreaRenderer(rendererParms, AxisOrientation.Horizontal)
       : new ColumnClusteredPlotAreaRenderer(rendererParms, AxisOrientation.Horizontal);
-  }
-
-  /// <summary>
-  /// Returns the y axis renderer. Stacked columns are scaled to their totals, which the stacked
-  /// renderer works out from the column series alone before taking in every other value.
-  /// </summary>
-  private YAxisRenderer GetYAxisRenderer()
-  {
-    var cri = (CombinationRendererInfo)rendererParms.RendererInfo;
-    return cri.ColumnsStacked
-      ? new VerticalStackedYAxisRenderer(rendererParms)
-      : new VerticalYAxisRenderer(rendererParms);
-  }
-
-  /// <summary>
-  /// Initializes all necessary data to draw series for a combination chart.
-  /// </summary>
-  private void InitSeriesRendererInfo()
-  {
-    var cri = (CombinationRendererInfo)rendererParms.RendererInfo;
-    var seriesColl = cri.Chart.SeriesCollection;
-    cri.SeriesRendererInfos = new SeriesRendererInfo[seriesColl.Count];
-    for (var idx = 0; idx < seriesColl.Count; ++idx)
-    {
-      var sri = new SeriesRendererInfo { Series = seriesColl[idx] };
-      cri.SeriesRendererInfos[idx] = sri;
-    }
   }
 
   /// <summary>

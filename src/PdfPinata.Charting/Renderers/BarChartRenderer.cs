@@ -32,9 +32,10 @@ using PdfPinata.Drawing;
 namespace PdfPinata.Charting.Renderers;
 
 /// <summary>
-/// Represents a bar chart renderer.
+/// Represents a bar chart renderer: a column chart turned on its side, its category axis running
+/// up the page and its value axis across it.
 /// </summary>
-internal class BarChartRenderer : ChartRenderer
+internal class BarChartRenderer : CartesianChartRenderer
 {
   /// <summary>
   /// Initializes a new instance of the BarChartRenderer class with the
@@ -44,128 +45,13 @@ internal class BarChartRenderer : ChartRenderer
   {
   }
 
-  /// <summary>
-  /// Returns an initialized and renderer specific rendererInfo.
-  /// </summary>
-  internal override RendererInfo Init()
-  {
-    var cri = new ChartRendererInfo { Chart = (Chart)rendererParms.DrawingItem };
-    rendererParms.RendererInfo = cri;
-
-    InitSeriesRendererInfo();
-
-    var lr = GetLegendRenderer();
-    cri.LegendRendererInfo = (LegendRendererInfo)lr.Init();
-
-    var xar = new VerticalXAxisRenderer(rendererParms);
-    cri.XAxisRendererInfo = (AxisRendererInfo)xar.Init();
-
-    var yar = GetYAxisRenderer();
-    cri.YAxisRendererInfo = (AxisRendererInfo)yar.Init();
-
-    var renderer = GetPlotAreaRenderer();
-    cri.PlotAreaRendererInfo = (PlotAreaRendererInfo)renderer.Init();
-
-    var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Vertical);
-    dlr.Init();
-
-    return cri;
-  }
-    
-  /// <summary>
-  /// Layouts and calculates the space used by the column chart.
-  /// </summary>
-  internal override void Format()
-  {
-    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
-
-    var lr = GetLegendRenderer();
-    lr.Format();
-
-    // axes
-    var xar = new VerticalXAxisRenderer(rendererParms);
-    xar.Format();
-
-    var yar = GetYAxisRenderer();
-    yar.Format();
-
-    // Calculate rects and positions.
-    var chartRect = LayoutLegend();
-    cri.XAxisRendererInfo.X = chartRect.Left;
-    cri.XAxisRendererInfo.Y = chartRect.Top;
-    cri.XAxisRendererInfo.Height = chartRect.Height - cri.YAxisRendererInfo.Height;
-    cri.YAxisRendererInfo.X = chartRect.Left + cri.XAxisRendererInfo.Width;
-    cri.YAxisRendererInfo.Y = chartRect.Bottom - cri.YAxisRendererInfo.Height;
-    cri.YAxisRendererInfo.Width = chartRect.Width - cri.XAxisRendererInfo.Width;
-    cri.PlotAreaRendererInfo.X = cri.YAxisRendererInfo.X;
-    cri.PlotAreaRendererInfo.Y = cri.XAxisRendererInfo.Y;
-    cri.PlotAreaRendererInfo.Width = cri.YAxisRendererInfo.InnerRect.Width;
-    cri.PlotAreaRendererInfo.Height = cri.XAxisRendererInfo.Height;
-
-    // Calculated remaining plot area, now it's safe to format.
-    var renderer = GetPlotAreaRenderer();
-    renderer.Format();
-
-    var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Vertical);
-    dlr.Format();
-  }
-
-  /// <summary>
-  /// Draws the column chart.
-  /// </summary>
-  internal override void Draw()
-  {
-    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
-      
-    var lr = GetLegendRenderer();
-    lr.Draw();
-
-    var wr = new WallRenderer(rendererParms);
-    wr.Draw();
-
-    var glr = new ColumnLikeGridlinesRenderer(rendererParms, AxisOrientation.Vertical);
-    glr.Draw();
-
-    var pabr = new PlotAreaBorderRenderer(rendererParms);
-    pabr.Draw();
-
-    var renderer = GetPlotAreaRenderer();
-    renderer.Draw();
-
-    var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Vertical);
-    dlr.Draw();
-
-    if (cri.XAxisRendererInfo.Axis != null)
-    {
-      var xar = new VerticalXAxisRenderer(rendererParms);
-      xar.Draw();
-    }
-
-    if (cri.YAxisRendererInfo.Axis != null)
-    {
-      var yar = GetYAxisRenderer();
-      yar.Draw();
-    }
-  }
-
-  /// <summary>
-  /// Returns the specific plot area renderer.
-  /// </summary>
-  private PlotAreaRenderer GetPlotAreaRenderer()
-  {
-    var chart = (Chart)rendererParms.DrawingItem;
-    return chart.type switch
-    {
-      ChartType.Bar2D => new ColumnClusteredPlotAreaRenderer(rendererParms, AxisOrientation.Vertical),
-      ChartType.BarStacked2D => new ColumnStackedPlotAreaRenderer(rendererParms, AxisOrientation.Vertical),
-      _ => null
-    };
-  }
+  /// <inheritdoc/>
+  protected override AxisOrientation CategoryAxis => AxisOrientation.Vertical;
 
   /// <summary>
   /// Returns the specific legend renderer.
   /// </summary>
-  private ColumnLikeLegendRenderer GetLegendRenderer()
+  protected override LegendRenderer CreateLegendRenderer()
   {
     var chart = (Chart)rendererParms.DrawingItem;
     return chart.type switch
@@ -176,10 +62,13 @@ internal class BarChartRenderer : ChartRenderer
     };
   }
 
+  /// <inheritdoc/>
+  protected override AxisRenderer CreateXAxisRenderer() => new VerticalXAxisRenderer(rendererParms);
+
   /// <summary>
-  /// Returns the specific plot area renderer.
+  /// Returns the specific y axis renderer.
   /// </summary>
-  private HorizontalYAxisRenderer GetYAxisRenderer()
+  protected override AxisRenderer CreateYAxisRenderer()
   {
     var chart = (Chart)rendererParms.DrawingItem;
     return chart.type switch
@@ -191,28 +80,47 @@ internal class BarChartRenderer : ChartRenderer
   }
 
   /// <summary>
-  /// Initializes all necessary data to draw all series for a column chart.
+  /// Returns the specific plot area renderer.
   /// </summary>
-  private void InitSeriesRendererInfo()
+  protected override PlotAreaRenderer CreatePlotAreaRenderer()
+  {
+    var chart = (Chart)rendererParms.DrawingItem;
+    return chart.type switch
+    {
+      ChartType.Bar2D => new ColumnClusteredPlotAreaRenderer(rendererParms, AxisOrientation.Vertical),
+      ChartType.BarStacked2D => new ColumnStackedPlotAreaRenderer(rendererParms, AxisOrientation.Vertical),
+      _ => null
+    };
+  }
+
+  /// <inheritdoc/>
+  protected override DataLabelRenderer CreateDataLabelRenderer() =>
+    new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Vertical);
+
+  /// <summary>
+  /// Calculates the chart layout: the category axis down the left, the value axis along the bottom.
+  /// </summary>
+  protected override void LayOut()
   {
     var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
-    var seriesColl = cri.Chart.SeriesCollection;
-    cri.SeriesRendererInfos = new SeriesRendererInfo[seriesColl.Count];
-    // Lowest series is the first, like in Excel 
-    for (var idx = 0; idx < seriesColl.Count; ++idx)
-    {
-      var sri = new SeriesRendererInfo { Series = seriesColl[idx] };
-      cri.SeriesRendererInfos[idx] = sri;
-    }
-
-    InitSeries();
+    var chartRect = LayoutLegend();
+    cri.XAxisRendererInfo.X = chartRect.Left;
+    cri.XAxisRendererInfo.Y = chartRect.Top;
+    cri.XAxisRendererInfo.Height = chartRect.Height - cri.YAxisRendererInfo.Height;
+    cri.YAxisRendererInfo.X = chartRect.Left + cri.XAxisRendererInfo.Width;
+    cri.YAxisRendererInfo.Y = chartRect.Bottom - cri.YAxisRendererInfo.Height;
+    cri.YAxisRendererInfo.Width = chartRect.Width - cri.XAxisRendererInfo.Width;
+    cri.PlotAreaRendererInfo.X = cri.YAxisRendererInfo.X;
+    cri.PlotAreaRendererInfo.Y = cri.XAxisRendererInfo.Y;
+    cri.PlotAreaRendererInfo.Width = cri.YAxisRendererInfo.InnerRect.Width;
+    cri.PlotAreaRendererInfo.Height = cri.XAxisRendererInfo.Height;
   }
 
   /// <summary>
-  /// Initializes all necessary data to draw all series for a column chart.
+  /// Initializes all necessary data to draw all series for a bar chart.
   /// </summary>
-  internal void InitSeries()
+  internal override void InitSeries()
   {
     var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
