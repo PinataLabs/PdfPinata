@@ -33,7 +33,6 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using PdfPinata.Fonts;
-using PdfPinata.Pdf.Filters;
 
 namespace PdfPinata.Pdf.Advanced;
 
@@ -139,27 +138,8 @@ internal sealed class PdfToUnicodeMap : PdfDictionary
     /// <summary>
     /// Makes the bytes the stream's data, compressed like content streams.
     /// </summary>
-    private void SetContent(byte[] bytes)
-    {
-        if (Owner.Options.CompressContentStreams)
-        {
-            Elements.SetName("/Filter", "/FlateDecode");
-            bytes = Filtering.FlateDecode.Encode(bytes, _document.Options.FlateEncodeMode);
-        }
-        else
-        {
-            Elements.Remove("/Filter");
-        }
-
-        if (Stream == null)
-        {
-            CreateStream(bytes);
-            return;
-        }
-
-        Stream.Value = bytes;
-        Elements.SetInteger(PdfStream.Keys.Length, Stream.Length);
-    }
+    private void SetContent(byte[] bytes) =>
+        SetStreamContent(bytes, Owner.Options.CompressContentStreams);
 
     /// <summary>
     /// The entries in blocks of at most a hundred, which is as many as a bfrange or a bfchar is

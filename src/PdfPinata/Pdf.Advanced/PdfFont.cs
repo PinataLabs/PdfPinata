@@ -214,14 +214,7 @@ public class PdfFont : PdfDictionary
             fontStream.Elements["/Length1"] = new PdfInteger(fontData.Length);
         }
 
-        if (!Owner.Options.NoCompression)
-        {
-            fontData = Filters.Filtering.FlateDecode.Encode(fontData, Owner.Options.FlateEncodeMode);
-            fontStream.Elements["/Filter"] = new PdfName("/FlateDecode");
-        }
-
-        fontStream.Elements["/Length"] = new PdfInteger(fontData.Length);
-        fontStream.CreateStream(fontData);
+        fontStream.SetStreamContent(fontData, compress: !Owner.Options.NoCompression);
     }
 
 

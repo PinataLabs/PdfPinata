@@ -312,6 +312,18 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
     }
 
     /// <summary>
+    /// Makes <paramref name="plain"/> the data of this dictionary's stream, creating the stream if
+    /// there is none yet, deflated when <paramref name="compress"/> is set and that makes it
+    /// smaller. See <see cref="PdfStream.SetContent"/>.
+    /// </summary>
+    internal PdfStream SetStreamContent(byte[] plain, bool compress)
+    {
+        var stream = _stream ?? CreateStream([]);
+        stream.SetContent(plain, compress);
+        return stream;
+    }
+
+    /// <summary>
     /// When overridden in a derived class, gets the KeysMeta of this dictionary type.
     /// </summary>
     internal virtual DictionaryMeta Meta => null;
@@ -1510,7 +1522,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         }
 
         /// <summary>
-        /// Compresses the stream with the FlateDecode filter.
+        /// Compresses the stream with the FlateDecode filter, where that makes it smaller.
         /// If a filter is already defined, the function has no effect.
         /// </summary>
         public void Zip()
@@ -1521,9 +1533,45 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             if (_ownerDictionary.Elements.ContainsKey(Keys.Filter))
                 return;
 
-            _value = Filtering.FlateDecode.Encode(_value, _ownerDictionary._document.Options.FlateEncodeMode);
-            _ownerDictionary.Elements[Keys.Filter] = new PdfName("/FlateDecode");
-            _ownerDictionary.Elements[Keys.Length] = new PdfInteger(_value.Length);
+            SetContent(_value, compress: true);
+        }
+
+        /// <summary>
+        /// Makes <paramref name="plain"/>, which no filter has been applied to, the stream's data,
+        /// deflated when <paramref name="compress"/> is set, and writes <c>/Filter</c> and
+        /// <c>/Length</c> to say which it is. Every writer that deflates a stream of its own goes
+        /// through here, so that they agree on the one rule below.
+        /// </summary>
+        /// <remarks>
+        /// The deflated form is kept only when it is shorter than the plain one. Deflating very
+        /// little data makes it longer, not shorter - a two byte zlib header and a four byte
+        /// checksum are paid before a single byte is saved, so an empty stream comes back as eight
+        /// bytes of framing around nothing, and Acrobat reports that particular stream as an error
+        /// on a page. A stream left plain carries no <c>/Filter</c> and no <c>/DecodeParms</c>,
+        /// whatever it had before: they described data this replaces.
+        /// </remarks>
+        internal void SetContent(byte[] plain, bool compress)
+        {
+            ArgumentNullException.ThrowIfNull(plain);
+
+            byte[] deflated = null;
+            if (compress)
+            {
+                var mode = _ownerDictionary._document?.Options.FlateEncodeMode ?? PdfFlateEncodeMode.Default;
+                deflated = Filtering.FlateDecode.Encode(plain, mode);
+                if (deflated.Length >= plain.Length)
+                    deflated = null;
+            }
+
+            var elements = _ownerDictionary.Elements;
+            elements.Remove(Keys.DecodeParms);
+            if (deflated != null)
+                elements.SetName(Keys.Filter, "/FlateDecode");
+            else
+                elements.Remove(Keys.Filter);
+
+            _value = deflated ?? plain;
+            elements.SetInteger(Keys.Length, _value.Length);
         }
 
         /// <summary>
