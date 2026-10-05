@@ -28,6 +28,7 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System.Collections;
 using System.Diagnostics;
 using PinataLayout.DocumentObjectModel;
 using PdfPinata.Drawing;
@@ -56,6 +57,27 @@ public abstract class RenderInfo
   internal virtual void RemoveEnding()
   {
     Debug.Assert(false, "Unexpected call of RemoveEnding");
+  }
+
+  /// <summary>
+  /// The render infos an area provider was handed by its formatter, copied into an array.
+  /// </summary>
+  /// <remarks>
+  /// <para>
+  /// Not <see cref="ArrayList.ToArray(System.Type)"/>: it builds the array type at run time, which
+  /// carries RequiresDynamicCode and an AOT compiler cannot always have code for.
+  /// </para>
+  /// <para>
+  /// It takes no null. A provider that was never handed any says for itself what it answers, and
+  /// they do not agree: <see cref="FormattedHeaderFooter"/> and <see cref="FormattedFootnote"/>
+  /// answer an empty array, the others null, and their callers are written for the one they get.
+  /// </para>
+  /// </remarks>
+  internal static RenderInfo[] ToArray(ArrayList renderInfos)
+  {
+    var result = new RenderInfo[renderInfos.Count];
+    renderInfos.CopyTo(result);
+    return result;
   }
 
   internal static XUnit GetTotalHeight(RenderInfo[] renderInfos)
