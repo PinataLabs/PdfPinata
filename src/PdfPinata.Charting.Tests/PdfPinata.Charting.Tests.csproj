@@ -121,4 +121,13 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <!--
+      The content streams CartesianChartPinTests holds every chart drawn on two axes to. Embedded
+      rather than copied to the output, so that what a test compares against cannot be a stale
+      copy left in a build directory.
+    -->
+    <EmbeddedResource Include="Assets\ChartPins\*.txt" />
+  </ItemGroup>
+
 </Project>

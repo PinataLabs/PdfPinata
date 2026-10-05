@@ -45,115 +45,9 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
   }
 
   /// <summary>
-  /// Returns an initialized and renderer specific rendererInfo.
-  /// </summary>
-  internal override RendererInfo Init()
-  {
-    var cri = new ChartRendererInfo { Chart = (Chart)rendererParms.DrawingItem };
-    rendererParms.RendererInfo = cri;
-
-    InitSeriesRendererInfo();
-
-    var lr = new ColumnLikeLegendRenderer(rendererParms);
-    cri.LegendRendererInfo = (LegendRendererInfo)lr.Init();
-
-    var xar = new HorizontalXAxisRenderer(rendererParms);
-    cri.XAxisRendererInfo = (AxisRendererInfo)xar.Init();
-
-    var yar = GetYAxisRenderer();
-    cri.YAxisRendererInfo = (AxisRendererInfo)yar.Init();
-
-    var renderer = GetPlotAreaRenderer();
-    cri.PlotAreaRendererInfo = (PlotAreaRendererInfo)renderer.Init();
-
-    var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Horizontal);
-    dlr.Init();
-
-    return cri;
-  }
-    
-  /// <summary>
-  /// Layouts and calculates the space used by the column chart.
-  /// </summary>
-  internal override void Format()
-  {
-    var lr = new ColumnLikeLegendRenderer(rendererParms);
-    lr.Format();
-
-    // axes
-    var xar = new HorizontalXAxisRenderer(rendererParms);
-    xar.Format();
-
-    var yar = GetYAxisRenderer();
-    yar.Format();
-
-    // Calculate rects and positions.
-    CalcLayout();
-
-    // Calculated remaining plot area, now it's safe to format.
-    var renderer = GetPlotAreaRenderer();
-    renderer.Format();
-
-    var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Horizontal);
-    dlr.Format();
-  }
-
-  /// <summary>
-  /// Draws the column chart.
-  /// </summary>
-  internal override void Draw()
-  {
-    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
-      
-    var lr = new ColumnLikeLegendRenderer(rendererParms);
-    lr.Draw();
-
-    var wr = new WallRenderer(rendererParms);
-    wr.Draw();
-
-    var glr = new ColumnLikeGridlinesRenderer(rendererParms, AxisOrientation.Horizontal);
-    glr.Draw();
-
-    var pabr = new PlotAreaBorderRenderer(rendererParms);
-    pabr.Draw();
-
-    var renderer = GetPlotAreaRenderer();
-    renderer.Draw();
-
-    var dlr = new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Horizontal);
-    dlr.Draw();
-
-    if (cri.XAxisRendererInfo.Axis != null)
-    {
-      var xar = new HorizontalXAxisRenderer(rendererParms);
-      xar.Draw();
-    }
-
-    if (cri.YAxisRendererInfo.Axis != null)
-    {
-      var yar = GetYAxisRenderer();
-      yar.Draw();
-    }
-  }
-
-  /// <summary>
-  /// Returns the specific plot area renderer.
-  /// </summary>
-  private PlotAreaRenderer GetPlotAreaRenderer()
-  {
-    var chart = (Chart)rendererParms.DrawingItem;
-    return chart.type switch
-    {
-      ChartType.Column2D => new ColumnClusteredPlotAreaRenderer(rendererParms, AxisOrientation.Horizontal),
-      ChartType.ColumnStacked2D => new ColumnStackedPlotAreaRenderer(rendererParms, AxisOrientation.Horizontal),
-      _ => null
-    };
-  }
-
-  /// <summary>
   /// Returns the specific y axis renderer.
   /// </summary>
-  private VerticalYAxisRenderer GetYAxisRenderer()
+  protected override AxisRenderer CreateYAxisRenderer()
   {
     var chart = (Chart)rendererParms.DrawingItem;
     return chart.type switch
@@ -165,27 +59,27 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
   }
 
   /// <summary>
-  /// Initializes all necessary data to draw all series for a column chart.
+  /// Returns the specific plot area renderer.
   /// </summary>
-  private void InitSeriesRendererInfo()
+  protected override PlotAreaRenderer CreatePlotAreaRenderer()
   {
-    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
-
-    var seriesColl = cri.Chart.SeriesCollection;
-    cri.SeriesRendererInfos = new SeriesRendererInfo[seriesColl.Count];
-    for (var idx = 0; idx < seriesColl.Count; ++idx)
+    var chart = (Chart)rendererParms.DrawingItem;
+    return chart.type switch
     {
-      var sri = new SeriesRendererInfo { Series = seriesColl[idx] };
-      cri.SeriesRendererInfos[idx] = sri;
-    }
-
-    InitSeries();
+      ChartType.Column2D => new ColumnClusteredPlotAreaRenderer(rendererParms, AxisOrientation.Horizontal),
+      ChartType.ColumnStacked2D => new ColumnStackedPlotAreaRenderer(rendererParms, AxisOrientation.Horizontal),
+      _ => null
+    };
   }
+
+  /// <inheritdoc/>
+  protected override DataLabelRenderer CreateDataLabelRenderer() =>
+    new ColumnDataLabelRenderer(rendererParms, AxisOrientation.Horizontal);
 
   /// <summary>
   /// Initializes all necessary data to draw all series for a column chart.
   /// </summary>
-  internal void InitSeries()
+  internal override void InitSeries()
   {
     var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 

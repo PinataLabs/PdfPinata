@@ -44,115 +44,16 @@ internal class LineChartRenderer : ColumnLikeChartRenderer
   {
   }
 
-  /// <summary>
-  /// Returns an initialized and renderer specific rendererInfo.
-  /// </summary>
-  internal override RendererInfo Init()
-  {
-    var cri = new ChartRendererInfo { Chart = (Chart)rendererParms.DrawingItem };
-    rendererParms.RendererInfo = cri;
+  /// <inheritdoc/>
+  protected override AxisRenderer CreateYAxisRenderer() => new VerticalYAxisRenderer(rendererParms);
 
-    InitSeriesRendererInfo();
-
-    var lr = new ColumnLikeLegendRenderer(rendererParms);
-    cri.LegendRendererInfo = (LegendRendererInfo)lr.Init();
-
-    var xar = new HorizontalXAxisRenderer(rendererParms);
-    cri.XAxisRendererInfo = (AxisRendererInfo)xar.Init();
-
-    var yar = new VerticalYAxisRenderer(rendererParms);
-    cri.YAxisRendererInfo = (AxisRendererInfo)yar.Init();
-
-    var lpar = new LinePlotAreaRenderer(rendererParms);
-    cri.PlotAreaRendererInfo = (PlotAreaRendererInfo)lpar.Init();
-
-    return cri;
-  }
-
-  /// <summary>
-  /// Layouts and calculates the space used by the line chart.
-  /// </summary>
-  internal override void Format()
-  {
-    var lr = new ColumnLikeLegendRenderer(rendererParms);
-    lr.Format();
-
-    // axes
-    var xar = new HorizontalXAxisRenderer(rendererParms);
-    xar.Format();
-
-    var yar = new VerticalYAxisRenderer(rendererParms);
-    yar.Format();
-
-    // Calculate rects and positions.
-    CalcLayout();
-
-    // Calculated remaining plot area, now it's safe to format.
-    var lpar = new LinePlotAreaRenderer(rendererParms);
-    lpar.Format();
-  }
-
-  /// <summary>
-  /// Draws the line chart.
-  /// </summary>
-  internal override void Draw()
-  {
-    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
-
-    var lr = new ColumnLikeLegendRenderer(rendererParms);
-    lr.Draw();
-
-    // Draw wall.
-    var wr = new WallRenderer(rendererParms);
-    wr.Draw();
-
-    // Draw gridlines.
-    var glr = new ColumnLikeGridlinesRenderer(rendererParms, AxisOrientation.Horizontal);
-    glr.Draw();
-
-    var pabr = new PlotAreaBorderRenderer(rendererParms);
-    pabr.Draw();
-
-    // Draw line chart's plot area.
-    var lpar = new LinePlotAreaRenderer(rendererParms);
-    lpar.Draw();
-
-    // Draw x- and y-axis.
-    if (cri.XAxisRendererInfo.Axis != null)
-    {
-      var xar = new HorizontalXAxisRenderer(rendererParms);
-      xar.Draw();
-    }
-
-    if (cri.YAxisRendererInfo.Axis != null)
-    {
-      var yar = new VerticalYAxisRenderer(rendererParms);
-      yar.Draw();
-    }
-  }
+  /// <inheritdoc/>
+  protected override PlotAreaRenderer CreatePlotAreaRenderer() => new LinePlotAreaRenderer(rendererParms);
 
   /// <summary>
   /// Initializes all necessary data to draw a series for a line chart.
   /// </summary>
-  private void InitSeriesRendererInfo()
-  {
-    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
-
-    var seriesColl = cri.Chart.SeriesCollection;
-    cri.SeriesRendererInfos = new SeriesRendererInfo[seriesColl.Count];
-    for (var idx = 0; idx < seriesColl.Count; ++idx)
-    {
-      var sri = new SeriesRendererInfo { Series = seriesColl[idx] };
-      cri.SeriesRendererInfos[idx] = sri;
-    }
-
-    InitSeries();
-  }
-
-  /// <summary>
-  /// Initializes all necessary data to draw a series for a line chart.
-  /// </summary>
-  internal void InitSeries()
+  internal override void InitSeries()
   {
     var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
