@@ -164,39 +164,13 @@ public class PdfFlattenVisitor : VisitorBase
 
   internal override void VisitFormattedText(FormattedText formattedText)
   {
-    var document = formattedText.Document;
-    ParagraphFormat format = null;
-
-    var style = document.styles[formattedText.style ?? ""];
-    if (style != null)
-      format = style.paragraphFormat;
-    else if ((formattedText.style ?? "") != "")
-      format = document.styles["InvalidStyleName"].paragraphFormat;
-
-    if (format != null)
-    {
-      if (formattedText.font == null)
-        formattedText.Font = format.font.Clone();
-      else if (format.font != null)
-        FlattenFont(formattedText.font, format.font);
-    }
-
-    var parentFont = GetParentFont(formattedText);
-
-    if (formattedText.font == null)
-      formattedText.Font = parentFont.Clone();
-    else if (parentFont != null)
-      FlattenFont(formattedText.font, parentFont);
+    FlattenStyleFont(formattedText);
+    formattedText.font = AdoptOrFlattenFont(formattedText.font, GetParentFont(formattedText), formattedText);
   }
 
   internal override void VisitHyperlink(Hyperlink hyperlink)
   {
-    var styleFont = hyperlink.Document.Styles["Hyperlink"].Font;
-    if (hyperlink.font == null)
-      hyperlink.Font = styleFont.Clone();
-    else
-      FlattenFont(hyperlink.font, styleFont);
-
+    FlattenStyleFont(hyperlink);
     FlattenFont(hyperlink.font, GetParentFont(hyperlink));
   }
 

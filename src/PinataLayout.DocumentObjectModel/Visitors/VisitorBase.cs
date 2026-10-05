@@ -123,16 +123,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
         if (refFormat.font == null)
             return;
 
-        if (format.font == null)
-        {
-            //The font is cloned here to avoid parent problems
-            format.font = refFormat.font.Clone();
-            format.font.parent = format;
-        }
-        else
-        {
-            FlattenFont(format.font, refFormat.font);
-        }
+        format.font = AdoptOrFlattenFont(format.font, refFormat.font, format);
     }
 
     /// <summary>
@@ -153,6 +144,70 @@ public abstract class VisitorBase : DocumentObjectVisitor
         {
             FlattenShading(format.shading, refFormat.shading);
         }
+    }
+
+    /// <summary>
+    /// An object's own paragraph format with every value left unset filled in from
+    /// <paramref name="inherited"/>, or, when it has none of its own, a copy of that format
+    /// belonging to <paramref name="owner"/>.
+    /// </summary>
+    /// <remarks>
+    /// The copy is what keeps the object from sharing the format it inherits: filling in its
+    /// values later must not reach back into a style or a parent.
+    /// </remarks>
+    private protected ParagraphFormat AdoptOrFlatten(ParagraphFormat own, ParagraphFormat inherited, DocumentObject owner)
+    {
+        if (own != null)
+        {
+            FlattenParagraphFormat(own, inherited);
+            return own;
+        }
+
+        var format = inherited.Clone();
+        format.parent = owner;
+        return format;
+    }
+
+    /// <summary>
+    /// An object's own font with every value left unset filled in from <paramref name="inherited"/>,
+    /// or, when it has none of its own, a copy of that font belonging to <paramref name="owner"/>.
+    /// An object that has a font and inherits none keeps its own as it is.
+    /// </summary>
+    private protected Font AdoptOrFlattenFont(Font own, Font inherited, DocumentObject owner)
+    {
+        if (own != null)
+        {
+            if (inherited != null)
+                FlattenFont(own, inherited);
+            return own;
+        }
+
+        var font = inherited.Clone();
+        font.parent = owner;
+        return font;
+    }
+
+    /// <summary>
+    /// Gives formatted text the font of the style it names, or of the InvalidStyleName style when
+    /// it names one that does not exist. Formatted text naming no style is left alone.
+    /// </summary>
+    private protected void FlattenStyleFont(FormattedText formattedText)
+    {
+        var styles = formattedText.Document.styles;
+        var styleName = formattedText.style ?? "";
+
+        var style = styles[styleName] ?? (styleName != "" ? styles["InvalidStyleName"] : null);
+        if (style?.paragraphFormat == null)
+            return;
+
+        formattedText.font = AdoptOrFlattenFont(formattedText.font, style.paragraphFormat.font, formattedText);
+    }
+
+    /// <summary>Gives a hyperlink the font of the Hyperlink style.</summary>
+    private protected void FlattenStyleFont(Hyperlink hyperlink)
+    {
+        var styleFont = hyperlink.Document.Styles["Hyperlink"].Font;
+        hyperlink.font = AdoptOrFlattenFont(hyperlink.font, styleFont, hyperlink);
     }
 
 #pragma warning disable CA1822 // Protected on an unsealed public visitor: making it static would change the public API.
@@ -448,15 +503,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
         var document = chart.Document;
         chart.style ??= Style.DefaultParagraphName;
         var style = document.Styles[chart.style ?? ""];
-        if (chart.format == null)
-        {
-            chart.format = style.paragraphFormat.Clone();
-            chart.format.parent = chart;
-        }
-        else
-        {
-            FlattenParagraphFormat(chart.format, style.paragraphFormat);
-        }
+        chart.format = AdoptOrFlatten(chart.format, style.paragraphFormat, chart);
 
 
         FlattenLineFormat(chart.lineFormat, null);
@@ -524,15 +571,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
             format = document.styles[footnote.Style].paragraphFormat;
         }
 
-        if (footnote.format == null)
-        {
-            footnote.format = format.Clone();
-            footnote.format.parent = footnote;
-        }
-        else
-        {
-            FlattenParagraphFormat(footnote.format, format);
-        }
+        footnote.format = AdoptOrFlatten(footnote.format, format, footnote);
     }
 
     internal override void VisitParagraph(Paragraph paragraph)
@@ -545,15 +584,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
             ? ParagraphFormatFromStyle(style)
             : ParagraphFormatFromHolder(paragraph, currentElementHolder, document);
 
-        if (paragraph.format == null)
-        {
-            paragraph.format = format.Clone();
-            paragraph.format.parent = paragraph;
-        }
-        else
-        {
-            FlattenParagraphFormat(paragraph.format, format);
-        }
+        paragraph.format = AdoptOrFlatten(paragraph.format, format, paragraph);
     }
 
     /// <summary>
@@ -626,15 +657,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
             headerFooter.Style = styleString;
         }
 
-        if (headerFooter.format == null)
-        {
-            headerFooter.format = format.Clone();
-            headerFooter.format.parent = headerFooter;
-        }
-        else
-        {
-            FlattenParagraphFormat(headerFooter.format, format);
-        }
+        headerFooter.format = AdoptOrFlatten(headerFooter.format, format, headerFooter);
     }
 
     internal override void VisitHeadersFooters(HeadersFooters headersFooters)
@@ -884,15 +907,9 @@ public abstract class VisitorBase : DocumentObjectVisitor
     /// </summary>
     private ParagraphFormat OwnFormat(ParagraphFormat own, ParagraphFormat inherited, DocumentObject owner, Shading fallbackShading)
     {
-        if (own != null)
-        {
-            FlattenParagraphFormat(own, inherited);
-            return own;
-        }
-
-        var format = inherited.Clone();
-        format.parent = owner;
-        format.shading ??= fallbackShading;
+        var format = AdoptOrFlatten(own, inherited, owner);
+        if (own == null)
+            format.shading ??= fallbackShading;
         return format;
     }
 
@@ -943,10 +960,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
             parentFormat = textArea.format;
         }
 
-        if (legend.format == null)
-            legend.Format = parentFormat.Clone();
-        else
-            FlattenParagraphFormat(legend.format, parentFormat);
+        legend.format = AdoptOrFlatten(legend.format, parentFormat, legend);
     }
 
     internal override void VisitTextArea(TextArea textArea)
@@ -971,10 +985,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
             textArea.style = chart.style;
         }
 
-        if (textArea.format == null)
-            textArea.Format = parentFormat.Clone();
-        else
-            FlattenParagraphFormat(textArea.format, parentFormat);
+        textArea.format = AdoptOrFlatten(textArea.format, parentFormat, textArea);
 
         FlattenFillFormat(textArea.fillFormat);
         FlattenLineFormat(textArea.lineFormat, null);
