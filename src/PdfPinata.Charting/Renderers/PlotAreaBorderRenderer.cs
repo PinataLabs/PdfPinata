@@ -49,7 +49,7 @@ internal class PlotAreaBorderRenderer : Renderer
   internal override void Draw()
   {
     var cri = (ChartRendererInfo)rendererParms.RendererInfo;
-    if (cri.PlotAreaRendererInfo.LineFormat is not { Width: > 0 })
+    if (LineFormatRenderer.Visible(cri.PlotAreaRendererInfo.LineFormat) == null)
       return;
 
     // A plot area with no room has no border, as it has no wall: a frame too small for its axes
