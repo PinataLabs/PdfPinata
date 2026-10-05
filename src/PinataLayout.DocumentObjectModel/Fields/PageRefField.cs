@@ -89,15 +89,13 @@ public partial class PageRefField : NumericFieldBase
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    var str = "\\field(PageRef)";
-    str += "[Name = \"" + Name + "\"";
-
-    if ((format ?? "") != "")
-      str += " Format = \"" + Format + "\"";
-    str += "]";
-
-    serializer.Write(str);
+    serializer.WriteField(FieldKind, format, Name);
   }
+
+  /// <summary>
+  /// The kind DDL names this field by.
+  /// </summary>
+  internal override string FieldKind => "PageRef";
 
   #endregion
 }

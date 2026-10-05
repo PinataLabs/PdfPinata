@@ -125,8 +125,7 @@ public partial class Legend : ChartObject, IVisitable
     serializer.WriteLine("\\legend");
     var pos = serializer.BeginAttributes();
 
-    if (style != null)
-      serializer.WriteSimpleAttribute("Style", Style);
+    serializer.WriteSimpleAttributeIfSet("Style", style);
 
     if (!IsNull("Format"))
       format.Serialize(serializer, "Format", null);

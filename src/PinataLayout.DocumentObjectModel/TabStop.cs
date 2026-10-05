@@ -119,10 +119,8 @@ public partial class TabStop : DocumentObject
       serializer.WriteLine("TabStops +=");
       serializer.BeginContent();
       serializer.WriteSimpleAttribute("Position", Position);
-      if (alignment != null)
-        serializer.WriteSimpleAttribute("Alignment", Alignment);
-      if (leader != null)
-        serializer.WriteSimpleAttribute("Leader", Leader);
+      serializer.WriteSimpleAttributeIfSet("Alignment", alignment);
+      serializer.WriteSimpleAttributeIfSet("Leader", leader);
       serializer.EndContent();
     }
     else

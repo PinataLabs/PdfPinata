@@ -244,16 +244,11 @@ public partial class TextFrame : Shape, IVisitable
         serializer.WriteLine("\\textframe");
         var pos = serializer.BeginAttributes();
         base.Serialize(serializer);
-        if (!marginLeft.IsNull)
-            serializer.WriteSimpleAttribute("MarginLeft", MarginLeft);
-        if (!marginRight.IsNull)
-            serializer.WriteSimpleAttribute("MarginRight", MarginRight);
-        if (!marginTop.IsNull)
-            serializer.WriteSimpleAttribute("MarginTop", MarginTop);
-        if (!marginBottom.IsNull)
-            serializer.WriteSimpleAttribute("MarginBottom", MarginBottom);
-        if (orientation != null)
-            serializer.WriteSimpleAttribute("Orientation", Orientation);
+        serializer.WriteSimpleAttributeIfSet("MarginLeft", marginLeft);
+        serializer.WriteSimpleAttributeIfSet("MarginRight", marginRight);
+        serializer.WriteSimpleAttributeIfSet("MarginTop", marginTop);
+        serializer.WriteSimpleAttributeIfSet("MarginBottom", marginBottom);
+        serializer.WriteSimpleAttributeIfSet("Orientation", orientation);
         serializer.EndAttributes(pos);
 
         serializer.BeginContent();

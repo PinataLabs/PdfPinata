@@ -61,19 +61,9 @@ public partial class SectionField : NumericFieldBase
 
   #region Internal
   /// <summary>
-  /// Converts SectionField into DDL.
+  /// The kind DDL names this field by.
   /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    var str = "\\field(Section)";
-
-    if ((format ?? "") != "")
-      str += "[Format = \"" + Format + "\"]";
-    else
-      str += "[]"; //Has to be appended to avoid confusion with '[' in directly following text.
-
-    serializer.Write(str);
-  }
+  internal override string FieldKind => "Section";
 
   #endregion
 }

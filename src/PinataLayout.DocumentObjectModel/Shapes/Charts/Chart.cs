@@ -463,8 +463,7 @@ public partial class Chart : Shape, IVisitable
     WriteIfSet(serializer, "PivotChart", pivotChart);
     WriteIfSet(serializer, "HasDataLabel", hasDataLabel);
 
-    if (style != null)
-      serializer.WriteSimpleAttribute("Style", Style);
+    serializer.WriteSimpleAttributeIfSet("Style", style);
     if (!IsNull("Format"))
       format.Serialize(serializer, "Format", null);
     SerializeIfSet(serializer, "DataLabel", dataLabel);
@@ -495,8 +494,7 @@ public partial class Chart : Shape, IVisitable
   /// </summary>
   private static void WriteIfSet<T>(Serializer serializer, string valueName, T? value) where T : struct
   {
-    if (value != null)
-      serializer.WriteSimpleAttribute(valueName, value.Value);
+    serializer.WriteSimpleAttributeIfSet(valueName, value);
   }
 
   /// <summary>

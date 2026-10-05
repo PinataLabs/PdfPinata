@@ -123,14 +123,10 @@ public partial class ListInfo : DocumentObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    if (listType != null)
-      serializer.WriteSimpleAttribute("ListInfo.ListType", ListType);
-    if (!numberPosition.IsNull)
-      serializer.WriteSimpleAttribute("ListInfo.NumberPosition", NumberPosition);
-    if (continuePreviousList != null)
-      serializer.WriteSimpleAttribute("ListInfo.ContinuePreviousList", ContinuePreviousList);
-    if (nestingLevel != null)
-      serializer.WriteSimpleAttribute("ListInfo.NestingLevel", NestingLevel);
+    serializer.WriteSimpleAttributeIfSet("ListInfo.ListType", listType);
+    serializer.WriteSimpleAttributeIfSet("ListInfo.NumberPosition", numberPosition);
+    serializer.WriteSimpleAttributeIfSet("ListInfo.ContinuePreviousList", continuePreviousList);
+    serializer.WriteSimpleAttributeIfSet("ListInfo.NestingLevel", nestingLevel);
   }
 
   #endregion

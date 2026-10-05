@@ -491,25 +491,20 @@ public partial class Table : DocumentObject, IVisitable
         if ((style ?? "") != string.Empty)
             serializer.WriteSimpleAttribute("Style", Style);
 
-        if (summary != null)
-            serializer.WriteSimpleAttribute("Summary", Summary);
+        serializer.WriteSimpleAttributeIfSet("Summary", summary);
 
         serializer.WriteSimpleAttributeIfSet("KeepTogether", keepTogether);
 
         if (!IsNull("Format"))
             format.Serialize(serializer, "Format", null);
 
-        if (!topPadding.IsNull)
-            serializer.WriteSimpleAttribute("TopPadding", TopPadding);
+        serializer.WriteSimpleAttributeIfSet("TopPadding", topPadding);
 
-        if (!leftPadding.IsNull)
-            serializer.WriteSimpleAttribute("LeftPadding", LeftPadding);
+        serializer.WriteSimpleAttributeIfSet("LeftPadding", leftPadding);
 
-        if (!rightPadding.IsNull)
-            serializer.WriteSimpleAttribute("RightPadding", RightPadding);
+        serializer.WriteSimpleAttributeIfSet("RightPadding", rightPadding);
 
-        if (!bottomPadding.IsNull)
-            serializer.WriteSimpleAttribute("BottomPadding", BottomPadding);
+        serializer.WriteSimpleAttributeIfSet("BottomPadding", bottomPadding);
 
         if (!IsNull("Borders"))
             borders.Serialize(serializer, null);

@@ -398,14 +398,11 @@ public partial class Cell : DocumentObject, IVisitable
         if (!IsNull("Format"))
             format.Serialize(serializer, "Format", null);
 
-        if (mergeDown.HasValue)
-            serializer.WriteSimpleAttribute("MergeDown", MergeDown);
+        serializer.WriteSimpleAttributeIfSet("MergeDown", mergeDown);
 
-        if (mergeRight.HasValue)
-            serializer.WriteSimpleAttribute("MergeRight", MergeRight);
+        serializer.WriteSimpleAttributeIfSet("MergeRight", mergeRight);
 
-        if (verticalAlignment != null)
-            serializer.WriteSimpleAttribute("VerticalAlignment", VerticalAlignment);
+        serializer.WriteSimpleAttributeIfSet("VerticalAlignment", verticalAlignment);
 
         if (!IsNull("Borders"))
             borders.Serialize(serializer, null);
@@ -413,8 +410,7 @@ public partial class Cell : DocumentObject, IVisitable
         if (!IsNull("Shading"))
             shading.Serialize(serializer);
 
-        if (roundedCorner != null)
-            serializer.WriteSimpleAttribute("RoundedCorner", RoundedCorner);
+        serializer.WriteSimpleAttributeIfSet("RoundedCorner", roundedCorner);
 
         serializer.EndAttributes(pos);
 

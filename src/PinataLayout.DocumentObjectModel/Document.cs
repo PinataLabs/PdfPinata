@@ -314,20 +314,13 @@ public sealed partial class Document : DocumentObject, IVisitable
     var pos = serializer.BeginAttributes();
     if (!IsNull("Info"))
       Info.Serialize(serializer);
-    if (!defaultTabStop.IsNull)
-      serializer.WriteSimpleAttribute("DefaultTabStop", DefaultTabStop);
-    if (footnoteLocation != null)
-      serializer.WriteSimpleAttribute("FootnoteLocation", FootnoteLocation);
-    if (footnoteNumberingRule != null)
-      serializer.WriteSimpleAttribute("FootnoteNumberingRule", FootnoteNumberingRule);
-    if (footnoteNumberStyle != null)
-      serializer.WriteSimpleAttribute("FootnoteNumberStyle", FootnoteNumberStyle);
-    if (footnoteStartingNumber != null)
-      serializer.WriteSimpleAttribute("FootnoteStartingNumber", FootnoteStartingNumber);
-    if (imagePath != null)
-      serializer.WriteSimpleAttribute("ImagePath", ImagePath);
-    if (useCmykColor != null)
-      serializer.WriteSimpleAttribute("UseCmykColor", UseCmykColor);
+    serializer.WriteSimpleAttributeIfSet("DefaultTabStop", defaultTabStop);
+    serializer.WriteSimpleAttributeIfSet("FootnoteLocation", footnoteLocation);
+    serializer.WriteSimpleAttributeIfSet("FootnoteNumberingRule", footnoteNumberingRule);
+    serializer.WriteSimpleAttributeIfSet("FootnoteNumberStyle", footnoteNumberStyle);
+    serializer.WriteSimpleAttributeIfSet("FootnoteStartingNumber", footnoteStartingNumber);
+    serializer.WriteSimpleAttributeIfSet("ImagePath", imagePath);
+    serializer.WriteSimpleAttributeIfSet("UseCmykColor", useCmykColor);
     serializer.EndAttributes(pos);
 
     serializer.BeginContent();

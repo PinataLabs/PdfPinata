@@ -131,17 +131,13 @@ public partial class DocumentInfo : DocumentObject
     // four used to ask whether the string was empty instead, which wrote an assigned "" the same
     // way it wrote one that had never been assigned - not at all - and lost the difference over a
     // round trip.
-    if (title != null)
-      serializer.WriteSimpleAttribute("Title", Title);
+    serializer.WriteSimpleAttributeIfSet("Title", title);
 
-    if (subject != null)
-      serializer.WriteSimpleAttribute("Subject", Subject);
+    serializer.WriteSimpleAttributeIfSet("Subject", subject);
 
-    if (author != null)
-      serializer.WriteSimpleAttribute("Author", Author);
+    serializer.WriteSimpleAttributeIfSet("Author", author);
 
-    if (keywords != null)
-      serializer.WriteSimpleAttribute("Keywords", Keywords);
+    serializer.WriteSimpleAttributeIfSet("Keywords", keywords);
 
     serializer.EndContent(pos);
   }

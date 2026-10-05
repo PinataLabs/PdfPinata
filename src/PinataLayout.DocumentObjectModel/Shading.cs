@@ -137,11 +137,9 @@ public sealed partial class Shading : DocumentObject
 
     var pos = serializer.BeginContent("Shading");
 
-    if (visible != null)
-      serializer.WriteSimpleAttribute("Visible", Visible);
+    serializer.WriteSimpleAttributeIfSet("Visible", visible);
 
-    if (!color.IsNull)
-      serializer.WriteSimpleAttribute("Color", Color);
+    serializer.WriteSimpleAttributeIfSet("Color", color);
 
     serializer.EndContent(pos);
   }

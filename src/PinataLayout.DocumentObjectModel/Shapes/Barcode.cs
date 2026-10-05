@@ -168,20 +168,13 @@ public partial class Barcode : Shape
 
     base.Serialize(serializer);
 
-    if (orientation != null)
-      serializer.WriteSimpleAttribute("Orientation", Orientation);
-    if (bearerBars != null)
-      serializer.WriteSimpleAttribute("BearerBars", BearerBars);
-    if (text != null)
-      serializer.WriteSimpleAttribute("Text", Text);
-    if (type != null)
-      serializer.WriteSimpleAttribute("Type", Type);
-    if (lineRatio != null)
-      serializer.WriteSimpleAttribute("LineRatio", LineRatio);
-    if (lineHeight != null)
-      serializer.WriteSimpleAttribute("LineHeight", LineHeight);
-    if (narrowLineWidth != null)
-      serializer.WriteSimpleAttribute("NarrowLineWidth", NarrowLineWidth);
+    serializer.WriteSimpleAttributeIfSet("Orientation", orientation);
+    serializer.WriteSimpleAttributeIfSet("BearerBars", bearerBars);
+    serializer.WriteSimpleAttributeIfSet("Text", text);
+    serializer.WriteSimpleAttributeIfSet("Type", type);
+    serializer.WriteSimpleAttributeIfSet("LineRatio", lineRatio);
+    serializer.WriteSimpleAttributeIfSet("LineHeight", lineHeight);
+    serializer.WriteSimpleAttributeIfSet("NarrowLineWidth", narrowLineWidth);
 
     serializer.EndAttributes(pos);
   }

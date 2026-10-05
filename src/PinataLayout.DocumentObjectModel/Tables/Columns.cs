@@ -138,8 +138,7 @@ public partial class Columns : DocumentObjectCollection, IVisitable
 
     var pos = serializer.BeginAttributes();
 
-    if (!width.IsNull)
-      serializer.WriteSimpleAttribute("Width", Width);
+    serializer.WriteSimpleAttributeIfSet("Width", width);
 
     serializer.EndAttributes(pos);
 

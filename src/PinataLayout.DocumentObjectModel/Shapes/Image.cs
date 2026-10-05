@@ -166,14 +166,10 @@ public partial class Image : Shape
         var pos = serializer.BeginAttributes();
 
         base.Serialize(serializer);
-        if (scaleWidth != null)
-            serializer.WriteSimpleAttribute("ScaleWidth", ScaleWidth);
-        if (scaleHeight != null)
-            serializer.WriteSimpleAttribute("ScaleHeight", ScaleHeight);
-        if (lockAspectRatio != null)
-            serializer.WriteSimpleAttribute("LockAspectRatio", LockAspectRatio);
-        if (resolution != null)
-            serializer.WriteSimpleAttribute("Resolution", Resolution);
+        serializer.WriteSimpleAttributeIfSet("ScaleWidth", scaleWidth);
+        serializer.WriteSimpleAttributeIfSet("ScaleHeight", scaleHeight);
+        serializer.WriteSimpleAttributeIfSet("LockAspectRatio", lockAspectRatio);
+        serializer.WriteSimpleAttributeIfSet("Resolution", resolution);
         if (!IsNull("PictureFormat"))
             pictureFormat.Serialize(serializer);
 

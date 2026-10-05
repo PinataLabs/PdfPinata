@@ -534,8 +534,7 @@ public partial class PageSetup : DocumentObject
   /// </summary>
   private static void WriteIfSet(Serializer serializer, string valueName, Unit value)
   {
-    if (!value.IsNull)
-      serializer.WriteSimpleAttribute(valueName, value);
+    serializer.WriteSimpleAttributeIfSet(valueName, value);
   }
 
   /// <summary>
@@ -543,8 +542,7 @@ public partial class PageSetup : DocumentObject
   /// </summary>
   private static void WriteIfSet<T>(Serializer serializer, string valueName, T? value) where T : struct
   {
-    if (value != null)
-      serializer.WriteSimpleAttribute(valueName, value.Value);
+    serializer.WriteSimpleAttributeIfSet(valueName, value);
   }
 
   #endregion

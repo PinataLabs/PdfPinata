@@ -129,16 +129,11 @@ public partial class WrapFormat : DocumentObject
   internal override void Serialize(Serializer serializer)
   {
     serializer.BeginContent("WrapFormat");
-    if (style != null)
-      serializer.WriteSimpleAttribute("Style", Style);
-    if (!distanceTop.IsNull)
-      serializer.WriteSimpleAttribute("DistanceTop", DistanceTop);
-    if (!distanceLeft.IsNull)
-      serializer.WriteSimpleAttribute("DistanceLeft", DistanceLeft);
-    if (!distanceRight.IsNull)
-      serializer.WriteSimpleAttribute("DistanceRight", DistanceRight);
-    if (!distanceBottom.IsNull)
-      serializer.WriteSimpleAttribute("DistanceBottom", DistanceBottom);
+    serializer.WriteSimpleAttributeIfSet("Style", style);
+    serializer.WriteSimpleAttributeIfSet("DistanceTop", distanceTop);
+    serializer.WriteSimpleAttributeIfSet("DistanceLeft", distanceLeft);
+    serializer.WriteSimpleAttributeIfSet("DistanceRight", distanceRight);
+    serializer.WriteSimpleAttributeIfSet("DistanceBottom", distanceBottom);
     serializer.EndContent();
   }
 

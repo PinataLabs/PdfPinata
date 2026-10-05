@@ -318,24 +318,17 @@ public partial class TextArea : ChartObject, IVisitable
     serializer.WriteLine("\\" + chartObject.CheckTextArea(this));
     var pos = serializer.BeginAttributes();
 
-    if (style != null)
-      serializer.WriteSimpleAttribute("Style", Style);
+    serializer.WriteSimpleAttributeIfSet("Style", style);
     if (!IsNull("Format"))
       format.Serialize(serializer, "Format", null);
 
-    if (!topPadding.IsNull)
-      serializer.WriteSimpleAttribute("TopPadding", TopPadding);
-    if (!leftPadding.IsNull)
-      serializer.WriteSimpleAttribute("LeftPadding", LeftPadding);
-    if (!rightPadding.IsNull)
-      serializer.WriteSimpleAttribute("RightPadding", RightPadding);
-    if (!bottomPadding.IsNull)
-      serializer.WriteSimpleAttribute("BottomPadding", BottomPadding);
+    serializer.WriteSimpleAttributeIfSet("TopPadding", topPadding);
+    serializer.WriteSimpleAttributeIfSet("LeftPadding", leftPadding);
+    serializer.WriteSimpleAttributeIfSet("RightPadding", rightPadding);
+    serializer.WriteSimpleAttributeIfSet("BottomPadding", bottomPadding);
 
-    if (!width.IsNull)
-      serializer.WriteSimpleAttribute("Width", Width);
-    if (!height.IsNull)
-      serializer.WriteSimpleAttribute("Height", Height);
+    serializer.WriteSimpleAttributeIfSet("Width", width);
+    serializer.WriteSimpleAttributeIfSet("Height", height);
 
     serializer.WriteSimpleAttributeIfSet("VerticalAlignment", verticalAlignment);
 

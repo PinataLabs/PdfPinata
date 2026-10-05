@@ -307,16 +307,13 @@ public partial class Row : DocumentObject, IVisitable
     if (!IsNull("Format"))
       format.Serialize(serializer, "Format", null);
 
-    if (!height.IsNull)
-      serializer.WriteSimpleAttribute("Height", Height);
+    serializer.WriteSimpleAttributeIfSet("Height", height);
 
     serializer.WriteSimpleAttributeIfSet("HeightRule", heightRule);
 
-    if (!topPadding.IsNull)
-      serializer.WriteSimpleAttribute("TopPadding", TopPadding);
+    serializer.WriteSimpleAttributeIfSet("TopPadding", topPadding);
 
-    if (!bottomPadding.IsNull)
-      serializer.WriteSimpleAttribute("BottomPadding", BottomPadding);
+    serializer.WriteSimpleAttributeIfSet("BottomPadding", bottomPadding);
 
     serializer.WriteSimpleAttributeIfSet("HeadingFormat", headingFormat);
     serializer.WriteSimpleAttributeIfSet("VerticalAlignment", verticalAlignment);
