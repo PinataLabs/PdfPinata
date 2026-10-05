@@ -32,8 +32,8 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using System.Text;
 using System.IO;
+using PdfPinata.Pdf.Internal;
 using PdfPinata.Pdf.IO;
 
 namespace PdfPinata.Pdf.Advanced;
@@ -84,11 +84,8 @@ public class PdfInternals
         if (id == null || id.Length != 16)
             return Guid.Empty;
 
-        var guid = new StringBuilder();
-        for (var idx = 0; idx < 16; idx++)
-            guid.AppendFormat("{0:X2}", (byte)id[idx]);
-
-        return new Guid(guid.ToString());
+        // One char per byte, as every PDF string is held.
+        return new Guid(Convert.ToHexString(PdfEncoders.RawEncoding.GetBytes(id)));
     }
 
     /// <summary>

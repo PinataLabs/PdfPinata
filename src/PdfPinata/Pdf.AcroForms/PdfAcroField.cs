@@ -633,6 +633,12 @@ public abstract class PdfAcroField : PdfDictionary
     }
 
     /// <summary>
+    /// Sets or clears one flag, leaving the others as they are in effect.
+    /// </summary>
+    internal void SetFlag(PdfAcroFieldFlags flag, bool on)
+        => SetFlags = on ? SetFlags | flag : SetFlags & ~flag;
+
+    /// <summary>
     /// The field flags a field dictionary has in effect: its own <c>/Ff</c>, or the nearest
     /// ancestor's when it has none.
     /// </summary>
@@ -880,13 +886,7 @@ public abstract class PdfAcroField : PdfDictionary
     public bool ReadOnly
     {
         get => (Flags & PdfAcroFieldFlags.ReadOnly) != 0;
-        set
-        {
-            if (value)
-                SetFlags |= PdfAcroFieldFlags.ReadOnly;
-            else
-                SetFlags &= ~PdfAcroFieldFlags.ReadOnly;
-        }
+        set => SetFlag(PdfAcroFieldFlags.ReadOnly, value);
     }
 
     /// <summary>

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using PdfPinata.Pdf.Security;
 
 namespace PdfPinata.Pdf.Advanced;
@@ -98,13 +97,7 @@ internal sealed class PdfImageConsolidator
                 Hasher.Initialize();
             }
 
-            var sb = new StringBuilder();
-            foreach (var x in hashBytes)
-            {
-                sb.Append(x.ToString("x2"));
-            }
-
-            return sb.ToString();
+            return Convert.ToHexString(hashBytes);
         }
     }
 }

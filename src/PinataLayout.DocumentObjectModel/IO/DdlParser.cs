@@ -80,8 +80,7 @@ internal class DdlParser
         MoveToCode();
         AssertSymbol(Symbol.Document);
         ReadCode();
-        if (Symbol == Symbol.BracketLeft)
-            ParseAttributes(document);
+        ParseAttributesIfPresent(document);
 
         AssertSymbol(Symbol.BraceLeft);
 
@@ -291,8 +290,7 @@ internal class DdlParser
             section = sections.AddSection();
 
             ReadCode(); // read '[' or '{'
-            if (Symbol == Symbol.BracketLeft)
-                ParseAttributes(section);
+            ParseAttributesIfPresent(section);
 
             AssertSymbol(Symbol.BraceLeft);
 
@@ -340,8 +338,7 @@ internal class DdlParser
             // not to the DDL parser. Therefore no code here belongs to that.
             var headerFooter = new HeaderFooter();
             ReadCode(); // read '[' or '{'
-            if (Symbol == Symbol.BracketLeft)
-                ParseAttributes(headerFooter);
+            ParseAttributesIfPresent(headerFooter);
 
             AssertSymbol(Symbol.BraceLeft);
             if (IsParagraphContent())
@@ -516,8 +513,7 @@ internal class DdlParser
         try
         {
             ReadCode(); // read '[' or '{'
-            if (Symbol == Symbol.BracketLeft)
-                ParseAttributes(paragraph);
+            ParseAttributesIfPresent(paragraph);
 
             // Empty paragraphs without braces are valid.
             if (Symbol != Symbol.BraceLeft)
@@ -1003,8 +999,7 @@ internal class DdlParser
         ReadCode();
 
         var footnote = elements.AddFootnote();
-        if (Symbol == Symbol.BracketLeft)
-            ParseAttributes(footnote);
+        ParseAttributesIfPresent(footnote);
 
         AssertSymbol(Symbol.BraceLeft);
 
@@ -1031,8 +1026,7 @@ internal class DdlParser
         ReadCode();
 
         var hyperlink = elements.AddHyperlink("");
-        if (Symbol == Symbol.BracketLeft)
-            ParseAttributes(hyperlink);
+        ParseAttributesIfPresent(hyperlink);
 
         AssertSymbol(Symbol.BraceLeft);
 
@@ -1117,8 +1111,7 @@ internal class DdlParser
             AssertSymbol(Symbol.Table);
 
             ReadCode();
-            if (scanner.Symbol == Symbol.BracketLeft)
-                ParseAttributes(tbl);
+            ParseAttributesIfPresent(tbl);
 
             AssertSymbol(Symbol.BraceLeft);
             ReadCode();
@@ -1150,8 +1143,7 @@ internal class DdlParser
         Debug.Assert(Symbol == Symbol.Columns);
 
         ReadCode();
-        if (Symbol == Symbol.BracketLeft)
-            ParseAttributes(table.Columns);
+        ParseAttributesIfPresent(table.Columns);
 
         AssertSymbol(Symbol.BraceLeft);
         ReadCode();
@@ -1190,8 +1182,7 @@ internal class DdlParser
         Debug.Assert(Symbol == Symbol.Column);
 
         ReadCode();
-        if (Symbol == Symbol.BracketLeft)
-            ParseAttributes(column);
+        ParseAttributesIfPresent(column);
 
         // Read empty content
         if (Symbol != Symbol.BraceLeft)
@@ -1211,8 +1202,7 @@ internal class DdlParser
         Debug.Assert(Symbol == Symbol.Rows);
 
         ReadCode();
-        if (Symbol == Symbol.BracketLeft)
-            ParseAttributes(table.Rows);
+        ParseAttributesIfPresent(table.Rows);
 
         AssertSymbol(Symbol.BraceLeft);
         ReadCode();
@@ -1251,8 +1241,7 @@ internal class DdlParser
         Debug.Assert(Symbol == Symbol.Row);
 
         ReadCode();
-        if (Symbol == Symbol.BracketLeft)
-            ParseAttributes(row);
+        ParseAttributesIfPresent(row);
 
         if (Symbol != Symbol.BraceLeft)
             return;
@@ -1295,8 +1284,7 @@ internal class DdlParser
         Debug.Assert(Symbol == Symbol.Cell);
 
         ReadCode();
-        if (Symbol == Symbol.BracketLeft)
-            ParseAttributes(cell);
+        ParseAttributesIfPresent(cell);
 
         // Empty cells without braces are valid.
         if (Symbol != Symbol.BraceLeft)
@@ -1365,8 +1353,7 @@ internal class DdlParser
         try
         {
             ReadCode();
-            if (scanner.Symbol == Symbol.BracketLeft)
-                ParseAttributes(textFrame);
+            ParseAttributesIfPresent(textFrame);
 
             AssertSymbol(Symbol.BraceLeft);
             if (IsParagraphContent())
@@ -1418,8 +1405,7 @@ internal class DdlParser
             AssertSymbol(Symbol.ParenRight, DomMsgID.MissingParenRight, GetSymbolText(Symbol.Barcode));
 
             ReadCode();
-            if (Symbol == Symbol.BracketLeft)
-                ParseAttributes(barcode);
+            ParseAttributesIfPresent(barcode);
         }
         catch (DdlParserException pe)
         {
@@ -1444,8 +1430,7 @@ internal class DdlParser
             var chart = elements.AddChart(ParseChartType());
 
             ReadCode();
-            if (Symbol == Symbol.BracketLeft)
-                ParseAttributes(chart);
+            ParseAttributesIfPresent(chart);
 
             AssertSymbol(Symbol.BraceLeft, DomMsgID.MissingBraceLeft, GetSymbolText(Symbol.Chart));
 
@@ -1563,11 +1548,7 @@ internal class DdlParser
         try
         {
             ReadCode();
-            if (Symbol == Symbol.BracketLeft)
-            {
-                ParseAttributes(area, false);
-                ReadCode();
-            }
+            ParseAttributesIfPresent(area);
 
             if (Symbol != Symbol.BraceLeft)
                 return;
@@ -1608,11 +1589,7 @@ internal class DdlParser
         try
         {
             ReadCode();
-            if (Symbol == Symbol.BracketLeft)
-            {
-                ParseAttributes(area, false);
-                ReadCode();
-            }
+            ParseAttributesIfPresent(area);
 
             if (Symbol != Symbol.BraceLeft)
                 return;
@@ -1686,11 +1663,7 @@ internal class DdlParser
         try
         {
             ReadCode();
-            if (Symbol == Symbol.BracketLeft)
-            {
-                ParseAttributes(axis, false);
-                ReadCode();
-            }
+            ParseAttributesIfPresent(axis);
 
             if (Symbol != Symbol.BraceLeft)
                 return;
@@ -1720,8 +1693,7 @@ internal class DdlParser
         try
         {
             ReadCode();
-            if (Symbol == Symbol.BracketLeft)
-                ParseAttributes(series);
+            ParseAttributesIfPresent(series);
 
             AssertSymbol(Symbol.BraceLeft, DomMsgID.MissingBraceLeft, GetSymbolText(Symbol.Series));
             ReadCode(); // read beyond '{'
@@ -1850,8 +1822,7 @@ internal class DdlParser
         try
         {
             ReadCode();
-            if (Symbol == Symbol.BracketLeft)
-                ParseAttributes(point);
+            ParseAttributesIfPresent(point);
 
             AssertSymbol(Symbol.BraceLeft, DomMsgID.MissingBraceLeft, GetSymbolText(Symbol.Point));
             ReadCode(); // read beyond '{'
@@ -1881,11 +1852,7 @@ internal class DdlParser
         try
         {
             ReadCode();
-            if (Symbol == Symbol.BracketLeft)
-            {
-                ParseAttributes(legend, false);
-                ReadCode();
-            }
+            ParseAttributesIfPresent(legend);
 
             // Empty legends are allowed.
             if (Symbol != Symbol.BraceLeft)
@@ -1925,6 +1892,16 @@ internal class DdlParser
     private void ParseAttributes(DocumentObject element)
     {
         ParseAttributes(element, true);
+    }
+
+    /// <summary>
+    /// Parses the attribute block that follows, when one does: the '[' an element's attributes
+    /// begin with is optional.
+    /// </summary>
+    private void ParseAttributesIfPresent(DocumentObject element)
+    {
+        if (Symbol == Symbol.BracketLeft)
+            ParseAttributes(element);
     }
 
     /// <summary>

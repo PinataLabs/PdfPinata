@@ -2650,12 +2650,11 @@ internal class ParagraphRenderer : Renderer
             return new Rectangle(left, top, right - left, bottom - top);
 
         var borders = format.Borders;
-        var bordersRenderer = new BordersRenderer(borders, Gfx);
 
         if (renderInfo.FormatInfo.IsStarting)
-            top += bordersRenderer.GetWidth(BorderType.Top);
+            top += BordersRenderer.WidthOf(borders, BorderType.Top);
         if (renderInfo.FormatInfo.IsEnding)
-            bottom -= bordersRenderer.GetWidth(BorderType.Bottom);
+            bottom -= BordersRenderer.WidthOf(borders, BorderType.Bottom);
 
         left -= borders.DistanceFromLeft;
         right += borders.DistanceFromRight;
@@ -3060,8 +3059,7 @@ internal class ParagraphRenderer : Renderer
             if (paragraph.Format.IsNull("Borders"))
                 return offset;
 
-            var bordersRenderer = new BordersRenderer(paragraph.Format.Borders, Gfx);
-            offset += bordersRenderer.GetWidth(BorderType.Top);
+            offset += BordersRenderer.WidthOf(paragraph.Format.Borders, BorderType.Top);
             return offset;
         }
     }
@@ -3091,8 +3089,7 @@ internal class ParagraphRenderer : Renderer
                 return offset;
 
             offset += paragraph.Format.Borders.DistanceFromBottom;
-            var bordersRenderer = new BordersRenderer(paragraph.Format.Borders, Gfx);
-            offset += bordersRenderer.GetWidth(BorderType.Bottom);
+            offset += BordersRenderer.WidthOf(paragraph.Format.Borders, BorderType.Bottom);
             return offset;
         }
     }

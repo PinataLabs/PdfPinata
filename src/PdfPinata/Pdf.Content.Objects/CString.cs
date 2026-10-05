@@ -31,6 +31,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
+using PdfPinata.Pdf.Internal;
 using PdfPinata.Pdf.IO;
 
 namespace PdfPinata.Pdf.Content.Objects;
@@ -81,7 +82,6 @@ public class CString : CObject
                 break;
 
             case CStringType.HexString:
-                s.Append('<');
                 foreach (var ch in Value)
                 {
                     // One char per byte. Anything wider has no two digits to say it with, and
@@ -93,9 +93,8 @@ public class CString : CObject
                         throw new InvalidOperationException(
                             $"A hex string holds bytes, and U+{(int)ch:X4} is not one. Use CStringType.UnicodeHexString for text.");
                     #pragma warning restore S3877
-                    s.Append(((int)ch).ToString("X2", CultureInfo.InvariantCulture));
                 }
-                s.Append('>');
+                s.Append('<').Append(Convert.ToHexString(PdfEncoders.RawEncoding.GetBytes(Value))).Append('>');
                 break;
 
             case CStringType.UnicodeString:

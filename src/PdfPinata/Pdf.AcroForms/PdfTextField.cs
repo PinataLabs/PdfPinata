@@ -147,13 +147,7 @@ public sealed class PdfTextField : PdfAcroField
     public bool MultiLine
     {
         get => (Flags & PdfAcroFieldFlags.Multiline) != 0;
-        set
-        {
-            if (value)
-                SetFlags |= PdfAcroFieldFlags.Multiline;
-            else
-                SetFlags &= ~PdfAcroFieldFlags.Multiline;
-        }
+        set => SetFlag(PdfAcroFieldFlags.Multiline, value);
     }
 
     /// <summary>
@@ -162,13 +156,7 @@ public sealed class PdfTextField : PdfAcroField
     public bool Password
     {
         get => (Flags & PdfAcroFieldFlags.Password) != 0;
-        set
-        {
-            if (value)
-                SetFlags |= PdfAcroFieldFlags.Password;
-            else
-                SetFlags &= ~PdfAcroFieldFlags.Password;
-        }
+        set => SetFlag(PdfAcroFieldFlags.Password, value);
     }
 
     /// <summary>
