@@ -321,7 +321,7 @@ public class CLexer
 
             var high = ScanNextChar();
             var low = ScanNextChar();
-            _currChar = (char)(HexValue(high) * 16 + HexValue(low));
+            _currChar = (char)(CharacterScanning.HexValue(high) * 16 + CharacterScanning.HexValue(low));
         }
     }
 
@@ -773,58 +773,14 @@ public class CLexer
             return false;
         }
 
-        if (TryResolveSimpleEscape(ch, out var resolved))
+        if (CharacterScanning.TryResolveSimpleEscape(ch, out var resolved))
             ch = resolved;
         else if (IsOctalDigit(ch))
             ch = ReadOctalEscape(ch);
 
-        // Anything else stands for itself, and the backslash is dropped.
+        // Anything else stands for itself, and the backslash is dropped - '\ ' included, which
+        // AutoCAD writes for a space.
         return true;
-    }
-
-    /// <summary>
-    /// Resolves the escapes a literal string writes as a backslash and one character.
-    /// </summary>
-    private static bool TryResolveSimpleEscape(char ch, out char resolved)
-    {
-        switch (ch)
-        {
-            case 'n':
-                resolved = Chars.LF;
-                return true;
-
-            case 'r':
-                resolved = Chars.CR;
-                return true;
-
-            case 't':
-                resolved = Chars.HT;
-                return true;
-
-            case 'b':
-                resolved = Chars.BS;
-                return true;
-
-            case 'f':
-                resolved = Chars.FF;
-                return true;
-
-            case '(':
-                resolved = Chars.ParenLeft;
-                return true;
-
-            case ')':
-                resolved = Chars.ParenRight;
-                return true;
-
-            case '\\':
-                resolved = Chars.BackSlash;
-                return true;
-
-            default:
-                resolved = ch;
-                return false;
-        }
     }
 
     /// <summary>
@@ -858,8 +814,8 @@ public class CLexer
         // The reference only names the big-endian byte order mark, but Adobe Reader also accepts
         // the little-endian one - the document lexer does too, and a byte-swapped string here
         // should read the same text it does there.
-        var bigEndian = _token.Length >= 2 && _token[0] == '\xFE' && _token[1] == '\xFF';
-        var littleEndian = _token.Length >= 2 && _token[0] == '\xFF' && _token[1] == '\xFE';
+        var bigEndian = CharacterScanning.StartsWithUtf16BigEndianMark(_token);
+        var littleEndian = CharacterScanning.StartsWithUtf16LittleEndianMark(_token);
         if (!bigEndian && !littleEndian)
             return CSymbol.String;
 
@@ -961,7 +917,7 @@ public class CLexer
     private CSymbol DecodeHexString()
     {
         var chars = _token.ToString();
-        if (chars.Length <= 2 || chars[0] != (char)0xFE || chars[1] != (char)0xFF)
+        if (chars.Length <= 2 || !CharacterScanning.StartsWithUtf16BigEndianMark(chars.AsSpan()))
             return CSymbol.HexString;
 
         // A Unicode hex string missing half of its last character is short of the low byte
@@ -1019,9 +975,6 @@ public class CLexer
     /// <see cref="_charIndex"/> already points at, or <see cref="Chars.EOF"/> past the end.
     /// </summary>
     private char PeekAfterNextChar() => ContLength <= _charIndex ? Chars.EOF : (char)_content[_charIndex];
-
-    /// <summary>The value of a character <see cref="IsHexChar"/> accepts.</summary>
-    private static int HexValue(char ch) => ch <= '9' ? ch - '0' : (ch | 0x20) - 'a' + 10;
 
     /// <summary>
     /// Resets the current token to the empty string.

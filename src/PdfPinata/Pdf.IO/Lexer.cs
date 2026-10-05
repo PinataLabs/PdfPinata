@@ -374,7 +374,7 @@ public class Lexer
             }
             var high = _currChar;
             ScanNextChar(true);
-            _currChar = (char)(HexValue(high) << 4 | HexValue(_currChar));
+            _currChar = (char)(CharacterScanning.HexValue(high) << 4 | CharacterScanning.HexValue(_currChar));
         }
     }
 
@@ -540,11 +540,20 @@ public class Lexer
     /// </summary>
     /// <returns>
     /// False when the backslash continues the line instead, in which case <paramref name="ch"/> is
-    /// the character after the line ending and still to be read as part of the string.
+    /// the character after the line ending and still to be read as part of the string - and false
+    /// too when the file ends right after the backslash, leaving <paramref name="ch"/> the
+    /// end-of-file marker for the caller to stop at.
     /// </returns>
     private bool TryReadEscapedChar(out char ch)
     {
         ch = ScanNextChar(false);
+
+        // The end-of-file marker is not a character of the string. Resolved as an escape it
+        // stood for itself, and was appended to the string as U+FFFF - which the content lexer
+        // already guards against in its own copy of this method.
+        if (ch == Chars.EOF)
+            return false;
+
         if (ch is Chars.CR or Chars.LF)
         {
             // CR LF is one line ending, not a CR ending the line and an LF opening the next.
@@ -555,94 +564,35 @@ public class Lexer
             return false;
         }
 
-        if (TryResolveSimpleEscape(ch, out var resolved))
+        if (CharacterScanning.TryResolveSimpleEscape(ch, out var resolved))
             ch = resolved;
-        else if (char.IsDigit(ch))  // First octal character.
+        else if (CharacterScanning.IsOctalDigit(ch))
             ch = ReadOctalEscape(ch);
 
-        // Anything else stands for itself, and the backslash is ignored.
+        // Anything else stands for itself, and the backslash is ignored - '\ ' included, which
+        // AutoCAD writes for a space.
         return true;
-    }
-
-    /// <summary>
-    /// Resolves the escapes a literal string writes as a backslash and one character.
-    /// </summary>
-    private static bool TryResolveSimpleEscape(char ch, out char resolved)
-    {
-        switch (ch)
-        {
-            case 'n':
-                resolved = Chars.LF;
-                return true;
-
-            case 'r':
-                resolved = Chars.CR;
-                return true;
-
-            case 't':
-                resolved = Chars.HT;
-                return true;
-
-            case 'b':
-                resolved = Chars.BS;
-                return true;
-
-            case 'f':
-                resolved = Chars.FF;
-                return true;
-
-            case '(':
-                resolved = Chars.ParenLeft;
-                return true;
-
-            case ')':
-                resolved = Chars.ParenRight;
-                return true;
-
-            case '\\':
-                resolved = Chars.BackSlash;
-                return true;
-
-            // AutoCAD PDFs my contain such strings: (\ )
-            case ' ':
-                resolved = ' ';
-                return true;
-
-            default:
-                resolved = ch;
-                return false;
-        }
     }
 
     /// <summary>
     /// Reads an octal character code of up to three digits, the first of which has just been read.
     /// </summary>
+    /// <remarks>
+    /// Octal runs to '7'. An '8' or a '9' cannot belong to a code, so it ends one already begun
+    /// rather than extending it, and a backslash before either is dropped and the digit kept as
+    /// text. The test for a digit here used to be <see cref="char.IsDigit(char)"/>, under which
+    /// <c>(\18)</c> threw a parser exception where the content lexer reads U+0001 and an '8'.
+    /// </remarks>
     private char ReadOctalEscape(char first)
     {
-        // Since the first possible octal character is not valid, the backslash is ignored.
-        if (first >= '8')
-            return first;
-
         var n = first - '0';
-        if (char.IsDigit(_nextChar))  // Second octal character.
+        if (CharacterScanning.IsOctalDigit(_nextChar))  // Second octal character.
         {
-            n = n * 8 + ReadOctalDigit();
-            if (char.IsDigit(_nextChar))  // Third octal character.
-                n = n * 8 + ReadOctalDigit();
+            n = n * 8 + ScanNextChar(false) - '0';
+            if (CharacterScanning.IsOctalDigit(_nextChar))  // Third octal character.
+                n = n * 8 + ScanNextChar(false) - '0';
         }
         return (char)n;
-    }
-
-    /// <summary>
-    /// Reads the next digit of an octal character code, which the caller has seen is a digit.
-    /// </summary>
-    private int ReadOctalDigit()
-    {
-        var ch = ScanNextChar(false);
-        if (ch >= '8')
-            ParserDiagnostics.HandleUnexpectedCharacter(ch);
-
-        return ch - '0';
     }
 
     /// <summary>
@@ -652,22 +602,19 @@ public class Lexer
     /// </summary>
     private Symbol DecodeLiteralString()
     {
-        if (TokenStartsWith('\xFE', '\xFF'))
+        if (CharacterScanning.StartsWithUtf16BigEndianMark(_token))
         {
             DecodeUtf16Token(bigEndian: true);
             return Symbol.UnicodeString;
         }
         // Adobe Reader also supports UTF-16LE.
-        if (TokenStartsWith('\xFF', '\xFE'))
+        if (CharacterScanning.StartsWithUtf16LittleEndianMark(_token))
         {
             DecodeUtf16Token(bigEndian: false);
             return Symbol.UnicodeString;
         }
         return Symbol.String;
     }
-
-    private bool TokenStartsWith(char first, char second) =>
-        _token.Length >= 2 && _token[0] == first && _token[1] == second;
 
     /// <summary>
     /// Combines each two ANSI characters of the token after its byte order mark into one Unicode
@@ -769,7 +716,7 @@ public class Lexer
     {
         var chars = _token.ToString();
         var count = chars.Length;
-        if (count <= 2 || chars[0] != (char)0xFE || chars[1] != (char)0xFF)
+        if (count <= 2 || !CharacterScanning.StartsWithUtf16BigEndianMark(chars.AsSpan()))
             return Symbol.HexString;
 
         // The last character of the string may be short of its low byte, which is a zero
@@ -787,9 +734,6 @@ public class Lexer
     }
 
     internal static bool IsHexChar(char c) => CharacterScanning.IsHexChar(c);
-
-    /// <summary>The value of a character <see cref="IsHexChar"/> accepts.</summary>
-    private static int HexValue(char c) => c <= '9' ? c - '0' : (c | 0x20) - 'a' + 10;
 
     /// <summary>
     /// Move current position one character further in PDF stream.
