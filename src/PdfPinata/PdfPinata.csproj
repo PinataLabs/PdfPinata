@@ -2,34 +2,19 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1;net8.0;net10.0</TargetFrameworks>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <!-- Ship the XML documentation alongside the assembly, so a consumer of the package gets the
          doc comments as IntelliSense. This project is clean of CS1591, so a public member added
          without one now warns. Set per project rather than in Directory.Build.props, which is
-         imported before GeneratePackageOnBuild is known, or Directory.Build.targets, which is
+         imported before IsPackable is known, or Directory.Build.targets, which is
          imported after the SDK has already derived DocumentationFile from it. -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Authors>Stefan Steiger and Contributors</Authors>
     <Description>PdfSharp for .NET Core
 
 PdfPinata is a partial port of PdfSharp.Xamarin for .NET Core Additionally MigraDoc has been ported as well (from version 1.32). Images have been implemented with ImageSharp from https://www.nuget.org/packages/SixLabors.ImageSharp</Description>
-    <Copyright>Copyright (c) 2026 PdfPinata; Copyright (c) 2005-2007 empira Software GmbH, Cologne (Germany)</Copyright>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <PackageProjectUrl>https://github.com/PinataLabs/PdfPinata</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/PinataLabs/PdfPinata</RepositoryUrl>
     <PackageTags>NuggetV1.0.0 (8ea343d5898342a563b9d4df2d67e27aaea9ac01)</PackageTags>
     <summary>PdfSharp for .NET Core</summary>
     <IsTrimmable>true</IsTrimmable>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants>TRACE;RELEASE;</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -61,11 +46,6 @@ PdfPinata is a partial port of PdfSharp.Xamarin for .NET Core Additionally Migra
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\..\LICENSE.md" Pack="true" PackagePath="" />
-    <None Include="..\..\README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>
