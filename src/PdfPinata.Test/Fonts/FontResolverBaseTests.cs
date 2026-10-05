@@ -356,10 +356,13 @@ public class FontResolverBaseTests
 
     /// <summary>
     ///   A name table the directory places past the end of the file is malformed input, and is
-    ///   refused as such rather than by indexing off the end of the array.
+    ///   refused as such rather than by indexing off the end of the array - including an offset
+    ///   so close to int.MaxValue that adding the table's header length to it would overflow.
     /// </summary>
-    [Fact]
-    public void TheCoreParserRefusesANameTableOutsideTheFile()
+    [Theory]
+    [InlineData(100u)]
+    [InlineData(0x7FFFFFFCu)]
+    public void TheCoreParserRefusesANameTableOutsideTheFile(uint beyond)
     {
         var font = File.ReadAllBytes(Asset("LiberationSans-Regular.ttf"));
         var tables = (font[4] << 8) | font[5];
@@ -369,7 +372,7 @@ public class FontResolverBaseTests
             if (font[record] != 'n' || font[record + 1] != 'a' || font[record + 2] != 'm' || font[record + 3] != 'e')
                 continue;
 
-            var outside = (uint)font.Length + 100;
+            var outside = beyond > int.MaxValue / 2 ? beyond : (uint)font.Length + beyond;
             font[record + 8] = (byte)(outside >> 24);
             font[record + 9] = (byte)(outside >> 16);
             font[record + 10] = (byte)(outside >> 8);

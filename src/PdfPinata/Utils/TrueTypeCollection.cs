@@ -182,7 +182,7 @@ public static class TrueTypeCollection
                 "Font collection holds " + faceCount + " faces; face " + faceIndex + " was asked for.");
 
         var directory = (int)U32(data, OffsetTableLength + faceIndex * 4);
-        if (directory < 0 || directory + OffsetTableLength > data.Length)
+        if (directory < 0 || directory > data.Length - OffsetTableLength)
             throw new InvalidOperationException("Font collection points at a face outside the file.");
 
         return directory;

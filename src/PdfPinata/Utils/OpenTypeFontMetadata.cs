@@ -157,7 +157,7 @@ public static class OpenTypeFontMetadata
 
         // The table's own header - format, record count and string offset - has to be in the file
         // before it is read; ReadFamilyName checks each record and string it reads past that.
-        if (nameOffset + NameTableHeaderLength > data.Length)
+        if (nameOffset > data.Length - NameTableHeaderLength)
             throw new InvalidOperationException("Font points at a 'name' table outside the file.");
 
         return new FontMetadata(ReadFamilyName(data, nameOffset), ReadStyle(data, os2Offset, headOffset));
@@ -300,14 +300,14 @@ public static class OpenTypeFontMetadata
         var bold = false;
         var italic = false;
 
-        if (os2Offset >= 0 && os2Offset + 64 <= data.Length)
+        if (os2Offset >= 0 && os2Offset <= data.Length - 64)
         {
             // fsSelection: bit 0 ITALIC, bit 5 BOLD
             var fsSelection = TrueTypeCollection.U16(data, os2Offset + 62);
             italic = (fsSelection & 0x0001) != 0;
             bold = (fsSelection & 0x0020) != 0;
         }
-        else if (headOffset >= 0 && headOffset + 46 <= data.Length)
+        else if (headOffset >= 0 && headOffset <= data.Length - 46)
         {
             // macStyle: bit 0 Bold, bit 1 Italic
             var macStyle = TrueTypeCollection.U16(data, headOffset + 44);
