@@ -143,6 +143,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **An upward text frame restores every graphics state it saves.** It saved the state twice and restored it once, so everything drawn after it on the page ran one `q` deeper. (#163)
 - **A PinataLayout chart no longer gives every point an empty line format.** The mapper wrote one for every point, always with a solid dash, so a dashed series' columns, bars and sectors were outlined solid. A point's line format is now mapped only when the document set one. (#171)
 - **A CMYK colour in a PinataLayout document drawn in RGB has the RGB that `XColor.FromCmyk` gives.** The DOM's `Color` used its own copy of the conversion, which rounded black up by half a level, so about half of all K values came out one level darker. K = 0 is one of them, so CMYK white was 254, 254, 254. (#186)
+- **A field's name and format are escaped when a document is written as DDL.** A page reference field's name, and the format of any field, were written as they stood, so one containing a quote or a backslash produced DDL that could not be read back. Both are now escaped as every other string is, and the output is unchanged for a name or format that needs no escaping. (#234)
 
 ### API & Packaging
 
@@ -157,6 +158,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 #### Fixed
 
 - **Every package is built with `Microsoft.Sbom.Targets` 4.1.12.** Each project's override to 4.1.12 was evaluated before the shared reference it meant to change, so it never applied and every package was built with 4.1.5. The version is now set once in `Directory.Build.targets`. (#167)
+
+### Documentation & Samples
+
+#### Fixed
+
+- **The Inspect demo prints a PDF number with a full stop on every machine.** It formatted operands in the current culture, so on a German machine an operand of `0.5` was shown as `0,5`. (#238)
 
 ## [0.3.0] - 2026-09-22
 
