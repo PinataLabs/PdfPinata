@@ -98,6 +98,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **A text field reads `/MaxLen` from its parent when it has none of its own**, as ISO 32000-1 makes it inheritable, so a comb field grouped under a parent is drawn in its cells rather than as plain text. (#205)
 - **A comb field puts one character in each cell, and a password field draws one asterisk a character, counting characters as the reader sees them.** A character outside the Basic Multilingual Plane, or a letter with a combining mark, counted as two. (#206)
 - **A text or choice field whose widget is under a point in either direction removes its appearance** rather than keeping a stale one, and a widget whose `/Rect` names its corners the other way round is drawn rather than treated as too small. (#211)
+- **A button's on state is read from its widgets.** The protected `PdfButtonField.GetNonOffValue()` looked in the field's own `/AP`. A field whose widgets are separate from it, which is the shape `AddWidget` always makes, has none, so it answered `/Yes` whatever its widgets named. It now reads the widgets and gives the same answer as `PdfCheckBoxField.CheckedName`. (#265)
 
 ### Signatures & Metadata
 
@@ -155,6 +156,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **A field's name and format are escaped when a document is written as DDL.** A page reference field's name, and the format of any field, were written as they stood, so one containing a quote or a backslash produced DDL that could not be read back. Both are now escaped as every other string is, and the output is unchanged for a name or format that needs no escaping. (#234)
 - **A list in tagged output is no longer split in two by furniture.** An undescribed chart, a chart's title, and the running head of a page across which a list breaks each ended the open list, so the structure tree had two `/L` elements where the document had one list. An undescribed image already left the list open. Nothing drawn as an artifact now ends a list. (#227)
 - **A field of a type derived from one of PinataLayout's field types is rendered.** The paragraph renderer chose a field's renderer by its type's name, so a subclass of `PageField`, for example, was silently left out. (#221)
+- **A footnote no longer splits a tagged list that runs on to the next page.** A footnote is drawn at the foot of the page, which is where the page breaks, and tagging its paragraphs ended the open list, so the list's items on the next page went into a second `/L`. A list inside the footnote split it the same way. A footnote is now drawn with the body's open list set aside and put back afterwards, and a list inside it is the note's own `/L`. (#262)
 
 ### API & Packaging
 
