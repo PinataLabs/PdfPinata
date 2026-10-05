@@ -196,31 +196,25 @@ public sealed class DomValueNameAnalyzer : DiagnosticAnalyzer
         /// Whether <paramref name="receiver"/>, a type between it and the member's declaring type, or
         /// a type below it overrides <paramref name="method"/>.
         /// </summary>
+        /// <remarks>
+        /// Any overload taking a name counts, not only the one called: <c>GetValue(name)</c> forwards
+        /// to <c>GetValue(name, flags)</c>, so overriding the second reroutes the first as well -
+        /// which is exactly what <c>Style</c> does. An override of the parameterless <c>IsNull()</c>
+        /// or <c>SetNull()</c>, which a dozen DOM types have, routes no name and does not count.
+        /// </remarks>
         public bool IsOverriddenAtOrBelow(INamedTypeSymbol receiver, IMethodSymbol method)
         {
-            // The call may be bound to an override already, so start from the virtual it overrides.
-            var declared = method.OriginalDefinition;
-            while (declared.OverriddenMethod is { } overridden)
-                declared = overridden.OriginalDefinition;
-
-            for (var t = receiver; t is not null && !SymbolEqualityComparer.Default.Equals(t, declared.ContainingType); t = t.BaseType)
+            for (var t = receiver.BaseType; t is not null; t = t.BaseType)
             {
-                if (Overrides(t, declared))
+                if (Overrides(t, method.Name))
                     return true;
             }
-            return DescendantsAndSelf(receiver).Any(t => Overrides(t, declared));
+            return DescendantsAndSelf(receiver).Any(t => Overrides(t, method.Name));
         }
 
-        private static bool Overrides(INamedTypeSymbol type, IMethodSymbol declared) =>
-            type.GetMembers(declared.Name).OfType<IMethodSymbol>().Any(m =>
-            {
-                for (var o = m.OverriddenMethod; o is not null; o = o.OverriddenMethod)
-                {
-                    if (SymbolEqualityComparer.Default.Equals(o.OriginalDefinition, declared))
-                        return true;
-                }
-                return false;
-            });
+        private static bool Overrides(INamedTypeSymbol type, string name) =>
+            type.GetMembers(name).OfType<IMethodSymbol>().Any(m =>
+                m.IsOverride && m.Parameters.Length > 0 && m.Parameters[0].Type.SpecialType == SpecialType.System_String);
 
         private ImmutableArray<INamedTypeSymbol> DescendantsAndSelf(INamedTypeSymbol type) =>
             descendants.GetOrAdd(type, t =>

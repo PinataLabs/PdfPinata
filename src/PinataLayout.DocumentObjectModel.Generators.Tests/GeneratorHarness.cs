@@ -51,6 +51,8 @@ internal static class GeneratorHarness
 
             public enum ValueKind { Leaf, NullableValue, PlainValue, DocumentObject, Collection }
 
+            public enum GV { ReadOnly, ReadWrite, GetNull }
+
             public sealed class Meta
             {
                 public Meta(params ValueDescriptor[] descriptors) { }
@@ -85,7 +87,8 @@ internal static class GeneratorHarness
 
                 // The name-taking members MDG008 checks, with the real signatures and no bodies
                 // worth the name - the analyzer reads the call, never runs it.
-                public virtual object GetValue(string name) => null;
+                public virtual object GetValue(string name) => GetValue(name, global::PinataLayout.DocumentObjectModel.Internals.GV.ReadWrite);
+                public virtual object GetValue(string name, global::PinataLayout.DocumentObjectModel.Internals.GV flags) => null;
                 public virtual void SetValue(string name, object val) { }
                 public virtual bool HasValue(string name) => false;
                 public virtual bool IsNull(string name) => false;

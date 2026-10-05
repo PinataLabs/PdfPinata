@@ -270,6 +270,46 @@ public class ValueNameAnalyzerTests
     }
 
     [Fact]
+    public void OverridingTheOverloadACallForwardsToCountsAsOverridingTheCall()
+    {
+        // Style's shape exactly: it overrides GetValue(name, flags), and GetValue(name) forwards
+        // to that, so a one-argument call is rerouted too.
+        Mdg008("""
+            public partial class Routing : DocumentObject
+            {
+                [DV] internal Format format;
+
+                public override object GetValue(string name, GV flags) => format.GetValue(name, flags);
+            }
+
+            public static class Use
+            {
+                public static object M(Routing r) => r.GetValue("LeftIndent");
+            }
+            """).Should().BeEmpty();
+    }
+
+    [Fact]
+    public void OverridingTheParameterlessIsNullDoesNotStopTheCheck()
+    {
+        // Border, Borders, Shading and a dozen more override IsNull() to answer for the whole
+        // object. That routes no name anywhere, so their IsNull(name) is still checked.
+        Mdg008("""
+            public partial class Edge : DocumentObject
+            {
+                [DV] internal Unit width;
+
+                public override bool IsNull() => false;
+            }
+
+            public static class Use
+            {
+                public static bool M(Edge e) => e.IsNull("Widht");
+            }
+            """).Should().ContainSingle();
+    }
+
+    [Fact]
     public void AReceiverTypedAsDocumentObjectAcceptsAnyValueOfAnyType()
     {
         Mdg008("""
