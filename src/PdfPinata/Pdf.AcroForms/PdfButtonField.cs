@@ -29,6 +29,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Annotations;
 
 namespace PdfPinata.Pdf.AcroForms;
@@ -69,23 +70,58 @@ public abstract class PdfButtonField : PdfAcroField
         => PdfAcroFieldFlags.Pushbutton | PdfAcroFieldFlags.Radio;
 
     /// <summary>
-    /// Gets the name which represents the opposite of /Off.
+    /// Gets the name of the on state: the first state other than <c>/Off</c> that the widgets'
+    /// normal appearances name, or <c>/Yes</c> - the name ISO 32000-1 uses throughout - when none
+    /// of them names one.
     /// </summary>
+    /// <remarks>
+    /// Read from <see cref="PdfAcroField.Widgets"/>, which for a field merged with its only widget
+    /// is that widget. This used to read the field's own <c>/AP</c> alone, which a field whose
+    /// widgets are separate from it - the shape <see cref="PdfAcroField.AddWidget"/> always makes -
+    /// does not have, so it answered <c>/Yes</c> whatever the widgets named.
+    /// </remarks>
     protected string GetNonOffValue()
     {
-        // Try to get the information from the appearance dictionaray.
-        // Just return the first key that is not /Off.
-        // I'm not sure what is the right solution to get this value.
-        if (Elements[PdfAnnotation.Keys.AP] is PdfDictionary ap && ap.Elements["/N"] is PdfDictionary n)
+        foreach (var widget in Widgets)
         {
-            foreach (var name in n.Elements.Keys)
-                if (name != "/Off")
-                    return name;
+            var states = StatesOf(widget);
+            if (states == null)
+                continue;
+
+            foreach (var state in states)
+            {
+                if (IsOnState(state))
+                    return state;
+            }
         }
+
         // A field built by hand, or one whose appearances have been stripped, names no state at
-        // all. /Yes is what the reference uses throughout for the on state of a check box, and
-        // answering with it is better than handing a null to the caller's SetName.
+        // all, and answering /Yes is better than handing a null to the caller's SetName.
         return "/Yes";
+    }
+
+    /// <summary>
+    /// The off state, whatever the on state is called.
+    /// </summary>
+    private protected const string Off = "/Off";
+
+    /// <summary>
+    /// Whether a state name is an on state. Some forms name their off state <c>/Nein</c>, German
+    /// for "no", rather than <c>/Off</c>, and that is read as off too.
+    /// </summary>
+    private protected static bool IsOnState(string name) => name.Length != 0 && name != Off && name != "/Nein";
+
+    /// <summary>
+    /// The names of a widget's normal appearance states, or null when it has no normal
+    /// appearances to choose between.
+    /// </summary>
+    private protected static ICollection<string> StatesOf(PdfDictionary widget)
+    {
+        var appearances = PdfReference.Dereference(widget.Elements[PdfAnnotation.Keys.AP]);
+
+        var normal = PdfReference.Dereference((appearances as PdfDictionary)?.Elements["/N"]);
+
+        return normal is PdfDictionary states ? states.Elements.Keys : null;
     }
 
     internal override void GetDescendantNames(ref List<string> names, string partialName)

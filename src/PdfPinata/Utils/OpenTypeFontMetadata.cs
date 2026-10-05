@@ -322,10 +322,6 @@ public static class OpenTypeFontMetadata
             italic = (macStyle & 0x0002) != 0;
         }
 
-        if (bold && italic)
-            return XFontStyle.BoldItalic;
-        if (bold)
-            return XFontStyle.Bold;
-        return italic ? XFontStyle.Italic : XFontStyle.Regular;
+        return (bold ? XFontStyle.Bold : 0) | (italic ? XFontStyle.Italic : 0);
     }
 }

@@ -29,9 +29,7 @@
 
 #endregion
 
-using System.Collections.Generic;
 using PdfPinata.Pdf.Annotations;
-using PdfPinata.Pdf.Advanced;
 
 namespace PdfPinata.Pdf.AcroForms;
 
@@ -133,46 +131,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
     /// property that could be set and that nothing read, beside an <c>UncheckedName</c> that
     /// nothing read either; the off state is always <c>/Off</c>.
     /// </remarks>
-    public string CheckedName
-    {
-        get
-        {
-            foreach (var widget in Widgets)
-            {
-                var states = StatesOf(widget);
-                if (states == null)
-                    continue;
-
-                foreach (var state in states)
-                {
-                    if (IsOnState(state))
-                        return state;
-                }
-            }
-            return "/Yes";
-        }
-    }
-
-    private const string Off = "/Off";
-
-    /// <summary>
-    /// Whether a state name is an on state. Some forms name their off state <c>/Nein</c>, German
-    /// for "no", rather than <c>/Off</c>, and that is read as off too.
-    /// </summary>
-    private static bool IsOnState(string name) => name.Length != 0 && name != Off && name != "/Nein";
-
-    /// <summary>
-    /// The names of a widget's normal appearance states, or null when it has no normal
-    /// appearances to choose between.
-    /// </summary>
-    private static ICollection<string> StatesOf(PdfDictionary widget)
-    {
-        var appearances = PdfReference.Dereference(widget.Elements[PdfAnnotation.Keys.AP]);
-
-        var normal = PdfReference.Dereference((appearances as PdfDictionary)?.Elements["/N"]);
-
-        return normal is PdfDictionary states ? states.Elements.Keys : null;
-    }
+    public string CheckedName => GetNonOffValue();
 
     /// <summary>
     /// Predefined keys of this dictionary.

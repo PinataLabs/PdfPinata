@@ -639,6 +639,11 @@ public abstract class PdfAcroField : PdfDictionary
         => SetFlags = on ? SetFlags | flag : SetFlags & ~flag;
 
     /// <summary>
+    /// Whether one flag is set in effect, inherited or not - what <see cref="SetFlag"/> sets.
+    /// </summary>
+    internal bool HasFlag(PdfAcroFieldFlags flag) => (Flags & flag) != 0;
+
+    /// <summary>
     /// The field flags a field dictionary has in effect: its own <c>/Ff</c>, or the nearest
     /// ancestor's when it has none.
     /// </summary>
@@ -885,7 +890,7 @@ public abstract class PdfAcroField : PdfDictionary
     /// </summary>
     public bool ReadOnly
     {
-        get => (Flags & PdfAcroFieldFlags.ReadOnly) != 0;
+        get => HasFlag(PdfAcroFieldFlags.ReadOnly);
         set => SetFlag(PdfAcroFieldFlags.ReadOnly, value);
     }
 
