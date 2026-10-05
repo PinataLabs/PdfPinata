@@ -336,6 +336,60 @@ public class FontResolverBaseTests
         reading.Should().Throw<ArgumentOutOfRangeException>().WithMessage("*face 1*");
     }
 
+    [Theory]
+    [InlineData(-2)]
+    [InlineData(-5)]
+    public void TheCoreParserRefusesAFaceIndexBelowMinusOne(int faceIndex)
+    {
+        var reading = () => OpenTypeFontMetadata.Read(Asset("LiberationSans-Regular.ttf"), faceIndex);
+
+        reading.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
+    public void TheCoreParserRefusesToReadANegativeNumberOfFaces()
+    {
+        var reading = () => OpenTypeFontMetadata.ReadAll(Asset("LiberationSans-Regular.ttf"), -1);
+
+        reading.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    /// <summary>
+    ///   A name table the directory places past the end of the file is malformed input, and is
+    ///   refused as such rather than by indexing off the end of the array.
+    /// </summary>
+    [Fact]
+    public void TheCoreParserRefusesANameTableOutsideTheFile()
+    {
+        var font = File.ReadAllBytes(Asset("LiberationSans-Regular.ttf"));
+        var tables = (font[4] << 8) | font[5];
+        for (var idx = 0; idx < tables; idx++)
+        {
+            var record = 12 + idx * 16;
+            if (font[record] != 'n' || font[record + 1] != 'a' || font[record + 2] != 'm' || font[record + 3] != 'e')
+                continue;
+
+            var outside = (uint)font.Length + 100;
+            font[record + 8] = (byte)(outside >> 24);
+            font[record + 9] = (byte)(outside >> 16);
+            font[record + 10] = (byte)(outside >> 8);
+            font[record + 11] = (byte)outside;
+        }
+
+        var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".ttf");
+        File.WriteAllBytes(path, font);
+        try
+        {
+            var reading = () => OpenTypeFontMetadata.Read(path);
+
+            reading.Should().Throw<InvalidOperationException>().WithMessage("*'name' table outside*");
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
     /// <summary>Overrides nothing, so every metadata reader it has is the base class's own.</summary>
     private sealed class ReadsNothingItself : FontResolverBase
     {

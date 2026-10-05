@@ -31,6 +31,7 @@ public static class OpenTypeFontMetadata
 {
     private const int OffsetTableLength = 12;
     private const int TableRecordLength = 16;
+    private const int NameTableHeaderLength = 6;
 
     private const uint TagName = 0x6E616D65; // 'name'
     private const uint TagOs2 = 0x4F532F32;  // 'OS/2'
@@ -71,7 +72,7 @@ public static class OpenTypeFontMetadata
     /// </param>
     /// <returns>The family name and style the face declares.</returns>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// <paramref name="faceIndex"/> names a face the file does not hold.
+    /// <paramref name="faceIndex"/> is less than -1, or names a face the file does not hold.
     /// </exception>
     /// <exception cref="InvalidOperationException">
     /// The file is not a font this can read: it has no <c>name</c> table or no family name in it,
@@ -94,13 +95,16 @@ public static class OpenTypeFontMetadata
     /// </param>
     /// <returns>The family name and style of each face, in order.</returns>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// <paramref name="faceCount"/> is more faces than the file holds.
+    /// <paramref name="faceCount"/> is negative, or more faces than the file holds.
     /// </exception>
     /// <exception cref="InvalidOperationException">
     /// One of the faces is not a font this can read.
     /// </exception>
     public static FontMetadata[] ReadAll(string path, int faceCount)
     {
+        // Before the file is read, which for a collection can be tens of megabytes.
+        ThrowIfNegativeFaceCount(faceCount);
+
         return ReadAll(File.ReadAllBytes(path), faceCount);
     }
 
@@ -117,6 +121,8 @@ public static class OpenTypeFontMetadata
     /// </summary>
     internal static FontMetadata[] ReadAll(byte[] data, int faceCount)
     {
+        ThrowIfNegativeFaceCount(faceCount);
+
         var metadata = new FontMetadata[faceCount];
 
         for (var face = 0; face < faceCount; face++)
@@ -128,6 +134,10 @@ public static class OpenTypeFontMetadata
 
     internal static FontMetadata Read(byte[] data, int faceIndex)
     {
+        if (faceIndex < -1)
+            throw new ArgumentOutOfRangeException(nameof(faceIndex),
+                "A face index is -1, for the first font in the file, or 0 or more; " + faceIndex + " was asked for.");
+
         var baseOffset = FaceOffset(data, faceIndex);
 
         // A collection is free to point at a face outside the file, and the offset table holds
@@ -145,7 +155,19 @@ public static class OpenTypeFontMetadata
         if (nameOffset < 0)
             throw new InvalidOperationException("Font contains no 'name' table.");
 
+        // The table's own header - format, record count and string offset - has to be in the file
+        // before it is read; ReadFamilyName checks each record and string it reads past that.
+        if (nameOffset + NameTableHeaderLength > data.Length)
+            throw new InvalidOperationException("Font points at a 'name' table outside the file.");
+
         return new FontMetadata(ReadFamilyName(data, nameOffset), ReadStyle(data, os2Offset, headOffset));
+    }
+
+    private static void ThrowIfNegativeFaceCount(int faceCount)
+    {
+        if (faceCount < 0)
+            throw new ArgumentOutOfRangeException(nameof(faceCount),
+                "A collection cannot be read as " + faceCount + " faces.");
     }
 
     /// <summary>
