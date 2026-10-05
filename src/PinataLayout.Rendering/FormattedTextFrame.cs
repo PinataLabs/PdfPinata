@@ -81,11 +81,7 @@ internal class FormattedTextFrame : IAreaProvider
     if (renderInfos == null)
       return null;
 
-    // Not ToArray(Type): it builds the array type at run time, which carries
-    // RequiresDynamicCode and an AOT compiler cannot always have code for.
-    var result = new RenderInfo[renderInfos.Count];
-    renderInfos.CopyTo(result);
-    return result;
+    return RenderInfo.ToArray(renderInfos);
   }
 
   private Rectangle CalcContentRect()

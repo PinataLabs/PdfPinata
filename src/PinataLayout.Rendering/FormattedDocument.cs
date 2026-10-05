@@ -256,11 +256,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         if (!pageRenderInfos.TryGetValue(page, out var infos))
             return null;
 
-        // Not ToArray(Type): it builds the array type at run time, which carries
-        // RequiresDynamicCode and an AOT compiler cannot always have code for.
-        var result = new RenderInfo[infos.Count];
-        infos.CopyTo(result);
-        return result;
+        return RenderInfo.ToArray(infos);
     }
     private Dictionary<int, ArrayList> pageRenderInfos;
 

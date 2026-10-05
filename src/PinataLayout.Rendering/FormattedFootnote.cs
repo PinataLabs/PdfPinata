@@ -93,11 +93,7 @@ internal class FormattedFootnote : IAreaProvider
         if (_renderInfos == null)
             return [];
 
-        // Not ToArray(Type): it builds the array type at run time, which carries
-        // RequiresDynamicCode and an AOT compiler cannot always have code for.
-        var result = new RenderInfo[_renderInfos.Count];
-        _renderInfos.CopyTo(result);
-        return result;
+        return RenderInfo.ToArray(_renderInfos);
     }
 
     /// <summary>How tall the note came out.</summary>
