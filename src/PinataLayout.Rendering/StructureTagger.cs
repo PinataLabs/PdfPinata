@@ -271,6 +271,51 @@ internal sealed class StructureTagger
     }
 
     /// <summary>
+    /// Makes an element current for the scope, as <see cref="Enter"/> does, and keeps the content drawn
+    /// inside it out of the body's run of list items.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// For a footnote, which is content drawn somewhere other than where it belongs. Its
+    /// <c>/Note</c> was built at the citation, so in the tree it sits where it was cited; on the page
+    /// it is drawn at the foot, which is where the page breaks — between the last list item on one
+    /// page and the first on the next. Its paragraphs are tagged, unlike a running head's, and a
+    /// paragraph that is not a list item ends the list before it asks to be: so the list the body
+    /// was in the middle of used to end at the foot of the page, and the item at the top of the next
+    /// opened a second <c>/L</c> for what the document has as one list.
+    /// </para>
+    /// <para>
+    /// Not made an artifact to stop that, which is how a running head is kept out of the run: the
+    /// note is content, and an artifact is not in the tree at all. Instead the run is set aside on
+    /// the way in and put back on the way out. The note starts with no list open — a list inside it
+    /// is a list of its own, under the <c>/Note</c> — and whatever it opens or ends is gone when it
+    /// is, leaving the body's list exactly as the body left it.
+    /// </para>
+    /// </remarks>
+    internal IDisposable EnterAside(PdfStructureElement element)
+    {
+        if (element == null)
+            return Nothing;
+
+        var bodyLists = _listFrames.ToArray();
+        _listFrames.Clear();
+        _parents.Push(element);
+        return new Scope(this, null, popsParent: true, restoresLists: bodyLists);
+    }
+
+    /// <summary>
+    /// Puts back a run of list frames that <see cref="EnterAside"/> set aside, deepest on top again.
+    /// </summary>
+    private void RestoreLists(ListFrame[] frames)
+    {
+        _listFrames.Clear();
+
+        // ToArray handed them over deepest first, so they go back on outermost first.
+        for (var index = frames.Length - 1; index >= 0; index--)
+            _listFrames.Push(frames[index]);
+    }
+
+    /// <summary>
     /// Marks everything drawn in the scope as furniture: on the page, and not part of what the page
     /// says.
     /// </summary>
@@ -487,6 +532,11 @@ internal sealed class StructureTagger
     /// are about to open will be refused. A running head is the case that shows: it is drawn on
     /// every page, and a list running over a page break used to be split in two by the paragraph in
     /// the head of the second page. So did a title in an undescribed chart.
+    /// <para>
+    /// A footnote is drawn at the same break and is content rather than furniture, so its paragraphs
+    /// do end a list — but only one of their own: <see cref="EnterAside"/> sets the body's run aside
+    /// while the note is drawn and puts it back afterwards.
+    /// </para>
     /// </remarks>
     internal void EndList()
     {
@@ -658,15 +708,17 @@ internal sealed class StructureTagger
         private readonly IDisposable _marks;
         private readonly bool _popsParent;
         private readonly bool _leavesArtifact;
+        private readonly ListFrame[] _restoresLists;
         private bool _closed;
 
         internal Scope(StructureTagger tagger, IDisposable marks, bool popsParent,
-            bool leavesArtifact = false)
+            bool leavesArtifact = false, ListFrame[] restoresLists = null)
         {
             _tagger = tagger;
             _marks = marks;
             _popsParent = popsParent;
             _leavesArtifact = leavesArtifact;
+            _restoresLists = restoresLists;
         }
 
         public void Dispose()
@@ -686,6 +738,9 @@ internal sealed class StructureTagger
 
             if (_leavesArtifact)
                 _tagger._artifactDepth--;
+
+            if (_restoresLists != null)
+                _tagger.RestoreLists(_restoresLists);
         }
     }
 

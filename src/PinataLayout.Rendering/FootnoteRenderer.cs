@@ -48,9 +48,11 @@ internal class FootnoteRenderer
             // The element the paragraph renderer built where this note was cited. Entered rather than
             // marked: the note draws its content through renderers of its own, which mark what they
             // draw, and a /Note holding marks directly as well would claim that some of the page
-            // belongs to the note rather than to the paragraphs inside it.
+            // belongs to the note rather than to the paragraphs inside it. Entered aside, too: the
+            // note is drawn where the page breaks, and its paragraphs must not end the list the body
+            // was in the middle of there.
             var element = Tagger.FootnoteFor(_gfx, note);
-            using (Tagger.Enter(element))
+            using (Tagger.EnterAside(element))
             {
                 // The note's text sits to the right of the gutter it was laid out to leave; the mark
                 // goes in the gutter, so the two cannot run into one another however wide the mark is.

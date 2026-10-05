@@ -510,6 +510,68 @@ public class TaggedOutputTests
         sect.Children[0].Children.Should().HaveCount(80);
     }
 
+    [Fact]
+    public void AListRunningOverAPageBreakPastAFootnoteIsStillOneList()
+    {
+        var document = new Document();
+        var section = document.AddSection();
+        for (var item = 0; item < 80; item++)
+        {
+            var paragraph = section.AddParagraph($"Item {item}");
+            paragraph.Format.ListInfo.ListType = ListType.BulletList1;
+            if (item == 3)
+                paragraph.AddFootnote("The support.");
+        }
+
+        var rendered = Rendered.Of(document);
+        rendered.PageCount.Should().BeGreaterThan(1, "the case is about a list the page break falls in");
+
+        // The note is drawn at the foot of the first page, between the items either side of the
+        // break, and its paragraph is content rather than furniture - so it is tagged, and a
+        // paragraph that is not a list item ends the list before it asks to be.
+        var sect = Structure.RootOf(rendered).Single("Sect");
+        sect.ChildTags().Should().Equal("L");
+        var items = sect.Children[0].Children;
+        items.Should().HaveCount(80);
+
+        // And the note still reads where it was cited: inside the item that cited it, beside the
+        // reference, rather than wherever the foot of the page fell in the list.
+        Body(items[3]).ChildTags().Should().Equal("Reference", "Note");
+        Body(items[3]).Single("Note").OfTag("P").Should().HaveCount(1);
+    }
+
+    [Fact]
+    public void AListInsideAFootnoteIsTheNotesOwnAndLeavesTheBodysListAlone()
+    {
+        var document = new Document();
+        var section = document.AddSection();
+        for (var item = 0; item < 80; item++)
+        {
+            var paragraph = section.AddParagraph($"Item {item}");
+            paragraph.Format.ListInfo.ListType = ListType.BulletList1;
+            if (item != 3)
+                continue;
+
+            var footnote = paragraph.AddFootnote();
+            footnote.AddParagraph("First point").Format.ListInfo.ListType = ListType.BulletList1;
+            footnote.AddParagraph("Second point").Format.ListInfo.ListType = ListType.BulletList1;
+        }
+
+        var rendered = Rendered.Of(document);
+        rendered.PageCount.Should().BeGreaterThan(1, "the case is about a list the page break falls in");
+
+        // The note's items are a list under the note, not more items of the body's list and not a
+        // replacement for it: the body's list is still the one list of eighty items afterwards.
+        var sect = Structure.RootOf(rendered).Single("Sect");
+        sect.ChildTags().Should().Equal("L");
+        var items = sect.Children[0].Children;
+        items.Should().HaveCount(80);
+
+        var note = Body(items[3]).Single("Note");
+        note.ChildTags().Should().Contain("L");
+        note.Single("L").Children.Should().HaveCount(2);
+    }
+
     /// <summary>An image or a chart, drawn between whatever comes before and after it.</summary>
     private static Shape APicture(Section section, string kind)
     {
