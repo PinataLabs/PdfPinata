@@ -22,6 +22,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **`GetReal` on a dictionary or an array accepts every kind of number**, including the `PdfLong` the reader makes of an integer outside the range of an `int`. `GetInteger` accepts an unsigned or long integer, direct or indirect, when it fits in an `int`. A dictionary's `GetInteger` used to wrap an unsigned integer above `int.MaxValue` round to a negative number; it now throws `InvalidCastException`. (#157)
 - **A named destination or an embedded file whose name-tree key is an indirect string is listed and can be resolved.** The key was not followed, so the entry was invisible. (#157)
 - **The reader checks all 32 bytes of `/U` for a revision 2 (40-bit RC4) password**, as Algorithm 6 of ISO 32000-1 requires, where it checked only the first 16. A revision 2 file whose `/U` is damaged in its second half no longer opens with either password. Revisions 3 and 4 still compare the first 16 bytes, which are all those revisions define. (#198)
+- **The document lexer reads a literal string's escapes as the content-stream lexer does.** It took any digit after a backslash as octal, so `(8)` threw where ISO 32000-1 7.3.4.2 reads U+0001 followed by `8`, and a backslash on which the file ended added U+FFFF to the string. Both lexers now read escapes from one table, which is Table 3 of ISO 32000-1. (#224)
+- **A stream is written deflated only when deflating makes it shorter.** Forms, fonts, `/ToUnicode` maps, images and their masks, object streams and cross-reference streams were deflated whatever the result, so an empty form was written as eight bytes of zlib framing, which Acrobat reports as an error. Such streams are now written unfiltered. Only content streams kept this rule before. (#222)
 
 ### Pages & Documents
 
@@ -50,6 +52,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **An arc with a sweep of 0 is drawn as a single curve that stays at its start, and always returns.** `XGraphics.DrawArc` and `XGraphicsPath.AddArc` never returned for a zero sweep starting at exactly 360 or -360: the quadrant the arc ends in came out as 4, and the walk through quadrants 0 to 3 kept adding curves until the process ran out of memory. Off a quadrant edge, such as a start of 45, both control points were 0/0 and the content-stream writer refused the NaN, so `DrawArc` threw at once and a path holding the arc threw when it was drawn. On any other quadrant edge the arc was cut as though it crossed that edge, so a start of 90 drew the whole ellipse. A zero sweep, or one too small to move the start angle (such as float cancellation leaves), is now one piece from its start to its start, whose control points lie at that point. Arcs with a non-zero sweep are unchanged. (#129, #130)
 - **`Code3of9Standard` refuses an apostrophe and the `*` start/stop character when the code is set.** The check accepted `'` and the lookup did not know it, so drawing the barcode threw `IndexOutOfRangeException`; the apostrophe is not a Code 39 character. A `*` inside the data, including the `"*ABC*"` convention of Code 39 fonts, drew a second delimiter that stops a scanner reading, because the barcode draws its own start and stop characters. Both now throw `ArgumentException` when the code is set. Pass `"ABC"` rather than `"*ABC*"`. (#158)
 - **`quality: null` on `ImageSource.FromFile`, `FromBinary`, `FromStream`, `SkiaImageSource.FromSkiaBitmap` and `ImageSharpImageSource.FromImageSharpImage` means the default of 75.** The parameter is `int?`, but both backends cast it to `int`, so passing null threw "Nullable object must have a value". (#176)
+
+### Fonts & Text
+
+#### Added
+
+- **`XGlyphSegment.QuadraticTo` converts a quadratic outline segment to the exact cubic.** A custom `IGlyphOutlineProvider` no longer has to write the conversion itself. Both built-in providers use it. (#229)
+- **`OpenTypeFontMetadata` is public in the core package, and `FontResolverBase.ReadFontMetadata(string)` uses it by default.** The method was abstract and is now virtual, so a custom resolver no longer has to parse a font file to describe it, and an existing override still compiles and runs. Faces of a collection are still read by the resolver's own overrides. (#228)
 
 ### Annotations & Forms
 
@@ -144,6 +153,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **A PinataLayout chart no longer gives every point an empty line format.** The mapper wrote one for every point, always with a solid dash, so a dashed series' columns, bars and sectors were outlined solid. A point's line format is now mapped only when the document set one. (#171)
 - **A CMYK colour in a PinataLayout document drawn in RGB has the RGB that `XColor.FromCmyk` gives.** The DOM's `Color` used its own copy of the conversion, which rounded black up by half a level, so about half of all K values came out one level darker. K = 0 is one of them, so CMYK white was 254, 254, 254. (#186)
 - **A field's name and format are escaped when a document is written as DDL.** A page reference field's name, and the format of any field, were written as they stood, so one containing a quote or a backslash produced DDL that could not be read back. Both are now escaped as every other string is, and the output is unchanged for a name or format that needs no escaping. (#234)
+- **A list in tagged output is no longer split in two by furniture.** An undescribed chart, a chart's title, and the running head of a page across which a list breaks each ended the open list, so the structure tree had two `/L` elements where the document had one list. An undescribed image already left the list open. Nothing drawn as an artifact now ends a list. (#227)
+- **A field of a type derived from one of PinataLayout's field types is rendered.** The paragraph renderer chose a field's renderer by its type's name, so a subclass of `PageField`, for example, was silently left out. (#221)
 
 ### API & Packaging
 
