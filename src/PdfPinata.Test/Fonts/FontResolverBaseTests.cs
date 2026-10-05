@@ -276,6 +276,74 @@ public class FontResolverBaseTests
         metadata.Should().BeEmpty();
     }
 
+    /// <summary>
+    ///   A resolver that reads nothing itself describes a single font with the core's own parser,
+    ///   which used to be abstract and so had to be written by every resolver.
+    /// </summary>
+    [Theory]
+    [InlineData("LiberationSans-Regular.ttf", XFontStyle.Regular)]
+    [InlineData("LiberationSans-Bold.ttf", XFontStyle.Bold)]
+    [InlineData("LiberationSans-BoldItalic.ttf", XFontStyle.BoldItalic)]
+    public void AResolverThatReadsNothingItselfDescribesAFontWithTheCoreParser(string file, XFontStyle style)
+    {
+        var metadata = new ReadsNothingItself().Describe(Asset(file));
+
+        metadata.FamilyName.Should().Be("Liberation Sans");
+        metadata.Style.Should().Be(style);
+    }
+
+    [Fact]
+    public void AResolverThatReadsNothingItselfResolvesAFamilyFromWhatTheParserRead()
+    {
+        var resolver = new ReadsNothingItself();
+        resolver.SetupFontsFiles(TheLiberationFamily());
+
+        resolver.ResolveTypeface("Liberation Sans", true, false).Should().NotBeNull();
+    }
+
+    /// <summary>
+    ///   The default is for a single font only: a face of a collection is still refused with the
+    ///   base class's own answer, so a resolver describing fonts its own way never has a collection
+    ///   described for it by a different rule.
+    /// </summary>
+    [Fact]
+    public void AResolverThatReadsNothingItselfStillRefusesToDescribeAFaceOfACollection()
+    {
+        var describing = () => new ReadsNothingItself().DescribeFace(Asset("LiberationSans-Regular.ttf"), 0);
+
+        describing.Should().Throw<NotSupportedException>();
+    }
+
+    [Fact]
+    public void TheCoreParserReadsTheSameFaceWhicheverWayItIsAskedFor()
+    {
+        var path = Asset("LiberationSans-Italic.ttf");
+
+        var first = OpenTypeFontMetadata.Read(path);
+        var face0 = OpenTypeFontMetadata.Read(path, 0);
+        var all = OpenTypeFontMetadata.ReadAll(path, 1);
+
+        first.Should().Be(face0);
+        all.Should().Equal(first);
+        first.Style.Should().Be(XFontStyle.Italic);
+    }
+
+    [Fact]
+    public void TheCoreParserRefusesAFaceASingleFontDoesNotHold()
+    {
+        var reading = () => OpenTypeFontMetadata.Read(Asset("LiberationSans-Regular.ttf"), 1);
+
+        reading.Should().Throw<ArgumentOutOfRangeException>().WithMessage("*face 1*");
+    }
+
+    /// <summary>Overrides nothing, so every metadata reader it has is the base class's own.</summary>
+    private sealed class ReadsNothingItself : FontResolverBase
+    {
+        public FontMetadata Describe(string path) => ReadFontMetadata(path);
+
+        public FontMetadata DescribeFace(string path, int faceIndex) => ReadFontMetadata(path, faceIndex);
+    }
+
     /// <summary>Exposes the two protected metadata readers so a test can call them directly.</summary>
     private sealed class DescribesOneFaceAtATime : FontResolverBase
     {

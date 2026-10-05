@@ -16,13 +16,7 @@ namespace PdfPinata.Utils;
 public class SkiaFontResolver
     : FontResolverBase
 {
-
-    /// <summary>Reads the family name and style out of a single-font file.</summary>
-    protected override FontMetadata ReadFontMetadata(string fontFilePath)
-    {
-        return OpenTypeFontMetadata.Read(fontFilePath);
-    }
-
+    // A single-font file is read by the base class's own default, OpenTypeFontMetadata.Read.
 
     /// <summary>Reads the family name and style of one face of a font file, by index within a collection.</summary>
     protected override FontMetadata ReadFontMetadata(string fontFilePath, int faceIndex)
@@ -34,6 +28,6 @@ public class SkiaFontResolver
     /// <summary>Reads the family name and style of every face of a collection file, opening it once.</summary>
     protected override FontMetadata[] ReadCollectionMetadata(string fontFilePath, int faceCount)
     {
-        return OpenTypeFontMetadata.ReadAll(System.IO.File.ReadAllBytes(fontFilePath), faceCount);
+        return OpenTypeFontMetadata.ReadAll(fontFilePath, faceCount);
     }
 }

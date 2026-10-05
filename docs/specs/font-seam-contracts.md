@@ -143,11 +143,19 @@ throws if asked to, which is the line saying a test needing a real font belongs 
 `PinataLayout.Rendering.Tests`. Sharing the *pinned* resolver into it would break exactly what makes
 it useful.
 
-**Three implementations of "family name and style from a font file" are noted and not addressed.**
-The core parses the `name` table in `OpenTypeFontTables`; `PdfPinata.Skia` re-parses it in
-`OpenTypeFontMetadata`; `PdfPinata.ImageSharp` gets a third answer from SixLabors.
+**Three implementations of "family name and style from a font file": the parser is now shared, the
+rules are not.** `OpenTypeFontMetadata` used to sit in `PdfPinata.Skia`, although it calls nothing in
+Skia, with its own copies of `TrueTypeCollection`'s byte readers and face lookup. It is in the core now
+(#228), public, and reuses both. It is also the default of `FontResolverBase.ReadFontMetadata(string)`,
+which was abstract, so a resolver of one's own no longer has to parse a font to describe one;
+`SkiaFontResolver` keeps only the thin overrides that read a collection's faces through it, and
+`ImageSharpFontResolver` keeps all three of its own. What is left is three *rules* for picking the
+family name: `OpenTypeFontMetadata` scores the name records, preferring Windows US English; the
+core's `NameTable` in `OpenTypeFontTables` keeps the first record it can read, decoding a Macintosh one
+as UTF-8; and `PdfPinata.ImageSharp` takes SixLabors' answer. Aligning them changes which family a
+face is filed under, so it is a decision of its own rather than part of moving code.
 `FontResolverParityTest` holds two of the three in agreement by walking the machine's font directory
-and does not reach the third. Real duplication, and a different proposal.
+and does not reach the third.
 
 ## Testing Decisions
 
