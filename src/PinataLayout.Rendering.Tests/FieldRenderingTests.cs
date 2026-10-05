@@ -3,6 +3,7 @@ using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Fields;
 using PinataLayout.Rendering.Tests.Helpers;
+using PdfPinata;
 using Xunit;
 
 namespace PinataLayout.Rendering.Tests;
@@ -48,6 +49,47 @@ public class FieldRenderingTests
         Glyphs.On(Rendered.FirstPageOf(document))
             .Should().Equal(Glyphs.For("Section: A"));
     }
+
+    /// <summary>
+    ///   A date field is drawn as the date the document was rendered on, in the format it names -
+    ///   bounded by a reading of the clock either side rather than pinned by setting it, because the
+    ///   clock is one static every test running beside this one reads.
+    /// </summary>
+    [Fact]
+    public void ADateFieldRendersThePrintDateInTheFormatItNames()
+    {
+        var document = new Document();
+        var paragraph = document.AddSection().AddParagraph();
+        paragraph.AddText("Date: ");
+        paragraph.AddDateField("yyyy-MM-dd");
+
+        var before = GlobalTimeSettings.Now;
+        var drawn = Glyphs.On(Rendered.FirstPageOf(document));
+        var after = GlobalTimeSettings.Now;
+
+        new[] { before, after }
+            .Select(date => Glyphs.For("Date: " + date.ToString("yyyy-MM-dd")))
+            .Should().Contain(expected => expected.SequenceEqual(drawn));
+    }
+
+    /// <summary>
+    ///   The renderer used to pick what to do with a leaf by the name of its type, so a field of a
+    ///   type derived from one it knew was the name of nothing and silently left out of the line.
+    ///   It is asked what kind of field it is now, which a derived type answers as its base does.
+    /// </summary>
+    [Fact]
+    public void AFieldOfADerivedTypeIsRenderedAsTheFieldItDerivesFrom()
+    {
+        var document = new Document();
+        var paragraph = document.AddSection().AddParagraph();
+        paragraph.AddText("Page: ");
+        paragraph.Elements.Add(new FolioField());
+
+        Glyphs.On(Rendered.FirstPageOf(document))
+            .Should().Equal(Glyphs.For("Page: 1"));
+    }
+
+    private sealed class FolioField : PageField;
 
     [Fact]
     public void ABookmarkAndTheReferenceToItRenderThePageItIsOn()

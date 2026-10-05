@@ -1432,60 +1432,39 @@ internal class ParagraphRenderer : Renderer
 
     private void RenderElement(DocumentObject docObj)
     {
-        var typeName = docObj.GetType().Name;
-        switch (typeName)
+        switch (docObj)
         {
-            case "Text":
-                if (IsBlank(docObj))
+            case Text text:
+                if (IsBlank(text))
                     RenderBlank();
-                else if (IsSoftHyphen(docObj))
+                else if (IsSoftHyphen(text))
                     RenderSoftHyphen();
                 else
-                    RenderText((Text)docObj);
+                    RenderText(text);
                 break;
 
-            case "Character":
-                RenderCharacter((Character)docObj);
+            case Character character:
+                RenderCharacter(character);
                 break;
 
-            case "DateField":
-                RenderDateField((DateField)docObj);
-                break;
-
-            case "InfoField":
-                RenderInfoField((InfoField)docObj);
-                break;
-
-            case "NumPagesField":
-                RenderNumPagesField((NumPagesField)docObj);
-                break;
-
-            case "PageField":
-                RenderPageField((PageField)docObj);
-                break;
-
-            case "SectionField":
-                RenderSectionField((SectionField)docObj);
-                break;
-
-            case "SectionPagesField":
-                RenderSectionPagesField((SectionPagesField)docObj);
-                break;
-
-            case "BookmarkField":
+            // Ahead of the fields with a value, though it is not one: a bookmark draws nothing of its
+            // own, and is passed to the underline and strikethrough only to carry or end a rule there.
+            case BookmarkField:
                 RenderBookmarkField();
                 break;
 
-            case "PageRefField":
-                RenderPageRefField((PageRefField)docObj);
+            // Every field with a value is drawn as the word it reads as, so a new kind of field
+            // needs FieldEvaluator to know it and nothing here.
+            case var field when FieldEvaluator.IsField(field):
+                RenderWord(GetFieldValue(field));
                 break;
 
-            case "Image":
+            case Image:
                 RenderImage();
                 break;
 
-            case "Footnote":
-                RenderFootnote((Footnote)docObj);
+            case Footnote footnote:
+                RenderFootnote(footnote);
                 break;
         }
     }
@@ -1515,36 +1494,6 @@ internal class ParagraphRenderer : Renderer
         currentXPosition += contentArea.Width;
     }
 
-    private void RenderDateField(DateField dateField)
-    {
-        RenderWord(fieldInfos.date.ToString(dateField.Format));
-    }
-
-    private void RenderInfoField(InfoField infoField)
-    {
-        RenderWord(GetFieldValue(infoField));
-    }
-
-    private void RenderNumPagesField(NumPagesField numPagesField)
-    {
-        RenderWord(GetFieldValue(numPagesField));
-    }
-
-    private void RenderPageField(PageField pageField)
-    {
-        RenderWord(GetFieldValue(pageField));
-    }
-
-    private void RenderSectionField(SectionField sectionField)
-    {
-        RenderWord(GetFieldValue(sectionField));
-    }
-
-    private void RenderSectionPagesField(SectionPagesField sectionPagesField)
-    {
-        RenderWord(GetFieldValue(sectionPagesField));
-    }
-
     private void RenderBookmarkField()
     {
         if (probing)
@@ -1552,11 +1501,6 @@ internal class ParagraphRenderer : Renderer
 
         RenderUnderline(0, false);
         RenderStrikethrough(0, false);
-    }
-
-    private void RenderPageRefField(PageRefField pageRefField)
-    {
-        RenderWord(GetFieldValue(pageRefField));
     }
 
     private void RenderCharacter(Character character)
@@ -2341,49 +2285,41 @@ internal class ParagraphRenderer : Renderer
 
     private FormatResult FormatLeaf(DocumentObject docObj)
     {
-        switch (docObj.GetType().Name)
+        switch (docObj)
         {
-            case "Text":
-                if (IsBlank(docObj))
+            case Text text:
+                if (IsBlank(text))
                     return FormatBlank();
-                if (IsSoftHyphen(docObj))
+                if (IsSoftHyphen(text))
                     return FormatSoftHyphen();
-                return FormatText((Text)docObj);
+                return FormatText(text);
 
-            case "Character":
-                return FormatCharacter((Character)docObj);
+            case Character character:
+                return FormatCharacter(character);
 
-            case "DateField":
-                return FormatDateField((DateField)docObj);
+            case BookmarkField bookmarkField:
+                return FormatBookmarkField(bookmarkField);
 
-            case "InfoField":
-                return FormatInfoField((InfoField)docObj);
+            // The number may not be the final one while formatting - a count before the document ends,
+            // a page before its breaks settle - so it is measured as it stands and the line measured
+            // again when it is drawn.
+            case NumericFieldBase numericField:
+                reMeasureLine = true;
+                return FormatWord(GetFieldValue(numericField));
 
-            case "NumPagesField":
-                return FormatNumPagesField((NumPagesField)docObj);
+            case DateField dateField:
+                return FormatDateField(dateField);
 
-            case "PageField":
-                return FormatPageField((PageField)docObj);
+            case InfoField infoField:
+                return FormatInfoField(infoField);
 
-            case "SectionField":
-                return FormatSectionField((SectionField)docObj);
-
-            case "SectionPagesField":
-                return FormatSectionPagesField((SectionPagesField)docObj);
-
-            case "BookmarkField":
-                return FormatBookmarkField((BookmarkField)docObj);
-
-            case "PageRefField":
-                return FormatPageRefField((PageRefField)docObj);
-
-            case "Image":
+            case Image:
                 return FormatImage();
 
             // Only the reference mark: the note's own content is block content, laid out on its
             // own and drawn at the foot of the page. See FormatFootnote.
-            case "Footnote":
-                return FormatFootnote((Footnote)docObj);
+            case Footnote footnote:
+                return FormatFootnote(footnote);
 
             default:
                 return FormatResult.Continue;
@@ -2537,41 +2473,6 @@ internal class ParagraphRenderer : Renderer
         // and by then the answer has to be known already.
         fieldInfos.AddBookmark(bookmarkField.Name, currentYPosition);
         return FormatResult.Ignore;
-    }
-
-    private FormatResult FormatPageRefField(PageRefField pageRefField)
-    {
-        reMeasureLine = true;
-        var fieldValue = GetFieldValue(pageRefField);
-        return FormatWord(fieldValue);
-    }
-
-    private FormatResult FormatNumPagesField(NumPagesField numPagesField)
-    {
-        reMeasureLine = true;
-        var fieldValue = GetFieldValue(numPagesField);
-        return FormatWord(fieldValue);
-    }
-
-    private FormatResult FormatPageField(PageField pageField)
-    {
-        reMeasureLine = true;
-        var fieldValue = GetFieldValue(pageField);
-        return FormatWord(fieldValue);
-    }
-
-    private FormatResult FormatSectionField(SectionField sectionField)
-    {
-        reMeasureLine = true;
-        var fieldValue = GetFieldValue(sectionField);
-        return FormatWord(fieldValue);
-    }
-
-    private FormatResult FormatSectionPagesField(SectionPagesField sectionPagesField)
-    {
-        reMeasureLine = true;
-        var fieldValue = GetFieldValue(sectionPagesField);
-        return FormatWord(fieldValue);
     }
 
     /// <summary>
