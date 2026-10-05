@@ -3,6 +3,7 @@ using System.Globalization;
 using PdfPinata.Drawing;
 using PdfPinata.Drawing.Layout;
 using PdfPinata.Fonts;
+using PdfPinata.Pdf.Internal;
 
 namespace PdfPinata.Pdf.Annotations;
 
@@ -280,8 +281,7 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
         var size = _font?.Size ?? _readFontSize;
 
         var appearance = string.Format(CultureInfo.InvariantCulture,
-            "/Helv {0:0.###} Tf {1:0.###} {2:0.###} {3:0.###} rg",
-            size, _textColor.R / 255.0, _textColor.G / 255.0, _textColor.B / 255.0);
+            "/Helv {0:0.###} Tf {1} rg", size, PdfEncoders.ToString(_textColor, PdfColorMode.Rgb));
 
         Elements.SetString(Keys.DA, appearance);
     }

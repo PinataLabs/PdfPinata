@@ -110,7 +110,7 @@ internal class ShadingRenderer
             return;
         if (IsVisible())
         {
-            brush = new XSolidBrush(ColorHelper.ToXColor(shading.Color, shading.Document.UseCmykColor));
+            brush = new XSolidBrush(ColorHelper.ToXColor(shading.Color, shading));
         }
     }
 

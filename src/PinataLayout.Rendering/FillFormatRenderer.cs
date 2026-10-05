@@ -66,7 +66,7 @@ internal class FillFormatRenderer
     if (fillFormat == null || !IsVisible())
       return null;
 
-    return new XSolidBrush(ColorHelper.ToXColor(fillFormat.Color, fillFormat.Document.UseCmykColor));
+    return new XSolidBrush(ColorHelper.ToXColor(fillFormat.Color, fillFormat));
   }
   private readonly XGraphics gfx;
   private readonly FillFormat fillFormat;

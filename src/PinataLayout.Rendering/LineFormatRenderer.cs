@@ -52,7 +52,7 @@ internal class LineFormatRenderer
     if (lineFormat is { Color.IsEmpty: false })
       clr = lineFormat.Color;
 
-    return ColorHelper.ToXColor(clr, lineFormat?.Document?.UseCmykColor ?? false);
+    return ColorHelper.ToXColor(clr, lineFormat);
   }
 
   internal XUnit GetWidth()
@@ -86,30 +86,7 @@ internal class LineFormatRenderer
     if (width == 0)
       return null;
 
-    var pen = new XPen(GetColor(), width);
-    switch (lineFormat.DashStyle)
-    {
-      case DashStyle.Dash:
-        pen.DashStyle = XDashStyle.Dash;
-        break;
-
-      case DashStyle.DashDot:
-        pen.DashStyle = XDashStyle.DashDot;
-        break;
-
-      case DashStyle.DashDotDot:
-        pen.DashStyle = XDashStyle.DashDotDot;
-        break;
-
-      case DashStyle.Solid:
-        pen.DashStyle = XDashStyle.Solid;
-        break;
-
-      case DashStyle.SquareDot:
-        pen.DashStyle = XDashStyle.Dot;
-        break;
-    }
-    return pen;
+    return new XPen(GetColor(), width) { DashStyle = DashStyleHelper.ToXDashStyle(lineFormat.DashStyle) };
   }
   private readonly LineFormat lineFormat;
   private readonly XGraphics gfx;
