@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
@@ -853,11 +855,15 @@ public class DictionaryElementAccessorTests
         var document = ADocument();
         var dictionary = ADictionary(document);
         document.Internals.AddObject(dictionary);
-        dictionary.CreateStream([.."BT ET"u8]);
+        // Long enough that deflating it shortens it, which is what Zip asks of a stream before
+        // it keeps the deflated form.
+        var text = string.Concat(Enumerable.Repeat("BT ET\n", 20));
+        dictionary.CreateStream(Encoding.ASCII.GetBytes(text));
 
-        dictionary.Stream.ToString().Should().Be("BT ET");
+        dictionary.Stream.ToString().Should().Be(text);
 
         dictionary.Stream.Zip();
-        dictionary.Stream.ToString().Should().Be("BT ET", "printing a stream unfilters it first");
+        dictionary.Elements.GetName(PdfDictionary.PdfStream.Keys.Filter).Should().Be("/FlateDecode");
+        dictionary.Stream.ToString().Should().Be(text, "printing a stream unfilters it first");
     }
 }

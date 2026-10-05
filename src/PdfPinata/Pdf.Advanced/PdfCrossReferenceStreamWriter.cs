@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using PdfPinata.Pdf.Filters;
 using PdfPinata.Pdf.IO;
 
 namespace PdfPinata.Pdf.Advanced;
@@ -245,15 +244,7 @@ internal static class PdfCrossReferenceStreamWriter
     private static void SetEntries(PdfDocument document, PdfCrossReferenceStream xrefStream,
         PdfCrossReferenceStream.CrossReferenceStreamEntry[] entries)
     {
-        var content = Encode(entries);
-        if (document.Options.NoCompression)
-        {
-            xrefStream.CreateStream(content);
-            return;
-        }
-
-        xrefStream.CreateStream(Filtering.FlateDecode.Encode(content, document.Options.FlateEncodeMode));
-        xrefStream.Elements.SetName(PdfDictionary.PdfStream.Keys.Filter, "/FlateDecode");
+        xrefStream.SetStreamContent(Encode(entries), compress: !document.Options.NoCompression);
     }
 
     private static PdfCrossReferenceStream.CrossReferenceStreamEntry InUse(PdfReference iref) =>

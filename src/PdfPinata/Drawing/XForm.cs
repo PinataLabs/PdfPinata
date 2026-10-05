@@ -32,7 +32,6 @@ using System.Diagnostics;
 using PdfPinata.Drawing.Pdf;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
-using PdfPinata.Pdf.Filters;
 
 namespace PdfPinata.Drawing;
 
@@ -188,13 +187,7 @@ public class XForm : XImage, IContentStream
 
         PdfRenderer.Close();
 
-        if (Owner.Options.CompressContentStreams)
-        {
-            _pdfForm.Stream.Value = Filtering.FlateDecode.Encode(_pdfForm.Stream.Value, Owner.Options.FlateEncodeMode);
-            _pdfForm.Elements["/Filter"] = new PdfName("/FlateDecode");
-        }
-        var length = _pdfForm.Stream.Length;
-        _pdfForm.Elements.SetInteger("/Length", length);
+        _pdfForm.Stream.SetContent(_pdfForm.Stream.Value, Owner.Options.CompressContentStreams);
     }
 
     /// <summary>

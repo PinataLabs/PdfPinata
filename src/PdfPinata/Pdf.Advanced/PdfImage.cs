@@ -163,8 +163,6 @@ public sealed class PdfImage : PdfXObject
         var mask = new MonochromeMask(width, height);
         SplitPixels(source, width, height, imageData, alphaMask, mask, out var hasMask, out var hasAlphaMask);
 
-        var fd = new FlateDecode();
-
         // The soft mask carries alpha exactly; the stencil rounds it to transparent or opaque
         // at 128. Where the soft mask goes the stencil is therefore redundant at best, and it
         // is worse than that: ISO 32000-1 Table 89 has /SMask override an image's /Mask, and
@@ -179,23 +177,19 @@ public sealed class PdfImage : PdfXObject
         {
             // Either binary transparency, which the stencil states exactly, or a pre-1.4
             // document, where it is all a reader of that vintage could have been given.
-            var pdfMask = AddMaskImage(fd.Encode(mask.MaskData, _document.Options.FlateEncodeMode), width, height, 1);
+            var pdfMask = AddMaskImage(mask.MaskData, width, height, 1);
             pdfMask.Elements[Keys.ImageMask] = new PdfBoolean(true);
             Elements[Keys.Mask] = pdfMask.Reference;
         }
         if (hasSoftMask)
         {
             // The image provides an alpha mask (requires Arcrobat 5.0 or higher)
-            var smask = AddMaskImage(fd.Encode(alphaMask, _document.Options.FlateEncodeMode), width, height, 8);
+            var smask = AddMaskImage(alphaMask, width, height, 8);
             smask.Elements[Keys.ColorSpace] = new PdfName("/DeviceGray");
             Elements[Keys.SMask] = smask.Reference;
         }
 
-        var imageDataCompressed = fd.Encode(imageData, _document.Options.FlateEncodeMode);
-
-        Stream = new PdfStream(imageDataCompressed, this);
-        Elements[PdfStream.Keys.Length] = new PdfInteger(imageDataCompressed.Length);
-        Elements[PdfStream.Keys.Filter] = new PdfName("/FlateDecode");
+        SetStreamContent(imageData, compress: true);
         Elements[Keys.Width] = new PdfInteger(width);
         Elements[Keys.Height] = new PdfInteger(height);
         Elements[Keys.BitsPerComponent] = new PdfInteger(8);
@@ -246,16 +240,14 @@ public sealed class PdfImage : PdfXObject
     /// Adds to the document the image XObject a mask is drawn from, up to its bits per component;
     /// the caller adds what says which kind of mask it is.
     /// </summary>
-    private PdfDictionary AddMaskImage(byte[] compressed, int width, int height, int bitsPerComponent)
+    private PdfDictionary AddMaskImage(byte[] samples, int width, int height, int bitsPerComponent)
     {
         var maskImage = new PdfDictionary(_document);
         maskImage.Elements.SetName(Keys.Type, "/XObject");
         maskImage.Elements.SetName(Keys.Subtype, "/Image");
 
         Owner._irefTable.Add(maskImage);
-        maskImage.Stream = new PdfStream(compressed, maskImage);
-        maskImage.Elements[PdfStream.Keys.Length] = new PdfInteger(compressed.Length);
-        maskImage.Elements[PdfStream.Keys.Filter] = new PdfName("/FlateDecode");
+        maskImage.SetStreamContent(samples, compress: true);
         maskImage.Elements[Keys.Width] = new PdfInteger(width);
         maskImage.Elements[Keys.Height] = new PdfInteger(height);
         maskImage.Elements[Keys.BitsPerComponent] = new PdfInteger(bitsPerComponent);

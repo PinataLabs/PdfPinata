@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using PdfPinata.Pdf.Filters;
 using PdfPinata.Pdf.Internal;
 using PdfPinata.Pdf.IO;
 
@@ -81,15 +80,7 @@ internal static class PdfObjectStreamWriter
         objectStream.Elements.SetInteger(PdfObjectStream.Keys.N, members.Count);
         objectStream.Elements.SetInteger(PdfObjectStream.Keys.First, prologue.Length);
 
-        if (document.Options.NoCompression)
-        {
-            objectStream.CreateStream(content);
-        }
-        else
-        {
-            objectStream.CreateStream(Filtering.FlateDecode.Encode(content, document.Options.FlateEncodeMode));
-            objectStream.Elements.SetName(PdfDictionary.PdfStream.Keys.Filter, "/FlateDecode");
-        }
+        objectStream.SetStreamContent(content, compress: !document.Options.NoCompression);
 
         return objectStream;
     }

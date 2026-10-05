@@ -30,7 +30,6 @@
 using System;
 using System.Diagnostics;
 using PdfPinata.Drawing;
-using PdfPinata.Pdf.Filters;
 
 namespace PdfPinata.Pdf.Advanced;
 
@@ -159,16 +158,7 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
     {
         // CreateSingleContent decodes as it concatenates, so what comes back is unfiltered.
         var joined = page.Contents.CreateSingleContent();
-        var bytes = joined.Stream.Value;
-
-        if (Owner.Options.CompressContentStreams)
-        {
-            bytes = Filtering.FlateDecode.Encode(bytes, Owner.Options.FlateEncodeMode);
-            Elements.SetName("/Filter", "/FlateDecode");
-        }
-
-        Stream = new PdfStream(bytes, this);
-        Elements.SetInteger("/Length", bytes.Length);
+        SetStreamContent(joined.Stream.Value, Owner.Options.CompressContentStreams);
     }
 
     internal double DpiX { get; set; } = 72;
