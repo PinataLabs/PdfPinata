@@ -78,8 +78,7 @@ internal class AreaPlotAreaRenderer : ColumnLikePlotAreaRenderer
       }
       points[count + 1] = new XPoint(count - 1 + xMajorTick / 2, 0);
       matrix.TransformPoints(points);
-      // A pen of width 0 is a hidden outline, and PDF would stroke it as a hairline.
-      var outline = sri.LineFormat.Width > 0 ? sri.LineFormat : null;
+      var outline = LineFormatRenderer.Visible(sri.LineFormat);
       gfx.DrawPolygon(outline, sri.FillFormat, points, XFillMode.Winding);
     }
 

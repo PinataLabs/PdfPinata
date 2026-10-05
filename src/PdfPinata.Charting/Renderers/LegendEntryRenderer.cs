@@ -202,9 +202,9 @@ internal class LegendEntryRenderer : Renderer
   /// </summary>
   private static void DrawLineKey(XGraphics gfx, LegendEntryRendererInfo leri, double keyHeight)
   {
-    // Draw line, unless the series' own line is hidden: a pen of width 0 is how a line format
-    // that says Visible = false comes out of the converter.
-    if (leri.SeriesRendererInfo.LineFormat.Width > 0)
+    // Draw line, unless the series' own line is hidden. The key is drawn in the marker's colour,
+    // but it is the series' pen that says whether there is a line at all.
+    if (LineFormatRenderer.Visible(leri.SeriesRendererInfo.LineFormat) != null)
     {
       var posLineStart = new XPoint(leri.X, leri.Y + keyHeight / 2);
       var posLineEnd = new XPoint(leri.X + leri.MarkerArea.Width, leri.Y + keyHeight / 2);
@@ -225,7 +225,7 @@ internal class LegendEntryRenderer : Renderer
     // Draw series rectangle for column, bar or pie charts.
     var rect = new XRect(leri.X, leri.Y, leri.MarkerArea.Width, leri.MarkerArea.Height);
     rect.Y += (keyHeight - leri.MarkerArea.Height) / 2;
-    var border = leri.MarkerPen is { Width: > 0 } ? leri.MarkerPen : null;
+    var border = LineFormatRenderer.Visible(leri.MarkerPen);
     gfx.DrawRectangle(border, leri.MarkerBrush, rect);
   }
 

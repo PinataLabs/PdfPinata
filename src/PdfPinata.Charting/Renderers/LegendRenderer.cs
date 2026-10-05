@@ -218,12 +218,12 @@ internal abstract class LegendRenderer : Renderer
     lri.Font = Converter.ToXFont(lri.Legend.font, cri.DefaultFont);
     lri.FontColor = Converter.ToXBrush(lri.Legend.font, cri.DefaultFontColor);
 
-    // A format that is not visible is a pen of width 0, which is no border - so there is no pen,
-    // and PaddingFactor leaves no room for one.
+    // A format that is not visible is no border - so there is no pen, and PaddingFactor leaves no
+    // room for one.
     if (lri.Legend.lineFormat != null)
     {
       var pen = Converter.ToXPen(lri.Legend.lineFormat, XColors.Black, DefaultLineWidth, XDashStyle.Solid);
-      lri.BorderPen = pen.Width > 0 ? pen : null;
+      lri.BorderPen = LineFormatRenderer.Visible(pen);
     }
     return lri;
   }

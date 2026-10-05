@@ -77,10 +77,10 @@ internal class LinePlotAreaRenderer : ColumnLikePlotAreaRenderer
             var points = SeriesPoints(sri, count, xMajorTick);
             matrix.TransformPoints(points);
 
-            // A line format that says Visible = false converts to a pen of width 0, which to PDF is the
-            // thinnest line the device can draw rather than no line. The markers are still drawn.
-            if (sri.LineFormat.Width > 0)
-                gfx.DrawLines(sri.LineFormat, points);
+            // A hidden line still has its markers drawn.
+            var line = LineFormatRenderer.Visible(sri.LineFormat);
+            if (line != null)
+                gfx.DrawLines(line, points);
             DrawMarker(gfx, points, sri);
         }
 
