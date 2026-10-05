@@ -1,11 +1,14 @@
 using System;
+using System.Text;
 
 namespace PdfPinata.Pdf.IO;
 
 /// <summary>
 /// The character-level reading <see cref="Lexer"/> and <see cref="Content.CLexer"/> share: the
 /// current-and-next character pair, the carriage-return-then-line-feed fold, the white-space
-/// skip built on it, and the character-class predicates a token grammar is built from. What
+/// skip built on it, the character-class predicates a token grammar is built from, the value of
+/// a hexadecimal digit, the escapes a literal string writes as a backslash and one character,
+/// and the UTF-16 byte order marks a string's bytes may open with. What
 /// differs between the two lexers is the token grammar above this - the source each reads from,
 /// how each tracks its own position in it, and what a span of characters means - and that stays
 /// with each lexer rather than moving here.
@@ -105,4 +108,88 @@ internal static class CharacterScanning
     /// extending it, and a backslash before either is dropped and the digit kept as text.
     /// </summary>
     public static bool IsOctalDigit(char ch) => ch is >= '0' and <= '7';
+
+    /// <summary>The value of a character <see cref="IsHexChar"/> accepts.</summary>
+    public static int HexValue(char ch) => ch <= '9' ? ch - '0' : (ch | 0x20) - 'a' + 10;
+
+    /// <summary>
+    /// Resolves the escapes a literal string writes as a backslash and one character - exactly
+    /// those of ISO 32000-1 7.3.4.2 Table 3. Returns false for any other character, which the
+    /// caller then reads as the first digit of an octal code or, failing that, as itself: "If the
+    /// character following the REVERSE SOLIDUS is not one of those shown in Table 3, the REVERSE
+    /// SOLIDUS shall be ignored."
+    /// </summary>
+    /// <remarks>
+    /// That rule is what reads <c>(\ )</c> - which AutoCAD writes - as a single space, without the
+    /// space being listed here. The document lexer used to list it and the content lexer did not,
+    /// which looked like the two reading the same string differently when both read a space; with
+    /// one table there is nothing left to drift.
+    /// </remarks>
+    public static bool TryResolveSimpleEscape(char ch, out char resolved)
+    {
+        switch (ch)
+        {
+            case 'n':
+                resolved = Chars.LF;
+                return true;
+
+            case 'r':
+                resolved = Chars.CR;
+                return true;
+
+            case 't':
+                resolved = Chars.HT;
+                return true;
+
+            case 'b':
+                resolved = Chars.BS;
+                return true;
+
+            case 'f':
+                resolved = Chars.FF;
+                return true;
+
+            case '(':
+                resolved = Chars.ParenLeft;
+                return true;
+
+            case ')':
+                resolved = Chars.ParenRight;
+                return true;
+
+            case '\\':
+                resolved = Chars.BackSlash;
+                return true;
+
+            default:
+                resolved = ch;
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// Indicates whether bytes held one per character open with FE FF, the UTF-16BE byte order
+    /// mark ISO 32000-1 7.9.2.2 opens a Unicode text string with.
+    /// </summary>
+    public static bool StartsWithUtf16BigEndianMark(StringBuilder bytes) =>
+        bytes.Length >= 2 && bytes[0] == '\xFE' && bytes[1] == '\xFF';
+
+    /// <inheritdoc cref="StartsWithUtf16BigEndianMark(StringBuilder)"/>
+    public static bool StartsWithUtf16BigEndianMark(ReadOnlySpan<char> bytes) =>
+        bytes.Length >= 2 && bytes[0] == '\xFE' && bytes[1] == '\xFF';
+
+    /// <summary>
+    /// Indicates whether the bytes open with FE FF, the UTF-16BE byte order mark ISO 32000-1
+    /// 7.9.2.2 opens a Unicode text string with.
+    /// </summary>
+    public static bool StartsWithUtf16BigEndianMark(ReadOnlySpan<byte> bytes) =>
+        bytes.Length >= 2 && bytes[0] == 0xFE && bytes[1] == 0xFF;
+
+    /// <summary>
+    /// Indicates whether bytes held one per character open with FF FE, the UTF-16LE byte order
+    /// mark. The reference names only the big-endian one, but Adobe Reader accepts this one too,
+    /// and so does a literal string in either lexer.
+    /// </summary>
+    public static bool StartsWithUtf16LittleEndianMark(StringBuilder bytes) =>
+        bytes.Length >= 2 && bytes[0] == '\xFF' && bytes[1] == '\xFE';
 }

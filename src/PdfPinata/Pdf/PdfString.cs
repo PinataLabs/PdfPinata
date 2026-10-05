@@ -220,7 +220,7 @@ public sealed class PdfString : PdfItem
     /// </remarks>
     internal static PdfString FromEncryptionValue(byte[] value, PdfStringFlags flags)
     {
-        if (value.Length >= 2 && value[0] == 0xFE && value[1] == 0xFF)
+        if (CharacterScanning.StartsWithUtf16BigEndianMark(value))
         {
             return new PdfString(
                 PdfEncoders.RawUnicodeEncoding.GetString(value, 2, value.Length - 2),

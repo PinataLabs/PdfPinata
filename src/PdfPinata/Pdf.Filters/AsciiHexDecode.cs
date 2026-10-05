@@ -112,16 +112,11 @@ public class AsciiHexDecode : Filter
     #pragma warning disable CA2208 // The parameter named is Decode's, deliberately; see below.
     private static int DigitValue(byte ch) => ch switch
     {
-        >= (byte)'0' and <= (byte)'9' => ch - '0',
-        >= (byte)'A' and <= (byte)'F' => ch - 'A' + 10,
-        >= (byte)'a' and <= (byte)'f' => ch - 'a' + 10,
-        _ when IsWhiteSpace(ch) => -1,
+        _ when CharacterScanning.IsHexChar((char)ch) => CharacterScanning.HexValue((char)ch),
+        // The six characters ISO 32000-1 Table 1 calls white space.
+        _ when CharacterScanning.IsWhiteSpace((char)ch) => -1,
         // Named after Decode's parameter, which is where the character came from.
         _ => throw new ArgumentException($"Illegal character 0x{ch:X2} in ASCIIHexDecode data.", "data")
     };
     #pragma warning restore CA2208
-
-    // The six characters ISO 32000-1 Table 1 calls white space.
-    private static bool IsWhiteSpace(byte ch) =>
-        ch is (byte)Chars.NUL or (byte)Chars.HT or (byte)Chars.LF or (byte)Chars.FF or (byte)Chars.CR or (byte)Chars.SP;
 }

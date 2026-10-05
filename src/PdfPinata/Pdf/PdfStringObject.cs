@@ -145,7 +145,7 @@ public sealed class PdfStringObject : PdfObject
         {
             // As in PdfString: the byte order mark is inside the encrypted bytes, so it is only
             // after decrypting that a string can be seen to be UTF-16BE.
-            if (value.Length >= 2 && value[0] == 0xFE && value[1] == 0xFF)
+            if (CharacterScanning.StartsWithUtf16BigEndianMark(value))
             {
                 _value = PdfEncoders.RawUnicodeEncoding.GetString(value, 2, value.Length - 2);
                 Encoding = PdfStringEncoding.Unicode;
