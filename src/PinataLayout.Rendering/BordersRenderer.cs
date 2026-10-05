@@ -48,7 +48,9 @@ internal class BordersRenderer
     this.borders = borders;
   }
 
-  private Border GetBorder(BorderType type)
+  private Border GetBorder(BorderType type) => GetBorder(borders, type);
+
+  private static Border GetBorder(Borders borders, BorderType type)
   {
     return (Border)borders.GetValue(type.ToString(), GV.ReadOnly);
   }
@@ -79,28 +81,34 @@ internal class BordersRenderer
     return style;
   }
 
-  internal XUnit GetWidth(BorderType type)
+  internal XUnit GetWidth(BorderType type) => WidthOf(borders, type);
+
+  /// <summary>
+  /// How wide the border of <paramref name="type"/> is drawn. It needs no graphics, so a caller
+  /// that only measures need not build a renderer to ask.
+  /// </summary>
+  internal static XUnit WidthOf(Borders borders, BorderType type)
   {
     if (borders == null)
       return 0;
 
-    var border = GetBorder(type);
+    var border = GetBorder(borders, type);
     if (border != null)
-      return GetOwnWidth(border);
+      return GetOwnWidth(borders, border);
 
     // A diagonal is drawn only where it has been described for itself; the settings the
     // collection gives every edge are not meant for it.
     if (type is BorderType.DiagonalDown or BorderType.DiagonalUp)
       return 0;
 
-    return GetSharedWidth();
+    return GetSharedWidth(borders);
   }
 
   /// <summary>
   /// The width of a border described for itself: its own width, or - where it asks to be drawn
   /// without saying how wide - the collection's width, or half a point.
   /// </summary>
-  private XUnit GetOwnWidth(Border border)
+  private static XUnit GetOwnWidth(Borders borders, Border border)
   {
     var hidden = !border.IsNull("Visible") && !border.Visible;
     if (hidden)
@@ -120,7 +128,7 @@ internal class BordersRenderer
   /// The width of an edge with no border of its own, from what the collection says of every edge:
   /// its width, or half a point where it asks for borders without saying how wide.
   /// </summary>
-  private XUnit GetSharedWidth()
+  private static XUnit GetSharedWidth(Borders borders)
   {
     var hidden = !borders.IsNull("Visible") && !borders.Visible;
     if (hidden)

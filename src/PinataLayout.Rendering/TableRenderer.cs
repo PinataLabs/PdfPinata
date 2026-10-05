@@ -335,7 +335,7 @@ internal class TableRenderer : Renderer
 
   private Rectangle GetInnerRect(XUnit startingHeight, Cell cell)
   {
-    var bordersRenderer = new BordersRenderer(_mergedCells.GetEffectiveBorders(cell), Gfx);
+    var borders = _mergedCells.GetEffectiveBorders(cell);
     var formattedCell = _formattedCells[cell];
     var width = formattedCell.InnerWidth;
 
@@ -355,7 +355,7 @@ internal class TableRenderer : Renderer
 
 
     XUnit height = lowerBorderPos - upperBorderPos;
-    height -= bordersRenderer.GetWidth(BorderType.Bottom);
+    height -= BordersRenderer.WidthOf(borders, BorderType.Bottom);
 
     var x = _startX;
     for (var clmIdx = 0; clmIdx < cell.Column.Index; ++clmIdx)
@@ -615,8 +615,7 @@ internal class TableRenderer : Renderer
       if (_table.Rows.Count > 0 && _table.Columns.Count > 0)
       {
         var borders = _mergedCells.GetEffectiveBorders(_table[0, 0]);
-        var bordersRenderer = new BordersRenderer(borders, Gfx);
-        field = bordersRenderer.GetWidth(BorderType.Left);
+        field = BordersRenderer.WidthOf(borders, BorderType.Left);
       }
       else
       {
@@ -765,8 +764,7 @@ internal class TableRenderer : Renderer
 
       if (!rowCell.IsNull("Borders"))
       {
-        var bordersRenderer = new BordersRenderer(rowCell.Borders, Gfx);
-        var width = bordersRenderer.GetWidth(BorderType.Top);
+        var width = BordersRenderer.WidthOf(rowCell.Borders, BorderType.Top);
         if (width > maxWidth)
           maxWidth = width;
       }
@@ -820,8 +818,7 @@ internal class TableRenderer : Renderer
     if (borders == null)
       return 0;
 
-    var bordersRenderer = new BordersRenderer(borders, Gfx);
-    return bordersRenderer.GetWidth(BorderType.Bottom);
+    return BordersRenderer.WidthOf(borders, BorderType.Bottom);
   }
 
   /// <summary>

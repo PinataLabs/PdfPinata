@@ -47,7 +47,7 @@ internal class FormattedCell : IAreaProvider
     this.fieldInfos = fieldInfos;
     this.yOffset = yOffset;
     this.xOffset = xOffset;
-    bordersRenderer = new BordersRenderer(cellBorders, null);
+    this.cellBorders = cellBorders;
     this.documentRenderer = documentRenderer;
   }
 
@@ -120,7 +120,7 @@ internal class FormattedCell : IAreaProvider
       var lastColumnIdx = cell.MergedRightColumnIndex;
       for (var columnIdx = cell.Column.Index; columnIdx <= lastColumnIdx; ++columnIdx)
         width += cell.Table.Columns[columnIdx].Width;
-      width -= bordersRenderer.GetWidth(BorderType.Right);
+      width -= BordersRenderer.WidthOf(cellBorders, BorderType.Right);
 
       return width;
     }
@@ -178,7 +178,7 @@ internal class FormattedCell : IAreaProvider
   private readonly XUnit yOffset;
   private readonly Cell cell;
   private TopDownFormatter formatter;
-  private readonly BordersRenderer bordersRenderer;
+  private readonly Borders cellBorders;
   private XGraphics gfx;
   private readonly DocumentRenderer documentRenderer;
 }

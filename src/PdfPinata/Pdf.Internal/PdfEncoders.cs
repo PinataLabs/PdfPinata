@@ -155,7 +155,7 @@ internal static class PdfEncoders
         {
             case < '!' or > '~':
             case '(' or ')' or '<' or '>' or '[' or ']' or '{' or '}' or '/' or '%' or '#':
-                pdf.Append('#').Append(b.ToString("X2", CultureInfo.InvariantCulture));
+                pdf.Append('#').Append(Convert.ToHexString([b]));
                 break;
 
             default:
@@ -348,10 +348,7 @@ internal static class PdfEncoders
     /// </summary>
     private static void AppendHexLiteral(StringBuilder pdf, byte[] bytes)
     {
-        pdf.Append('<');
-        for (var idx = 0; idx < bytes.Length; idx++)
-            pdf.AppendFormat("{0:X2}", bytes[idx]);
-        pdf.Append('>');
+        pdf.Append('<').Append(Convert.ToHexString(bytes)).Append('>');
     }
 
     /// <summary>
@@ -360,17 +357,18 @@ internal static class PdfEncoders
     /// </summary>
     private static void AppendUnicodeHexLiteral(StringBuilder pdf, byte[] bytes, int byteOrderMarkLength)
     {
+        var hex = Convert.ToHexString(bytes);
         pdf.Append('<');
-        for (var idx = 0; idx < bytes.Length; idx += 2)
+        // A line ends after the character that starts at byte 48, 96, 144... of the text. The
+        // mark is part of the bytes now, so count from the text that follows it and the lines
+        // break where they always did.
+        var start = 0;
+        for (var end = 2 * (byteOrderMarkLength + 50); end <= hex.Length; end += 96)
         {
-            pdf.AppendFormat("{0:X2}{1:X2}", bytes[idx], bytes[idx + 1]);
-            // The mark is part of the bytes now, so count from the text that follows it
-            // and the lines break where they always did.
-            var positionInText = idx - byteOrderMarkLength;
-            if (positionInText != 0 && positionInText % 48 == 0)
-                pdf.Append('\n');
+            pdf.Append(hex, start, end - start).Append('\n');
+            start = end;
         }
-        pdf.Append('>');
+        pdf.Append(hex, start, hex.Length - start).Append('>');
     }
 
     /// <summary>
