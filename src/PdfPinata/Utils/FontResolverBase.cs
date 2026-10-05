@@ -32,8 +32,9 @@ public readonly struct FontMetadata
 
 /// <summary>
 /// Locates the fonts installed on the current platform and resolves typefaces against them.
-/// Reading the family name and style out of a font file is left to a derived class, so that
-/// PdfPinata itself does not depend on any particular font library.
+/// The family name and style of a single-font file are read with <see cref="OpenTypeFontMetadata"/>
+/// unless a derived class reads them its own way; describing the faces of a collection is left to
+/// a derived class, so that PdfPinata itself does not depend on any particular font library.
 /// Use the resolver from PdfPinata.Skia or PdfPinata.ImageSharp, or derive your own.
 /// </summary>
 public abstract class FontResolverBase
@@ -43,7 +44,7 @@ public abstract class FontResolverBase
     public virtual string DefaultFontName => "Arial";
 
     // Per instance rather than static: two backends in one process must not inherit each
-    // other's font mappings, and reading metadata is the derived class's job.
+    // other's font mappings, and a derived class may read metadata its own way.
     private readonly object _initLock = new();
 
     // Volatile because EnsureInitialized reads this outside the lock. Without it a thread can
@@ -81,7 +82,15 @@ public abstract class FontResolverBase
     /// <summary>
     /// Reads the family name and style out of the given font file.
     /// </summary>
-    protected abstract FontMetadata ReadFontMetadata(string fontFilePath);
+    /// <remarks>
+    /// Reads them with <see cref="OpenTypeFontMetadata.Read(string)"/> unless overridden. A derived
+    /// class that describes fonts through a font library of its own overrides this, and
+    /// <see cref="ReadFontMetadata(string,int)"/> with it if it can read a collection.
+    /// </remarks>
+    protected virtual FontMetadata ReadFontMetadata(string fontFilePath)
+    {
+        return OpenTypeFontMetadata.Read(fontFilePath);
+    }
 
 
     /// <summary>

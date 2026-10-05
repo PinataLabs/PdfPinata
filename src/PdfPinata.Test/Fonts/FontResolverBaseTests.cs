@@ -276,6 +276,141 @@ public class FontResolverBaseTests
         metadata.Should().BeEmpty();
     }
 
+    /// <summary>
+    ///   A resolver that reads nothing itself describes a single font with the core's own parser,
+    ///   which used to be abstract and so had to be written by every resolver.
+    /// </summary>
+    [Theory]
+    [InlineData("LiberationSans-Regular.ttf", XFontStyle.Regular)]
+    [InlineData("LiberationSans-Bold.ttf", XFontStyle.Bold)]
+    [InlineData("LiberationSans-BoldItalic.ttf", XFontStyle.BoldItalic)]
+    public void AResolverThatReadsNothingItselfDescribesAFontWithTheCoreParser(string file, XFontStyle style)
+    {
+        var metadata = new ReadsNothingItself().Describe(Asset(file));
+
+        metadata.FamilyName.Should().Be("Liberation Sans");
+        metadata.Style.Should().Be(style);
+    }
+
+    [Fact]
+    public void AResolverThatReadsNothingItselfResolvesAFamilyFromWhatTheParserRead()
+    {
+        var resolver = new ReadsNothingItself();
+        resolver.SetupFontsFiles(TheLiberationFamily());
+
+        resolver.ResolveTypeface("Liberation Sans", true, false).Should().NotBeNull();
+    }
+
+    /// <summary>
+    ///   The default is for a single font only: a face of a collection is still refused with the
+    ///   base class's own answer, so a resolver describing fonts its own way never has a collection
+    ///   described for it by a different rule.
+    /// </summary>
+    [Fact]
+    public void AResolverThatReadsNothingItselfStillRefusesToDescribeAFaceOfACollection()
+    {
+        var describing = () => new ReadsNothingItself().DescribeFace(Asset("LiberationSans-Regular.ttf"), 0);
+
+        describing.Should().Throw<NotSupportedException>();
+    }
+
+    [Fact]
+    public void TheCoreParserReadsTheSameFaceWhicheverWayItIsAskedFor()
+    {
+        var path = Asset("LiberationSans-Italic.ttf");
+
+        var first = OpenTypeFontMetadata.Read(path);
+        var face0 = OpenTypeFontMetadata.Read(path, 0);
+        var all = OpenTypeFontMetadata.ReadAll(path, 1);
+
+        first.Should().Be(face0);
+        all.Should().Equal(first);
+        first.Style.Should().Be(XFontStyle.Italic);
+    }
+
+    [Fact]
+    public void TheCoreParserRefusesAFaceASingleFontDoesNotHold()
+    {
+        var reading = () => OpenTypeFontMetadata.Read(Asset("LiberationSans-Regular.ttf"), 1);
+
+        reading.Should().Throw<ArgumentOutOfRangeException>().WithMessage("*face 1*");
+    }
+
+    [Theory]
+    [InlineData(-2)]
+    [InlineData(-5)]
+    public void TheCoreParserRefusesAFaceIndexBelowMinusOne(int faceIndex)
+    {
+        var reading = () => OpenTypeFontMetadata.Read(Asset("LiberationSans-Regular.ttf"), faceIndex);
+
+        reading.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
+    public void TheCoreParserRefusesToReadANegativeNumberOfFaces()
+    {
+        var reading = () => OpenTypeFontMetadata.ReadAll(Asset("LiberationSans-Regular.ttf"), -1);
+
+        reading.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Theory]
+    [InlineData(2)]
+    [InlineData(int.MaxValue)]
+    public void TheCoreParserRefusesToReadMoreFacesThanTheFileHoldsBeforeMakingRoomForThem(int faceCount)
+    {
+        var reading = () => OpenTypeFontMetadata.ReadAll(Asset("LiberationSans-Regular.ttf"), faceCount);
+
+        reading.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    /// <summary>
+    ///   A name table the directory places past the end of the file is malformed input, and is
+    ///   refused as such rather than by indexing off the end of the array - including an offset
+    ///   so close to int.MaxValue that adding the table's header length to it would overflow.
+    /// </summary>
+    [Theory]
+    [InlineData(100u)]
+    [InlineData(0x7FFFFFFCu)]
+    public void TheCoreParserRefusesANameTableOutsideTheFile(uint beyond)
+    {
+        var font = File.ReadAllBytes(Asset("LiberationSans-Regular.ttf"));
+        var tables = (font[4] << 8) | font[5];
+        for (var idx = 0; idx < tables; idx++)
+        {
+            var record = 12 + idx * 16;
+            if (font[record] != 'n' || font[record + 1] != 'a' || font[record + 2] != 'm' || font[record + 3] != 'e')
+                continue;
+
+            var outside = beyond > int.MaxValue / 2 ? beyond : (uint)font.Length + beyond;
+            font[record + 8] = (byte)(outside >> 24);
+            font[record + 9] = (byte)(outside >> 16);
+            font[record + 10] = (byte)(outside >> 8);
+            font[record + 11] = (byte)outside;
+        }
+
+        var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".ttf");
+        File.WriteAllBytes(path, font);
+        try
+        {
+            var reading = () => OpenTypeFontMetadata.Read(path);
+
+            reading.Should().Throw<InvalidOperationException>().WithMessage("*'name' table outside*");
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    /// <summary>Overrides nothing, so every metadata reader it has is the base class's own.</summary>
+    private sealed class ReadsNothingItself : FontResolverBase
+    {
+        public FontMetadata Describe(string path) => ReadFontMetadata(path);
+
+        public FontMetadata DescribeFace(string path, int faceIndex) => ReadFontMetadata(path, faceIndex);
+    }
+
     /// <summary>Exposes the two protected metadata readers so a test can call them directly.</summary>
     private sealed class DescribesOneFaceAtATime : FontResolverBase
     {

@@ -174,7 +174,7 @@ public static class TrueTypeCollection
     /// Where the table directory of one face of a collection starts, checked against both the
     /// number of faces the collection declares and the length of the file.
     /// </summary>
-    private static int FaceDirectory(byte[] data, int faceIndex)
+    internal static int FaceDirectory(byte[] data, int faceIndex)
     {
         var faceCount = ValidateFaceCount(U32(data, 8), data.Length);
         if (faceIndex < 0 || faceIndex >= faceCount)
@@ -182,7 +182,7 @@ public static class TrueTypeCollection
                 "Font collection holds " + faceCount + " faces; face " + faceIndex + " was asked for.");
 
         var directory = (int)U32(data, OffsetTableLength + faceIndex * 4);
-        if (directory < 0 || directory + OffsetTableLength > data.Length)
+        if (directory < 0 || directory > data.Length - OffsetTableLength)
             throw new InvalidOperationException("Font collection points at a face outside the file.");
 
         return directory;
@@ -254,13 +254,15 @@ public static class TrueTypeCollection
     }
 
 
-    private static int U16(byte[] data, int offset)
+    /// <summary>The big-endian unsigned 16-bit value at an offset, as every sfnt table stores one.</summary>
+    internal static int U16(byte[] data, int offset)
     {
         return (data[offset] << 8) | data[offset + 1];
     }
 
 
-    private static uint U32(byte[] data, int offset)
+    /// <summary>The big-endian unsigned 32-bit value at an offset, as every sfnt table stores one.</summary>
+    internal static uint U32(byte[] data, int offset)
     {
         return ((uint)data[offset] << 24) | ((uint)data[offset + 1] << 16)
                                           | ((uint)data[offset + 2] << 8) | data[offset + 3];
