@@ -177,14 +177,8 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
 
         public void QuadraticBezierTo(Vector2 secondControlPoint, Vector2 point)
         {
-            // Exactly, rather than by subdivision: a quadratic through q from p0 to p2 is the
-            // cubic with controls at p0 + 2/3(q - p0) and p2 + 2/3(q - p2).
-            var control = At(secondControlPoint);
             var end = At(point);
-            _segments.Add(XGlyphSegment.CurveTo(
-                Lerp(_current, control, 2.0 / 3.0),
-                Lerp(end, control, 2.0 / 3.0),
-                end));
+            _segments.Add(XGlyphSegment.QuadraticTo(_current, At(secondControlPoint), end));
             _current = end;
         }
 
@@ -218,8 +212,5 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
         ///   up. SixLabors measures y downwards from the top of the line, as a raster does.
         /// </summary>
         private XPoint At(Vector2 point) => new(point.X, _baseline - point.Y);
-
-        private static XPoint Lerp(XPoint from, XPoint to, double fraction) =>
-            new(from.X + fraction * (to.X - from.X), from.Y + fraction * (to.Y - from.Y));
     }
 }

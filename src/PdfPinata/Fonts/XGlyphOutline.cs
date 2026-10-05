@@ -31,8 +31,8 @@ public enum XGlyphSegmentKind
 /// <remarks>
 /// Cubic curves only. A TrueType outline is drawn with quadratics, and a quadratic converts to a
 /// cubic exactly - controls at <c>p0 + 2/3(q - p0)</c> and <c>p2 + 2/3(q - p2)</c> - so a backend
-/// converts rather than subdividing and losing precision. PDF has no quadratic curve operator, so
-/// the conversion has to happen somewhere regardless.
+/// converts, through <see cref="QuadraticTo"/>, rather than subdividing and losing precision. PDF
+/// has no quadratic curve operator, so the conversion has to happen somewhere regardless.
 /// </remarks>
 public readonly struct XGlyphSegment
 {
@@ -68,9 +68,39 @@ public readonly struct XGlyphSegment
     public static XGlyphSegment CurveTo(XPoint control1, XPoint control2, XPoint end) =>
         new(XGlyphSegmentKind.Curve, control1, control2, end);
 
+    /// <summary>
+    /// Draws a quadratic Bézier curve, given as the cubic curve that traces exactly the same path.
+    /// </summary>
+    /// <param name="current">
+    /// Where the curve begins: the end of the segment before it, which a segment does not itself
+    /// record, so the caller has to say.
+    /// </param>
+    /// <param name="control">The quadratic's one control point.</param>
+    /// <param name="end">Where the curve ends.</param>
+    /// <returns>
+    /// A <see cref="XGlyphSegmentKind.Curve"/> segment to <paramref name="end"/>, with its first
+    /// control point two thirds of the way from <paramref name="current"/> towards
+    /// <paramref name="control"/> and its second two thirds of the way from <paramref name="end"/>
+    /// towards <paramref name="control"/>.
+    /// </returns>
+    /// <remarks>
+    /// The conversion is exact rather than an approximation: every quadratic is a cubic, and these
+    /// are its controls. It is here so that an <see cref="IGlyphOutlineProvider"/> whose source
+    /// draws TrueType outlines need not write it again.
+    /// </remarks>
+    public static XGlyphSegment QuadraticTo(XPoint current, XPoint control, XPoint end) =>
+        new(XGlyphSegmentKind.Curve,
+            TwoThirdsTowards(current, control),
+            TwoThirdsTowards(end, control),
+            end);
+
     /// <summary>Closes the figure back to where it began.</summary>
     public static XGlyphSegment Close() =>
         new(XGlyphSegmentKind.Close, new XPoint(), new XPoint(), new XPoint());
+
+    /// <summary>The point two thirds of the way from one point towards another.</summary>
+    private static XPoint TwoThirdsTowards(XPoint from, XPoint to) =>
+        new(from.X + 2.0 / 3.0 * (to.X - from.X), from.Y + 2.0 / 3.0 * (to.Y - from.Y));
 }
 
 /// <summary>
