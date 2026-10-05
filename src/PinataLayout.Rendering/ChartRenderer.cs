@@ -34,7 +34,6 @@ using PinataLayout.DocumentObjectModel.Tables;
 using PdfPinata.Drawing;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
-using PdfPinata.Pdf.Structure;
 
 namespace PinataLayout.Rendering;
 
@@ -314,8 +313,7 @@ internal class ChartRenderer : ShapeRenderer
     // one figure standing or falling on its description, exactly as an image is — see
     // Shape.AlternativeText for why an undescribed one is furniture rather than a figure with
     // nothing to say.
-    Tagger.EndList();
-    using (BeginStructure())
+    using (BeginFigureOrArtifact())
     {
       var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
       if (formatInfo.formattedHeader != null)
@@ -343,21 +341,6 @@ internal class ChartRenderer : ShapeRenderer
 
     using (Tagger.Artifact(Gfx))
       RenderLine();
-  }
-
-  /// <summary>
-  /// Opens the scope the chart is drawn in: a figure when it has been described, an artifact when it
-  /// has not.
-  /// </summary>
-  private IDisposable BeginStructure()
-  {
-    if (chart.IsNull("AlternativeText") || string.IsNullOrEmpty(chart.AlternativeText))
-      return Tagger.Artifact(Gfx);
-
-    var scope = Tagger.Block(Gfx, chart, PdfTag.Figure, out var element);
-    element?.AlternateText = chart.AlternativeText;
-
-    return scope;
   }
 
   private void RenderPlotArea(PlotArea area, Rectangle rect)

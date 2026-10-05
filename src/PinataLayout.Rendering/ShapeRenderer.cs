@@ -32,6 +32,7 @@ using System;
 using PdfPinata.Drawing;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Internals;
+using PdfPinata.Pdf.Structure;
 
 namespace PinataLayout.Rendering;
 
@@ -200,6 +201,43 @@ internal abstract class ShapeRenderer : Renderer
     XUnit width = contentArea.Width - lineWidth;
     XUnit height = contentArea.Height - lineWidth;
     lineFormatRenderer.Render(contentArea.X, contentArea.Y, width, height);
+  }
+
+  /// <summary>
+  /// Opens the scope a picture is drawn in — an image or a chart: a figure when it has been
+  /// described, an artifact when it has not.
+  /// </summary>
+  /// <remarks>
+  /// <para>
+  /// An undescribed figure is worse than no figure. It announces to a reader that something is
+  /// there and then cannot say what, which leaves them knowing only that they have missed
+  /// something. Marked as decoration instead, it is passed over silently — which is right for the
+  /// rule above a letterhead and is at least honest for everything else.
+  /// </para>
+  /// <para>
+  /// So the alternate text is not optional-with-a-default: supplying it makes the shape content,
+  /// and not supplying it makes the shape furniture. Nothing here guesses at a description. What a
+  /// picture is for is a fact about the document rather than about the pixels, and a library
+  /// inventing one would be writing something plausible into the single field a reader cannot check.
+  /// </para>
+  /// <para>
+  /// Only the figure ends an open list. An artifact is not in the structure tree at all, so the list
+  /// items either side of an undescribed picture are, to a reader, next to one another — one list,
+  /// exactly as they would be if the picture were not there. Images and charts open their scope here
+  /// and nowhere else, so that the same layout gives the same tree whichever of the two it holds.
+  /// </para>
+  /// </remarks>
+  protected IDisposable BeginFigureOrArtifact()
+  {
+    if (shape.IsNull("AlternativeText") || string.IsNullOrEmpty(shape.AlternativeText))
+      return Tagger.Artifact(Gfx);
+
+    Tagger.EndList();
+
+    var scope = Tagger.Block(Gfx, shape, PdfTag.Figure, out var element);
+    element?.AlternateText = shape.AlternativeText;
+
+    return scope;
   }
 
   private ElementAlignment GetHorizontalAlignment()

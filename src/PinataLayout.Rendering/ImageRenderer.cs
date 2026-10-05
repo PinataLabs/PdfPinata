@@ -34,7 +34,6 @@ using PdfPinata.Drawing;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.Rendering.Resources;
 using PdfPinata.Fonts;
-using PdfPinata.Pdf.Structure;
 
 namespace PinataLayout.Rendering;
 
@@ -94,7 +93,7 @@ internal class ImageRenderer : ShapeRenderer
         var contentArea = renderInfo.LayoutInfo.ContentArea;
         var destRect = new XRect(contentArea.X, contentArea.Y, formatInfo.Width, formatInfo.Height);
 
-        using (BeginStructure())
+        using (BeginFigureOrArtifact())
         {
             if (formatInfo.Failure == ImageFailure.None)
             {
@@ -124,37 +123,6 @@ internal class ImageRenderer : ShapeRenderer
 
         using (Tagger.Artifact(Gfx))
             RenderLine();
-    }
-
-    /// <summary>
-    /// Opens the scope the image is drawn in: a figure when it has been described, an artifact when
-    /// it has not.
-    /// </summary>
-    /// <remarks>
-    /// <para>
-    /// An undescribed figure is worse than no figure. It announces to a reader that something is
-    /// there and then cannot say what, which leaves them knowing only that they have missed
-    /// something. Marked as decoration instead, it is passed over silently — which is right for the
-    /// rule above a letterhead and is at least honest for everything else.
-    /// </para>
-    /// <para>
-    /// So the alternate text is not optional-with-a-default: supplying it makes the image content,
-    /// and not supplying it makes the image furniture. Nothing here guesses at a description. What an
-    /// image is for is a fact about the document rather than about the pixels, and a library inventing
-    /// one would be writing something plausible into the single field a reader cannot check.
-    /// </para>
-    /// </remarks>
-    private IDisposable BeginStructure()
-    {
-        if (image.IsNull("AlternativeText") || string.IsNullOrEmpty(image.AlternativeText))
-            return Tagger.Artifact(Gfx);
-
-        Tagger.EndList();
-
-        var scope = Tagger.Block(Gfx, image, PdfTag.Figure, out var element);
-        element?.AlternateText = image.AlternativeText;
-
-        return scope;
     }
 
     /// <summary>
