@@ -436,6 +436,97 @@ public class TaggedOutputTests
             .Should().Be("Sales by quarter, rising through the year.");
     }
 
+    [Theory]
+    [InlineData("image")]
+    [InlineData("chart")]
+    public void ADescribedPictureBetweenTwoListItemsEndsTheList(string kind)
+    {
+        var document = new Document();
+        var section = document.AddSection();
+        section.AddParagraph("First").Format.ListInfo.ListType = ListType.BulletList1;
+        APicture(section, kind).AlternativeText = "What the picture shows.";
+        section.AddParagraph("Second").Format.ListInfo.ListType = ListType.BulletList1;
+
+        // A figure is read between the two items, so they cannot be one list: the second starts
+        // another after it.
+        var sect = Structure.Of(document).Single("Sect");
+        sect.ChildTags().Should().Equal("L", "Figure", "L");
+        sect.Children[0].ChildTags().Should().Equal("LI");
+        sect.Children[2].ChildTags().Should().Equal("LI");
+    }
+
+    [Theory]
+    [InlineData("image")]
+    [InlineData("chart")]
+    public void AnUndescribedPictureBetweenTwoListItemsLeavesThemOneList(string kind)
+    {
+        var document = new Document();
+        var section = document.AddSection();
+        section.AddParagraph("First").Format.ListInfo.ListType = ListType.BulletList1;
+        APicture(section, kind);
+        section.AddParagraph("Second").Format.ListInfo.ListType = ListType.BulletList1;
+
+        // An artifact is not in the tree, so to a reader the two items are next to one another —
+        // one list, as they would be with nothing drawn between them. A chart used to end the list
+        // here and an image did not, so the same layout gave two trees depending on which it held.
+        var sect = Structure.Of(document).Single("Sect");
+        sect.ChildTags().Should().Equal("L");
+        sect.Children[0].ChildTags().Should().Equal("LI", "LI");
+    }
+
+    [Fact]
+    public void AnUndescribedChartWithATitleBetweenTwoListItemsLeavesThemOneList()
+    {
+        var document = new Document();
+        var section = document.AddSection();
+        section.AddParagraph("First").Format.ListInfo.ListType = ListType.BulletList1;
+        ((Chart)APicture(section, "chart")).HeaderArea.AddParagraph("Sales");
+        section.AddParagraph("Second").Format.ListInfo.ListType = ListType.BulletList1;
+
+        // The title is a paragraph, drawn by the paragraph renderer inside the chart's artifact
+        // scope, and a paragraph that is not a list item ends the list before it asks to be tagged.
+        // Inside furniture it is refused, and so may not end anything either.
+        var sect = Structure.Of(document).Single("Sect");
+        sect.ChildTags().Should().Equal("L");
+        sect.Children[0].ChildTags().Should().Equal("LI", "LI");
+    }
+
+    [Fact]
+    public void AListRunningOverAPageBreakUnderARunningHeadIsStillOneList()
+    {
+        var document = new Document();
+        var section = document.AddSection();
+        section.Headers.Primary.AddParagraph("Running head");
+        for (var item = 0; item < 80; item++)
+            section.AddParagraph($"Item {item}").Format.ListInfo.ListType = ListType.BulletList1;
+
+        var rendered = Rendered.Of(document);
+        rendered.PageCount.Should().BeGreaterThan(1, "the case is about a list the page break falls in");
+
+        // The head of the second page is drawn between the items either side of the break, and its
+        // paragraph used to end the list there.
+        var sect = Structure.RootOf(rendered).Single("Sect");
+        sect.ChildTags().Should().Equal("L");
+        sect.Children[0].Children.Should().HaveCount(80);
+    }
+
+    /// <summary>An image or a chart, drawn between whatever comes before and after it.</summary>
+    private static Shape APicture(Section section, string kind)
+    {
+        if (kind == "image")
+        {
+            var image = section.AddImage(AnImage());
+            image.Width = "3cm";
+            return image;
+        }
+
+        var chart = section.AddChart(ChartType.Column2D);
+        chart.Width = "8cm";
+        chart.Height = "5cm";
+        chart.SeriesCollection.AddSeries().Add(3.0, 5.0, 4.0);
+        return chart;
+    }
+
     [Fact]
     public void AHyperlinkIsALinkThatReachesItsAnnotation()
     {

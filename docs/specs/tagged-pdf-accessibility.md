@@ -94,6 +94,14 @@ nothing was opened, and `DescribeCell`/`DescribeTable` take it as a parameter. *
 something to write onto an element must never read `Parent` for it** — see
 `docs/specs/structure-tagger-interface.md` for the rename that made the two questions two names.
 
+**Nor may anything inside an artifact end a list.** A renderer that tags something other than a list
+item calls `Tagger.EndList()` first, and asks before it opens its scope — so it cannot know the scope
+will be refused. A running head's paragraph therefore split every list a page break fell in, and a
+title in an undescribed chart split the list around the chart (#227). `EndList` does nothing inside
+an artifact now: what is drawn there is not in the tree, and does not stand between the items either
+side of it. For the same reason an image or a chart ends the list only when it is a figure, in
+`ShapeRenderer.BeginFigureOrArtifact`, the one scope both of them open.
+
 **`CanTag` has to ask whether a page has been begun.** `_document` is assigned by `BeginPage`, and
 everything the tagger builds is built against it — but nothing obliges a caller to begin a page.
 `DocumentRenderer.RenderObject` draws one object onto a surface the caller owns and never does. On
