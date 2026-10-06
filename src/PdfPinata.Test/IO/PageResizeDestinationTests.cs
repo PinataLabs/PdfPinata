@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -80,7 +80,7 @@ public class PageResizeDestinationTests
         annotations.Elements.Add(link.Reference);
     }
 
-    [Fact]
+    [Test]
     public void ALinkFromAnotherPageFollowsTheContentItPointedAt()
     {
         var fixture = TwoPages();
@@ -94,7 +94,7 @@ public class PageResizeDestinationTests
         destination.Elements.GetReal(3).Should().BeApproximately(350, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void TheZoomOfAnXyzDestinationIsNotTouchedWhenThePageShrinks()
     {
         var fixture = TwoPages();
@@ -108,7 +108,7 @@ public class PageResizeDestinationTests
             "the zoom is a magnification the reader asked for, not a promise about text size");
     }
 
-    [Fact]
+    [Test]
     public void TheZoomIsNotTouchedWhenThePageGrowsEither()
     {
         var fixture = TwoPages();
@@ -126,7 +126,7 @@ public class PageResizeDestinationTests
         destination.Elements.GetReal(2).Should().BeApproximately(200, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void AZoomOfZeroIsLeftAlone()
     {
         var fixture = TwoPages();
@@ -139,7 +139,7 @@ public class PageResizeDestinationTests
         destination.Elements.GetReal(4).Should().Be(0, "zero means the reader keeps its own zoom");
     }
 
-    [Fact]
+    [Test]
     public void ANullCoordinateIsLeftAlone()
     {
         var fixture = TwoPages();
@@ -153,7 +153,7 @@ public class PageResizeDestinationTests
         destination.Elements.GetReal(3).Should().BeApproximately(350, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void AFitDestinationHasNothingToMove()
     {
         var fixture = TwoPages();
@@ -166,7 +166,7 @@ public class PageResizeDestinationTests
         destination.Elements.GetName(1).Should().Be("/Fit");
     }
 
-    [Fact]
+    [Test]
     public void AFitRectangleMovesAllFourOfItsNumbers()
     {
         var fixture = TwoPages();
@@ -183,7 +183,7 @@ public class PageResizeDestinationTests
         }.Should().Equal(50, 100, 150, 200);
     }
 
-    [Fact]
+    [Test]
     public void AFitHorizontalMovesItsLine()
     {
         var fixture = TwoPages();
@@ -195,7 +195,7 @@ public class PageResizeDestinationTests
         destination.Elements.GetReal(2).Should().BeApproximately(350, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void AFitHorizontalBecomesAFitVerticalWhenThePageIsTurned()
     {
         var fixture = TwoPages();
@@ -212,7 +212,7 @@ public class PageResizeDestinationTests
         destination.Elements.GetReal(2).Should().BeApproximately(700, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void AGoToActionIsFollowed()
     {
         var fixture = TwoPages();
@@ -229,7 +229,7 @@ public class PageResizeDestinationTests
         destination.Elements.GetReal(2).Should().BeApproximately(50, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void ARemoteGoToIsLeftAlone()
     {
         var fixture = TwoPages();
@@ -247,7 +247,7 @@ public class PageResizeDestinationTests
             "a remote destination names a page in another file and is none of this resize's business");
     }
 
-    [Fact]
+    [Test]
     public void AnOutlineEntryIsMoved()
     {
         var fixture = TwoPages();
@@ -270,7 +270,7 @@ public class PageResizeDestinationTests
         destination.Elements.GetReal(3).Should().BeApproximately(350, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void ADestinationHeldInTheNameTreeIsMoved()
     {
         var fixture = TwoPages();
@@ -296,10 +296,10 @@ public class PageResizeDestinationTests
 
     /// <summary>
     ///   A node whose /Kids name it twice doubles the walk at every level, so a depth cap alone lets
-    ///   a few hundred bytes run to 2^32 visits: a hang rather than a failure. xUnit honours Timeout
+    ///   a few hundred bytes run to 2^32 visits: a hang rather than a failure. Timeout is honoured
     ///   only on an async test, hence the Task.Run.
     /// </summary>
-    [Fact(Timeout = 30000)]
+    [Test, Timeout(30000)]
     public async Task ANameTreeWhoseKidsLeadBackToItselfDoesNotHangTheResize()
     {
         var fixture = TwoPages();
@@ -331,7 +331,7 @@ public class PageResizeDestinationTests
     ///   sibling. The sibling cap bounds one level and the depth cap bounds the levels, but together
     ///   they allow 100,000^32 visits.
     /// </summary>
-    [Fact(Timeout = 30000)]
+    [Test, Timeout(30000)]
     public async Task AnOutlineThatLeadsBackToItselfDoesNotHangTheResize()
     {
         var fixture = TwoPages();
@@ -351,7 +351,7 @@ public class PageResizeDestinationTests
         destination.Elements.GetReal(3).Should().BeApproximately(350, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void ADestinationHeldInTheLegacyDestsDictionaryIsMoved()
     {
         var fixture = TwoPages();
@@ -366,7 +366,7 @@ public class PageResizeDestinationTests
         destination.Elements.GetReal(3).Should().BeApproximately(350, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void TheOpenActionIsMoved()
     {
         var fixture = TwoPages();
@@ -379,7 +379,7 @@ public class PageResizeDestinationTests
         destination.Elements.GetReal(3).Should().BeApproximately(350, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void ALinkToAPageThatWasNotResizedIsUntouched()
     {
         var fixture = TwoPages();
@@ -393,7 +393,7 @@ public class PageResizeDestinationTests
         destination.Elements.GetReal(3).Should().BeApproximately(700, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void ADestinationSharedByTwoLinksIsMovedOnceAndNotTwice()
     {
         var fixture = TwoPages();
@@ -413,7 +413,7 @@ public class PageResizeDestinationTests
         destination.Elements.GetReal(3).Should().BeApproximately(350, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void TurningOffTheSweepLeavesEveryDestinationAlone()
     {
         var fixture = TwoPages();
@@ -429,7 +429,7 @@ public class PageResizeDestinationTests
         destination.Elements.GetReal(2).Should().BeApproximately(100, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void ResizingEveryPageMovesEveryDestinationExactlyOnce()
     {
         var fixture = TwoPages();
@@ -450,7 +450,7 @@ public class PageResizeDestinationTests
         toSecond.Elements.GetReal(3).Should().BeApproximately(300, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void ADestinationCoordinateHeldIndirectlyIsStillMoved()
     {
         // A destination coordinate is as entitled to be an indirect object as anything else.
@@ -472,7 +472,7 @@ public class PageResizeDestinationTests
         destination.Elements.GetReal(3).Should().BeApproximately(350, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void ADestinationWhoseCoordinatesAreNotNumbersIsLeftAlone()
     {
         var fixture = TwoPages();

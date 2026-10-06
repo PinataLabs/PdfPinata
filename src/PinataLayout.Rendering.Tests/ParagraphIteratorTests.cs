@@ -2,7 +2,7 @@ using System.Linq;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.Rendering.Tests.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -24,7 +24,7 @@ namespace PinataLayout.Rendering.Tests;
 /// </remarks>
 public class ParagraphIteratorTests
 {
-    [Fact]
+    [Test]
     public void TheLeavesOfAParagraphAreItsRunsInTheOrderTheyWereAdded()
     {
         var paragraph = Build();
@@ -33,7 +33,7 @@ public class ParagraphIteratorTests
             .Should().Equal("Text:once", "Character", "Text:upon", "Text:a", "Character", "Text:time");
     }
 
-    [Fact]
+    [Test]
     public void AFormattedRunIsDescendedIntoRatherThanCountedAsOneLeaf()
     {
         var paragraph = Build();
@@ -45,7 +45,7 @@ public class ParagraphIteratorTests
             .Should().Contain(["Text:upon", "Text:a"]);
     }
 
-    [Fact]
+    [Test]
     public void WalkingBackFromTheLastLeafVisitsTheSameLeavesInReverse()
     {
         var paragraph = Build();
@@ -56,7 +56,7 @@ public class ParagraphIteratorTests
         backwards.Should().Equal(forwards.Reverse());
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyParagraphHasNoLeafToStartFrom()
     {
         // Not the same as having one leaf that happens to be empty: the renderer asks for the
@@ -66,7 +66,7 @@ public class ParagraphIteratorTests
         ParagraphIteratorProbe.HasLeaves(paragraph).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void TheFirstLeafKnowsItIsFirstAndTheLastKnowsItIsLast()
     {
         var paragraph = Build();
@@ -79,7 +79,7 @@ public class ParagraphIteratorTests
         ParagraphIteratorProbe.EndsAt(paragraph, count - 1).Should().Be((false, true));
     }
 
-    [Fact]
+    [Test]
     public void ALeafInTheMiddleOfANestedRunIsNeitherFirstNorLast()
     {
         var paragraph = Build();

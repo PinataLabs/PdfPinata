@@ -6,7 +6,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Fonts;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -32,7 +32,7 @@ namespace PdfPinata.Test.Fonts;
 ///     Arial Bold is a real one.
 ///   </para>
 /// </remarks>
-[Collection(TextShapingCollection.Name)]
+[TextShaperSensitive]
 public class PerFaceStyleSimulationTests
 {
     // U+1F512 LOCK: in Source Code Pro's format 12 subtable and in no Liberation Sans face.
@@ -69,7 +69,7 @@ public class PerFaceStyleSimulationTests
 
     // ----- the case the gap was written for -----------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AFallbackWithARealBoldIsNotSimulated()
     {
         // Source Code Pro Bold is stroked because the family has no bold file. The Arabic beside it
@@ -84,7 +84,7 @@ public class PerFaceStyleSimulationTests
             "the simulated primary strokes, the fallback does not, and the state is put back");
     }
 
-    [Fact]
+    [Test]
     public void TheFallbackIsNotWidenedEither()
     {
         // The other half of simulation. A character spacing left in place would space the fallback
@@ -101,7 +101,7 @@ public class PerFaceStyleSimulationTests
 
     // ----- and the reverse, which the same rule has to cover ----------------------------------------
 
-    [Fact]
+    [Test]
     public void AFallbackWithoutARealBoldIsSimulated()
     {
         // Arial Bold is a real file and is not stroked. The lock is drawn from Source Code Pro,
@@ -118,7 +118,7 @@ public class PerFaceStyleSimulationTests
             + "off for the Latin after it, and back to what the graphics state believes");
     }
 
-    [Fact]
+    [Test]
     public void TheStrokingWidthIsReadyEvenWhenTheFaceAskedForDoesNotWantIt()
     {
         // Without this the emoji above would be stroked with whatever line width happened to be
@@ -134,7 +134,7 @@ public class PerFaceStyleSimulationTests
 
     // ----- measuring has to agree, or the line is laid out at a width nothing draws -------------------
 
-    [Fact]
+    [Test]
     public void EachSegmentIsMeasuredAtItsOwnSimulation()
     {
         // The assertion that ties the two paths together. If measuring still applied the primary
@@ -153,7 +153,7 @@ public class PerFaceStyleSimulationTests
 
     // ----- what must not have changed -----------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AStringThatNeededNoFallbackWritesNoExtraState()
     {
         // Every string that never fell back goes down the other path entirely, and this is the
@@ -164,7 +164,7 @@ public class PerFaceStyleSimulationTests
             "one rendering mode, written once, exactly as before");
     }
 
-    [Fact]
+    [Test]
     public void AnUnsimulatedStringIsStillModeZero()
     {
         var content = DrawnText.ContentOf(DrawnText.Page("Hello", RealBold()));

@@ -2,7 +2,7 @@ using System;
 using System.Reflection;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -24,7 +24,7 @@ public class TextNormalizationTests
 
     // ----- TryNormalize: one character at a time ------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TryNormalize_turnsATabIntoASingleSpace()
     {
         var (survives, normalized) = TryNormalize('\t');
@@ -33,14 +33,14 @@ public class TextNormalizationTests
         normalized.Should().Be(' ');
     }
 
-    [Theory]
-    [InlineData('\n')]
-    [InlineData('\r')]
-    [InlineData('\v')]
-    [InlineData('\f')]
-    [InlineData('\0')]
-    [InlineData((char)27)]   // escape
-    [InlineData((char)31)]   // the last one below the cut
+    [Test]
+    [Arguments('\n')]
+    [Arguments('\r')]
+    [Arguments('\v')]
+    [Arguments('\f')]
+    [Arguments('\0')]
+    [Arguments((char)27)]   // escape
+    [Arguments((char)31)]   // the last one below the cut
     public void TryNormalize_dropsEveryOtherCharacterBelowThirtyTwo(char ch)
     {
         // A line feed is in this bucket on purpose. Nothing here splits lines, so the alternative
@@ -48,13 +48,13 @@ public class TextNormalizationTests
         TryNormalize(ch).Survives.Should().BeFalse();
     }
 
-    [Theory]
-    [InlineData(' ')]        // 32, the first one kept
-    [InlineData('A')]
-    [InlineData('~')]
-    [InlineData(' ')]   // no-break space
-    [InlineData('‍')]   // zero width joiner - a shaping control, and the shaper's business
-    [InlineData('￿')]
+    [Test]
+    [Arguments(' ')]        // 32, the first one kept
+    [Arguments('A')]
+    [Arguments('~')]
+    [Arguments(' ')]   // no-break space
+    [Arguments('‍')]   // zero width joiner - a shaping control, and the shaper's business
+    [Arguments('￿')]
     public void TryNormalize_leavesEverythingAtOrAboveThirtyTwoExactlyAsItIs(char ch)
     {
         var (survives, normalized) = TryNormalize(ch);
@@ -65,7 +65,7 @@ public class TextNormalizationTests
 
     // ----- NormalizeLine: a whole line ----------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void NormalizeLine_answersTheSameReferenceWhenThereIsNothingToFilter()
     {
         // The common case, and the whole reason this looks before it copies: every string this
@@ -76,19 +76,19 @@ public class TextNormalizationTests
         NormalizeLine(text).Should().BeSameAs(text);
     }
 
-    [Fact]
+    [Test]
     public void NormalizeLine_keepsAnEmptyStringAsItIs()
     {
         NormalizeLine(string.Empty).Should().BeSameAs(string.Empty);
     }
 
-    [Fact]
+    [Test]
     public void NormalizeLine_writesASpaceWhereEachTabWas()
     {
         NormalizeLine("a\tb\tc").Should().Be("a b c");
     }
 
-    [Fact]
+    [Test]
     public void NormalizeLine_dropsALineFeedRatherThanBreakingTheLineAtIt()
     {
         // The disagreement this candidate does not close: MeasureString reports two lines for
@@ -96,7 +96,7 @@ public class TextNormalizationTests
         NormalizeLine("A newline\nbecomes").Should().Be("A newlinebecomes");
     }
 
-    [Fact]
+    [Test]
     public void NormalizeLine_dropsACarriageReturnToo()
     {
         // MeasureString has never special-cased \r either. Folding CR or CRLF into a line break
@@ -104,13 +104,13 @@ public class TextNormalizationTests
         NormalizeLine("a\r\nb").Should().Be("ab");
     }
 
-    [Fact]
+    [Test]
     public void NormalizeLine_answersAnEmptyStringForALineOfNothingButControlCharacters()
     {
         NormalizeLine("\n\r\v\f").Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void NormalizeLine_leavesTheCharactersBeforeTheFirstControlCharacterWhereTheyWere()
     {
         // The prefix is copied wholesale rather than filtered a character at a time, so it is

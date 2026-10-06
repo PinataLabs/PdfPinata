@@ -9,7 +9,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -35,7 +35,7 @@ public class TextRuleDashStyleTests
     // BidirectionalParagraphTests.
     private const string Hebrew = "\u05D0\u05D1 \u05D2\u05D3";
 
-    [Fact]
+    [Test]
     public void AnUnderlineChangingFromDottedToDashedIsDrawnAsTwoRules()
     {
         var page = Rendered.FirstPageOf(Runs("dotted ", "dashed",
@@ -45,7 +45,7 @@ public class TextRuleDashStyleTests
         AssertTwoRulesInTwoPatterns(page);
     }
 
-    [Fact]
+    [Test]
     public void AStrikethroughChangingFromDottedToDashedIsDrawnAsTwoRules()
     {
         var page = Rendered.FirstPageOf(Runs("dotted ", "dashed",
@@ -55,7 +55,7 @@ public class TextRuleDashStyleTests
         AssertTwoRulesInTwoPatterns(page);
     }
 
-    [Fact]
+    [Test]
     public void AnUnchangedDashStyleIsStillOneRule()
     {
         // The other side of the comparison: two runs drawn with the same pen must not be broken
@@ -67,7 +67,7 @@ public class TextRuleDashStyleTests
         Strokes(page).Should().ContainSingle("both runs are underlined with the same pen");
     }
 
-    [Fact]
+    [Test]
     public void AReorderedUnderlineKeepsEachRunsDashStyle()
     {
         // A line that has to be reordered draws its rules leaf by leaf rather than in stretches,
@@ -80,7 +80,7 @@ public class TextRuleDashStyleTests
             "the dotted run's leaves and the dashed run's leaves are each drawn in their own pattern");
     }
 
-    [Fact]
+    [Test]
     public void AReorderedStrikethroughKeepsEachRunsDashStyle()
     {
         var page = Rendered.FirstPageOf(Runs(Hebrew + " ", Hebrew,

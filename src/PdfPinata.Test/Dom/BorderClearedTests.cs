@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -22,13 +22,13 @@ public class BorderClearedTests
     private static Borders ABordersObject() =>
         new Document().AddSection().AddParagraph("Hello").Format.Borders;
 
-    [Fact]
+    [Test]
     public void ABorderStartsOutNotCleared()
     {
         ABordersObject().Top.BorderCleared.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ClearingABorderMarksIt()
     {
         var borders = ABordersObject();
@@ -38,7 +38,7 @@ public class BorderClearedTests
         borders.Top.BorderCleared.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ClearingOneBorderLeavesTheOthersAlone()
     {
         var borders = ABordersObject();
@@ -50,7 +50,7 @@ public class BorderClearedTests
         borders.Right.BorderCleared.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AClearedBorderIsWrittenAsNullWhenItAlsoCarriesAValue()
     {
         var document = new Document();
@@ -72,7 +72,7 @@ public class BorderClearedTests
     ///   non-null; a border that had only been cleared reported itself null, was skipped, and
     ///   Clear() did nothing. Border.IsNull now accounts for it, the way TabStops.IsNull always has.
     /// </summary>
-    [Fact]
+    [Test]
     public void AClearedBorderCarryingNothingElseIsStillWritten()
     {
         var document = new Document();
@@ -83,7 +83,7 @@ public class BorderClearedTests
         DdlWriter.WriteToString(document).Should().Contain("Top = null");
     }
 
-    [Fact]
+    [Test]
     public void AClearedBorderCarryingNothingElseWritesNoEmptyBlock()
     {
         var document = new Document();
@@ -95,7 +95,7 @@ public class BorderClearedTests
         DdlWriter.WriteToString(document).Should().NotContain("Top\r\n").And.NotContain("Top\n{");
     }
 
-    [Fact]
+    [Test]
     public void ClearingEachBorderInTurnIsWritten()
     {
         foreach (var name in new[] { "Top", "Left", "Bottom", "Right" })
@@ -109,7 +109,7 @@ public class BorderClearedTests
         }
     }
 
-    [Fact]
+    [Test]
     public void ABorderThatWasNeverClearedIsNotWrittenAsNull()
     {
         var document = new Document();
@@ -118,7 +118,7 @@ public class BorderClearedTests
         DdlWriter.WriteToString(document).Should().NotContain("Top = null");
     }
 
-    [Fact]
+    [Test]
     public void AClearedBorderSurvivesADdlRoundTrip()
     {
         var document = new Document();
@@ -133,7 +133,7 @@ public class BorderClearedTests
         DdlWriter.WriteToString(reread).Should().Be(written);
     }
 
-    [Fact]
+    [Test]
     public void AClearedBorderIsNotNull()
     {
         var borders = ABordersObject();
@@ -144,7 +144,7 @@ public class BorderClearedTests
         borders.IsNull().Should().BeFalse("so the borders around it are not null either");
     }
 
-    [Fact]
+    [Test]
     public void SetNullClearsTheClearedFlagToo()
     {
         var borders = ABordersObject();
@@ -157,7 +157,7 @@ public class BorderClearedTests
         borders.Top.IsNull().Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ClearingSurvivesACloneOfTheBorder()
     {
         var borders = ABordersObject();
@@ -170,7 +170,7 @@ public class BorderClearedTests
 
     // ------------------------------------------------- the same defect in Borders and Shading
 
-    [Fact]
+    [Test]
     public void ClearingAllBordersIsWritten()
     {
         var document = new Document();
@@ -183,7 +183,7 @@ public class BorderClearedTests
         DdlWriter.WriteToString(document).Should().Contain("Borders = null");
     }
 
-    [Fact]
+    [Test]
     public void ClearingShadingIsWritten()
     {
         var document = new Document();
@@ -196,7 +196,7 @@ public class BorderClearedTests
         DdlWriter.WriteToString(document).Should().Contain("Shading = null");
     }
 
-    [Fact]
+    [Test]
     public void ClearedBordersAndShadingSurviveADdlRoundTrip()
     {
         var document = new Document();

@@ -5,7 +5,7 @@ using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.Fields;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Tables;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -41,13 +41,13 @@ public class DdlReadingTests
 
     // ----- plain text, and what ends it -------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void APlainParagraphIsTheTextInIt()
     {
         TextOf(FirstParagraphOf("Hello")).Should().Be("Hello");
     }
 
-    [Fact]
+    [Test]
     public void RunsOfSpaceInAParagraphAreOneSpace()
     {
         // Which is what makes DDL layout-insensitive: a paragraph indented across three lines of a
@@ -55,10 +55,10 @@ public class DdlReadingTests
         TextOf(FirstParagraphOf("one   two\n   three")).Should().Be("one two three");
     }
 
-    [Theory]
-    [InlineData("a\\{b", "a{b")]
-    [InlineData("a\\}b", "a}b")]
-    [InlineData("a\\\\b", "a\\b")]
+    [Test]
+    [Arguments("a\\{b", "a{b")]
+    [Arguments("a\\}b", "a}b")]
+    [Arguments("a\\\\b", "a\\b")]
     public void TheCharactersThatWouldEndAParagraphCanBeWrittenInIt(string ddl, string expected)
     {
         // A brace is how the parser knows the paragraph is over, so a paragraph containing one has
@@ -66,7 +66,7 @@ public class DdlReadingTests
         TextOf(FirstParagraphOf(ddl)).Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void TheCharactersThatAreNotLettersAreElementsOfTheirOwn()
     {
         // A tab, a run of spaces and a named symbol are each a Character in the model rather than
@@ -77,7 +77,7 @@ public class DdlReadingTests
         TextOf(paragraph).Should().Be("abcd", "the characters are not text");
     }
 
-    [Fact]
+    [Test]
     public void ALineBreakInsideAParagraphIsAnElementRatherThanTextEnding()
     {
         var paragraph = FirstParagraphOf("before\\linebreak after");
@@ -90,17 +90,17 @@ public class DdlReadingTests
 
     // ----- string literals and their escapes ---------------------------------------------------------
 
-    [Theory]
-    [InlineData("\\a", "\a")]
-    [InlineData("\\b", "\b")]
-    [InlineData("\\f", "\f")]
-    [InlineData("\\n", "\n")]
-    [InlineData("\\r", "\r")]
-    [InlineData("\\t", "\t")]
-    [InlineData("\\v", "\v")]
-    [InlineData("\\'", "'")]
-    [InlineData("\\\"", "\"")]
-    [InlineData("\\\\", "\\")]
+    [Test]
+    [Arguments("\\a", "\a")]
+    [Arguments("\\b", "\b")]
+    [Arguments("\\f", "\f")]
+    [Arguments("\\n", "\n")]
+    [Arguments("\\r", "\r")]
+    [Arguments("\\t", "\t")]
+    [Arguments("\\v", "\v")]
+    [Arguments("\\'", "'")]
+    [Arguments("\\\"", "\"")]
+    [Arguments("\\\\", "\\")]
     public void EveryEscapeAStringLiteralAllowsIsRead(string escaped, string expected)
     {
         TitleOf("\"x" + escaped + "y\"").Should().Be("x" + expected + "y");
@@ -116,7 +116,7 @@ public class DdlReadingTests
     ///   the serializer emits the character itself - so it only ever bit a file written by hand or
     ///   by another tool. <c>DdlHexEscapeTests</c> has the rest of the cases.
     /// </remarks>
-    [Fact]
+    [Test]
     public void AHexEscapeIsTheCharacterItNamesAndKeepsTheCharacterAfterIt()
     {
         TitleOf("\"x\\x41y\"").Should().Be("xAy");
@@ -125,7 +125,7 @@ public class DdlReadingTests
         tooMany.Should().Throw<Exception>("three or more digits is refused");
     }
 
-    [Fact]
+    [Test]
     public void AUnicodeEscapeIsNotPartOfTheGrammarAtAll()
     {
         var act = () => TitleOf("\"x\\u0041y\"");
@@ -133,14 +133,14 @@ public class DdlReadingTests
         act.Should().Throw<Exception>();
     }
 
-    [Fact]
+    [Test]
     public void AVerbatimStringTakesItsBackslashesLiterally()
     {
         // Which is what makes a Windows path writable without doubling every separator.
         TitleOf("@\"C:\\temp\\new\"").Should().Be("C:\\temp\\new");
     }
 
-    [Fact]
+    [Test]
     public void AStringCanBeEmpty()
     {
         TitleOf("\"\"").Should().BeEmpty();
@@ -148,7 +148,7 @@ public class DdlReadingTests
 
     // ----- comments and whitespace between tokens ------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ACommentInTheCodeIsIgnored()
     {
         var document = Read(
@@ -164,7 +164,7 @@ public class DdlReadingTests
         document.Info.Title.Should().Be("Kept");
     }
 
-    [Fact]
+    [Test]
     public void TheAttributeBlockCanBeLaidOutHoweverTheWriterLikes()
     {
         // Punctuators are read one at a time with whatever space around them, so these two are the
@@ -179,7 +179,7 @@ public class DdlReadingTests
 
     // ----- formatted text ---------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void FormattedTextCarriesItsOwnFontAndTheTextInside()
     {
         var paragraph = FirstParagraphOf("plain \\font[Bold = true Color = Red]{loud} plain");
@@ -190,7 +190,7 @@ public class DdlReadingTests
         string.Concat(formatted.Elements.OfType<Text>().Select(t => t.Content)).Should().Be("loud");
     }
 
-    [Fact]
+    [Test]
     public void FormattedTextNestsInsideFormattedText()
     {
         // Which is the case the parser has to recurse for: the inner block ends at its own closing
@@ -203,16 +203,16 @@ public class DdlReadingTests
         inner.Font.Italic.Should().BeTrue();
     }
 
-    [Theory]
-    [InlineData("\\bold{x}")]
-    [InlineData("\\italic{x}")]
-    [InlineData("\\underline{x}")]
+    [Test]
+    [Arguments("\\bold{x}")]
+    [Arguments("\\italic{x}")]
+    [Arguments("\\underline{x}")]
     public void TheShorthandsForFormattingAreFormattedTextToo(string ddl)
     {
         FirstParagraphOf(ddl).Elements.OfType<FormattedText>().Should().ContainSingle();
     }
 
-    [Fact]
+    [Test]
     public void FormattedTextCanNameAStyleRatherThanAFont()
     {
         var paragraph = FirstParagraphOf("\\font(\"Heading1\"){titled}");
@@ -222,14 +222,14 @@ public class DdlReadingTests
 
     // ----- fields ------------------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void APageFieldIsReadAsOne()
     {
         FirstParagraphOf("page \\field(Page)[] of \\field(NumPages)[]")
             .Elements.OfType<PageField>().Should().ContainSingle();
     }
 
-    [Fact]
+    [Test]
     public void EveryKindOfFieldIsReadAsItsOwnKind()
     {
         var paragraph = FirstParagraphOf(
@@ -244,7 +244,7 @@ public class DdlReadingTests
         paragraph.Elements.OfType<PageRefField>().Should().ContainSingle();
     }
 
-    [Fact]
+    [Test]
     public void AFieldKeepsTheAttributesGivenToIt()
     {
         var paragraph = FirstParagraphOf("\\field(Date)[Format = \"yyyy-MM-dd\"]");
@@ -252,7 +252,7 @@ public class DdlReadingTests
         paragraph.Elements.OfType<DateField>().Single().Format.Should().Be("yyyy-MM-dd");
     }
 
-    [Fact]
+    [Test]
     public void ABookmarkAndTheReferenceToItNameTheSamePlace()
     {
         var paragraph = FirstParagraphOf(
@@ -262,7 +262,7 @@ public class DdlReadingTests
         paragraph.Elements.OfType<PageRefField>().Single().Name.Should().Be("chapter");
     }
 
-    [Fact]
+    [Test]
     public void AnInfoFieldNamesWhichPieceOfInformationItWants()
     {
         var paragraph = FirstParagraphOf("\\field(Info)[Name = \"Title\"]");
@@ -272,7 +272,7 @@ public class DdlReadingTests
 
     // ----- hyperlinks ---------------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AHyperlinkKeepsWhereItGoesAndWhatItSays()
     {
         var paragraph = FirstParagraphOf("go \\hyperlink[Name = \"target\" Type = Local]{there}");
@@ -288,10 +288,10 @@ public class DdlReadingTests
     ///   so one without it goes nowhere, and writing it back out throws. It is still read, text and
     ///   all, and the reader says what is missing and where.
     /// </summary>
-    [Theory]
-    [InlineData("\\hyperlink{there}")]
-    [InlineData("\\hyperlink[Type = Web]{there}")]
-    [InlineData("\\hyperlink[Name = \"\" Type = File]{there}")]
+    [Test]
+    [Arguments("\\hyperlink{there}")]
+    [Arguments("\\hyperlink[Type = Web]{there}")]
+    [Arguments("\\hyperlink[Name = \"\" Type = File]{there}")]
     public void AHyperlinkWithoutANameIsReadAndWarnedAbout(string hyperlink)
     {
         var errors = new DdlReaderErrors();
@@ -312,7 +312,7 @@ public class DdlReadingTests
         errors.ErrorCount.Should().Be(0, "a warning is not an error");
     }
 
-    [Fact]
+    [Test]
     public void AHyperlinkWithANameIsNotWarnedAbout()
     {
         var errors = new DdlReaderErrors();
@@ -324,7 +324,7 @@ public class DdlReadingTests
 
     // ----- the structures around the text ----------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ATableIsReadWithItsColumnsAndRowsAndTheCellsBetweenThem()
     {
         var document = Read(
@@ -341,7 +341,7 @@ public class DdlReadingTests
         TextOf(table[1, 0].Elements[0] as Paragraph).Should().Be("three");
     }
 
-    [Fact]
+    [Test]
     public void HeadersAndFootersAreReadOntoTheSectionTheyBelongTo()
     {
         var document = Read(
@@ -354,7 +354,7 @@ public class DdlReadingTests
         TextOf(document.LastSection.Footers.Primary.Elements[0] as Paragraph).Should().Be("at the bottom");
     }
 
-    [Fact]
+    [Test]
     public void MoreThanOneSectionIsReadAsMoreThanOneSection()
     {
         var document = Read("\\document{\\section{\\paragraph{one}}\\section{\\paragraph{two}}}");
@@ -363,7 +363,7 @@ public class DdlReadingTests
         TextOf(document.Sections[1].Elements[0] as Paragraph).Should().Be("two");
     }
 
-    [Fact]
+    [Test]
     public void AStyleBlockIsReadAndTheStyleIsThereToUse()
     {
         var document = Read(
@@ -378,7 +378,7 @@ public class DdlReadingTests
 
     // ----- what happens when the text is wrong -------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void SomethingThatIsNotADocumentAtAllIsRefusedRatherThanReadAsAnEmptyOne()
     {
         var act = () => Read("this is not DDL");
@@ -393,7 +393,7 @@ public class DdlReadingTests
     ///   the DOM can raise came back empty. <c>ErrorMessageResourceTests</c> pins the lookup and
     ///   the formatting; this pins the thing a person reading a broken file is actually shown.
     /// </summary>
-    [Fact]
+    [Test]
     public void AParserErrorSaysWhatIsWrongRatherThanThatItHasNothingToSay()
     {
         var act = () => Read("\\document{\\section{\\cell{stray}}}");
@@ -418,9 +418,9 @@ public class DdlReadingTests
     ///   mistake, and the reader has the whole file in front of it.
     ///   </para>
     /// </remarks>
-    [Theory]
-    [InlineData("\\document{\\section[PageSetup{PageFormat = NoSuchFormat}]{\\paragraph{t}}}")]
-    [InlineData("\\document[Info{Title = \"x\"]{\\section{\\paragraph{t}}}")]
+    [Test]
+    [Arguments("\\document{\\section[PageSetup{PageFormat = NoSuchFormat}]{\\paragraph{t}}}")]
+    [Arguments("\\document[Info{Title = \"x\"]{\\section{\\paragraph{t}}}")]
     public async Task AWholeFileWithOneThingWrongInItIsNeverFinishedWithEither(string ddl)
     {
         var reading = ReaderDiagnostics.ReadingOnItsOwnThread(ddl);
@@ -450,14 +450,14 @@ public class DdlReadingTests
     ///   </para>
     ///   <para>
     ///   Run on a background thread and given two seconds, because a test that calls it directly
-    ///   would take the test host with it. xUnit's own Timeout would not help: it is honoured only
+    ///   would take the test host with it. A Timeout on the test would not help: it is honoured only
     ///   on async tests, which is why <c>CLexerTests</c> wraps its malformed input the same way.
     ///   </para>
     /// </remarks>
-    [Theory]
-    [InlineData("\\document{\\section{")]
-    [InlineData("\\document{\\section{\\paragraph{x}")]
-    [InlineData("\\document{\\section{\\paragraph{never closed")]
+    [Test]
+    [Arguments("\\document{\\section{")]
+    [Arguments("\\document{\\section{\\paragraph{x}")]
+    [Arguments("\\document{\\section{\\paragraph{never closed")]
     public async Task AFileThatStopsInsideASectionIsNeverFinishedWith(string truncated)
     {
         var reading = ReaderDiagnostics.ReadingOnItsOwnThread(truncated);
@@ -468,7 +468,7 @@ public class DdlReadingTests
             "the reader does not come back from a file that stops inside a section");
     }
 
-    [Fact]
+    [Test]
     public async Task AFileThatStopsBeforeTheFirstSectionIsReportedProperly()
     {
         // The same truncation one token earlier, which is handled - so the parser can complain
@@ -497,7 +497,7 @@ public class DdlReadingTests
     ///   DdlReaderErrors)</c> built its reader without the error list it had been handed, so
     ///   nothing the parser wrote there could reach the caller. See the backlog spec's finding F7.
     /// </remarks>
-    [Fact]
+    [Test]
     public void AnAttributeThatNamesNothingIsDiscardedAndTheReaderSaysSo()
     {
         var errors = new DdlReaderErrors();

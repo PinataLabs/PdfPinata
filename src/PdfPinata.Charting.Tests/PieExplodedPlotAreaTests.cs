@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Charting.Tests.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -25,7 +25,7 @@ public class PieExplodedPlotAreaTests
     ///   anything from its sweep - <c>Math.Max(sweep, sweep - gap)</c> is always the sweep - so
     ///   every wedge still met the next, and the whole pie was merely turned.
     /// </summary>
-    [Fact]
+    [Test]
     public void EachWedgeIsNarrowerThanItsShareByTheGap()
     {
         var wedges = Wedges(Charts.Of(ChartType.PieExploded2D, 1.0, 1.0, 2.0));
@@ -41,7 +41,7 @@ public class PieExplodedPlotAreaTests
     ///   along the middle of what is drawn of it rather than a degree to one side, and neighbouring
     ///   wedges are the gap apart.
     /// </summary>
-    [Fact]
+    [Test]
     public void NeighbouringWedgesAreTheGapApart()
     {
         var wedges = Wedges(Charts.Of(ChartType.PieExploded2D, 1.0, 1.0, 1.0, 1.0));
@@ -58,7 +58,7 @@ public class PieExplodedPlotAreaTests
     ///   and leaving a value that is in the data and nowhere on the page. The share beside it, at
     ///   well over half the pie, gives up the whole gap like any other.
     /// </summary>
-    [Fact]
+    [Test]
     public void AShareNarrowerThanTheGapIsStillDrawn()
     {
         // One part in 400 is 0.9 of a degree, and the other 399 are 359.1.
@@ -73,7 +73,7 @@ public class PieExplodedPlotAreaTests
     ///   A pie of one share has no neighbour to stand apart from, and is drawn whole rather than
     ///   with a notch the width of the gap.
     /// </summary>
-    [Fact]
+    [Test]
     public void ASingleShareIsTheWholePie()
     {
         var wedge = Wedges(Charts.Of(ChartType.PieExploded2D, 5.0)).Should().ContainSingle().Subject;

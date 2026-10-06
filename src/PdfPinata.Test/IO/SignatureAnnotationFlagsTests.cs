@@ -9,7 +9,7 @@ using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Signatures;
 using PdfPinata.Signing;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.SigningCertificates;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
@@ -25,7 +25,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class SignatureAnnotationFlagsTests
 {
-    [Fact]
+    [Test]
     public void TheDefaultIsPrintAsItAlwaysWas()
     {
         new PdfSignatureOptions().AnnotationFlags.Should().Be(PdfAnnotationFlags.Print);
@@ -35,11 +35,11 @@ public class SignatureAnnotationFlagsTests
         widget.Elements.GetInteger("/F").Should().Be(4);
     }
 
-    [Theory]
-    [InlineData(PdfAnnotationFlags.Print | PdfAnnotationFlags.Locked)]
-    [InlineData(PdfAnnotationFlags.Print | PdfAnnotationFlags.ReadOnly | PdfAnnotationFlags.NoRotate)]
-    [InlineData(PdfAnnotationFlags.Hidden)]
-    [InlineData(PdfAnnotationFlags.NoView | PdfAnnotationFlags.Print)]
+    [Test]
+    [Arguments(PdfAnnotationFlags.Print | PdfAnnotationFlags.Locked)]
+    [Arguments(PdfAnnotationFlags.Print | PdfAnnotationFlags.ReadOnly | PdfAnnotationFlags.NoRotate)]
+    [Arguments(PdfAnnotationFlags.Hidden)]
+    [Arguments(PdfAnnotationFlags.NoView | PdfAnnotationFlags.Print)]
     public void TheFlagsAskedForAreWrittenAndTheSignatureStillVerifies(PdfAnnotationFlags flags)
     {
         var signed = Sign(Unsigned(), new PdfSignatureOptions { AnnotationFlags = flags });
@@ -51,7 +51,7 @@ public class SignatureAnnotationFlagsTests
         verification.CoversWholeDocument.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AVisibleSignatureCarriesItsFlagsToo()
     {
         const PdfAnnotationFlags flags = PdfAnnotationFlags.Print | PdfAnnotationFlags.Locked;
@@ -66,7 +66,7 @@ public class SignatureAnnotationFlagsTests
         PdfSignatureVerifier.Verify(signed).Single().IsValid.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void NoFlagsLeavesTheEntryOutRatherThanWritingZero()
     {
         // Zero is /F's default (ISO 32000-1 Table 164), so writing it says nothing a reader would
@@ -77,13 +77,13 @@ public class SignatureAnnotationFlagsTests
         PdfSignatureVerifier.Verify(signed).Single().IsValid.Should().BeTrue();
     }
 
-    [Theory]
-    [InlineData(PdfAnnotationFlags.Hidden | PdfAnnotationFlags.Print)]
-    [InlineData(PdfAnnotationFlags.Invisible | PdfAnnotationFlags.Print)]
-    [InlineData(PdfAnnotationFlags.NoView | PdfAnnotationFlags.Print)]
-    [InlineData(PdfAnnotationFlags.ToggleNoView | PdfAnnotationFlags.Print)]
-    [InlineData(PdfAnnotationFlags.Locked)]
-    [InlineData((PdfAnnotationFlags)0)]
+    [Test]
+    [Arguments(PdfAnnotationFlags.Hidden | PdfAnnotationFlags.Print)]
+    [Arguments(PdfAnnotationFlags.Invisible | PdfAnnotationFlags.Print)]
+    [Arguments(PdfAnnotationFlags.NoView | PdfAnnotationFlags.Print)]
+    [Arguments(PdfAnnotationFlags.ToggleNoView | PdfAnnotationFlags.Print)]
+    [Arguments(PdfAnnotationFlags.Locked)]
+    [Arguments((PdfAnnotationFlags)0)]
     public void ADocumentClaimingPdfAIsRefusedFlagsTheProfileForbids(PdfAnnotationFlags flags)
     {
         using var input = new MemoryStream(Unsigned());
@@ -98,7 +98,7 @@ public class SignatureAnnotationFlagsTests
         signing.Should().Throw<InvalidOperationException>().WithMessage("PdfA2B*signature widget*");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentClaimingPdfAAcceptsFlagsThatKeepPrint()
     {
         using var input = new MemoryStream(Unsigned());
@@ -116,7 +116,7 @@ public class SignatureAnnotationFlagsTests
         PdfSignatureVerifier.Verify(signed).Single().IsValid.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void PdfA1DoesNotNameToggleNoView()
     {
         // ToggleNoView is PDF 1.5, later than the PDF 1.4 that PDF/A-1 is built on, and ISO 19005-1

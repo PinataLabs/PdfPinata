@@ -4,7 +4,7 @@ using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -21,10 +21,10 @@ public class SelfReferentialStreamLengthTests
     private const string Content = "0 0 m 100 100 l S";
     private const string OtherContent = "0 0 m 100 0 l S";
 
-    [Theory]
-    [InlineData(PdfDocumentOpenMode.Import)]
-    [InlineData(PdfDocumentOpenMode.Modify)]
-    [InlineData(PdfDocumentOpenMode.ReadOnly)]
+    [Test]
+    [Arguments(PdfDocumentOpenMode.Import)]
+    [Arguments(PdfDocumentOpenMode.Modify)]
+    [Arguments(PdfDocumentOpenMode.ReadOnly)]
     public void AStreamWhoseLengthIsTheStreamItselfIsReadUpToTheEndOfTheStream(PdfDocumentOpenMode openMode)
     {
         var document = Read(RawPdf.Build(new List<string>
@@ -38,10 +38,10 @@ public class SelfReferentialStreamLengthTests
         ContentsOf(document).Should().Equal(Content);
     }
 
-    [Theory]
-    [InlineData(PdfDocumentOpenMode.Import)]
-    [InlineData(PdfDocumentOpenMode.Modify)]
-    [InlineData(PdfDocumentOpenMode.ReadOnly)]
+    [Test]
+    [Arguments(PdfDocumentOpenMode.Import)]
+    [Arguments(PdfDocumentOpenMode.Modify)]
+    [Arguments(PdfDocumentOpenMode.ReadOnly)]
     public void TwoStreamsWhoseLengthsAreEachOtherAreBothReadUpToTheEndOfTheStream(PdfDocumentOpenMode openMode)
     {
         var document = Read(RawPdf.Build(new List<string>
@@ -56,7 +56,7 @@ public class SelfReferentialStreamLengthTests
         ContentsOf(document).Should().Equal(Content, OtherContent);
     }
 
-    [Fact]
+    [Test]
     public void TheLengthRecoveredFromASelfReferentialStreamIsRecorded()
     {
         // The reference is replaced by what was read, so a document written again describes its

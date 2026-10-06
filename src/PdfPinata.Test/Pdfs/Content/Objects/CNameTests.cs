@@ -1,14 +1,14 @@
 ﻿using System;
 using AwesomeAssertions;
 using PdfPinata.Pdf.Content.Objects;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs.Content.Objects;
 
 public class CNameTests
 {
-    [Theory]
-    [InlineData("/Foo")]
+    [Test]
+    [Arguments("/Foo")]
     public void SetNameTests(string name)
     {
         var cName = new CName
@@ -19,7 +19,7 @@ public class CNameTests
         cName.Name.Should().Be(name);
     }
 
-    [Fact]
+    [Test]
     public void SetNameNullThrowsException()
     {
         Action act = () => _ = new CName
@@ -29,9 +29,9 @@ public class CNameTests
         act.Should().Throw<ArgumentNullException>();
     }
 
-    [Theory]
-    [InlineData("Foo")]
-    [InlineData("")]
+    [Test]
+    [Arguments("Foo")]
+    [Arguments("")]
     public void SetNameWithoutPrefixThrowsException(string name)
     {
         Action act = () => _ = new CName

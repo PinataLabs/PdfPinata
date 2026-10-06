@@ -5,7 +5,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -18,7 +18,7 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class GradientTransparencyTests
 {
-    [Fact]
+    [Test]
     public void AGradientWithAlphaIsPaintedUnderALuminosityMask()
     {
         var page = SavedPageWith(FadingBrush());
@@ -30,7 +30,7 @@ public class GradientTransparencyTests
         mask.Elements.ContainsKey("/G").Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void TheMasksGroupIsAGreyTransparencyGroup()
     {
         var form = MaskFormOf(SavedPageWith(FadingBrush()));
@@ -44,7 +44,7 @@ public class GradientTransparencyTests
         group.Elements.GetName("/CS").Should().Be("/DeviceGray");
     }
 
-    [Fact]
+    [Test]
     public void TheMaskPaintsTheAlphaOfTheGradientsColours()
     {
         var form = MaskFormOf(SavedPageWith(FadingBrush()));
@@ -58,7 +58,7 @@ public class GradientTransparencyTests
         RampEnd(shading, "/C1").Should().Be("[1]");
     }
 
-    [Fact]
+    [Test]
     public void TheMaskFollowsTheSameGeometryAsTheColour()
     {
         var page = SavedPageWith(FadingBrush());
@@ -74,7 +74,7 @@ public class GradientTransparencyTests
             .Should().Be(colour.Elements.GetDictionary("/Function").Elements["/Domain"].ToString());
     }
 
-    [Fact]
+    [Test]
     public void ARadialGradientIsMaskedTheSameWay()
     {
         var page = SavedPageWith(new XRadialGradientBrush(
@@ -84,7 +84,7 @@ public class GradientTransparencyTests
         OnlyShadingIn(MaskFormOf(page)).Elements["/ShadingType"].ToString().Should().Be("3");
     }
 
-    [Fact]
+    [Test]
     public void HalfAnAlphaIsHalfAGrey()
     {
         var half = XColor.FromArgb(128, 0, 0, 0);
@@ -97,7 +97,7 @@ public class GradientTransparencyTests
         RampEnd(shading, "/C1").Should().Be("[0.502]");
     }
 
-    [Fact]
+    [Test]
     public void TheMaskIsTakenOffAgainBeforeAnythingElseIsDrawn()
     {
         var page = SavedPageWith(gfx =>
@@ -115,7 +115,7 @@ public class GradientTransparencyTests
         applied.Should().NotContainInOrder("none", "mask");
     }
 
-    [Fact]
+    [Test]
     public void TwoGradientsOnOnePageCarryOneMaskEach()
     {
         var fading = new XLinearGradientBrush(Box, XColor.FromArgb(0, 0, 0, 0), XColors.Black,
@@ -137,7 +137,7 @@ public class GradientTransparencyTests
         masks.Should().OnlyHaveUniqueItems();
     }
 
-    [Fact]
+    [Test]
     public void AnOpaqueGradientAfterATranslucentOneIsNotMasked()
     {
         var other = new XRect(20, 240, 200, 100);

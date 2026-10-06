@@ -5,7 +5,7 @@ using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
 using PinataLayout.DocumentObjectModel.Tables;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -39,16 +39,16 @@ public class DdlElementSerializationTests
 
     // ----- Character.Serialize ---------------------------------------------------------------------
 
-    [Theory]
-    [InlineData(SymbolName.Euro)]
-    [InlineData(SymbolName.Copyright)]
-    [InlineData(SymbolName.Trademark)]
-    [InlineData(SymbolName.RegisteredTrademark)]
-    [InlineData(SymbolName.Bullet)]
-    [InlineData(SymbolName.Not)]
-    [InlineData(SymbolName.EmDash)]
-    [InlineData(SymbolName.EnDash)]
-    [InlineData(SymbolName.NonBreakableBlank)]
+    [Test]
+    [Arguments(SymbolName.Euro)]
+    [Arguments(SymbolName.Copyright)]
+    [Arguments(SymbolName.Trademark)]
+    [Arguments(SymbolName.RegisteredTrademark)]
+    [Arguments(SymbolName.Bullet)]
+    [Arguments(SymbolName.Not)]
+    [Arguments(SymbolName.EmDash)]
+    [Arguments(SymbolName.EnDash)]
+    [Arguments(SymbolName.NonBreakableBlank)]
     public void EverySymbolIsWrittenAsOneAndReadBackAsTheSameOne(SymbolName symbol)
     {
         var document = DocumentWithAParagraph(out var paragraph);
@@ -60,9 +60,9 @@ public class DdlElementSerializationTests
             .SymbolName.Should().Be(symbol);
     }
 
-    [Theory]
-    [InlineData(SymbolName.Tab, "\\tab")]
-    [InlineData(SymbolName.LineBreak, "\\linebreak")]
+    [Test]
+    [Arguments(SymbolName.Tab, "\\tab")]
+    [Arguments(SymbolName.LineBreak, "\\linebreak")]
     public void TheTwoSymbolsWithAKeywordOfTheirOwnAreWrittenAsThatKeyword(
         SymbolName symbol, string keyword)
     {
@@ -75,7 +75,7 @@ public class DdlElementSerializationTests
             .SymbolName.Should().Be(symbol);
     }
 
-    [Fact]
+    [Test]
     public void ABlankIsWrittenWithItsCountEvenWhenThereIsOnlyOneOfIt()
     {
         // The source explains why: a bare \space followed by text beginning with '(' would read
@@ -86,7 +86,7 @@ public class DdlElementSerializationTests
         Write(document).Should().Contain("\\space(1)");
     }
 
-    [Fact]
+    [Test]
     public void ARepeatedBlankKeepsItsCount()
     {
         var document = DocumentWithAParagraph(out var paragraph);
@@ -96,10 +96,10 @@ public class DdlElementSerializationTests
             .Count.Should().Be(7);
     }
 
-    [Theory]
-    [InlineData(SymbolName.En)]
-    [InlineData(SymbolName.Em)]
-    [InlineData(SymbolName.EmQuarter)]
+    [Test]
+    [Arguments(SymbolName.En)]
+    [Arguments(SymbolName.Em)]
+    [Arguments(SymbolName.EmQuarter)]
     public void TheOtherSpacesAreWrittenByNameAndReadBack(SymbolName space)
     {
         var document = DocumentWithAParagraph(out var paragraph);
@@ -110,7 +110,7 @@ public class DdlElementSerializationTests
             .SymbolName.Should().Be(space);
     }
 
-    [Fact]
+    [Test]
     public void ARepeatedSpaceWritesItsNameAndItsCount()
     {
         var document = DocumentWithAParagraph(out var paragraph);
@@ -123,7 +123,7 @@ public class DdlElementSerializationTests
         reread.Count.Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void ACharacterThatIsNotASymbolIsWrittenAsItsNumberInHex()
     {
         // The last arm: anything without one of the reserved top nibbles is a plain character,
@@ -138,7 +138,7 @@ public class DdlElementSerializationTests
 
     // ----- Footnote.Serialize ----------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AFootnoteIsWrittenWithItsTextAndReadBackWithIt()
     {
         var document = DocumentWithAParagraph(out var paragraph);
@@ -153,7 +153,7 @@ public class DdlElementSerializationTests
         // ReSharper restore PossibleNullReferenceException
     }
 
-    [Fact]
+    [Test]
     public void AFootnoteKeepsItsReferenceMarkAndItsStyle()
     {
         var document = DocumentWithAParagraph(out var paragraph);
@@ -167,7 +167,7 @@ public class DdlElementSerializationTests
         reread.Style.Should().Be("Heading1");
     }
 
-    [Fact]
+    [Test]
     public void AFootnoteKeepsItsOwnFormat()
     {
         var document = DocumentWithAParagraph(out var paragraph);
@@ -181,7 +181,7 @@ public class DdlElementSerializationTests
         reread.Format.SpaceBefore.Centimeter.Should().BeApproximately(2, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void AFootnoteWithNothingSetIsStillWrittenAndStillRead()
     {
         var document = DocumentWithAParagraph(out var paragraph);
@@ -198,7 +198,7 @@ public class DdlElementSerializationTests
     ///   null and skips it, and an empty footnote has nothing set. Recorded because the
     ///   alternative reading - that the footnote was lost - is the one that looks likely.
     /// </summary>
-    [Fact]
+    [Test]
     public void AParagraphOfNothingButAnEmptyFootnoteIsNotWrittenAtAll()
     {
         var document = DocumentWithAParagraph(out var paragraph);
@@ -209,7 +209,7 @@ public class DdlElementSerializationTests
 
     // ----- Barcode.Serialize -----------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ABarcodeIsWrittenWithItsCodeAndReadBackWithIt()
     {
         var document = new Document();
@@ -221,7 +221,7 @@ public class DdlElementSerializationTests
         reread.Code.Should().Be("9781234567897");
     }
 
-    [Fact]
+    [Test]
     public void EverythingABarcodeCanSayIsWrittenAndReadBack()
     {
         var document = new Document();
@@ -251,7 +251,7 @@ public class DdlElementSerializationTests
     ///   The message names BookmarkField rather than Barcode, which is a copy-and-paste slip in
     ///   the source; pinned as it is so that correcting it is a deliberate change.
     /// </summary>
-    [Fact]
+    [Test]
     public void ABarcodeWithNoCodeRefusesToBeWritten()
     {
         // Something has to be set on it or the DOM calls the whole barcode null and skips it
@@ -265,7 +265,7 @@ public class DdlElementSerializationTests
         write.Should().Throw<InvalidOperationException>();
     }
 
-    [Fact]
+    [Test]
     public void ABarcodeWithNothingSetAtAllIsSkippedRatherThanRefused()
     {
         var document = new Document();
@@ -276,7 +276,7 @@ public class DdlElementSerializationTests
 
     // ----- AxisTitle.Serialize ---------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void EverythingAnAxisTitleCanSayIsWrittenAndReadBack()
     {
         var document = new Document();
@@ -301,7 +301,7 @@ public class DdlElementSerializationTests
 
     // ----- Serializer.WriteComment -----------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ACommentIsWrittenAsOne()
     {
         var document = new Document();
@@ -311,7 +311,7 @@ public class DdlElementSerializationTests
         Write(document).Should().Contain("// who wrote this and why");
     }
 
-    [Fact]
+    [Test]
     public void ACommentCarryingANewLineIsWrittenAsTwoComments()
     {
         // The recursive arm: the writer splits on CR/LF rather than emitting a comment with a
@@ -326,9 +326,9 @@ public class DdlElementSerializationTests
         written.Should().Contain("// second line");
     }
 
-    [Theory]
-    [InlineData("first line\rsecond line\\section{}")]
-    [InlineData("first line\nsecond line\\section{}")]
+    [Test]
+    [Arguments("first line\rsecond line\\section{}")]
+    [Arguments("first line\nsecond line\\section{}")]
     public void ACommentCarryingALoneLineEndIsWrittenAsTwoCommentsAndReadsBackAsNothing(string comment)
     {
         // The reader ends a comment at a CR or an LF on its own, as at a CRLF, so the writer has
@@ -344,7 +344,7 @@ public class DdlElementSerializationTests
         DdlReader.DocumentFromString(written).Sections.Count.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void ACommentTooLongForALineIsWrappedAtASpace()
     {
         // The wrapping arm: long comments are chopped at the last space before the limit, so no
@@ -365,7 +365,7 @@ public class DdlElementSerializationTests
             .Should().Be(document.Comment, "and no word is lost or cut in half");
     }
 
-    [Fact]
+    [Test]
     public void ACommentOfOneWordTooLongForALineIsWrittenAnyway()
     {
         // There is no space to chop at, so the alternative to writing it over the limit is not
@@ -377,7 +377,7 @@ public class DdlElementSerializationTests
         Write(document).Should().Contain(new string('x', 200));
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyCommentIsNotWrittenAtAll()
     {
         var document = new Document();
@@ -389,7 +389,7 @@ public class DdlElementSerializationTests
 
     // ----- Members MDG007 found missing from Serialize ---------------------------------------------
 
-    [Fact]
+    [Test]
     public void ATableKeepsItsRowsTogetherAcrossARoundTrip()
     {
         var document = new Document();
@@ -403,7 +403,7 @@ public class DdlElementSerializationTests
             .KeepTogether.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AHeaderKeepsItsStyleAcrossARoundTrip()
     {
         var document = new Document();
@@ -415,7 +415,7 @@ public class DdlElementSerializationTests
         RoundTrip(document).LastSection.Headers.Primary.Style.Should().Be("Running");
     }
 
-    [Fact]
+    [Test]
     public void AHyperlinkKeepsItsFontAcrossARoundTrip()
     {
         var document = DocumentWithAParagraph(out var paragraph);

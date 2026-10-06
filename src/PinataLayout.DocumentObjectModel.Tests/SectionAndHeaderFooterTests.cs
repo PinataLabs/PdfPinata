@@ -5,7 +5,7 @@ using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
 using PinataLayout.DocumentObjectModel.Tables;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -27,7 +27,7 @@ public class SectionAndHeaderFooterTests
 
     // ----- content handed to a section --------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ASectionTakesContentThatWasBuiltBeforeIt()
     {
         var section = new Document().AddSection();
@@ -46,7 +46,7 @@ public class SectionAndHeaderFooterTests
         section.Elements[4].Should().BeOfType<TextFrame>();
     }
 
-    [Fact]
+    [Test]
     public void ASectionBuildsEveryKindOfContentItselfToo()
     {
         var section = new Document().AddSection();
@@ -70,7 +70,7 @@ public class SectionAndHeaderFooterTests
     ///   <see cref="NullReferenceException"/> exactly where the summary promises a null.
     ///   </para>
     /// </summary>
-    [Fact]
+    [Test]
     public void ASectionAnswersTheLastParagraphAndTheLastTableItHolds()
     {
         var section = new Document().AddSection();
@@ -90,7 +90,7 @@ public class SectionAndHeaderFooterTests
         section.LastTable.Should().BeSameAs(table);
     }
 
-    [Fact]
+    [Test]
     public void ASectionKnowsTheOneBeforeItAndTheFirstKnowsThereIsNone()
     {
         var document = new Document();
@@ -101,7 +101,7 @@ public class SectionAndHeaderFooterTests
         second.PreviousSection().Should().BeSameAs(first);
     }
 
-    [Fact]
+    [Test]
     public void ASectionCopiesItselfAndCarriesItsCommentAcross()
     {
         var section = new Document().AddSection();
@@ -116,7 +116,7 @@ public class SectionAndHeaderFooterTests
         DdlOf(section).Should().Contain("the only one");
     }
 
-    [Fact]
+    [Test]
     public void ASectionHandedItsOwnPartsUsesTheOnesItWasHanded()
     {
         var section = new Document().AddSection();
@@ -137,7 +137,7 @@ public class SectionAndHeaderFooterTests
 
     // ----- content handed to a header ---------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AHeaderTakesContentThatWasBuiltBeforeItAndBuildsItToo()
     {
         var header = new Document().AddSection().Headers.Primary;
@@ -162,7 +162,7 @@ public class SectionAndHeaderFooterTests
     ///   a flag it carries. That is what lets one <see cref="HeaderFooter"/> class serve all six,
     ///   and it is what decides the keyword each writes itself under.
     /// </summary>
-    [Fact]
+    [Test]
     public void EachOfTheSixAreasKnowsWhichOfTheSixItIs()
     {
         var section = new Document().AddSection();
@@ -182,7 +182,7 @@ public class SectionAndHeaderFooterTests
         section.Footers.EvenPage.IsEvenPage.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void EachOfTheSixAreasWritesItselfUnderItsOwnKeyword()
     {
         var section = new Document().AddSection();
@@ -204,7 +204,7 @@ public class SectionAndHeaderFooterTests
             .And.Contain("\\evenpagefooter");
     }
 
-    [Fact]
+    [Test]
     public void AHeaderWritesTheStyleTheFormatAndTheCommentItWasGiven()
     {
         var document = new Document();
@@ -231,7 +231,7 @@ public class SectionAndHeaderFooterTests
     ///   A style name is checked against the document's styles when it is set, because the only
     ///   other moment it could be checked is the render that silently formats the text as Normal.
     /// </summary>
-    [Fact]
+    [Test]
     public void AHeaderRefusesAStyleTheDocumentHasNeverHeardOf()
     {
         var header = new Document().AddSection().Headers.Primary;
@@ -241,7 +241,7 @@ public class SectionAndHeaderFooterTests
         naming.Should().Throw<ArgumentException>().WithMessage("*Invalid style name*");
     }
 
-    [Fact]
+    [Test]
     public void AHeaderCopiesItselfWithTheContentInIt()
     {
         var header = new Document().AddSection().Headers.Primary;

@@ -8,7 +8,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -25,7 +25,7 @@ public class SpotColorTests
 
     // ----- what is written -----------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AFillSelectsTheSeparationSpaceAndSetsTheTint()
     {
         var page = Reopened(gfx =>
@@ -34,7 +34,7 @@ public class SpotColorTests
         Content(page).Should().MatchRegex(@"/CS0 cs\s+0\.5 scn\b");
     }
 
-    [Fact]
+    [Test]
     public void AStrokeSelectsTheSeparationSpaceWithTheStrokingOperators()
     {
         var page = Reopened(gfx =>
@@ -45,7 +45,7 @@ public class SpotColorTests
         content.Should().NotMatchRegex(@"\bRG\b", "the line is stroked in the ink, not in its alternate");
     }
 
-    [Fact]
+    [Test]
     public void TheColourSpaceIsASeparationWithAType2TintTransformFromWhiteToTheAlternate()
     {
         var page = Reopened(gfx =>
@@ -64,7 +64,7 @@ public class SpotColorTests
         Numbers(function.Elements.GetArray("/C1")).Should().Equal(0, 0.93, 0.79, 0);
     }
 
-    [Fact]
+    [Test]
     public void AnRgbAlternateFadesToRgbWhite()
     {
         var page = Reopened(gfx =>
@@ -77,7 +77,7 @@ public class SpotColorTests
         Numbers(function.Elements.GetArray("/C1")).Should().Equal(0.9412, 0.9412, 0.9412);
     }
 
-    [Fact]
+    [Test]
     public void AGreyAlternateIsWrittenInDeviceGray()
     {
         var varnish = new XSpotColor("Varnish", XColor.FromGrayScale(0.25));
@@ -91,7 +91,7 @@ public class SpotColorTests
         Numbers(function.Elements.GetArray("/C1")).Should().Equal(0.25);
     }
 
-    [Fact]
+    [Test]
     public void AnRgbColourDeclaredGreyIsNotWrittenInverted()
     {
         // An RGB colour's GS used to be how dark it was - black carried 1 - while the tint
@@ -109,7 +109,7 @@ public class SpotColorTests
         XColor.FromSpot(ink).R.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void ANameOutsideAsciiIsWrittenAsUtf8()
     {
         var ink = new XSpotColor("Weiß", XColor.FromCmyk(0, 0, 0, 0.1));
@@ -125,7 +125,7 @@ public class SpotColorTests
         Encoding.ASCII.GetString(stream.ToArray()).Should().Contain("/Wei#C3#9F");
     }
 
-    [Fact]
+    [Test]
     public void TextIsPaintedInTheInk()
     {
         var page = Reopened(gfx =>
@@ -134,7 +134,7 @@ public class SpotColorTests
         Content(page).Should().MatchRegex(@"/CS0 cs\s+0\.8 scn\b[\s\S]*\bTj\b");
     }
 
-    [Fact]
+    [Test]
     public void APenMadeFromASpotBrushStrokesInTheInk()
     {
         var page = Reopened(gfx =>
@@ -143,7 +143,7 @@ public class SpotColorTests
         Content(page).Should().MatchRegex(@"/CS0 CS\s+0\.25 SCN\b");
     }
 
-    [Fact]
+    [Test]
     public void ADrawingInAFormNamesTheColourSpaceInTheFormsOwnResources()
     {
         var document = new PdfDocument();
@@ -167,7 +167,7 @@ public class SpotColorTests
 
     // ----- sharing and reselecting ----------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void EveryPageAndEveryEqualDefinitionShareOneColourSpaceObject()
     {
         var sameInkAgain = new XSpotColor("PANTONE 185 C", XColor.FromCmyk(0, 0.93, 0.79, 0));
@@ -185,7 +185,7 @@ public class SpotColorTests
         first.ObjectNumber.Should().Be(second.ObjectNumber);
     }
 
-    [Fact]
+    [Test]
     public void TwoDefinitionsOfOneNameThatDisagreeAreRefused()
     {
         var impostor = new XSpotColor("PANTONE 185 C", XColor.FromCmyk(0.5, 0, 0, 0));
@@ -199,7 +199,7 @@ public class SpotColorTests
         drawing.Should().Throw<InvalidOperationException>().WithMessage("*PANTONE 185 C*one plate*");
     }
 
-    [Fact]
+    [Test]
     public void ChangingOnlyTheTintDoesNotSelectTheSpaceAgain()
     {
         var page = Reopened(gfx =>
@@ -214,7 +214,7 @@ public class SpotColorTests
         Regex.Count(content, @"\bscn\b").Should().Be(2, "the third rectangle is the tint already set");
     }
 
-    [Fact]
+    [Test]
     public void AProcessFillAfterASpotSelectsTheDeviceSpaceAgainEvenWhenTheNumbersMatch()
     {
         // The spot's alternate at full tint is exactly red, so its RGB components match the red
@@ -229,7 +229,7 @@ public class SpotColorTests
         Content(page).Should().MatchRegex(@"scn\b[\s\S]*1 0 0 rg\b");
     }
 
-    [Fact]
+    [Test]
     public void AProcessStrokeAfterASpotSelectsTheDeviceSpaceAgainEvenWhenTheNumbersMatch()
     {
         var red = new XSpotColor("Red ink", XColor.FromArgb(255, 0, 0));
@@ -242,7 +242,7 @@ public class SpotColorTests
         Content(page).Should().MatchRegex(@"SCN\b[\s\S]*1 0 0 RG\b");
     }
 
-    [Fact]
+    [Test]
     public void ACmykProcessFillAfterACmykSpotSelectsDeviceCmykAgain()
     {
         var ink = new XSpotColor("Process-looking ink", XColor.FromCmyk(0, 0, 0, 1));
@@ -257,7 +257,7 @@ public class SpotColorTests
         Content(Reopen(document)[0]).Should().MatchRegex(@"scn\b[\s\S]*0 0 0 1 k\b");
     }
 
-    [Fact]
+    [Test]
     public void AnAlphaIsAppliedThroughAGraphicsStateAsForAnyOtherColour()
     {
         var document = new PdfDocument();
@@ -275,7 +275,7 @@ public class SpotColorTests
 
     // ----- the colour value itself ----------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ASpotColoursProcessComponentsAreTheAlternateAtItsTint()
     {
         var half = XColor.FromSpot(Pantone185, 0.5);
@@ -291,7 +291,7 @@ public class SpotColorTests
         paleWhite.R.Should().Be(248, "halfway from paper white to 240");
     }
 
-    [Fact]
+    [Test]
     public void SettingAComponentMakesAnOrdinaryProcessColourButSettingAlphaDoesNot()
     {
         var spot = XColor.FromSpot(Pantone185);
@@ -306,7 +306,7 @@ public class SpotColorTests
         changed.Tint.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void ASpotColourIsNotEqualToTheProcessColourItFallsBackOn()
     {
         var spot = XColor.FromSpot(Pantone185);
@@ -317,7 +317,7 @@ public class SpotColorTests
         spot.Should().NotBe(XColor.FromSpot(Pantone185, 0.5));
     }
 
-    [Fact]
+    [Test]
     public void ATintIsClampedAndMustBeANumber()
     {
         XColor.FromSpot(Pantone185, 3).Tint.Should().Be(1);
@@ -327,7 +327,7 @@ public class SpotColorTests
         nan.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Fact]
+    [Test]
     public void ASpotColourNeedsAName()
     {
         var empty = () => new XSpotColor("", XColors.Red);
@@ -339,7 +339,7 @@ public class SpotColorTests
 
     // ----- PDF/A ----------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ACmykAlternateBreaksAnRgbArchivalDocument()
     {
         // The default output intent is sRGB, and a reader without the ink paints the CMYK
@@ -350,13 +350,13 @@ public class SpotColorTests
             .WithMessage("*output intent*").WithMessage("*4-component*");
     }
 
-    [Fact]
+    [Test]
     public void AnRgbAlternateConformsInAnRgbArchivalDocument()
     {
         SavingArchival(PdfColorMode.Rgb, profile: null, WhiteInk).Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void ACmykAlternateConformsWhenTheOutputIntentIsCmyk()
     {
         SavingArchival(PdfColorMode.Cmyk, CmykProfile(), Pantone185).Should().NotThrow();

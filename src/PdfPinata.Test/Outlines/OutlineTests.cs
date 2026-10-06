@@ -2,13 +2,13 @@
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Outlines;
 
 public class OutlineTests
 {
-    [Fact]
+    [Test]
     public void CanCreateDocumentWithOutlines()
     {
         var document = new PdfDocument();

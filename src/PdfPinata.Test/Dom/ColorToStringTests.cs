@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -35,7 +35,7 @@ public class ColorToStringTests
     ///   had it run first, and it still proves ToString is safe to call concurrently - but the
     ///   deterministic checks below are what actually pin the table's contents.
     /// </remarks>
-    [Fact]
+    [Test]
     public void ToStringIsConsistentAcrossThreads()
     {
         var results = new ConcurrentBag<string>();
@@ -50,7 +50,7 @@ public class ColorToStringTests
         results.Distinct().Should().ContainSingle().And.Contain("Black");
     }
 
-    [Fact]
+    [Test]
     public void ANamedColourSerializesByName()
     {
         Colors.Black.ToString().Should().Be("Black");
@@ -58,7 +58,7 @@ public class ColorToStringTests
         Colors.DarkBlue.ToString().Should().Be("DarkBlue");
     }
 
-    [Fact]
+    [Test]
     public void AnUnnamedColourFallsBackToRgb()
     {
         new Color(1, 2, 3).ToString().Should().Be("RGB(1,2,3)");
@@ -76,7 +76,7 @@ public class ColorToStringTests
     ///   over Fuchsia, even though Aqua and Fuchsia are declared first. Asserted as "both alias to
     ///   the same name" rather than to a literal, so this does not become a runtime-ordering test.
     /// </remarks>
-    [Fact]
+    [Test]
     public void AliasedColoursAgreeOnOneName()
     {
         // Aqua == Cyan == 0xFF00FFFF
@@ -88,7 +88,7 @@ public class ColorToStringTests
         Colors.Fuchsia.ToString().Should().BeOneOf("Fuchsia", "Magenta");
     }
 
-    [Fact]
+    [Test]
     public void ACmykColourDoesNotConsultTheTable()
     {
         Color.FromCmyk(0, 100, 100, 0).ToString().Should().StartWith("CMYK(");

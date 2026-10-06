@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.IO.ImportedPageFixtures;
 using static PdfPinata.Test.IO.SplitTests;
 
@@ -17,7 +17,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class InsertRangeTests
 {
-    [Fact]
+    [Test]
     public void InsertingARangeOfPagesThatLinkToEachOtherDoesNotThrow()
     {
         // A destination of five elements naming a page of the range is what it took to reach the
@@ -27,12 +27,12 @@ public class InsertRangeTests
         insert.Should().NotThrow();
     }
 
-    [Theory]
-    [InlineData("/Dest[4 0 R/XYZ 0 0 0]")]  // The one shape the loop of its own knew.
-    [InlineData("/Dest[4 0 R/Fit]")]
-    [InlineData("/Dest[4 0 R/FitH 0]")]
-    [InlineData("/Dest[4 0 R/FitR 0 0 10 10]")]
-    [InlineData("/A<</S/GoTo/D[4 0 R/Fit]>>")]
+    [Test]
+    [Arguments("/Dest[4 0 R/XYZ 0 0 0]")]  // The one shape the loop of its own knew.
+    [Arguments("/Dest[4 0 R/Fit]")]
+    [Arguments("/Dest[4 0 R/FitH 0]")]
+    [Arguments("/Dest[4 0 R/FitR 0 0 10 10]")]
+    [Arguments("/A<</S/GoTo/D[4 0 R/Fit]>>")]
     public void InsertingARangeKeepsALinkToAPageOfTheRange(string destination)
     {
         using var output = InsertRange(LinkedPagesDocument(Link(destination)), 0, 3);
@@ -46,7 +46,7 @@ public class InsertRangeTests
             .Should().Be(PdfInternals.GetObjectID(reread.Pages[1]));
     }
 
-    [Fact]
+    [Test]
     public void InsertingARangeDropsALinkToAPageLeftOutOfIt()
     {
         // The link goes to the third page, of which only the first two are inserted.
@@ -61,7 +61,7 @@ public class InsertRangeTests
         output.Length.Should().BeLessThan(3 * ImageLength);
     }
 
-    [Fact]
+    [Test]
     public void InsertingARangeKeepsAnAnnotationThatIsNotALink()
     {
         using var output = InsertRange(LinkedPagesDocument(Note()), 0, 3);
@@ -71,7 +71,7 @@ public class InsertRangeTests
         annotations.Elements.GetDictionary(0).Elements.GetString("/Subtype").Should().Be("/Text");
     }
 
-    [Fact]
+    [Test]
     public void InsertingARangeKeepsEveryAnnotationOfThePage()
     {
         using var output = InsertRange(

@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -16,7 +16,7 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class XSizeTests
 {
-    [Fact]
+    [Test]
     public void ASizeIsTheWidthAndHeightItWasGiven()
     {
         var size = new XSize(3, 4);
@@ -26,9 +26,9 @@ public class XSizeTests
         size.IsEmpty.Should().BeFalse();
     }
 
-    [Theory]
-    [InlineData(-1, 1)]
-    [InlineData(1, -1)]
+    [Test]
+    [Arguments(-1, 1)]
+    [Arguments(1, -1)]
     public void ASizeCannotBeBuiltNegative(double width, double height)
     {
         var act = () => new XSize(width, height);
@@ -36,7 +36,7 @@ public class XSizeTests
         act.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void ZeroBySizeIsAPerfectlyGoodSizeAndIsNotEmpty()
     {
         // The distinction matters: a zero-area rectangle still has a position, and the drawing
@@ -47,7 +47,7 @@ public class XSizeTests
         size.Should().NotBe(XSize.Empty);
     }
 
-    [Fact]
+    [Test]
     public void TheEmptySizeIsEmptyAndReadsAsNegativelyInfiniteRatherThanZero()
     {
         XSize.Empty.IsEmpty.Should().BeTrue();
@@ -55,7 +55,7 @@ public class XSizeTests
         XSize.Empty.Height.Should().Be(double.NegativeInfinity);
     }
 
-    [Fact]
+    [Test]
     public void TheEmptySizeRefusesToBeGivenAWidthOrAHeight()
     {
         var width = () => { var size = XSize.Empty; size.Width = 1; };
@@ -65,9 +65,9 @@ public class XSizeTests
         height.Should().Throw<InvalidOperationException>();
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
+    [Test]
+    [Arguments(true)]
+    [Arguments(false)]
     public void ASizeRefusesANegativeWidthOrHeightAfterTheFactToo(bool testWidth)
     {
         var act = () =>
@@ -82,7 +82,7 @@ public class XSizeTests
         act.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void WidthAndHeightCanBeSetOnASizeThatIsNotEmpty()
     {
         var size = new XSize(1, 1)
@@ -94,7 +94,7 @@ public class XSizeTests
         size.Should().Be(new XSize(10, 20));
     }
 
-    [Fact]
+    [Test]
     public void EveryEmptySizeIsEqualToEveryOtherOne()
     {
         XSize.Equals(XSize.Empty, XSize.Empty).Should().BeTrue();
@@ -102,7 +102,7 @@ public class XSizeTests
         XSize.Empty.GetHashCode().Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void TwoSizesAreEqualWhenBothExtentsAre()
     {
         var size = new XSize(3, 4);
@@ -117,7 +117,7 @@ public class XSizeTests
         size.GetHashCode().Should().Be(new XSize(3, 4).GetHashCode());
     }
 
-    [Fact]
+    [Test]
     public void ASizeConvertsToAPointAndAVectorOfTheSameTwoNumbers()
     {
         var size = new XSize(3, 4);
@@ -128,7 +128,7 @@ public class XSizeTests
         ((XVector)size).Should().Be(new XVector(3, 4));
     }
 
-    [Fact]
+    [Test]
     public void ASizeIsWrittenAsTwoNumbersAndReadBackTheSameWay()
     {
         var size = new XSize(1.5, 2.5);
@@ -139,14 +139,14 @@ public class XSizeTests
         XSize.Parse(text).Should().Be(size);
     }
 
-    [Fact]
+    [Test]
     public void TheEmptySizeIsWrittenByNameAndReadBackByName()
     {
         XSize.Empty.ToString(CultureInfo.InvariantCulture).Should().Be("Empty");
         XSize.Parse("Empty").Should().Be(XSize.Empty);
     }
 
-    [Fact]
+    [Test]
     public void AFormatStringIsAppliedToBothExtents()
     {
         IFormattable size = new XSize(1.23456, 2.34567);
@@ -159,7 +159,7 @@ public class XSizeTests
     ///   negative extent, so the struct checks again once it has been read. The fields are set here
     ///   by reflection, which is what a formatter does.
     /// </summary>
-    [Fact]
+    [Test]
     public void ADeserializedSizeWithANegativeExtentIsRefused()
     {
         object size = new XSize(3, 4);
@@ -171,7 +171,7 @@ public class XSizeTests
         deserialized.Should().Throw<SerializationException>();
     }
 
-    [Fact]
+    [Test]
     public void ADeserializedSizeThatAConstructorCouldHaveMadeIsAccepted()
     {
         foreach (var size in new[] { new XSize(3, 4), new XSize(0, 0), XSize.Empty })

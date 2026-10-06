@@ -4,7 +4,7 @@ using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Charting.Tests.Helpers;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -28,7 +28,7 @@ namespace PdfPinata.Charting.Tests;
 /// </remarks>
 public class AxisTitleTests
 {
-    [Fact]
+    [Test]
     public void ACaptionOnEitherAxisIsWrittenOnThePage()
     {
         var chart = Charts.Of(ChartType.Column2D, 1.0, 3.0);
@@ -38,7 +38,7 @@ public class AxisTitleTests
         ShownText.On(Drawn.Page(chart)).Should().Contain("Across").And.Contain("Up");
     }
 
-    [Fact]
+    [Test]
     public void ACaptionOnTheCategoryAxisTakesRoomFromThePlotArea()
     {
         var untitled = Charts.Of(ChartType.Column2D, 1.0, 3.0);
@@ -55,7 +55,7 @@ public class AxisTitleTests
         withTitle.Height.Should().BeLessThan(withoutTitle.Height);
     }
 
-    [Fact]
+    [Test]
     public void ACaptionOnTheValueAxisTakesRoomFromThePlotArea()
     {
         var untitled = Charts.Of(ChartType.Column2D, 1.0, 3.0);
@@ -77,7 +77,7 @@ public class AxisTitleTests
     ///   That is the whole point of turning it, and it is the branch of Format that does the
     ///   turning.
     /// </summary>
-    [Fact]
+    [Test]
     public void ARotatedCaptionCostsThePlotAreaLessWidthThanAnUprightOne()
     {
         var upright = Charts.Of(ChartType.Column2D, 1.0, 3.0);
@@ -94,7 +94,7 @@ public class AxisTitleTests
         turned.Width.Should().BeGreaterThan(written.Width);
     }
 
-    [Fact]
+    [Test]
     public void ARotatedCaptionIsStillWrittenOnThePage()
     {
         var chart = Charts.Of(ChartType.Column2D, 1.0, 3.0);
@@ -115,9 +115,9 @@ public class AxisTitleTests
     ///   so half of it hung outside the space the layout had reserved. Landing where the other two
     ///   land is the correction rather than a loss.
     /// </remarks>
-    [Theory]
-    [InlineData(HorizontalAlignment.Left)]
-    [InlineData(HorizontalAlignment.Right)]
+    [Test]
+    [Arguments(HorizontalAlignment.Left)]
+    [Arguments(HorizontalAlignment.Right)]
     public void AligningARotatedCaptionAcrossTheAxisMovesItNowhere(HorizontalAlignment alignment)
     {
         RotatedCaption(alignment, VerticalAlignment.Center)
@@ -136,7 +136,7 @@ public class AxisTitleTests
     ///   on both sides of the subtraction and the second expression reduced to the first. It is
     ///   now the caption's own height, which is what those offsets were always measuring against.
     /// </remarks>
-    [Fact]
+    [Test]
     public void EachVerticalAlignmentPutsARotatedCaptionSomewhereOfItsOwn()
     {
         var top = RotatedCaption(HorizontalAlignment.Center, VerticalAlignment.Top);
@@ -152,9 +152,9 @@ public class AxisTitleTests
     ///   title is drawn into a rectangle as tall as the axis, so there is room in it to move up
     ///   and down.
     /// </summary>
-    [Theory]
-    [InlineData(VerticalAlignment.Top)]
-    [InlineData(VerticalAlignment.Bottom)]
+    [Test]
+    [Arguments(VerticalAlignment.Top)]
+    [Arguments(VerticalAlignment.Bottom)]
     public void AligningAnUprightCaptionVerticallyMovesItUpOrDownTheAxis(VerticalAlignment alignment)
     {
         UprightCaptionPosition(alignment)
@@ -172,9 +172,9 @@ public class AxisTitleTests
     ///   it. A caller can move a value-axis caption along its axis but not across it, and giving
     ///   the setting somewhere to move to would mean reserving width the caption does not need.
     /// </remarks>
-    [Theory]
-    [InlineData(HorizontalAlignment.Left)]
-    [InlineData(HorizontalAlignment.Right)]
+    [Test]
+    [Arguments(HorizontalAlignment.Left)]
+    [Arguments(HorizontalAlignment.Right)]
     public void AligningAnUprightCaptionAcrossMovesItNowhere(HorizontalAlignment alignment)
     {
         UprightCaptionPosition(alignment)
@@ -187,7 +187,7 @@ public class AxisTitleTests
     ///   asked for - the two axes took different code paths to draw the same kind of object. It
     ///   now hands the caption to this renderer as the value axis always has.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheCategoryAxisReadsItsCaptionsAlignmentAndOrientationToo()
     {
         var plain = CategoryCaption(_ => { });
@@ -202,7 +202,7 @@ public class AxisTitleTests
     ///   And it aligns within the width of the axis, so the three alignments run left to right
     ///   in the order they name.
     /// </summary>
-    [Fact]
+    [Test]
     public void AligningACategoryAxisCaptionMovesItAlongTheAxis()
     {
         var left = CategoryCaption(title => title.Alignment = HorizontalAlignment.Left);
@@ -223,7 +223,7 @@ public class AxisTitleTests
     ///   place that accounts for the orientation. The category axis used to measure the string
     ///   itself and so reserved the wrong extent for a rotated caption.
     /// </remarks>
-    [Fact]
+    [Test]
     public void ARotatedCategoryAxisCaptionReservesTheRoomItTakesTurned()
     {
         var flat = Charts.Of(ChartType.Column2D, 1.0, 3.0);
@@ -240,7 +240,7 @@ public class AxisTitleTests
         standingUp.Height.Should().BeLessThan(lyingDown.Height);
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyCaptionCostsThePlotAreaNothing()
     {
         var untitled = Charts.Of(ChartType.Column2D, 1.0, 3.0);
@@ -262,9 +262,9 @@ public class AxisTitleTests
     ///   measured. A column chart's value axis is vertical and a bar chart's horizontal, and each
     ///   draws its title by a method of its own.
     /// </summary>
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Bar2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Bar2D)]
     public void ANullValueAxisCaptionIsNoCaption(ChartType type)
     {
         var untitled = Charts.Of(type, 1.0, 3.0);
@@ -286,7 +286,7 @@ public class AxisTitleTests
         withNullTitle.Height.Should().Be(withoutTitle.Height);
     }
 
-    [Fact]
+    [Test]
     public void ABarChartsAxisTitlesAreWrittenTheSameWay()
     {
         var chart = Charts.Of(ChartType.Bar2D, 3.0, 6.0);

@@ -8,7 +8,7 @@ using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Signatures;
 using PdfPinata.Signing;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.SigningCertificates;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
@@ -29,7 +29,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class SigningTests
 {
-    [Fact]
+    [Test]
     public void ASignedDocumentStillOpens()
     {
         var signed = Sign(Unsigned());
@@ -39,7 +39,7 @@ public class SigningTests
         document.PageCount.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void TheSignedFileBeginsWithTheDocumentThatWasSigned()
     {
         // Signing appends a revision. Rewriting the file instead would invalidate any signature
@@ -53,7 +53,7 @@ public class SigningTests
         signed.Take(unsigned.Length).Should().Equal(unsigned);
     }
 
-    [Fact]
+    [Test]
     public void TheDocumentSaysItIsSigned()
     {
         var document = Reader.Open(new MemoryStream(Sign(Unsigned())), PdfDocumentOpenMode.ReadOnly);
@@ -65,7 +65,7 @@ public class SigningTests
         signatures[0].SubFilter.Should().Be("/ETSI.CAdES.detached");
     }
 
-    [Fact]
+    [Test]
     public void TheSignatureVerifies()
     {
         var verification = PdfSignatureVerifier.Verify(Sign(Unsigned())).Single();
@@ -76,7 +76,7 @@ public class SigningTests
         verification.IsValid.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void TheSignatureNamesTheCertificateItWasMadeWith()
     {
         var verification = PdfSignatureVerifier.Verify(Sign(Unsigned())).Single();
@@ -85,7 +85,7 @@ public class SigningTests
         verification.SignerCertificate!.Subject.Should().Contain("PdfPinata Test Signer");
     }
 
-    [Fact]
+    [Test]
     public void ChangingTheDocumentAfterSigningBreaksTheSignature()
     {
         // A marker put into the info dictionary as a plain string, so it can be found in the file
@@ -105,7 +105,7 @@ public class SigningTests
         verification.IsValid.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AppendingToASignedDocumentShowsUpAsNotCoveringIt()
     {
         // The other half of the check, and the one a naive verifier misses. The signature itself is
@@ -121,7 +121,7 @@ public class SigningTests
         verification.IsValid.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void TheByteRangeSkipsTheSignatureAndNothingElse()
     {
         var signed = Sign(Unsigned());
@@ -140,7 +140,7 @@ public class SigningTests
         (range[2] + range[3]).Should().Be(signed.Length);
     }
 
-    [Fact]
+    [Test]
     public void WhatTheSignerSaidAboutItselfComesBackOut()
     {
         var signed = Sign(Unsigned(), new PdfSignatureOptions
@@ -169,7 +169,7 @@ public class SigningTests
             .Should().Be(new DateTime(2026, 3, 4, 5, 6, 7, DateTimeKind.Local).ToUniversalTime());
     }
 
-    [Fact]
+    [Test]
     public void AnInvisibleSignatureIsAFieldWithNothingToShow()
     {
         var signed = Sign(Unsigned());
@@ -181,7 +181,7 @@ public class SigningTests
         widget.Elements.ContainsKey("/AP").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AVisibleSignatureIsDrawnIntoTheFieldItOccupies()
     {
         var drawn = false;
@@ -212,7 +212,7 @@ public class SigningTests
         widget.Elements.GetDictionary("/AP")?.Elements.GetDictionary("/N").Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void AVisibleSignatureStillVerifies()
     {
         var signed = Sign(Unsigned(), new PdfSignatureOptions
@@ -224,7 +224,7 @@ public class SigningTests
         PdfSignatureVerifier.Verify(signed).Single().IsValid.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void TheFieldGoesOnThePageItWasAskedFor()
     {
         var signed = Sign(TwoPages(), new PdfSignatureOptions { PageIndex = 1 });
@@ -234,7 +234,7 @@ public class SigningTests
         Widgets(document.Pages[1]).Should().ContainSingle();
     }
 
-    [Fact]
+    [Test]
     public void TheFormSaysTheDocumentMustOnlyBeAppendedTo()
     {
         var signed = Sign(Unsigned());
@@ -247,7 +247,7 @@ public class SigningTests
         form.Elements.GetInteger("/SigFlags").Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void ACertifyingSignatureSaysWhatMayStillBeChanged()
     {
         var signed = Sign(Unsigned(), new PdfSignatureOptions
@@ -264,7 +264,7 @@ public class SigningTests
             .Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AnApprovalSignatureCertifiesNothing()
     {
         var document = Reader.Open(new MemoryStream(Sign(Unsigned())), PdfDocumentOpenMode.ReadOnly);
@@ -273,7 +273,7 @@ public class SigningTests
         document.Internals.Catalog.Elements.ContainsKey("/Perms").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void SigningTwiceLeavesTheFirstSignatureIntact()
     {
         // The reason signing appends rather than rewrites. Both signatures survive; the first no
@@ -289,7 +289,7 @@ public class SigningTests
         verifications.Count(verification => verification.CoversWholeDocument).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void TheOlderSignatureIsTheOneThatNoLongerCoversTheFile()
     {
         var twice = Sign(Sign(Unsigned()), new PdfSignatureOptions { FieldName = "Signature2" });
@@ -300,7 +300,7 @@ public class SigningTests
         latest.Signature.FieldName.Should().Be("Signature2");
     }
 
-    [Fact]
+    [Test]
     public void TheOlderFormatIsAvailableForReadersThatNeedIt()
     {
         var signer = new Pkcs7Signer(SigningCertificates.Default, PdfSignatureFormat.Pkcs7);
@@ -312,7 +312,7 @@ public class SigningTests
         PdfSignatureVerifier.Verify(signed).Single().IsValid.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AStrongerDigestCanBeAskedFor()
     {
         var signer = new Pkcs7Signer(SigningCertificates.Default,
@@ -321,7 +321,7 @@ public class SigningTests
         PdfSignatureVerifier.Verify(Sign(Unsigned(), signer: signer)).Single().IsValid.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ABrokenDigestIsRefused()
     {
         var making = () => new Pkcs7Signer(SigningCertificates.Default,
@@ -330,7 +330,7 @@ public class SigningTests
         making.Should().Throw<ArgumentException>().WithMessage("*SHA-256*");
     }
 
-    [Fact]
+    [Test]
     public void ASignerThatReservesTooLittleRoomIsToldSo()
     {
         // The room has to be committed to before the signature exists, so getting it wrong can only
@@ -342,7 +342,7 @@ public class SigningTests
             .WithMessage("*EstimatedSignatureSize*");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentThatWasNotOpenedForAppendingCannotBeSigned()
     {
         var document = new PdfDocument();
@@ -354,7 +354,7 @@ public class SigningTests
         signing.Should().Throw<InvalidOperationException>().WithMessage("*Append*");
     }
 
-    [Fact]
+    [Test]
     public void SigningAPageThatIsNotThereIsRefused()
     {
         var signing = () => Sign(Unsigned(), new PdfSignatureOptions { PageIndex = 7 });
@@ -362,7 +362,7 @@ public class SigningTests
         signing.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Fact]
+    [Test]
     public void AByteRangeThatOverflowsIsReportedRatherThanThrown()
     {
         // The numbers come out of a file nobody here wrote. An offset and a length that each pass
@@ -380,7 +380,7 @@ public class SigningTests
         verifications[0].Problem.Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void APadesSignatureLeavesTheClaimedTimeToTheSignatureDictionary()
     {
         // PAdES carries the claimed signing time in /M, and the ETSI profiles have said since
@@ -391,7 +391,7 @@ public class SigningTests
             .IncludeSigningTime.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ADocumentWithNoSignatureReportsNone()
     {
         var document = Reader.Open(new MemoryStream(Unsigned()), PdfDocumentOpenMode.ReadOnly);

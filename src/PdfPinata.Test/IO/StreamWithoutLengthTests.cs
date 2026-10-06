@@ -5,7 +5,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.IO.enums;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -21,9 +21,9 @@ public class StreamWithoutLengthTests
         "xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"><rdf:Description rdf:about=\"\"/>" +
         "</rdf:RDF></x:xmpmeta>";
 
-    [Theory]
-    [InlineData(PdfReadAccuracy.Strict)]
-    [InlineData(PdfReadAccuracy.Moderate)]
+    [Test]
+    [Arguments(PdfReadAccuracy.Strict)]
+    [Arguments(PdfReadAccuracy.Moderate)]
     public void ADocumentWithAStreamThatHasNoLengthCanBeRead(PdfReadAccuracy accuracy)
     {
         using var input = new MemoryStream(BuildDocumentWithAMetadataStreamWithoutLength());
@@ -33,7 +33,7 @@ public class StreamWithoutLengthTests
         document.PageCount.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void TheStreamThatHasNoLengthIsReadUpToTheEndOfTheStreamKeyword()
     {
         using var input = new MemoryStream(BuildDocumentWithAMetadataStreamWithoutLength());
@@ -46,7 +46,7 @@ public class StreamWithoutLengthTests
         metadata.Elements.GetInteger("/Length").Should().Be(Metadata.Length);
     }
 
-    [Fact]
+    [Test]
     public void ADocumentWithAStreamThatHasNoLengthCanBeMergedAndSaved()
     {
         // The way the documents in the issue were being combined.

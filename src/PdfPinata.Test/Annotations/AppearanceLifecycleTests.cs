@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using AwesomeAssertions;
 using ImageMagick;
@@ -6,7 +7,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Annotations;
 
@@ -19,7 +20,7 @@ namespace PdfPinata.Test.Annotations;
 ///   The drawing is counted in pixels as well as read in keys, because an annotation with the right
 ///   entries and no appearance rasterizes to nothing in most readers.
 /// </remarks>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public sealed class AppearanceLifecycleTests : IDisposable
 {
     private const string OutDir = "Out/AppearanceLifecycle";
@@ -34,18 +35,18 @@ public sealed class AppearanceLifecycleTests : IDisposable
     ///   Every class that draws itself. The text markup annotations share one implementation, so
     ///   <c>/Highlight</c> stands for all four.
     /// </summary>
-    public static TheoryData<string> Drawing =>
+    public static IEnumerable<string> Drawing =>
         ["Square", "Circle", "Line", "FreeText", "Ink", "Polygon", "PolyLine", "Caret", "Redact", "Highlight"];
 
     /// <summary>
     ///   Asked to draw nothing, every one of them takes its appearance away.
     /// </summary>
-    public static TheoryData<string> Removing => Drawing;
+    public static IEnumerable<string> Removing => Drawing;
 
     // ----- when the appearance is built -----------------------------------------------------------------
 
-    [Theory]
-    [MemberData(nameof(Drawing))]
+    [Test]
+    [MethodDataSource(nameof(Drawing))]
     public void NothingIsBuiltUntilTheAnnotationReachesAPageAndThenItIs(string kind)
     {
         var annotation = Configured(kind);
@@ -57,8 +58,8 @@ public sealed class AppearanceLifecycleTests : IDisposable
         annotation.Elements.GetDictionary("/AP").Should().NotBeNull();
     }
 
-    [Theory]
-    [MemberData(nameof(Drawing))]
+    [Test]
+    [MethodDataSource(nameof(Drawing))]
     public void WhatItWasAskedForBeforeReachingAPageIsPainted(string kind)
     {
         var page = Rasterize(kind + "-painted", document => document.Pages[0].Annotations.Add(Configured(kind)));
@@ -68,8 +69,8 @@ public sealed class AppearanceLifecycleTests : IDisposable
 
     // ----- what rebuilds it -----------------------------------------------------------------------------
 
-    [Theory]
-    [MemberData(nameof(Drawing))]
+    [Test]
+    [MethodDataSource(nameof(Drawing))]
     public void AColourChangeRedrawsAndStampsTheModificationDate(string kind)
     {
         var annotation = OnAPage(Configured(kind));
@@ -82,8 +83,8 @@ public sealed class AppearanceLifecycleTests : IDisposable
         annotation.Elements.GetDateTime("/M", DateTime.MinValue).Should().BeAfter(LongAgo);
     }
 
-    [Theory]
-    [MemberData(nameof(Drawing))]
+    [Test]
+    [MethodDataSource(nameof(Drawing))]
     public void AnOpacityChangeRedraws(string kind)
     {
         var annotation = OnAPage(Configured(kind));
@@ -94,8 +95,8 @@ public sealed class AppearanceLifecycleTests : IDisposable
         Snapshot(annotation).Should().NotBe(before);
     }
 
-    [Theory]
-    [MemberData(nameof(Drawing))]
+    [Test]
+    [MethodDataSource(nameof(Drawing))]
     public void ItsOwnChangeRedrawsAndStampsTheModificationDate(string kind)
     {
         var annotation = OnAPage(Configured(kind));
@@ -115,8 +116,8 @@ public sealed class AppearanceLifecycleTests : IDisposable
     ///   annotation is drawn from changes. Then the annotation's redraw wins, as it would have
     ///   without the caller's drawing, rather than the change being made and never seen.
     /// </summary>
-    [Theory]
-    [MemberData(nameof(Drawing))]
+    [Test]
+    [MethodDataSource(nameof(Drawing))]
     public void ACallersAppearanceGivesWayToTheNextRedraw(string kind)
     {
         PdfAnnotation annotation = null;
@@ -137,8 +138,8 @@ public sealed class AppearanceLifecycleTests : IDisposable
     ///   The same after a set of named appearances, which a redraw replaces by a single one - so
     ///   <c>/AS</c> goes with the set, as <see cref="PdfAnnotation.SetAppearance(XForm)"/> takes it.
     /// </summary>
-    [Theory]
-    [MemberData(nameof(Drawing))]
+    [Test]
+    [MethodDataSource(nameof(Drawing))]
     public void ACallersSetOfAppearancesGivesWayToTheNextRedraw(string kind)
     {
         PdfAnnotation annotation = null;
@@ -162,8 +163,8 @@ public sealed class AppearanceLifecycleTests : IDisposable
     ///   And the drawing given way to is not left in the file, nor any form the annotation drew
     ///   before it: one appearance, one form XObject.
     /// </summary>
-    [Theory]
-    [MemberData(nameof(Drawing))]
+    [Test]
+    [MethodDataSource(nameof(Drawing))]
     public void TheAppearanceGivenWayToIsNotWritten(string kind)
     {
         var annotation = OnAPage(Configured(kind));
@@ -182,8 +183,8 @@ public sealed class AppearanceLifecycleTests : IDisposable
     ///   rollover or a down appearance, so one there is the caller's, and survives. <c>/AS</c> stays
     ///   while the down appearance is a set of states it picks from.
     /// </summary>
-    [Theory]
-    [MemberData(nameof(Drawing))]
+    [Test]
+    [MethodDataSource(nameof(Drawing))]
     public void ARedrawKeepsTheCallersRolloverAndDownAppearances(string kind)
     {
         var annotation = OnAPage(Configured(kind));
@@ -209,8 +210,8 @@ public sealed class AppearanceLifecycleTests : IDisposable
     /// <summary>
     ///   With no set of states left anywhere in <c>/AP</c>, <c>/AS</c> names nothing and goes.
     /// </summary>
-    [Theory]
-    [MemberData(nameof(Drawing))]
+    [Test]
+    [MethodDataSource(nameof(Drawing))]
     public void ARedrawWithOnlySingleAppearancesLeftTakesTheStateAway(string kind)
     {
         var annotation = OnAPage(Configured(kind));
@@ -229,8 +230,8 @@ public sealed class AppearanceLifecycleTests : IDisposable
     ///   caller's: the redraw leaves it as it is, even naming a state the set lacks - and is not put
     ///   off by one that is not a name at all, which a loosely written file may carry.
     /// </summary>
-    [Theory]
-    [MemberData(nameof(Drawing))]
+    [Test]
+    [MethodDataSource(nameof(Drawing))]
     public void ARedrawLeavesTheStateToTheCallerWhileASetOfStatesIsKept(string kind)
     {
         var annotation = OnAPage(Configured(kind));
@@ -255,8 +256,8 @@ public sealed class AppearanceLifecycleTests : IDisposable
     /// <summary>
     ///   And what shows, with a rollover kept beside it, is the redraw.
     /// </summary>
-    [Theory]
-    [MemberData(nameof(Drawing))]
+    [Test]
+    [MethodDataSource(nameof(Drawing))]
     public void TheRedrawShowsBesideAKeptRollover(string kind)
     {
         PdfAnnotation annotation = null;
@@ -305,8 +306,8 @@ public sealed class AppearanceLifecycleTests : IDisposable
 
     // ----- asked for nothing ----------------------------------------------------------------------------
 
-    [Theory]
-    [MemberData(nameof(Removing))]
+    [Test]
+    [MethodDataSource(nameof(Removing))]
     public void AskedForNothingItTakesItsAppearanceAway(string kind)
     {
         PdfAnnotation annotation = null;
@@ -329,8 +330,8 @@ public sealed class AppearanceLifecycleTests : IDisposable
         PageInk.Count(page, IsInk).Should().Be(0);
     }
 
-    [Theory]
-    [MemberData(nameof(Removing))]
+    [Test]
+    [MethodDataSource(nameof(Removing))]
     public void AskedForSomethingAgainItDrawsAgain(string kind)
     {
         var annotation = OnAPage(Configured(kind));
@@ -341,7 +342,7 @@ public sealed class AppearanceLifecycleTests : IDisposable
         annotation.Elements.GetDictionary("/AP").Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void AddingAQuadToAHighlightStampsTheModificationDate()
     {
         var highlight = OnAPage((PdfHighlightAnnotation)Configured("Highlight"));
@@ -352,7 +353,7 @@ public sealed class AppearanceLifecycleTests : IDisposable
         highlight.Elements.GetDateTime("/M", DateTime.MinValue).Should().BeAfter(LongAgo);
     }
 
-    [Fact]
+    [Test]
     public void ClearingAHighlightsQuadsStampsTheModificationDate()
     {
         var highlight = OnAPage((PdfHighlightAnnotation)Configured("Highlight"));
@@ -363,7 +364,7 @@ public sealed class AppearanceLifecycleTests : IDisposable
         highlight.Elements.GetDateTime("/M", DateTime.MinValue).Should().BeAfter(LongAgo);
     }
 
-    [Fact]
+    [Test]
     public void AHighlightReadFromAFileShowsWhatItIsRedrawnAs()
     {
         // Read back, it carries the appearance the file gave it and none of its own - which the
@@ -380,10 +381,10 @@ public sealed class AppearanceLifecycleTests : IDisposable
 
     // ----- what /RD and /BS say -------------------------------------------------------------------------
 
-    [Theory]
-    [InlineData("Square", 2)]
-    [InlineData("Circle", 2)]
-    [InlineData("FreeText", 4)]
+    [Test]
+    [Arguments("Square", 2)]
+    [Arguments("Circle", 2)]
+    [Arguments("FreeText", 4)]
     public void TheRectangleDifferencesAreWrittenAlongsideTheAppearance(string kind, double inset)
     {
         var annotation = OnAPage(Configured(kind));
@@ -394,14 +395,14 @@ public sealed class AppearanceLifecycleTests : IDisposable
             differences.Elements.GetReal(index).Should().Be(inset);
     }
 
-    [Theory]
-    [InlineData("Square")]
-    [InlineData("Circle")]
-    [InlineData("Line")]
-    [InlineData("FreeText")]
-    [InlineData("Ink")]
-    [InlineData("Polygon")]
-    [InlineData("PolyLine")]
+    [Test]
+    [Arguments("Square")]
+    [Arguments("Circle")]
+    [Arguments("Line")]
+    [Arguments("FreeText")]
+    [Arguments("Ink")]
+    [Arguments("Polygon")]
+    [Arguments("PolyLine")]
     public void TheWidthIsWrittenAsASolidBorder(string kind)
     {
         var annotation = Configured(kind);
@@ -413,14 +414,14 @@ public sealed class AppearanceLifecycleTests : IDisposable
         border.IsIndirect.Should().BeFalse("it is written before the annotation has a document");
     }
 
-    [Theory]
-    [InlineData("Square")]
-    [InlineData("Circle")]
-    [InlineData("FreeText")]
-    [InlineData("Line")]
-    [InlineData("Ink")]
-    [InlineData("Polygon")]
-    [InlineData("PolyLine")]
+    [Test]
+    [Arguments("Square")]
+    [Arguments("Circle")]
+    [Arguments("FreeText")]
+    [Arguments("Line")]
+    [Arguments("Ink")]
+    [Arguments("Polygon")]
+    [Arguments("PolyLine")]
     public void ANegativeWidthIsRefusedTheSameWayByEveryOne(string kind)
     {
         var annotation = Configured(kind);
@@ -436,11 +437,11 @@ public sealed class AppearanceLifecycleTests : IDisposable
 
     // ----- who owns /Rect -------------------------------------------------------------------------------
 
-    [Theory]
-    [InlineData("Line")]
-    [InlineData("Ink")]
-    [InlineData("Polygon")]
-    [InlineData("PolyLine")]
+    [Test]
+    [Arguments("Line")]
+    [Arguments("Ink")]
+    [Arguments("Polygon")]
+    [Arguments("PolyLine")]
     public void ARectangleAssignedToOneThatWorksItOutIsOverwrittenAtOnce(string kind)
     {
         var annotation = OnAPage(Configured(kind));
@@ -451,12 +452,12 @@ public sealed class AppearanceLifecycleTests : IDisposable
         annotation.Rectangle.Should().Be(computed);
     }
 
-    [Theory]
-    [InlineData("Square")]
-    [InlineData("Circle")]
-    [InlineData("FreeText")]
-    [InlineData("Caret")]
-    [InlineData("Redact")]
+    [Test]
+    [Arguments("Square")]
+    [Arguments("Circle")]
+    [Arguments("FreeText")]
+    [Arguments("Caret")]
+    [Arguments("Redact")]
     public void ARectangleAssignedToOneItIsTheGeometryOfIsHonoured(string kind)
     {
         var annotation = OnAPage(Configured(kind));

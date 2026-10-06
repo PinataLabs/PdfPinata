@@ -6,7 +6,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -19,7 +19,7 @@ public class CidWidthArrayTests
 {
     private const string Alphabet = "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 .,;:!?";
 
-    [Fact]
+    [Test]
     public void EachRunOfConsecutiveCidsIsOneEntry()
     {
         var entries = Entries(WidthArrayOf(Saved(Alphabet)));
@@ -37,7 +37,7 @@ public class CidWidthArrayTests
             + "entry has to hold more than one width");
     }
 
-    [Fact]
+    [Test]
     public void EveryCidKeepsTheWidthItsFontGivesIt()
     {
         var font = new TrueTypeGlyphs(File.ReadAllBytes(

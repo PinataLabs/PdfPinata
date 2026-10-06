@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.AcroForms;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs.AcroForms;
 
@@ -35,7 +35,7 @@ public class AcroFormInheritedFlagsTests
                 })
             .Build();
 
-    [Fact]
+    [Test]
     public void AChildWithNoFlagsOfItsOwnAnswersItsParents()
     {
         var document = ANameGroup(PdfAcroFieldFlags.ReadOnly | PdfAcroFieldFlags.Multiline);
@@ -48,7 +48,7 @@ public class AcroFormInheritedFlagsTests
         ((PdfTextField)first).MultiLine.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AChildsOwnFlagsWinOverItsParents()
     {
         var document = ANameGroup(PdfAcroFieldFlags.ReadOnly | PdfAcroFieldFlags.Multiline,
@@ -60,7 +60,7 @@ public class AcroFormInheritedFlagsTests
             .Should().Be(PdfAcroFieldFlags.ReadOnly | PdfAcroFieldFlags.Multiline);
     }
 
-    [Fact]
+    [Test]
     public void FlagsAreInheritedFromFurtherUpThanTheParent()
     {
         var document = new AcroFormBuilder()
@@ -89,7 +89,7 @@ public class AcroFormInheritedFlagsTests
         inner.Flags.Should().Be(PdfAcroFieldFlags.Required);
     }
 
-    [Fact]
+    [Test]
     public void SettingOneFlagOnAnInheritingChildKeepsTheRest()
     {
         var document = ANameGroup(PdfAcroFieldFlags.Multiline);
@@ -104,12 +104,12 @@ public class AcroFormInheritedFlagsTests
         document.AcroForm.Fields["name.last"].ReadOnly.Should().BeFalse("the parent is untouched");
     }
 
-    [Theory]
-    [InlineData("/Btn", PdfAcroFieldFlags.Radio, typeof(PdfRadioButtonField))]
-    [InlineData("/Btn", PdfAcroFieldFlags.Pushbutton, typeof(PdfPushButtonField))]
-    [InlineData("/Btn", (PdfAcroFieldFlags)0, typeof(PdfCheckBoxField))]
-    [InlineData("/Ch", PdfAcroFieldFlags.Combo, typeof(PdfComboBoxField))]
-    [InlineData("/Ch", (PdfAcroFieldFlags)0, typeof(PdfListBoxField))]
+    [Test]
+    [Arguments("/Btn", PdfAcroFieldFlags.Radio, typeof(PdfRadioButtonField))]
+    [Arguments("/Btn", PdfAcroFieldFlags.Pushbutton, typeof(PdfPushButtonField))]
+    [Arguments("/Btn", (PdfAcroFieldFlags)0, typeof(PdfCheckBoxField))]
+    [Arguments("/Ch", PdfAcroFieldFlags.Combo, typeof(PdfComboBoxField))]
+    [Arguments("/Ch", (PdfAcroFieldFlags)0, typeof(PdfListBoxField))]
     public void AChildsKindIsReadFromWhatItInherits(string fieldType, PdfAcroFieldFlags flags,
         System.Type expected)
     {
@@ -126,7 +126,7 @@ public class AcroFormInheritedFlagsTests
         document.AcroForm.Fields["group.one"].Should().BeOfType(expected);
     }
 
-    [Fact(Timeout = 10_000)]
+    [Test, Timeout(10_000)]
     public async Task AParentChainThatComesBackOnItselfEndsRatherThanLoopingForEver()
     {
         await Task.Run(() =>
@@ -143,7 +143,7 @@ public class AcroFormInheritedFlagsTests
         });
     }
 
-    [Fact]
+    [Test]
     public void ATickBoxWhoseStateIsNeinIsNotTicked()
     {
         // Some forms name their off state in German. The check is on the path that reads the

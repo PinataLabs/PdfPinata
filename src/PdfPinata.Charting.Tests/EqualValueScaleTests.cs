@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -7,7 +8,7 @@ using AwesomeAssertions;
 using PdfPinata.Charting.Tests.Helpers;
 using PdfPinata.Drawing;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -24,13 +25,13 @@ namespace PdfPinata.Charting.Tests;
 /// </remarks>
 public class EqualValueScaleTests
 {
-    public static TheoryData<ChartType, bool, double, double?> EveryValueAxisChart()
+    public static IEnumerable<(ChartType, bool, double, double?)> EveryValueAxisChart()
     {
-        var data = new TheoryData<ChartType, bool, double, double?>();
+        var data = new List<(ChartType, bool, double, double?)>();
         foreach (var (type, combination) in ValueAxisCharts)
             foreach (var scale in new[] { 0.0, 5.0, -5.0 })
                 foreach (var majorTick in new double?[] { null, 1.0 })
-                    data.Add(type, combination, scale, majorTick);
+                    data.Add((type, combination, scale, majorTick));
         return data;
     }
 
@@ -39,8 +40,8 @@ public class EqualValueScaleTests
     ///   axis and the plot area asked for - tick marks of both kinds, gridlines of both kinds and
     ///   data labels - and writes nothing that is not a number.
     /// </summary>
-    [Theory]
-    [MemberData(nameof(EveryValueAxisChart))]
+    [Test]
+    [MethodDataSource(nameof(EveryValueAxisChart))]
     public void AScaleOfOneValueIsDrawnAndWritesNoNaN(ChartType type, bool combination, double scale, double? majorTick)
     {
         var chart = EqualScale(type, combination, scale, majorTick);
@@ -51,15 +52,15 @@ public class EqualValueScaleTests
         ShownText.On(page).Should().NotContain("NaN");
     }
 
-    [Theory]
+    [Test]
     // The three cases of the flat data range, with no tick given: the tick is worked out from the
     // range the scale is widened to.
-    [InlineData(0.0, null, "0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9")]
-    [InlineData(5.0, null, "5.0 5.2 5.4 5.6 5.8 6.0")]
-    [InlineData(-5.0, null, "-5.0 -4.0 -3.0 -2.0 -1.0 0.0")]
+    [Arguments(0.0, null, "0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9")]
+    [Arguments(5.0, null, "5.0 5.2 5.4 5.6 5.8 6.0")]
+    [Arguments(-5.0, null, "-5.0 -4.0 -3.0 -2.0 -1.0 0.0")]
     // A tick the caller gave is kept, whatever the range is widened to.
-    [InlineData(5.0, 0.5, "5.0 5.5 6.0")]
-    [InlineData(-5.0, 2.5, "-5.0 -2.5 0.0")]
+    [Arguments(5.0, 0.5, "5.0 5.5 6.0")]
+    [Arguments(-5.0, 2.5, "-5.0 -2.5 0.0")]
     public void AScaleOfOneValueIsWidenedAsAFlatRangeOfDataIs(double scale, double? majorTick, string expected)
     {
         foreach (var (type, combination) in ValueAxisCharts)
@@ -84,7 +85,7 @@ public class EqualValueScaleTests
     ///   is widened the same way: the data here is scaled 0.0 to 6.0, so a minimum of six leaves
     ///   nothing between the two.
     /// </summary>
-    [Fact]
+    [Test]
     public void AGivenMinimumEqualToTheCalculatedMaximumIsWidenedToo()
     {
         var chart = Charts.Of(ChartType.Column2D, 1.0, 5.0, 3.0);
@@ -98,7 +99,7 @@ public class EqualValueScaleTests
     ///   this data is scaled to, labelled 0.6, is six steps of 0.1 - which is 0.6000000000000001.
     ///   A minimum given as the 0.6 the label reads is the same value, and is widened as one.
     /// </summary>
-    [Fact]
+    [Test]
     public void AGivenEndEqualToACalculatedOneButForRoundingIsWidenedToo()
     {
         var chart = Charts.Of(ChartType.Column2D, 0.1, 0.5);
@@ -111,7 +112,7 @@ public class EqualValueScaleTests
     ///   A narrow scale far from zero is not flat, and is drawn as given: allowing for rounding
     ///   must not swallow a span a double holds without trouble.
     /// </summary>
-    [Fact]
+    [Test]
     public void ANarrowScaleFarFromZeroIsNotWidened()
     {
         var chart = Charts.Of(ChartType.Column2D, 1.0, 3.0);
@@ -128,11 +129,11 @@ public class EqualValueScaleTests
     ///   nothing and the scale would still span zero. There the end is moved by a tenth of the
     ///   value instead, which a double can always tell apart, so the axis is still drawn.
     /// </summary>
-    [Theory]
-    [InlineData(Huge, null)]
-    [InlineData(Huge, 1.0)]
+    [Test]
+    [Arguments(Huge, null)]
+    [Arguments(Huge, 1.0)]
     // Below zero the top goes to zero, which is always distinct: the rule that needs no tenth.
-    [InlineData(-Huge, null)]
+    [Arguments(-Huge, null)]
     public void AScaleOfOneHugeValueIsStillWidened(double scale, double? majorTick)
     {
         var chart = Charts.Of(ChartType.Column2D, 1.0, 3.0);
@@ -152,9 +153,9 @@ public class EqualValueScaleTests
     ///   The same for data all of one huge value, which reaches the widening through the
     ///   calculated range rather than through a given one.
     /// </summary>
-    [Theory]
-    [InlineData(Huge)]
-    [InlineData(-Huge)]
+    [Test]
+    [Arguments(Huge)]
+    [Arguments(-Huge)]
     public void DataOfOneHugeValueIsStillGivenARange(double value)
     {
         var page = Drawn.Page(Charts.Of(ChartType.Column2D, value, value));
@@ -167,7 +168,7 @@ public class EqualValueScaleTests
     ///   And a given maximum far below zero that the calculated minimum meets, which widens
     ///   downwards: data at -2^54 is scaled from -2e16, and one below that is the same double.
     /// </summary>
-    [Fact]
+    [Test]
     public void AHugeGivenMaximumMeetingTheCalculatedMinimumIsWidenedDownwards()
     {
         var chart = Charts.Of(ChartType.Column2D, -Huge, -Huge);
@@ -186,7 +187,7 @@ public class EqualValueScaleTests
     ///   gave are compared exactly, so a scale narrower than that allowance but given as such is
     ///   kept: two ticks across it, not the two thousand a scale widened by one would have.
     /// </summary>
-    [Fact]
+    [Test]
     public void TwoGivenEndsCloserThanRoundingAreKept()
     {
         var chart = Charts.Of(ChartType.Column2D, 1.0, 3.0);
@@ -202,7 +203,7 @@ public class EqualValueScaleTests
     ///   upside down, which draws nothing in the plot area, rather than one widened into a scale
     ///   that can be drawn against.
     /// </summary>
-    [Fact]
+    [Test]
     public void AGivenMinimumAHairAboveAGivenMaximumStillDrawsNothing()
     {
         var chart = Charts.Of(ChartType.Column2D, 1.0, 5.5);
@@ -223,7 +224,7 @@ public class EqualValueScaleTests
     ///   worked out in single precision, a little over a fifth - an error that a hundred steps
     ///   added up into the top label going missing.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheTopOfALongScaleKeepsItsLabel()
     {
         var chart = Charts.Of(ChartType.Column2D, 0.0, 1.0);
@@ -241,7 +242,7 @@ public class EqualValueScaleTests
     ///   the top raised to zero. The data here is scaled from -3.5, so a maximum of -3.5 leaves
     ///   nothing between the two.
     /// </summary>
-    [Fact]
+    [Test]
     public void AGivenMaximumEqualToTheCalculatedMinimumIsWidenedDownwards()
     {
         var chart = Charts.Of(ChartType.Column2D, -3.0, -1.0);
@@ -256,7 +257,7 @@ public class EqualValueScaleTests
     ///   stepped towards the maximum and compared with it exactly, and a single-precision step
     ///   overshoots it.
     /// </summary>
-    [Fact]
+    [Test]
     public void EveryTickLabelOnAWidenedScaleHasAGridline()
     {
         var chart = Charts.Of(ChartType.Column2D, 1.0, 5.5);
@@ -278,7 +279,7 @@ public class EqualValueScaleTests
     ///   A major tick of zero is no tick at all: the axis draws no labels and no gridlines, where
     ///   every loop over the ticks used to step by nothing towards the maximum for ever.
     /// </summary>
-    [Fact(Timeout = 10000)]
+    [Test, Timeout(10000)]
     public async Task AMajorTickOfZeroDrawsNoTicksRatherThanNeverFinishing()
     {
         var chart = Charts.Of(ChartType.Column2D, 1.0, 3.0);
@@ -294,7 +295,7 @@ public class EqualValueScaleTests
     ///   Widened, the scale is one that can be plotted against: a column whose value lies on it is
     ///   drawn, and the ones below it are left undrawn, as any value off the scale is.
     /// </summary>
-    [Fact]
+    [Test]
     public void AColumnOnTheWidenedScaleIsDrawn()
     {
         var chart = Charts.Of(ChartType.Column2D, 1.0, 5.5);

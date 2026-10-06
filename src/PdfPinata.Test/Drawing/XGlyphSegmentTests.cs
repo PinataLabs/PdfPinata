@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Fonts;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -15,7 +15,7 @@ public class XGlyphSegmentTests
 {
     private const double Precision = 1e-12;
 
-    [Fact]
+    [Test]
     public void AQuadraticIsACurveEndingWhereTheQuadraticEnds()
     {
         var segment = XGlyphSegment.QuadraticTo(new XPoint(0, 0), new XPoint(3, 6), new XPoint(9, 0));
@@ -24,7 +24,7 @@ public class XGlyphSegmentTests
         segment.End.Should().Be(new XPoint(9, 0));
     }
 
-    [Fact]
+    [Test]
     public void TheControlsAreTwoThirdsOfTheWayFromEachEndTowardsTheQuadraticsControl()
     {
         // p0 + 2/3(q - p0) = (0,0) + 2/3(3,6) = (2,4); p2 + 2/3(q - p2) = (9,0) + 2/3(-6,6) = (5,4).
@@ -36,13 +36,13 @@ public class XGlyphSegmentTests
         segment.Control2.Y.Should().BeApproximately(4, Precision);
     }
 
-    [Theory]
-    [InlineData(0.0)]
-    [InlineData(0.125)]
-    [InlineData(0.25)]
-    [InlineData(0.5)]
-    [InlineData(0.7)]
-    [InlineData(1.0)]
+    [Test]
+    [Arguments(0.0)]
+    [Arguments(0.125)]
+    [Arguments(0.25)]
+    [Arguments(0.5)]
+    [Arguments(0.7)]
+    [Arguments(1.0)]
     public void TheCubicTracesTheQuadraticExactlyRatherThanApproximately(double t)
     {
         // Off the origin and in every direction, so a conversion that forgot the start point, or
@@ -59,7 +59,7 @@ public class XGlyphSegmentTests
         cubic.Y.Should().BeApproximately(quadratic.Y, Precision);
     }
 
-    [Fact]
+    [Test]
     public void AQuadraticWhoseControlLiesOnTheLineIsAStraightCurve()
     {
         var segment = XGlyphSegment.QuadraticTo(new XPoint(0, 0), new XPoint(3, 3), new XPoint(6, 6));

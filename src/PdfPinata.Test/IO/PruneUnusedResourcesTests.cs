@@ -5,7 +5,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.IO.SharedResourceFixtures;
 
 namespace PdfPinata.Test.IO;
@@ -18,7 +18,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class PruneUnusedResourcesTests
 {
-    [Fact]
+    [Test]
     public void EachPageKeepsTheImageItDraws()
     {
         var document = Saved.Open(PagesSharingOneResourceDictionary());
@@ -32,7 +32,7 @@ public class PruneUnusedResourcesTests
         XObjectsOf(document.Pages[2]).Should().Equal("/Im2");
     }
 
-    [Fact]
+    [Test]
     public void SplittingAfterPruningLeavesEachFileWithOneImage()
     {
         var sizes = Split(PagesSharingOneResourceDictionary(), prune: true);
@@ -40,7 +40,7 @@ public class PruneUnusedResourcesTests
         sizes.Should().OnlyContain(size => size < 2 * ImageLength);
     }
 
-    [Fact]
+    [Test]
     public void SplittingWithoutPruningStillCopiesEverything()
     {
         // The state of affairs the issue reports, and what makes the test above worth having.
@@ -49,7 +49,7 @@ public class PruneUnusedResourcesTests
         sizes.Should().OnlyContain(size => size > 3 * ImageLength);
     }
 
-    [Fact]
+    [Test]
     public void AFormWithoutResourcesKeepsWhatItDrawsWithFromThePage()
     {
         var document = Saved.Open(PageDrawingThroughAFormWithoutResources());
@@ -61,7 +61,7 @@ public class PruneUnusedResourcesTests
         XObjectsOf(document.Pages[0]).Should().Equal("/Fm0", "/Im1");
     }
 
-    [Fact]
+    [Test]
     public void AFormWithItsOwnResourcesDoesNotKeepThePageEntryOfTheSameName()
     {
         var document = Saved.Open(PageDrawingThroughAFormWithItsOwnResources());
@@ -72,7 +72,7 @@ public class PruneUnusedResourcesTests
         XObjectsOf(document.Pages[0]).Should().Equal("/Fm0");
     }
 
-    [Fact]
+    [Test]
     public void ASoftMaskWithoutResourcesKeepsWhatItPaintsWithFromThePage()
     {
         var document = Saved.Open(PageDrawingThroughASoftMaskWithoutResources());
@@ -84,7 +84,7 @@ public class PruneUnusedResourcesTests
         XObjectsOf(document.Pages[0]).Should().Equal("/Im1");
     }
 
-    [Fact]
+    [Test]
     public void ASoftMaskWithItsOwnResourcesDoesNotKeepThePageEntryOfTheSameName()
     {
         var document = Saved.Open(PageDrawingThroughASoftMaskWithItsOwnResources());
@@ -95,7 +95,7 @@ public class PruneUnusedResourcesTests
         XObjectsOf(document.Pages[0]).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void AGraphicsStateTurningTheSoftMaskOffPaintsNothing()
     {
         var document = Saved.Open(PageTurningTheSoftMaskOff());
@@ -105,7 +105,7 @@ public class PruneUnusedResourcesTests
         XObjectsOf(document.Pages[0]).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void APageWhoseSoftMaskCannotBeReadIsLeftAlone()
     {
         var document = Saved.Open(PageWhoseSoftMaskCannotBeRead());
@@ -115,7 +115,7 @@ public class PruneUnusedResourcesTests
         XObjectsOf(document.Pages[0]).Should().Equal("/Im1", "/Im2");
     }
 
-    [Fact]
+    [Test]
     public void AFormDrawingItselfIsReadOnceAndPrunedAllTheSame()
     {
         var document = Saved.Open(PageWithAFormDrawingItself());
@@ -125,7 +125,7 @@ public class PruneUnusedResourcesTests
         XObjectsOf(document.Pages[0]).Should().Equal("/Fm0");
     }
 
-    [Fact]
+    [Test]
     public void APageHoldingAnInlineImageIsLeftAlone()
     {
         var document = Saved.Open(PageWithAnInlineImage());
@@ -137,7 +137,7 @@ public class PruneUnusedResourcesTests
         XObjectsOf(document.Pages[0]).Should().Equal("/Im0", "/Im1");
     }
 
-    [Fact]
+    [Test]
     public void APageWhoseContentCannotBeReadIsLeftAlone()
     {
         var document = Saved.Open(PageWhoseContentCannotBeRead());
@@ -147,7 +147,7 @@ public class PruneUnusedResourcesTests
         XObjectsOf(document.Pages[0]).Should().Equal("/Im0", "/Im1");
     }
 
-    [Fact]
+    [Test]
     public void ThePageReadsThePrunedResourcesAfterwards()
     {
         var document = Saved.Open(PagesSharingOneResourceDictionary());
@@ -161,7 +161,7 @@ public class PruneUnusedResourcesTests
         document.Pages[0].Resources.Elements.GetDictionary("/XObject").Elements.Count.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void PruningTwiceChangesNothingTheSecondTime()
     {
         var document = Saved.Open(PagesSharingOneResourceDictionary());

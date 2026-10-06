@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using PdfPinata.Charting.Tests.Helpers;
 using PdfPinata.Drawing;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -23,7 +23,7 @@ namespace PdfPinata.Charting.Tests;
 /// </remarks>
 public class ColumnPlotAreaTests
 {
-    [Fact]
+    [Test]
     public void AColumnIsAsTallAsTheValueItPlots()
     {
         var columns = PaintedRectangles.FilledOn(Drawn.Page(Charts.Of(ChartType.Column2D, 1.0, 5.0, 3.0)));
@@ -33,7 +33,7 @@ public class ColumnPlotAreaTests
         columns[2].Height.Should().BeApproximately(columns[0].Height * 3, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void EveryColumnStandsOnTheSameBaseline()
     {
         var columns = PaintedRectangles.FilledOn(Drawn.Page(Charts.Of(ChartType.Column2D, 1.0, 5.0, 3.0)));
@@ -41,7 +41,7 @@ public class ColumnPlotAreaTests
         columns.Select(column => column.Y).Distinct().Should().ContainSingle();
     }
 
-    [Fact]
+    [Test]
     public void ColumnsAreEvenlySpacedAcrossThePlotArea()
     {
         var columns = PaintedRectangles.FilledOn(Drawn.Page(Charts.Of(ChartType.Column2D, 1.0, 5.0, 3.0)));
@@ -56,7 +56,7 @@ public class ColumnPlotAreaTests
     ///   Two series in a category stand side by side and share the slot between them: half the
     ///   width each, the second beginning exactly where the first ends.
     /// </summary>
-    [Fact]
+    [Test]
     public void ClusteredSeriesStandSideBySideWithinACategory()
     {
         var oneSeries = PaintedRectangles.FilledOn(
@@ -74,7 +74,7 @@ public class ColumnPlotAreaTests
         clustered[3].X.Should().BeApproximately(clustered[0].Right, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void EachSeriesTakesTheNextColourFromThePalette()
     {
         var page = Drawn.Page(Charts.OfSeries(ChartType.Column2D,
@@ -94,7 +94,7 @@ public class ColumnPlotAreaTests
     ///   comment gives as the reason: half a column cut off at the top of the plot area would say
     ///   something the data does not.
     /// </summary>
-    [Fact]
+    [Test]
     public void AValueAboveTheGivenScaleIsNotDrawnAtAll()
     {
         var chart = Charts.Of(ChartType.Column2D, 1.0, 40.0);
@@ -112,7 +112,7 @@ public class ColumnPlotAreaTests
     ///   overdrawn by the neighbour filled next. The renderer says so in a comment and this is
     ///   what the content stream shows.
     /// </summary>
-    [Fact]
+    [Test]
     public void ColumnBordersAreStrokedAfterEveryColumnHasBeenFilled()
     {
         var page = Drawn.Page(Charts.Of(ChartType.Column2D, 1.0, 5.0, 3.0));
@@ -132,7 +132,7 @@ public class ColumnPlotAreaTests
     ///   the axis runs from -6 to 8 in steps of two and so does have one, but the line is drawn
     ///   from the plot area rather than from the axis and is drawn regardless.
     /// </summary>
-    [Fact]
+    [Test]
     public void DataOnBothSidesOfZeroGetsAZeroLineOfItsOwn()
     {
         var straddling = Charts.Of(ChartType.Column2D, -4.0, 6.0);
@@ -149,7 +149,7 @@ public class ColumnPlotAreaTests
         acrossZero.Should().HaveCount(aboveZero.Count + 1);
     }
 
-    [Fact]
+    [Test]
     public void AColumnBelowZeroHangsUnderTheColumnsAboveIt()
     {
         var columns = PaintedRectangles.FilledOn(Drawn.Page(Charts.Of(ChartType.Column2D, -4.0, 6.0, 2.0)));
@@ -160,7 +160,7 @@ public class ColumnPlotAreaTests
         columns[2].Y.Should().BeApproximately(columns[1].Y, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void StackedColumnsSitOnTopOfOneAnother()
     {
         var page = Drawn.Page(Charts.OfSeries(ChartType.ColumnStacked2D,
@@ -178,7 +178,7 @@ public class ColumnPlotAreaTests
         columns[2].Height.Should().BeApproximately(columns[0].Height * 3, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void AColumnForZeroIsDrawnWithNoHeight()
     {
         var columns = PaintedRectangles.FilledOn(Drawn.Page(Charts.Of(ChartType.Column2D, 0.0, 0.0)));
@@ -199,13 +199,13 @@ public class ColumnPlotAreaTests
     ///   frames down naming a rectangle rather than the chart. An extent below zero is now taken
     ///   as no extent, which is what makes the plot area empty rather than impossible.
     /// </remarks>
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.ColumnStacked2D)]
-    [InlineData(ChartType.Bar2D)]
-    [InlineData(ChartType.BarStacked2D)]
-    [InlineData(ChartType.Line)]
-    [InlineData(ChartType.Area2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.ColumnStacked2D)]
+    [Arguments(ChartType.Bar2D)]
+    [Arguments(ChartType.BarStacked2D)]
+    [Arguments(ChartType.Line)]
+    [Arguments(ChartType.Area2D)]
     public void AFrameTooSmallForItsAxesDrawsNothingInThePlotArea(ChartType type)
     {
         var page = Drawn.Page(Charts.Of(type, 1.0, 5.0, 3.0), 20, 15);
@@ -213,7 +213,7 @@ public class ColumnPlotAreaTests
         PaintedRectangles.FilledOn(page).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void AFrameTooSmallForItsAxesStillWritesNoNaN()
     {
         var page = Drawn.Page(Charts.Of(ChartType.Column2D, 1.0, 5.0, 3.0), 20, 15);

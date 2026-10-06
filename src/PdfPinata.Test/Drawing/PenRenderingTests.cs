@@ -5,7 +5,7 @@ using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -69,7 +69,7 @@ public class PenRenderingTests
 
     // ----- a pen built from a brush -----
 
-    [Fact]
+    [Test]
     public void APenMadeFromAGradientBrushStrokesWithTheGradient()
     {
         // XPen's brush constructor never sets a Color, so pen.Color is XColor.Empty - whose alpha
@@ -85,7 +85,7 @@ public class PenRenderingTests
         StrokeAlphasOn(page).Should().NotContain(0, "a stroke with no alpha is a stroke nobody sees");
     }
 
-    [Fact]
+    [Test]
     public void APenMadeFromASolidBrushStrokesInThatBrushesColour()
     {
         // A solid brush is a colour and wants the ordinary stroke-colour operator. Handing it to
@@ -97,7 +97,7 @@ public class PenRenderingTests
         StrokeAlphasOn(page).Should().NotContain(0);
     }
 
-    [Fact]
+    [Test]
     public void APenMadeFromATranslucentSolidBrushKeepsThatTranslucency()
     {
         var translucent = new XSolidBrush(XColor.FromArgb(128, 178, 34, 34));
@@ -107,7 +107,7 @@ public class PenRenderingTests
         StrokeAlphasOn(page).Should().Contain(alpha => alpha > 0.4 && alpha < 0.6);
     }
 
-    [Fact]
+    [Test]
     public void AnOrdinaryColouredPenIsUnaffected()
     {
         // The guard on the three above: the overwhelmingly common case must be untouched.
@@ -117,7 +117,7 @@ public class PenRenderingTests
         StrokeAlphasOn(page).Should().NotContain(0);
     }
 
-    [Fact]
+    [Test]
     public void ASolidPenAfterAGradientPenNamesItsColourAgain()
     {
         // A gradient pen writes "/Pattern CS" and an "SCN", which replaces the stroking colour
@@ -146,7 +146,7 @@ public class PenRenderingTests
 
     // ----- the miter limit -----
 
-    [Fact]
+    [Test]
     public void APenThatMitresItsJoinsWritesItsMiterLimit()
     {
         var page = Drawn(new XPen(XColors.Black, 6) { LineJoin = XLineJoin.Miter, MiterLimit = 3 });
@@ -154,7 +154,7 @@ public class PenRenderingTests
         MiterLimitsOn(page).Should().Equal(3);
     }
 
-    [Fact]
+    [Test]
     public void TheMiterLimitIsWrittenWhateverTheLineCapIs()
     {
         // The guard tested _realizedLineCap against a value of XLineJoin. The two agreed only
@@ -171,7 +171,7 @@ public class PenRenderingTests
         MiterLimitsOn(page).Should().Equal(3);
     }
 
-    [Fact]
+    [Test]
     public void AMiterLimitThatIsNotAWholeNumberSurvives()
     {
         // It was cast to int on the way out, so 1.5 - an entirely ordinary limit - was written as
@@ -182,7 +182,7 @@ public class PenRenderingTests
         MiterLimitsOn(page)[0].Should().BeApproximately(1.5, 0.001);
     }
 
-    [Fact]
+    [Test]
     public void APenThatDoesNotMitreWritesNoMiterLimit()
     {
         var page = Drawn(new XPen(XColors.Black, 6) { LineJoin = XLineJoin.Round, MiterLimit = 3 });
@@ -237,7 +237,7 @@ public class PenRenderingTests
         return strokes;
     }
 
-    [Fact]
+    [Test]
     public void ACustomDashPatternIsWrittenOnceForAsManyStrokesAsUseIt()
     {
         // It was written again for every stroke: the check that the pattern had changed was
@@ -253,7 +253,7 @@ public class PenRenderingTests
         DashPatternAtEachStroke(page).Should().Equal(Enumerable.Repeat(DashPatternOf(Dotted), 3));
     }
 
-    [Fact]
+    [Test]
     public void ADifferentCustomPatternIsWrittenWhenItComes()
     {
         var page = DrawnWith(gfx =>
@@ -267,7 +267,7 @@ public class PenRenderingTests
             DashPatternOf(Dotted), DashPatternOf(LongDashes), DashPatternOf(Dotted));
     }
 
-    [Fact]
+    [Test]
     public void ACustomPatternComesBackAfterAStandardDashStyle()
     {
         // What a pattern remembered only by the custom branch gets wrong: going to Dash and back
@@ -285,7 +285,7 @@ public class PenRenderingTests
             DashPatternOf(Dotted), DashPatternOf(dashed), DashPatternOf(Dotted));
     }
 
-    [Fact]
+    [Test]
     public void ThePatternRestoredWithTheGraphicsStateIsTheOneInForce()
     {
         var page = DrawnWith(gfx =>
@@ -302,7 +302,7 @@ public class PenRenderingTests
             DashPatternOf(Dotted), DashPatternOf(LongDashes), DashPatternOf(Dotted), DashPatternOf(LongDashes));
     }
 
-    [Fact]
+    [Test]
     public void AStandardDashStyleIsWrittenAgainForAPenOfAnotherWidth()
     {
         // The standard styles are measured in the pen's width, so the same style at another width

@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
 using PinataLayout.DocumentObjectModel.Visitors;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -25,7 +25,7 @@ public class ChartFontFlatteningTests
 
     private static void Flattened(Document document) => new PdfFlattenVisitor().Visit(document);
 
-    [Fact]
+    [Test]
     public void AnAxisTitleWithAStyleAndAFontOfItsOwnKeepsBoth()
     {
         var chart = AChart(out var document);
@@ -42,7 +42,7 @@ public class ChartFontFlatteningTests
         title.Font.Color.Should().Be(Colors.Red, "the style's colour, which the title did not set");
     }
 
-    [Fact]
+    [Test]
     public void TickLabelsWithAStyleAndAFontOfTheirOwnKeepBoth()
     {
         var chart = AChart(out var document);
@@ -57,7 +57,7 @@ public class ChartFontFlatteningTests
         tickLabels.Font.Color.Should().Be(Colors.Red);
     }
 
-    [Fact]
+    [Test]
     public void AnAxisTitleNamingNoStyleTakesTheChartsFont()
     {
         var chart = AChart(out var document);
@@ -74,7 +74,7 @@ public class ChartFontFlatteningTests
         title.Font.Italic.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void WhatTheTitleSaysItselfWinsOverItsStyle()
     {
         var chart = AChart(out var document);
@@ -90,7 +90,7 @@ public class ChartFontFlatteningTests
         title.Font.Italic.Should().BeTrue("and what it left unset still comes from the style");
     }
 
-    [Fact]
+    [Test]
     public void AStyleThatDoesNotExistFallsBackToTheChart()
     {
         var chart = AChart(out var document);

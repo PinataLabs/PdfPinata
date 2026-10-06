@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Pdf.Content.Objects;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -31,7 +31,7 @@ public class ContentSequenceTests
         return sequence;
     }
 
-    [Fact]
+    [Test]
     public void ASequenceCanBeEnumeratedThroughTheGenericInterface()
     {
         IEnumerable<CObject> sequence = Three();
@@ -39,7 +39,7 @@ public class ContentSequenceTests
         sequence.Select(item => ((CInteger)item).Value).Should().Equal(1, 2, 3);
     }
 
-    [Fact]
+    [Test]
     public void LinqWorksOverASequence()
     {
         // The case that found it: Select over an operator's operands.
@@ -50,7 +50,7 @@ public class ContentSequenceTests
         Three().First().Should().BeOfType<CInteger>();
     }
 
-    [Fact]
+    [Test]
     public void EveryListMemberWorksThroughTheInterface()
     {
         IList<CObject> sequence = Three();
@@ -83,7 +83,7 @@ public class ContentSequenceTests
         sequence.Count.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void TheIndexerThroughTheInterfaceIsTheSameOneAsThePublicIndexer()
     {
         var sequence = Three();
@@ -95,7 +95,7 @@ public class ContentSequenceTests
         sequence[1].Should().BeSameAs(replacement);
     }
 
-    [Fact]
+    [Test]
     public void ACArrayIsASequenceAndBehavesLikeOne()
     {
         // CArray derives from CSequence, so it inherited every one of the throwing stubs.

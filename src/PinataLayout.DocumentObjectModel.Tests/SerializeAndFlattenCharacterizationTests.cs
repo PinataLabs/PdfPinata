@@ -10,7 +10,7 @@ using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
 using PinataLayout.DocumentObjectModel.Tables;
 using PinataLayout.DocumentObjectModel.Visitors;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -166,7 +166,7 @@ public class SerializeAndFlattenCharacterizationTests
         return document;
     }
 
-    [Fact]
+    [Test]
     public void ADocumentSettingEveryAttributeSerializesToTheDdlItAlwaysHas() =>
         DdlWriter.WriteToString(EveryAttribute()).Should().Be(string.Join(Environment.NewLine, ExpectedEveryAttribute));
 
@@ -237,7 +237,7 @@ public class SerializeAndFlattenCharacterizationTests
         }));
     }
 
-    [Fact]
+    [Test]
     public void EveryCellOfAMergedTableGetsTheBordersItAlwaysHas() =>
         MergedBorders().Should().Be(ExpectedMergedBorders);
 
@@ -284,7 +284,7 @@ public class SerializeAndFlattenCharacterizationTests
 
     private static string Flag(bool set, string letter) => set ? letter : "-";
 
-    [Fact]
+    [Test]
     public void FlatteningFillsInAPageSetupTheWayItAlwaysHas() =>
         FlattenedPageSetups().Should().Be(ExpectedPageSetups);
 
@@ -304,7 +304,7 @@ public class SerializeAndFlattenCharacterizationTests
             .Select(element => element is Text text ? "[" + text.Content + "]" : "<" + element.GetType().Name + ">"));
     }
 
-    [Fact]
+    [Test]
     public void FlatteningCutsTextIntoTheWordsItAlwaysHas() =>
         FlattenedWords().Should().Be(ExpectedWords);
 
@@ -351,18 +351,18 @@ public class SerializeAndFlattenCharacterizationTests
         }
     }
 
-    [Theory]
-    [InlineData(Edge.Top)]
-    [InlineData(Edge.Left)]
-    [InlineData(Edge.Bottom)]
-    [InlineData(Edge.Right)]
-    [InlineData(Edge.Horizontal)]
-    [InlineData(Edge.Vertical)]
-    [InlineData(Edge.DiagonalDown)]
-    [InlineData(Edge.DiagonalUp)]
-    [InlineData(Edge.Box)]
-    [InlineData(Edge.Interior)]
-    [InlineData(Edge.Box | Edge.Interior | Edge.DiagonalDown | Edge.DiagonalUp)]
+    [Test]
+    [Arguments(Edge.Top)]
+    [Arguments(Edge.Left)]
+    [Arguments(Edge.Bottom)]
+    [Arguments(Edge.Right)]
+    [Arguments(Edge.Horizontal)]
+    [Arguments(Edge.Vertical)]
+    [Arguments(Edge.DiagonalDown)]
+    [Arguments(Edge.DiagonalUp)]
+    [Arguments(Edge.Box)]
+    [Arguments(Edge.Interior)]
+    [Arguments(Edge.Box | Edge.Interior | Edge.DiagonalDown | Edge.DiagonalUp)]
     public void SetEdgeWritesTheBordersItAlwaysHas(Edge edge) =>
         EdgesSet(edge).Should().Be(ExpectedEdges[edge]);
 

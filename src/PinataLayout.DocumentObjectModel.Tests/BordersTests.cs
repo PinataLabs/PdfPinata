@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -16,7 +16,7 @@ public class BordersTests
     private static Document RoundTrip(Document document) =>
         DdlReader.DocumentFromString(DdlWriter.WriteToString(document));
 
-    [Fact]
+    [Test]
     public void ABorderExistsOnlyOnceItHasBeenGivenSomething()
     {
         var borders = new Borders();
@@ -28,7 +28,7 @@ public class BordersTests
         borders.HasBorder(BorderType.Bottom).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AskingAboutABorderTypeThatDoesNotExistIsRefused()
     {
         var ask = () => new Borders().HasBorder((BorderType)99);
@@ -36,7 +36,7 @@ public class BordersTests
         ask.Should().Throw<ArgumentException>().WithParameterName("type");
     }
 
-    [Fact]
+    [Test]
     public void EachOfTheSixBordersIsMadeOnFirstReadAndKeptAfterwards()
     {
         var borders = new Borders();
@@ -47,7 +47,7 @@ public class BordersTests
         first.Should().OnlyHaveUniqueItems().And.Equal(second);
     }
 
-    [Fact]
+    [Test]
     public void AnAssignedBorderIsTheOneKept()
     {
         var borders = new Borders();
@@ -69,7 +69,7 @@ public class BordersTests
             .Should().Equal(top, left, bottom, right, up, down);
     }
 
-    [Fact]
+    [Test]
     public void EnumeratingBordersVisitsAllSixSlotsWhetherSetOrNot()
     {
         var borders = new Borders();
@@ -90,7 +90,7 @@ public class BordersTests
         ((System.Collections.IEnumerator)enumerator).Current.Should().Be(enumerator.Current);
     }
 
-    [Fact]
+    [Test]
     public void DistanceSetsAllFourDistancesAtOnce()
     {
         var borders = new Borders { Distance = 3 };
@@ -101,7 +101,7 @@ public class BordersTests
         borders.DistanceFromRight.Point.Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void ClearedBordersAreNotNullAndSetNullForgetsTheClearing()
     {
         var borders = new Borders();
@@ -121,7 +121,7 @@ public class BordersTests
         borders.IsNull().Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ACloneIsDeep()
     {
         var borders = new Borders
@@ -141,7 +141,7 @@ public class BordersTests
         clone.Top.Style.Should().Be(BorderStyle.Dot);
     }
 
-    [Fact]
+    [Test]
     public void EverythingBordersCanSayIsWrittenAndReadBack()
     {
         var document = new Document();
@@ -178,7 +178,7 @@ public class BordersTests
         again.DiagonalDown.Width.Point.Should().Be(7);
     }
 
-    [Fact]
+    [Test]
     public void ClearedBordersAreWrittenAsNull()
     {
         var document = new Document();

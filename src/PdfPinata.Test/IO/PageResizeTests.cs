@@ -6,7 +6,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -59,7 +59,7 @@ public class PageResizeTests
 
     // ----------------------------------------------------------------- 8.1 the content moves
 
-    [Fact]
+    [Test]
     public void AnA4PageShrunkToA5StillDrawsAllOfItself()
     {
         var document = DocumentWithAFilledPage();
@@ -76,7 +76,7 @@ public class PageResizeTests
         ShouldBeAbout(ResizedContentProbe.DrawnBounds(page), 0, slack, A5Width, A4Height * scale);
     }
 
-    [Fact]
+    [Test]
     public void AnA5PageGrownToA4StillDrawsAllOfItself()
     {
         var document = DocumentWithAFilledPage(PageSize.A5);
@@ -90,7 +90,7 @@ public class PageResizeTests
         ShouldBeAbout(ResizedContentProbe.DrawnBounds(page), slack, 0, A5Width * scale, A4Height);
     }
 
-    [Fact]
+    [Test]
     public void StretchPutsTheContentExactlyOnTheNewPage()
     {
         var document = DocumentWithAFilledPage();
@@ -103,7 +103,7 @@ public class PageResizeTests
         ShouldBeAbout(ResizedContentProbe.DrawnBounds(page), 0, 0, A5Width, A5Height);
     }
 
-    [Fact]
+    [Test]
     public void FillCoversTheNewPageAndLetsTheRestHangOff()
     {
         var document = DocumentWithAFilledPage();
@@ -118,7 +118,7 @@ public class PageResizeTests
         bounds.Height.Should().BeGreaterThanOrEqualTo(A5Height - Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void CropKeepsTheContentAtItsOwnSizeAgainstTheTopLeft()
     {
         var document = DocumentWithAFilledPage();
@@ -137,7 +137,7 @@ public class PageResizeTests
         bounds.Y.Should().BeApproximately(A5Height - A4Height, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void AMarginLeavesABorderRoundTheContent()
     {
         var document = DocumentWithAFilledPage();
@@ -159,7 +159,7 @@ public class PageResizeTests
         (bounds.Y + bounds.Height).Should().BeApproximately(A4Height - 20, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void AMarginIsTakenOffBeforeTheContentIsFitted()
     {
         var document = DocumentWithAFilledPage();
@@ -179,7 +179,7 @@ public class PageResizeTests
         (bounds.Y + bounds.Height).Should().BeLessThanOrEqualTo(A4Height - 20 + Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void APageIsResizedByItsCropBoxWhenItHasOne()
     {
         var document = DocumentWithAFilledPage();
@@ -202,7 +202,7 @@ public class PageResizeTests
         bounds.Height.Should().BeApproximately(A5Height * 2, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void APageTurnedByAQuarterKeepsItsRotateEntryAndReportsTheSizeTheReaderSees()
     {
         var document = DocumentWithAFilledPage();
@@ -221,7 +221,7 @@ public class PageResizeTests
         page.MediaBox.Height.Should().BeApproximately(A5Width, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void APageWhoseMediaBoxIsAwayFromTheOriginIsBroughtOntoTheNewPage()
     {
         var document = DocumentWithAFilledPage();
@@ -236,7 +236,7 @@ public class PageResizeTests
         page.MediaBox.Y1.Should().BeApproximately(0, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void AutoRotateTurnsAPortraitPageIntoALandscapeOneRatherThanShrinkingIt()
     {
         var document = DocumentWithAFilledPage();
@@ -253,7 +253,7 @@ public class PageResizeTests
         ShouldBeAbout(ResizedContentProbe.DrawnBounds(page), 0, 0, A4Height, A4Width);
     }
 
-    [Fact]
+    [Test]
     public void WithoutAutoRotateTheSamePageIsShrunkAndLeftWithSlackDownTheSides()
     {
         var document = DocumentWithAFilledPage();
@@ -268,7 +268,7 @@ public class PageResizeTests
 
     // --------------------------------------------------------- 8.2 the graphics state survives
 
-    [Fact]
+    [Test]
     public void ContentThatLeavesAqUnmatchedIsStillScaledAllTheWayThrough()
     {
         // The reason the content is moved into a form rather than given a cm in front of it. A
@@ -284,7 +284,7 @@ public class PageResizeTests
         ShouldBeAbout(ResizedContentProbe.DrawnBounds(page), 0, 0, 50, 50);
     }
 
-    [Fact]
+    [Test]
     public void ContentWithOneQTooManyIsStillScaled()
     {
         var document = DocumentWithUnbalancedContent("0 0 100 100 re f Q Q");
@@ -313,7 +313,7 @@ public class PageResizeTests
         return document;
     }
 
-    [Fact]
+    [Test]
     public void ATransparencyGroupTravelsWithTheContent()
     {
         var document = DocumentWithAFilledPage();
@@ -331,7 +331,7 @@ public class PageResizeTests
             "a group left on the page would no longer wrap the content that needed it");
     }
 
-    [Fact]
+    [Test]
     public void CompressedContentIsMovedWithoutBeingRecompressed()
     {
         var document = DocumentWithAFilledPage();
@@ -347,7 +347,7 @@ public class PageResizeTests
         form.Stream.Value.Should().Equal(before, "the bytes were moved, not decoded and encoded again");
     }
 
-    [Fact]
+    [Test]
     public void ResizingOnePageOfTwoThatShareResourcesLeavesTheOtherAlone()
     {
         var document = new PdfDocument();
@@ -379,7 +379,7 @@ public class PageResizeTests
             "the shared dictionary was handed to the form, not altered");
     }
 
-    [Fact]
+    [Test]
     public void APageAskedForItsResourcesBeforeTheResizeAnswersWithTheNewOnesAfterwards()
     {
         var document = DocumentWithAFilledPage();
@@ -394,7 +394,7 @@ public class PageResizeTests
         page.Resources.Elements.GetDictionary("/XObject").Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void APageAskedForItsContentBeforeTheResizeAnswersWithTheNewContentAfterwards()
     {
         var document = DocumentWithAFilledPage();
@@ -409,7 +409,7 @@ public class PageResizeTests
 
     // ------------------------------------------------------------------- 8.6 doing it twice
 
-    [Fact]
+    [Test]
     public void ResizingToA5AndBackToA4LeavesThePageAsItStarted()
     {
         var document = DocumentWithAFilledPage();
@@ -427,7 +427,7 @@ public class PageResizeTests
             "the second resize rewrote the transform rather than wrapping the wrapper");
     }
 
-    [Fact]
+    [Test]
     public void ThreeResizesLeaveOneWrapper()
     {
         var document = DocumentWithAFilledPage();
@@ -440,7 +440,7 @@ public class PageResizeTests
         ResizedContentProbe.FormCount(page).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void DrawingBetweenTwoResizesStillGivesTheRightAnswer()
     {
         var document = DocumentWithAFilledPage();
@@ -471,7 +471,7 @@ public class PageResizeTests
 
     // -------------------------------------------------------------------- 8.7 what is refused
 
-    [Fact]
+    [Test]
     public void SettingTheSizeOfABlankPageStillWorks()
     {
         var document = new PdfDocument();
@@ -482,7 +482,7 @@ public class PageResizeTests
         page.Width.Point.Should().BeApproximately(A4Width, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void SettingTheSizeOfAPageWithContentThrowsAndNamesResize()
     {
         var document = DocumentWithAFilledPage();
@@ -495,7 +495,7 @@ public class PageResizeTests
         page.MediaBox.Width.Should().Be(before.Width);
     }
 
-    [Fact]
+    [Test]
     public void SettingTheWidthOrHeightOfAPageWithContentThrows()
     {
         var document = DocumentWithAFilledPage();
@@ -505,7 +505,7 @@ public class PageResizeTests
         ((Action)(() => page.Height = 100)).Should().Throw<InvalidOperationException>().WithMessage("*Resize*");
     }
 
-    [Fact]
+    [Test]
     public void AskingWhetherThePageHasContentDoesNotDisturbIt()
     {
         var document = DocumentWithUnbalancedContent("0 0 100 100 re f");
@@ -524,7 +524,7 @@ public class PageResizeTests
             "the test for content must not rewrite /Contents into an array");
     }
 
-    [Fact]
+    [Test]
     public void AnImportedPageIsRefusedTheSizeSetterToo()
     {
         var reopened = DocumentWithAFilledPage().Reopened();
@@ -534,7 +534,7 @@ public class PageResizeTests
         act.Should().Throw<InvalidOperationException>().WithMessage("*Resize*");
     }
 
-    [Fact]
+    [Test]
     public void AReadOnlyDocumentIsRefused()
     {
         using var stream = new MemoryStream();
@@ -548,7 +548,7 @@ public class PageResizeTests
         act.Should().Throw<InvalidOperationException>();
     }
 
-    [Fact]
+    [Test]
     public void ATaggedDocumentIsRefusedAndLeftAlone()
     {
         var document = DocumentWithAFilledPage();
@@ -566,7 +566,7 @@ public class PageResizeTests
         ResizedContentProbe.DrawnBounds(page).Should().Be(before, "nothing may have been touched");
     }
 
-    [Fact]
+    [Test]
     public void ASignedDocumentIsRefused()
     {
         var document = DocumentWithAFilledPage();
@@ -587,7 +587,7 @@ public class PageResizeTests
         act.Should().Throw<InvalidOperationException>().WithMessage("*signed*");
     }
 
-    [Fact]
+    [Test]
     public void ARefusedResizePagesLeavesEveryPageUntouched()
     {
         var document = DocumentWithAFilledPage();
@@ -607,7 +607,7 @@ public class PageResizeTests
             "the check has to come before the first page is touched");
     }
 
-    [Fact]
+    [Test]
     public void ResizingWithAnOpenXGraphicsIsRefused()
     {
         var document = DocumentWithAFilledPage();
@@ -622,7 +622,7 @@ public class PageResizeTests
 
     // ------------------------------------------------------------------ resizing every page
 
-    [Fact]
+    [Test]
     public void ResizePagesBringsEveryPageToTheSameSize()
     {
         var document = new PdfDocument();
@@ -643,7 +643,7 @@ public class PageResizeTests
         }
     }
 
-    [Fact]
+    [Test]
     public void AResizedDocumentCanBeSavedAndReadBack()
     {
         var document = DocumentWithAFilledPage();
@@ -691,7 +691,7 @@ public class PageResizeTests
         return (PdfDictionary)item;
     }
 
-    [Fact]
+    [Test]
     public void TheWrapperContentIsFarShorterThanTheCapThatSkipsDecodingIt()
     {
         // Finding out whether a page is already a wrapper must not decode a whole content
@@ -711,7 +711,7 @@ public class PageResizeTests
             "has to stay well inside that");
     }
 
-    [Fact]
+    [Test]
     public void APageWithALongContentStreamIsStillResizedCorrectly()
     {
         // The other side of the cap: ordinary content is longer than any wrapper and must be
@@ -737,7 +737,7 @@ public class PageResizeTests
 
     // --------------------------------------------- what counts as a page having content
 
-    [Fact]
+    [Test]
     public void APageOpenedForDrawingButNeverDrawnOnCanStillHaveItsSizeSet()
     {
         // XGraphics appends a content stream before anything is drawn, so the /Contents array is
@@ -756,7 +756,7 @@ public class PageResizeTests
         page.Width.Point.Should().BeApproximately(A5Width, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void ASizeSetterIsRefusedOnceSomethingHasBeenDrawn()
     {
         var document = new PdfDocument();
@@ -770,7 +770,7 @@ public class PageResizeTests
 
     // ------------------------------------------------------------------- page boxes
 
-    [Fact]
+    [Test]
     public void ACropBoxReachingOutsideTheMediaBoxIsTakenAsThePartInside()
     {
         // A crop box is not allowed outside the media box, and a reader takes the intersection.
@@ -787,7 +787,7 @@ public class PageResizeTests
         ShouldBeAbout(ResizedContentProbe.DrawnBounds(page), 0, 0, A5Width, A5Height);
     }
 
-    [Fact]
+    [Test]
     public void TheOtherBoxesAreKeptInsideTheNewMediaBox()
     {
         var document = DocumentWithAFilledPage();
@@ -811,7 +811,7 @@ public class PageResizeTests
 
     // ------------------------------------------------------------------- argument checking
 
-    [Fact]
+    [Test]
     public void AnOrientationThatIsNotOneIsRefusedRatherThanTakenForPortrait()
     {
         var document = DocumentWithAFilledPage();
@@ -821,7 +821,7 @@ public class PageResizeTests
         act.Should().Throw<System.ComponentModel.InvalidEnumArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AnEncryptedDocumentIsOnlyRefusedOnceItIsActuallyEncrypted()
     {
         // A password set on a document that has not been saved yet is a setting for the save,
@@ -835,7 +835,7 @@ public class PageResizeTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void ADocumentReadBackFromAnEncryptedFileIsRefused()
     {
         var document = DocumentWithAFilledPage();

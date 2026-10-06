@@ -1,7 +1,7 @@
 using System;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -26,11 +26,11 @@ public class GeometryParsingTests
 {
     // ----- the whole string has to be read ----------------------------------------------------
 
-    [Theory]
-    [InlineData("1")]
-    [InlineData("1,")]
-    [InlineData("")]
-    [InlineData("   ")]
+    [Test]
+    [Arguments("1")]
+    [Arguments("1,")]
+    [Arguments("")]
+    [Arguments("   ")]
     public void APointThatRunsOutOfNumbersIsRefusedRatherThanFilledIn(string source)
     {
         var parsing = () => XPoint.Parse(source);
@@ -38,9 +38,9 @@ public class GeometryParsingTests
         parsing.Should().Throw<InvalidOperationException>();
     }
 
-    [Theory]
-    [InlineData("1,2,3")]
-    [InlineData("1,2 3")]
+    [Test]
+    [Arguments("1,2,3")]
+    [Arguments("1,2 3")]
     public void APointWithMoreNumbersThanItHasCoordinatesIsRefused(string source)
     {
         var parsing = () => XPoint.Parse(source);
@@ -48,9 +48,9 @@ public class GeometryParsingTests
         parsing.Should().Throw<InvalidOperationException>().WithMessage("*Extra data*");
     }
 
-    [Theory]
-    [InlineData("1,2,3")]
-    [InlineData("1")]
+    [Test]
+    [Arguments("1,2,3")]
+    [Arguments("1")]
     public void ASizeIsRefusedUnlessItIsExactlyTwoNumbers(string source)
     {
         var parsing = () => XSize.Parse(source);
@@ -58,9 +58,9 @@ public class GeometryParsingTests
         parsing.Should().Throw<InvalidOperationException>();
     }
 
-    [Theory]
-    [InlineData("1,2,3")]
-    [InlineData("1")]
+    [Test]
+    [Arguments("1,2,3")]
+    [Arguments("1")]
     public void AVectorIsRefusedUnlessItIsExactlyTwoNumbers(string source)
     {
         var parsing = () => XVector.Parse(source);
@@ -68,9 +68,9 @@ public class GeometryParsingTests
         parsing.Should().Throw<InvalidOperationException>();
     }
 
-    [Theory]
-    [InlineData("1,2,3")]
-    [InlineData("1,2,3,4,5")]
+    [Test]
+    [Arguments("1,2,3")]
+    [Arguments("1,2,3,4,5")]
     public void ARectangleIsRefusedUnlessItIsExactlyFourNumbers(string source)
     {
         var parsing = () => XRect.Parse(source);
@@ -78,9 +78,9 @@ public class GeometryParsingTests
         parsing.Should().Throw<InvalidOperationException>();
     }
 
-    [Theory]
-    [InlineData("1,2,3,4,5")]
-    [InlineData("1,2,3,4,5,6,7")]
+    [Test]
+    [Arguments("1,2,3,4,5")]
+    [Arguments("1,2,3,4,5,6,7")]
     public void AMatrixIsRefusedUnlessItIsExactlySixNumbers(string source)
     {
         var parsing = () => XMatrix.Parse(source);
@@ -94,10 +94,10 @@ public class GeometryParsingTests
     ///   A comma is the invariant culture's separator and whitespace is skipped around it, so the
     ///   same pair of numbers can be written several ways and all of them mean the same point.
     /// </summary>
-    [Theory]
-    [InlineData("1,2")]
-    [InlineData("1 2")]
-    [InlineData("  1 , 2  ")]
+    [Test]
+    [Arguments("1,2")]
+    [Arguments("1 2")]
+    [Arguments("  1 , 2  ")]
     public void TheSeparatorBetweenTwoNumbersMayBeACommaOrWhitespaceOrBoth(string source)
     {
         XPoint.Parse(source).Should().Be(new XPoint(1, 2));
@@ -108,7 +108,7 @@ public class GeometryParsingTests
     ///   to read back as one - and a word is not a number, which is why each parser looks at its
     ///   first token before deciding how many more to read.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheWordEachTypeWritesForNothingIsReadBackAsThatNothing()
     {
         XRect.Parse("Empty").Should().Be(XRect.Empty);
@@ -116,7 +116,7 @@ public class GeometryParsingTests
         XMatrix.Parse("Identity").Should().Be(XMatrix.Identity);
     }
 
-    [Fact]
+    [Test]
     public void AWordOneTypeWritesIsNotAWordAnotherReads()
     {
         var emptyMatrix = () => XMatrix.Parse("Empty");
@@ -128,7 +128,7 @@ public class GeometryParsingTests
 
     // ----- several points at once -------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ARunOfPointsIsReadAsOnePointPerSpaceSeparatedPair()
     {
         var points = XPoint.ParsePoints("1,2 3,4 5,6");
@@ -136,7 +136,7 @@ public class GeometryParsingTests
         points.Should().Equal(new XPoint(1, 2), new XPoint(3, 4), new XPoint(5, 6));
     }
 
-    [Fact]
+    [Test]
     public void ARunOfPointsThatIsNotThereSaysSoRatherThanAnsweringNone()
     {
         var parsing = () => XPoint.ParsePoints(null);

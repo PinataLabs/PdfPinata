@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -23,9 +23,9 @@ public class LexerHexStringTests
     /// <summary>The single byte 0x90, which is what the digit 9 alone spells.</summary>
     private static readonly string NinetyHex = ((char)0x90).ToString();
 
-    [Theory(Timeout = 5000)]
-    [InlineData("<48656C6C6F")]      // no closing '>' at all
-    [InlineData("<48656C6C6F ")]     // and one that ends in white space
+    [Test, Timeout(5000)]
+    [Arguments("<48656C6C6F")]      // no closing '>' at all
+    [Arguments("<48656C6C6F ")]     // and one that ends in white space
     public async Task AHexStringThatIsNeverClosedEndsWhereTheFileDoes(string pdf)
     {
         var scanned = await ScanFirstToken(pdf);
@@ -34,7 +34,7 @@ public class LexerHexStringTests
         scanned.Token.Should().Be("Hello");
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AHexStringThatIsClosedIsStillRead()
     {
         var scanned = await ScanFirstToken("<48656C6C6F>");
@@ -43,9 +43,9 @@ public class LexerHexStringTests
         scanned.Token.Should().Be("Hello");
     }
 
-    [Theory(Timeout = 5000)]
-    [InlineData("<9>")]              // closed, one digit short
-    [InlineData("<9")]               // never closed, one digit short
+    [Test, Timeout(5000)]
+    [Arguments("<9>")]              // closed, one digit short
+    [Arguments("<9")]               // never closed, one digit short
     public async Task AHexStringWithAnOddNumberOfDigitsEndsInAZero(string pdf)
     {
         // The specification says the missing final digit is a zero, so this is 0x90 and not
@@ -55,10 +55,10 @@ public class LexerHexStringTests
         scanned.Token.Should().Be(NinetyHex);
     }
 
-    [Theory(Timeout = 5000)]
-    [InlineData("<9 0>")]            // white space between the two digits of a byte
-    [InlineData("<9\n0>")]
-    [InlineData("<9*0>")]            // and something that is not a digit at all
+    [Test, Timeout(5000)]
+    [Arguments("<9 0>")]            // white space between the two digits of a byte
+    [Arguments("<9\n0>")]
+    [Arguments("<9*0>")]            // and something that is not a digit at all
     public async Task TheTwoDigitsOfAByteNeedNotBeSideBySide(string pdf)
     {
         var scanned = await ScanFirstToken(pdf);
@@ -66,7 +66,7 @@ public class LexerHexStringTests
         scanned.Token.Should().Be(NinetyHex);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AUnicodeHexStringIsStillRecognisedByItsByteOrderMark()
     {
         var scanned = await ScanFirstToken("<FEFF00480049>");
@@ -75,9 +75,9 @@ public class LexerHexStringTests
         scanned.Token.Should().Be("HI");
     }
 
-    [Theory(Timeout = 5000)]
-    [InlineData("<FEFF0>")]          // closed, but a byte order mark and then a single digit
-    [InlineData("<FEFF0")]           // and the same never closed
+    [Test, Timeout(5000)]
+    [Arguments("<FEFF0>")]          // closed, but a byte order mark and then a single digit
+    [Arguments("<FEFF0")]           // and the same never closed
     public async Task AUnicodeHexStringMissingHalfOfItsLastCharacterEndsInAZero(string pdf)
     {
         // The digit alone is the byte 0x00, and the character it begins is short of its low
@@ -88,7 +88,7 @@ public class LexerHexStringTests
         scanned.Token.Should().Be("\0");
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task ScanningStopsAtTheEndOfAnUnclosedHexStringRatherThanRunningOn()
     {
         // Every token of the file, not just the first: a scan that did not stop would never
@@ -98,7 +98,7 @@ public class LexerHexStringTests
         symbols.Should().Equal(Symbol.HexString, Symbol.Eof);
     }
 
-    [Fact(Timeout = 20000)]
+    [Test, Timeout(20000)]
     public async Task ADocumentWhoseCrossReferenceOffsetIsAnUnclosedHexStringIsRefused()
     {
         // What the reported document amounts to: "startxref" followed by something that is not
@@ -119,7 +119,7 @@ public class LexerHexStringTests
     private static Task<Scanned> ScanFirstToken(string pdf)
     {
         // On a thread of its own, so that the Timeout on these tests can interrupt a scan that
-        // does not end. xUnit honours it only on an async test.
+        // does not end. It is honoured only on an async test.
         return Interruptibly.Run(() =>
         {
             var lexer = new Lexer(new MemoryStream(Encoding.Latin1.GetBytes(pdf)));

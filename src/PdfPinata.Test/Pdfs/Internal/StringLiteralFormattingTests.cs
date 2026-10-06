@@ -5,7 +5,7 @@ using System.Runtime.ExceptionServices;
 using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs.Internal;
 
@@ -28,16 +28,16 @@ public class StringLiteralFormattingTests
             .GetMethod("FormatStringLiteral", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
         ?? throw new MissingMethodException("PdfEncoders", "FormatStringLiteral");
 
-    [Theory]
-    [InlineData(false, "()")]
-    [InlineData(true, "<>")]
+    [Test]
+    [Arguments(false, "()")]
+    [Arguments(true, "<>")]
     public void NoBytesAtAllAreAnEmptyString(bool hex, string expected)
     {
         Format(null, unicode: false, prefix: false, hex).Should().Be(expected);
         Format([], unicode: true, prefix: true, hex).Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void ALiteralStringEscapesItsDelimitersAndFourOfTheControlCharacters()
     {
         var text = Format(Bytes("(a)\\\n\r\t\b"), unicode: false, prefix: false, hex: false);
@@ -45,7 +45,7 @@ public class StringLiteralFormattingTests
         text.Should().Be("(\\(a\\)\\\\\\n\\r\\t\\b)");
     }
 
-    [Fact]
+    [Test]
     public void ALiteralStringWritesEveryOtherByteAsItIs()
     {
         // The form feed above all: escaping it as \f corrupted encrypted text.
@@ -55,23 +55,23 @@ public class StringLiteralFormattingTests
             .Should().Be("(" + Latin1(bytes) + ")");
     }
 
-    [Fact]
+    [Test]
     public void AHexStringWritesTwoUpperCaseDigitsToAByte()
     {
         Format([0x00, 0x0A, 0xAB, 0xFF], unicode: false, prefix: false, hex: true)
             .Should().Be("<000AABFF>");
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
+    [Test]
+    [Arguments(false)]
+    [Arguments(true)]
     public void UnicodeIsWrittenInHexWhateverWasAskedFor(bool hex)
     {
         Format([0x00, 0x41, 0x65, 0xE5], unicode: true, prefix: true, hex)
             .Should().Be("<FEFF004165E5>");
     }
 
-    [Fact]
+    [Test]
     public void UnicodeBreaksTheLineAfterTheCharacterAtEveryMultipleOf24NotCountingTheByteOrderMark()
     {
         // The character at index 0 breaks nothing, so the first line holds 25 characters and

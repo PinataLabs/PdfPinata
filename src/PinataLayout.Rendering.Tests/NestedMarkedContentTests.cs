@@ -5,7 +5,7 @@ using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.Rendering.Tests.Helpers;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -53,7 +53,7 @@ public class NestedMarkedContentTests
         return deepest;
     }
 
-    [Fact]
+    [Test]
     public void AFootnoteMarkIsNotNestedInsideTheParagraphThatCitesIt()
     {
         var document = Document(out var section);
@@ -63,7 +63,7 @@ public class NestedMarkedContentTests
             "the paragraph is suspended around the reference rather than wrapped round it");
     }
 
-    [Fact]
+    [Test]
     public void AHyperlinkIsNotNestedInsideItsParagraph()
     {
         var document = Document(out var section);
@@ -74,7 +74,7 @@ public class NestedMarkedContentTests
         DeepestNesting(document).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AListLabelIsNotNestedInsideItsBody()
     {
         var document = Document(out var section);
@@ -87,7 +87,7 @@ public class NestedMarkedContentTests
         DeepestNesting(document).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void TheParagraphKeepsTheTextOnBothSidesOfWhatInterruptedIt()
     {
         // Suspending is only safe because the sequence is resumed. Without the resume the text after
@@ -104,7 +104,7 @@ public class NestedMarkedContentTests
             "the paragraph owns a content item on each side of the link");
     }
 
-    [Fact]
+    [Test]
     public void AParagraphEndingInALinkGainsNoEmptyContentItem()
     {
         // The sequence resumed after the link is closed with nothing drawn in it, so it is taken

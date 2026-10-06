@@ -7,7 +7,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
 using Reader = PdfPinata.Pdf.IO.PdfReader;
@@ -28,7 +28,7 @@ public class ReusedCrossReferenceStreamNumberTests
 {
     private const string Title = "Signed in a later revision";
 
-    [Fact]
+    [Test]
     public void AnObjectReusingTheNumberOfAnEarlierCrossReferenceStreamIsReadAsItself()
     {
         var reread = Open(WithFormUnderTheCrossReferenceStreamsNumber());
@@ -38,7 +38,7 @@ public class ReusedCrossReferenceStreamNumberTests
             "the number now belongs to the form the update added, not to the index it was taken from");
     }
 
-    [Fact]
+    [Test]
     public void TheObjectsTheDisplacedCrossReferenceStreamCompressedAreStillRead()
     {
         // The displaced stream is still what says where the first revision's compressed objects
@@ -50,7 +50,7 @@ public class ReusedCrossReferenceStreamNumberTests
         reread.Info.Title.Should().Be(Title);
     }
 
-    [Fact]
+    [Test]
     public void ACrossReferenceStreamListedByTheStreamAfterItIsStillRead()
     {
         // The case an entry with a position and no value is really there for: a newer

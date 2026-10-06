@@ -6,7 +6,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Security;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Security;
 
@@ -32,23 +32,23 @@ namespace PdfPinata.Test.Security;
 /// </remarks>
 public class StandardSecurityAlgorithmTests
 {
-    public static TheoryData<string, string, string> ProducerDocuments => new()
-    {
-        { "rc4-r2-40bit-ghostscript.pdf", "user", "owner" },
-        { "rc4-r3-40bit-ghostscript.pdf", "user", "owner" },
-        { "rc4-r3-56bit-ghostscript.pdf", "user", "owner" },
-        { "rc4-r3-96bit-ghostscript.pdf", "user", "owner" },
-        { "rc4-r3-128bit-ghostscript.pdf", "user", "owner" },
-        { "rc4-r4-128bit-cleartext-metadata-qpdf.pdf", "user", "owner" },
-        { "aes-r4-128bit-cleartext-metadata-qpdf.pdf", "user", "owner" },
-        { "protected-ilovepdf.pdf", "test123", "test123" },
-        { "protected-adobe.pdf", "test123", "test123" },
-        { "protected-user-and-owner-password.pdf", "jinglebob8", "pigsfly2" },
-        { "AesEncrypted.pdf", "", null }
-    };
+    public static IEnumerable<(string, string, string)> ProducerDocuments =>
+    [
+        ("rc4-r2-40bit-ghostscript.pdf", "user", "owner"),
+        ("rc4-r3-40bit-ghostscript.pdf", "user", "owner"),
+        ("rc4-r3-56bit-ghostscript.pdf", "user", "owner"),
+        ("rc4-r3-96bit-ghostscript.pdf", "user", "owner"),
+        ("rc4-r3-128bit-ghostscript.pdf", "user", "owner"),
+        ("rc4-r4-128bit-cleartext-metadata-qpdf.pdf", "user", "owner"),
+        ("aes-r4-128bit-cleartext-metadata-qpdf.pdf", "user", "owner"),
+        ("protected-ilovepdf.pdf", "test123", "test123"),
+        ("protected-adobe.pdf", "test123", "test123"),
+        ("protected-user-and-owner-password.pdf", "jinglebob8", "pigsfly2"),
+        ("AesEncrypted.pdf", "", null)
+    ];
 
-    [Theory]
-    [MemberData(nameof(ProducerDocuments))]
+    [Test]
+    [MethodDataSource(nameof(ProducerDocuments))]
     public void TheIndependentCopyDerivesTheUserEntryEachProducerWrote(string file, string user, string owner)
     {
         _ = owner;
@@ -57,8 +57,8 @@ public class StandardSecurityAlgorithmTests
         document.DerivedKeyMatchesTheDocument.Should().BeTrue();
     }
 
-    [Theory]
-    [MemberData(nameof(ProducerDocuments))]
+    [Test]
+    [MethodDataSource(nameof(ProducerDocuments))]
     public void TheIndependentCopyDerivesTheOwnerEntryEachProducerWrote(string file, string user, string owner)
     {
         if (owner == null)
@@ -70,9 +70,9 @@ public class StandardSecurityAlgorithmTests
         computed.Should().Equal(entries.Owner[..32]);
     }
 
-    [Theory]
-    [InlineData("rc4-r4-128bit-cleartext-metadata-qpdf.pdf")]
-    [InlineData("aes-r4-128bit-cleartext-metadata-qpdf.pdf")]
+    [Test]
+    [Arguments("rc4-r4-128bit-cleartext-metadata-qpdf.pdf")]
+    [Arguments("aes-r4-128bit-cleartext-metadata-qpdf.pdf")]
     public void AtRevision4UnencryptedMetadataIsPartOfTheFileKey(string file)
     {
         // Algorithm 2 step (f). Only the reader needs it, because PdfPinata writes nothing past
@@ -98,9 +98,9 @@ public class StandardSecurityAlgorithmTests
     ///   the 16 bytes of /U that are defined. The rest of /U is arbitrary padding, and PdfPinata's
     ///   is zeros.
     /// </summary>
-    [Theory]
-    [InlineData(PdfDocumentSecurityLevel.Encrypted40Bit, "rc4-r2-40bit-ghostscript.pdf")]
-    [InlineData(PdfDocumentSecurityLevel.Encrypted128Bit, "rc4-r3-128bit-ghostscript.pdf")]
+    [Test]
+    [Arguments(PdfDocumentSecurityLevel.Encrypted40Bit, "rc4-r2-40bit-ghostscript.pdf")]
+    [Arguments(PdfDocumentSecurityLevel.Encrypted128Bit, "rc4-r3-128bit-ghostscript.pdf")]
     public void PdfPinataWritesTheEntriesGhostscriptWrote(PdfDocumentSecurityLevel level, string file)
     {
         var ghostscript = EncryptionEntries.Read(Asset(file));
@@ -130,17 +130,17 @@ public class StandardSecurityAlgorithmTests
         }
     }
 
-    public static TheoryData<PdfDocumentSecurityLevel, string, string> PasswordPairs()
+    public static IEnumerable<(PdfDocumentSecurityLevel, string, string)> PasswordPairs()
     {
-        var data = new TheoryData<PdfDocumentSecurityLevel, string, string>();
+        var data = new List<(PdfDocumentSecurityLevel, string, string)>();
         foreach (var level in new[] { PdfDocumentSecurityLevel.Encrypted40Bit, PdfDocumentSecurityLevel.Encrypted128Bit })
         {
-            data.Add(level, "user", "owner");
-            data.Add(level, "same", "same");
-            data.Add(level, "user", null);
-            data.Add(level, null, "owner");
-            data.Add(level, "ÀÉÎõü", "ÿþ");
-            data.Add(level, new string('u', 40), new string('o', 33));
+            data.Add((level, "user", "owner"));
+            data.Add((level, "same", "same"));
+            data.Add((level, "user", null));
+            data.Add((level, null, "owner"));
+            data.Add((level, "ÀÉÎõü", "ÿþ"));
+            data.Add((level, new string('u', 40), new string('o', 33)));
         }
         return data;
     }
@@ -150,8 +150,8 @@ public class StandardSecurityAlgorithmTests
     ///   passwords that are missing, the same as each other, above ASCII or longer than 32
     ///   characters.
     /// </summary>
-    [Theory]
-    [MemberData(nameof(PasswordPairs))]
+    [Test]
+    [MethodDataSource(nameof(PasswordPairs))]
     public void TheWritersEntriesAreTheOnesTheAlgorithmsGive(PdfDocumentSecurityLevel level, string user, string owner)
     {
         var bytes = SaveEncrypted(level, user, owner, "Algorithms");
@@ -173,9 +173,9 @@ public class StandardSecurityAlgorithmTests
         document.DecryptInfoString("/Title").Should().Be("Algorithms");
     }
 
-    [Theory]
-    [InlineData(PdfDocumentSecurityLevel.Encrypted40Bit, -64)]
-    [InlineData(PdfDocumentSecurityLevel.Encrypted128Bit, -3904)]
+    [Test]
+    [Arguments(PdfDocumentSecurityLevel.Encrypted40Bit, -64)]
+    [Arguments(PdfDocumentSecurityLevel.Encrypted128Bit, -3904)]
     public void PermittingNothingWritesOnlyTheBitsThatMustBeSet(PdfDocumentSecurityLevel level, int expected)
     {
         var document = new PdfDocument();
@@ -187,9 +187,9 @@ public class StandardSecurityAlgorithmTests
         EncryptionEntries.Read(Save(document)).Permissions.Should().Be(expected);
     }
 
-    [Theory]
-    [InlineData(PdfDocumentSecurityLevel.Encrypted40Bit, -4)]
-    [InlineData(PdfDocumentSecurityLevel.Encrypted128Bit, -4)]
+    [Test]
+    [Arguments(PdfDocumentSecurityLevel.Encrypted40Bit, -4)]
+    [Arguments(PdfDocumentSecurityLevel.Encrypted128Bit, -4)]
     public void PermittingEverythingWritesEveryBit(PdfDocumentSecurityLevel level, int expected)
     {
         var bytes = SaveEncrypted(level, "user", "owner", "Permissions");
@@ -205,9 +205,9 @@ public class StandardSecurityAlgorithmTests
     ///   decrypts the same title from it, with either password, once a comment has padded the file
     ///   past the size below which qpdf ignores an object number that high.
     /// </summary>
-    [Theory]
-    [InlineData("")]
-    [InlineData("owner")]
+    [Test]
+    [Arguments("")]
+    [Arguments("owner")]
     public void AnObjectsKeyIsMadeFromItsNumberAndGeneration(string password)
     {
         var bytes = HandBuiltDocument(infoNumber: 0x010203, infoGeneration: 0x0102, title: "Generation 258");

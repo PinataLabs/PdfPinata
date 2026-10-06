@@ -2,7 +2,7 @@ using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -34,7 +34,7 @@ public class ChartChildObjectTests
     ///   hand it to a chart rather than reaching through the chart for it. A parented constructor
     ///   is what the chart itself uses, and it is the only one anything here ever ran.
     /// </summary>
-    [Fact]
+    [Test]
     public void AChartChildCanBeBuiltWithNoParentAtAll()
     {
         new Axis().MajorTick.Should().Be(0);
@@ -55,7 +55,7 @@ public class ChartChildObjectTests
     ///   that shared its children with the original would be invisible until something wrote to
     ///   one of them, so the values are read back off the copy and then the original is changed.
     /// </summary>
-    [Fact]
+    [Test]
     public void ACopyOfAChartChildCarriesTheValuesAndNotTheObjects()
     {
         var axis = new Axis { MajorTick = 5, TickLabels = { Format = "0.00" } };
@@ -71,7 +71,7 @@ public class ChartChildObjectTests
         copy.TickLabels.Format.Should().Be("0.00");
     }
 
-    [Fact]
+    [Test]
     public void EveryChartChildCopiesItselfIntoItsOwnType()
     {
         new AxisTitle { Caption = "across" }.Clone().Caption.Should().Be("across");
@@ -92,7 +92,7 @@ public class ChartChildObjectTests
     ///   how the axis learns whether to write itself as <c>\xaxis</c>, <c>\yaxis</c> or
     ///   <c>\zaxis</c>.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnAxisHandedToAChartIsTheAxisTheChartThenWrites()
     {
         var chart = AChart();
@@ -115,7 +115,7 @@ public class ChartChildObjectTests
     ///   reparent an object that already has a parent, because the one it came from is still
     ///   holding it - the two charts would share a child and neither would know.
     /// </summary>
-    [Fact]
+    [Test]
     public void AChildThatAlreadyBelongsToAnotherChartIsRefusedRatherThanTakenAway()
     {
         var chart = AChart();
@@ -127,7 +127,7 @@ public class ChartChildObjectTests
             .WithMessage("*must be cloned before set*");
     }
 
-    [Fact]
+    [Test]
     public void EveryOtherChildHandedToAChartIsTheOneTheChartThenUses()
     {
         var chart = AChart();
@@ -169,7 +169,7 @@ public class ChartChildObjectTests
     ///   it is what copies a style down into the paragraphs that name it, so an area a chart failed
     ///   to offer reaches the renderer with nothing filled in.
     /// </summary>
-    [Fact]
+    [Test]
     public void FlatteningReachesTheParagraphInEveryAreaAChartHas()
     {
         var document = new Document();
@@ -203,7 +203,7 @@ public class ChartChildObjectTests
     ///   a capital L, which is not how the property is spelled, and a reader that expected the
     ///   property's own spelling would drop them without a word.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnAxisWritesEveryDialThatWasTurned()
     {
         var chart = AChart();
@@ -243,7 +243,7 @@ public class ChartChildObjectTests
     ///   two names its axis says it is, and an axis asked about a gridlines object that is neither
     ///   of its own answers with an empty string rather than guessing.
     /// </summary>
-    [Fact]
+    [Test]
     public void GridlinesAreNamedByTheAxisTheyBelongTo()
     {
         var chart = AChart();
@@ -260,7 +260,7 @@ public class ChartChildObjectTests
     ///   get one whose parent is an axis that has stopped owning it, and a wrong guess here would
     ///   write it out under a heading that belongs to the object which replaced it.
     /// </summary>
-    [Fact]
+    [Test]
     public void GridlinesTheirAxisNoLongerOwnsAreWrittenUnderNoNameAtAll()
     {
         var axis = AChart().XAxis;
@@ -272,7 +272,7 @@ public class ChartChildObjectTests
         DdlOf(displaced).Should().NotContain("MajorGridlines").And.NotContain("MinorGridlines");
     }
 
-    [Fact]
+    [Test]
     public void GridlinesHandedALineFormatWriteThatOneRatherThanTheirOwn()
     {
         var chart = AChart();
@@ -283,7 +283,7 @@ public class ChartChildObjectTests
         DdlOf(chart).Should().Contain("MajorGridlines").And.Contain("Width = 3");
     }
 
-    [Fact]
+    [Test]
     public void TickLabelsWriteTheirStyleTheirFormatAndTheirFont()
     {
         var chart = AChart();
@@ -302,7 +302,7 @@ public class ChartChildObjectTests
             .And.Contain("Palatino");
     }
 
-    [Fact]
+    [Test]
     public void ADataLabelWritesItsStyleFormatPositionTypeAndFont()
     {
         var chart = AChart();
@@ -330,13 +330,13 @@ public class ChartChildObjectTests
     ///   one is a chart that shows a legend - the object's presence is the setting. Everything else
     ///   in the DOM answers the opposite way, which is why this override is worth a test of its own.
     /// </summary>
-    [Fact]
+    [Test]
     public void ALegendIsNeverNullEvenWhenNothingWasSetOnIt()
     {
         new Legend().IsNull().Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ALegendWritesItsStyleItsFormatAndItsBorder()
     {
         var chart = AChart();
@@ -357,7 +357,7 @@ public class ChartChildObjectTests
             .And.Contain("SpaceBefore = 2");
     }
 
-    [Fact]
+    [Test]
     public void APlotAreaWritesEveryPaddingAndBothOfItsFormats()
     {
         var chart = AChart();
@@ -384,7 +384,7 @@ public class ChartChildObjectTests
     ///   path every existing series takes. Give it a line or a fill and it becomes a <c>\point</c>
     ///   block with the number inside - a different shape entirely, and the one nothing reached.
     /// </summary>
-    [Fact]
+    [Test]
     public void AFormattedPointIsWrittenAsABlockRatherThanABareNumber()
     {
         var chart = AChart();
@@ -399,7 +399,7 @@ public class ChartChildObjectTests
         DdlOf(chart).Should().Contain("\\point");
     }
 
-    [Fact]
+    [Test]
     public void ASeriesWritesItsNameItsMarkersAndItsFormats()
     {
         var chart = AChart();
@@ -433,7 +433,7 @@ public class ChartChildObjectTests
     ///   A series handed a whole element collection keeps the values that collection already holds,
     ///   which is the one way to build the numbers before the chart that shows them.
     /// </summary>
-    [Fact]
+    [Test]
     public void ASeriesHandedAnElementCollectionKeepsTheValuesInIt()
     {
         var built = new Series();
@@ -447,7 +447,7 @@ public class ChartChildObjectTests
         ((Point)series.Elements[2]).Value.Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void AChartWritesTheFourSettingsThatAreNotAboutOneChildOrAnother()
     {
         var chart = AChart();

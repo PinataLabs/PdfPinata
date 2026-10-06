@@ -2,7 +2,7 @@ using System;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Internals;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -18,14 +18,14 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class StyleTypeAndBaseStyleTests
 {
-    [Fact]
+    [Test]
     public void AStyleMustBeGivenAName()
     {
         ((Action)(() => _ = new Style(null!, "Normal"))).Should().Throw<ArgumentNullException>();
         ((Action)(() => _ = new Style("", "Normal"))).Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AStyleKeepsTheNameAndBaseStyleItWasGiven()
     {
         var style = new Style("Mine", "Normal");
@@ -35,7 +35,7 @@ public class StyleTypeAndBaseStyleTests
         style.BuildIn.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AStyleBasedOnTheDefaultParagraphFontIsACharacterStyle()
     {
         var style = new Style("Mine", Style.DefaultParagraphFontName);
@@ -43,7 +43,7 @@ public class StyleTypeAndBaseStyleTests
         style.Type.Should().Be(StyleType.Character);
     }
 
-    [Fact]
+    [Test]
     public void AStyleTakesItsTypeFromTheStyleItIsBasedOn()
     {
         var document = new Document();
@@ -52,7 +52,7 @@ public class StyleTypeAndBaseStyleTests
         style.Type.Should().Be(StyleType.Paragraph);
     }
 
-    [Fact]
+    [Test]
     public void AStyleWithNoOwningCollectionCannotLookItsBaseStyleUp()
     {
         var style = new Style("Mine", "Normal");
@@ -62,7 +62,7 @@ public class StyleTypeAndBaseStyleTests
         asking.Should().Throw<InvalidOperationException>();
     }
 
-    [Fact]
+    [Test]
     public void ARootStyleIsBasedOnNothingAtAll()
     {
         var document = new Document();
@@ -71,7 +71,7 @@ public class StyleTypeAndBaseStyleTests
         document.Styles[Style.DefaultParagraphFontName].GetBaseStyle().Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void TheDefaultParagraphFontIsReadOnlyAndNormalIsNot()
     {
         var document = new Document();
@@ -80,7 +80,7 @@ public class StyleTypeAndBaseStyleTests
         document.Styles[Style.DefaultParagraphName].IsReadOnly.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AStyleMustBeAskedForSomethingByName()
     {
         var style = new Document().Styles[Style.DefaultParagraphName];
@@ -89,7 +89,7 @@ public class StyleTypeAndBaseStyleTests
         ((Action)(() => style.GetValue("", GV.ReadWrite))).Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AFontPropertyAskedForByNameIsAnsweredByTheParagraphFormat()
     {
         var document = new Document();
@@ -99,7 +99,7 @@ public class StyleTypeAndBaseStyleTests
         style.GetValue("Font.Name", GV.ReadWrite).Should().Be("Arial");
     }
 
-    [Fact]
+    [Test]
     public void AStyleCarriesACommentThatIsWrittenOutAboveIt()
     {
         var document = new Document();
@@ -114,7 +114,7 @@ public class StyleTypeAndBaseStyleTests
         ddl.Should().Contain("the one for headings");
     }
 
-    [Fact]
+    [Test]
     public void AFontAssignedToAStyleGoesToItsParagraphFormat()
     {
         var document = new Document();
@@ -126,7 +126,7 @@ public class StyleTypeAndBaseStyleTests
         style.ParagraphFormat.Font.Name.Should().Be("Arial");
     }
 
-    [Fact]
+    [Test]
     public void AParagraphFormatAssignedToAStyleReplacesTheOneItHad()
     {
         var document = new Document();
@@ -139,7 +139,7 @@ public class StyleTypeAndBaseStyleTests
         style.ParagraphFormat.SpaceBefore.Centimeter.Should().BeApproximately(3, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void AStyleClonesItselfWithItsOwnFormat()
     {
         var document = new Document();
@@ -158,7 +158,7 @@ public class StyleTypeAndBaseStyleTests
     ///   it, where one left alone is written with its name only. Both arms of that decision are
     ///   reached only through serialization, which is why this asserts on the DDL.
     /// </summary>
-    [Fact]
+    [Test]
     public void ABuiltInStyleGivenANewBaseStyleIsWrittenOutWithIt()
     {
         var document = new Document();
@@ -172,7 +172,7 @@ public class StyleTypeAndBaseStyleTests
         ddl.Should().Contain("Heading1 : Mine");
     }
 
-    [Fact]
+    [Test]
     public void ABuiltInStyleLeftOnItsOwnBaseIsWrittenOutByNameAlone()
     {
         var document = new Document();

@@ -5,7 +5,7 @@ using System.Reflection;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -56,11 +56,11 @@ public class SimpleTypeImmutabilityTests
     /// </summary>
     private static readonly Type[] Excluded = [typeof(PdfReference)];
 
-    public static TheoryData<Type> SimpleTypesUnderTheRule() =>
+    public static IEnumerable<Type> SimpleTypesUnderTheRule() =>
         [..AllSimpleTypes().Where(t => !Excluded.Contains(t))];
 
-    [Theory]
-    [MemberData(nameof(SimpleTypesUnderTheRule))]
+    [Test]
+    [MethodDataSource(nameof(SimpleTypesUnderTheRule))]
     public void ASimpleTypeIsSealed(Type type)
     {
         // An unsealed simple type invites a subclass that adds the mutable field the base was
@@ -69,8 +69,8 @@ public class SimpleTypeImmutabilityTests
             "{0} is a simple type, and a simple type must be immutable, subclasses included", type.Name);
     }
 
-    [Theory]
-    [MemberData(nameof(SimpleTypesUnderTheRule))]
+    [Test]
+    [MethodDataSource(nameof(SimpleTypesUnderTheRule))]
     public void ASimpleTypeDeclaresNoFieldThatCanBeAssignedAfterConstruction(Type type)
     {
         // Not DeclaredOnly: a future intermediate class - another PdfNumber - could add a field,
@@ -89,14 +89,14 @@ public class SimpleTypeImmutabilityTests
             "a simple type must be immutable, and a field that is not readonly can be assigned after construction");
     }
 
-    [Fact]
+    [Test]
     public void TheOnlyExcludedTypeIsPdfReference()
     {
         Excluded.Should().Equal([typeof(PdfReference)],
             "an exclusion has to be argued for in this test rather than added to a filter");
     }
 
-    [Fact]
+    [Test]
     public void TheAssertionsWouldIndeedFailATypeThatBrokeTheRule()
     {
         // An assertion is only worth making if what it forbids would fail it, and every type left
@@ -108,7 +108,7 @@ public class SimpleTypeImmutabilityTests
             .Should().NotBeEmpty("otherwise the field check above is asserting nothing");
     }
 
-    [Fact]
+    [Test]
     public void TheSweepFindsTheTypesTheRuleWasWrittenAbout()
     {
         // A sweep that found nothing would pass every assertion above. This is what says it looked.

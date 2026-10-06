@@ -8,7 +8,7 @@ using PdfPinata.EInvoice;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
 using Reader = PdfPinata.Pdf.IO.PdfReader;
@@ -37,7 +37,7 @@ public class EInvoiceTests
 
     // ── What gets attached ──────────────────────────────────────────────────────────────────────
 
-    [Fact]
+    [Test]
     public void TheInvoiceIsAttachedTheWayTheStandardAsksForIt()
     {
         var document = Prepared();
@@ -50,7 +50,7 @@ public class EInvoiceTests
         specification.EmbeddedFile.Stream.UnfilteredValue.Should().Equal(Xml());
     }
 
-    [Fact]
+    [Test]
     public void AttachingAnInvoiceClaimsTheOneArchivalProfileThatMayCarryOne()
     {
         var document = Prepared();
@@ -61,7 +61,7 @@ public class EInvoiceTests
             "a Factur-X document is a PDF/A-3 document, and no other PDF/A profile may carry a file");
     }
 
-    [Fact]
+    [Test]
     public void AClaimThatCouldNotCarryAnInvoiceIsRefusedRatherThanPromoted()
     {
         var document = Prepared();
@@ -77,7 +77,7 @@ public class EInvoiceTests
         document.Options.Conformance.Should().Be(PdfAConformance.PdfA1B);
     }
 
-    [Fact]
+    [Test]
     public void APriorPdfA3AClaimSurvivesAttachingTheInvoice()
     {
         // PDF/A-3a is PDF/A-3b plus a tagged structure tree, and it may carry a file for exactly
@@ -92,7 +92,7 @@ public class EInvoiceTests
             "a caller who asked for an accessible hybrid invoice keeps that claim");
     }
 
-    [Fact]
+    [Test]
     public void AnInvoiceNeedsSomeXmlToBe()
     {
         var withNothing = () => new FacturXInvoice(null);
@@ -104,7 +104,7 @@ public class EInvoiceTests
 
     // ── What the metadata says about it ─────────────────────────────────────────────────────────
 
-    [Fact]
+    [Test]
     public void TheExtensionSchemaDeclaresExactlyThePropertiesThePacketThenUses()
     {
         // The one rule that makes this worth a package. PDF/A holds every property in the packet to
@@ -128,13 +128,13 @@ public class EInvoiceTests
         packet.Descendants(PdfaSchema + "prefix").Single().Value.Should().Be("fx");
     }
 
-    [Theory]
-    [InlineData(EInvoiceProfile.Minimum, "MINIMUM")]
-    [InlineData(EInvoiceProfile.BasicWithoutLines, "BASIC WL")]
-    [InlineData(EInvoiceProfile.Basic, "BASIC")]
-    [InlineData(EInvoiceProfile.En16931, "EN 16931")]
-    [InlineData(EInvoiceProfile.Extended, "EXTENDED")]
-    [InlineData(EInvoiceProfile.XRechnung, "XRECHNUNG")]
+    [Test]
+    [Arguments(EInvoiceProfile.Minimum, "MINIMUM")]
+    [Arguments(EInvoiceProfile.BasicWithoutLines, "BASIC WL")]
+    [Arguments(EInvoiceProfile.Basic, "BASIC")]
+    [Arguments(EInvoiceProfile.En16931, "EN 16931")]
+    [Arguments(EInvoiceProfile.Extended, "EXTENDED")]
+    [Arguments(EInvoiceProfile.XRechnung, "XRECHNUNG")]
     public void TheProfileIsSpelledTheWayAReceiverReadsIt(EInvoiceProfile profile, string expected)
     {
         // The spaces are the point. A document writing EN16931 or BASICWL passes every check that
@@ -144,7 +144,7 @@ public class EInvoiceTests
         packet.Descendants(FacturX + "ConformanceLevel").Single().Value.Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void TheDefaultProfileIsTheOneThePublicMandatesAreWrittenAgainst()
     {
         var packet = Packet(Save(new FacturXInvoice(Xml())));
@@ -154,7 +154,7 @@ public class EInvoiceTests
         packet.Descendants(FacturX + "Version").Single().Value.Should().Be("1.0");
     }
 
-    [Fact]
+    [Test]
     public void TheNameTheMetadataGivesIsTheNameTheFileWasAttachedUnder()
     {
         // A receiver takes the attachment by the name the metadata names, so the two disagreeing is
@@ -166,7 +166,7 @@ public class EInvoiceTests
             .Should().Be("zugferd-invoice.xml");
     }
 
-    [Fact]
+    [Test]
     public void AHookTheCallerAlreadySetSurvivesAlongsideTheInvoice()
     {
         // AttachTo contributes through AddMetadataContributor, which cannot replace whatever
@@ -183,7 +183,7 @@ public class EInvoiceTests
         text.Should().Contain("Factur-X PDFA Extension Schema");
     }
 
-    [Fact]
+    [Test]
     public void AHookSetAfterAttachingTheInvoiceSurvivesJustAsWell()
     {
         // The bug this guards against: a single assignable CustomizeMetadata meant a caller who set
@@ -202,7 +202,7 @@ public class EInvoiceTests
         text.Should().Contain("Factur-X PDFA Extension Schema");
     }
 
-    [Fact]
+    [Test]
     public void AnAmpersandInWhatTheCallerNamedTheSchemaDoesNotBreakThePacket()
     {
         // The descriptions go into the packet verbatim, so one unescaped character makes the whole
@@ -214,7 +214,7 @@ public class EInvoiceTests
         packet.Descendants(PdfaSchema + "schema").Single().Value.Should().Be("Bolts & Nuts <Ltd> schema");
     }
 
-    [Fact]
+    [Test]
     public void AQuotationMarkInTheNamespaceDoesNotEndTheAttributeEarly()
     {
         // The namespace goes into an attribute value rather than into element text, where a
@@ -233,7 +233,7 @@ public class EInvoiceTests
         packet.Descendants(odd + "DocumentType").Single().Value.Should().Be("INVOICE");
     }
 
-    [Fact]
+    [Test]
     public void APrefixThatIsNotAnXmlNameIsRefusedRatherThanWritten()
     {
         // There is no escaping this one: the prefix becomes part of an element name and of a
@@ -248,7 +248,7 @@ public class EInvoiceTests
         document.Attachments.Count.Should().Be(0, "a refusal leaves the document as it was");
     }
 
-    [Fact]
+    [Test]
     public void APrefixThatIsAnXmlNameIsAccepted()
     {
         // The escape hatch has to keep working: ZUGFeRD 1.0 used zf, and a caller reaching for it
@@ -268,7 +268,7 @@ public class EInvoiceTests
 
     // ── Reading one back ────────────────────────────────────────────────────────────────────────
 
-    [Fact]
+    [Test]
     public void AnInvoiceIsStillThereAfterBeingSavedAndOpenedAgain()
     {
         var bytes = Save(new FacturXInvoice(Xml()));
@@ -280,7 +280,7 @@ public class EInvoiceTests
         FacturXInvoice.FindIn(reread).Relationship.Should().Be(PdfAFRelationship.Data);
     }
 
-    [Fact]
+    [Test]
     public void AnInvoiceIsFoundWhateverVersionOfTheStandardNamedIt()
     {
         // ZUGFeRD 1.0 capitalised its own file name, which is why the comparison ignores case.
@@ -292,7 +292,7 @@ public class EInvoiceTests
         FacturXInvoice.ReadFrom(document).Should().Equal(Xml());
     }
 
-    [Fact]
+    [Test]
     public void ADocumentCarryingSomeOtherXmlIsNotCarryingAnInvoice()
     {
         // Found by name rather than by relationship and media type: every /Data attachment that is
@@ -306,7 +306,7 @@ public class EInvoiceTests
         FacturXInvoice.ReadFrom(document).Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void ADocumentCarryingNothingIsAskedWithoutBeingChanged()
     {
         var document = Prepared();

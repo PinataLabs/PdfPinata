@@ -9,7 +9,7 @@ using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using PdfPinata.Utils;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -28,24 +28,24 @@ public class StyleSimulationTest
 
     private static readonly string Bold = Face("Bold");
 
-    [Theory]
+    [Test]
     // A family shipping every face simulates nothing.
-    [InlineData(new[] { "Regular", "Bold", "Italic", "BoldItalic" }, false, false, "Regular", XStyleSimulations.None)]
-    [InlineData(new[] { "Regular", "Bold", "Italic", "BoldItalic" }, true, false, "Bold", XStyleSimulations.None)]
-    [InlineData(new[] { "Regular", "Bold", "Italic", "BoldItalic" }, false, true, "Italic", XStyleSimulations.None)]
-    [InlineData(new[] { "Regular", "Bold", "Italic", "BoldItalic" }, true, true, "BoldItalic", XStyleSimulations.None)]
+    [Arguments(new[] { "Regular", "Bold", "Italic", "BoldItalic" }, false, false, "Regular", XStyleSimulations.None)]
+    [Arguments(new[] { "Regular", "Bold", "Italic", "BoldItalic" }, true, false, "Bold", XStyleSimulations.None)]
+    [Arguments(new[] { "Regular", "Bold", "Italic", "BoldItalic" }, false, true, "Italic", XStyleSimulations.None)]
+    [Arguments(new[] { "Regular", "Bold", "Italic", "BoldItalic" }, true, true, "BoldItalic", XStyleSimulations.None)]
     // A family with a regular face alone has each missing axis drawn on.
-    [InlineData(new[] { "Regular" }, true, false, "Regular", XStyleSimulations.BoldSimulation)]
-    [InlineData(new[] { "Regular" }, false, true, "Regular", XStyleSimulations.ItalicSimulation)]
-    [InlineData(new[] { "Regular" }, true, true, "Regular", XStyleSimulations.BoldItalicSimulation)]
+    [Arguments(new[] { "Regular" }, true, false, "Regular", XStyleSimulations.BoldSimulation)]
+    [Arguments(new[] { "Regular" }, false, true, "Regular", XStyleSimulations.ItalicSimulation)]
+    [Arguments(new[] { "Regular" }, true, true, "Regular", XStyleSimulations.BoldItalicSimulation)]
     // Only the missing axis: a real bold with a drawn-on slant beats simulating both.
-    [InlineData(new[] { "Regular", "Bold" }, true, true, "Bold", XStyleSimulations.ItalicSimulation)]
-    [InlineData(new[] { "Regular", "Italic" }, true, true, "Italic", XStyleSimulations.BoldSimulation)]
+    [Arguments(new[] { "Regular", "Bold" }, true, true, "Bold", XStyleSimulations.ItalicSimulation)]
+    [Arguments(new[] { "Regular", "Italic" }, true, true, "Italic", XStyleSimulations.BoldSimulation)]
     // Weight and slant cannot be taken away, so a plainer request than the family ships gets
     // the nearest face and no simulation at all.
-    [InlineData(new[] { "Bold" }, false, false, "Bold", XStyleSimulations.None)]
-    [InlineData(new[] { "BoldItalic" }, false, false, "BoldItalic", XStyleSimulations.None)]
-    [InlineData(new[] { "Italic" }, true, false, "Italic", XStyleSimulations.BoldSimulation)]
+    [Arguments(new[] { "Bold" }, false, false, "Bold", XStyleSimulations.None)]
+    [Arguments(new[] { "BoldItalic" }, false, false, "BoldItalic", XStyleSimulations.None)]
+    [Arguments(new[] { "Italic" }, true, false, "Italic", XStyleSimulations.BoldSimulation)]
     public void TheNearestFaceIsUsedAndOnlyTheMissingAxisIsSimulated(
         string[] shipped, bool isBold, bool isItalic, string expectedFace, XStyleSimulations expected)
     {
@@ -63,7 +63,7 @@ public class StyleSimulationTest
     /// bold-only family answered a request for bold with a face it thought was regular. Now
     /// that the missing weight is drawn on, that would have stroked a bold face bolder still.
     /// </summary>
-    [Fact]
+    [Test]
     public void ASingleFaceIsFiledUnderTheStyleItActuallyIs()
     {
         var resolver = new Probe();
@@ -83,7 +83,7 @@ public class StyleSimulationTest
     /// really was bold, so they use the one family the document resolver ships a single regular
     /// face for - the same file answers both requests, and only the simulation differs.
     /// </summary>
-    [Fact]
+    [Test]
     public void ASimulatedBoldIsStrokedAsWellAsFilledOnThePage()
     {
         // Text render mode 2, fill then stroke, is how the weight is drawn on.
@@ -91,7 +91,7 @@ public class StyleSimulationTest
         RenderModesOf(XFontStyle.Regular).Should().NotContain(2);
     }
 
-    [Fact]
+    [Test]
     public void ASimulatedItalicIsSkewedOnThePage()
     {
         // The slant is drawn on by shearing the text matrix 20° to the right, which is the
@@ -101,7 +101,7 @@ public class StyleSimulationTest
         ShearsOf(XFontStyle.Regular).Should().NotContain(shear => shear > 0);
     }
 
-    [Fact]
+    [Test]
     public void ASimulatedBoldMeasuresWiderThanTheFaceItIsDrawnOver()
     {
         const string text = "The quick brown fox";

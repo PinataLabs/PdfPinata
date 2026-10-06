@@ -7,7 +7,7 @@ using PdfPinata.Fonts;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Annotations;
@@ -29,7 +29,7 @@ namespace PdfPinata.Test.Annotations;
 ///     pixels. These count pixels for the same reason.
 ///   </para>
 /// </remarks>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public sealed class GenericAnnotationRenderingTests : IDisposable
 {
     private const string OutDir = "Out/GenericAnnotations";
@@ -44,7 +44,7 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
 
     private static readonly XRect Where = new(40, 40, 120, 60);
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void ASquareWithAnAppearanceIsPainted()
     {
         var page = Rasterize("square-drawn", annotation =>
@@ -54,7 +54,7 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
         Count(page, IsBlue).Should().BeGreaterThan(1000);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void ASquareWithoutAnAppearanceIsNotPaintedAtAll()
     {
         var page = Rasterize("square-bare", _ => { });
@@ -66,7 +66,7 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
         Count(page, IsAnythingButWhite).Should().Be(0);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void OnlyTheAppearanceNamedByTheStateIsPainted()
     {
         var page = Rasterize("square-states", annotation =>

@@ -6,7 +6,7 @@ using PinataLayout.Rendering;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Rendering;
 
@@ -19,7 +19,7 @@ namespace PdfPinata.Test.Rendering;
 /// </summary>
 public class HeaderFooterParagraphTests
 {
-    [Fact]
+    [Test]
     public void TheParagraphsOfAFooterAreDrawnOnLinesOfTheirOwn()
     {
         var page = Render(document =>
@@ -33,7 +33,7 @@ public class HeaderFooterParagraphTests
         FooterLinesOf(page).Should().HaveCount(2);
     }
 
-    [Fact]
+    [Test]
     public void AFooterSpacesItsParagraphsTheWayAHeaderDoes()
     {
         var page = Render(document =>
@@ -54,7 +54,7 @@ public class HeaderFooterParagraphTests
         footerGap.Should().BeApproximately(headerGap, 0.001);
     }
 
-    [Fact]
+    [Test]
     public void EachFurtherParagraphOfAFooterGoesBelowTheOneBefore()
     {
         var page = Render(document =>
@@ -75,7 +75,7 @@ public class HeaderFooterParagraphTests
             gap.Should().BeApproximately(gaps[0], 0.001);
     }
 
-    [Fact]
+    [Test]
     public void AFooterOfOneParagraphSitsWhereItAlwaysDid()
     {
         var page = Render(document =>
@@ -92,7 +92,7 @@ public class HeaderFooterParagraphTests
         footer[0].Should().BeInRange(0, 72);
     }
 
-    [Fact]
+    [Test]
     public void TheParagraphsOfAFooterStayInTheOrderTheyWereAdded()
     {
         var page = Render(document =>

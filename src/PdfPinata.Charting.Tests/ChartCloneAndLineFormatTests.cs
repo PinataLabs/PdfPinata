@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PdfPinata.Charting.Tests.Helpers;
 using PdfPinata.Test.Helpers;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -35,7 +35,7 @@ public class ChartCloneAndLineFormatTests
         return chart;
     }
 
-    [Fact]
+    [Test]
     public void ACopiedChartKeepsWhatTheOriginalSaid()
     {
         var copy = AFullyPopulatedChart().Clone();
@@ -49,7 +49,7 @@ public class ChartCloneAndLineFormatTests
         copy.DataLabel.Format.Should().Be("0.0");
     }
 
-    [Fact]
+    [Test]
     public void WritingToTheOriginalAfterwardsDoesNotReachTheCopy()
     {
         var chart = AFullyPopulatedChart();
@@ -75,7 +75,7 @@ public class ChartCloneAndLineFormatTests
     ///   The legend and the chart's font are children like the other seven, and were the two the
     ///   copy left out: docking the copy's legend moved the original's too.
     /// </summary>
-    [Fact]
+    [Test]
     public void ACopiedChartHasALegendAndAFontOfItsOwn()
     {
         var chart = AFullyPopulatedChart();
@@ -96,7 +96,7 @@ public class ChartCloneAndLineFormatTests
     ///   Every child the copy has is the copy's: none of them still names the original as its
     ///   parent, which is what a renderer walks up through to find the chart a child belongs to.
     /// </summary>
-    [Fact]
+    [Test]
     public void EveryChildOfACopiedChartNamesTheCopyAsItsParent()
     {
         var chart = AFullyPopulatedChart();
@@ -112,7 +112,7 @@ public class ChartCloneAndLineFormatTests
         }.Should().OnlyContain(child => child.Parent == copy);
     }
 
-    [Fact]
+    [Test]
     public void ACopyOfAnEmptyChartIsStillAChart()
     {
         // Every one of the nine clones is guarded by a null check, and a chart with nothing on
@@ -123,7 +123,7 @@ public class ChartCloneAndLineFormatTests
         copy.Type.Should().Be(ChartType.Pie2D);
     }
 
-    [Fact]
+    [Test]
     public void ACopiedChartDrawsWhatTheOriginalWouldHaveDrawn()
     {
         // The copy has to be a chart a frame can still draw, which is what reparenting is for:
@@ -156,14 +156,14 @@ public class ChartCloneAndLineFormatTests
     private static double[] StrokeWidthsOf(Chart chart) =>
         [..StrokedLines.Of(Drawn.Page(chart)).Select(line => line.Width)];
 
-    [Fact]
+    [Test]
     public void AGridlineIsStrokedAtTheWidthItsFormatStates()
     {
         StrokeWidthsOf(AChartWithGridlines(3)).Should()
             .Contain(width => System.Math.Abs(width - 3) < 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void AGridlineFormatStatingOnlyAColourIsNotDrawn()
     {
         // It used to be, but only as a hairline: Converter.ToXPen gives a format that is not
@@ -187,7 +187,7 @@ public class ChartCloneAndLineFormatTests
     ///   nothing still gets a line, at the renderer's own default width rather than at nothing and
     ///   rather than at a width it was never given.
     /// </summary>
-    [Fact]
+    [Test]
     public void AGridlineFormatThatStatesNothingIsDrawnAtADefaultWidthRatherThanAStatedOne()
     {
         var stated = AChartWithGridlines(4);
@@ -202,7 +202,7 @@ public class ChartCloneAndLineFormatTests
             "a silent format is still a gridline - it is HasMajorGridlines that decides");
     }
 
-    [Fact]
+    [Test]
     public void AChartWithNoGridlinesAsksForNoneOfThem()
     {
         var withGridlines = AChartWithGridlines(5);

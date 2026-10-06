@@ -9,7 +9,7 @@ using PdfPinata.Pdf.Signatures;
 using PdfPinata.Signing;
 using PdfPinata.Test.Helpers;
 using PdfPinata.Test.Pdfs.AcroForms;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.SigningCertificates;
 using Reader = PdfPinata.Pdf.IO.PdfReader;
 
@@ -27,10 +27,10 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class CertificationEnforcementTests
 {
-    [Theory]
-    [InlineData(PdfCertificationLevel.NoChangesAllowed)]
-    [InlineData(PdfCertificationLevel.FormFillingAllowed)]
-    [InlineData(PdfCertificationLevel.FormFillingAndAnnotationsAllowed)]
+    [Test]
+    [Arguments(PdfCertificationLevel.NoChangesAllowed)]
+    [Arguments(PdfCertificationLevel.FormFillingAllowed)]
+    [Arguments(PdfCertificationLevel.FormFillingAndAnnotationsAllowed)]
     public void DocumentStructureIsRefusedAtEveryCertificationLevel(PdfCertificationLevel level)
     {
         var document = OpenedForAppend(Certified(UnsignedWithAField(), level));
@@ -42,7 +42,7 @@ public class CertificationEnforcementTests
             .And.Message.Should().Contain("adding a page");
     }
 
-    [Fact]
+    [Test]
     public void NoChangesAllowedRefusesFillingAFieldToo()
     {
         var document = OpenedForAppend(Certified(UnsignedWithAField(), PdfCertificationLevel.NoChangesAllowed));
@@ -58,7 +58,7 @@ public class CertificationEnforcementTests
     ///   and each has its own entry point, so each has its own place the guard could have been
     ///   missing from.
     /// </summary>
-    [Fact]
+    [Test]
     public void NoChangesAllowedRefusesEveryKindOfFieldValueSetter()
     {
         var document = OpenedForAppend(
@@ -87,7 +87,7 @@ public class CertificationEnforcementTests
             .Should().Throw<InvalidOperationException>().WithMessage("*NoChangesAllowed*");
     }
 
-    [Fact]
+    [Test]
     public void NoChangesAllowedRefusesAddingAnAnnotationToo()
     {
         var document = OpenedForAppend(Certified(UnsignedWithAField(), PdfCertificationLevel.NoChangesAllowed));
@@ -97,7 +97,7 @@ public class CertificationEnforcementTests
         act.Should().Throw<InvalidOperationException>().WithMessage("*NoChangesAllowed*");
     }
 
-    [Fact]
+    [Test]
     public void FormFillingAllowedPermitsFillingAFieldAndRefusesAnnotations()
     {
         var document = OpenedForAppend(Certified(UnsignedWithAField(), PdfCertificationLevel.FormFillingAllowed));
@@ -109,7 +109,7 @@ public class CertificationEnforcementTests
         annotating.Should().Throw<InvalidOperationException>().WithMessage("*FormFillingAllowed*");
     }
 
-    [Fact]
+    [Test]
     public void FormFillingAllowedPermitsSigningAgain()
     {
         var certified = Certified(UnsignedWithAField(), PdfCertificationLevel.FormFillingAllowed);
@@ -125,7 +125,7 @@ public class CertificationEnforcementTests
     ///   at a level that would itself permit the change, is refused rather than silently replacing the
     ///   certification a reader has already relied on.
     /// </summary>
-    [Fact]
+    [Test]
     public void CertifyingAnAlreadyCertifiedDocumentIsRefused()
     {
         var certified = Certified(UnsignedWithAField(), PdfCertificationLevel.FormFillingAllowed);
@@ -144,7 +144,7 @@ public class CertificationEnforcementTests
     ///   it — <see cref="PdfSigner"/> always writes it explicitly, so this builds the dictionary by
     ///   hand the way an incomplete but genuine certification from another producer would look.
     /// </summary>
-    [Fact]
+    [Test]
     public void ACertifyingSignatureWithNoExplicitPDefaultsToFormFillingAllowed()
     {
         var document = OpenedForAppend(CertifiedWithNoExplicitP(UnsignedWithAField()));
@@ -157,7 +157,7 @@ public class CertificationEnforcementTests
             .WithMessage("*FormFillingAllowed*");
     }
 
-    [Fact]
+    [Test]
     public void FormFillingAndAnnotationsAllowedPermitsBothAndStillRefusesThePageTree()
     {
         var document = OpenedForAppend(
@@ -174,7 +174,7 @@ public class CertificationEnforcementTests
             .WithMessage("*FormFillingAndAnnotationsAllowed*");
     }
 
-    [Fact]
+    [Test]
     public void ARefusalByCertificationNamesCertificationRatherThanTheMode()
     {
         var document = OpenedForAppend(Certified(UnsignedWithAField(), PdfCertificationLevel.NoChangesAllowed));
@@ -186,7 +186,7 @@ public class CertificationEnforcementTests
             .And.Message.Should().NotContain("PdfDocumentOpenMode");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentThatFailsBothIsRefusedOnceByTheModeItWasOpenedWith()
     {
         var certified = Certified(UnsignedWithAField(), PdfCertificationLevel.NoChangesAllowed);
@@ -201,7 +201,7 @@ public class CertificationEnforcementTests
             .And.Message.Should().NotContain("PdfCertificationLevel");
     }
 
-    [Fact]
+    [Test]
     public void AFullSaveOfACertifiedDocumentIsRefused()
     {
         var document = OpenedForAppend(Certified(UnsignedWithAField(), PdfCertificationLevel.FormFillingAllowed));
@@ -211,7 +211,7 @@ public class CertificationEnforcementTests
         act.Should().Throw<InvalidOperationException>().WithMessage("*FormFillingAllowed*");
     }
 
-    [Fact]
+    [Test]
     public void AnIncrementalSaveOfAPermittedChangeToACertifiedDocumentSucceeds()
     {
         var document = OpenedForAppend(Certified(UnsignedWithAField(), PdfCertificationLevel.FormFillingAllowed));
@@ -222,7 +222,7 @@ public class CertificationEnforcementTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void AnUnsignedDocumentIsUnaffectedAcrossTheWholeMatrix()
     {
         var document = OpenedForAppend(UnsignedWithAField());

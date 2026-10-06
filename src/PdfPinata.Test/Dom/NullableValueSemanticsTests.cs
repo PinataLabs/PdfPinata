@@ -2,7 +2,7 @@ using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Internals;
 using PinataLayout.DocumentObjectModel.Shapes;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -29,7 +29,7 @@ public class NullableValueSemanticsTests
 
     // ---------------------------------------------------------------- unset reads as a default
 
-    [Fact]
+    [Test]
     public void AnUnsetBooleanReadsAsFalse()
     {
         var font = AFont();
@@ -38,7 +38,7 @@ public class NullableValueSemanticsTests
         font.IsNull("Bold").Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AnUnsetIntegerReadsAsZero()
     {
         var pageSetup = APageSetup();
@@ -47,7 +47,7 @@ public class NullableValueSemanticsTests
         pageSetup.IsNull("StartingNumber").Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AnUnsetDoubleReadsAsZero()
     {
         var image = AnImage();
@@ -56,7 +56,7 @@ public class NullableValueSemanticsTests
         image.IsNull("ScaleWidth").Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AnUnsetStringReadsAsEmpty()
     {
         var info = ADocumentInfo();
@@ -67,7 +67,7 @@ public class NullableValueSemanticsTests
 
     // ------------------------------------------- a value set to its default is not the same as unset
 
-    [Fact]
+    [Test]
     public void ABooleanSetToFalseIsNotNull()
     {
         var font = AFont();
@@ -78,7 +78,7 @@ public class NullableValueSemanticsTests
         font.IsNull("Bold").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AnIntegerSetToZeroIsNotNull()
     {
         var pageSetup = APageSetup();
@@ -89,7 +89,7 @@ public class NullableValueSemanticsTests
         pageSetup.IsNull("StartingNumber").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ADoubleSetToZeroIsNotNull()
     {
         var image = AnImage();
@@ -100,7 +100,7 @@ public class NullableValueSemanticsTests
         image.IsNull("ScaleWidth").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AStringSetToEmptyIsNotNull()
     {
         var info = ADocumentInfo();
@@ -113,9 +113,9 @@ public class NullableValueSemanticsTests
 
     // ------------------------------------------------------------------------- values round-trip
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
+    [Test]
+    [Arguments(true)]
+    [Arguments(false)]
     public void ABooleanRoundTripsThroughTheProperty(bool value)
     {
         var font = AFont();
@@ -125,10 +125,10 @@ public class NullableValueSemanticsTests
         font.Bold.Should().Be(value);
     }
 
-    [Theory]
-    [InlineData(1)]
-    [InlineData(-1)]
-    [InlineData(int.MaxValue)]
+    [Test]
+    [Arguments(1)]
+    [Arguments(-1)]
+    [Arguments(int.MaxValue)]
     public void AnIntegerRoundTripsThroughTheProperty(int value)
     {
         var pageSetup = APageSetup();
@@ -138,10 +138,10 @@ public class NullableValueSemanticsTests
         pageSetup.StartingNumber.Should().Be(value);
     }
 
-    [Theory]
-    [InlineData(1.5)]
-    [InlineData(-1.5)]
-    [InlineData(double.MaxValue)]
+    [Test]
+    [Arguments(1.5)]
+    [Arguments(-1.5)]
+    [Arguments(double.MaxValue)]
     public void ADoubleRoundTripsThroughTheProperty(double value)
     {
         var image = AnImage();
@@ -151,9 +151,9 @@ public class NullableValueSemanticsTests
         image.ScaleWidth.Should().Be(value);
     }
 
-    [Theory]
-    [InlineData("Arial")]
-    [InlineData(" leading and trailing ")]
+    [Test]
+    [Arguments("Arial")]
+    [Arguments(" leading and trailing ")]
     public void AStringRoundTripsThroughTheProperty(string value)
     {
         var info = ADocumentInfo();
@@ -165,7 +165,7 @@ public class NullableValueSemanticsTests
 
     // ----------------------------------------------------------------------- SetNull undoes a set
 
-    [Fact]
+    [Test]
     public void SettingABooleanAndThenNullingItReadsAsUnsetAgain()
     {
         var font = AFont();
@@ -177,7 +177,7 @@ public class NullableValueSemanticsTests
         font.IsNull("Bold").Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void SettingAnIntegerAndThenNullingItReadsAsUnsetAgain()
     {
         var pageSetup = APageSetup();
@@ -189,7 +189,7 @@ public class NullableValueSemanticsTests
         pageSetup.IsNull("StartingNumber").Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void SettingADoubleAndThenNullingItReadsAsUnsetAgain()
     {
         var image = AnImage();
@@ -201,7 +201,7 @@ public class NullableValueSemanticsTests
         image.IsNull("ScaleWidth").Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void SettingAStringAndThenNullingItReadsAsUnsetAgain()
     {
         var info = ADocumentInfo();
@@ -215,7 +215,7 @@ public class NullableValueSemanticsTests
 
     // ------------------------------------------------- the reflection layer sees the same values
 
-    [Fact]
+    [Test]
     public void GetValueReturnsNullForAnUnsetValueAndTheValueOnceSet()
     {
         var font = AFont();
@@ -228,9 +228,9 @@ public class NullableValueSemanticsTests
         font.GetValue("Bold").Should().Be(true);
     }
 
-    [Theory]
-    [InlineData("Bold", true)]
-    [InlineData("Italic", false)]
+    [Test]
+    [Arguments("Bold", true)]
+    [Arguments("Italic", false)]
     public void SetValueThroughTheReflectionLayerIsVisibleOnTheProperty(string name, bool value)
     {
         var font = AFont();
@@ -241,7 +241,7 @@ public class NullableValueSemanticsTests
         font.GetValue(name, GV.GetNull).Should().Be(value);
     }
 
-    [Fact]
+    [Test]
     public void SetValueThroughTheReflectionLayerCarriesEachUnderlyingType()
     {
         var pageSetup = APageSetup();
@@ -257,7 +257,7 @@ public class NullableValueSemanticsTests
         image.ScaleWidth.Should().Be(3.25);
     }
 
-    [Fact]
+    [Test]
     public void GetValueOnAnUnsetValueOfEachUnderlyingTypeIsNull()
     {
         APageSetup().GetValue("StartingNumber", GV.GetNull).Should().BeNull();
@@ -268,14 +268,14 @@ public class NullableValueSemanticsTests
 
     // ------------------------------------------------------------------------------- IsNull() all
 
-    [Fact]
+    [Test]
     public void AFreshObjectReportsItselfNull()
     {
         AFont().IsNull().Should().BeTrue();
         AnImage().IsNull().Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AnObjectWithOneValueSetNoLongerReportsItselfNull()
     {
         var font = AFont();

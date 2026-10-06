@@ -4,7 +4,7 @@ using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Fields;
 using PinataLayout.Rendering.Tests.Helpers;
 using PdfPinata;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -20,7 +20,7 @@ namespace PinataLayout.Rendering.Tests;
 /// </remarks>
 public class FieldRenderingTests
 {
-    [Fact]
+    [Test]
     public void APageFieldAskedForRomanNumeralsRendersTheNumberAsOne()
     {
         var document = new Document();
@@ -38,7 +38,7 @@ public class FieldRenderingTests
             .Should().Equal(Glyphs.For("Page: I", "NumPages: 1"));
     }
 
-    [Fact]
+    [Test]
     public void ASectionFieldAskedForLettersRendersTheSectionAsA()
     {
         var document = new Document();
@@ -55,7 +55,7 @@ public class FieldRenderingTests
     ///   bounded by a reading of the clock either side rather than pinned by setting it, because the
     ///   clock is one static every test running beside this one reads.
     /// </summary>
-    [Fact]
+    [Test]
     public void ADateFieldRendersThePrintDateInTheFormatItNames()
     {
         var document = new Document();
@@ -77,7 +77,7 @@ public class FieldRenderingTests
     ///   type derived from one it knew was the name of nothing and silently left out of the line.
     ///   It is asked what kind of field it is now, which a derived type answers as its base does.
     /// </summary>
-    [Fact]
+    [Test]
     public void AFieldOfADerivedTypeIsRenderedAsTheFieldItDerivesFrom()
     {
         var document = new Document();
@@ -91,7 +91,7 @@ public class FieldRenderingTests
 
     private sealed class FolioField : PageField;
 
-    [Fact]
+    [Test]
     public void ABookmarkAndTheReferenceToItRenderThePageItIsOn()
     {
         var document = new Document();
@@ -121,7 +121,7 @@ public class FieldRenderingTests
     ///   so which of them a reader sees is decided here, in the renderer, and only a rendered page
     ///   can show that it was decided right.
     /// </remarks>
-    [Fact]
+    [Test]
     public void AReferenceToABookmarkThatDoesNotExistSaysSoOnThePage()
     {
         var document = new Document();
@@ -150,7 +150,7 @@ public class FieldRenderingTests
     ///   <c>DocumentInfo</c> - the document's own info object, never a paragraph's leaf - and so
     ///   never recognised the field type that is one.
     /// </summary>
-    [Fact]
+    [Test]
     public void AHeadingBuiltFromDocumentInformationCarriesThatTextIntoTheOutline()
     {
         var document = new Document { Info = { Title = "Annual Report" } };

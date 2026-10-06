@@ -8,7 +8,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Test.Helpers;
 using PdfPinata.Utils;
 using SixLabors.Fonts;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -72,7 +72,7 @@ public class TrueTypeCollectionTest
                                           | ((uint)data[offset + 2] << 8) | data[offset + 3];
     }
 
-    [Fact]
+    [Test]
     public void ACollectionReportsTheNumberOfFacesPackedIntoIt()
     {
         var collection = BuildCollection();
@@ -81,7 +81,7 @@ public class TrueTypeCollectionTest
         TrueTypeCollection.FaceCount(collection).Should().Be(FaceFiles.Length);
     }
 
-    [Fact]
+    [Test]
     public void ASingleFontIsNotACollectionAndHoldsOneFace()
     {
         var font = File.ReadAllBytes(AssetPath(FaceFiles[0]));
@@ -93,7 +93,7 @@ public class TrueTypeCollectionTest
         TrueTypeCollection.ExtractFace(font, 0).Should().BeSameAs(font);
     }
 
-    [Fact]
+    [Test]
     public void EachExtractedFaceIsAStandaloneFontCarryingTheIdentityItWasPackedWith()
     {
         var collection = BuildCollection();
@@ -119,7 +119,7 @@ public class TrueTypeCollectionTest
     /// did. Every table has to, or a font renders from whatever bytes the wrong offset points
     /// at, which no metadata reader would notice.
     /// </summary>
-    [Fact]
+    [Test]
     public void EveryTableOfAnExtractedFaceHoldsTheBytesItHeldInTheSourceFont()
     {
         var collection = BuildCollection();
@@ -139,7 +139,7 @@ public class TrueTypeCollectionTest
         }
     }
 
-    [Fact]
+    [Test]
     public void BothBackendsAgreeOnTheFacesOfACollection()
     {
         WithCollectionFile(path =>
@@ -158,7 +158,7 @@ public class TrueTypeCollectionTest
         });
     }
 
-    [Fact]
+    [Test]
     public void ExtractingRejectsAFaceTheCollectionDoesNotHold()
     {
         var collection = BuildCollection();
@@ -170,7 +170,7 @@ public class TrueTypeCollectionTest
         negative.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Fact]
+    [Test]
     public void DiscoveryFindsEveryFaceOfACollectionAndServesEachOneStandalone()
     {
         WithCollectionFile(path =>
@@ -209,7 +209,7 @@ public class TrueTypeCollectionTest
         });
     }
 
-    [Fact]
+    [Test]
     public void MetadataCanBeReadForEveryFaceOfACollection()
     {
         WithCollectionFile(path =>
@@ -232,7 +232,7 @@ public class TrueTypeCollectionTest
     /// to say so rather than walk off the end of the array, which is what indexing the offset
     /// table without checking it first did.
     /// </summary>
-    [Fact]
+    [Test]
     public void ReadingMetadataRejectsACollectionPointingOutsideTheFile()
     {
         var collection = BuildCollection();

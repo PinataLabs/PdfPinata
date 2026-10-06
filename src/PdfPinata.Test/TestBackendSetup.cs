@@ -22,7 +22,7 @@ internal static class TestBackendSetup
         // lays a document out differently on each of them. See PinnedFontResolver.
         GlobalFontSettings.FontResolver = new PinnedFontResolver();
         // The third seam, which only XGraphicsPath.AddString needs. The test that covers what
-        // happens when it is unset clears it and puts it back; see GlyphOutlineCollection.
+        // happens when it is unset clears it and puts it back; see GlyphOutlineSensitiveAttribute.
         GlobalFontSettings.GlyphOutlineProvider = new SkiaGlyphOutlineProvider();
         GhostscriptSetup.Configure();
     }

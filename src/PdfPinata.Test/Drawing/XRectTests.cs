@@ -1,10 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.Serialization;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -19,7 +20,7 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class XRectTests
 {
-    [Fact]
+    [Test]
     public void ARectangleIsWhereItWasPutAndAsBigAsItWasMade()
     {
         var rect = new XRect(10, 20, 30, 40);
@@ -36,7 +37,7 @@ public class XRectTests
         rect.Size.Should().Be(new XSize(30, 40));
     }
 
-    [Fact]
+    [Test]
     public void TheFourCornersAndTheCentreAreWhereTheyShouldBe()
     {
         var rect = new XRect(10, 20, 30, 40);
@@ -48,9 +49,9 @@ public class XRectTests
         rect.Center.Should().Be(new XPoint(25, 40));
     }
 
-    [Theory]
-    [InlineData(-1, 1)]
-    [InlineData(1, -1)]
+    [Test]
+    [Arguments(-1, 1)]
+    [Arguments(1, -1)]
     public void ARectangleCannotBeBuiltWithANegativeExtent(double width, double height)
     {
         var act = () => new XRect(0, 0, width, height);
@@ -58,7 +59,7 @@ public class XRectTests
         act.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void TwoCornersMakeARectangleWhicheverWayRoundTheyAreGiven()
     {
         var oneWay = new XRect(new XPoint(10, 20), new XPoint(40, 60));
@@ -68,33 +69,33 @@ public class XRectTests
         theOther.Should().Be(oneWay);
     }
 
-    [Fact]
+    [Test]
     public void ACornerAndADisplacementMakeTheSameRectangleAsTwoCorners()
     {
         new XRect(new XPoint(10, 20), new XVector(30, 40)).Should().Be(new XRect(10, 20, 30, 40));
         new XRect(new XPoint(10, 20), new XVector(-30, -40)).Should().Be(new XRect(-20, -20, 30, 40));
     }
 
-    [Fact]
+    [Test]
     public void ASizeOnItsOwnMakesARectangleAtTheOrigin()
     {
         new XRect(new XSize(30, 40)).Should().Be(new XRect(0, 0, 30, 40));
     }
 
-    [Fact]
+    [Test]
     public void ARectangleBuiltOnTheEmptySizeIsTheEmptyRectangle()
     {
         new XRect(XSize.Empty).Should().Be(XRect.Empty);
         new XRect(new XPoint(10, 20), XSize.Empty).Should().Be(XRect.Empty);
     }
 
-    [Fact]
+    [Test]
     public void FromLtrbTakesTheSidesRatherThanTheExtents()
     {
         XRect.FromLTRB(10, 20, 40, 60).Should().Be(new XRect(10, 20, 30, 40));
     }
 
-    [Fact]
+    [Test]
     public void TheEmptyRectangleIsEmptyAndItsSidesRunTheWrongWayRoundOnPurpose()
     {
         // Right and Bottom answer negative infinity so that an empty rectangle loses every
@@ -126,24 +127,24 @@ public class XRectTests
         () => { var rect = XRect.Empty; rect.Inflate(1, 1); }
     ];
 
-    public static TheoryData<int> EachWayOfChangingARectangle()
+    public static IEnumerable<int> EachWayOfChangingARectangle()
     {
-        var data = new TheoryData<int>();
+        var data = new List<int>();
         for (var index = 0; index < WaysOfChangingARectangle.Length; index++)
             data.Add(index);
         return data;
     }
 
-    [Theory]
-    [MemberData(nameof(EachWayOfChangingARectangle))]
+    [Test]
+    [MethodDataSource(nameof(EachWayOfChangingARectangle))]
     public void TheEmptyRectangleRefusesToBeChangedIntoARealOne(int index)
     {
         WaysOfChangingARectangle[index].Should().Throw<InvalidOperationException>();
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
+    [Test]
+    [Arguments(true)]
+    [Arguments(false)]
     public void ARectangleRefusesANegativeExtentAfterTheFactToo(bool testWidth)
     {
         var act = () =>
@@ -159,7 +160,7 @@ public class XRectTests
             .WithMessage(testWidth ? "WidthCannotBeNegative" : "HeightCannotBeNegative");
     }
 
-    [Fact]
+    [Test]
     public void LocationAndSizeCanBeSetOnARectangleThatIsNotEmpty()
     {
         var rect = new XRect(0, 0, 10, 10)
@@ -171,7 +172,7 @@ public class XRectTests
         rect.Should().Be(new XRect(5, 6, 20, 30));
     }
 
-    [Fact]
+    [Test]
     public void GivingARectangleTheEmptySizeEmptiesTheRectangle()
     {
         var rect = new XRect(0, 0, 10, 10) { Size = XSize.Empty };
@@ -179,12 +180,12 @@ public class XRectTests
         rect.Should().Be(XRect.Empty);
     }
 
-    [Theory]
-    [InlineData(15, 25, true)]
-    [InlineData(10, 20, true)]
-    [InlineData(40, 60, true)]
-    [InlineData(9, 25, false)]
-    [InlineData(15, 61, false)]
+    [Test]
+    [Arguments(15, 25, true)]
+    [Arguments(10, 20, true)]
+    [Arguments(40, 60, true)]
+    [Arguments(9, 25, false)]
+    [Arguments(15, 61, false)]
     public void ContainsCountsThePointsOnTheEdgeAsInside(double x, double y, bool expected)
     {
         var rect = new XRect(10, 20, 30, 40);
@@ -193,7 +194,7 @@ public class XRectTests
         rect.Contains(new XPoint(x, y)).Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void TheEmptyRectangleContainsNothingAndIsContainedByNothing()
     {
         XRect.Empty.Contains(0, 0).Should().BeFalse();
@@ -203,7 +204,7 @@ public class XRectTests
         new XRect(0, 0, 10, 10).IntersectsWith(XRect.Empty).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ARectangleContainsAnotherOnlyWhenItCoversAllOfIt()
     {
         var rect = new XRect(0, 0, 100, 100);
@@ -213,14 +214,14 @@ public class XRectTests
         rect.Contains(new XRect(90, 90, 20, 20)).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void TwoRectanglesThatOnlyTouchAlongAnEdgeStillCountAsIntersecting()
     {
         new XRect(0, 0, 10, 10).IntersectsWith(new XRect(10, 0, 10, 10)).Should().BeTrue();
         new XRect(0, 0, 10, 10).IntersectsWith(new XRect(11, 0, 10, 10)).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void IntersectingKeepsTheOverlapAndNothingElse()
     {
         var overlap = XRect.Intersect(new XRect(0, 0, 100, 100), new XRect(50, 50, 100, 100));
@@ -232,27 +233,27 @@ public class XRectTests
         inPlace.Should().Be(overlap);
     }
 
-    [Fact]
+    [Test]
     public void IntersectingTwoRectanglesThatMissEachOtherLeavesNothing()
     {
         XRect.Intersect(new XRect(0, 0, 10, 10), new XRect(100, 100, 10, 10)).Should().Be(XRect.Empty);
     }
 
-    [Fact]
+    [Test]
     public void UnionCoversBothRectangles()
     {
         XRect.Union(new XRect(0, 0, 10, 10), new XRect(90, 90, 10, 10))
             .Should().Be(new XRect(0, 0, 100, 100));
     }
 
-    [Fact]
+    [Test]
     public void UnionWithTheEmptyRectangleIsTheOtherRectangleWhicheverSideItIsOn()
     {
         XRect.Union(XRect.Empty, new XRect(1, 2, 3, 4)).Should().Be(new XRect(1, 2, 3, 4));
         XRect.Union(new XRect(1, 2, 3, 4), XRect.Empty).Should().Be(new XRect(1, 2, 3, 4));
     }
 
-    [Fact]
+    [Test]
     public void UnionWithSomethingInfinitelyWideStaysInfinitelyWide()
     {
         var infinite = new XRect(0, 0, double.PositiveInfinity, double.PositiveInfinity);
@@ -263,7 +264,7 @@ public class XRectTests
         union.Height.Should().Be(double.PositiveInfinity);
     }
 
-    [Fact]
+    [Test]
     public void UnionWithAPointStretchesTheRectangleToReachIt()
     {
         XRect.Union(new XRect(0, 0, 10, 10), new XPoint(20, 30)).Should().Be(new XRect(0, 0, 20, 30));
@@ -273,7 +274,7 @@ public class XRectTests
         inPlace.Should().Be(new XRect(-5, -5, 15, 15));
     }
 
-    [Fact]
+    [Test]
     public void OffsetMovesTheRectangleAndLeavesItsSizeAlone()
     {
         XRect.Offset(new XRect(0, 0, 10, 10), 5, 6).Should().Be(new XRect(5, 6, 10, 10));
@@ -284,7 +285,7 @@ public class XRectTests
         inPlace.Should().Be(new XRect(5, 6, 10, 10));
     }
 
-    [Fact]
+    [Test]
     public void AddingAPointOffsetsTheRectangleAndSubtractingOneUndoesIt()
     {
         var rect = new XRect(10, 20, 30, 40);
@@ -293,7 +294,7 @@ public class XRectTests
         (rect - new XPoint(5, 6)).Should().Be(new XRect(5, 14, 30, 40));
     }
 
-    [Fact]
+    [Test]
     public void InflatingGrowsTheRectangleInEveryDirectionAtOnce()
     {
         // The amount is applied to each side, so the width grows by twice what is asked for.
@@ -305,13 +306,13 @@ public class XRectTests
         inPlace.Should().Be(new XRect(5, 5, 20, 20));
     }
 
-    [Fact]
+    [Test]
     public void ShrinkingARectanglePastNothingLeavesNothing()
     {
         XRect.Inflate(new XRect(0, 0, 10, 10), -6, -6).Should().Be(XRect.Empty);
     }
 
-    [Fact]
+    [Test]
     public void ScalingMovesTheCornerAsWellAsTheExtent()
     {
         var rect = new XRect(10, 20, 30, 40);
@@ -320,7 +321,7 @@ public class XRectTests
         rect.Should().Be(new XRect(20, 60, 60, 120));
     }
 
-    [Fact]
+    [Test]
     public void ScalingByANegativeNumberReflectsTheRectangleRatherThanGivingItANegativeWidth()
     {
         var rect = new XRect(10, 20, 30, 40);
@@ -332,7 +333,7 @@ public class XRectTests
         rect.Height.Should().BePositive();
     }
 
-    [Fact]
+    [Test]
     public void ScalingTheEmptyRectangleLeavesItEmpty()
     {
         var rect = XRect.Empty;
@@ -342,7 +343,7 @@ public class XRectTests
         rect.Should().Be(XRect.Empty);
     }
 
-    [Fact]
+    [Test]
     public void TransformingARectangleGivesTheBoxAroundWhereItLands()
     {
         // A rotation takes a rectangle to something that is not one, so the answer is the
@@ -363,7 +364,7 @@ public class XRectTests
         inPlace.Should().Be(transformed);
     }
 
-    [Fact]
+    [Test]
     public void TwoRectanglesAreEqualWhenAllFourNumbersAre()
     {
         var rect = new XRect(1, 2, 3, 4);
@@ -381,7 +382,7 @@ public class XRectTests
         rect.GetHashCode().Should().Be(new XRect(1, 2, 3, 4).GetHashCode());
     }
 
-    [Fact]
+    [Test]
     public void ARectangleIsWrittenAsFourNumbersAndReadBackTheSameWay()
     {
         var rect = new XRect(1.5, 2.5, 3.5, 4.5);
@@ -392,14 +393,14 @@ public class XRectTests
         XRect.Parse(text).Should().Be(rect);
     }
 
-    [Fact]
+    [Test]
     public void TheEmptyRectangleIsWrittenByNameAndReadBackByName()
     {
         XRect.Empty.ToString(CultureInfo.InvariantCulture).Should().Be("Empty");
         XRect.Parse("Empty").Should().Be(XRect.Empty);
     }
 
-    [Fact]
+    [Test]
     public void AFormatStringIsAppliedToAllFourNumbers()
     {
         IFormattable rect = new XRect(1.23456, 2.34567, 3.45678, 4.56789);
@@ -412,7 +413,7 @@ public class XRectTests
     ///   negative extent, so the struct checks again once it has been read. The fields are set here
     ///   by reflection, which is what a formatter does.
     /// </summary>
-    [Fact]
+    [Test]
     public void ADeserializedRectangleWithANegativeExtentIsRefused()
     {
         object rect = new XRect(1, 2, 3, 4);
@@ -424,7 +425,7 @@ public class XRectTests
         deserialized.Should().Throw<SerializationException>();
     }
 
-    [Fact]
+    [Test]
     public void ADeserializedRectangleThatAConstructorCouldHaveMadeIsAccepted()
     {
         foreach (var rect in new[] { new XRect(1, 2, 3, 4), new XRect(0, 0, 0, 0), XRect.Empty })

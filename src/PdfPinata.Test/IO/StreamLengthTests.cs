@@ -9,7 +9,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Security;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
 using Reader = PdfPinata.Pdf.IO.PdfReader;
@@ -36,7 +36,7 @@ namespace PdfPinata.Test.IO;
 /// </remarks>
 public class StreamLengthTests
 {
-    [Fact]
+    [Test]
     public void EveryStreamDeclaresTheNumberOfBytesItHolds()
     {
         var bytes = Drawn(document => document.Options.WriteXmpMetadata = true);
@@ -51,7 +51,7 @@ public class StreamLengthTests
         }
     }
 
-    [Fact]
+    [Test]
     public void AStreamWhoseDataEndsWithANewlineIsNoDifferent()
     {
         // The case that was wrong, and it has to be provoked deliberately: most streams are
@@ -70,7 +70,7 @@ public class StreamLengthTests
             actual.Should().Be(declared, $"object {obj} ends with a newline of its own");
     }
 
-    [Fact]
+    [Test]
     public void TheSeparatorIsNotCountedAsData()
     {
         // The other half of the same rule, and the reason this cannot be fixed by counting the
@@ -91,7 +91,7 @@ public class StreamLengthTests
 
     // ── A stream handed to a dictionary rather than created in it ──────────────────────────────
 
-    [Fact]
+    [Test]
     public void ADictionaryGivenAnotherDictionarysStreamDeclaresItsLength()
     {
         // CreateStream writes /Length; the Stream setter used to write nothing, so a dictionary
@@ -110,7 +110,7 @@ public class StreamLengthTests
         ReopenedStreamValue(bytes, null).Should().Equal(data);
     }
 
-    [Fact]
+    [Test]
     public void AStreamChangedThroughTheDictionaryItCameFromIsNotLeftWithAStaleLength()
     {
         // A stream keeps /Length current only in the dictionary that owns it. Shared with a second
@@ -131,7 +131,7 @@ public class StreamLengthTests
         ReopenedStreamValue(bytes, null).Should().Equal(after);
     }
 
-    [Fact]
+    [Test]
     public void ACopiedStreamBelongsToTheDictionaryItIsGivenTo()
     {
         // PdfStream.Clone answers a stream belonging to no dictionary, and assigning its Value then
@@ -152,7 +152,7 @@ public class StreamLengthTests
         ReopenedStreamValue(bytes, null).Should().Equal(replaced);
     }
 
-    [Fact]
+    [Test]
     public void AStreamWhoseLengthEntryWasRemovedIsWrittenWithOneAgain()
     {
         var data = "its /Length taken away by hand"u8.ToArray();
@@ -170,9 +170,9 @@ public class StreamLengthTests
         LengthsOf(bytes, number).Should().Be((data.Length, data.Length));
     }
 
-    [Theory]
-    [InlineData(PdfDocumentSecurityLevel.Encrypted40Bit)]
-    [InlineData(PdfDocumentSecurityLevel.Encrypted128Bit)]
+    [Test]
+    [Arguments(PdfDocumentSecurityLevel.Encrypted40Bit)]
+    [Arguments(PdfDocumentSecurityLevel.Encrypted128Bit)]
     public void AnEncryptedStreamDeclaresTheLengthOfTheBytesWritten(PdfDocumentSecurityLevel level)
     {
         // The writer encrypts a stream as it writes it, after /Length has been written. That is

@@ -8,7 +8,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.Revisions;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
@@ -28,7 +28,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class IncrementalUpdateOfCrossReferenceStreamTests
 {
-    [Fact]
+    [Test]
     public void TheChangeIsReadBackFromTheAppendedRevision()
     {
         var updated = AppendChange(OriginalDocument(), document => document.Info.Subject = "Changed");
@@ -36,7 +36,7 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
         Saved.Open(updated).Info.Subject.Should().Be("Changed");
     }
 
-    [Fact]
+    [Test]
     public void WhatWasNotChangedIsStillThere()
     {
         // The information dictionary and the pages live in object streams in the original, so this
@@ -48,7 +48,7 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
         reread.PageCount.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void TheOriginalBytesAreLeftExactlyWhereTheyWere()
     {
         var original = OriginalDocument();
@@ -59,7 +59,7 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
             "an incremental update appends and never rewrites");
     }
 
-    [Fact]
+    [Test]
     public void TheAppendedRevisionIsIndexedByACrossReferenceStreamOfItsOwn()
     {
         var original = OriginalDocument();
@@ -72,7 +72,7 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
         appended.Should().Contain("/Prev");
     }
 
-    [Fact]
+    [Test]
     public void ThePreviousCrossReferenceStreamIsNotWrittenAgain()
     {
         // The old stream is where the reader found the trailer's entries, but it is an index of the
@@ -85,7 +85,7 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
             "exactly one cross-reference stream is appended, and it is the new one");
     }
 
-    [Fact]
+    [Test]
     public void ThePreviousCrossReferenceStreamIsNotWrittenAgainWhenTheFileHadNoInfo()
     {
         // The old stream is the document's trailer, and an object in the table besides. A file with
@@ -100,7 +100,7 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
         reread.PageCount.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void TwoSuccessiveUpdatesBothResolve()
     {
         var once = AppendChange(OriginalDocument(), document => document.Info.Subject = "First");
@@ -112,7 +112,7 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
         reread.Info.Title.Should().Be("Original title");
     }
 
-    [Fact]
+    [Test]
     public void APageAddedByAnUpdateIsThere()
     {
         var updated = AppendChange(OriginalDocument(), document => _ = document.AddPage());
@@ -120,7 +120,7 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
         Saved.Open(updated).PageCount.Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void ChangingNothingStillProducesAReadableDocument()
     {
         var updated = AppendChange(OriginalDocument(), _ => { });
@@ -128,7 +128,7 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
         Saved.Open(updated).PageCount.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void ADocumentIdentifiesItselfAcrossRevisionsAndIdentifiesEachRevisionApart()
     {
         var original = OriginalDocument();
@@ -141,10 +141,10 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
         after.SecondDocumentID.Should().NotBe(before.SecondDocumentID);
     }
 
-    [Theory]
-    [InlineData(PdfDocumentOpenMode.Import)]
-    [InlineData(PdfDocumentOpenMode.ReadOnly)]
-    [InlineData(PdfDocumentOpenMode.Append)]
+    [Test]
+    [Arguments(PdfDocumentOpenMode.Import)]
+    [Arguments(PdfDocumentOpenMode.ReadOnly)]
+    [Arguments(PdfDocumentOpenMode.Append)]
     public void TheResultOpensInEveryMode(PdfDocumentOpenMode mode)
     {
         var updated = AppendChange(OriginalDocument(), document => document.Info.Subject = "Changed");

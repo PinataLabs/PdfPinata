@@ -5,7 +5,7 @@ using AwesomeAssertions;
 using PdfPinata.Charting.Tests.Helpers;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -48,7 +48,7 @@ public class CustomDashPatternTests
         }
     }
 
-    [Fact]
+    [Test]
     public void SettingADashPatternMakesTheDashStyleCustom()
     {
         var lineFormat = new LineFormat { DashPattern = [3, 1] };
@@ -57,7 +57,7 @@ public class CustomDashPatternTests
         lineFormat.DashPattern.Should().Equal(3, 1);
     }
 
-    [Fact]
+    [Test]
     public void ALineFormatKeepsACopyOfThePatternItWasGiven()
     {
         var pattern = new double[] { 3, 1 };
@@ -70,17 +70,17 @@ public class CustomDashPatternTests
             "changing the array afterwards would bypass the check that every length is positive");
     }
 
-    [Fact]
+    [Test]
     public void ALineFormatWithNoPatternAnswersAnEmptyOne()
     {
         new LineFormat().DashPattern.Should().BeEmpty();
     }
 
-    [Theory]
-    [InlineData(0.0)]
-    [InlineData(-1.0)]
-    [InlineData(double.NaN)]
-    [InlineData(double.PositiveInfinity)]
+    [Test]
+    [Arguments(0.0)]
+    [Arguments(-1.0)]
+    [Arguments(double.NaN)]
+    [Arguments(double.PositiveInfinity)]
     public void ADashOrGapThatIsNotAFinitePositiveLengthIsRefused(double length)
     {
         var lineFormat = new LineFormat();
@@ -91,7 +91,7 @@ public class CustomDashPatternTests
         lineFormat.DashStyle.Should().Be(XDashStyle.Solid, "a refused pattern changes nothing");
     }
 
-    [Fact]
+    [Test]
     public void ANullPatternIsRefused()
     {
         var act = () => new LineFormat().DashPattern = null;
@@ -99,12 +99,12 @@ public class CustomDashPatternTests
         act.Should().Throw<ArgumentNullException>();
     }
 
-    [Theory]
-    [InlineData(ChartType.Line)]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Bar2D)]
-    [InlineData(ChartType.Area2D)]
-    [InlineData(ChartType.Pie2D)]
+    [Test]
+    [Arguments(ChartType.Line)]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Bar2D)]
+    [Arguments(ChartType.Area2D)]
+    [Arguments(ChartType.Pie2D)]
     public void ASeriesLineIsDrawnInItsPatternScaledByItsWidth(ChartType type)
     {
         var chart = Charts.Of(type, 1.0, 3.0, 2.0);
@@ -113,10 +113,10 @@ public class CustomDashPatternTests
         ShouldBeDashed(RedOn(chart), 6, 2);
     }
 
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Bar2D)]
-    [InlineData(ChartType.Pie2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Bar2D)]
+    [Arguments(ChartType.Pie2D)]
     public void APointThatSaysNothingAboutDashesInheritsItsSeriesPattern(ChartType type)
     {
         // Since #192 a point that sets only its colour or its width keeps its series' dash style,
@@ -135,9 +135,9 @@ public class CustomDashPatternTests
         ShouldBeDashed(PaintedPaths.StrokedIn(page, Red), 6, 2);
     }
 
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Pie2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Pie2D)]
     public void APointWithAPatternOfItsOwnIsDrawnInIt(ChartType type)
     {
         var chart = Charts.Of(type, 1.0, 3.0, 2.0);
@@ -147,9 +147,9 @@ public class CustomDashPatternTests
         ShouldBeDashed(PaintedPaths.StrokedIn(Drawn.Page(chart), Blue), 2, 4);
     }
 
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Pie2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Pie2D)]
     public void APointThatChoosesAnotherStyleIsNotDrawnInItsSeriesPattern(ChartType type)
     {
         var chart = Charts.Of(type, 1.0, 3.0, 2.0);
@@ -163,11 +163,11 @@ public class CustomDashPatternTests
             .Which.Dashed.Should().BeFalse("the point asked for a solid line");
     }
 
-    [Theory]
-    [InlineData(ChartType.Column2D, true)]
-    [InlineData(ChartType.Column2D, false)]
-    [InlineData(ChartType.Bar2D, true)]
-    [InlineData(ChartType.Bar2D, false)]
+    [Test]
+    [Arguments(ChartType.Column2D, true)]
+    [Arguments(ChartType.Column2D, false)]
+    [Arguments(ChartType.Bar2D, true)]
+    [Arguments(ChartType.Bar2D, false)]
     public void AnAxisLineIsDrawnInItsPattern(ChartType type, bool xAxis)
     {
         var chart = Charts.Of(type, 1.0, 3.0, 2.0);
@@ -178,10 +178,10 @@ public class CustomDashPatternTests
         ShouldBeDashed([.. RedOn(chart).Where(path => Math.Abs(path.LineWidth - 1.5) < 0.001)], 6, 3);
     }
 
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Line)]
-    [InlineData(ChartType.Bar2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Line)]
+    [Arguments(ChartType.Bar2D)]
     public void AGridlineIsDrawnInItsPattern(ChartType type)
     {
         var chart = Charts.Of(type, 1.0, 3.0, 2.0);
@@ -191,7 +191,7 @@ public class CustomDashPatternTests
         ShouldBeDashed(RedOn(chart), 2, 1);
     }
 
-    [Fact]
+    [Test]
     public void CustomWithNoPatternIsDrawnSolidAsAnXPenIs()
     {
         // XPen draws a Custom with no pattern as a solid line, and so does a chart.
@@ -204,7 +204,7 @@ public class CustomDashPatternTests
         RedOn(chart).Should().HaveCount(3).And.OnlyContain(path => !path.Dashed);
     }
 
-    [Fact]
+    [Test]
     public void ACopiedChartIsDrawnInThePatternAndKeepsItsOwnCopyOfIt()
     {
         var chart = Charts.Of(ChartType.Column2D, 1.0, 3.0, 2.0);
@@ -221,7 +221,7 @@ public class CustomDashPatternTests
         ShouldBeDashed(PaintedPaths.StrokedIn(page, Blue), 6, 2);
     }
 
-    [Fact]
+    [Test]
     public void ACopiedLineFormatDoesNotShareItsPatternWithTheOriginal()
     {
         var original = new LineFormat { DashPattern = [3, 1] };

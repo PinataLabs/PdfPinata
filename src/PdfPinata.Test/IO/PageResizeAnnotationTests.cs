@@ -2,7 +2,7 @@ using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -72,7 +72,7 @@ public class PageResizeAnnotationTests
         return annotations.Elements.GetDictionary(0);
     }
 
-    [Fact]
+    [Test]
     public void ALinkRectangleIsHalvedWithThePage()
     {
         var document = DocumentWithAnAnnotation(AnnotationOfSubtype("/Link"));
@@ -86,7 +86,7 @@ public class PageResizeAnnotationTests
         rect.Y2.Should().BeApproximately(200, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void AHighlightKeepsCoveringItsText()
     {
         var annotation = AnnotationOfSubtype("/Highlight");
@@ -102,7 +102,7 @@ public class PageResizeAnnotationTests
             .Should().Equal(50, 200, 150, 200, 50, 100, 150, 100);
     }
 
-    [Fact]
+    [Test]
     public void EveryStrokeOfAnInkAnnotationMoves()
     {
         var annotation = AnnotationOfSubtype("/Ink");
@@ -124,7 +124,7 @@ public class PageResizeAnnotationTests
         Values((PdfArray)moved.Elements[1]).Should().Equal(25, 30);
     }
 
-    [Fact]
+    [Test]
     public void ThePointsOfAPolygonMove()
     {
         var annotation = AnnotationOfSubtype("/Polygon");
@@ -140,7 +140,7 @@ public class PageResizeAnnotationTests
             .Should().Equal(5, 10, 15, 20, 25, 30);
     }
 
-    [Fact]
+    [Test]
     public void TheEndsOfALineMove()
     {
         var annotation = AnnotationOfSubtype("/Line");
@@ -155,7 +155,7 @@ public class PageResizeAnnotationTests
         Values(NumbersOf(TheAnnotationOf(document.Pages[0]), "/L")).Should().Equal(50, 100, 150, 200);
     }
 
-    [Fact]
+    [Test]
     public void TheInsetsOfASquareAreScaled()
     {
         var annotation = AnnotationOfSubtype("/Square");
@@ -171,7 +171,7 @@ public class PageResizeAnnotationTests
         Values(NumbersOf(TheAnnotationOf(document.Pages[0]), "/RD")).Should().Equal(5, 10, 15, 20);
     }
 
-    [Fact]
+    [Test]
     public void AnAppearanceStreamIsLeftExactlyAsItWas()
     {
         // The reader maps an appearance onto the /Rect through the appearance's own bounding box
@@ -207,7 +207,7 @@ public class PageResizeAnnotationTests
         movedAppearance.Elements["/Matrix"].ToString().Should().Be(matrixBefore);
     }
 
-    [Fact]
+    [Test]
     public void AnAnnotationOfAnUnknownSubtypeKeepsEverythingButItsRectangle()
     {
         var annotation = AnnotationOfSubtype("/SomethingNobodyModels");
@@ -229,7 +229,7 @@ public class PageResizeAnnotationTests
             "an entry nobody models is left alone rather than guessed at");
     }
 
-    [Fact]
+    [Test]
     public void EveryAnnotationOfAPageWithSeveralIsMoved()
     {
         var document = new PdfDocument();
@@ -256,7 +256,7 @@ public class PageResizeAnnotationTests
         }
     }
 
-    [Fact]
+    [Test]
     public void TurningOffTheAnnotationPassLeavesThemWhereTheyWere()
     {
         var document = DocumentWithAnAnnotation(AnnotationOfSubtype("/Link"));
@@ -270,7 +270,7 @@ public class PageResizeAnnotationTests
             .X1.Should().BeApproximately(100, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void AnnotationsFollowThePageWhenItIsTurnedByAutoRotate()
     {
         var annotation = AnnotationOfSubtype("/Link");
@@ -292,7 +292,7 @@ public class PageResizeAnnotationTests
 
     // ------------------------------------------------- geometry that is not plain numbers
 
-    [Fact]
+    [Test]
     public void ACoordinateHeldIndirectlyIsStillMoved()
     {
         // Any object in a PDF may be indirect, a coordinate included. Reading one with GetReal
@@ -326,7 +326,7 @@ public class PageResizeAnnotationTests
         moved.Elements.GetReal(1).Should().BeApproximately(150, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void GeometryThatIsNotNumbersIsLeftWholeRatherThanHalfMoved()
     {
         // Writing point by point would leave a malformed array partly moved, and would do it
@@ -358,7 +358,7 @@ public class PageResizeAnnotationTests
             .X1.Should().BeApproximately(50, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void ARectangleHeldAsIndirectNumbersIsStillMoved()
     {
         var document = new PdfDocument();

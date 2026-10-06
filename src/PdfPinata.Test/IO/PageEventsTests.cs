@@ -10,7 +10,7 @@ using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.Rendering;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.IO;
@@ -19,7 +19,7 @@ namespace PdfPinata.Test.IO;
 ///   <see cref="PdfDocument.PageAdded"/>, <see cref="PdfDocument.PageRemoved"/> and
 ///   <see cref="PdfDocument.PageGraphicsCreated"/>.
 /// </summary>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public sealed class PageEventsTests : IDisposable
 {
     private const string OutDir = "Out/PageEvents";
@@ -30,7 +30,7 @@ public sealed class PageEventsTests : IDisposable
 
     // ----- pages added and removed ----------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AddingAndInsertingAPageSaysWhichAndWhere()
     {
         var document = new PdfDocument();
@@ -43,7 +43,7 @@ public sealed class PageEventsTests : IDisposable
         seen.Should().Equal(("added", first, 0), ("added", second, 1), ("added", inserted, 1));
     }
 
-    [Fact]
+    [Test]
     public void ThePageIsInTheTreeWhenTheHandlerRuns()
     {
         var document = new PdfDocument();
@@ -56,7 +56,7 @@ public sealed class PageEventsTests : IDisposable
         counts.Should().Equal(1, 2);
     }
 
-    [Fact]
+    [Test]
     public void AnImportedPageIsReportedAsTheCopyThisDocumentHolds()
     {
         var source = Saved.Open(TwoPages(), PdfDocumentOpenMode.Import);
@@ -69,7 +69,7 @@ public sealed class PageEventsTests : IDisposable
         imported.Should().NotBeSameAs(source.Pages[0]);
     }
 
-    [Fact]
+    [Test]
     public void ARangeIsReportedPageByPageOnceItIsAllIn()
     {
         var source = Saved.Open(TwoPages(), PdfDocumentOpenMode.Import);
@@ -89,7 +89,7 @@ public sealed class PageEventsTests : IDisposable
         counts.Should().Equal(3, 3);
     }
 
-    [Fact]
+    [Test]
     public void ARangeReportsTheInsertedPagesEvenWhenAHandlerAddsPagesOfItsOwn()
     {
         var source = Saved.Open(TwoPages(), PdfDocumentOpenMode.Import);
@@ -118,7 +118,7 @@ public sealed class PageEventsTests : IDisposable
             .And.NotContain(original);
     }
 
-    [Fact]
+    [Test]
     public void DuplicatingAPageReportsTheDuplicate()
     {
         var document = new PdfDocument();
@@ -130,7 +130,7 @@ public sealed class PageEventsTests : IDisposable
         seen.Should().ContainSingle().Which.Should().Be(("added", duplicate, 1));
     }
 
-    [Fact]
+    [Test]
     public void RemovingAPageSaysWhichAndWhereItWas()
     {
         var document = new PdfDocument();
@@ -146,7 +146,7 @@ public sealed class PageEventsTests : IDisposable
         document.Pages[0].Should().BeSameAs(third);
     }
 
-    [Fact]
+    [Test]
     public void RemovingAPageTheDocumentDoesNotHoldRaisesNothing()
     {
         var document = new PdfDocument();
@@ -160,7 +160,7 @@ public sealed class PageEventsTests : IDisposable
         document.PageCount.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AnUnsubscribedHandlerHearsNothing()
     {
         var document = new PdfDocument();
@@ -177,7 +177,7 @@ public sealed class PageEventsTests : IDisposable
 
     // ----- a surface made for a page --------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void EverySurfaceMadeForAPageIsReported()
     {
         var document = new PdfDocument();
@@ -196,7 +196,7 @@ public sealed class PageEventsTests : IDisposable
     ///   What the handler draws lies under what the caller draws, and a transform the handler
     ///   leaves set does not move the caller's drawing - here, off the page altogether.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheHandlerDrawsUnderneathAndItsStateDoesNotLeak()
     {
         var document = new PdfDocument();
@@ -216,7 +216,7 @@ public sealed class PageEventsTests : IDisposable
         Count(images[0], IsGrey).Should().BeGreaterThan(10000);
     }
 
-    [Fact]
+    [Test]
     public void AHandlerThatThrowsLeavesThePageDrawable()
     {
         var document = new PdfDocument();
@@ -236,7 +236,7 @@ public sealed class PageEventsTests : IDisposable
         again.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void AHandlerCannotAskForASecondSurfaceForTheSamePage()
     {
         var document = new PdfDocument();
@@ -253,7 +253,7 @@ public sealed class PageEventsTests : IDisposable
     ///   handler sees each of them - with its real size, which <see cref="PdfDocument.PageAdded"/>
     ///   cannot promise - and can draw in a tagged document inside an artifact.
     /// </summary>
-    [Fact]
+    [Test]
     public void ALaidOutDocumentRaisesOneSurfacePerPage()
     {
         var content = new Document();

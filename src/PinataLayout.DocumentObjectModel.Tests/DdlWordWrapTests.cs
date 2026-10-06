@@ -4,7 +4,7 @@ using System.Linq;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes;
-using Xunit;
+using TUnit.Core;
 using static PinataLayout.DocumentObjectModel.Shapes.ImageSource;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
@@ -27,7 +27,7 @@ public class DdlWordWrapTests
     /// </summary>
     private static readonly int[] LengthsAcrossTheLimit = [..Enumerable.Range(140, 141)];
 
-    [Fact]
+    [Test]
     public void TextOfEveryLengthAroundTheLimitIsWritten()
     {
         foreach (var length in LengthsAcrossTheLimit)
@@ -42,7 +42,7 @@ public class DdlWordWrapTests
         }
     }
 
-    [Fact]
+    [Test]
     public void AnImagePathOfEveryLengthAroundTheLimitIsWritten()
     {
         foreach (var length in LengthsAcrossTheLimit)
@@ -57,7 +57,7 @@ public class DdlWordWrapTests
         }
     }
 
-    [Fact]
+    [Test]
     public void AWordTooLongToBreakIsWrittenWholeRatherThanCutInHalf()
     {
         // Nowhere to break means the line goes out over length. Breaking it anyway would put a
@@ -73,7 +73,7 @@ public class DdlWordWrapTests
         Text TextOf(Document d) => ((Paragraph)d.LastSection.Elements[0]).Elements.OfType<Text>().First();
     }
 
-    [Fact]
+    [Test]
     public void ALineWhoseFirstBlankIsPastTheLimitIsStillBroken()
     {
         // The break has to be looked for past the limit, and there is a blank there but no line

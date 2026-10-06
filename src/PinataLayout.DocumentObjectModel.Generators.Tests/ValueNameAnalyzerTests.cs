@@ -1,7 +1,7 @@
 using System.Linq;
 using AwesomeAssertions;
 using Microsoft.CodeAnalysis;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Generators.Tests;
 
@@ -52,7 +52,7 @@ public class ValueNameAnalyzerTests
     private static Diagnostic[] Mdg008(string source) =>
         [..GeneratorHarness.Analyze(Ns + Dom + source).Where(d => d.Id == "MDG008")];
 
-    [Fact]
+    [Test]
     public void AMisspelledNameIsReportedAtTheName()
     {
         var reported = Mdg008("""
@@ -70,14 +70,14 @@ public class ValueNameAnalyzerTests
             .Should().Be("\"Visibel\"", "the diagnostic points at the name, not the whole call");
     }
 
-    [Theory]
-    [InlineData("box.IsNull(\"Visible\")")]
-    [InlineData("box.IsNull(\"visible\")")]
-    [InlineData("box.IsNull(\"VISIBLE\")")]
-    [InlineData("box.GetValue(\"Visible\")")]
-    [InlineData("box.HasValue(\"Visible\")")]
-    [InlineData("box.SetNull(\"Visible\")")]
-    [InlineData("box.SetValue(\"Visible\", null)")]
+    [Test]
+    [Arguments("box.IsNull(\"Visible\")")]
+    [Arguments("box.IsNull(\"visible\")")]
+    [Arguments("box.IsNull(\"VISIBLE\")")]
+    [Arguments("box.GetValue(\"Visible\")")]
+    [Arguments("box.HasValue(\"Visible\")")]
+    [Arguments("box.SetNull(\"Visible\")")]
+    [Arguments("box.SetValue(\"Visible\", null)")]
     public void AValidNameIsNotReportedWhateverItsCase(string call)
     {
         // Meta keys its descriptors case-insensitively, so the PascalCase property name the callers
@@ -90,11 +90,11 @@ public class ValueNameAnalyzerTests
             """).Should().BeEmpty();
     }
 
-    [Theory]
-    [InlineData("IsNull")]
-    [InlineData("SetNull")]
-    [InlineData("HasValue")]
-    [InlineData("GetValue")]
+    [Test]
+    [Arguments("IsNull")]
+    [Arguments("SetNull")]
+    [Arguments("HasValue")]
+    [Arguments("GetValue")]
     public void EveryNameTakingMemberIsChecked(string member)
     {
         Mdg008($$"""
@@ -105,7 +105,7 @@ public class ValueNameAnalyzerTests
             """).Should().ContainSingle();
     }
 
-    [Fact]
+    [Test]
     public void SetValueIsChecked()
     {
         Mdg008("""
@@ -116,7 +116,7 @@ public class ValueNameAnalyzerTests
             """).Should().ContainSingle();
     }
 
-    [Fact]
+    [Test]
     public void AnInheritedMemberIsAValue()
     {
         // width is declared on Shape, the abstract base; Box's value model includes it.
@@ -128,7 +128,7 @@ public class ValueNameAnalyzerTests
             """).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void AMemberOfADescendantIsAcceptedOnTheBase()
     {
         // The value model consulted at run time is the runtime type's, so on a Shape a name that
@@ -141,7 +141,7 @@ public class ValueNameAnalyzerTests
             """).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void ANameNoDescendantDeclaresIsReportedOnTheBase()
     {
         Mdg008("""
@@ -152,7 +152,7 @@ public class ValueNameAnalyzerTests
             """).Should().ContainSingle();
     }
 
-    [Fact]
+    [Test]
     public void AValidDottedPathIsFollowedStepByStep()
     {
         Mdg008("""
@@ -164,7 +164,7 @@ public class ValueNameAnalyzerTests
             """).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void AMisspelledLaterStepIsReportedAgainstThatStepsType()
     {
         var reported = Mdg008("""
@@ -178,7 +178,7 @@ public class ValueNameAnalyzerTests
         reported[0].GetMessage().Should().Contain("'Font' has no [DV] member named 'Bodl'");
     }
 
-    [Fact]
+    [Test]
     public void APathCannotGoOnPastASimpleValue()
     {
         // Meta.IsNull throws for a trail after a simple value, and GetValue for a trail after
@@ -194,9 +194,9 @@ public class ValueNameAnalyzerTests
         reported[0].GetMessage().Should().Contain("simple value");
     }
 
-    [Theory]
-    [InlineData("SetNull")]
-    [InlineData("HasValue")]
+    [Test]
+    [Arguments("SetNull")]
+    [Arguments("HasValue")]
     public void AMemberThatDoesNotFollowPathsIsReportedForADottedName(string member)
     {
         // Both look the whole string up as a single name, so a path can never match.
@@ -211,7 +211,7 @@ public class ValueNameAnalyzerTests
         reported[0].GetMessage().Should().Contain("does not follow a dotted path");
     }
 
-    [Fact]
+    [Test]
     public void ACallOnTheImplicitThisIsChecked()
     {
         // The DOM's own Serialize methods ask IsNull("Format") of themselves, with no receiver.
@@ -226,7 +226,7 @@ public class ValueNameAnalyzerTests
             .Which.GetMessage().Should().Contain("'Fromat'");
     }
 
-    [Fact]
+    [Test]
     public void ANameBuiltAtRunTimeIsNotChecked()
     {
         Mdg008("""
@@ -237,7 +237,7 @@ public class ValueNameAnalyzerTests
             """).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void AConstantIsCheckedLikeALiteral()
     {
         Mdg008("""
@@ -249,7 +249,7 @@ public class ValueNameAnalyzerTests
             """).Should().ContainSingle();
     }
 
-    [Fact]
+    [Test]
     public void AReceiverWhoseTypeOverridesTheMemberIsNotChecked()
     {
         // Style.GetValue sends every name beginning "font" to its paragraph format, so what an
@@ -269,7 +269,7 @@ public class ValueNameAnalyzerTests
             """).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void OverridingTheOverloadACallForwardsToCountsAsOverridingTheCall()
     {
         // Style's shape exactly: it overrides GetValue(name, flags), and GetValue(name) forwards
@@ -289,7 +289,7 @@ public class ValueNameAnalyzerTests
             """).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void OverridingTheParameterlessIsNullDoesNotStopTheCheck()
     {
         // Border, Borders, Shading and a dozen more override IsNull() to answer for the whole
@@ -309,7 +309,7 @@ public class ValueNameAnalyzerTests
             """).Should().ContainSingle();
     }
 
-    [Fact]
+    [Test]
     public void AReceiverTypedAsDocumentObjectAcceptsAnyValueOfAnyType()
     {
         Mdg008("""
@@ -320,7 +320,7 @@ public class ValueNameAnalyzerTests
             """).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void AMethodOfTheSameNameOutsideTheDomIsNotChecked()
     {
         Mdg008("""
@@ -336,7 +336,7 @@ public class ValueNameAnalyzerTests
             """).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void ItSaysNothingAcrossAnAssemblyBoundary()
     {
         // The [DV] members are internal, and a compilation referencing the DOM is not shown them -

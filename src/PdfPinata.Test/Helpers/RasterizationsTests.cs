@@ -2,6 +2,7 @@ using System.IO;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Helpers;
 
@@ -10,7 +11,7 @@ namespace PdfPinata.Test.Helpers;
 ///   seventeen copies it replaced wrote them, hands them back, and frees every one of them when it
 ///   is disposed and not before.
 /// </summary>
-[Xunit.Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public class RasterizationsTests
 {
     private const string OutDir = "Out/Rasterizations";
@@ -26,7 +27,7 @@ public class RasterizationsTests
         return document;
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void EveryPageIsWrittenOutAndHandedBack()
     {
         using var rasterized = new Rasterizations(OutDir);
@@ -40,7 +41,7 @@ public class RasterizationsTests
         PageInk.Count(pages[1], PageInk.IsBlue).Should().BeGreaterThan(10000);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void TheFirstPageIsTheFirstOfThoseHandedBack()
     {
         using var rasterized = new Rasterizations(OutDir);
@@ -50,7 +51,7 @@ public class RasterizationsTests
         PageInk.Count(page, PageInk.IsBlue).Should().BeGreaterThan(10000);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void ThePagesAreHeldUntilDisposedAndFreedThen()
     {
         var rasterized = new Rasterizations(OutDir);

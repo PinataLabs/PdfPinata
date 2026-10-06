@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -43,7 +43,7 @@ public class ColorThreadSafetyTests
         return [..results];
     }
 
-    [Fact]
+    [Test]
     public void NamingAStandardColourFromManyThreadsGivesOneAnswer()
     {
         var results = InParallel(() => Colors.Black.ToString());
@@ -52,7 +52,7 @@ public class ColorThreadSafetyTests
         results.Distinct().Should().ContainSingle().And.Contain("Black");
     }
 
-    [Fact]
+    [Test]
     public void NamingDifferentStandardColoursFromManyThreadsIsStable()
     {
         var colors = new[] { Colors.Black, Colors.White, Colors.Red, Colors.Aqua, Colors.Fuchsia };
@@ -64,7 +64,7 @@ public class ColorThreadSafetyTests
         results[0].Should().Be("Black,White,Red,Cyan,Fuchsia");
     }
 
-    [Fact]
+    [Test]
     public void SerializingDocumentsFromManyThreadsGivesOneAnswer()
     {
         var results = InParallel(() =>
@@ -86,7 +86,7 @@ public class ColorThreadSafetyTests
     ///   it. Pinned because it decides what goes into the DDL, and unchanged by the rewrite: both
     ///   the old table and the new one keep the first name of a pair.
     /// </summary>
-    [Fact]
+    [Test]
     public void ADoubleNamedColourAlwaysGetsTheSameName()
     {
         Colors.Aqua.ToString().Should().Be("Cyan");
@@ -95,13 +95,13 @@ public class ColorThreadSafetyTests
         Colors.Magenta.ToString().Should().Be("Fuchsia");
     }
 
-    [Fact]
+    [Test]
     public void AColourWithNoStandardNameIsStillWrittenAsRgb()
     {
         new Color(0xFF, 0x12, 0x34, 0x56).ToString().Should().Be("RGB(18,52,86)");
     }
 
-    [Fact]
+    [Test]
     public void ATransparentColourWithNoStandardNameIsStillWrittenAsHex()
     {
         new Color(0x80, 0x12, 0x34, 0x56).ToString().Should().Be("0x80123456");

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs.Content;
 
@@ -55,15 +55,15 @@ public class CLexerUnicodeStringTests
 
     // ----- the named escapes ------------------------------------------------------------------------
 
-    [Theory(Timeout = 5000)]
-    [InlineData('n', '\n')]
-    [InlineData('r', '\r')]
-    [InlineData('t', '\t')]
-    [InlineData('b', '\b')]
-    [InlineData('f', '\f')]
-    [InlineData('(', '(')]
-    [InlineData(')', ')')]
-    [InlineData('\\', '\\')]
+    [Test, Timeout(5000)]
+    [Arguments('n', '\n')]
+    [Arguments('r', '\r')]
+    [Arguments('t', '\t')]
+    [Arguments('b', '\b')]
+    [Arguments('f', '\f')]
+    [Arguments('(', '(')]
+    [Arguments(')', ')')]
+    [Arguments('\\', '\\')]
     public async Task EveryNamedEscapeIsReadInsideAWideStringToo(char escape, char expected)
     {
         var content = BigEndianString(Concat(Wide('a'), Wide('\\'), [(byte)escape], Wide('b')));
@@ -73,10 +73,10 @@ public class CLexerUnicodeStringTests
         scanned.Should().Be("a" + expected + "b");
     }
 
-    [Theory(Timeout = 5000)]
-    [InlineData("101", "A")]
-    [InlineData("10", "\b")]
-    [InlineData("7", "\a")]
+    [Test, Timeout(5000)]
+    [Arguments("101", "A")]
+    [Arguments("10", "\b")]
+    [Arguments("7", "\a")]
     public async Task AnOctalCodeOfOneTwoOrThreeDigitsIsReadInsideAWideString(string digits, string expected)
     {
         var content = BigEndianString(Concat(
@@ -87,7 +87,7 @@ public class CLexerUnicodeStringTests
         scanned.Should().Be("a" + expected + "b");
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AnEscapeTheWideLoopDoesNotKnowKeepsTheCharacterAfterIt()
     {
         var content = BigEndianString(Concat(Wide('a'), Wide('\\'), [(byte)'q'], Wide('b')));
@@ -107,9 +107,9 @@ public class CLexerUnicodeStringTests
     ///   the parenthesis that closed it. The escapes are resolved on the bytes now, and the string
     ///   decoded afterwards.
     /// </summary>
-    [Theory(Timeout = 5000)]
-    [InlineData(new[] { (byte)'\n' })]
-    [InlineData(new[] { (byte)'\r' })]
+    [Test, Timeout(5000)]
+    [Arguments(new[] { (byte)'\n' })]
+    [Arguments(new[] { (byte)'\r' })]
     public async Task AContinuationInsideAWideStringJoinsTheCharactersEitherSideOfIt(byte[] lineEnding)
     {
         var content = BigEndianString(Concat(Wide('a'), [(byte)'\\'], lineEnding, Wide('b')));
@@ -119,7 +119,7 @@ public class CLexerUnicodeStringTests
         scanned.Should().Be("ab");
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AContinuationInsideALittleEndianStringJoinsTheCharactersEitherSideOfIt()
     {
         var content = new List<byte> { (byte)'(', 0xFF, 0xFE };
@@ -140,7 +140,7 @@ public class CLexerUnicodeStringTests
     ///   place - which is what the bytes say, and what the document lexer reads too. What matters
     ///   is that the string still ends at its closing parenthesis, and the tokens after it are read.
     /// </summary>
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AContinuationAfterAWideBackslashStillEndsTheStringAtItsParenthesis()
     {
         var content = Concat(
@@ -164,7 +164,7 @@ public class CLexerUnicodeStringTests
 
     // ----- brackets -----------------------------------------------------------------------------------
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task ABracketedRunInsideAWideStringIsPartOfIt()
     {
         var content = BigEndianString(Concat(
@@ -175,7 +175,7 @@ public class CLexerUnicodeStringTests
         scanned.Should().Be("a(b)c");
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task NestedBracketsInsideAWideStringAreCountedOffAgainstEachOther()
     {
         var content = BigEndianString(Concat(
@@ -188,7 +188,7 @@ public class CLexerUnicodeStringTests
 
     // ----- the little-endian byte order ---------------------------------------------------------------
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AnEscapeInALittleEndianStringStandsForTheByteItIsWrittenIn()
     {
         // An escape stands for one byte wherever it falls, so the line feed U+000A is written the
@@ -209,7 +209,7 @@ public class CLexerUnicodeStringTests
 
     // ----- running out of content ----------------------------------------------------------------------
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AWideStringThatEndsAfterABackslashEndsThereRatherThanScanningOn()
     {
         var content = Concat([(byte)'(', 0xFE, 0xFF], Wide('a'), Wide('\\'));

@@ -6,7 +6,7 @@ using PinataLayout.DocumentObjectModel.Fields;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Visitors;
-using Xunit;
+using TUnit.Core;
 using static PinataLayout.DocumentObjectModel.Shapes.ImageSource;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
@@ -39,7 +39,7 @@ public class ParagraphContentTests
 
     // ----- The Add… methods that build an element ----------------------------------------------
 
-    [Fact]
+    [Test]
     public void EveryAddMethodOnAParagraphAddsWhatItReturns()
     {
         var paragraph = new Paragraph();
@@ -82,7 +82,7 @@ public class ParagraphContentTests
         paragraph.Elements.OfType<Image>().Single().Source.Should().BeSameAs(image);
     }
 
-    [Fact]
+    [Test]
     public void EveryAddMethodOnFormattedTextAddsWhatItReturns()
     {
         var formatted = new FormattedText();
@@ -123,7 +123,7 @@ public class ParagraphContentTests
         formatted.Elements.Cast<object>().Should().Equal(added);
     }
 
-    [Fact]
+    [Test]
     public void EveryAddMethodOnAHyperlinkAddsWhatItReturns()
     {
         var hyperlink = new Hyperlink();
@@ -162,7 +162,7 @@ public class ParagraphContentTests
         hyperlink.Elements.Cast<object>().Should().Equal(added);
     }
 
-    [Fact]
+    [Test]
     public void TabsAndLineBreaksAreCharactersOfTheirOwn()
     {
         var paragraph = new Paragraph();
@@ -179,7 +179,7 @@ public class ParagraphContentTests
         Symbols(hyperlink.Elements).Should().Equal(SymbolName.Tab);
     }
 
-    [Fact]
+    [Test]
     public void AddingAFormatSetsTheFontOfTheNewText()
     {
         var paragraph = new Paragraph();
@@ -212,7 +212,7 @@ public class ParagraphContentTests
         new Character { SymbolName = SymbolName.Bullet }
     ];
 
-    [Fact]
+    [Test]
     public void EveryAddOverloadOnAParagraphAddsTheElementItIsGiven()
     {
         var paragraph = new Paragraph();
@@ -237,7 +237,7 @@ public class ParagraphContentTests
         paragraph.Elements.Cast<DocumentObject>().Should().Equal([.. elements, hyperlink]);
     }
 
-    [Fact]
+    [Test]
     public void EveryAddOverloadOnFormattedTextAddsTheElementItIsGiven()
     {
         var formatted = new FormattedText();
@@ -262,7 +262,7 @@ public class ParagraphContentTests
         formatted.Elements.Cast<DocumentObject>().Should().Equal([.. elements, hyperlink]);
     }
 
-    [Fact]
+    [Test]
     public void EveryAddOverloadOnAHyperlinkAddsTheElementItIsGiven()
     {
         var hyperlink = new Hyperlink();
@@ -287,7 +287,7 @@ public class ParagraphContentTests
 
     // ----- Properties ----------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void FormattedTextSaysEverythingThroughItsFont()
     {
         var formatted = new FormattedText
@@ -316,7 +316,7 @@ public class ParagraphContentTests
             .Should().Be(("Courier", 9.0, true, true, Underline.Dash, Colors.Firebrick));
     }
 
-    [Fact]
+    [Test]
     public void AnAssignedFontFormatOrElementsIsTheOneKept()
     {
         var formatted = new FormattedText();
@@ -347,7 +347,7 @@ public class ParagraphContentTests
         paragraph.Comment.Should().Be("a comment");
     }
 
-    [Fact]
+    [Test]
     public void AnElementAlreadyInAContainerCannotBeAssignedToAnother()
     {
         var first = new FormattedText();
@@ -358,7 +358,7 @@ public class ParagraphContentTests
         assign.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AnUnsetStyleNameAndCommentReadAsEmpty()
     {
         new FormattedText().Style.Should().BeEmpty();
@@ -367,7 +367,7 @@ public class ParagraphContentTests
         new Hyperlink().Name.Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void ACloneIsDeepAndOfTheSameType()
     {
         var paragraph = new Paragraph();
@@ -390,7 +390,7 @@ public class ParagraphContentTests
 
     // ----- Writing and reading MDDDL -------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void FormattedTextByStyleAndByFontSurvivesARoundTrip()
     {
         var document = new Document();
@@ -412,7 +412,7 @@ public class ParagraphContentTests
             .Select(t => t.Content).Should().Contain("unformatted");
     }
 
-    [Fact]
+    [Test]
     public void AHyperlinkWithAFontSurvivesARoundTrip()
     {
         var document = new Document();
@@ -429,7 +429,7 @@ public class ParagraphContentTests
         ((Text)again.Elements[0]).Content.Should().Be("example");
     }
 
-    [Fact]
+    [Test]
     public void AHyperlinkWithNoTargetCannotBeWritten()
     {
         var document = new Document();
@@ -440,7 +440,7 @@ public class ParagraphContentTests
         write.Should().Throw<InvalidOperationException>().WithMessage("*Name*");
     }
 
-    [Fact]
+    [Test]
     public void AStyledParagraphWithAFormatSurvivesARoundTrip()
     {
         var document = new Document();
@@ -457,7 +457,7 @@ public class ParagraphContentTests
 
     // ----- Paragraph breaks ----------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void FlatteningSplitsAParagraphAtEachParagraphBreak()
     {
         var document = new Document();

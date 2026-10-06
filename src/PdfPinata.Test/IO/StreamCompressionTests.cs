@@ -7,7 +7,7 @@ using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using SkiaSharp;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -26,9 +26,9 @@ namespace PdfPinata.Test.IO;
 /// </remarks>
 public class StreamCompressionTests
 {
-    [Theory]
-    [InlineData(PdfCrossReferenceFormat.Classic)]
-    [InlineData(PdfCrossReferenceFormat.Stream)]
+    [Test]
+    [Arguments(PdfCrossReferenceFormat.Classic)]
+    [Arguments(PdfCrossReferenceFormat.Stream)]
     public void NoStreamIsWrittenDeflatedWhereDeflatingMadeItLonger(PdfCrossReferenceFormat format)
     {
         var document = new PdfDocument();
@@ -66,7 +66,7 @@ public class StreamCompressionTests
             "the one pixel image is three bytes, which deflating would have made fourteen");
     }
 
-    [Fact]
+    [Test]
     public void AnImageTooSmallToShrinkIsWrittenPlainAndReadsBackTheSame()
     {
         var document = new PdfDocument();
@@ -86,7 +86,7 @@ public class StreamCompressionTests
         softMask.Stream.Value.Should().Equal(128);
     }
 
-    [Fact]
+    [Test]
     public void ZippingDataThatDeflatingWouldLengthenLeavesItPlain()
     {
         var document = new PdfDocument();

@@ -5,7 +5,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -17,7 +17,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class NumberTreeTests
 {
-    [Fact]
+    [Test]
     public void AskingADocumentForItsPageLabelsNoLongerThrows()
     {
         var document = Saved.Open(DocumentWithPageLabels("<</Nums[0 5 0 R 3 6 0 R]>>"));
@@ -27,7 +27,7 @@ public class NumberTreeTests
         labels.Should().BeOfType<PdfNumberTreeNode>();
     }
 
-    [Fact]
+    [Test]
     public void TheEntriesOfAFlatTreeAreRead()
     {
         var tree = PageLabelsOf(DocumentWithPageLabels("<</Nums[0 5 0 R 3 6 0 R]>>"));
@@ -38,7 +38,7 @@ public class NumberTreeTests
         tree.GetDictionary(3).Elements.GetName("/S").Should().Be("/D");
     }
 
-    [Fact]
+    [Test]
     public void TheEntriesBelowTheNodesOfATreeAreRead()
     {
         // A root of two leaves, which is the shape a large tree takes.
@@ -51,7 +51,7 @@ public class NumberTreeTests
         tree.GetKeys().Should().Equal(0, 3);
     }
 
-    [Fact]
+    [Test]
     public void EntriesOutOfOrderAreReadInOrder()
     {
         // The standard asks for ascending keys. A document that does otherwise is still one
@@ -62,7 +62,7 @@ public class NumberTreeTests
         tree.GetDictionary(0).Elements.GetName("/S").Should().Be("/r");
     }
 
-    [Fact]
+    [Test]
     public void ANodeHoldingBothItsEntriesAndNodesBelowItIsReadInFull()
     {
         // The standard says a node holds one or the other. Where a document holds both,
@@ -74,7 +74,7 @@ public class NumberTreeTests
         tree.GetKeys().Should().Equal(0, 3);
     }
 
-    [Fact]
+    [Test]
     public void ATreeThatLeadsBackToItselfIsReadOnceAndStops()
     {
         var tree = PageLabelsOf(DocumentWithPageLabels(
@@ -84,7 +84,7 @@ public class NumberTreeTests
         tree.GetKeys().Should().Equal(0);
     }
 
-    [Fact]
+    [Test]
     public void AValueIsGivenBackAsTheObjectItRefersTo()
     {
         var tree = PageLabelsOf(DocumentWithPageLabels("<</Nums[0 5 0 R]>>"));
@@ -94,7 +94,7 @@ public class NumberTreeTests
         tree.GetValue(1).Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void EntriesPutInAreFoundAgainInOrder()
     {
         var document = new PdfDocument();
@@ -110,7 +110,7 @@ public class NumberTreeTests
         tree.Contains(1).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void PuttingAValueUnderAKeyThatIsTakenReplacesIt()
     {
         var document = new PdfDocument();
@@ -124,7 +124,7 @@ public class NumberTreeTests
         tree.GetDictionary(0).Elements.GetName("/S").Should().Be("/D");
     }
 
-    [Fact]
+    [Test]
     public void AnEntryCanBeTakenOutAgain()
     {
         var document = new PdfDocument();
@@ -137,7 +137,7 @@ public class NumberTreeTests
         tree.Count.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void ASmallTreeIsWrittenAsOneNodeStatingNoLimits()
     {
         var document = new PdfDocument();
@@ -152,7 +152,7 @@ public class NumberTreeTests
         tree.Elements.ContainsKey("/Limits").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ATreeTooBigForOneNodeIsWrittenAsNodesBelowTheRoot()
     {
         var document = new PdfDocument();
@@ -179,7 +179,7 @@ public class NumberTreeTests
         }
     }
 
-    [Fact]
+    [Test]
     public void ATreeSurvivesBeingSavedAndReadBack()
     {
         var document = new PdfDocument();
@@ -195,7 +195,7 @@ public class NumberTreeTests
         reopened.GetDictionary(3).Elements.GetName("/S").Should().Be("/D");
     }
 
-    [Fact]
+    [Test]
     public void ATreeOfManyNodesSurvivesBeingSavedAndReadBack()
     {
         var document = new PdfDocument();
@@ -213,7 +213,7 @@ public class NumberTreeTests
         reopened.GetDictionary(998).Elements.GetInteger("/St").Should().Be(500);
     }
 
-    [Fact]
+    [Test]
     public void ReadingATreeLeavesTheDocumentAsItWas()
     {
         var document = Saved.Open(DocumentWithPageLabels("<</Nums[3 6 0 R 0 5 0 R]>>"));

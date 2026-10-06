@@ -9,7 +9,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Fonts;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using PdfPinata.Pdf.IO;
 using Reader = PdfPinata.Pdf.IO.PdfReader;
 
@@ -38,7 +38,7 @@ namespace PdfPinata.Test.Fonts;
 ///     makes the pair of them exactly the fallback case, with no new font asset needed.
 ///   </para>
 /// </remarks>
-[Collection(TextShapingCollection.Name)]
+[TextShaperSensitive]
 public class AstralCharacterTests
 {
     // Emoji that Source Code Pro really has, confirmed against its own cmap rather than assumed:
@@ -75,7 +75,7 @@ public class AstralCharacterTests
 
     // ----- one character, one glyph ----------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnAstralCharacterIsOneGlyphAndNotTwo()
     {
         // The heart of it. Two glyphs for one character was not merely wrong on the page - it made
@@ -84,7 +84,7 @@ public class AstralCharacterTests
             .Should().HaveCount(1, "a surrogate pair is one character");
     }
 
-    [Fact]
+    [Test]
     public void AFaceThatHasTheCharacterDrawsIt()
     {
         var glyphs = DrawnText.Glyphs(DrawnText.Page(Text(Lock), WithFormat12()));
@@ -93,7 +93,7 @@ public class AstralCharacterTests
             "Source Code Pro has U+1F512 in its format 12 subtable, so it is not .notdef");
     }
 
-    [Fact]
+    [Test]
     public void TwoDifferentAstralCharactersGetTwoDifferentGlyphs()
     {
         // Guards against a reader that answers plausibly but reads the wrong group - one constant
@@ -104,7 +104,7 @@ public class AstralCharacterTests
         drawnLock.Should().NotBe(drawnRobot);
     }
 
-    [Fact]
+    [Test]
     public void AFaceWithoutTheCharacterDrawsOneNotdefRatherThanTwo()
     {
         // Liberation Sans has no format 12 subtable. The answer is still .notdef - it always was -
@@ -113,7 +113,7 @@ public class AstralCharacterTests
             .Should().Equal(0);
     }
 
-    [Fact]
+    [Test]
     public void ACharacterNoFaceHasIsStillOneNotdef()
     {
         DrawnText.Glyphs(DrawnText.Page(Text(BoldA), WithFormat12()))
@@ -122,7 +122,7 @@ public class AstralCharacterTests
 
     // ----- measuring agrees with drawing -----------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnAstralCharacterIsMeasuredAsOneCharacter()
     {
         // Measuring and drawing go through the same seam, so a width that still counted two
@@ -143,7 +143,7 @@ public class AstralCharacterTests
 
     // ----- the character survives the trip out ------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TheSurrogatePairIsRecoveredWholeByToUnicode()
     {
         // The cluster of the one glyph is the index of the high surrogate and the run ends two code
@@ -193,7 +193,7 @@ public class AstralCharacterTests
 
     // ----- and the reason all this matters: fallback ------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnAstralCharacterCanNowBeOfferedForFallback()
     {
         // The third failure, and the one that could not even be attempted before: Liberation Sans
@@ -208,7 +208,7 @@ public class AstralCharacterTests
             "the character was drawn by the fallback face, which really has it");
     }
 
-    [Fact]
+    [Test]
     public void TheFallbackFaceIsSelectedInTheContentStream()
     {
         // Not merely a non-zero glyph: a second font resource, selected with its own Tf. A glyph
@@ -223,7 +223,7 @@ public class AstralCharacterTests
             .Should().HaveCount(2, "the Latin and the emoji are drawn from different faces");
     }
 
-    [Fact]
+    [Test]
     public void AFallbackIsNotTakenWhenTheFaceCanAlreadyDrawIt()
     {
         // Coverage answering "yes" for an astral character has to stop the fallback, or a face
@@ -239,7 +239,7 @@ public class AstralCharacterTests
 
     // ----- a face that lies about its own tables ------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AFormat12SubtableClaimingMoreGroupsThanItsOwnLengthIsRefused()
     {
         // The count is checked against the subtable's own declared length, which is the cheap half.
@@ -249,7 +249,7 @@ public class AstralCharacterTests
             .And.Should().NotBeOfType<OutOfMemoryException>();
     }
 
-    [Fact]
+    [Test]
     public void AFormat12SubtableWhoseLengthRunsPastTheFileIsRefused()
     {
         // The half the declared length cannot answer for, because the subtable declares that too: a
@@ -274,7 +274,7 @@ public class AstralCharacterTests
     private static Action Reading(byte[] bytes, string why)
         => () => new XFont(RegisterCorrupt(bytes, why), 20).GetHeight();
 
-    [Fact]
+    [Test]
     public void AFormat12SubtableShorterThanItsOwnHeaderIsRefused()
     {
         // The unsigned subtraction that made this worth a test of its own: a declared length below
@@ -370,7 +370,7 @@ public class AstralCharacterTests
 
     // ----- what must not have changed ----------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void OrdinaryTextIsUntouched()
     {
         // The whole change is guarded by a code point above 0xFFFF, and this is the assertion that
@@ -382,7 +382,7 @@ public class AstralCharacterTests
         DrawnText.ContentOf(DrawnText.Page("Hello", font)).Should().Contain(" Tj");
     }
 
-    [Fact]
+    [Test]
     public void AnUnpairedSurrogateIsStillOneGlyphAndDrawsNothingReal()
     {
         // A lone high surrogate is not a character and cannot be completed. It must not be read as

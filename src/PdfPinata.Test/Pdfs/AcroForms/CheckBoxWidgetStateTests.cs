@@ -5,7 +5,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.AcroForms;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs.AcroForms;
 
@@ -40,7 +40,7 @@ public class CheckBoxWidgetStateTests
         return (widget.Elements.GetName(PdfAcroField.Keys.V), widget.Elements.GetName(PdfAnnotation.Keys.AS));
     }
 
-    [Fact]
+    [Test]
     public void ABoxDrawnTwiceIsOneFieldWithTwoWidgets()
     {
         var field = ATickBox("/Yes", "/Yes");
@@ -50,7 +50,7 @@ public class CheckBoxWidgetStateTests
         field.Checked.Should().BeFalse("nothing has been set");
     }
 
-    [Fact]
+    [Test]
     public void TickingABoxDrawnTwiceTicksItInBothPlaces()
     {
         var field = ATickBox("/Ja", "/Ja");
@@ -63,7 +63,7 @@ public class CheckBoxWidgetStateTests
         WidgetState(field, 1).Should().Be(("", "/Ja"));
     }
 
-    [Fact]
+    [Test]
     public void UntickingABoxDrawnTwiceClearsItInBothPlaces()
     {
         var field = ATickBox("/Ja", "/Ja");
@@ -77,7 +77,7 @@ public class CheckBoxWidgetStateTests
         WidgetState(field, 1).Should().Be(("", "/Off"));
     }
 
-    [Fact]
+    [Test]
     public void ABoxCanBeTickedAndUntickedRepeatedlyWithoutDrifting()
     {
         var field = ATickBox("/Yes", "/Yes");
@@ -91,7 +91,7 @@ public class CheckBoxWidgetStateTests
         }
     }
 
-    [Fact]
+    [Test]
     public void WhatWasSetSurvivesBeingWrittenOutAndReadBack()
     {
         var field = ATickBox("/Ja", "/Ja");
@@ -108,9 +108,9 @@ public class CheckBoxWidgetStateTests
         WidgetState(reread, 1).Should().Be(("", "/Ja"));
     }
 
-    [Theory]
-    [InlineData(1)]
-    [InlineData(3)]
+    [Test]
+    [Arguments(1)]
+    [Arguments(3)]
     public void AnyNumberOfWidgetsFollowsTheValue(int count)
     {
         // One widget and three used to be handled differently from two - three not at all.
@@ -123,7 +123,7 @@ public class CheckBoxWidgetStateTests
             WidgetState(field, index).Should().Be(("", "/Yes"), "widget {0} shows the value", index);
     }
 
-    [Fact]
+    [Test]
     public void WidgetsNamingDifferentOnStatesAreTickedByTheFirstsName()
     {
         // The value names one state. A widget that has no appearance for it shows /Off, which is
@@ -138,7 +138,7 @@ public class CheckBoxWidgetStateTests
         WidgetState(field, 1).Should().Be(("", "/Off"));
     }
 
-    [Fact]
+    [Test]
     public void AButtonsOnStateIsTheOneItsWidgetsName()
     {
         // GetNonOffValue read the field's own /AP, which a field whose widgets are separate from it
@@ -153,7 +153,7 @@ public class CheckBoxWidgetStateTests
         field.CheckedName.Should().Be("/Ja");
     }
 
-    [Fact]
+    [Test]
     public void AWidgetWithNoAppearanceIsGivenNoState()
     {
         var field = (PdfCheckBoxField)new AcroFormBuilder()
@@ -169,7 +169,7 @@ public class CheckBoxWidgetStateTests
         field.Checked.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AFileWithNoValueAnywhereIsReadByItsWidgets()
     {
         // What the replaced scheme wrote, and what some other software writes: the appearance
@@ -192,7 +192,7 @@ public class CheckBoxWidgetStateTests
         ticked.Checked.Should().BeTrue("a widget shows an on state");
     }
 
-    [Fact]
+    [Test]
     public void SettingTheStateClearsAValueAWidgetCarried()
     {
         var field = (PdfCheckBoxField)new AcroFormBuilder()
@@ -210,7 +210,7 @@ public class CheckBoxWidgetStateTests
         WidgetState(field, 0).Should().Be(("", "/Off"), "a widget's /V is read by nothing and would contradict the field's");
     }
 
-    [Fact]
+    [Test]
     public void TheValueIsInheritedFromAParent()
     {
         // /V is inheritable (ISO 32000-1 Table 220), so a box whose value is said once, on the

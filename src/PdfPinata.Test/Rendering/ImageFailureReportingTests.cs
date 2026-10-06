@@ -6,7 +6,7 @@ using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.Rendering;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PinataLayout.DocumentObjectModel.Shapes.ImageSource;
 
 namespace PdfPinata.Test.Rendering;
@@ -20,7 +20,7 @@ namespace PdfPinata.Test.Rendering;
 /// </summary>
 public class ImageFailureReportingTests
 {
-    [Fact]
+    [Test]
     public void AnImageThatCannotBeMeasuredIsReportedWithTheExceptionThatStoppedIt()
     {
         var thrown = new InvalidDataException("the pixels are not there");
@@ -32,7 +32,7 @@ public class ImageFailureReportingTests
         failures[0].Exception.Should().BeSameAs(thrown);
     }
 
-    [Fact]
+    [Test]
     public void AnImageThatCannotBeDrawnIsReportedWithTheExceptionThatStoppedIt()
     {
         var thrown = new InvalidDataException("the encoder gave up");
@@ -44,7 +44,7 @@ public class ImageFailureReportingTests
         failures[0].Exception.Should().BeSameAs(thrown);
     }
 
-    [Fact]
+    [Test]
     public void AnImageSourceThatCannotBeOpenedIsReportedAsAnInvalidType()
     {
         var thrown = new InvalidOperationException("no backend understands this");
@@ -58,7 +58,7 @@ public class ImageFailureReportingTests
         failures[0].Exception.Should().BeSameAs(thrown);
     }
 
-    [Fact]
+    [Test]
     public void TheImageThatFailedIsTheOneReported()
     {
         var thrown = new InvalidDataException("boom");
@@ -75,10 +75,10 @@ public class ImageFailureReportingTests
         reported[0].Image.Should().BeSameAs(image);
     }
 
-    [Theory]
-    [InlineData(FailingImageSource.Stage.Opening)]
-    [InlineData(FailingImageSource.Stage.Measuring)]
-    [InlineData(FailingImageSource.Stage.Drawing)]
+    [Test]
+    [Arguments(FailingImageSource.Stage.Opening)]
+    [Arguments(FailingImageSource.Stage.Measuring)]
+    [Arguments(FailingImageSource.Stage.Drawing)]
     public void AnOutOfMemoryExceptionIsNotSwallowed(FailingImageSource.Stage stage)
     {
         // Running out of memory says nothing about the image and everything about the process
@@ -89,7 +89,7 @@ public class ImageFailureReportingTests
         render.Should().Throw<OutOfMemoryException>();
     }
 
-    [Fact]
+    [Test]
     public void ADocumentWithAnUnreadableImageStillRenders()
     {
         var document = new Document();
@@ -104,7 +104,7 @@ public class ImageFailureReportingTests
         renderer.PdfDocument.PageCount.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AnImageThatReadsFineIsNotReported()
     {
         var reported = new List<ImageFailedEventArgs>();

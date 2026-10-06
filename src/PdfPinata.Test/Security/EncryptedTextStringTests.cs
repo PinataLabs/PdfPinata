@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Security;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Security;
 
@@ -26,9 +26,9 @@ public class EncryptedTextStringTests
     private const string Author = "Ångström";
     private const string OwnerPassword = "12343";
 
-    [Theory]
-    [InlineData(PdfDocumentSecurityLevel.Encrypted40Bit)]
-    [InlineData(PdfDocumentSecurityLevel.Encrypted128Bit)]
+    [Test]
+    [Arguments(PdfDocumentSecurityLevel.Encrypted40Bit)]
+    [Arguments(PdfDocumentSecurityLevel.Encrypted128Bit)]
     public void ADocumentPropertyOfAnEncryptedDocumentCanBeReadByAConformingReader(
         PdfDocumentSecurityLevel level)
     {
@@ -40,9 +40,9 @@ public class EncryptedTextStringTests
         document.DecryptInfoString("/Author").Should().Be(Author);
     }
 
-    [Theory]
-    [InlineData(PdfDocumentSecurityLevel.Encrypted40Bit)]
-    [InlineData(PdfDocumentSecurityLevel.Encrypted128Bit)]
+    [Test]
+    [Arguments(PdfDocumentSecurityLevel.Encrypted40Bit)]
+    [Arguments(PdfDocumentSecurityLevel.Encrypted128Bit)]
     public void TheByteOrderMarkIsNotWrittenOutsideTheCipherText(PdfDocumentSecurityLevel level)
     {
         var document = new StandardSecurity(SaveEncryptedDocument(level));
@@ -62,9 +62,9 @@ public class EncryptedTextStringTests
             "the mark belongs to the value, so it is encrypted along with the text");
     }
 
-    [Theory]
-    [InlineData(PdfDocumentSecurityLevel.Encrypted40Bit)]
-    [InlineData(PdfDocumentSecurityLevel.Encrypted128Bit)]
+    [Test]
+    [Arguments(PdfDocumentSecurityLevel.Encrypted40Bit)]
+    [Arguments(PdfDocumentSecurityLevel.Encrypted128Bit)]
     public void TheArrangementThatTestRulesOutWouldIndeedFailIt(PdfDocumentSecurityLevel level)
     {
         // An assertion is only worth making if the thing it forbids would fail it. Decrypting a
@@ -89,9 +89,9 @@ public class EncryptedTextStringTests
         return withMark;
     }
 
-    [Theory]
-    [InlineData(PdfDocumentSecurityLevel.Encrypted40Bit)]
-    [InlineData(PdfDocumentSecurityLevel.Encrypted128Bit)]
+    [Test]
+    [Arguments(PdfDocumentSecurityLevel.Encrypted40Bit)]
+    [Arguments(PdfDocumentSecurityLevel.Encrypted128Bit)]
     public void ADocumentPropertyOfAnEncryptedDocumentIsReadBack(PdfDocumentSecurityLevel level)
     {
         using var saved = new MemoryStream(SaveEncryptedDocument(level));
@@ -102,9 +102,9 @@ public class EncryptedTextStringTests
         reread.Info.Author.Should().Be(Author);
     }
 
-    [Theory]
-    [InlineData(PdfDocumentSecurityLevel.Encrypted40Bit)]
-    [InlineData(PdfDocumentSecurityLevel.Encrypted128Bit)]
+    [Test]
+    [Arguments(PdfDocumentSecurityLevel.Encrypted40Bit)]
+    [Arguments(PdfDocumentSecurityLevel.Encrypted128Bit)]
     public void ADocumentWrittenBeforeTheFixIsStillRead(PdfDocumentSecurityLevel level)
     {
         // Documents already in the field carry the byte order mark in front of the ciphertext,
@@ -121,12 +121,12 @@ public class EncryptedTextStringTests
         reread.Info.Title.Should().Be(Title);
     }
 
-    [Theory]
-    [InlineData(Title)]
+    [Test]
+    [Arguments(Title)]
     // Long enough for the hexadecimal string to break across lines, which happens every 48
     // bytes of text. The mark now travels with those bytes, so it must not carry the count
     // with it and move every break two bytes along.
-    [InlineData("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcd")]
+    [Arguments("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcd")]
     public void AnUnencryptedDocumentIsWrittenExactlyAsBefore(string title)
     {
         var document = new PdfDocument();

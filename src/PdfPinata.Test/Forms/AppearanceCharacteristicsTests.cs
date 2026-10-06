@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.AcroForms;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Forms;
 
@@ -38,7 +38,7 @@ public class AppearanceCharacteristicsTests
         return components;
     }
 
-    [Fact]
+    [Test]
     public void ABackgroundIsWrittenToTheWidgetsCharacteristics()
     {
         var (document, page, form) = AForm();
@@ -51,7 +51,7 @@ public class AppearanceCharacteristicsTests
         Components(widget, "/BG").Should().Equal(1, 0, 0);
     }
 
-    [Fact]
+    [Test]
     public void EachColourSpaceIsWrittenWithItsOwnNumberOfComponents()
     {
         var (document, page, form) = AForm();
@@ -66,7 +66,7 @@ public class AppearanceCharacteristicsTests
         Components(widget, "/BG").Should().Equal(0.1, 0.2, 0.3, 0.4);
     }
 
-    [Fact]
+    [Test]
     public void AnRgbColourDeclaredGreyIsWrittenAsHowLightItIs()
     {
         // /MK writes a grey colour as its GS, and an RGB colour's GS used to be how dark it was -
@@ -83,7 +83,7 @@ public class AppearanceCharacteristicsTests
         Components(widget, "/BG").Should().Equal(0);
     }
 
-    [Fact]
+    [Test]
     public void ABorderIsWrittenWithTheWidthItIsDrawnAt()
     {
         var (document, page, form) = AForm();
@@ -99,7 +99,7 @@ public class AppearanceCharacteristicsTests
         style.Elements.GetName("/S").Should().Be("/S");
     }
 
-    [Fact]
+    [Test]
     public void AColourSetBeforeTheFieldIsPlacedIsGivenToItsWidget()
     {
         var (document, page, form) = AForm();
@@ -114,7 +114,7 @@ public class AppearanceCharacteristicsTests
         Components(widget, "/BC").Should().Equal(0, 0, 0);
     }
 
-    [Fact]
+    [Test]
     public void EveryWidgetOfARadioGroupIsGivenTheColours()
     {
         var (document, page, form) = AForm();
@@ -128,7 +128,7 @@ public class AppearanceCharacteristicsTests
         Components(second, "/BC").Should().HaveCount(3, "a widget added afterwards is given it too");
     }
 
-    [Fact]
+    [Test]
     public void ClearingAColourRemovesItAndAnEmptyCharacteristicsDictionary()
     {
         var (document, page, form) = AForm();
@@ -142,7 +142,7 @@ public class AppearanceCharacteristicsTests
         widget.Elements.ContainsKey("/MK").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void SettingOneColourLeavesTheRestOfTheCharacteristicsAlone()
     {
         // A widget read from a file carries /MK entries of its own, and only what is set is
@@ -163,7 +163,7 @@ public class AppearanceCharacteristicsTests
         Components(widget, "/BG").Should().Equal(1, 1, 1);
     }
 
-    [Fact]
+    [Test]
     public void AFieldMergedWithItsWidgetCarriesTheCharacteristicsItself()
     {
         var (document, page, form) = AForm();
@@ -179,7 +179,7 @@ public class AppearanceCharacteristicsTests
         Components(field, "/BC").Should().Equal(0, 0, 0);
     }
 
-    [Fact]
+    [Test]
     public void APushButtonsCaptionIsWrittenToEachWidget()
     {
         var (document, page, form) = AForm();
@@ -192,7 +192,7 @@ public class AppearanceCharacteristicsTests
         button.Caption.Should().Be("Read the manual");
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyCaptionRemovesIt()
     {
         var (document, page, form) = AForm();
@@ -207,7 +207,7 @@ public class AppearanceCharacteristicsTests
         button.Caption.Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void TheCharacteristicsSurviveBeingWrittenOutAndReadBack()
     {
         var (document, page, form) = AForm();

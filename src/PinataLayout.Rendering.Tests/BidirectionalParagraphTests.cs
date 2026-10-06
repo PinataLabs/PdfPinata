@@ -5,7 +5,7 @@ using PinataLayout.DocumentObjectModel;
 using PinataLayout.Rendering.Tests.Helpers;
 using PdfPinata.Test.Helpers;
 using PdfPinata.Text;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -59,7 +59,7 @@ public class BidirectionalParagraphTests
 
     // ----- the defect ------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AParagraphOfHebrewIsLaidOutInTheOrderItIsRead()
     {
         var page = Rendered.FirstPageOf(Paragraph(First + " " + Second));
@@ -69,7 +69,7 @@ public class BidirectionalParagraphTests
             + "letters were already the right way round");
     }
 
-    [Fact]
+    [Test]
     public void AnEnglishPhraseInsideAHebrewParagraphKeepsItsOwnWordOrder()
     {
         // The case that says the words are really being ordered rather than the line being turned
@@ -81,7 +81,7 @@ public class BidirectionalParagraphTests
         Glyphs.AcrossThePage(page).Should().Equal(Drawn("\u05D3\u05D2" + "one" + "two" + "\u05D1\u05D0"));
     }
 
-    [Fact]
+    [Test]
     public void ADeclaredDirectionOverridesWhatTheFirstStrongCharacterSays()
     {
         // "one" is the first strong character, so the algorithm left to itself reads the whole
@@ -93,7 +93,7 @@ public class BidirectionalParagraphTests
             "the Hebrew is drawn leftmost although it was written last");
     }
 
-    [Fact]
+    [Test]
     public void LeavingItToBeGuessedIsStillWhatHappensByDefault()
     {
         var page = Rendered.FirstPageOf(Paragraph("one " + First));
@@ -104,7 +104,7 @@ public class BidirectionalParagraphTests
 
     // ----- what it costs everything else -------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AParagraphWithNothingRightToLeftInItIsPlacedExactlyAsItAlwaysWas()
     {
         // The guarantee that makes this safe to leave switched on. A line with nothing right to
@@ -115,7 +115,7 @@ public class BidirectionalParagraphTests
         Glyphs.AcrossThePage(page).Should().Equal(Drawn("onetwothree"));
     }
 
-    [Fact]
+    [Test]
     public void ALineWithATabAndOneWordEitherSideOfItIsUnchangedBecauseThereIsNothingToSwap()
     {
         // What used to be the documented limitation, kept as the baseline it now is. A tab divides
@@ -131,7 +131,7 @@ public class BidirectionalParagraphTests
 
     // ----- the fix: a tab divides the line, and each segment reorders on its own -------------------
 
-    [Fact]
+    [Test]
     public void ARightToLeftLineWithOneTabReordersBothSegmentsIndependently()
     {
         // The case the old guard got backwards. Each side of the tab holds two words, so each side
@@ -144,7 +144,7 @@ public class BidirectionalParagraphTests
             "the segment before the tab reorders on its own, and so does the segment after it");
     }
 
-    [Fact]
+    [Test]
     public void SeveralTabsReorderEverySegmentIndependently()
     {
         var page = Rendered.FirstPageOf(Paragraph(
@@ -158,7 +158,7 @@ public class BidirectionalParagraphTests
             "a three-column tabbed layout reorders every column, not only the first");
     }
 
-    [Fact]
+    [Test]
     public void ALeftToRightPhraseInsideATabbedRightToLeftSegmentKeepsItsOwnWordOrder()
     {
         // The tabbed sibling of AnEnglishPhraseInsideAHebrewParagraphKeepsItsOwnWordOrder: a segment
@@ -171,7 +171,7 @@ public class BidirectionalParagraphTests
             "one and two keep their own order although the Hebrew around them is reordered");
     }
 
-    [Fact]
+    [Test]
     public void ALeftToRightTabbedLineIsUnaffected()
     {
         // The regression every existing document depends on: nothing right to left anywhere on the
@@ -189,7 +189,7 @@ public class BidirectionalParagraphTests
         Glyphs.On(page).Should().Equal(Drawn("abc").Concat(Drawn("def")).ToList());
     }
 
-    [Fact]
+    [Test]
     public void TheMarksOfATabbedReorderedLineStayInTheOrderTheTextIsRead()
     {
         // The extension of TheMarksStayInTheOrderTheTextIsRead to a line with a tab in it. Only
@@ -205,7 +205,7 @@ public class BidirectionalParagraphTests
             "and placed in the order they are read");
     }
 
-    [Fact]
+    [Test]
     public void ADecimalTabStillAlignsOnTheSeparatorWithRightToLeftTextBeforeIt()
     {
         // The mechanical half of the fix: the tab width list has to be replayable rather than
@@ -230,7 +230,7 @@ public class BidirectionalParagraphTests
         }
     }
 
-    [Fact]
+    [Test]
     public void ADecimalTabInADeclaredRightToLeftParagraphWithNoActualRightToLeftTextStillAligns()
     {
         // A paragraph can declare a direction without holding anything that direction actually
@@ -258,7 +258,7 @@ public class BidirectionalParagraphTests
         }
     }
 
-    [Fact]
+    [Test]
     public void UnderlineOnAReorderedTabbedLineDrawsNoBackwardsRule()
     {
         var document = new Document();
@@ -277,7 +277,7 @@ public class BidirectionalParagraphTests
             "reordering a tabbed segment must not turn its underline into a rule that runs backwards");
     }
 
-    [Fact]
+    [Test]
     public void StrikethroughOnAReorderedTabbedLineDrawsNoBackwardsRule()
     {
         var document = new Document();
@@ -296,7 +296,7 @@ public class BidirectionalParagraphTests
             "reordering a tabbed segment must not turn its strikethrough into a rule that runs backwards");
     }
 
-    [Fact]
+    [Test]
     public void ATabLeaderOnAReorderedTabbedLineIsDrawnOnce()
     {
         // Every other leaf checks `probing` and returns before touching the page - RenderWord,
@@ -322,7 +322,7 @@ public class BidirectionalParagraphTests
             + "needs reordering");
     }
 
-    [Fact]
+    [Test]
     public void AHyperlinkInsideATabbedRightToLeftLineKeepsItsClickableAreaWhereTheTextIs()
     {
         var document = new Document();
@@ -350,7 +350,7 @@ public class BidirectionalParagraphTests
             + "it was written");
     }
 
-    [Fact]
+    [Test]
     public void ATabbedLineInATableCellReordersToo()
     {
         var document = new Document();
@@ -368,7 +368,7 @@ public class BidirectionalParagraphTests
             "the fix is not silently limited to body paragraphs");
     }
 
-    [Fact]
+    [Test]
     public void TheMarksStayInTheOrderTheTextIsRead()
     {
         // Only where a word lands changed. The leaves are still walked in the order they were
@@ -383,7 +383,7 @@ public class BidirectionalParagraphTests
             "and placed in the order they are read");
     }
 
-    [Fact]
+    [Test]
     public void AFootnoteMarkOnAReorderedLineIsDrawnOnce()
     {
         // The probing walk is a walk of the same renderers with the drawing turned off, and every

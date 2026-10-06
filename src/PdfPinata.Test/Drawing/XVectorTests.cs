@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -14,7 +14,7 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class XVectorTests
 {
-    [Fact]
+    [Test]
     public void VectorsAddAndSubtractComponentwise()
     {
         (new XVector(1, 2) + new XVector(3, 4)).Should().Be(new XVector(4, 6));
@@ -23,14 +23,14 @@ public class XVectorTests
         XVector.Subtract(new XVector(1, 2), new XVector(3, 4)).Should().Be(new XVector(-2, -2));
     }
 
-    [Fact]
+    [Test]
     public void AVectorPlusAPointIsThePointDisplaced()
     {
         (new XVector(3, 4) + new XPoint(10, 20)).Should().Be(new XPoint(13, 24));
         XVector.Add(new XVector(3, 4), new XPoint(10, 20)).Should().Be(new XPoint(13, 24));
     }
 
-    [Fact]
+    [Test]
     public void NegatingAVectorTurnsItRoundWhicheverWayItIsWritten()
     {
         var negated = -new XVector(3, -4);
@@ -41,7 +41,7 @@ public class XVectorTests
         inPlace.Should().Be(negated);
     }
 
-    [Fact]
+    [Test]
     public void ScalingWorksFromEitherSideAndDividingIsScalingByTheReciprocal()
     {
         (new XVector(3, 4) * 2).Should().Be(new XVector(6, 8));
@@ -52,14 +52,14 @@ public class XVectorTests
         XVector.Divide(new XVector(3, 4), 2).Should().Be(new XVector(1.5, 2));
     }
 
-    [Fact]
+    [Test]
     public void MultiplyingTwoVectorsIsTheirDotProduct()
     {
         (new XVector(1, 2) * new XVector(3, 4)).Should().Be(11);
         XVector.Multiply(new XVector(1, 2), new XVector(3, 4)).Should().Be(11);
     }
 
-    [Fact]
+    [Test]
     public void CrossProductAndDeterminantAreTheSameSignedArea()
     {
         XVector.CrossProduct(new XVector(1, 0), new XVector(0, 1)).Should().Be(1);
@@ -68,7 +68,7 @@ public class XVectorTests
             .Should().Be(XVector.CrossProduct(new XVector(1, 2), new XVector(3, 4)));
     }
 
-    [Fact]
+    [Test]
     public void MultiplyingByAMatrixTransformsTheDisplacementWithoutTranslatingIt()
     {
         // A vector has no position, so the offset part of the matrix must not reach it - that is
@@ -83,7 +83,7 @@ public class XVectorTests
         matrix.Transform(vector).Should().Be(new XVector(2, 3));
     }
 
-    [Fact]
+    [Test]
     public void LengthAndLengthSquaredMeasureTheSameVector()
     {
         var vector = new XVector(3, 4);
@@ -92,7 +92,7 @@ public class XVectorTests
         vector.LengthSquared.Should().BeApproximately(25, 1e-12);
     }
 
-    [Fact]
+    [Test]
     public void NormalizingLeavesTheDirectionAndMakesTheLengthOne()
     {
         var vector = new XVector(3, 4);
@@ -104,7 +104,7 @@ public class XVectorTests
         vector.Y.Should().BeApproximately(0.8, 1e-12);
     }
 
-    [Fact]
+    [Test]
     public void NormalizingDividesByTheLargerComponentFirstSoAVeryLongVectorDoesNotOverflow()
     {
         // Squaring 1e200 would be infinity, and the vector would normalize to NaN. Dividing by
@@ -118,11 +118,11 @@ public class XVectorTests
         vector.Y.Should().BeApproximately(0.8, 1e-12);
     }
 
-    [Theory]
-    [InlineData(1, 0, 0, 1, 90)]
-    [InlineData(0, 1, 1, 0, -90)]
-    [InlineData(1, 0, 1, 0, 0)]
-    [InlineData(1, 0, -1, 0, 180)]
+    [Test]
+    [Arguments(1, 0, 0, 1, 90)]
+    [Arguments(0, 1, 1, 0, -90)]
+    [Arguments(1, 0, 1, 0, 0)]
+    [Arguments(1, 0, -1, 0, 180)]
     public void AngleBetweenIsMeasuredInDegreesAndSignedByWhichWayItTurns(
         double x1, double y1, double x2, double y2, double expected)
     {
@@ -130,14 +130,14 @@ public class XVectorTests
             .Should().BeApproximately(expected, 1e-9);
     }
 
-    [Fact]
+    [Test]
     public void AVectorConvertsToASizeByDroppingItsSignsAndToAPointAsItStands()
     {
         ((XSize)new XVector(-3, -4)).Should().Be(new XSize(3, 4));
         ((XPoint)new XVector(-3, -4)).Should().Be(new XPoint(-3, -4));
     }
 
-    [Fact]
+    [Test]
     public void XAndYCanBeSetAfterTheFact()
     {
         var vector = new XVector { X = 4, Y = 5 };
@@ -146,7 +146,7 @@ public class XVectorTests
         vector.Y.Should().Be(5);
     }
 
-    [Fact]
+    [Test]
     public void TwoVectorsAreEqualWhenBothComponentsAre()
     {
         var vector = new XVector(1, 2);
@@ -162,7 +162,7 @@ public class XVectorTests
         vector.GetHashCode().Should().Be(new XVector(1, 2).GetHashCode());
     }
 
-    [Fact]
+    [Test]
     public void AVectorIsWrittenAsTwoNumbersAndReadBackTheSameWay()
     {
         var vector = new XVector(1.5, -2.5);
@@ -173,7 +173,7 @@ public class XVectorTests
         XVector.Parse(text).Should().Be(vector);
     }
 
-    [Fact]
+    [Test]
     public void AFormatStringIsAppliedToBothComponents()
     {
         IFormattable vector = new XVector(1.23456, 2.34567);

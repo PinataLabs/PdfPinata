@@ -3,7 +3,7 @@ using System.ComponentModel;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Drawing.BarCodes;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -23,10 +23,10 @@ public class BarCodeFactoryTests
 {
     private static readonly XSize Size = new(120, 40);
 
-    [Theory]
-    [InlineData(CodeType.Code2of5Interleaved, typeof(Code2of5Interleaved))]
-    [InlineData(CodeType.Code3of9Standard, typeof(Code3of9Standard))]
-    [InlineData(CodeType.Omr, typeof(CodeOmr))]
+    [Test]
+    [Arguments(CodeType.Code2of5Interleaved, typeof(Code2of5Interleaved))]
+    [Arguments(CodeType.Code3of9Standard, typeof(Code3of9Standard))]
+    [Arguments(CodeType.Omr, typeof(CodeOmr))]
     public void EveryCodeTypeThatIsABarCodeComesBackAsOne(CodeType type, Type expected)
     {
         var code = BarCode.FromType(type, "1234", Size, CodeDirection.LeftToRight);
@@ -34,7 +34,7 @@ public class BarCodeFactoryTests
         code.Should().BeOfType(expected);
     }
 
-    [Fact]
+    [Test]
     public void TheOmrCodeKeepsWhatItWasAskedFor()
     {
         // The two-line case is the one worth checking carries its arguments through rather than
@@ -46,7 +46,7 @@ public class BarCodeFactoryTests
         code.Direction.Should().Be(CodeDirection.RightToLeft);
     }
 
-    [Fact]
+    [Test]
     public void ADataMatrixIsRefusedByNameRatherThanAsAnUnknownEnumValue()
     {
         Action fromType = () => BarCode.FromType(CodeType.DataMatrix, "1234", Size);
@@ -57,7 +57,7 @@ public class BarCodeFactoryTests
             .Which.Should().NotBeOfType<InvalidEnumArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void TheDataMatrixRefusalNamesWhatToBuildAndWhatDrawsIt()
     {
         Action fromType = () => BarCode.FromType(CodeType.DataMatrix, "1234", Size);
@@ -67,7 +67,7 @@ public class BarCodeFactoryTests
             .And.Message.Should().Contain("DrawMatrixCode");
     }
 
-    [Fact]
+    [Test]
     public void AValueThatIsNotInTheEnumIsStillReportedAsOne()
     {
         Action fromType = () => BarCode.FromType((CodeType)999, "1234", Size);
@@ -83,10 +83,10 @@ public class BarCodeFactoryTests
     // IndexOutOfRangeException for an odd number of digits, FormatException for anything that is
     // not one. Neither names the code or the rule, and both arrive at drawing time.
 
-    [Theory]
-    [InlineData("")]
-    [InlineData("12")]
-    [InlineData("20260816")]
+    [Test]
+    [Arguments("")]
+    [Arguments("12")]
+    [Arguments("20260816")]
     public void InterleavedTwoOfFiveTakesAnEvenNumberOfDigits(string code)
     {
         var act = () => new Code2of5Interleaved(code, Size);
@@ -94,9 +94,9 @@ public class BarCodeFactoryTests
         act.Should().NotThrow();
     }
 
-    [Theory]
-    [InlineData("123")]
-    [InlineData("1")]
+    [Test]
+    [Arguments("123")]
+    [Arguments("1")]
     public void InterleavedTwoOfFiveRefusesAnOddNumberOfDigits(string code)
     {
         var act = () => new Code2of5Interleaved(code, Size);
@@ -104,10 +104,10 @@ public class BarCodeFactoryTests
         act.Should().Throw<ArgumentException>().WithMessage("*even number of digits*");
     }
 
-    [Theory]
-    [InlineData("12A4")]
-    [InlineData("12 4")]
-    [InlineData("-123")]
+    [Test]
+    [Arguments("12A4")]
+    [Arguments("12 4")]
+    [Arguments("-123")]
     public void InterleavedTwoOfFiveRefusesAnythingThatIsNotADigit(string code)
     {
         var act = () => new Code2of5Interleaved(code, Size);
@@ -115,7 +115,7 @@ public class BarCodeFactoryTests
         act.Should().Throw<ArgumentException>().WithMessage($"*{code}*");
     }
 
-    [Fact]
+    [Test]
     public void TheRefusalNamesTheCodeItRefused()
     {
         // The point of raising it where the code is set rather than where it is drawn: the caller
@@ -131,7 +131,7 @@ public class BarCodeFactoryTests
     // bars up, and the check's copy had an apostrophe the lookup's did not. So "'" was accepted where
     // the code was set and then read _lines[-1] when it was drawn.
 
-    [Fact]
+    [Test]
     public void CodeThreeOfNineRefusesAnApostropheWhereItIsSet()
     {
         var act = () => new Code3of9Standard("AB'C", Size);
@@ -139,9 +139,9 @@ public class BarCodeFactoryTests
         act.Should().Throw<ArgumentException>().WithMessage("*AB'C*");
     }
 
-    [Theory]
-    [InlineData("AB*C")]
-    [InlineData("*ABC*")]
+    [Test]
+    [Arguments("AB*C")]
+    [Arguments("*ABC*")]
     public void CodeThreeOfNineRefusesTheStartAndStopCharacterInItsData(string code)
     {
         // The renderer draws the "*" that opens and closes the symbol itself, so one in the data is
@@ -154,7 +154,7 @@ public class BarCodeFactoryTests
     }
 
     // Every data character: the 43 of Code 39, which is the alphabet less the "*" delimiter.
-    [Fact]
+    [Test]
     public void CodeThreeOfNineDrawsEveryCharacterItAccepts()
     {
         var code = new Code3of9Standard("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%", new XSize(400, 40));

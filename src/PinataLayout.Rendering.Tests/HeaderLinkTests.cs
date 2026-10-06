@@ -3,7 +3,7 @@ using System.IO;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PdfPinata.Pdf;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -27,7 +27,7 @@ namespace PinataLayout.Rendering.Tests;
 /// </remarks>
 public class HeaderLinkTests
 {
-    [Fact]
+    [Test]
     public void ALinkInARunningHeaderIsReportedRatherThanQuietlyWritten()
     {
         var renderer = Claiming(linkInHeader: true);
@@ -37,14 +37,14 @@ public class HeaderLinkTests
                 "an artifact holds nothing tagged, so nothing in the tree can point at the link");
     }
 
-    [Fact]
+    [Test]
     public void TheSameLinkInTheBodyIsFine()
     {
         // The contrast that makes the refusal above about the header rather than about links.
         Saving(Claiming(linkInHeader: false)).Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void AHeaderWithNoLinkInItIsFine()
     {
         // The ordinary running head, which is the case that must not have been made to throw.

@@ -7,7 +7,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using PdfPinata.Test.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -26,7 +26,7 @@ namespace PdfPinata.Test.Pdfs;
 /// </summary>
 public class PdfRectangleTests
 {
-    [Fact]
+    [Test]
     public void ARectangleFromALocationAndASizeReachesAcrossTheSize()
     {
         var rectangle = new PdfRectangle(new XPoint(10, 20), new XSize(30, 40));
@@ -41,7 +41,7 @@ public class PdfRectangleTests
         rectangle.Size.Should().Be(new XSize(30, 40));
     }
 
-    [Fact]
+    [Test]
     public void ARectangleFromTwoCornersKeepsThemAsTheyWereGiven()
     {
         var rectangle = new PdfRectangle(new XPoint(5, 6), new XPoint(105, 206));
@@ -53,7 +53,7 @@ public class PdfRectangleTests
         rectangle.ToXRect().Should().Be(new XRect(5, 6, 100, 200));
     }
 
-    [Fact]
+    [Test]
     public void EveryWayOfMakingTheSameRectangleMakesAnEqualOne()
     {
         var fromCorners = new PdfRectangle(new XPoint(1, 2), new XPoint(4, 6));
@@ -66,7 +66,7 @@ public class PdfRectangleTests
         fromRect.GetHashCode().Should().Be(fromCorners.GetHashCode());
     }
 
-    [Fact]
+    [Test]
     public void TheEmptyRectangleHasEveryCoordinateZero()
     {
         PdfRectangle.Empty.IsEmpty.Should().BeTrue();
@@ -76,7 +76,7 @@ public class PdfRectangleTests
         new PdfRectangle(new XPoint(0, 0), new XSize(0, 1)).IsEmpty.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ARectangleIsNotEqualToSomethingThatIsNotARectangle()
     {
         var rectangle = new PdfRectangle(new XRect(0, 0, 10, 10));
@@ -88,11 +88,11 @@ public class PdfRectangleTests
         rectangle.Equals(new PdfArray()).Should().BeFalse();
     }
 
-    [Theory]
-    [InlineData(1, 0, 10, 10)]
-    [InlineData(0, 1, 10, 10)]
-    [InlineData(0, 0, 11, 10)]
-    [InlineData(0, 0, 10, 11)]
+    [Test]
+    [Arguments(1, 0, 10, 10)]
+    [Arguments(0, 1, 10, 10)]
+    [Arguments(0, 0, 11, 10)]
+    [Arguments(0, 0, 10, 11)]
     public void RectanglesDifferingInAnyOneCoordinateAreNotEqual(double x1, double y1, double x2, double y2)
     {
         var rectangle = new PdfRectangle(new XPoint(0, 0), new XPoint(10, 10));
@@ -104,7 +104,7 @@ public class PdfRectangleTests
         other.GetHashCode().Should().NotBe(rectangle.GetHashCode());
     }
 
-    [Fact]
+    [Test]
     public void TheEqualityOperatorComparesCoordinatesRatherThanReferences()
     {
         var rectangle = new PdfRectangle(new XRect(1, 2, 3, 4));
@@ -115,7 +115,7 @@ public class PdfRectangleTests
         (rectangle != same).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void TheEqualityOperatorHandlesNullOnEitherSide()
     {
         var rectangle = new PdfRectangle(new XRect(1, 2, 3, 4));
@@ -133,7 +133,7 @@ public class PdfRectangleTests
         (none != rectangle).Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AClonedRectangleIsAnEqualButSeparateInstance()
     {
         var rectangle = new PdfRectangle(new XRect(1, 2, 3, 4));
@@ -146,15 +146,15 @@ public class PdfRectangleTests
         clone.Y2.Should().Be(6);
     }
 
-    [Theory]
-    [InlineData(10, 20, true)]   // a corner
-    [InlineData(110, 220, true)] // the opposite corner
-    [InlineData(60, 20, true)]   // on an edge
-    [InlineData(60, 120, true)]  // inside
-    [InlineData(9.99, 120, false)]
-    [InlineData(110.01, 120, false)]
-    [InlineData(60, 19.99, false)]
-    [InlineData(60, 220.01, false)]
+    [Test]
+    [Arguments(10, 20, true)]   // a corner
+    [Arguments(110, 220, true)] // the opposite corner
+    [Arguments(60, 20, true)]   // on an edge
+    [Arguments(60, 120, true)]  // inside
+    [Arguments(9.99, 120, false)]
+    [Arguments(110.01, 120, false)]
+    [Arguments(60, 19.99, false)]
+    [Arguments(60, 220.01, false)]
     public void APointIsContainedInclusiveOfEveryEdge(double x, double y, bool expected)
     {
         var rectangle = new PdfRectangle(new XPoint(10, 20), new XPoint(110, 220));
@@ -163,13 +163,13 @@ public class PdfRectangleTests
         rectangle.Contains(new XPoint(x, y)).Should().Be(expected);
     }
 
-    [Theory]
-    [InlineData(10, 20, 100, 200, true)] // exactly the same area
-    [InlineData(20, 30, 10, 10, true)]
-    [InlineData(5, 30, 10, 10, false)]   // starts left of it
-    [InlineData(20, 15, 10, 10, false)]  // starts below it
-    [InlineData(20, 30, 91, 10, false)]  // reaches past the right edge
-    [InlineData(20, 30, 10, 191, false)] // reaches past the top edge
+    [Test]
+    [Arguments(10, 20, 100, 200, true)] // exactly the same area
+    [Arguments(20, 30, 10, 10, true)]
+    [Arguments(5, 30, 10, 10, false)]   // starts left of it
+    [Arguments(20, 15, 10, 10, false)]  // starts below it
+    [Arguments(20, 30, 91, 10, false)]  // reaches past the right edge
+    [Arguments(20, 30, 10, 191, false)] // reaches past the top edge
     public void ARegionIsContainedOnlyWhenItLiesEntirelyInside(double x, double y, double width, double height, bool expected)
     {
         var rectangle = new PdfRectangle(new XPoint(10, 20), new XPoint(110, 220));
@@ -179,14 +179,14 @@ public class PdfRectangleTests
         rectangle.Contains(new PdfRectangle(region)).Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void ARectangleIsSpelledAsTheArrayItIsWrittenAs()
     {
         new PdfRectangle(new XPoint(0, 0), new XPoint(595, 842)).ToString().Should().Be("[0 0 595 842]");
         new PdfRectangle(new XPoint(1.5, -2.25), new XPoint(3.14159, 4)).ToString().Should().Be("[1.5 -2.25 3.142 4]");
     }
 
-    [Fact]
+    [Test]
     public void ARectangleComesBackFromTheFileAsAnEqualRectangle()
     {
         var document = new PdfDocument();
@@ -203,7 +203,7 @@ public class PdfRectangleTests
         reread.Internals.Catalog.Elements.GetRectangle("/TestBox").Should().Be(rectangle);
     }
 
-    [Fact]
+    [Test]
     public void APageInheritsAMediaBoxStatedOnItsParent()
     {
         var document = OpenPageTree("/MediaBox[0 0 300 400]");
@@ -215,7 +215,7 @@ public class PdfRectangleTests
         document.Pages[0].Height.Point.Should().Be(400);
     }
 
-    [Fact]
+    [Test]
     public void APageInheritsAMediaBoxItsParentHoldsByReference()
     {
         var document = OpenPageTree("/MediaBox 4 0 R", "[10 20 210 120]");
@@ -223,7 +223,7 @@ public class PdfRectangleTests
         document.Pages[0].MediaBox.Should().Be(new PdfRectangle(new XPoint(10, 20), new XPoint(210, 120)));
     }
 
-    [Fact]
+    [Test]
     public void APageInheritsACropBoxStatedOnItsParent()
     {
         var document = OpenPageTree("/MediaBox[0 0 300 400]/CropBox[5 5 295 395]");
@@ -231,16 +231,16 @@ public class PdfRectangleTests
         document.Pages[0].CropBox.Should().Be(new PdfRectangle(new XPoint(5, 5), new XPoint(295, 395)));
     }
 
-    [Fact]
+    [Test]
     public void AnInheritedMediaBoxThatIsNotAnArrayIsRefused()
     {
         FluentActions.Invoking(() => OpenPageTree("/MediaBox 42"))
             .Should().Throw<System.InvalidOperationException>();
     }
 
-    [Theory]
-    [InlineData("/CropBox null", null)]
-    [InlineData("/CropBox 4 0 R", "null")]
+    [Test]
+    [Arguments("/CropBox null", null)]
+    [Arguments("/CropBox 4 0 R", "null")]
     public void ANullBoxOnTheParentIsNotCopiedOntoThePage(string pagesEntries, string extraObject)
     {
         // ISO 32000-1 7.3.7: an entry whose value is null is the same as no entry at all. It used
@@ -261,7 +261,7 @@ public class PdfRectangleTests
         reread.Pages[0].MediaBox.Should().Be(new PdfRectangle(new XPoint(0, 0), new XPoint(300, 400)));
     }
 
-    [Fact]
+    [Test]
     public void ANullBoxPartWayDownTheTreeLeavesTheBoxFromFurtherUpInPlace()
     {
         // The inner node's null says nothing, so the box its own parent states still reaches the page.
@@ -275,7 +275,7 @@ public class PdfRectangleTests
         document.Pages[0].CropBox.Should().Be(new PdfRectangle(new XPoint(5, 5), new XPoint(295, 395)));
     }
 
-    [Fact]
+    [Test]
     public void APageWhoseOwnBoxIsNullInheritsTheBoxItsParentStates()
     {
         var document = Open([
@@ -287,9 +287,9 @@ public class PdfRectangleTests
         document.Pages[0].CropBox.Should().Be(new PdfRectangle(new XPoint(5, 5), new XPoint(295, 395)));
     }
 
-    [Theory]
-    [InlineData("/Rotate")]
-    [InlineData("/Resources")]
+    [Test]
+    [Arguments("/Rotate")]
+    [Arguments("/Resources")]
     public void ANullForAnyOtherInheritableEntryIsAsIfItWereAbsent(string key)
     {
         // The same rule for the two inheritable entries that are not boxes. Neither could be read

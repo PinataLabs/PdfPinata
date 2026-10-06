@@ -4,7 +4,7 @@ using ImageMagick;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Drawing;
@@ -15,7 +15,7 @@ namespace PdfPinata.Test.Drawing;
 ///   Separation whose tint transform a reader rejected would pass every one of those and paint
 ///   nothing, which only rasterizing would show.
 /// </summary>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public sealed class SpotColorRenderingTests : IDisposable
 {
     private const string OutDir = "Out/SpotColor";
@@ -28,7 +28,7 @@ public sealed class SpotColorRenderingTests : IDisposable
 
     public void Dispose() => _rasterized.Dispose();
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void ACmykAlternateIsPaintedAtFullAndHalfTint()
     {
         var magenta = new XSpotColor("Rhodamine", XColor.FromCmyk(0, 1, 0, 0));
@@ -54,7 +54,7 @@ public sealed class SpotColorRenderingTests : IDisposable
         stroke.R.Should().BeGreaterThan(180);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AnRgbAlternateIsPaintedAsItsOwnColour()
     {
         var blue = new XSpotColor("Reflex Blue", XColor.FromArgb(0, 20, 137));

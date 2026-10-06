@@ -2,7 +2,7 @@ using System;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Internals;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -19,7 +19,7 @@ public class EnumValueTests
     private static Borders ABordersObject() =>
         new Document().AddSection().AddParagraph("Hello").Format.Borders;
 
-    [Fact]
+    [Test]
     public void AValueTheEnumDefinesIsAccepted()
     {
         var borders = ABordersObject();
@@ -29,7 +29,7 @@ public class EnumValueTests
         borders.Top.Style.Should().Be(BorderStyle.Dot);
     }
 
-    [Fact]
+    [Test]
     public void AValueTheEnumDoesNotDefineIsRejected()
     {
         var borders = ABordersObject();
@@ -40,14 +40,14 @@ public class EnumValueTests
             "NEnum validates against the enum type it carries; a plain BorderStyle? would not");
     }
 
-    [Fact]
+    [Test]
     public void AnUnsetEnumReadsAsItsFirstValue()
     {
         ABordersObject().Top.Style.Should().Be(0);
         ABordersObject().Top.IsNull("Style").Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void SettingAnEnumAndThenNullingItReadsAsUnsetAgain()
     {
         var borders = ABordersObject();
@@ -62,7 +62,7 @@ public class EnumValueTests
     ///   Character.SymbolName is the exception NEnum carries a comment about: a value with the top
     ///   nibble clear is a character rather than a symbol, so it skips the check the others get.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheSymbolNameEnumSkipsTheCheck()
     {
         var paragraph = new Document().AddSection().AddParagraph("Hello");
@@ -72,7 +72,7 @@ public class EnumValueTests
         assigning.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void AnEnumRoundTripsThroughTheReflectionLayer()
     {
         var borders = ABordersObject();

@@ -6,7 +6,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -20,11 +20,11 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 /// <remarks>
 ///   Reading malformed input can hang rather than fail, so every test here runs the parser inside
-///   a <see cref="Task"/> that xUnit can time out.
+///   a <see cref="Task"/> that a timeout can abandon.
 /// </remarks>
 public class MissingEndObjectTests
 {
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task ADocumentWhoseObjectDoesNotSayEndobjIsRead()
     {
         // The reported file: "Token '60' was not expected", where 60 is the object that follows.
@@ -33,7 +33,7 @@ public class MissingEndObjectTests
         document.PageCount.Should().Be(1);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task TheObjectAfterTheOneMissingEndobjIsReadAsWell()
     {
         var document = await Read(Document(endobj: false));
@@ -42,7 +42,7 @@ public class MissingEndObjectTests
         document.Pages[0].Contents.Elements.Count.Should().Be(1);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task ADocumentThatSaysEndobjIsStillRead()
     {
         var document = await Read(Document(endobj: true));
@@ -50,13 +50,13 @@ public class MissingEndObjectTests
         document.PageCount.Should().Be(1);
     }
 
-    [Theory(Timeout = 5000)]
-    [InlineData("42")]              // an integer
-    [InlineData("true")]            // a boolean
-    [InlineData("/Name")]           // a name
-    [InlineData("(a string)")]      // a string
-    [InlineData("[1 2 3]")]         // an array
-    [InlineData("null")]            // the null object
+    [Test, Timeout(5000)]
+    [Arguments("42")]              // an integer
+    [Arguments("true")]            // a boolean
+    [Arguments("/Name")]           // a name
+    [Arguments("(a string)")]      // a string
+    [Arguments("[1 2 3]")]         // an array
+    [Arguments("null")]            // the null object
     public async Task AnObjectOfAnyKindMayLeaveEndobjOut(string body)
     {
         // Object 5 holds the body and does not close; object 6 follows it, so the object number
@@ -66,7 +66,7 @@ public class MissingEndObjectTests
         document.PageCount.Should().Be(1);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task TheLastObjectOfTheBodyMayLeaveEndobjOut()
     {
         // Nothing follows the last object but the cross-reference table.
@@ -75,7 +75,7 @@ public class MissingEndObjectTests
         document.PageCount.Should().Be(1);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AnObjectThatDoesNotParseIsStillReported()
     {
         // "endobj" missing is one thing; a body that is not an object at all is another, and
@@ -87,7 +87,7 @@ public class MissingEndObjectTests
         await read.Should().ThrowAsync<PdfReaderException>();
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task ANumberLeftAfterAnObjectIsStillReported()
     {
         // A number only ends an object if it is the object number of the next one. "123" here is

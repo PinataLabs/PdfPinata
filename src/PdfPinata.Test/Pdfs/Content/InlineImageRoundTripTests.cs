@@ -5,7 +5,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs.Content;
 
@@ -20,7 +20,7 @@ public class InlineImageRoundTripTests
 {
     private const string Gray4x4 = "BI /W 4 /H 4 /CS /G /BPC 8 ID xxxxxxxxxxxxxxxx EI";
 
-    [Fact]
+    [Test]
     public void AnInlineImageIsReadAsOneObjectHoldingItsDictionaryAndItsData()
     {
         var sequence = Read("q " + Gray4x4 + " Q");
@@ -33,14 +33,14 @@ public class InlineImageRoundTripTests
             "the blanks either side of the data separate it from ID and EI rather than belonging to it");
     }
 
-    [Fact]
+    [Test]
     public void AnInlineImageIsWrittenBackOut()
     {
         RoundTripOf("q " + Gray4x4 + " Q").Should()
             .Be("q\nBI\n/W 4 /H 4 /CS /G /BPC 8\nID xxxxxxxxxxxxxxxx\nEI\nQ\n");
     }
 
-    [Fact]
+    [Test]
     public void AnInlineImageSurvivesBeingReadAndWrittenTwice()
     {
         var once = RoundTripOf("q 4 0 0 4 10 10 cm " + Gray4x4 + " Q");
@@ -48,7 +48,7 @@ public class InlineImageRoundTripTests
         RoundTripOf(once).Should().Be(once);
     }
 
-    [Fact]
+    [Test]
     public void BinaryImageDataComesBackByteForByte()
     {
         // Every byte value but those of 'E' and 'I', which is what the end of the data is found by.
@@ -66,7 +66,7 @@ public class InlineImageRoundTripTests
         ((COperator)reread[1]).Name.Should().Be("Q");
     }
 
-    [Fact]
+    [Test]
     public void Ascii85DataIsReadPastAnEIInsideIt()
     {
         var sequence = Read("BI /W 1 /H 1 /CS /G /BPC 8 /F /A85 ID abEIcd~> EI Q");
@@ -76,7 +76,7 @@ public class InlineImageRoundTripTests
         ((COperator)sequence[1]).Name.Should().Be("Q");
     }
 
-    [Fact]
+    [Test]
     public void AKeywordInTheDictionaryIsKeptAsWritten()
     {
         // true, false and null have no type among the content objects, and a stencil mask says
@@ -85,7 +85,7 @@ public class InlineImageRoundTripTests
             .Should().Be("BI\n/W 8 /H 1 /IM true /D [1 0]\nID \u0055\nEI\n");
     }
 
-    [Fact]
+    [Test]
     public void TheDataIsAlwaysSeparatedFromEIByALineFeed()
     {
         var sequence = new CSequence { new CInlineImage("/W 1 /H 1 /CS /G /BPC 8", [0x45]) };
@@ -96,11 +96,11 @@ public class InlineImageRoundTripTests
     // A last byte that happens to be white space - a pixel of 0x20 or 0x00 - is data, and has to
     // stay data: it is not taken for the separator before EI, and no byte is gained or lost by
     // reading the content and writing it back again.
-    [Theory]
-    [InlineData(new byte[] { 0x45, 0x20 })]
-    [InlineData(new byte[] { 0x45, 0x00 })]
-    [InlineData(new byte[] { 0x0A })]
-    [InlineData(new byte[0])]
+    [Test]
+    [Arguments(new byte[] { 0x45, 0x20 })]
+    [Arguments(new byte[] { 0x45, 0x00 })]
+    [Arguments(new byte[] { 0x0A })]
+    [Arguments(new byte[0])]
     public void DataEndingInWhiteSpaceOrHoldingNothingComesBackAsItWas(byte[] data)
     {
         var sequence = new CSequence { new CInlineImage("/W 1 /H 1", data) };
@@ -112,7 +112,7 @@ public class InlineImageRoundTripTests
         twice[0].Should().BeOfType<CInlineImage>().Which.Data.Should().Equal(data);
     }
 
-    [Fact]
+    [Test]
     public void ACloneHasDataOfItsOwn()
     {
         var image = new CInlineImage("/W 1 /H 1", [1, 2, 3]);
@@ -124,13 +124,13 @@ public class InlineImageRoundTripTests
         clone.ImageDictionary.Should().Be("/W 1 /H 1");
     }
 
-    [Theory(Timeout = 5000)]
+    [Test, Timeout(5000)]
     // No EI: the data runs to the end of the content.
-    [InlineData("BI /W 1 /H 1 ID abc", "/W 1 /H 1", "abc")]
+    [Arguments("BI /W 1 /H 1 ID abc", "/W 1 /H 1", "abc")]
     // No ID either. The scan for ID used to call ScanNextToken until it said ID, and at the end of
     // the content it says Eof for ever.
-    [InlineData("BI /W 1 /H 1", "/W 1 /H 1", "")]
-    [InlineData("BI", "", "")]
+    [Arguments("BI /W 1 /H 1", "/W 1 /H 1", "")]
+    [Arguments("BI", "", "")]
     public async Task AnInlineImageTheContentCutsOffEndsWithTheContent(string content, string dictionary, string data)
     {
         var sequence = await Interruptibly.Run(() => Read(content));

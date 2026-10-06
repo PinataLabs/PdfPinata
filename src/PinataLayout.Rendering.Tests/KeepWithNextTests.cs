@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.Rendering.Tests.Helpers;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -50,7 +50,7 @@ public class KeepWithNextTests
     ///   and the next one cannot fit beneath it, so it goes over too and the page ends one line
     ///   earlier.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheLastParagraphOnAPageGoesOverWhenItMustStayWithTheNext()
     {
         var capacity = PageCapacity;
@@ -69,7 +69,7 @@ public class KeepWithNextTests
     ///   kept with the next one changes nothing. Without this the test above would pass for a
     ///   formatter that broke the page early whatever the circumstances.
     /// </summary>
-    [Fact]
+    [Test]
     public void AParagraphWithRoomBeneathItIsNotMoved()
     {
         var capacity = PageCapacity;
@@ -88,7 +88,7 @@ public class KeepWithNextTests
     ///   than one. The look-ahead is a chain: the second one is only kept because the first asked
     ///   for it, and it in turn asks for the third.
     /// </summary>
-    [Fact]
+    [Test]
     public void ARunAtTheFootOfThePageGoesOverTogether()
     {
         var capacity = PageCapacity;
@@ -107,7 +107,7 @@ public class KeepWithNextTests
     ///   document, and nothing can satisfy it. The look-ahead stops after ten elements rather than
     ///   following it, so the page still fills and the document still ends.
     /// </summary>
-    [Fact]
+    [Test]
     public void ADocumentThatAsksForTheImpossibleStillFills()
     {
         var document = Filled((paragraph, _) => paragraph.Format.KeepWithNext = true);
@@ -123,7 +123,7 @@ public class KeepWithNextTests
     ///   The same run, held together as well as kept with the next, which is the other way into the
     ///   look-ahead — a paragraph that must not be split and must not be parted from what follows.
     /// </summary>
-    [Fact]
+    [Test]
     public void AParagraphHeldTogetherAndKeptWithTheNextAlsoGoesOver()
     {
         var capacity = PageCapacity;
@@ -144,7 +144,7 @@ public class KeepWithNextTests
     ///   The last paragraph in the document has nothing to be kept with, so the request is met by
     ///   doing nothing rather than by opening a page for it to be lonely on.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheLastParagraphInTheDocumentHasNothingToStayWith()
     {
         var document = new Document();

@@ -7,7 +7,7 @@ using PdfPinata.Fonts;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Annotations;
@@ -21,7 +21,7 @@ namespace PdfPinata.Test.Annotations;
 ///   rasterizes to nothing at all. This class exists to build that appearance, which means the
 ///   test that matters is one that counts pixels rather than keys.
 /// </remarks>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public sealed class SquareAnnotationTests : IDisposable
 {
     private const string OutDir = "Out/SquareAnnotations";
@@ -32,7 +32,7 @@ public sealed class SquareAnnotationTests : IDisposable
 
     private static readonly XRect Where = new(40, 40, 120, 80);
 
-    [Fact]
+    [Test]
     public void ASquareNamesItsSubtypeAndCarriesADefaultBorder()
     {
         var square = OnAPage();
@@ -46,7 +46,7 @@ public sealed class SquareAnnotationTests : IDisposable
         border.Elements.GetReal("/W").Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AnUnfilledSquareSaysSoWithAnEmptyArray()
     {
         var square = OnAPage();
@@ -57,7 +57,7 @@ public sealed class SquareAnnotationTests : IDisposable
         square.Elements.GetArray("/IC").Elements.Count.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void AFilledSquareWritesItsInteriorColour()
     {
         var square = OnAPage();
@@ -70,7 +70,7 @@ public sealed class SquareAnnotationTests : IDisposable
         colour.Elements.GetReal(2).Should().BeApproximately(225 / 255.0, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void TheBorderIsDrawnInsideTheRectangleAndRecordedInRd()
     {
         var square = OnAPage();
@@ -85,7 +85,7 @@ public sealed class SquareAnnotationTests : IDisposable
             differences.Elements.GetReal(side).Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void ChangingTheInteriorOrTheBorderStampsTheModificationDate()
     {
         var square = OnAPage();
@@ -103,7 +103,7 @@ public sealed class SquareAnnotationTests : IDisposable
         square.Elements.GetDateTime("/M", DateTime.MinValue).Should().BeAfter(before);
     }
 
-    [Fact]
+    [Test]
     public void ANegativeBorderIsRefused()
     {
         var square = OnAPage();
@@ -113,7 +113,7 @@ public sealed class SquareAnnotationTests : IDisposable
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Fact]
+    [Test]
     public void TheAppearanceIsBuiltWhenTheAnnotationReachesAPage()
     {
         var document = new PdfDocument();
@@ -134,7 +134,7 @@ public sealed class SquareAnnotationTests : IDisposable
         square.Elements.GetDictionary("/AP").Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void ChangingWhatItIsDrawnFromRebuildsTheAppearance()
     {
         var square = OnAPage();
@@ -150,7 +150,7 @@ public sealed class SquareAnnotationTests : IDisposable
         second.Stream.Value.Should().NotEqual(before);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AFilledSquareIsPainted()
     {
         var page = Rasterize("filled", square =>
@@ -162,7 +162,7 @@ public sealed class SquareAnnotationTests : IDisposable
         Count(page, IsBlue).Should().BeGreaterThan(1000);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AnUnfilledSquareIsAnOutlineAndNothingMore()
     {
         var page = Rasterize("outline", square =>
@@ -181,7 +181,7 @@ public sealed class SquareAnnotationTests : IDisposable
             c => c.R > 240 && c.G > 240 && c.B > 240);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void ASquareWithNoBorderAndNoFillDrawsNothing()
     {
         var page = Rasterize("empty", square =>

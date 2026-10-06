@@ -7,7 +7,7 @@ using PdfPinata.Utils;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test;
 
@@ -16,7 +16,7 @@ public class CreateSimplePdf
     private readonly string _rootPath = PathHelper.GetInstance().RootDir;
     private const string OutputDirName = "Out";
 
-    [Fact]
+    [Test]
     public void CreateTestPdf()
     {
         const string outName = "test1.pdf";
@@ -35,7 +35,7 @@ public class CreateSimplePdf
         ValidateFileIsPdf(outName);
     }
 
-    [Fact]
+    [Test]
     public void CreateTestPdfWithUnicodeMetadata()
     {
         const string data = "English, Ελληνικά, 漢語";
@@ -52,12 +52,12 @@ public class CreateSimplePdf
 
         var generatedDocument = Pdf.IO.PdfReader.Open(ms);
 
-        Assert.Equal(data, generatedDocument.Info.Title);
-        Assert.Equal(data, generatedDocument.Info.Subject);
-        Assert.Equal(data, generatedDocument.Info.Author);
+        generatedDocument.Info.Title.Should().Be(data);
+        generatedDocument.Info.Subject.Should().Be(data);
+        generatedDocument.Info.Author.Should().Be(data);
     }
 
-    [Fact]
+    [Test]
     public void CreateTestPdfWithImage()
     {
         using var stream = new MemoryStream();
@@ -71,11 +71,11 @@ public class CreateSimplePdf
 
         document.Save(stream);
         stream.Position = 0;
-        Assert.True(stream.Length > 1);
+        stream.Length.Should().BeGreaterThan(1);
         ReadStreamAndVerifyPdfHeaderSignature(stream);
     }
 
-    [Fact]
+    [Test]
     public void CreateTestPdfWithImageViaImageSharp()
     {
         using var stream = new MemoryStream();
@@ -97,7 +97,7 @@ public class CreateSimplePdf
 
         document.Save(stream);
         stream.Position = 0;
-        Assert.True(stream.Length > 1);
+        stream.Length.Should().BeGreaterThan(1);
         ReadStreamAndVerifyPdfHeaderSignature(stream);
     }
 
@@ -117,9 +117,9 @@ public class CreateSimplePdf
     private void ValidateFileIsPdf(string v)
     {
         var path = GetOutFilePath(v);
-        Assert.True(File.Exists(path));
+        File.Exists(path).Should().BeTrue();
         var fi = new FileInfo(path);
-        Assert.True(fi.Length > 1);
+        fi.Length.Should().BeGreaterThan(1);
 
         using var stream = File.OpenRead(path);
         ReadStreamAndVerifyPdfHeaderSignature(stream);
@@ -144,7 +144,7 @@ public class CreateSimplePdf
             File.Delete(path);
         }
 
-        Assert.False(File.Exists(path));
+        File.Exists(path).Should().BeFalse();
     }
 
     private string GetOutFilePath(string name)

@@ -7,7 +7,7 @@ using PdfPinata.Drawing.Layout;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing.Layout;
 
@@ -41,7 +41,7 @@ public class XTextSegmentFormatterTests
         return new TextSegment { Text = text, Font = font, Brush = brush };
     }
 
-    [Fact]
+    [Test]
     public void TwoSegmentsOfDifferentStyleRunOnAsOneLine()
     {
         var page = PageShowing(
@@ -57,7 +57,7 @@ public class XTextSegmentFormatterTests
         runs[1].X.Should().BeGreaterThan(runs[0].X);
     }
 
-    [Fact]
+    [Test]
     public void EachSegmentIsDrawnInItsOwnColour()
     {
         var page = PageShowing(
@@ -71,7 +71,7 @@ public class XTextSegmentFormatterTests
         colours.Should().ContainEquivalentOf(new[] { 1d, 0d, 0d });
     }
 
-    [Fact]
+    [Test]
     public void SegmentsWrapTogetherRatherThanEachToItself()
     {
         var page = PageShowing(
@@ -90,7 +90,7 @@ public class XTextSegmentFormatterTests
             "some line must carry more than one run, or every segment began a line of its own");
     }
 
-    [Fact]
+    [Test]
     public void ASingleSegmentLaysOutLikePlainText()
     {
         var page = PageShowing(Segment("The quick brown fox jumps over the lazy dog", Plain, XBrushes.Black));
@@ -139,7 +139,7 @@ public class XTextSegmentFormatterTests
     private const string TwoLinesOfWords =
         "The quick brown fox jumps over the lazy dog and then it keeps on running";
 
-    [Fact]
+    [Test]
     public void LeftAlignedTextStartsAtTheLeftEdgeOfTheRectangle()
     {
         var page = PageShowing(XParagraphAlignment.Left,
@@ -149,7 +149,7 @@ public class XTextSegmentFormatterTests
             start.Should().BeApproximately(LayoutLeft, 0.5));
     }
 
-    [Fact]
+    [Test]
     public void RightAlignedTextIsPushedAwayFromTheLeftEdge()
     {
         var page = PageShowing(XParagraphAlignment.Right,
@@ -161,7 +161,7 @@ public class XTextSegmentFormatterTests
             start.Should().BeGreaterThan(LayoutLeft + 0.5));
     }
 
-    [Fact]
+    [Test]
     public void CentredTextSitsBetweenTheTwoEdges()
     {
         var page = PageShowing(XParagraphAlignment.Center,
@@ -187,7 +187,7 @@ public class XTextSegmentFormatterTests
     ///   The last line of a paragraph is left alone, which is what stops the final few words of a
     ///   paragraph being stretched across the page.
     /// </summary>
-    [Fact]
+    [Test]
     public void JustifiedTextSpreadsEveryLineButTheLast()
     {
         var justified = LineEndsOf(PageShowing(XParagraphAlignment.Justify,
@@ -204,7 +204,7 @@ public class XTextSegmentFormatterTests
             "and the last line is left as it fell");
     }
 
-    [Fact]
+    [Test]
     public void AlignmentDoesNotChangeWhichWordsAreOnWhichLine()
     {
         // Alignment moves a line, it does not re-wrap it. The count of runs and of lines has to
@@ -221,11 +221,11 @@ public class XTextSegmentFormatterTests
 
     /// <summary>
     ///   Both of these say the layout does not loop, and a layout that looped would hang the test
-    ///   host rather than fail a test. xUnit honours Timeout only on an async test, which is why
+    ///   host rather than fail a test. Timeout is honoured only on an async test, which is why
     ///   they are written this way - the same shape <c>CLexerTests</c> uses for its malformed
     ///   input, and for the same reason.
     /// </summary>
-    [Fact(Timeout = 30000)]
+    [Test, Timeout(30000)]
     public async Task ASingleWordTooLongForTheLineIsStillDrawn()
     {
         // A block that cannot be broken and does not fit is the case the layout has to place
@@ -236,7 +236,7 @@ public class XTextSegmentFormatterTests
         TextBaselines.PositionsOf(page).Should().NotBeEmpty();
     }
 
-    [Fact(Timeout = 30000)]
+    [Test, Timeout(30000)]
     public async Task TextThatRunsPastTheBottomOfTheRectangleDoesNotLoop()
     {
         var page = await Task.Run(() => PageShowing(XParagraphAlignment.Justify,
@@ -245,7 +245,7 @@ public class XTextSegmentFormatterTests
         TextBaselines.PositionsOf(page).Should().NotBeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void AnEmptySegmentDrawsNothingAndDoesNotThrow()
     {
         var draw = () => PageShowing(XParagraphAlignment.Justify, Segment("", Plain, XBrushes.Black));
@@ -267,7 +267,7 @@ public class XTextSegmentFormatterTests
         return measure(new XTextSegmentFormatter(gfx));
     }
 
-    [Fact]
+    [Test]
     public void MeasuringTextReportsSomethingWithinTheWidthItWasGiven()
     {
         var size = Measured(f => f.CalculateTextSize(Sentence, Plain, XBrushes.Black, 400));
@@ -276,7 +276,7 @@ public class XTextSegmentFormatterTests
         size.Height.Should().BeGreaterThan(0);
     }
 
-    [Fact]
+    [Test]
     public void NarrowingTheWidthMakesTheSameTextTaller()
     {
         // The assertion that says it is really laying the text out rather than measuring one line:
@@ -288,7 +288,7 @@ public class XTextSegmentFormatterTests
         narrow.Width.Should().BeLessThanOrEqualTo(80);
     }
 
-    [Fact]
+    [Test]
     public void TheOverloadWithoutAFormatMeasuresTheSameAsTopLeft()
     {
         var byDefault = Measured(f => f.CalculateTextSize(Sentence, Plain, XBrushes.Black, 200));
@@ -299,7 +299,7 @@ public class XTextSegmentFormatterTests
         byDefault.Height.Should().Be(explicitly.Height);
     }
 
-    [Fact]
+    [Test]
     public void OneSegmentMeasuresTheSameAsTheStringItHolds()
     {
         // The string overloads build a single segment and hand it to the segment overload, so the
@@ -313,7 +313,7 @@ public class XTextSegmentFormatterTests
         asSegment.Height.Should().BeApproximately(asString.Height, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void TheSegmentOverloadWithoutAFormatAlsoMeasuresAsTopLeft()
     {
         var segments = new[] { Segment(Sentence, Plain, XBrushes.Black) };
@@ -325,7 +325,7 @@ public class XTextSegmentFormatterTests
         byDefault.Height.Should().Be(explicitly.Height);
     }
 
-    [Fact]
+    [Test]
     public void MoreTextMeasuresTaller()
     {
         var one = Measured(f => f.CalculateTextSize(
@@ -336,7 +336,7 @@ public class XTextSegmentFormatterTests
         two.Height.Should().BeGreaterThan(one.Height);
     }
 
-    [Fact]
+    [Test]
     public void MeasuringNothingReportsNoHeightButTheWholeWidthItWasOffered()
     {
         // Worth pinning rather than assuming, because it is the surprising half of the pair: with no

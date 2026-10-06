@@ -12,7 +12,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Rendering;
 
@@ -37,7 +37,7 @@ public class TrimmedPageRenderingTests
     private const double A5Width = 420;
     private const double A5Height = 595;
 
-    [Fact]
+    [Test]
     public void ADocumentIsLaidOutToTheTrimmedPageRatherThanToTheSheet()
     {
         var onTrimmed = BaselinesOnTheSheet(trimmed: true);
@@ -52,7 +52,7 @@ public class TrimmedPageRenderingTests
             (onTrimmed[line] - Inset).Should().BeApproximately(onPlain[line], 0.01);
     }
 
-    [Fact]
+    [Test]
     public void TheTextIsHeldOffTheSheetEdgeByTheBleedAsWellAsByTheMargin()
     {
         var first = BaselinesOnTheSheet(trimmed: true)[0];
@@ -64,7 +64,7 @@ public class TrimmedPageRenderingTests
         first.Should().BeLessThan(Inset + XUnit.FromCentimeter(3.5).Point);
     }
 
-    [Fact]
+    [Test]
     public void TheRenderedPageIsSavedWithTheBoxesOfATrimmedPage()
     {
         var saved = Render(trimmed: true);
@@ -77,7 +77,7 @@ public class TrimmedPageRenderingTests
         mediaBox.Height.Should().BeApproximately(A5Height + 2 * Inset, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void ACallerCanDrawIntoTheBleedAroundTheRenderedDocument()
     {
         var saved = Render(trimmed: true, alongside: gfx =>

@@ -1,6 +1,6 @@
 using System;
 using AwesomeAssertions;
-using Xunit;
+using TUnit.Core;
 using ImageHelper = PinataLayout.DocumentObjectModel.ImageHelper;
 using XPdfForm = PdfPinata.Drawing.XPdfForm;
 
@@ -42,45 +42,45 @@ public class ExtractPageNumberParityTests
         return rest + " | " + pageNumber;
     }
 
-    [Theory]
+    [Test]
     // A page reference, which is the whole point of the syntax.
-    [InlineData("file.pdf#3", "file.pdf | 3")]
-    [InlineData("file.pdf#123", "file.pdf | 123")]
-    [InlineData("C:\\docs\\file.pdf#7", "C:\\docs\\file.pdf | 7")]
+    [Arguments("file.pdf#3", "file.pdf | 3")]
+    [Arguments("file.pdf#123", "file.pdf | 123")]
+    [Arguments("C:\\docs\\file.pdf#7", "C:\\docs\\file.pdf | 7")]
     // No fragment at all: the path is the path and the page are nought.
-    [InlineData("file.pdf", "file.pdf | 0")]
-    [InlineData("", " | 0")]
+    [Arguments("file.pdf", "file.pdf | 0")]
+    [Arguments("", " | 0")]
     // A hash with nothing after it is not a page number, and neither is a hash with a
     // non-number after it.
-    [InlineData("file.pdf#", "file.pdf# | 0")]
-    [InlineData("file.pdf#abc", "file.pdf#abc | 0")]
-    [InlineData("file.pdf#3a", "file.pdf#3a | 0")]
+    [Arguments("file.pdf#", "file.pdf# | 0")]
+    [Arguments("file.pdf#abc", "file.pdf#abc | 0")]
+    [Arguments("file.pdf#3a", "file.pdf#3a | 0")]
     // The dot is what tells a path with a fragment from a fragment on its own, which is the
     // reason the check is there.
-    [InlineData("#123", "#123 | 0")]
-    [InlineData("file#123", "file#123 | 0")]
+    [Arguments("#123", "#123 | 0")]
+    [Arguments("file#123", "file#123 | 0")]
     // A page of nought and a leading nought are both read as written; neither is refused.
-    [InlineData("file.pdf#0", "file.pdf | 0")]
-    [InlineData("file.pdf#007", "file.pdf | 7")]
+    [Arguments("file.pdf#0", "file.pdf | 0")]
+    [Arguments("file.pdf#007", "file.pdf | 7")]
     // A minus sign is not a digit, so a negative page is not a page reference.
-    [InlineData("file.pdf#-3", "file.pdf#-3 | 0")]
+    [Arguments("file.pdf#-3", "file.pdf#-3 | 0")]
     // Nor is a space, either side of the number.
-    [InlineData("file.pdf# 3", "file.pdf# 3 | 0")]
-    [InlineData("file.pdf#3 ", "file.pdf#3  | 0")]
+    [Arguments("file.pdf# 3", "file.pdf# 3 | 0")]
+    [Arguments("file.pdf#3 ", "file.pdf#3  | 0")]
     // A name that is nothing but digits is a name. This is the case that used to throw.
-    [InlineData("123", "123 | 0")]
-    [InlineData("0", "0 | 0")]
-    [InlineData("1.2", "1.2 | 0")]
+    [Arguments("123", "123 | 0")]
+    [Arguments("0", "0 | 0")]
+    [Arguments("1.2", "1.2 | 0")]
     // And one that only ends in digits.
-    [InlineData("report2024", "report2024 | 0")]
-    [InlineData("report.2024", "report.2024 | 0")]
+    [Arguments("report2024", "report2024 | 0")]
+    [Arguments("report.2024", "report.2024 | 0")]
     public void BothCopiesReadThePathTheSameWay(string path, string expected)
     {
         ByXPdfForm(path).Should().Be(expected, "XPdfForm reads '{0}' this way", path);
         ByImageHelper(path).Should().Be(expected, "and ImageHelper must agree about '{0}'", path);
     }
 
-    [Fact]
+    [Test]
     public void NeitherCopyAcceptsANullPath()
     {
         var byForm = () => XPdfForm.ExtractPageNumber(null, out _);
@@ -94,10 +94,10 @@ public class ExtractPageNumberParityTests
     ///   Stated on its own because it is the defect the table above closes: every character being
     ///   a digit is what walked the index off the front of the string.
     /// </summary>
-    [Theory]
-    [InlineData("1")]
-    [InlineData("42")]
-    [InlineData("000000")]
+    [Test]
+    [Arguments("1")]
+    [Arguments("42")]
+    [Arguments("000000")]
     public void APathOfNothingButDigitsIsReadRatherThanThrownAt(string path)
     {
         var byForm = () => XPdfForm.ExtractPageNumber(path, out _);

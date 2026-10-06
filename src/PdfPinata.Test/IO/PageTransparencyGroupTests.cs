@@ -6,7 +6,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using SkiaSharp;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -45,7 +45,7 @@ public class PageTransparencyGroupTests
 
     // ------------------------------------------------------------------ a page that needs none
 
-    [Fact]
+    [Test]
     public void APageDrawnOnOpaquelyIsWrittenWithoutATransparencyGroup()
     {
         var document = new PdfDocument();
@@ -59,7 +59,7 @@ public class PageTransparencyGroupTests
             "say something about the page that is not true of it");
     }
 
-    [Fact]
+    [Test]
     public void APageWithNothingOnItIsWrittenWithoutATransparencyGroup()
     {
         var document = new PdfDocument();
@@ -68,7 +68,7 @@ public class PageTransparencyGroupTests
         GroupOf(document.Reopened().Pages[0]).Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void AnImportedPageThatHadNoTransparencyGroupStillHasNoneAfterARoundTrip()
     {
         // The report this was written for: opening a document and saving it again stamped a
@@ -84,7 +84,7 @@ public class PageTransparencyGroupTests
             "a document that is only read and written back must come out the way it went in");
     }
 
-    [Fact]
+    [Test]
     public void AnImportedPageThatHadATransparencyGroupKeepsTheOneItHad()
     {
         var document = new PdfDocument();
@@ -104,7 +104,7 @@ public class PageTransparencyGroupTests
 
     // ------------------------------------------------------------------- a page that needs one
 
-    [Fact]
+    [Test]
     public void APageDrawnOnWithATranslucentBrushIsGivenATransparencyGroup()
     {
         var document = new PdfDocument();
@@ -120,7 +120,7 @@ public class PageTransparencyGroupTests
         group.Elements.GetName("/CS").Should().Be("/DeviceRGB");
     }
 
-    [Fact]
+    [Test]
     public void APageDrawnOnWithATranslucentPenIsGivenATransparencyGroup()
     {
         var document = new PdfDocument();
@@ -134,7 +134,7 @@ public class PageTransparencyGroupTests
 
     // -------------------------------------------------------------------- what an image brings
 
-    [Fact]
+    [Test]
     public void APageCarryingAnImageWithAnAlphaChannelIsGivenATransparencyGroup()
     {
         // The case the old code's "TODO: check XObjects" stood for. No colour the renderer draws
@@ -150,7 +150,7 @@ public class PageTransparencyGroupTests
             "the image paints through a soft mask even though nothing else on the page does");
     }
 
-    [Fact]
+    [Test]
     public void APageCarryingAnOpaqueImageIsWrittenWithoutATransparencyGroup()
     {
         var document = new PdfDocument();
@@ -165,7 +165,7 @@ public class PageTransparencyGroupTests
 
     // --------------------------------------------------------------------- what a form brings
 
-    [Fact]
+    [Test]
     public void APageCarryingAFormThatWasDrawnOnTranslucentlyIsGivenATransparencyGroup()
     {
         // The transparency is a graphics state within the form. The page is never asked to draw
@@ -183,7 +183,7 @@ public class PageTransparencyGroupTests
         GroupOf(document.Reopened().Pages[0]).Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void APageCarryingAFormThatWasDrawnOnOpaquelyIsWrittenWithoutATransparencyGroup()
     {
         var document = new PdfDocument();
@@ -201,7 +201,7 @@ public class PageTransparencyGroupTests
 
     // -------------------------------------------------------------------- what the group says
 
-    [Fact]
+    [Test]
     public void ThePageOfADocumentSetToCmykGetsAGroupInThatColourSpace()
     {
         var document = new PdfDocument();
@@ -217,7 +217,7 @@ public class PageTransparencyGroupTests
         group.Elements.GetName("/CS").Should().Be("/DeviceCMYK");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentWithNoColourModeGetsNoGroupEvenWhereTransparencyIsUsed()
     {
         var document = new PdfDocument();
@@ -315,17 +315,17 @@ public class PageTransparencyGroupTests
         return PageWithResources("/ExtGState<</GS0 5 0 R>>", [..objects]);
     }
 
-    [Theory]
-    [InlineData("/ca 0.5", true)]
-    [InlineData("/ca 1", false)]
-    [InlineData("/CA 0.5", true)]
-    [InlineData("/CA 1", false)]
+    [Test]
+    [Arguments("/ca 0.5", true)]
+    [Arguments("/ca 1", false)]
+    [Arguments("/CA 0.5", true)]
+    [Arguments("/CA 1", false)]
     public void AGraphicsStateCountsAsTransparencyOnlyWhereItsAlphaIsBelowOne(string alpha, bool expected)
     {
         PlacingIsTransparent(PageWithGraphicsState(alpha)).Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void AGraphicsStateSayingNothingAboutAlphaDoesNotCountAsTransparency()
     {
         // The trap this guards: GetReal answers 0 for a key that is absent, which would read
@@ -334,29 +334,29 @@ public class PageTransparencyGroupTests
         PlacingIsTransparent(PageWithGraphicsState("/LW 2")).Should().BeFalse();
     }
 
-    [Theory]
-    [InlineData("/Normal", false)]
-    [InlineData("/Compatible", false)]
-    [InlineData("/Multiply", true)]
-    [InlineData("/Screen", true)]
+    [Test]
+    [Arguments("/Normal", false)]
+    [Arguments("/Compatible", false)]
+    [Arguments("/Multiply", true)]
+    [Arguments("/Screen", true)]
     public void ABlendModeCountsAsTransparencyOnlyWhereItReadsWhatIsUnderneath(string mode, bool expected)
     {
         PlacingIsTransparent(PageWithGraphicsState("/BM" + mode)).Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void ABlendModeGivenAsAListOfPreferencesIsReadThrough()
     {
         PlacingIsTransparent(PageWithGraphicsState("/BM[/Darken/Normal]")).Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AGraphicsStateTurningTheSoftMaskOffDoesNotCountAsTransparency()
     {
         PlacingIsTransparent(PageWithGraphicsState("/SMask/None")).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AGraphicsStateWhoseSoftMaskIsNullDoesNotCountAsTransparency()
     {
         // A PDF null is how a writer says a key holds nothing. Reading it as a mask would put a
@@ -364,13 +364,13 @@ public class PageTransparencyGroupTests
         PlacingIsTransparent(PageWithGraphicsState("/SMask null")).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AGraphicsStateWhoseSoftMaskIsAReferenceToNullDoesNotCountAsTransparency()
     {
         PlacingIsTransparent(PageWithGraphicsState("/SMask 6 0 R", "null")).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AGraphicsStateSettingASoftMaskCountsAsTransparency()
     {
         PlacingIsTransparent(PageWithGraphicsState("/SMask<</Type/Mask/S/Luminosity/G 6 0 R>>",
@@ -378,7 +378,7 @@ public class PageTransparencyGroupTests
             .Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AnImageWithASoftMaskCountsAsTransparency()
     {
         PlacingIsTransparent(PageWithResources("/XObject<</Im0 5 0 R>>",
@@ -387,14 +387,14 @@ public class PageTransparencyGroupTests
             .Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AnImageWhoseSoftMaskIsNullDoesNotCountAsTransparency()
     {
         PlacingIsTransparent(PageWithResources("/XObject<</Im0 5 0 R>>", Image("/SMask null")))
             .Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AnImageMaskedByAStencilDoesNotCountAsTransparency()
     {
         // /Mask leaves pixels unpainted rather than blending them. It predates transparency
@@ -405,7 +405,7 @@ public class PageTransparencyGroupTests
             .Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void TransparencyIsFoundInAFormDrawnWithinAForm()
     {
         PlacingIsTransparent(PageWithResources("/XObject<</Fm0 5 0 R>>",
@@ -415,7 +415,7 @@ public class PageTransparencyGroupTests
             .Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AFormCarryingATransparencyGroupOfItsOwnCountsAsTransparency()
     {
         PlacingIsTransparent(PageWithResources("/XObject<</Fm0 5 0 R>>",
@@ -424,7 +424,7 @@ public class PageTransparencyGroupTests
             .Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AFormDrawnWithinItselfIsAnsweredRatherThanFollowedForever()
     {
         PlacingIsTransparent(PageWithResources("/XObject<</Fm0 5 0 R>>",
@@ -433,7 +433,7 @@ public class PageTransparencyGroupTests
             .Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AnImportedPageBringsItsTransparencyGroupWithItsContent()
     {
         // A group describes the content it wraps. Drawing the page into a form moves the content
@@ -452,7 +452,7 @@ public class PageTransparencyGroupTests
             "a form that composites as a group is transparent content on the page holding it");
     }
 
-    [Fact]
+    [Test]
     public void AnImportedPageWhoseGroupIsNullIsDrawnWithoutOne()
     {
         // /Group null says the page has no group. Reading it as one would throw on the way in
@@ -461,7 +461,7 @@ public class PageTransparencyGroupTests
             .Elements.ContainsKey(GroupKey).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AnImportedPageWhoseGroupIsAReferenceToNullIsDrawnWithoutOne()
     {
         // The same thing said the long way round, which would otherwise be imported as a group

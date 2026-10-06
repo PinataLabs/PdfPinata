@@ -7,7 +7,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.AcroForms;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Security;
-using Xunit;
+using TUnit.Core;
 using Reader = PdfPinata.Pdf.IO.PdfReader;
 
 namespace PdfPinata.Test.Pdfs;
@@ -26,7 +26,7 @@ public class DocumentAndPageSurfaceTests
     ///   the PDF version, so the field stayed 0 and the header read "%PDF-0.0" — enough bytes to
     ///   look like a save had worked, and refused by every reader including this one.
     /// </summary>
-    [Fact]
+    [Test]
     public void ADocumentBuiltOnAStreamWritesItselfWhenItIsClosed()
     {
         var output = new MemoryStream();
@@ -44,7 +44,7 @@ public class DocumentAndPageSurfaceTests
         Reader.Open(new MemoryStream(written), PdfDocumentOpenMode.ReadOnly).PageCount.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void ClosingADocumentThatWasNotGivenAStreamWritesNothingAndDoesNotThrow()
     {
         var document = new PdfDocument();
@@ -55,7 +55,7 @@ public class DocumentAndPageSurfaceTests
         closing.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void ADocumentBuiltOnAStreamWithNoPagesSaysWhichConstructorWasWrong()
     {
         var document = new PdfDocument(new MemoryStream());
@@ -66,7 +66,7 @@ public class DocumentAndPageSurfaceTests
             .WithMessage("*PdfReader.Open*");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentCarriesATagForItsCaller()
     {
         var document = new PdfDocument();
@@ -78,7 +78,7 @@ public class DocumentAndPageSurfaceTests
         document.FullPath.Should().BeEmpty("a document that was never read from a file has no path");
     }
 
-    [Fact]
+    [Test]
     public void AVersionOutsideWhatThisLibraryWritesIsRefused()
     {
         var document = new PdfDocument();
@@ -88,7 +88,7 @@ public class DocumentAndPageSurfaceTests
         setting.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void ADocumentEncryptedWithNoPasswordAtAllCannotBeSaved()
     {
         var document = new PdfDocument();
@@ -103,7 +103,7 @@ public class DocumentAndPageSurfaceTests
         saving.Should().Throw<PdfPinataException>().Which.Message.Should().Be(check.Reason);
     }
 
-    [Fact]
+    [Test]
     public void ADocumentWithNothingInItsWayCanBeSaved()
     {
         var document = new PdfDocument();
@@ -115,14 +115,14 @@ public class DocumentAndPageSurfaceTests
         check.Reason.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void ADefaultCheckIsOneThatPassed()
     {
         // default is the only way a caller can make one, so it must not be a refusal without a reason.
         default(PdfSaveCheck).CanSave.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     [Obsolete("Covers the obsolete CanSave(ref string) until it is removed.")]
     public void TheObsoleteCheckStillSetsTheMessageOnlyWhenItRefuses()
     {
@@ -140,7 +140,7 @@ public class DocumentAndPageSurfaceTests
         message.Should().Be("untouched");
     }
 
-    [Fact]
+    [Test]
     public void CustomValuesOnADocumentCanOnlyBeClearedByAssigningNothing()
     {
         var document = new PdfDocument();
@@ -155,7 +155,7 @@ public class DocumentAndPageSurfaceTests
         document.CustomValues.Should().NotBeNull("asking again builds a fresh one");
     }
 
-    [Fact]
+    [Test]
     public void ResizingEveryPageToAPageSizeThatDoesNotExistIsRefused()
     {
         var document = new PdfDocument();
@@ -166,7 +166,7 @@ public class DocumentAndPageSurfaceTests
         resizing.Should().Throw<InvalidEnumArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void EveryFieldOfAFormCanBeMadeReadOnlyAtOnce()
     {
         var document = new PdfDocument();
@@ -181,7 +181,7 @@ public class DocumentAndPageSurfaceTests
         form.Fields[0].ReadOnly.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ADocumentWithNoFormAtAllIsStillHappyToBeMadeReadOnly()
     {
         var document = new PdfDocument();
@@ -194,7 +194,7 @@ public class DocumentAndPageSurfaceTests
 
     // ----- the page ---------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void APageCarriesATagForItsCaller()
     {
         var page = new PdfDocument().AddPage();
@@ -205,7 +205,7 @@ public class DocumentAndPageSurfaceTests
         page.Tag.Should().BeSameAs(tag);
     }
 
-    [Fact]
+    [Test]
     public void APageAnswersTheSizeAndOrientationItWasGiven()
     {
         var page = new PdfDocument().AddPage();
@@ -218,7 +218,7 @@ public class DocumentAndPageSurfaceTests
         page.Width.Point.Should().BeGreaterThan(page.Height.Point);
     }
 
-    [Fact]
+    [Test]
     public void APageSizeThatDoesNotExistIsRefused()
     {
         var page = new PdfDocument().AddPage();
@@ -227,7 +227,7 @@ public class DocumentAndPageSurfaceTests
         ((Action)(() => page.Resize((PageSize)999))).Should().Throw<InvalidEnumArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void ARotationThatIsNotAQuarterTurnIsRefused()
     {
         var page = new PdfDocument().AddPage();
@@ -237,7 +237,7 @@ public class DocumentAndPageSurfaceTests
         setting.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void TheThreeBoxesBesideTheMediaAndCropBoxAreReadAndWritten()
     {
         var page = new PdfDocument().AddPage();
@@ -257,7 +257,7 @@ public class DocumentAndPageSurfaceTests
     ///   reads the flag it sets, so what is worth pinning is that it is harmless: a page still
     ///   saves after it, and closing twice is not an error.
     /// </summary>
-    [Fact]
+    [Test]
     public void ClosingAPageLeavesTheDocumentStillSaveable()
     {
         var document = new PdfDocument();
@@ -274,7 +274,7 @@ public class DocumentAndPageSurfaceTests
         output.Length.Should().BeGreaterThan(0);
     }
 
-    [Fact]
+    [Test]
     public void AFileLinkIsAddedToThePageAsAnAnnotation()
     {
         var page = new PdfDocument().AddPage();
@@ -286,7 +286,7 @@ public class DocumentAndPageSurfaceTests
         page.HasAnnotations.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void CustomValuesOnAPageCanOnlyBeClearedByAssigningNothing()
     {
         var page = new PdfDocument().AddPage();

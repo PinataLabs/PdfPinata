@@ -9,7 +9,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.AcroForms;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Forms;
@@ -23,7 +23,7 @@ namespace PdfPinata.Test.Forms;
 ///   The tests that matter count pixels. A widget whose appearance names the right keys and draws
 ///   nothing looks, to an assertion on the keys, exactly like one that works.
 /// </remarks>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public sealed class ChoiceFieldAppearanceTests : IDisposable
 {
     private const string OutDir = "Out/ChoiceFieldAppearances";
@@ -59,7 +59,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
     private static PdfListBoxField ACountryList(PdfDocument document) =>
         new(document) { Name = "countries", Flags = PdfAcroFieldFlags.MultiSelect, Options = Countries };
 
-    [Fact]
+    [Test]
     public void AComboBoxWithAValueHasAnAppearance()
     {
         var (_, combo) = OnAPage(ACountryCombo);
@@ -69,7 +69,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         combo.Widgets[0].Elements.GetDictionary(PdfAnnotation.Keys.AP).Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void AComboBoxWithNothingToDrawHasNoAppearance()
     {
         // No value, no background and no border: an empty appearance would stop a reader
@@ -79,7 +79,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         combo.Widgets[0].Elements.ContainsKey(PdfAnnotation.Keys.AP).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void TheFontSizeAndColourComeFromTheDefaultAppearance()
     {
         var (_, combo) = OnAPage(ACountryCombo);
@@ -91,7 +91,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         combo.ForeColor.G.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void AnAutoSizedDefaultAppearanceDrawsAtTenPoints()
     {
         var (_, combo) = OnAPage(ACountryCombo);
@@ -101,7 +101,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         combo.Font.Size.Should().Be(10);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AComboBoxShowsItsValue()
     {
         var page = Rasterize("combo-value", OnAPage(ACountryCombo), combo => combo.SelectedIndex = 4);
@@ -109,7 +109,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         Count(page, Box, IsInk).Should().BeGreaterThan(100, "the value is drawn in the box");
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AComboBoxShowsATypedValueThatIsNotAnOption()
     {
         var (document, combo) = OnAPage(document => new PdfComboBoxField(document)
@@ -123,7 +123,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         Count(page, Box, IsInk).Should().BeGreaterThan(100);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void TheValuesColourIsTheOneTheDefaultAppearanceNames()
     {
         var page = Rasterize("combo-red", OnAPage(ACountryCombo), combo =>
@@ -136,7 +136,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         Count(page, Box, IsDark).Should().Be(0, "no black text is drawn");
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AListBoxHighlightsEachChosenRow()
     {
         var page = Rasterize("list-two", OnAPage(ACountryList), list => list.SelectedIndices = [0, 3]);
@@ -146,7 +146,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         Count(page, Box, IsInk).Should().BeGreaterThan(200, "and every visible option is written");
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AListBoxHighlightsNothingWhenNothingIsChosen()
     {
         var page = Rasterize("list-none", OnAPage(ACountryList), _ => { });
@@ -155,7 +155,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         Count(page, Box, IsInk).Should().BeGreaterThan(200, "the options are still listed");
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AListBoxHighlightsTwiceAsMuchForTwoRowsAsForOne()
     {
         var one = Count(Rasterize("list-one", OnAPage(ACountryList), list => list.SelectedIndices = [2]), Box, IsHighlight);
@@ -164,7 +164,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         two.Should().BeInRange((int)(one * 1.7), (int)(one * 2.3));
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void TheTopIndexScrollsTheList()
     {
         // The chosen option is the third. Shown from the top, its highlight is the third row;
@@ -182,7 +182,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         Count(scrolled, topRow, IsHighlight).Should().BeGreaterThan(200);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void TheBackgroundAndBorderComeFromTheWidgetsCharacteristics()
     {
         // A widget decorated through /MK alone - as the demo is, and as files from other
@@ -199,7 +199,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         Count(page, Box, IsBlue).Should().BeGreaterThan(5000);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AColourSetOnTheFieldWinsOverTheCharacteristics()
     {
         var page = Rasterize("mk-overridden", OnAPage(ACountryCombo), combo =>
@@ -215,7 +215,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         Count(page, Box, IsGold).Should().BeGreaterThan(5000);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AFieldMergedWithItsWidgetDrawsIntoItself()
     {
         var document = new PdfDocument();
@@ -237,7 +237,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         Count(image, Box, IsInk).Should().BeGreaterThan(100);
     }
 
-    [Fact]
+    [Test]
     public void ChangingTheSelectionRedrawsTheList()
     {
         var (_, list) = OnAPage(ACountryList);
@@ -249,7 +249,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         NormalAppearance(list).Stream.Value.Should().NotEqual(before);
     }
 
-    [Fact]
+    [Test]
     public void SettingAListBoxsValueRedrawsItAndReplacesItsIndices()
     {
         // Filling a form through Value - AcroForm.Fields[name].Value - is the ordinary way to fill
@@ -265,7 +265,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         NormalAppearance(list).Stream.Value.Should().NotEqual(before);
     }
 
-    [Fact]
+    [Test]
     public void SettingATextFieldsValueRedrawsIt()
     {
         var document = new PdfDocument();
@@ -283,10 +283,10 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         ((PdfDictionary)appearances.Elements.GetObject("/N")).Stream.Value.Should().NotEqual(before);
     }
 
-    [Theory]
-    [InlineData("/Helv 9 Tf 1 rg")]
-    [InlineData("/Helv 9 Tf 0 0 0 k")]
-    [InlineData("/Helv 9 Tf 0 0 1 0 rg")]
+    [Test]
+    [Arguments("/Helv 9 Tf 1 rg")]
+    [Arguments("/Helv 9 Tf 0 0 0 k")]
+    [Arguments("/Helv 9 Tf 0 0 1 0 rg")]
     public void AColourOperatorWithTheWrongNumberOfOperandsIsReadAsBlack(string appearance)
     {
         // /DA comes from files, and this used to throw FormatException out of every setter that
@@ -299,7 +299,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         act.Should().NotThrow();
     }
 
-    [Fact(Timeout = 30000)]
+    [Test, Timeout(30000)]
     public async Task ALongRunOfDigitsInTheDefaultAppearanceIsReadInLinearTime()
     {
         // /DA comes from files, and five thousand digits used to take a minute and a half for each
@@ -317,7 +317,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         color.Should().Be(XColor.FromArgb(0, 0, 255));
     }
 
-    [Fact]
+    [Test]
     public void AFieldReadFromAFileKeepsItsAppearanceUntilItIsChanged()
     {
         // Saving does not redraw: a form somebody else wrote keeps its own drawing unless the
@@ -333,9 +333,9 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         NormalAppearance(again).Stream.UnfilteredValue.Should().Equal(drawn, "saving a read field does not redraw it");
     }
 
-    [Theory]
-    [InlineData(0.5, 20)]
-    [InlineData(200, 0.5)]
+    [Test]
+    [Arguments(0.5, 20)]
+    [Arguments(200, 0.5)]
     public void AWidgetShrunkBelowAPointLosesTheAppearanceItCannotHold(double width, double height)
     {
         // XForm cannot be made under a point, so the field cannot be drawn there - and the
@@ -354,7 +354,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
             "a state name pointing into an appearance dictionary that is gone goes with it");
     }
 
-    [Fact]
+    [Test]
     public void AWidgetWithNoRectangleYetIsLeftAlone()
     {
         // A widget a caller is putting together by hand, which has an appearance and no /Rect
@@ -369,7 +369,7 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         widget.Elements.ContainsKey(PdfAnnotation.Keys.AP).Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AWidgetWhoseRectangleNamesItsCornersTheOtherWayRoundIsStillDrawn()
     {
         // ISO 32000-1 7.9.5 lets a rectangle name any two opposite corners.

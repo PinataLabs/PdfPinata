@@ -4,7 +4,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Outlines;
 
@@ -29,7 +29,7 @@ namespace PdfPinata.Test.Outlines;
 /// </remarks>
 public class OutlineOpenStateTests
 {
-    [Fact]
+    [Test]
     public void AnOpenedEntryWithChildrenCountsThemUp()
     {
         var document = ThreePages();
@@ -43,7 +43,7 @@ public class OutlineOpenStateTests
         CountOf(chapter).Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void AClosedEntryCountsTheSameNumberDownwards()
     {
         var document = ThreePages();
@@ -57,7 +57,7 @@ public class OutlineOpenStateTests
         CountOf(chapter).Should().Be(-2);
     }
 
-    [Fact]
+    [Test]
     public void OpenedSetAfterTheEntryWasAddedIsStillWritten()
     {
         var document = ThreePages();
@@ -72,7 +72,7 @@ public class OutlineOpenStateTests
         CountOf(chapter).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AnEntryWithNoChildrenCarriesNoCount()
     {
         var document = ThreePages();
@@ -83,7 +83,7 @@ public class OutlineOpenStateTests
         leaf.Elements.ContainsKey("/Count").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AClosedChildHidesItsOwnDescendantsFromTheCountAbove()
     {
         var document = ThreePages();
@@ -103,7 +103,7 @@ public class OutlineOpenStateTests
         CountOf(chapter).Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void TheOutlineDictionaryCountsEveryRowAReaderWouldShow()
     {
         var document = ThreePages();
@@ -123,7 +123,7 @@ public class OutlineOpenStateTests
         root.Elements.GetInteger("/Count").Should().Be(4);
     }
 
-    [Fact]
+    [Test]
     public void OpenedSurvivesAReadAndAnotherSave()
     {
         var document = ThreePages();
@@ -147,7 +147,7 @@ public class OutlineOpenStateTests
         twice.Outlines[1].Elements.GetInteger("/Count").Should().Be(-1);
     }
 
-    [Fact]
+    [Test]
     public void ADeepChainCountsEveryLevelBeneathIt()
     {
         var document = ThreePages();
@@ -175,7 +175,7 @@ public class OutlineOpenStateTests
             CountOf(chain[level]).Should().Be(depth - 1 - level);
     }
 
-    [Fact]
+    [Test]
     public void ClosingOneLinkOfADeepChainHidesEverythingUnderIt()
     {
         var document = ThreePages();

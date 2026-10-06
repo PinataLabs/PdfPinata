@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PdfPinata.Charting.Tests.Helpers;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -41,13 +41,13 @@ public class PointLineFormatTests
     private static int StrokedAtWidth3(PdfPage page) =>
         PaintedPaths.On(page).Count(path => path.Stroked && System.Math.Abs(path.LineWidth - 3) < 0.001);
 
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.ColumnStacked2D)]
-    [InlineData(ChartType.Bar2D)]
-    [InlineData(ChartType.BarStacked2D)]
-    [InlineData(ChartType.Pie2D)]
-    [InlineData(ChartType.PieExploded2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.ColumnStacked2D)]
+    [Arguments(ChartType.Bar2D)]
+    [Arguments(ChartType.BarStacked2D)]
+    [Arguments(ChartType.Pie2D)]
+    [Arguments(ChartType.PieExploded2D)]
     public void APointThatSetsAWidthAndNoColourIsStrokedAtThatWidth(ChartType type)
     {
         // A bar chart and a pie chart looked for a colour before they looked at the point at all,
@@ -57,9 +57,9 @@ public class PointLineFormatTests
         StrokedAtWidth3(page).Should().Be(1, "exactly one point asked for a line 3 wide");
     }
 
-    [Theory]
-    [InlineData(ChartType.Pie2D)]
-    [InlineData(ChartType.PieExploded2D)]
+    [Test]
+    [Arguments(ChartType.Pie2D)]
+    [Arguments(ChartType.PieExploded2D)]
     public void APiePointIsStrokedAtItsOwnWidthAndColour(ChartType type)
     {
         // It used to be drawn with a pen of the colour and nothing else, so 1 wide.
@@ -70,11 +70,11 @@ public class PointLineFormatTests
         red[0].LineWidth.Should().BeApproximately(3, 0.001);
     }
 
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Bar2D)]
-    [InlineData(ChartType.Pie2D)]
-    [InlineData(ChartType.PieExploded2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Bar2D)]
+    [Arguments(ChartType.Pie2D)]
+    [Arguments(ChartType.PieExploded2D)]
     public void AHiddenPointLineIsNotStrokedEvenWhenItNamesAColour(ChartType type)
     {
         // Visible = false is no line, not a line of width 1 in the colour given (C12).
@@ -83,9 +83,9 @@ public class PointLineFormatTests
         PaintedPaths.StrokedIn(page, Red).Should().BeEmpty();
     }
 
-    [Theory]
-    [InlineData(ChartType.Pie2D)]
-    [InlineData(ChartType.Bar2D)]
+    [Test]
+    [Arguments(ChartType.Pie2D)]
+    [Arguments(ChartType.Bar2D)]
     public void APointWithNoLineFormatKeepsTheSeriesPen(ChartType type)
     {
         // The other points of every chart above: a point that never asked for a line format is
@@ -110,11 +110,11 @@ public class PointLineFormatTests
         return chart;
     }
 
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Bar2D)]
-    [InlineData(ChartType.Pie2D)]
-    [InlineData(ChartType.PieExploded2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Bar2D)]
+    [Arguments(ChartType.Pie2D)]
+    [Arguments(ChartType.PieExploded2D)]
     public void ReadingAPointsLineFormatDoesNotTakeItsBorderAway(ChartType type)
     {
         // Point.LineFormat creates the format the first time it is read, and a format nobody set
@@ -125,11 +125,11 @@ public class PointLineFormatTests
         PaintedPaths.StrokedIn(Drawn.Page(chart), Red).Should().HaveCount(3);
     }
 
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Bar2D)]
-    [InlineData(ChartType.Pie2D)]
-    [InlineData(ChartType.PieExploded2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Bar2D)]
+    [Arguments(ChartType.Pie2D)]
+    [Arguments(ChartType.PieExploded2D)]
     public void APointThatSaysItsLineIsNotVisibleHasNoBorder(ChartType type)
     {
         // Setting Visible = false is a line format the caller gave, even though it leaves the
@@ -163,13 +163,13 @@ public class PointLineFormatTests
         return lineFormat;
     }
 
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.ColumnStacked2D)]
-    [InlineData(ChartType.Bar2D)]
-    [InlineData(ChartType.BarStacked2D)]
-    [InlineData(ChartType.Pie2D)]
-    [InlineData(ChartType.PieExploded2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.ColumnStacked2D)]
+    [Arguments(ChartType.Bar2D)]
+    [Arguments(ChartType.BarStacked2D)]
+    [Arguments(ChartType.Pie2D)]
+    [Arguments(ChartType.PieExploded2D)]
     public void APointThatSetsOnlyAWidthKeepsTheSeriesDashes(ChartType type)
     {
         // A line format had no "unset" dash style, so a point that said nothing about dashes was
@@ -184,11 +184,11 @@ public class PointLineFormatTests
         PaintedPaths.StrokedIn(page, Red).Should().HaveCount(3).And.OnlyContain(path => path.Dashed);
     }
 
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Bar2D)]
-    [InlineData(ChartType.Pie2D)]
-    [InlineData(ChartType.PieExploded2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Bar2D)]
+    [Arguments(ChartType.Pie2D)]
+    [Arguments(ChartType.PieExploded2D)]
     public void APointThatSetsOnlyAColourKeepsTheSeriesDashes(ChartType type)
     {
         var chart = WithADashedRedSeriesLine(type);
@@ -202,11 +202,11 @@ public class PointLineFormatTests
             .Which.Dashed.Should().BeTrue("a copy of the chart is drawn as the chart is");
     }
 
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Bar2D)]
-    [InlineData(ChartType.Pie2D)]
-    [InlineData(ChartType.PieExploded2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Bar2D)]
+    [Arguments(ChartType.Pie2D)]
+    [Arguments(ChartType.PieExploded2D)]
     public void APointThatSaysSolidOnADashedSeriesIsDrawnSolid(ChartType type)
     {
         // Solid is a dash style like any other once the caller has said it, and a copy of the

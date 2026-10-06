@@ -1,7 +1,7 @@
 using System;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.Fields;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -29,7 +29,7 @@ public class FieldEvaluatorTests
 
     private static Paragraph AParagraph() => new Document().AddSection().AddParagraph();
 
-    [Fact]
+    [Test]
     public void APageFieldReadsAsThePageItIsOn()
     {
         var field = AParagraph().AddPageField();
@@ -37,7 +37,7 @@ public class FieldEvaluatorTests
         FieldEvaluator.Evaluate(field, Paginated()).Should().Be("2");
     }
 
-    [Fact]
+    [Test]
     public void ASectionFieldReadsAsTheSectionItIsIn()
     {
         var field = AParagraph().AddSectionField();
@@ -45,7 +45,7 @@ public class FieldEvaluatorTests
         FieldEvaluator.Evaluate(field, Paginated()).Should().Be("2");
     }
 
-    [Fact]
+    [Test]
     public void ANumPagesFieldReadsAsTheLengthOfTheDocument()
     {
         var field = AParagraph().AddNumPagesField();
@@ -53,7 +53,7 @@ public class FieldEvaluatorTests
         FieldEvaluator.Evaluate(field, Paginated()).Should().Be("3");
     }
 
-    [Fact]
+    [Test]
     public void ASectionPagesFieldReadsAsTheLengthOfItsSection()
     {
         var field = AParagraph().AddSectionPagesField();
@@ -61,7 +61,7 @@ public class FieldEvaluatorTests
         FieldEvaluator.Evaluate(field, Paginated()).Should().Be("2");
     }
 
-    [Fact]
+    [Test]
     public void APageRefFieldReadsAsThePageItsBookmarkIsOn()
     {
         var field = AParagraph().AddPageRefField("Chapter");
@@ -69,7 +69,7 @@ public class FieldEvaluatorTests
         FieldEvaluator.Evaluate(field, Paginated()).Should().Be("3");
     }
 
-    [Fact]
+    [Test]
     public void ADateFieldReadsAsThePrintDateInTheFormatItNames()
     {
         var field = AParagraph().AddDateField("yyyy-MM-dd");
@@ -81,7 +81,7 @@ public class FieldEvaluatorTests
     ///   Nothing in the context says anything about a document's title; the field walks up to the
     ///   document it belongs to and reads it there.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnInfoFieldReadsWhatTheDocumentRecordsUnderThatName()
     {
         var document = new Document { Info = { Title = "The Annual Report" } };
@@ -90,7 +90,7 @@ public class FieldEvaluatorTests
         FieldEvaluator.Evaluate(field, Paginated()).Should().Be("The Annual Report");
     }
 
-    [Fact]
+    [Test]
     public void AnInfoFieldNamingSomethingTheDocumentDoesNotRecordReadsAsNothing()
     {
         var document = new Document();
@@ -104,7 +104,7 @@ public class FieldEvaluatorTests
     ///   document has nowhere to look, and answering "" would hide the caller's mistake behind a
     ///   blank in the output.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnInfoFieldBelongingToNoDocumentIsRefusedRatherThanReadAsBlank()
     {
         // A clone is the copy of a field with its parent dropped, which is exactly a field that
@@ -117,12 +117,12 @@ public class FieldEvaluatorTests
         evaluate.Should().Throw<ArgumentException>().WithMessage("*no document*");
     }
 
-    [Theory]
-    [InlineData("", "27")]
-    [InlineData("ROMAN", "XXVII")]
-    [InlineData("roman", "xxvii")]
-    [InlineData("ALPHABETIC", "AA")]
-    [InlineData("alphabetic", "aa")]
+    [Test]
+    [Arguments("", "27")]
+    [Arguments("ROMAN", "XXVII")]
+    [Arguments("roman", "xxvii")]
+    [Arguments("ALPHABETIC", "AA")]
+    [Arguments("alphabetic", "aa")]
     public void ANumericFieldIsWrittenInTheFormatItNames(string format, string expected)
     {
         var field = AParagraph().AddPageField();
@@ -138,7 +138,7 @@ public class FieldEvaluatorTests
     ///   Each answers null - never a placeholder, which is a rendering pipeline's decision about
     ///   what to draw in the meantime rather than anything true about the field.
     /// </summary>
-    [Fact]
+    [Test]
     public void ANumPagesFieldAskedBeforeTheDocumentIsFinishedAnswersThatItCannotSayYet()
     {
         var field = AParagraph().AddNumPagesField();
@@ -148,7 +148,7 @@ public class FieldEvaluatorTests
         FieldEvaluator.Evaluate(field, context).Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void ASectionPagesFieldAskedBeforeItsSectionIsFinishedAnswersThatItCannotSayYet()
     {
         var field = AParagraph().AddSectionPagesField();
@@ -158,7 +158,7 @@ public class FieldEvaluatorTests
         FieldEvaluator.Evaluate(field, context).Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void APageRefFieldToABookmarkNotPlacedYetAnswersThatItCannotSayYet()
     {
         var field = AParagraph().AddPageRefField("NotPlacedAnywhere");
@@ -170,7 +170,7 @@ public class FieldEvaluatorTests
     ///   A context that answers no bookmark at all is the same case as one that does not know this
     ///   name, and must not be a null reference.
     /// </summary>
-    [Fact]
+    [Test]
     public void APageRefFieldWithNoWayToResolveBookmarksAnswersThatItCannotSayYet()
     {
         var field = AParagraph().AddPageRefField("Chapter");
@@ -186,16 +186,16 @@ public class FieldEvaluatorTests
     ///   paragraph's leaf - and so never recognised the <see cref="InfoField"/> that is. A heading
     ///   built with one lost that text from its outline entry, and nothing said so.
     /// </summary>
-    [Theory]
-    [InlineData(typeof(PageField), true)]
-    [InlineData(typeof(PageRefField), true)]
-    [InlineData(typeof(NumPagesField), true)]
-    [InlineData(typeof(SectionField), true)]
-    [InlineData(typeof(SectionPagesField), true)]
-    [InlineData(typeof(DateField), true)]
-    [InlineData(typeof(InfoField), true)]
-    [InlineData(typeof(BookmarkField), false)]
-    [InlineData(typeof(Text), false)]
+    [Test]
+    [Arguments(typeof(PageField), true)]
+    [Arguments(typeof(PageRefField), true)]
+    [Arguments(typeof(NumPagesField), true)]
+    [Arguments(typeof(SectionField), true)]
+    [Arguments(typeof(SectionPagesField), true)]
+    [Arguments(typeof(DateField), true)]
+    [Arguments(typeof(InfoField), true)]
+    [Arguments(typeof(BookmarkField), false)]
+    [Arguments(typeof(Text), false)]
     public void AFieldWithAValueIsToldApartFromOneWithout(Type type, bool isField)
     {
         // Every one of them has a parameterless constructor, public or internal; what a field is
@@ -205,7 +205,7 @@ public class FieldEvaluatorTests
         FieldEvaluator.IsField(leaf).Should().Be(isField);
     }
 
-    [Fact]
+    [Test]
     public void SomethingThatIsNotAFieldIsRefusedRatherThanReadAsBlank()
     {
         var text = AParagraph().AddText("plain");

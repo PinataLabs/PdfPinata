@@ -3,7 +3,7 @@ using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Content.Objects;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs.Content.Objects;
 
@@ -15,7 +15,7 @@ namespace PdfPinata.Test.Pdfs.Content.Objects;
 /// </summary>
 public class ContentObjectCloningTests
 {
-    [Fact]
+    [Test]
     public void EveryWayOfAskingForACloneComesToTheSameCopy()
     {
         var original = new CReal { Value = 1.5 };
@@ -32,7 +32,7 @@ public class ContentObjectCloningTests
         }
     }
 
-    [Fact]
+    [Test]
     public void AnIntegerCloneCanBeChangedWithoutChangingTheOriginal()
     {
         var original = new CInteger { Value = 7 };
@@ -45,7 +45,7 @@ public class ContentObjectCloningTests
         clone.ToString().Should().Be("8");
     }
 
-    [Fact]
+    [Test]
     public void AnIntegerClonedAsANumberIsStillAnInteger()
     {
         CNumber original = new CInteger { Value = 7 };
@@ -56,7 +56,7 @@ public class ContentObjectCloningTests
         clone.Should().NotBeSameAs(original);
     }
 
-    [Fact]
+    [Test]
     public void ARealCloneCanBeChangedWithoutChangingTheOriginal()
     {
         var original = new CReal { Value = 0.25 };
@@ -67,7 +67,7 @@ public class ContentObjectCloningTests
         original.Value.Should().Be(0.25);
     }
 
-    [Fact]
+    [Test]
     public void ACommentCloneKeepsItsTextAndCanBeRewrittenAlone()
     {
         var original = new CComment { Text = "first" };
@@ -82,7 +82,7 @@ public class ContentObjectCloningTests
         clone.ToString().Should().Be("% second");
     }
 
-    [Fact]
+    [Test]
     public void AStringCloneKeepsBothItsValueAndItsType()
     {
         var original = new CString { Value = "<</MCID 3>>", CStringType = CStringType.Dictionary };
@@ -99,7 +99,7 @@ public class ContentObjectCloningTests
         original.CStringType.Should().Be(CStringType.Dictionary);
     }
 
-    [Fact]
+    [Test]
     public void ANameCloneCanBeRenamedWithoutRenamingTheOriginal()
     {
         var original = new CName("/F1");
@@ -112,7 +112,7 @@ public class ContentObjectCloningTests
         clone.ToString().Should().Be("/F2");
     }
 
-    [Fact]
+    [Test]
     public void AnOperatorCloneIsTheSameOperatorAndWritesTheSameContent()
     {
         var original = (COperator)Read("1 0 0 1 20 30 cm")[0];
@@ -125,7 +125,7 @@ public class ContentObjectCloningTests
         Written([clone]).Should().Be("1 0 0 1 20 30 cm\n");
     }
 
-    [Fact]
+    [Test]
     public void AnOperatorCloneHasOperandsOfItsOwn()
     {
         var original = (COperator)Read("1 0 0 1 20 30 cm")[0];
@@ -147,7 +147,7 @@ public class ContentObjectCloningTests
         Written([clone]).Should().Be("1 0 0 1 99 30 7 cm\n");
     }
 
-    [Fact]
+    [Test]
     public void AnOperatorWithoutOperandsClonesToOneWithoutOperands()
     {
         var original = OpCodes.OperatorFromName("q");
@@ -159,7 +159,7 @@ public class ContentObjectCloningTests
         Written([original]).Should().Be("q\n");
     }
 
-    [Fact]
+    [Test]
     public void AnOperatorCanBeDerivedFromAndIsClonedAsItsOwnType()
     {
         var original = new NamedOperator("sh");
@@ -173,7 +173,7 @@ public class ContentObjectCloningTests
             .Which.Name.Should().Be("/Sh0");
     }
 
-    [Fact]
+    [Test]
     public void ASequenceCloneHoldsCopiesOfTheItemsInAListOfItsOwn()
     {
         const string content = "q 1 0 0 1 20 30 cm (text) Tj Q";
@@ -197,7 +197,7 @@ public class ContentObjectCloningTests
         Written(original).Should().Be(before);
     }
 
-    [Fact]
+    [Test]
     public void CloningASequenceLeavesTheOriginalHoldingItsOwnItems()
     {
         var first = new CInteger { Value = 1 };
@@ -219,7 +219,7 @@ public class ContentObjectCloningTests
         second.Name.Should().Be("/F1");
     }
 
-    [Fact]
+    [Test]
     public void CloningAnArrayLeavesTheOriginalHoldingItsOwnItems()
     {
         var shown = new CString { Value = "A" };
@@ -236,7 +236,7 @@ public class ContentObjectCloningTests
         clone.ToString().Should().Be("[(B)-250]");
     }
 
-    [Fact]
+    [Test]
     public void AnArrayCloneIsAnArrayAndKeepsItsBrackets()
     {
         var show = (COperator)Read("[(A) -250 (B)] TJ")[0];
@@ -253,7 +253,7 @@ public class ContentObjectCloningTests
         original.Count.Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void AnArrayClonedAsASequenceIsStillAnArray()
     {
         CSequence original = new CArray { new CInteger { Value = 1 } };

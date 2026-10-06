@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -30,7 +30,7 @@ public class IndirectSimpleObjectTests
 
     // ----- the value each one carries ---------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void EachIndirectValueAnswersWhatItWasBuiltWith()
     {
         new PdfIntegerObject(42).Value.Should().Be(42);
@@ -51,7 +51,7 @@ public class IndirectSimpleObjectTests
     ///   Invariant, not the machine's own culture. A real written as <c>1,5</c> is two numbers to
     ///   whatever reads the file back, and a file that parses differently in Germany is not a file.
     /// </summary>
-    [Fact]
+    [Test]
     public void EachIndirectValueSaysItselfTheWayAFileSpellsIt()
     {
         new PdfIntegerObject(42).ToString().Should().Be("42");
@@ -69,7 +69,7 @@ public class IndirectSimpleObjectTests
     ///   all. It is refused where it is built rather than where it is written, which is the only
     ///   place the caller's own line is still in view.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnIndirectNameHasToStartWithASlash()
     {
         var document = new PdfDocument();
@@ -87,7 +87,7 @@ public class IndirectSimpleObjectTests
     ///   <see cref="PdfNameObject.Value"/> is settable and may be set to null, so equality has to
     ///   ask before it reads - putting one in a hash set would otherwise throw rather than answer.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnIndirectNameWithNoValueEqualsNothingAndStillHashes()
     {
         var name = new PdfNameObject(new PdfDocument(), "/Name");
@@ -104,7 +104,7 @@ public class IndirectSimpleObjectTests
 
     // ----- what each one becomes in the file --------------------------------------------------
 
-    [Fact]
+    [Test]
     public void EachIndirectValueIsWrittenAsItsOwnNumberedObject()
     {
         var document = new PdfDocument();
@@ -126,9 +126,9 @@ public class IndirectSimpleObjectTests
     ///   defines. Asserted against the capitalised form as well, because "contains true" is also
     ///   true of "True" once the case is ignored and the whole point here is the case.
     /// </summary>
-    [Theory]
-    [InlineData(true, "true", "True")]
-    [InlineData(false, "false", "False")]
+    [Test]
+    [Arguments(true, "true", "True")]
+    [Arguments(false, "false", "False")]
     public void AnIndirectBooleanIsWrittenAsTheLowercaseKeywordTheStandardDefines(
         bool value, string expected, string refused)
     {
@@ -142,7 +142,7 @@ public class IndirectSimpleObjectTests
     /// <summary>
     ///   A shared value reaches the file the way it is meant to: written once, referred to twice.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnIndirectValueNamedByTwoDictionariesIsWrittenOnce()
     {
         var document = new PdfDocument();

@@ -1,21 +1,20 @@
-﻿using PinataLayout.Rendering;
+﻿using AwesomeAssertions;
+using PinataLayout.Rendering;
 using System.Globalization;
 using System.Threading;
-using Xunit;
+using TUnit.Core;
 using PinataLayout.DocumentObjectModel;
 
 namespace PdfPinata.Test;
 
 public class PinataLayoutTurkishTest
 {
-    private CultureInfo _originalCulture;
-    private CultureInfo _originalUiCulture;
 
-    [Fact]
+    [Test]
     public void RenderDocument_TurkishCulture_NoCrashing()
     {
-        _originalCulture = Thread.CurrentThread.CurrentCulture;
-        _originalUiCulture = Thread.CurrentThread.CurrentUICulture;
+        var originalCulture = Thread.CurrentThread.CurrentCulture;
+        var originalUiCulture = Thread.CurrentThread.CurrentUICulture;
         var cultureInfo = CultureInfo.GetCultureInfo("tr-TR");
         Thread.CurrentThread.CurrentCulture = cultureInfo;
         Thread.CurrentThread.CurrentUICulture = cultureInfo;
@@ -24,14 +23,12 @@ public class PinataLayoutTurkishTest
         {
             var doc = new Document();
             var printer = new PdfDocumentRenderer() { Document = doc };
-            var exception = Record.Exception(printer.RenderDocument);
-
-            Assert.Null(exception);
+            FluentActions.Invoking(printer.RenderDocument).Should().NotThrow();
         }
         finally
         {
-            Thread.CurrentThread.CurrentCulture = _originalCulture;
-            Thread.CurrentThread.CurrentUICulture = _originalUiCulture;
+            Thread.CurrentThread.CurrentCulture = originalCulture;
+            Thread.CurrentThread.CurrentUICulture = originalUiCulture;
             CultureInfo.CurrentCulture.ClearCachedData();
             CultureInfo.CurrentUICulture.ClearCachedData();
         }

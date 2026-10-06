@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.Revisions;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
@@ -33,9 +33,9 @@ public class AppendedRevisionSizeTests
     /// <summary>The <c>/Size</c> of the fixtures: objects 1 to 4 live, and 5 or 6 up to 11 free.</summary>
     private const int PreviousSize = 12;
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
+    [Test]
+    [Arguments(false)]
+    [Arguments(true)]
     public void TheAppendedSizeDoesNotShrink(bool crossReferenceStream)
     {
         var original = OriginalDocument(crossReferenceStream);
@@ -45,9 +45,9 @@ public class AppendedRevisionSizeTests
             "an update may not make /Size smaller than the revision before it said");
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
+    [Test]
+    [Arguments(false)]
+    [Arguments(true)]
     public void ANewObjectTakesANumberThePreviousRevisionNeverAccountedFor(bool crossReferenceStream)
     {
         var original = OriginalDocument(crossReferenceStream);
@@ -63,9 +63,9 @@ public class AppendedRevisionSizeTests
         AppendedSize(appended).Should().Be(numbers.Max() + 1);
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
+    [Test]
+    [Arguments(false)]
+    [Arguments(true)]
     public void TheResultReadsBackTheChange(bool crossReferenceStream)
     {
         var updated = AppendChange(OriginalDocument(crossReferenceStream), document =>
@@ -80,9 +80,9 @@ public class AppendedRevisionSizeTests
         reread.PageCount.Should().Be(2);
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
+    [Test]
+    [Arguments(false)]
+    [Arguments(true)]
     public void TwoSuccessiveUpdatesKeepTheSize(bool crossReferenceStream)
     {
         var original = OriginalDocument(crossReferenceStream);
@@ -98,7 +98,7 @@ public class AppendedRevisionSizeTests
         reread.PageCount.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void ASizeAnEarlierUpdateShrankIsNotBelievedOverTheOneBeforeIt()
     {
         // What this library's own SaveIncremental used to write: a revision whose /Size fell back to
@@ -114,9 +114,9 @@ public class AppendedRevisionSizeTests
         Reader.Open(new MemoryStream(updated), PdfDocumentOpenMode.Modify).PageCount.Should().Be(2);
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
+    [Test]
+    [Arguments(false)]
+    [Arguments(true)]
     public void ASizeNoFileCouldHaveIsIgnored(bool crossReferenceStream)
     {
         // ISO 32000-1 Annex C allows 8,388,607 indirect objects. A /Size far beyond that is damage,

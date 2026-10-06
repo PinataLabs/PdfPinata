@@ -2,7 +2,7 @@ using System.IO;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -38,7 +38,7 @@ public class ExternalFileStreamTests
         (PdfDictionary)PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(pdf), mode)
             .Internals.Catalog.Elements.GetObject("/Metadata");
 
-    [Fact]
+    [Test]
     public void AStreamSayingItsDataIsInAnotherFileIsRead()
     {
         var pdf = DocumentWhoseMetadataIsInAnotherFile("/Type/Metadata/Subtype/XML/Length 0/F 4 0 R");
@@ -49,7 +49,7 @@ public class ExternalFileStreamTests
         metadata.Stream.Value.Should().BeEmpty("the document holds none of the data itself");
     }
 
-    [Fact]
+    [Test]
     public void TheFileSpecificationSurvivesBeingRead()
     {
         var pdf = DocumentWhoseMetadataIsInAnotherFile("/Type/Metadata/Length 0/F 4 0 R/FFilter/FlateDecode");
@@ -63,7 +63,7 @@ public class ExternalFileStreamTests
         metadata.Elements.GetName("/FFilter").Should().Be("/FlateDecode");
     }
 
-    [Fact]
+    [Test]
     public void BytesInTheDocumentAreStillCountedByLengthAndStillFound()
     {
         // Table 5: the bytes between the keywords are to be ignored, but /Length still says how
@@ -77,7 +77,7 @@ public class ExternalFileStreamTests
         metadata.Elements.ContainsKey("/F").Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AStreamSayingNeitherHowLongItIsNorWhereItEndsIsStillRecovered()
     {
         // The /Length entry is required and real documents leave it out; an external stream is no
@@ -90,7 +90,7 @@ public class ExternalFileStreamTests
         metadata.Elements.GetInteger("/Length").Should().Be(7);
     }
 
-    [Fact]
+    [Test]
     public void TheDocumentCanBeWrittenOutAgain()
     {
         var pdf = DocumentWhoseMetadataIsInAnotherFile("/Type/Metadata/Subtype/XML/Length 0/F 4 0 R");
@@ -103,7 +103,7 @@ public class ExternalFileStreamTests
             .Should().BeTrue("a document read for its own sake should come back as it went in");
     }
 
-    [Fact]
+    [Test]
     public void EveryOpenModeReadsIt()
     {
         var pdf = DocumentWhoseMetadataIsInAnotherFile("/Type/Metadata/Length 0/F 4 0 R");
@@ -118,7 +118,7 @@ public class ExternalFileStreamTests
 
     // ----- Reaching the file specification through the stream --------------------------------------
 
-    [Fact]
+    [Test]
     public void AStreamThatNamesNoOtherFileHasNoExternalFile()
     {
         var pdf = DocumentWhoseMetadataIsInAnotherFile("/Type/Metadata/Length 7", "ordinary");
@@ -126,7 +126,7 @@ public class ExternalFileStreamTests
         MetadataOf(pdf).Stream.ExternalFile.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void TheExternalFileIsAnsweredForASpecificationTheDocumentHolds()
     {
         var pdf = DocumentWhoseMetadataIsInAnotherFile("/Type/Metadata/Length 0/F 4 0 R");
@@ -134,7 +134,7 @@ public class ExternalFileStreamTests
         MetadataOf(pdf).Stream.ExternalFile.FileName.Should().Be("manifest.c2pa");
     }
 
-    [Fact]
+    [Test]
     public void TheExternalFileIsAnsweredForANameGivenAsAPlainString()
     {
         // ISO 32000-1 7.11.2 lets a file specification be a bare string as readily as a
@@ -144,7 +144,7 @@ public class ExternalFileStreamTests
         MetadataOf(pdf).Stream.ExternalFile.FileName.Should().Be("manifest.c2pa");
     }
 
-    [Fact]
+    [Test]
     public void ASpecificationTheDocumentHoldsIsTheSameOneEachTimeItIsAsked()
     {
         var pdf = DocumentWhoseMetadataIsInAnotherFile("/Type/Metadata/Length 0/F 4 0 R");
@@ -154,7 +154,7 @@ public class ExternalFileStreamTests
             "a caller who writes to it is writing to the document");
     }
 
-    [Fact]
+    [Test]
     public void ASpecificationWrittenOutInsideTheStreamDictionaryIsTooAndIsNotEmptied()
     {
         // A specification that is not an object of its own has no reference to re-point, which is
@@ -168,7 +168,7 @@ public class ExternalFileStreamTests
         stream.ExternalFile.FileName.Should().Be("manifest.c2pa");
     }
 
-    [Fact]
+    [Test]
     public void ANameGivenAsAPlainStringIsReadWithoutRewritingTheDocument()
     {
         // The specification answered for a bare string is made on the spot and stands outside the

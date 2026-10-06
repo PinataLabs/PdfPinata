@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Charting.Tests.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -19,7 +19,7 @@ namespace PdfPinata.Charting.Tests;
 /// </remarks>
 public class CombinationChartTests
 {
-    [Fact]
+    [Test]
     public void StackedColumnsInACombinationSitOnTopOfOneAnother()
     {
         var chart = StackedColumnsWithALine([1.0, 2.0], [3.0, 1.0], [0.5, 0.5]);
@@ -36,7 +36,7 @@ public class CombinationChartTests
         columns[2].Height.Should().BeApproximately(columns[0].Height * 3, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void TheValueAxisOfACombinationReachesTheTallestStack()
     {
         // No single value passes 3, but the first category stacks to 4.
@@ -47,7 +47,7 @@ public class CombinationChartTests
         top.Should().BeGreaterThanOrEqualTo(4);
     }
 
-    [Fact]
+    [Test]
     public void TheValueAxisOfACombinationStillReachesALineAboveTheStacks()
     {
         var chart = StackedColumnsWithALine([1.0, 2.0], [3.0, 1.0], [1.0, 9.0]);
@@ -55,7 +55,7 @@ public class CombinationChartTests
         AxisMaximum(chart).Should().BeGreaterThanOrEqualTo(9);
     }
 
-    [Fact]
+    [Test]
     public void TheValueAxisOfACombinationReachesTheLowestNegativeStack()
     {
         var chart = StackedColumnsWithALine([-1.0, 2.0], [-3.0, 1.0], [0.5, 0.5]);
@@ -66,7 +66,7 @@ public class CombinationChartTests
         labels.Min().Should().BeLessThanOrEqualTo(-4);
     }
 
-    [Fact]
+    [Test]
     public void ClusteredColumnsInACombinationAreStillSideBySide()
     {
         var chart = Charts.OfSeries(ChartType.Line, [1.0, 2.0], [3.0, 1.0], [0.5, 0.5]);
@@ -80,7 +80,7 @@ public class CombinationChartTests
         AxisMaximum(chart).Should().BeLessThan(4, "nothing is stacked, so nothing is summed");
     }
 
-    [Fact]
+    [Test]
     public void MixingClusteredAndStackedColumnsIsRefused()
     {
         var chart = Charts.OfSeries(ChartType.Line, [1.0, 2.0], [3.0, 1.0], [0.5, 0.5]);
@@ -93,7 +93,7 @@ public class CombinationChartTests
             .WithMessage("*Column2D*ColumnStacked2D*");
     }
 
-    [Fact]
+    [Test]
     public void ASeriesTheCombinationCannotDrawIsStillRefused()
     {
         var chart = Charts.OfSeries(ChartType.Line, [1.0, 2.0], [3.0, 1.0]);

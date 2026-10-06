@@ -2,7 +2,7 @@ using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Charting.Tests.Helpers;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -33,11 +33,11 @@ public class AxisOrientationParityTests
     ///   repair item 2 of docs/specs/axis-renderer-duplication.md asks for, and it fails on three
     ///   of these four cases against the renderers this merge replaces.
     /// </summary>
-    [Theory]
-    [InlineData(ChartType.Column2D, true)]  // The category axis, horizontal for a column chart.
-    [InlineData(ChartType.Column2D, false)] // The value axis, vertical for a column chart.
-    [InlineData(ChartType.Bar2D, true)]     // The category axis, vertical for a bar chart.
-    [InlineData(ChartType.Bar2D, false)]    // The value axis, horizontal for a bar chart.
+    [Test]
+    [Arguments(ChartType.Column2D, true)]  // The category axis, horizontal for a column chart.
+    [Arguments(ChartType.Column2D, false)] // The value axis, vertical for a column chart.
+    [Arguments(ChartType.Bar2D, true)]     // The category axis, vertical for a bar chart.
+    [Arguments(ChartType.Bar2D, false)]    // The value axis, horizontal for a bar chart.
     public void EveryAxisDrawsTickMarksByDefaultWithNoLineFormatSet(ChartType type, bool testingCategoryAxis)
     {
         var chart = Charts.Of(type, 1.0, 5.0, 3.0);
@@ -62,7 +62,7 @@ public class AxisOrientationParityTests
     /// <summary>
     ///   The same categories, drawn along the bottom or up the side, are the same set of labels.
     /// </summary>
-    [Fact]
+    [Test]
     public void BothOrientationsLabelTheSameCategories()
     {
         var column = Charts.Of(ChartType.Column2D, 1.0, 5.0, 3.0);
@@ -80,7 +80,7 @@ public class AxisOrientationParityTests
     ///   The value axis is scaled by the same arithmetic - <c>YAxisRenderer.FineTuneYAxis</c> -
     ///   whichever way it runs, so the same data produces the same tick labels.
     /// </summary>
-    [Fact]
+    [Test]
     public void BothOrientationsShowTheSameValueAxisLabels()
     {
         var column = Charts.Of(ChartType.Column2D, 1.0, 5.0, 3.0);
@@ -94,7 +94,7 @@ public class AxisOrientationParityTests
     ///   which way it runs. A column chart and a bar chart plotting the same data stroke the same
     ///   total between their category axis and their value axis, whichever axis is which.
     /// </summary>
-    [Fact]
+    [Test]
     public void BothOrientationsStrokeTheSameNumberOfLines()
     {
         var column = Charts.Of(ChartType.Column2D, 1.0, 5.0, 3.0);
@@ -109,7 +109,7 @@ public class AxisOrientationParityTests
     ///   <c>DefaultMinorTickMarkLineWidth</c> - are read from the same pens whichever way the axis
     ///   runs, so the same data produces the same multiset of stroke widths.
     /// </summary>
-    [Fact]
+    [Test]
     public void BothOrientationsUseTheSameTickMarkWidths()
     {
         var column = Charts.Of(ChartType.Column2D, 1.0, 5.0, 3.0);

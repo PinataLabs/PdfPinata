@@ -2,7 +2,7 @@ using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.Rendering.Tests.Helpers;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -25,12 +25,12 @@ namespace PinataLayout.Rendering.Tests;
 /// </remarks>
 public class ParagraphLayoutTests
 {
-    [Theory]
-    [InlineData(2, 3, 3)]
-    [InlineData(3, 2, 3)]
-    [InlineData(0, 3, 3)]
-    [InlineData(3, 0, 3)]
-    [InlineData(1, 1, 1)]
+    [Test]
+    [Arguments(2, 3, 3)]
+    [Arguments(3, 2, 3)]
+    [Arguments(0, 3, 3)]
+    [Arguments(3, 0, 3)]
+    [Arguments(1, 1, 1)]
     public void TheSpaceBetweenTwoParagraphsIsTheLargerOfTheirTwoAndNotTheSum(
         double after, double before, double expected)
     {
@@ -41,7 +41,7 @@ public class ParagraphLayoutTests
         gap.Should().BeApproximately(Unit.FromCentimeter(expected).Point, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void MoreParagraphsThanThePageHoldsAreCarriedOntoTheNextOne()
     {
         var document = new Document();
@@ -64,7 +64,7 @@ public class ParagraphLayoutTests
         }
     }
 
-    [Fact]
+    [Test]
     public void APageBreaksAtTheSameLineWhicheverParagraphTheTextIsBrokenInto()
     {
         // The renderer fills a page a paragraph at a time but breaks it a line at a time, so a

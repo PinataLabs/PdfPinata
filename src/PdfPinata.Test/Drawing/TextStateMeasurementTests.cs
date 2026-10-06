@@ -2,7 +2,7 @@ using System;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -42,7 +42,7 @@ public class TextStateMeasurementTests
 
     private const double Tolerance = 1e-9;
 
-    [Fact]
+    [Test]
     public void ADefaultFormatMeasuresTheSameAsNoFormatAtAll()
     {
         var gfx = NewGraphics();
@@ -53,7 +53,7 @@ public class TextStateMeasurementTests
         withFormat.Should().BeApproximately(withoutFormat, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void CharacterSpacingWidensTheTextByOneSpacingForEveryGlyph()
     {
         var gfx = NewGraphics();
@@ -70,7 +70,7 @@ public class TextStateMeasurementTests
         (spaced - plain).Should().BeApproximately(text.Length * 2, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void ANegativeCharacterSpacingTightensTheText()
     {
         var gfx = NewGraphics();
@@ -84,7 +84,7 @@ public class TextStateMeasurementTests
         (plain - tightened).Should().BeApproximately(5 * 0.5, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void WordSpacingWidensTheTextOnlyWhereThereAreSpaces()
     {
         var gfx = NewGraphics();
@@ -99,7 +99,7 @@ public class TextStateMeasurementTests
         (spaced - plain).Should().BeApproximately(2 * 3, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void WordSpacingLeavesTextWithoutSpacesAlone()
     {
         var gfx = NewGraphics();
@@ -112,7 +112,7 @@ public class TextStateMeasurementTests
         gfx.MeasureString("abc", Font, format).Width.Should().BeApproximately(plain, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void ATabIsMeasuredAsASpaceAndTakesTheWordSpacingWithIt()
     {
         var gfx = NewGraphics();
@@ -128,7 +128,7 @@ public class TextStateMeasurementTests
         tabbed.Should().BeApproximately(spaced, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void HorizontalScalingScalesTheGlyphsAndTheSpacingAlike()
     {
         var gfx = NewGraphics();
@@ -146,7 +146,7 @@ public class TextStateMeasurementTests
         halfSize.Should().BeApproximately(fullSize / 2, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void HorizontalScalingLeavesTheHeightAlone()
     {
         var gfx = NewGraphics();
@@ -159,7 +159,7 @@ public class TextStateMeasurementTests
         gfx.MeasureString("Hello", Font, format).Height.Should().BeApproximately(plain, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void TextRiseAndAnObliqueAngleDoNotChangeHowWideTheTextIs()
     {
         var gfx = NewGraphics();
@@ -177,7 +177,7 @@ public class TextStateMeasurementTests
         moved.Height.Should().BeApproximately(plain.Height, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void SpacingIsCountedPerLineAndTheWidestLineDecidesTheWidth()
     {
         var gfx = NewGraphics();
@@ -194,7 +194,7 @@ public class TextStateMeasurementTests
         together.Should().BeApproximately(Math.Max(firstLine, secondLine), Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void ALineFeedTakesNoCharacterSpacingOfItsOwn()
     {
         var gfx = NewGraphics();
@@ -217,7 +217,7 @@ public class TextStateMeasurementTests
     // calls too. These say the measuring side of it is unchanged by the move; that drawing now
     // agrees is TextStateOperatorTests.
 
-    [Fact]
+    [Test]
     public void ATabIsMeasuredAsASingleSpace()
     {
         var gfx = NewGraphics();
@@ -228,7 +228,7 @@ public class TextStateMeasurementTests
         tabbed.Should().BeApproximately(spaced, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void ATabIsPaidTheWordSpacingASpaceIsPaid()
     {
         var gfx = NewGraphics();
@@ -244,11 +244,11 @@ public class TextStateMeasurementTests
         tabbed.Should().BeApproximately(spaced, Tolerance);
     }
 
-    [Theory]
-    [InlineData('\r')]
-    [InlineData('\v')]
-    [InlineData('\f')]
-    [InlineData((char)27)]
+    [Test]
+    [Arguments('\r')]
+    [Arguments('\v')]
+    [Arguments('\f')]
+    [Arguments((char)27)]
     public void AControlCharacterOtherThanATabAndALineFeedCostsNothingAtAll(char ch)
     {
         var gfx = NewGraphics();
@@ -264,7 +264,7 @@ public class TextStateMeasurementTests
         carrying.Should().BeApproximately(plain, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void HorizontalScalingRejectsZeroAndNegativeValues()
     {
         var format = Format();
@@ -276,7 +276,7 @@ public class TextStateMeasurementTests
         format.HorizontalScaling.Should().Be(100);
     }
 
-    [Fact]
+    [Test]
     public void ObliqueAngleRejectsAQuarterTurn()
     {
         var format = Format();
@@ -288,7 +288,7 @@ public class TextStateMeasurementTests
         format.ObliqueAngle.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void EveryTextStateDefaultsToLeavingTheTextAsItIs()
     {
         var format = Format();
@@ -300,7 +300,7 @@ public class TextStateMeasurementTests
         format.ObliqueAngle.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void APresetCarriesItsOwnTextStateRatherThanSharingOne()
     {
         // Every XStringFormats preset builds a new instance, which is what makes it safe to hang

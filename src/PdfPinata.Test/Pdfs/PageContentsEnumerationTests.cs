@@ -7,7 +7,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -28,7 +28,7 @@ public class PageContentsEnumerationTests
         return (page.Contents, first, second);
     }
 
-    [Fact]
+    [Test]
     public void ForeachYieldsTheContentStreams()
     {
         var (contents, first, second) = TwoContentStreams();
@@ -40,7 +40,7 @@ public class PageContentsEnumerationTests
         seen.Should().Equal(first, second);
     }
 
-    [Fact]
+    [Test]
     public void EnumeratedWithoutATypeItStillYieldsTheContentStreams()
     {
         var (contents, first, second) = TwoContentStreams();
@@ -52,7 +52,7 @@ public class PageContentsEnumerationTests
         untyped.Should().Equal(first, second);
     }
 
-    [Fact]
+    [Test]
     public void EnumeratedAsAnArrayItStillYieldsTheContentStreams()
     {
         var (contents, first, second) = TwoContentStreams();
@@ -64,7 +64,7 @@ public class PageContentsEnumerationTests
         asArray.Should().Equal(first, second);
     }
 
-    [Fact]
+    [Test]
     public void LinqSeesTheContentStreamsRatherThanTheirReferences()
     {
         var (contents, first, second) = TwoContentStreams();
@@ -77,7 +77,7 @@ public class PageContentsEnumerationTests
         contents.Count().Should().Be(contents.Elements.Count);
     }
 
-    [Fact]
+    [Test]
     public void AContentStreamReadFromAFileIsEnumeratedTheSameWayEverywhere()
     {
         var document = new PdfDocument();

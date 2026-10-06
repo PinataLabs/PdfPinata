@@ -6,7 +6,7 @@ using ImageSource = PinataLayout.DocumentObjectModel.Shapes.ImageSource;
 using PdfPinata.Utils;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Imaging;
 
@@ -24,7 +24,7 @@ public class ImageSharpVersionTest
     private const string ImageAsset = "lenna.png";
     private const int Size = 512;
 
-    [Fact]
+    [Test]
     public void ImageSharpStaysOnTheLineTheBackendIsCompiledAgainst()
     {
         var version = typeof(Image).Assembly.GetName().Version;
@@ -39,7 +39,7 @@ public class ImageSharpVersionTest
         // ReSharper restore PossibleNullReferenceException
     }
 
-    [Fact]
+    [Test]
     public void ImageSharpBackendLoadsThePngAtItsDimensions()
     {
         var source = LoadSource();
@@ -50,7 +50,7 @@ public class ImageSharpVersionTest
         source.Transparent.Should().BeTrue($"{ImageAsset} is a PNG, which the backend reports as transparent");
     }
 
-    [Fact]
+    [Test]
     public void ImageSharpBackendEncodesWhatItLoadedAsJpeg()
     {
         var source = LoadSource();
@@ -68,7 +68,7 @@ public class ImageSharpVersionTest
         reloaded.Height.Should().Be(Size);
     }
 
-    [Fact]
+    [Test]
     public void ImageSharpBackendConvertsWhatItLoadedToPixels()
     {
         var source = LoadSource();

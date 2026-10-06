@@ -2,7 +2,7 @@ using System;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -31,7 +31,7 @@ public class StyleLookupTests
         return document;
     }
 
-    [Fact]
+    [Test]
     public void AStyleBasedOnDefaultParagraphFontSerializes()
     {
         var document = WithDerivedStyle(Style.DefaultParagraphFontName);
@@ -41,7 +41,7 @@ public class StyleLookupTests
                 "the base style is found by name now, so there is a reference format to compare against");
     }
 
-    [Fact]
+    [Test]
     public void AStyleBasedOnDefaultParagraphFontRoundTrips()
     {
         var document = WithDerivedStyle(Style.DefaultParagraphFontName);
@@ -54,7 +54,7 @@ public class StyleLookupTests
         derived.Font.Italic.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AStyleBasedOnNormalStillSerializes()
     {
         WithDerivedStyle(Style.DefaultParagraphName)
@@ -65,7 +65,7 @@ public class StyleLookupTests
     /// <summary>
     ///   The lookup and GetIndex disagreed for exactly one style. They must agree for all of them.
     /// </summary>
-    [Fact]
+    [Test]
     public void LookupByNameAgreesWithGetIndex()
     {
         var styles = new Document().Styles;
@@ -80,7 +80,7 @@ public class StyleLookupTests
         }
     }
 
-    [Fact]
+    [Test]
     public void TheBuiltInCharacterStyleIsNowFindableByName()
     {
         var styles = new Document().Styles;
@@ -89,7 +89,7 @@ public class StyleLookupTests
         styles[Style.DefaultParagraphFontName].Should().BeSameAs(styles[0]);
     }
 
-    [Fact]
+    [Test]
     public void AnUnknownNameStillReturnsNull()
     {
         new Document().Styles["NoSuchStyle"].Should().BeNull();
@@ -99,7 +99,7 @@ public class StyleLookupTests
     ///   Being findable is not being writable. The two were conflated, which is how the skip came
     ///   to exist in the first place.
     /// </summary>
-    [Fact]
+    [Test]
     public void FindingItByNameDoesNotMakeItWritable()
     {
         var styles = new Document().Styles;

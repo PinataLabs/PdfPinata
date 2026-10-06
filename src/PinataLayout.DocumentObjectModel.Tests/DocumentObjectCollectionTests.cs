@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.Tables;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -26,7 +26,7 @@ public class DocumentObjectCollectionTests
 
     // ----- the typed half ---------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnEmptyCollectionHasNeitherAFirstNorALastObject()
     {
         var elements = AnEmptyCollection();
@@ -37,7 +37,7 @@ public class DocumentObjectCollectionTests
         elements.IsNull().Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ACollectionAnswersItsFirstAndLastObject()
     {
         var elements = ACollectionOf("one", "two", "three");
@@ -48,7 +48,7 @@ public class DocumentObjectCollectionTests
         elements.IsNull().Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AnObjectCanBeReplacedByIndexThroughTheUntypedList()
     {
         var elements = ACollectionOf("one", "two");
@@ -59,7 +59,7 @@ public class DocumentObjectCollectionTests
         elements[1].Should().BeSameAs(replacement);
     }
 
-    [Fact]
+    [Test]
     public void ACollectionIsClonedWithEverythingInIt()
     {
         var elements = ACollectionOf("one", "two");
@@ -72,7 +72,7 @@ public class DocumentObjectCollectionTests
         clone[0].Should().NotBeSameAs(elements[1], "and everything in it is a copy too");
     }
 
-    [Fact]
+    [Test]
     public void ACollectionOfEmptyObjectsIsItselfEmpty()
     {
         var section = new Document().AddSection();
@@ -83,7 +83,7 @@ public class DocumentObjectCollectionTests
 
     // ----- the untyped half -------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TheCollectionDescribesItselfAsAWritableListOfNoFixedSize()
     {
         IList list = AnEmptyCollection();
@@ -95,7 +95,7 @@ public class DocumentObjectCollectionTests
         collection.SyncRoot.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void TheUntypedListAddsFindsAndRemovesTheSameObjects()
     {
         IList list = AnEmptyCollection();
@@ -120,7 +120,7 @@ public class DocumentObjectCollectionTests
     // on Add or InsertObject - Rows giving a row its cells, Styles checking a style - does it here
     // too. They used to go straight at the list underneath and did none of it.
 
-    [Fact]
+    [Test]
     public void AnObjectAddedThroughTheUntypedListBelongsToTheCollection()
     {
         var elements = AnEmptyCollection();
@@ -131,7 +131,7 @@ public class DocumentObjectCollectionTests
         paragraph.Document.Should().BeSameAs(elements.Document, "it hangs from the collection");
     }
 
-    [Fact]
+    [Test]
     public void AnObjectInsertedThroughTheUntypedListBelongsToTheCollection()
     {
         var elements = ACollectionOf("one");
@@ -143,7 +143,7 @@ public class DocumentObjectCollectionTests
         elements[0].Should().BeSameAs(paragraph);
     }
 
-    [Fact]
+    [Test]
     public void AnObjectSetByIndexThroughTheUntypedListBelongsToTheCollection()
     {
         var elements = ACollectionOf("one", "two");
@@ -155,7 +155,7 @@ public class DocumentObjectCollectionTests
         elements[1].Should().BeSameAs(paragraph);
     }
 
-    [Fact]
+    [Test]
     public void TheUntypedListAnswersTheIndexOfWhatItAdded()
     {
         IList list = ACollectionOf("one", "two");
@@ -164,7 +164,7 @@ public class DocumentObjectCollectionTests
         list.Add(new Paragraph()).Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void ARowAddedThroughTheUntypedListGetsACellForEveryColumn()
     {
         var table = new Document().AddSection().AddTable();
@@ -179,7 +179,7 @@ public class DocumentObjectCollectionTests
         row.Table.Should().BeSameAs(table);
     }
 
-    [Fact]
+    [Test]
     public void ARowInsertedThroughTheUntypedListGetsACellForEveryColumn()
     {
         var table = new Document().AddSection().AddTable();
@@ -194,7 +194,7 @@ public class DocumentObjectCollectionTests
         table.Rows[0].Should().BeSameAs(row);
     }
 
-    [Fact]
+    [Test]
     public void AnObjectAlreadyOwnedElsewhereIsNotTakenOverThroughTheUntypedListEither()
     {
         var paragraph = new Document().AddSection().AddParagraph("x");
@@ -205,7 +205,7 @@ public class DocumentObjectCollectionTests
         list.Count.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void AStyleCollectionChecksWhatReachesItThroughTheUntypedList()
     {
         IList styles = new Document().Styles;
@@ -218,7 +218,7 @@ public class DocumentObjectCollectionTests
     ///   Removing a cell moves the ones after it one column to the left, and a cell caches which
     ///   column it is in. The typed removal tells the cells that moved to forget it.
     /// </summary>
-    [Fact]
+    [Test]
     public void RemovingThroughTheUntypedListTellsTheObjectsAfterItThatTheyMoved()
     {
         var table = new Document().AddSection().AddTable();
@@ -239,7 +239,7 @@ public class DocumentObjectCollectionTests
 
     // ----- what an untyped list can be handed that the typed one cannot ------------------------------
 
-    [Fact]
+    [Test]
     public void SomethingThatIsNotADocumentObjectIsRefusedOnTheWayIn()
     {
         IList list = ACollectionOf("one");
@@ -251,7 +251,7 @@ public class DocumentObjectCollectionTests
         list[0].Should().BeOfType<Paragraph>();
     }
 
-    [Fact]
+    [Test]
     public void SomethingThatIsNotADocumentObjectIsSimplyNotFound()
     {
         IList list = ACollectionOf("one");
@@ -262,7 +262,7 @@ public class DocumentObjectCollectionTests
         list.Count.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void RemovingAnObjectTheCollectionDoesNotHoldChangesNothing()
     {
         IList list = ACollectionOf("one");
@@ -272,7 +272,7 @@ public class DocumentObjectCollectionTests
         list.Count.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void TheWholeCollectionCopiesIntoAnArrayOfItsOwn()
     {
         var elements = ACollectionOf("one", "two");
@@ -284,7 +284,7 @@ public class DocumentObjectCollectionTests
         copy[1].Should().BeSameAs(elements[1]);
     }
 
-    [Fact]
+    [Test]
     public void ACollectionEnumeratesWhatIsInIt()
     {
         var elements = ACollectionOf("one", "two");
@@ -298,7 +298,7 @@ public class DocumentObjectCollectionTests
 
     // ----- a typed collection of its own -------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ATypedCollectionAnswersForItsOwnKindToo()
     {
         var table = new Document().AddSection().AddTable();
@@ -311,7 +311,7 @@ public class DocumentObjectCollectionTests
         ((Row)table.Rows.LastObject).Index.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AnObjectCanBeTakenOutByIndexAndTheRestCloseUp()
     {
         var elements = ACollectionOf("one", "two", "three");
@@ -322,7 +322,7 @@ public class DocumentObjectCollectionTests
         ((Paragraph)elements[1]).Elements.Count.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AnObjectCanBeInsertedWhereItIsWanted()
     {
         var elements = ACollectionOf("one", "three");
@@ -334,7 +334,7 @@ public class DocumentObjectCollectionTests
         elements[1].Should().BeSameAs(inserted);
     }
 
-    [Fact]
+    [Test]
     public void AnObjectAlreadyOwnedElsewhereIsNotTakenOverTwice()
     {
         var first = new Document().AddSection();

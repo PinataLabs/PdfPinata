@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Helpers;
 
@@ -47,7 +47,7 @@ public class RasterizeResolutionTests
         return document;
     }
 
-    [Fact]
+    [Test]
     public void AnOrdinaryPageIsDrawnAtFullResolution()
     {
         // A4, which is what almost every page in these tests is.
@@ -57,7 +57,7 @@ public class RasterizeResolutionTests
     /// <summary>
     ///   The limit is a page that may be drawn, not one that may not.
     /// </summary>
-    [Fact]
+    [Test]
     public void APageExactlyOnTheLimitIsDrawnAtFullResolution()
     {
         var document = DocumentOf((PointsAtExactlyTheLimit, PointsAtExactlyTheLimit));
@@ -71,7 +71,7 @@ public class RasterizeResolutionTests
     ///   Twice the length of a side is four times the pixels, so it takes half the resolution to
     ///   come back to the limit.
     /// </summary>
-    [Fact]
+    [Test]
     public void APageOverTheLimitIsDrawnAtALowerResolution()
     {
         var document = DocumentOf((PointsAtExactlyTheLimit * 2, PointsAtExactlyTheLimit * 2));
@@ -85,7 +85,7 @@ public class RasterizeResolutionTests
     ///   page that needs it most. A document is drawn in one call and its pages are compared with
     ///   each other, so they cannot be drawn at sizes that do not correspond.
     /// </summary>
-    [Fact]
+    [Test]
     public void OneOversizedPageBringsTheWholeDocumentDown()
     {
         var oversized = (PointsAtExactlyTheLimit * 2, PointsAtExactlyTheLimit * 2);
@@ -95,7 +95,7 @@ public class RasterizeResolutionTests
             .Should().BeLessThan(150, "the big page alone is over the limit, and it is not alone");
     }
 
-    [Fact]
+    [Test]
     public void ManyOrdinaryPagesCountTowardsTheLimitToo()
     {
         // The gap the per-page limit left. Every one of these is far inside what a single page may
@@ -111,7 +111,7 @@ public class RasterizeResolutionTests
             .Should().BeLessThanOrEqualTo(PdfHelper.MaxPixelsPerDocument);
     }
 
-    [Fact]
+    [Test]
     public void ADocumentTooBigToDrawEvenAtOneDotPerInchIsRefused()
     {
         // The largest page a reader will accept is 14400 points a side, and 401 of them come to
@@ -132,7 +132,7 @@ public class RasterizeResolutionTests
     ///   Ghostscript is loaded into it rather than run as a command. See
     ///   docs/specs/test-host-crash-investigation.md.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheOversizedAssetIsBroughtUnderTheLimit()
     {
         // Qualified: the test assembly has a PdfReader of its own that would be found first.

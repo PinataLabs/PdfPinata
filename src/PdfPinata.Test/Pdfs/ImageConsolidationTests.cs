@@ -2,7 +2,7 @@ using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -53,7 +53,7 @@ public class ImageConsolidationTests
             .Elements.GetDictionary("/XObject")
             .Elements[name]).ObjectID;
 
-    [Fact]
+    [Test]
     public void TwoPagesDrawingIdenticalBytesEndUpSharingOneXObject()
     {
         var document = new PdfDocument();
@@ -69,7 +69,7 @@ public class ImageConsolidationTests
         ImageNamedBy(pageOne, "/Im0").Should().Be(ImageNamedBy(pageTwo, "/Im0"));
     }
 
-    [Fact]
+    [Test]
     public void ImagesDifferingByOneByteAreLeftApart()
     {
         var document = new PdfDocument();
@@ -82,7 +82,7 @@ public class ImageConsolidationTests
             "only byte-identical images are merged");
     }
 
-    [Fact]
+    [Test]
     public void PagesThatAlreadyShareOneXObjectAreLeftAsTheyAre()
     {
         var document = new PdfDocument();
@@ -96,7 +96,7 @@ public class ImageConsolidationTests
         ImageNamedBy(pageTwo, "/Im0").Should().Be(shared.Reference.ObjectID);
     }
 
-    [Fact]
+    [Test]
     public void TwoIdenticalImagesOnOnePageBecomeOne()
     {
         var document = new PdfDocument();
@@ -109,7 +109,7 @@ public class ImageConsolidationTests
         ImageNamedBy(page, "/Im0").Should().Be(ImageNamedBy(page, "/Im1"));
     }
 
-    [Fact]
+    [Test]
     public void ADocumentWithNoImagesIsUntouched()
     {
         var document = new PdfDocument();
@@ -122,7 +122,7 @@ public class ImageConsolidationTests
         document.PageCount.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void ADocumentWithNoPagesIsUntouched()
     {
         var document = new PdfDocument();
@@ -136,7 +136,7 @@ public class ImageConsolidationTests
     ///   A resource dictionary names more than images. An entry that is not an image is not a
     ///   candidate for merging and must survive untouched, whatever its bytes.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnXObjectThatIsNotAnImageIsLeftAlone()
     {
         var document = new PdfDocument();

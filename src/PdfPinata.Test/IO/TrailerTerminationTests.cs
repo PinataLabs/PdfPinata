@@ -6,7 +6,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.IO.enums;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -42,7 +42,7 @@ public class TrailerTerminationTests
 {
     // ----- What follows startxref -------------------------------------------------------------------
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AStartxrefFollowedByAnUnterminatedHexStringThrows()
     {
         // The shape of the reported file: "startxref\r\n<9293\r\n%%EOF".
@@ -51,7 +51,7 @@ public class TrailerTerminationTests
         await read.Should().ThrowAsync<PdfReaderException>();
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AStartxrefFollowedByAnUnterminatedLiteralStringThrows()
     {
         var read = async () => await Read(Document(startxref: "(9293\r\n%%EOF"));
@@ -59,7 +59,7 @@ public class TrailerTerminationTests
         await read.Should().ThrowAsync<PdfReaderException>();
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AStartxrefFollowedByNothingThrows()
     {
         var read = async () => await Read(Document(startxref: ""));
@@ -67,7 +67,7 @@ public class TrailerTerminationTests
         await read.Should().ThrowAsync<PdfReaderException>();
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AStartxrefPointingPastTheEndOfTheFileThrows()
     {
         var read = async () => await Read(Document(startxref: "99999999\n%%EOF"));
@@ -75,7 +75,7 @@ public class TrailerTerminationTests
         await read.Should().ThrowAsync<PdfReaderException>();
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task TheReportedShapeStillOpensWhenTheOffsetIsReal()
     {
         // The control: the same document with an offset where the offset belongs.
@@ -86,7 +86,7 @@ public class TrailerTerminationTests
 
     // ----- A chain of revisions that comes back on itself ------------------------------------------
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task ASectionWhosePrevNamesItselfIsReadOnceUnderModerate()
     {
         var document = await Read(Document(prevToSelf: true), PdfReadAccuracy.Moderate);
@@ -94,7 +94,7 @@ public class TrailerTerminationTests
         document.PageCount.Should().Be(1);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task TwoSectionsWhosePrevNamesEachOtherAreEachReadOnceUnderModerate()
     {
         var document = await Read(Document(prevCycleOfTwo: true), PdfReadAccuracy.Moderate);
@@ -102,7 +102,7 @@ public class TrailerTerminationTests
         document.PageCount.Should().Be(1);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task ASectionWhosePrevNamesItselfIsReportedUnderStrict()
     {
         var read = async () => await Read(Document(prevToSelf: true));
@@ -110,7 +110,7 @@ public class TrailerTerminationTests
         (await read.Should().ThrowAsync<PdfReaderException>()).WithMessage("*already been read*");
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task TwoSectionsWhosePrevNamesEachOtherAreReportedUnderStrict()
     {
         var read = async () => await Read(Document(prevCycleOfTwo: true));
@@ -118,7 +118,7 @@ public class TrailerTerminationTests
         (await read.Should().ThrowAsync<PdfReaderException>()).WithMessage("*already been read*");
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AChainOfRevisionsThatEndsIsStillFollowedToItsEnd()
     {
         // The control for the four above, read under Strict: the newest section is empty and names

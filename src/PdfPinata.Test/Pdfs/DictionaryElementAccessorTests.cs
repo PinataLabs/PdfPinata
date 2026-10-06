@@ -8,7 +8,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Annotations;
-using Xunit;
+using TUnit.Core;
 using PdfInt = PdfPinata.Pdf.PdfInteger;
 
 namespace PdfPinata.Test.Pdfs;
@@ -38,7 +38,7 @@ public class DictionaryElementAccessorTests
 
     // ----- GetBoolean ---------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AMissingBooleanIsFalseAndIsNotWrittenUnlessAskedFor()
     {
         var dictionary = ADictionary(ADocument());
@@ -47,7 +47,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.ContainsKey("/Flag").Should().BeFalse("reading must not write");
     }
 
-    [Fact]
+    [Test]
     public void CreatingAMissingBooleanWritesADefaultOne()
     {
         var dictionary = ADictionary(ADocument());
@@ -58,7 +58,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements["/Flag"].Should().BeOfType<PdfBoolean>();
     }
 
-    [Fact]
+    [Test]
     public void AnIndirectBooleanObjectIsFollowedToItsValue()
     {
         var document = ADocument();
@@ -68,7 +68,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.GetBoolean("/Flag").Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ABooleanThatIsSomethingElseIsRefused()
     {
         var dictionary = ADictionary(ADocument());
@@ -79,7 +79,7 @@ public class DictionaryElementAccessorTests
         reading.Should().Throw<InvalidCastException>();
     }
 
-    [Fact]
+    [Test]
     public void SetBooleanWritesADirectBoolean()
     {
         var dictionary = ADictionary(ADocument());
@@ -92,7 +92,7 @@ public class DictionaryElementAccessorTests
 
     // ----- GetInteger ---------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void CreatingAMissingIntegerWritesAZero()
     {
         var dictionary = ADictionary(ADocument());
@@ -102,7 +102,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements["/Count"].Should().BeOfType<PdfInt>();
     }
 
-    [Fact]
+    [Test]
     public void AnIndirectIntegerObjectIsFollowedToItsValue()
     {
         var document = ADocument();
@@ -112,7 +112,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.GetInteger("/Count").Should().Be(42);
     }
 
-    [Fact]
+    [Test]
     public void AnUnsignedIntegerIsReadAsAnInteger()
     {
         var dictionary = ADictionary(ADocument());
@@ -121,7 +121,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.GetInteger("/Count").Should().Be(7);
     }
 
-    [Fact]
+    [Test]
     public void AnIntegerThatIsSomethingElseIsRefused()
     {
         var dictionary = ADictionary(ADocument());
@@ -134,7 +134,7 @@ public class DictionaryElementAccessorTests
 
     // ----- GetReal ------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void CreatingAMissingRealWritesAZero()
     {
         var dictionary = ADictionary(ADocument());
@@ -144,7 +144,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements["/Width"].Should().BeOfType<PdfReal>();
     }
 
-    [Fact]
+    [Test]
     public void AnIndirectRealObjectIsFollowedToItsValue()
     {
         var document = ADocument();
@@ -154,7 +154,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.GetReal("/Width").Should().Be(2.5);
     }
 
-    [Fact]
+    [Test]
     public void AnIntegerIsAPerfectlyGoodReal()
     {
         var document = ADocument();
@@ -166,7 +166,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.GetReal("/Height").Should().Be(4);
     }
 
-    [Fact]
+    [Test]
     public void ARealThatIsSomethingElseIsRefused()
     {
         var dictionary = ADictionary(ADocument());
@@ -177,7 +177,7 @@ public class DictionaryElementAccessorTests
         reading.Should().Throw<InvalidCastException>();
     }
 
-    [Fact]
+    [Test]
     public void SetRealWritesADirectReal()
     {
         var dictionary = ADictionary(ADocument());
@@ -190,7 +190,7 @@ public class DictionaryElementAccessorTests
 
     // ----- GetString and TryGetString -----------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AMissingStringIsEmptyAndCreatingItWritesAnEmptyOne()
     {
         var dictionary = ADictionary(ADocument());
@@ -202,7 +202,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements["/Title"].Should().BeOfType<PdfString>();
     }
 
-    [Fact]
+    [Test]
     public void AStringIsAlsoReadFromAnIndirectObjectAndFromANameEitherWay()
     {
         var document = ADocument();
@@ -216,7 +216,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.GetString("/NameObject").Should().Be("/Times");
     }
 
-    [Fact]
+    [Test]
     public void AStringThatIsSomethingElseIsRefused()
     {
         var dictionary = ADictionary(ADocument());
@@ -227,7 +227,7 @@ public class DictionaryElementAccessorTests
         reading.Should().Throw<InvalidCastException>();
     }
 
-    [Fact]
+    [Test]
     public void TryGetStringAnswersForEveryShapeAStringCanTake()
     {
         var document = ADocument();
@@ -257,7 +257,7 @@ public class DictionaryElementAccessorTests
         number.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void SetStringTakesAnEncodingOfItsOwn()
     {
         var dictionary = ADictionary(ADocument());
@@ -270,7 +270,7 @@ public class DictionaryElementAccessorTests
 
     // ----- GetName ------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AMissingNameIsEmpty()
     {
         var dictionary = ADictionary(ADocument());
@@ -278,7 +278,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.GetName("/Subtype").Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void ANameIsReadThroughAReferenceAndOutOfANameObject()
     {
         var document = ADocument();
@@ -288,7 +288,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.GetName("/Subtype").Should().Be("/Form");
     }
 
-    [Fact]
+    [Test]
     public void ANameThatIsSomethingElseIsRefused()
     {
         var dictionary = ADictionary(ADocument());
@@ -299,7 +299,7 @@ public class DictionaryElementAccessorTests
         reading.Should().Throw<InvalidCastException>();
     }
 
-    [Fact]
+    [Test]
     public void SetNameAddsTheSlashItWasNotGiven()
     {
         var dictionary = ADictionary(ADocument());
@@ -313,7 +313,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.GetName("/C").Should().Be("/");
     }
 
-    [Fact]
+    [Test]
     public void SetNameRefusesANullValue()
     {
         var dictionary = ADictionary(ADocument());
@@ -325,7 +325,7 @@ public class DictionaryElementAccessorTests
 
     // ----- GetRectangle -------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AMissingRectangleIsEmptyAndCreatingItWritesOne()
     {
         var dictionary = ADictionary(ADocument());
@@ -337,7 +337,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.ContainsKey("/MediaBox").Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ARectangleWrittenAsAnArrayOfFourIsReadBackAndReplacedInPlace()
     {
         var document = ADocument();
@@ -358,7 +358,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements["/MediaBox"].Should().BeOfType<PdfRectangle>("the array is replaced by what it meant");
     }
 
-    [Fact]
+    [Test]
     public void ARectangleReadThroughAReferenceIsFollowed()
     {
         var document = ADocument();
@@ -374,7 +374,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.GetRectangle("/MediaBox").X2.Should().Be(595);
     }
 
-    [Fact]
+    [Test]
     public void SetRectangleWritesTheRectangleItself()
     {
         var dictionary = ADictionary(ADocument());
@@ -386,7 +386,7 @@ public class DictionaryElementAccessorTests
 
     // ----- GetMatrix ----------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AMissingMatrixIsTheIdentityAndCreatingItWritesALiteral()
     {
         var dictionary = ADictionary(ADocument());
@@ -398,7 +398,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements["/Matrix"].Should().BeOfType<PdfLiteral>();
     }
 
-    [Fact]
+    [Test]
     public void AMatrixWrittenAsAnArrayOfSixIsReadBack()
     {
         var document = ADocument();
@@ -411,7 +411,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.GetMatrix("/Matrix").Should().Be(new XMatrix(2, 0, 0, 2, 10, 20));
     }
 
-    [Fact]
+    [Test]
     public void AMatrixIsReadBackOutOfTheLiteralSetMatrixWrote()
     {
         var dictionary = ADictionary(ADocument());
@@ -422,7 +422,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.GetMatrix("/Matrix").Should().Be(new XMatrix(1, 2, 3, 4, 5, 6));
     }
 
-    [Fact]
+    [Test]
     public void AMatrixLiteralWithTooFewNumbersIsRefused()
     {
         var dictionary = ADictionary(ADocument());
@@ -433,7 +433,7 @@ public class DictionaryElementAccessorTests
         reading.Should().Throw<InvalidCastException>();
     }
 
-    [Fact]
+    [Test]
     public void AMatrixLiteralWithSomethingThatIsNotANumberIsRefused()
     {
         var dictionary = ADictionary(ADocument());
@@ -444,7 +444,7 @@ public class DictionaryElementAccessorTests
         reading.Should().Throw<InvalidCastException>();
     }
 
-    [Fact]
+    [Test]
     public void AMatrixThatIsNeitherAnArrayNorALiteralIsRefused()
     {
         var dictionary = ADictionary(ADocument());
@@ -457,7 +457,7 @@ public class DictionaryElementAccessorTests
 
     // ----- GetDateTime --------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AMissingDateIsTheDefaultOneItWasGiven()
     {
         var dictionary = ADictionary(ADocument());
@@ -466,7 +466,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.GetDateTime("/ModDate", fallback).Should().Be(fallback);
     }
 
-    [Fact]
+    [Test]
     public void ADateIsReadFromADateFromAStringAndFromAStringObject()
     {
         var document = ADocument();
@@ -483,7 +483,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.GetDateTime("/Object", fallback).Year.Should().Be(2021);
     }
 
-    [Fact]
+    [Test]
     public void ADateThatCannotBeParsedFallsBackRatherThanThrowing()
     {
         var dictionary = ADictionary(ADocument());
@@ -493,7 +493,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.GetDateTime("/ModDate", fallback).Should().Be(fallback);
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyDateStringIsTheFallbackToo()
     {
         var dictionary = ADictionary(ADocument());
@@ -503,7 +503,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.GetDateTime("/ModDate", fallback).Should().Be(fallback);
     }
 
-    [Fact]
+    [Test]
     public void ADateThatIsSomethingElseEntirelyIsRefused()
     {
         var dictionary = ADictionary(ADocument());
@@ -517,7 +517,7 @@ public class DictionaryElementAccessorTests
 
     // ----- GetValue and the object accessors ----------------------------------------------------
 
-    [Fact]
+    [Test]
     public void CreatingAValueBuildsTheTypeTheMetaInformationNames()
     {
         var document = ADocument();
@@ -527,7 +527,7 @@ public class DictionaryElementAccessorTests
         resources.Should().BeOfType<PdfResources>();
     }
 
-    [Fact]
+    [Test]
     public void CreatingAValueIndirectlyPutsAReferenceInTheDictionary()
     {
         var document = ADocument();
@@ -539,7 +539,7 @@ public class DictionaryElementAccessorTests
         page.Elements["/Annots"].Should().BeOfType<PdfReference>();
     }
 
-    [Fact]
+    [Test]
     public void AValueWithNoMetaInformationCannotBeCreated()
     {
         var dictionary = ADictionary(ADocument());
@@ -549,7 +549,7 @@ public class DictionaryElementAccessorTests
         creating.Should().Throw<NotImplementedException>();
     }
 
-    [Fact]
+    [Test]
     public void AskingForAMissingValueWithoutCreatingItAnswersNothing()
     {
         var dictionary = ADictionary(ADocument());
@@ -557,7 +557,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.GetValue("/Whatever").Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void GetObjectFollowsAReferenceAndGetReferenceDoesNot()
     {
         var document = ADocument();
@@ -573,7 +573,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.GetReference("/Missing").Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void SetObjectRefusesAnIndirectObjectAndSetReferenceInsistsOnOne()
     {
         var document = ADocument();
@@ -601,7 +601,7 @@ public class DictionaryElementAccessorTests
         settingANullReference.Should().Throw<ArgumentNullException>();
     }
 
-    [Fact]
+    [Test]
     public void SetValueWritesTheItemItWasGiven()
     {
         var dictionary = ADictionary(ADocument());
@@ -613,7 +613,7 @@ public class DictionaryElementAccessorTests
 
     // ----- the collection itself ----------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AKeyMustBeANameToBeAdded()
     {
         var dictionary = ADictionary(ADocument());
@@ -628,7 +628,7 @@ public class DictionaryElementAccessorTests
         unslashedKey.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AddingAnIndirectObjectStoresItsReferenceInstead()
     {
         var document = ADocument();
@@ -641,7 +641,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements["/Inner"].Should().BeSameAs(indirect.Reference);
     }
 
-    [Fact]
+    [Test]
     public void APairCanBeAddedAsOne()
     {
         var dictionary = ADictionary(ADocument());
@@ -651,7 +651,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.GetInteger("/A").Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void ClearEmptiesTheDictionary()
     {
         var dictionary = ADictionary(ADocument());
@@ -663,7 +663,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.Count.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void RemoveSaysWhetherItRemovedAnything()
     {
         var dictionary = ADictionary(ADocument());
@@ -673,7 +673,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.Remove("/A").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void TryGetValueAnswersWhatIsThereAndNothingForWhatIsNot()
     {
         var dictionary = ADictionary(ADocument());
@@ -686,7 +686,7 @@ public class DictionaryElementAccessorTests
         absent.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void KeysNamesAndValuesAreEachACopyOfWhatIsThere()
     {
         var dictionary = ADictionary(ADocument());
@@ -700,7 +700,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.Count.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void TheCollectionDescribesItselfAsAWritableDictionaryOfNoFixedSize()
     {
         var elements = ADictionary(ADocument()).Elements;
@@ -711,7 +711,7 @@ public class DictionaryElementAccessorTests
         elements.SyncRoot.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void ThreeMembersOfTheCollectionInterfacesAreNotImplemented()
     {
         var elements = ADictionary(ADocument()).Elements;
@@ -727,7 +727,7 @@ public class DictionaryElementAccessorTests
         copying.Should().Throw<NotImplementedException>();
     }
 
-    [Fact]
+    [Test]
     public void TheDictionaryEnumeratesItsPairsEitherWayRound()
     {
         var dictionary = ADictionary(ADocument());
@@ -754,7 +754,7 @@ public class DictionaryElementAccessorTests
             enumerator.Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void ADictionaryPrintsItselfWithItsKeysSorted()
     {
         var dictionary = ADictionary(ADocument());
@@ -767,7 +767,7 @@ public class DictionaryElementAccessorTests
         text.IndexOf("/A", StringComparison.Ordinal).Should().BeLessThan(text.IndexOf("/B", StringComparison.Ordinal));
     }
 
-    [Fact]
+    [Test]
     public void ADictionaryIndexedByNameRefusesADirectDictionaryThatHasAStream()
     {
         var document = ADocument();
@@ -780,7 +780,7 @@ public class DictionaryElementAccessorTests
         setting.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void ADictionaryIndexedByNameTakesAnIndirectStreamAsAReference()
     {
         var document = ADocument();
@@ -794,7 +794,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements[new PdfName("/Inner")].Should().BeSameAs(withStream.Reference);
     }
 
-    [Fact]
+    [Test]
     public void NeitherIndexerTakesANullValue()
     {
         var dictionary = ADictionary(ADocument());
@@ -808,7 +808,7 @@ public class DictionaryElementAccessorTests
 
     // ----- the stream ---------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ADictionaryWillNotBeGivenASecondStream()
     {
         var dictionary = ADictionary(ADocument());
@@ -819,7 +819,7 @@ public class DictionaryElementAccessorTests
         again.Should().Throw<InvalidOperationException>();
     }
 
-    [Fact]
+    [Test]
     public void ZippingAStreamWritesTheFilterAndTheNewLength()
     {
         var document = ADocument();
@@ -834,7 +834,7 @@ public class DictionaryElementAccessorTests
         dictionary.Stream.Length.Should().BeLessThan(500);
     }
 
-    [Fact]
+    [Test]
     public void ZippingAnAlreadyFilteredStreamLeavesItAlone()
     {
         var document = ADocument();
@@ -849,7 +849,7 @@ public class DictionaryElementAccessorTests
         dictionary.Stream.Length.Should().Be(once);
     }
 
-    [Fact]
+    [Test]
     public void AStreamPrintsItsDecodedContent()
     {
         var document = ADocument();

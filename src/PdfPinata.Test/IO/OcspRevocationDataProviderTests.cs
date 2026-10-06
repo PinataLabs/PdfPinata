@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using AwesomeAssertions;
 using PdfPinata.Signing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -20,7 +20,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class OcspRevocationDataProviderTests
 {
-    [Fact]
+    [Test]
     public void ACertificateWithNoAuthorityInfoAccessExtensionAnswersNoEvidence()
     {
         var certificate = CertificateWithAuthorityInfoAccess(null);
@@ -31,7 +31,7 @@ public class OcspRevocationDataProviderTests
         result.Should().BeSameAs(RevocationData.None);
     }
 
-    [Fact]
+    [Test]
     public void AMalformedAuthorityInfoAccessExtensionAnswersNoEvidenceRatherThanThrow()
     {
         var certificate = CertificateWithAuthorityInfoAccess([0x01, 0x02, 0x03]);
@@ -44,7 +44,7 @@ public class OcspRevocationDataProviderTests
         gathering().Should().BeSameAs(RevocationData.None);
     }
 
-    [Fact]
+    [Test]
     public void AResponderNamedByAnUnsupportedSchemeAnswersNoEvidence()
     {
         var certificate = CertificateWithAuthorityInfoAccess(
@@ -56,7 +56,7 @@ public class OcspRevocationDataProviderTests
         result.Should().BeSameAs(RevocationData.None);
     }
 
-    [Fact]
+    [Test]
     public void AResponseFromTheResponderIsAnsweredAsEvidence()
     {
         var (certificate, chain) = CertificateIssuedWithResponder("http://ocsp.example.invalid/");
@@ -70,7 +70,7 @@ public class OcspRevocationDataProviderTests
         result.OcspResponses.Should().ContainSingle().Which.Should().Equal(answer);
     }
 
-    [Fact]
+    [Test]
     public void AResponseLargerThanTheCapAnswersNoEvidenceWithoutBeingReadInFull()
     {
         var (certificate, chain) = CertificateIssuedWithResponder("http://ocsp.example.invalid/");

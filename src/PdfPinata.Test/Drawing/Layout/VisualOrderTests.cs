@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using AwesomeAssertions;
 using PdfPinata.Drawing.Layout;
 using PdfPinata.Text;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing.Layout;
 
@@ -35,7 +35,7 @@ public class VisualOrderTests
 
     private static string Joined(params string[] words) => string.Join(" ", words);
 
-    [Fact]
+    [Test]
     public void ARightToLeftLineOfTwoWordsReversesTheWordsToo()
     {
         var words = new[] { First, Second };
@@ -47,7 +47,7 @@ public class VisualOrderTests
             "the word written first ends up rightmost, so it is placed last");
     }
 
-    [Fact]
+    [Test]
     public void ALeftToRightPhraseInsideARightToLeftLineKeepsItsOwnWordOrder()
     {
         // The case a naive "reverse the line" implementation gets wrong: "one" and "two" have to
@@ -61,7 +61,7 @@ public class VisualOrderTests
             "Second is placed first (rightmost), then one and two in their own order, then First");
     }
 
-    [Fact]
+    [Test]
     public void ALeftToRightLineIsLeftInTheOrderItWasWritten()
     {
         var words = new[] { "one", "two", "three" };
@@ -72,7 +72,7 @@ public class VisualOrderTests
         order.Should().Equal(0, 1, 2);
     }
 
-    [Fact]
+    [Test]
     public void AUnitWithNoCharactersTakesItsPredecessorsKey()
     {
         // A bookmark or line break sitting between two right-to-left words: it contributed no
@@ -90,7 +90,7 @@ public class VisualOrderTests
             + "stable sort keeps it right after that word rather than before it");
     }
 
-    [Fact]
+    [Test]
     public void ALeadingUnitWithNoCharactersHasNoPredecessorToStayBeside()
     {
         // An empty unit at the very start of the line has nothing before it to take the key of, so
@@ -106,7 +106,7 @@ public class VisualOrderTests
         order.Should().Equal(2, 1, 0);
     }
 
-    [Fact]
+    [Test]
     public void AUnitWhoseCharactersAreNonContiguousInVisualOrderTakesTheLeftmost()
     {
         // The case the rule exists for: a unit spanning a right-to-left word followed by a

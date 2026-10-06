@@ -9,7 +9,7 @@ using PdfPinata.Test.Helpers;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
 using PinataLayout.Rendering.Tests.Helpers;
-using Xunit;
+using TUnit.Core;
 using Charting = PdfPinata.Charting;
 using DomChart = PinataLayout.DocumentObjectModel.Shapes.Charts.Chart;
 
@@ -42,7 +42,7 @@ public class ChartMapperTests
 
     // ----- the frame itself -----
 
-    [Fact]
+    [Test]
     public void TheFrameTakesItsSizeAndPositionFromTheChart()
     {
         var document = new Document();
@@ -56,12 +56,12 @@ public class ChartMapperTests
         frame.Size.Height.Should().BeApproximately(200, 0.01);
     }
 
-    [Theory]
-    [InlineData(ChartType.Line, Charting.ChartType.Line)]
-    [InlineData(ChartType.Column2D, Charting.ChartType.Column2D)]
-    [InlineData(ChartType.Bar2D, Charting.ChartType.Bar2D)]
-    [InlineData(ChartType.Pie2D, Charting.ChartType.Pie2D)]
-    [InlineData(ChartType.Area2D, Charting.ChartType.Area2D)]
+    [Test]
+    [Arguments(ChartType.Line, Charting.ChartType.Line)]
+    [Arguments(ChartType.Column2D, Charting.ChartType.Column2D)]
+    [Arguments(ChartType.Bar2D, Charting.ChartType.Bar2D)]
+    [Arguments(ChartType.Pie2D, Charting.ChartType.Pie2D)]
+    [Arguments(ChartType.Area2D, Charting.ChartType.Area2D)]
     public void TheChartKeepsItsType(ChartType domType, Charting.ChartType expected)
     {
         Mapped(ChartIn(new Document(), domType)).Type.Should().Be(expected);
@@ -73,7 +73,7 @@ public class ChartMapperTests
     ///   The scale and the tick spacing are numbers the caller sets and the drawing reads back, so
     ///   a mapper that dropped one would put the gridlines somewhere else entirely.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnAxisCarriesItsScaleAndItsTicks()
     {
         var document = new Document();
@@ -91,11 +91,11 @@ public class ChartMapperTests
         xAxis.MinorTick.Should().Be(2.5);
     }
 
-    [Theory]
-    [InlineData(TickMarkType.None, Charting.TickMarkType.None)]
-    [InlineData(TickMarkType.Inside, Charting.TickMarkType.Inside)]
-    [InlineData(TickMarkType.Outside, Charting.TickMarkType.Outside)]
-    [InlineData(TickMarkType.Cross, Charting.TickMarkType.Cross)]
+    [Test]
+    [Arguments(TickMarkType.None, Charting.TickMarkType.None)]
+    [Arguments(TickMarkType.Inside, Charting.TickMarkType.Inside)]
+    [Arguments(TickMarkType.Outside, Charting.TickMarkType.Outside)]
+    [Arguments(TickMarkType.Cross, Charting.TickMarkType.Cross)]
     public void AnAxisCarriesTheShapeOfItsTickMarks(TickMarkType domType, Charting.TickMarkType expected)
     {
         var document = new Document();
@@ -113,7 +113,7 @@ public class ChartMapperTests
     ///   Gridlines are two decisions rather than one: whether they are drawn at all, and how. The
     ///   mapper reads the second only when the caller described it, so both are worth a test.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnAxisCarriesWhetherItHasGridlines()
     {
         var document = new Document();
@@ -131,7 +131,7 @@ public class ChartMapperTests
         chart.YAxis.HasMinorGridlines.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AnAxisCarriesItsTitleAndHowItSits()
     {
         var document = new Document();
@@ -149,7 +149,7 @@ public class ChartMapperTests
         title.VerticalAlignment.Should().Be(Charting.VerticalAlignment.Bottom);
     }
 
-    [Fact]
+    [Test]
     public void AnAxisCarriesTheFormatItsTickLabelsAreWrittenIn()
     {
         var document = new Document();
@@ -164,7 +164,7 @@ public class ChartMapperTests
     ///   only what it sets. It used to carry everything, and a size set on its own answered false
     ///   for the style's bold and an empty colour for the style's red.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnAxisTitlesOwnFontLeavesWhatItDoesNotSetToItsStyle()
     {
         var document = new Document();
@@ -189,7 +189,7 @@ public class ChartMapperTests
     ///   whatever the last chart left behind. Every copy in the mapper is guarded by a test for
     ///   whether the value was set, and this is the path where none of them fire.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnAxisNobodySetStillMaps()
     {
         var chart = Mapped(ChartIn(new Document()));
@@ -207,7 +207,7 @@ public class ChartMapperTests
     ///   as another — a header docks to the top and a footer to the bottom — which is the sort of
     ///   thing that is silently lost when a case is dropped.
     /// </summary>
-    [Fact]
+    [Test]
     public void ALegendInTheBottomAreaDocksToTheBottom()
     {
         var document = new Document();
@@ -217,7 +217,7 @@ public class ChartMapperTests
         Mapped(domChart).Legend.Docking.Should().Be(Charting.DockingType.Bottom);
     }
 
-    [Fact]
+    [Test]
     public void ALegendInTheTopAreaDocksToTheTop()
     {
         var document = new Document();
@@ -227,7 +227,7 @@ public class ChartMapperTests
         Mapped(domChart).Legend.Docking.Should().Be(Charting.DockingType.Top);
     }
 
-    [Fact]
+    [Test]
     public void ALegendInTheLeftAreaDocksToTheLeft()
     {
         var document = new Document();
@@ -237,7 +237,7 @@ public class ChartMapperTests
         Mapped(domChart).Legend.Docking.Should().Be(Charting.DockingType.Left);
     }
 
-    [Fact]
+    [Test]
     public void ALegendInTheRightAreaDocksToTheRight()
     {
         var document = new Document();
@@ -247,7 +247,7 @@ public class ChartMapperTests
         Mapped(domChart).Legend.Docking.Should().Be(Charting.DockingType.Right);
     }
 
-    [Fact]
+    [Test]
     public void ALegendInTheHeaderAreaDocksToTheTop()
     {
         var document = new Document();
@@ -257,7 +257,7 @@ public class ChartMapperTests
         Mapped(domChart).Legend.Docking.Should().Be(Charting.DockingType.Top);
     }
 
-    [Fact]
+    [Test]
     public void ALegendInTheFooterAreaDocksToTheBottom()
     {
         var document = new Document();
@@ -272,7 +272,7 @@ public class ChartMapperTests
     ///   first. A chart with a legend in two places is not something a caller should write, but
     ///   what happens then is decided by the order of the loops and is worth recording.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheLastAreaWalkedDecidesWhereTwoLegendsDock()
     {
         var document = new Document();
@@ -285,7 +285,7 @@ public class ChartMapperTests
 
     // ----- SeriesCollectionMapper -----
 
-    [Fact]
+    [Test]
     public void EverySeriesIsCarriedAcrossWithItsNameAndItsValues()
     {
         var document = new Document();
@@ -311,7 +311,7 @@ public class ChartMapperTests
     ///   walking back up to the parent chart rather than being handed it. That walk is the reason
     ///   these tests build a chart inside a document instead of on its own.
     /// </summary>
-    [Fact]
+    [Test]
     public void ASeriesWithNoTypeOfItsOwnTakesTheChartsType()
     {
         var document = new Document();
@@ -321,7 +321,7 @@ public class ChartMapperTests
         Mapped(domChart).SeriesCollection[0].ChartType.Should().Be(Charting.ChartType.Column2D);
     }
 
-    [Fact]
+    [Test]
     public void ASeriesThatNamesItsOwnTypeKeepsIt()
     {
         var document = new Document();
@@ -333,7 +333,7 @@ public class ChartMapperTests
         Mapped(domChart).SeriesCollection[0].ChartType.Should().Be(Charting.ChartType.Line);
     }
 
-    [Fact]
+    [Test]
     public void ASeriesCarriesHowItsPointsAreMarked()
     {
         var document = new Document();
@@ -355,7 +355,7 @@ public class ChartMapperTests
     ///   always says Solid, so mapping an empty format onto every point turned a dashed series'
     ///   borders solid.
     /// </summary>
-    [Fact]
+    [Test]
     public void APointCarriesALineFormatOnlyWhenItWasGivenOne()
     {
         var document = new Document();
@@ -379,7 +379,7 @@ public class ChartMapperTests
     ///   line (#192). Drawn rather than read off the mapped format, because whether a dash style
     ///   was set is internal to the charting package.
     /// </summary>
-    [Fact]
+    [Test]
     public void APointThatSetsOnlyAWidthKeepsItsSeriesDashes()
     {
         var document = new Document();
@@ -434,7 +434,7 @@ public class ChartMapperTests
     ///   A marker colour the caller left alone maps to the empty colour rather than to black, so
     ///   that the drawing can tell "not set" from "set to something" and pick its own.
     /// </summary>
-    [Fact]
+    [Test]
     public void AMarkerColourNobodySetArrivesEmpty()
     {
         var document = new Document();
@@ -447,7 +447,7 @@ public class ChartMapperTests
         series.MarkerForegroundColor.IsEmpty.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AMarkerColourThatWasSetArrivesAsThatColour()
     {
         var document = new Document();
@@ -468,7 +468,7 @@ public class ChartMapperTests
     ///   a chart drawn with zeros where the blanks were tells a different story from the one the
     ///   caller wrote.
     /// </summary>
-    [Fact]
+    [Test]
     public void ABlankInASeriesStaysABlank()
     {
         var document = new Document();
@@ -481,7 +481,7 @@ public class ChartMapperTests
         Mapped(domChart).SeriesCollection[0].Count.Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void AChartWithNoSeriesAtAllStillMaps()
     {
         Mapped(ChartIn(new Document())).SeriesCollection.Count.Should().Be(0);
@@ -491,7 +491,7 @@ public class ChartMapperTests
     ///   Everything at once, which is the arrangement a caller actually writes and the one where a
     ///   mapper that reads the wrong object shows up.
     /// </summary>
-    [Fact]
+    [Test]
     public void AChartDescribedInFullArrivesDescribedInFull()
     {
         var document = new Document();

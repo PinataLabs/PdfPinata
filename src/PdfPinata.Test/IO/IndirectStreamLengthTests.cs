@@ -5,7 +5,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.IO.enums;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -23,10 +23,10 @@ public class IndirectStreamLengthTests
     // the length taken from the object stream from the length guessed by scanning.
     private const string Content = "BT /F1 12 Tf 20 40 Td (Issue 456) Tj ET\n(\nendstream) Tj\n";
 
-    [Theory]
-    [InlineData(PdfDocumentOpenMode.Modify)]
-    [InlineData(PdfDocumentOpenMode.Import)]
-    [InlineData(PdfDocumentOpenMode.ReadOnly)]
+    [Test]
+    [Arguments(PdfDocumentOpenMode.Modify)]
+    [Arguments(PdfDocumentOpenMode.Import)]
+    [Arguments(PdfDocumentOpenMode.ReadOnly)]
     public void ADocumentWhoseStreamLengthLivesInAnObjectStreamCanBeRead(PdfDocumentOpenMode openMode)
     {
         using var input = new MemoryStream(BuildDocumentWithTheStreamLengthInAnObjectStream());
@@ -36,7 +36,7 @@ public class IndirectStreamLengthTests
         document.PageCount.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void TheStreamIsReadWithTheLengthTakenFromTheObjectStream()
     {
         using var input = new MemoryStream(BuildDocumentWithTheStreamLengthInAnObjectStream());
@@ -50,7 +50,7 @@ public class IndirectStreamLengthTests
             .Which.Should().Equal(Encoding.Latin1.GetBytes(Content));
     }
 
-    [Fact]
+    [Test]
     public void ADocumentWhoseStreamLengthLivesInAnObjectStreamCanBeSavedAndReadBack()
     {
         using var input = new MemoryStream(BuildDocumentWithTheStreamLengthInAnObjectStream());

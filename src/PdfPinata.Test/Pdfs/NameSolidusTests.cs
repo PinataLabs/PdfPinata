@@ -6,7 +6,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.AcroForms;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.Structure;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -24,18 +24,18 @@ namespace PdfPinata.Test.Pdfs;
 /// </remarks>
 public class NameSolidusTests
 {
-    [Theory]
-    [InlineData("Yes", "/Yes")]
-    [InlineData("/Yes", "/Yes")]
-    [InlineData("", "/")]
-    [InlineData("/", "/")]
-    [InlineData("//", "//")]
+    [Test]
+    [Arguments("Yes", "/Yes")]
+    [Arguments("/Yes", "/Yes")]
+    [Arguments("", "/")]
+    [Arguments("/", "/")]
+    [Arguments("//", "//")]
     public void WithSolidusPutsOneInFrontUnlessOneIsThere(string name, string expected)
     {
         WithSolidus(name).Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void WithSolidusRefusesNull()
     {
         var act = () => WithSolidus(null);
@@ -43,18 +43,18 @@ public class NameSolidusTests
         act.Should().Throw<ArgumentNullException>();
     }
 
-    [Theory]
-    [InlineData("/Yes", "Yes")]
-    [InlineData("Yes", "Yes")]
-    [InlineData("/", "")]
-    [InlineData("", "")]
-    [InlineData(null, null)]
+    [Test]
+    [Arguments("/Yes", "Yes")]
+    [Arguments("Yes", "Yes")]
+    [Arguments("/", "")]
+    [Arguments("", "")]
+    [Arguments(null, null)]
     public void WithoutSolidusTakesOneAwayWhenOneIsThere(string name, string expected)
     {
         WithoutSolidus(name).Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyStructureTypeIsRefusedAsAnArgumentRatherThanByIndexingPastTheEnd()
     {
         var act = () => new PdfTag("");
@@ -62,7 +62,7 @@ public class NameSolidusTests
         act.Should().Throw<ArgumentException>().Which.ParamName.Should().Be("name");
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyAppearanceStateIsRefusedAsAnArgument()
     {
         var document = new PdfDocument();
@@ -74,7 +74,7 @@ public class NameSolidusTests
         act.Should().Throw<ArgumentException>().Which.ParamName.Should().Be("state");
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyStandardFontNameIsRefusedAsAnArgument()
     {
         var form = new PdfDocument().GetOrCreateAcroForm();
@@ -84,14 +84,14 @@ public class NameSolidusTests
         act.Should().Throw<ArgumentException>().Which.ParamName.Should().Be("resourceName");
     }
 
-    [Fact]
+    [Test]
     public void AStructureTypeNamedWithoutItsSolidusIsGivenOne()
     {
         new PdfTag("Sect").Name.Should().Be("/Sect");
         new PdfTag("/Sect").Name.Should().Be("/Sect");
     }
 
-    [Fact]
+    [Test]
     public void AnIconWrittenAsTheEmptyNameReadsAsNoIcon()
     {
         var document = new PdfDocument();
@@ -104,7 +104,7 @@ public class NameSolidusTests
         note.Icon.Should().Be(PdfTextAnnotationIcon.NoIcon);
     }
 
-    [Fact]
+    [Test]
     public void ALineEndingWrittenAsTheEmptyNameReadsAsNone()
     {
         var document = new PdfDocument();

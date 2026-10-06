@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Internals;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -29,7 +29,7 @@ public class ValueModelKnownDefectsTests
     ///   because the shape that broke it is gone rather than because the handling works. The
     ///   handling itself is exercised by the generator's own tests, which construct one.
     /// </summary>
-    [Fact]
+    [Test]
     public void FormattedTextSetNullNoLongerThrows()
     {
         var formattedText = new FormattedText { Bold = true };
@@ -45,7 +45,7 @@ public class ValueModelKnownDefectsTests
     ///   PlainValue any more. If a member ever is again, SetNull's handling of it starts mattering
     ///   to the real model and this test should be replaced by one that exercises it.
     /// </summary>
-    [Fact]
+    [Test]
     public void NoDomMemberIsAPlainValue()
     {
         var plainValues =
@@ -63,7 +63,7 @@ public class ValueModelKnownDefectsTests
     ///   reader resolves them against the Font they delegate to, which is where Font.Serialize
     ///   writes them from. The typed property still works; only the name-addressed route moved.
     /// </summary>
-    [Fact]
+    [Test]
     public void FormattedTextDelegatesBoldToItsFont()
     {
         var formattedText = new FormattedText { Bold = true };
@@ -78,7 +78,7 @@ public class ValueModelKnownDefectsTests
     ///   IsNull() means something for the first time. It used to be a constant false: five members
     ///   were plain value types with no null, and two more read Font.Name, which coalesces to "".
     /// </summary>
-    [Fact]
+    [Test]
     public void AnEmptyFormattedTextIsNull()
     {
         new FormattedText().IsNull().Should().BeTrue("nothing has been assigned to it");
@@ -96,7 +96,7 @@ public class ValueModelKnownDefectsTests
     ///   parity harness gated a replacement rather than a behaviour change, and fixed afterwards.
     ///   These assert the fix, and that the fix changed nothing a caller can see.
     /// </summary>
-    [Fact]
+    [Test]
     public void ADocumentObjectPropertyDescriptorAnswersForTheObjectItHolds()
     {
         // A user-defined style, not Styles[0] - the built-in styles are read-only and now throw
@@ -112,7 +112,7 @@ public class ValueModelKnownDefectsTests
         font.IsNull(style).Should().Be(style.Font.IsNull(), "the descriptor must agree with the object");
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyDocumentObjectPropertyStillReportsNull()
     {
         var document = new Document();
@@ -130,7 +130,7 @@ public class ValueModelKnownDefectsTests
     ///   field masking the wrong answer. Both routes answered correctly before the fix and must
     ///   still answer the same afterwards.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheRoutesCallersTakeAreUnchanged()
     {
         var document = new Document();

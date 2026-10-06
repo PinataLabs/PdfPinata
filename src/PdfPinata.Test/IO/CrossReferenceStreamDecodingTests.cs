@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -21,7 +21,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 /// <remarks>
 ///   Reading input the parser does not expect can hang rather than fail, so every test here runs
-///   inside a <see cref="Task"/> xUnit can time out.
+///   inside a <see cref="Task"/> a timeout can abandon.
 /// </remarks>
 public class CrossReferenceStreamDecodingTests
 {
@@ -40,11 +40,11 @@ public class CrossReferenceStreamDecodingTests
 
     // ----- The /W arithmetic --------------------------------------------------------------------------
 
-    [Theory(Timeout = 5000)]
-    [InlineData(1, 2, 1, 2u, 300u, 5u)]        // the widths of the reference's own example
-    [InlineData(1, 4, 2, 2u, 70000u, 1000u)]   // a field wide enough for a file over 64 kiB
-    [InlineData(1, 1, 1, 2u, 255u, 255u)]      // the widest each single byte can say
-    [InlineData(2, 2, 2, 0u, 0u, 0u)]          // a free entry, every field zero
+    [Test, Timeout(5000)]
+    [Arguments(1, 2, 1, 2u, 300u, 5u)]        // the widths of the reference's own example
+    [Arguments(1, 4, 2, 2u, 70000u, 1000u)]   // a field wide enough for a file over 64 kiB
+    [Arguments(1, 1, 1, 2u, 255u, 255u)]      // the widest each single byte can say
+    [Arguments(2, 2, 2, 0u, 0u, 0u)]          // a free entry, every field zero
     public async Task AnEntryIsReadAsThreeBigEndianNumbersOfTheWidthsTheStreamGives(
         int type, int field2, int field3, uint expectedType, uint expectedField2, uint expectedField3)
     {
@@ -58,7 +58,7 @@ public class CrossReferenceStreamDecodingTests
 
     // ----- Which entries the stream holds ---------------------------------------------------------------
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task WithoutAnIndexTheSizeSaysHowManyEntriesThereAre()
     {
         var w = new[] { 1, 2, 1 };
@@ -69,7 +69,7 @@ public class CrossReferenceStreamDecodingTests
         entries.Select(entry => entry.Field2).Should().Equal(11u, 22u, 33u);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task TheEntriesOfEverySubsectionAreReadInTheOrderTheIndexGivesThem()
     {
         var w = new[] { 1, 2, 1 };
@@ -83,7 +83,7 @@ public class CrossReferenceStreamDecodingTests
 
     // ----- What reaches the cross-reference table ---------------------------------------------------------
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AnEntryForAnObjectInTheFileAddsItAtThePositionTheEntryGives()
     {
         var w = new[] { 1, 2, 1 };
@@ -94,7 +94,7 @@ public class CrossReferenceStreamDecodingTests
             .Be(0, "the entry says the object is written at the start of the file");
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AnObjectAlreadyInTheTableKeepsTheEntryItAlreadyHas()
     {
         // An object may be described by more than one section, and the first one read wins.
@@ -110,7 +110,7 @@ public class CrossReferenceStreamDecodingTests
         ParserProbe.ReferenceTo(table, PlaceholderId).Position.Should().Be(4711);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AFreeEntryPutsNothingInTheTable()
     {
         var w = new[] { 1, 2, 1 };
@@ -122,7 +122,7 @@ public class CrossReferenceStreamDecodingTests
             .And.Contain(StreamId);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task ACompressedEntryClaimsItsNumberWithoutAPosition()
     {
         // A type 2 entry's object is inside an object stream and is read through that stream, not
@@ -136,7 +136,7 @@ public class CrossReferenceStreamDecodingTests
             .Be(-1, "the object is somewhere inside object 9, which no offset in the file describes");
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AnEntryForTheStreamsNumberThatPointsElsewhereIsNotTheStream()
     {
         // A later revision gave the stream's number to an object of its own, as the file attached
@@ -156,7 +156,7 @@ public class CrossReferenceStreamDecodingTests
         entry.Value.Should().BeNull("the object at 4711 is still to be read, and is not this stream");
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AnEntryForTheStreamsNumberThatPointsAtItIsTheStream()
     {
         // A newer cross-reference stream may list this one among its objects, at its own offset.
@@ -172,7 +172,7 @@ public class CrossReferenceStreamDecodingTests
         ParserProbe.ReferenceTo(table, StreamId).Value.Should().BeSameAs(stream);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task TheStreamItselfIsEnteredInTheTableAsItsOwnValue()
     {
         // PdfReader resolves compressed objects by finding the cross-reference stream in the
@@ -190,9 +190,9 @@ public class CrossReferenceStreamDecodingTests
 
     // ----- Offsets past 2 GiB ----------------------------------------------------------------------------------
 
-    [Theory(Timeout = 5000)]
-    [InlineData(4, 0x8000_0010L)]      // past what an int holds, inside what four bytes do
-    [InlineData(5, 0x1_0000_0010L)]    // past what four bytes hold: a field of five
+    [Test, Timeout(5000)]
+    [Arguments(4, 0x8000_0010L)]      // past what an int holds, inside what four bytes do
+    [Arguments(5, 0x1_0000_0010L)]    // past what four bytes hold: a field of five
     public async Task AnOffsetPastWhatAnIntHoldsIsReadWhole(int width, long offset)
     {
         // Implementation note 21 in Appendix H: a file past 2 GiB has offsets an int cannot hold,

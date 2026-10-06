@@ -7,7 +7,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -23,7 +23,7 @@ public class ImageSourceRectangleTests
 {
     private static XImage AnImage() => XImage.FromFile(PathHelper.GetInstance().GetAssetPath("frog-and-toad.jpg"));
 
-    [Fact]
+    [Test]
     public void TheRightHalfOfAnImageFillsTheDestination()
     {
         var image = AnImage();
@@ -40,7 +40,7 @@ public class ImageSourceRectangleTests
         ShouldBe(ClipBefore(placed), page, dest);
     }
 
-    [Fact]
+    [Test]
     public void TheSourceRectangleIsMeasuredInTheUnitItIsGiven()
     {
         var image = AnImage();
@@ -55,7 +55,7 @@ public class ImageSourceRectangleTests
         ShouldBe(drawn, page, new XRect(100, 100, 100, 100));
     }
 
-    [Fact]
+    [Test]
     public void AskedForTheWholeImageItDrawsExactlyWhatThePlainOverloadDoes()
     {
         var image = AnImage();
@@ -69,7 +69,7 @@ public class ImageSourceRectangleTests
             .Be(Encoding.ASCII.GetString(PageContent.Of(plain)), "no clip is needed to draw all of it");
     }
 
-    [Fact]
+    [Test]
     public void PartOfAFormIsDrawnTheSameWay()
     {
         var page = DrawnText.PageShowing(gfx =>
@@ -88,7 +88,7 @@ public class ImageSourceRectangleTests
         ShouldBe(ClipBefore(placed), page, new XRect(200, 200, 100, 100));
     }
 
-    [Fact]
+    [Test]
     public void NothingIsDrawnForAnEmptySourceRectangle()
     {
         var image = AnImage();
@@ -99,7 +99,7 @@ public class ImageSourceRectangleTests
         PlacedOperators.Of(page).Should().NotContain(op => op.Name == OpCodeName.Do);
     }
 
-    [Fact]
+    [Test]
     public void AnImageThatCannotBeDrawnLeavesNoClipBehindIt()
     {
         var image = AnImage();

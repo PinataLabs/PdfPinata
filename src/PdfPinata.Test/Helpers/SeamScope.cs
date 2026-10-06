@@ -22,7 +22,7 @@ namespace PdfPinata.Test.Helpers;
 /// </para>
 /// <para>
 /// Restoring does not keep two tests installing at once out of each other's way; that is what
-/// <see cref="TextShapingCollection"/> is for.
+/// <see cref="TextShaperSensitiveAttribute"/> is for.
 /// </para>
 /// </remarks>
 internal sealed class SeamScope : IDisposable

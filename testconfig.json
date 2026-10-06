@@ -1,0 +1,29 @@
+{
+  // Read by every test project: Directory.Build.props copies it next to each test assembly, which is
+  // where Microsoft.Testing.Platform looks. Only the "--coverlet" switch turns coverage on; this
+  // says what is measured once it is.
+  "platformOptions": {
+    "Coverlet": {
+      // OpenCover carries the cyclomatic complexity that CRAP scores need, and is what SonarCloud
+      // and Codecov read; Cobertura is what ReportGenerator reads locally.
+      "format": "cobertura,opencover",
+
+      // Test, benchmark and demonstration assemblies are not the code under measure. A
+      // configuration file is authoritative, so coverlet's own default exclusions do not apply and
+      // everything it would have left out has to be said here.
+      "exclude": "[*.Tests]*,[*.Test]*,[*.Benchmarks]*,[PinataLayout.AotSmokeTest]*,[SampleApp]*",
+      "excludeByAttribute": "Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute,ExcludeFromCodeCoverageAttribute",
+
+      // The DOM's property machinery is source-generated; measuring it measures the generator.
+      "excludeByFile": "**/obj/**/*,**/*.g.cs,**/*.designer.cs",
+
+      "includeTestAssembly": false,
+      "singleHit": false,
+      // Off deliberately. With SourceLink on, ReportGenerator resolves every file through
+      // raw.githubusercontent.com - minutes of fetching, 404s for the generated .g.cs the DOM builds
+      // locally, and file paths in the report that no editor can open.
+      "useSourceLink": false,
+      "skipAutoProps": true
+    }
+  }
+}

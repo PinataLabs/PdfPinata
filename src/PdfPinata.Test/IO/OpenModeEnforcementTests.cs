@@ -6,7 +6,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -118,21 +118,21 @@ public class OpenModeEnforcementTests
         PdfDocumentOpenMode.Import
     ];
 
-    public static TheoryData<PdfDocumentOpenMode, string> RefusedCells() => Cells(NotModifiable);
+    public static IEnumerable<(PdfDocumentOpenMode, string)> RefusedCells() => Cells(NotModifiable);
 
-    public static TheoryData<PdfDocumentOpenMode, string> AllowedCells() => Cells(Modifiable);
+    public static IEnumerable<(PdfDocumentOpenMode, string)> AllowedCells() => Cells(Modifiable);
 
-    private static TheoryData<PdfDocumentOpenMode, string> Cells(PdfDocumentOpenMode[] modes)
+    private static IEnumerable<(PdfDocumentOpenMode, string)> Cells(PdfDocumentOpenMode[] modes)
     {
-        var cells = new TheoryData<PdfDocumentOpenMode, string>();
+        var cells = new List<(PdfDocumentOpenMode, string)>();
         foreach (var mode in modes)
             foreach (var call in Mutations.Keys)
-                cells.Add(mode, call);
+                cells.Add((mode, call));
         return cells;
     }
 
-    [Theory]
-    [MemberData(nameof(RefusedCells))]
+    [Test]
+    [MethodDataSource(nameof(RefusedCells))]
     public void AModeThatCannotModifyRefusesEveryOperationThatWould(PdfDocumentOpenMode mode, string call)
     {
         var mutation = Mutations[call];
@@ -145,8 +145,8 @@ public class OpenModeEnforcementTests
             .And.Message.Should().Contain(mutation.Operation);
     }
 
-    [Theory]
-    [MemberData(nameof(AllowedCells))]
+    [Test]
+    [MethodDataSource(nameof(AllowedCells))]
     public void AModeThatCanModifyAllowsEveryOneOfThem(PdfDocumentOpenMode mode, string call)
     {
         var mutation = Mutations[call];
@@ -161,7 +161,7 @@ public class OpenModeEnforcementTests
     ///   The refusal says which mode was used and which are needed, because the mistake is nearly
     ///   always at the call to Open rather than at the operation that reports it.
     /// </summary>
-    [Fact]
+    [Test]
     public void ARefusalNamesTheModeUsedAndTheModesNeeded()
     {
         var document = OpenedWith(PdfDocumentOpenMode.ReadOnly);
@@ -178,11 +178,11 @@ public class OpenModeEnforcementTests
     ///   the document was constructed on an output stream, which a document read by PdfReader never
     ///   is, so there is nothing here for a read-only document to be refused.
     /// </summary>
-    [Theory]
-    [InlineData(PdfDocumentOpenMode.Modify)]
-    [InlineData(PdfDocumentOpenMode.Append)]
-    [InlineData(PdfDocumentOpenMode.ReadOnly)]
-    [InlineData(PdfDocumentOpenMode.Import)]
+    [Test]
+    [Arguments(PdfDocumentOpenMode.Modify)]
+    [Arguments(PdfDocumentOpenMode.Append)]
+    [Arguments(PdfDocumentOpenMode.ReadOnly)]
+    [Arguments(PdfDocumentOpenMode.Import)]
     public void CloseIsAllowedInEveryMode(PdfDocumentOpenMode mode)
     {
         var document = OpenedWith(mode);
@@ -196,10 +196,10 @@ public class OpenModeEnforcementTests
     ///   Incremental save asks a narrower question than the rest: Modify can change a document and
     ///   still cannot be appended to, because opening that way renumbers every object.
     /// </summary>
-    [Theory]
-    [InlineData(PdfDocumentOpenMode.Modify)]
-    [InlineData(PdfDocumentOpenMode.ReadOnly)]
-    [InlineData(PdfDocumentOpenMode.Import)]
+    [Test]
+    [Arguments(PdfDocumentOpenMode.Modify)]
+    [Arguments(PdfDocumentOpenMode.ReadOnly)]
+    [Arguments(PdfDocumentOpenMode.Import)]
     public void OnlyAppendCanBeSavedIncrementally(PdfDocumentOpenMode mode)
     {
         var document = OpenedWith(mode);
@@ -211,7 +211,7 @@ public class OpenModeEnforcementTests
             .And.Message.Should().Contain("PdfDocumentOpenMode.Append");
     }
 
-    [Fact]
+    [Test]
     public void AppendCanBeSavedIncrementally()
     {
         var document = OpenedWith(PdfDocumentOpenMode.Append);
@@ -226,7 +226,7 @@ public class OpenModeEnforcementTests
     ///   A document built in memory was never opened at all, so a message naming the mode it was
     ///   opened with would name the enum's default and be a lie.
     /// </summary>
-    [Fact]
+    [Test]
     public void ADocumentThatWasCreatedRatherThanOpenedIsToldSo()
     {
         var document = new PdfDocument();
@@ -240,9 +240,9 @@ public class OpenModeEnforcementTests
     /// <summary>
     ///   Reading is what the read-only modes are for, and none of it is affected.
     /// </summary>
-    [Theory]
-    [InlineData(PdfDocumentOpenMode.ReadOnly)]
-    [InlineData(PdfDocumentOpenMode.Import)]
+    [Test]
+    [Arguments(PdfDocumentOpenMode.ReadOnly)]
+    [Arguments(PdfDocumentOpenMode.Import)]
     public void AModeThatCannotModifyStillReads(PdfDocumentOpenMode mode)
     {
         var document = OpenedWith(mode);
@@ -258,7 +258,7 @@ public class OpenModeEnforcementTests
     ///   Extraction is what Import is for, and it is the one mode that permits it. The page comes
     ///   out; what may not happen is a change to the document it came out of.
     /// </summary>
-    [Fact]
+    [Test]
     public void ImportExtractsPagesIntoADocumentThatMayBeChanged()
     {
         var source = OpenedWith(PdfDocumentOpenMode.Import);
@@ -273,7 +273,7 @@ public class OpenModeEnforcementTests
     ///   The other half of the same rule, and the one that was already enforced: a page can only be
     ///   imported <em>from</em> a document opened with Import.
     /// </summary>
-    [Fact]
+    [Test]
     public void APageCannotBeImportedFromADocumentNotOpenedForImport()
     {
         var source = OpenedWith(PdfDocumentOpenMode.ReadOnly);

@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Security;
 
@@ -26,14 +26,14 @@ public class MD5ManagedTest
     }
 
     // The test suite from RFC 1321, appendix A.5.
-    [Theory]
-    [InlineData("", "d41d8cd98f00b204e9800998ecf8427e")]
-    [InlineData("a", "0cc175b9c0f1b6a831c399e269772661")]
-    [InlineData("abc", "900150983cd24fb0d6963f7d28e17f72")]
-    [InlineData("message digest", "f96b697d7cb7938d525a2f31aaf161d0")]
-    [InlineData("abcdefghijklmnopqrstuvwxyz", "c3fcd3d76192e4007dfb496cca67e13b")]
-    [InlineData("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789", "d174ab98d277d9f5a5611c2c9f419d9f")]
-    [InlineData("123456789012345678901234567890123456789012345678901234567890123456" +
+    [Test]
+    [Arguments("", "d41d8cd98f00b204e9800998ecf8427e")]
+    [Arguments("a", "0cc175b9c0f1b6a831c399e269772661")]
+    [Arguments("abc", "900150983cd24fb0d6963f7d28e17f72")]
+    [Arguments("message digest", "f96b697d7cb7938d525a2f31aaf161d0")]
+    [Arguments("abcdefghijklmnopqrstuvwxyz", "c3fcd3d76192e4007dfb496cca67e13b")]
+    [Arguments("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789", "d174ab98d277d9f5a5611c2c9f419d9f")]
+    [Arguments("123456789012345678901234567890123456789012345678901234567890123456" +
                 "78901234567890", "57edf4a22be3c955ac49da2e2107b67a")]
     public void ComputesTheDigestsOfRfc1321(string input, string expected)
     {
@@ -44,7 +44,7 @@ public class MD5ManagedTest
         ToHex(hash).Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void ComputesTheSameDigestWhenTheInputArrivesInBlocks()
     {
         // The security handler feeds the hash in pieces, so the block boundaries have to be
@@ -62,7 +62,7 @@ public class MD5ManagedTest
         ToHex(md5.Hash).Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void CanBeReusedAfterInitialize()
     {
         using var md5 = CreateMD5Managed();

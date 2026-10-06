@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Outlines;
 
@@ -23,7 +23,7 @@ public class OutlineTextColorTests
         return document;
     }
 
-    [Fact]
+    [Test]
     public void AColouredEntryIsWrittenWithItsColour()
     {
         var document = OnePage();
@@ -35,7 +35,7 @@ public class OutlineTextColorTests
         reopened.Outlines[0].TextColor.R.Should().Be(255);
     }
 
-    [Fact]
+    [Test]
     public void AColourSetOnAnEntryOfADocumentReadFromAFileIsWritten()
     {
         var document = OnePage(version: 17);
@@ -49,7 +49,7 @@ public class OutlineTextColorTests
         twice.Outlines[0].TextColor.B.Should().Be(255);
     }
 
-    [Fact]
+    [Test]
     public void AColourSurvivesAReadAndAnotherSave()
     {
         var document = OnePage();
@@ -62,9 +62,9 @@ public class OutlineTextColorTests
         twice.Outlines[0].TextColor.R.Should().Be(255);
     }
 
-    [Theory]
-    [InlineData(127, 64, 1)]
-    [InlineData(254, 128, 3)]
+    [Test]
+    [Arguments(127, 64, 1)]
+    [Arguments(254, 128, 3)]
     public void EveryComponentComesBackAsTheLevelItWasWrittenAs(int red, int green, int blue)
     {
         // A component goes out as a fraction of 255 at limited precision - 127 as 0.4980392 - and
@@ -80,7 +80,7 @@ public class OutlineTextColorTests
             ((int)read.R, (int)read.G, (int)read.B).Should().Be((red, green, blue));
     }
 
-    [Fact]
+    [Test]
     public void AComponentOutsideTheUnitRangeIsClampedRatherThanRefused()
     {
         // Another writer's file, which this library would never write: the components are edited in
@@ -100,7 +100,7 @@ public class OutlineTextColorTests
         ((int)read.R, (int)read.G, (int)read.B).Should().Be((255, 0, 127));
     }
 
-    [Fact]
+    [Test]
     public void AColouredEntryInADocumentOlderThanPdf14IsWrittenWithoutAColour()
     {
         var document = OnePage(version: 13);

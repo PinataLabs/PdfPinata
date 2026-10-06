@@ -5,7 +5,7 @@ using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Internal;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -52,39 +52,39 @@ public class DocEncodingTests
         return map;
     }
 
-    [Fact]
+    [Test]
     public void EveryDefinedCodeDecodesToTheCharacterAnnexDGivesIt()
     {
         foreach (var (code, expected) in Defined())
             DocEncoding.GetString(new[] { code }).Should().Be(expected.ToString(), $"0x{code:X2} is {expected}");
     }
 
-    [Theory]
-    [InlineData(0x18, '˘')] // breve
-    [InlineData(0x19, 'ˇ')] // caron
-    [InlineData(0x1A, 'ˆ')] // circumflex
-    [InlineData(0x1F, '˜')] // tilde
+    [Test]
+    [Arguments(0x18, '˘')] // breve
+    [Arguments(0x19, 'ˇ')] // caron
+    [Arguments(0x1A, 'ˆ')] // circumflex
+    [Arguments(0x1F, '˜')] // tilde
     public void TheCodesBelowTheSpaceThatAreAccentsDecodeAsAccents(byte code, char expected)
     {
         DocEncoding.GetString(new[] { code }).Should().Be(expected.ToString());
     }
 
-    [Theory]
-    [InlineData(0x7F)]
-    [InlineData(0x9F)]
-    [InlineData(0xAD)]
+    [Test]
+    [Arguments(0x7F)]
+    [Arguments(0x9F)]
+    [Arguments(0xAD)]
     public void AnUndefinedCodeDecodesAsTheReplacementCharacter(byte code)
     {
         DocEncoding.GetString(new[] { code }).Should().Be("�");
     }
 
-    [Fact]
+    [Test]
     public void ACodeBelowTheAccentsDecodesAsTheControlCharacterItIsInLatin1()
     {
         DocEncoding.GetString(new byte[] { 0x09, 0x0A, 0x0D }).Should().Be("\t\n\r");
     }
 
-    [Fact]
+    [Test]
     public void DecodingCountsOneCharacterPerByte()
     {
         var bytes = new byte[] { 0x41, 0x80, 0xA0, 0x18 };
@@ -94,7 +94,7 @@ public class DocEncodingTests
         DocEncoding.GetString(bytes).Should().Be("A•€˘");
     }
 
-    [Fact]
+    [Test]
     public void EveryCharacterWinAnsiAndPdfDocEncodingShareComesBackAsItWent()
     {
         // The encoder goes through WinAnsi, so a character WinAnsi cannot hold is written as the
@@ -111,31 +111,31 @@ public class DocEncodingTests
         }
     }
 
-    [Theory]
-    [InlineData('ƒ', 0x86)]
-    [InlineData('‰', 0x8B)]
-    [InlineData('š', 0x9D)]
+    [Test]
+    [Arguments('ƒ', 0x86)]
+    [Arguments('‰', 0x8B)]
+    [Arguments('š', 0x9D)]
     public void ACharacterTheEncoderUsedToMisplaceIsWrittenAsItsOwnCode(char ch, byte code)
     {
         DocEncoding.GetBytes(ch.ToString()).Should().Equal(code);
     }
 
-    [Theory]
-    [InlineData('\u007F')] // DEL: 0x7F is undefined
-    [InlineData('\u00AD')] // soft hyphen: 0xAD is undefined
-    [InlineData('\u0018')] // the controls whose codes are the accents
-    [InlineData('\u001F')]
-    [InlineData('\u0081')] // the five C1 controls WinAnsi passes through, whose codes are
-    [InlineData('\u008D')] // printable characters in PDFDocEncoding
-    [InlineData('\u008F')]
-    [InlineData('\u0090')]
-    [InlineData('\u009D')]
+    [Test]
+    [Arguments('\u007F')] // DEL: 0x7F is undefined
+    [Arguments('\u00AD')] // soft hyphen: 0xAD is undefined
+    [Arguments('\u0018')] // the controls whose codes are the accents
+    [Arguments('\u001F')]
+    [Arguments('\u0081')] // the five C1 controls WinAnsi passes through, whose codes are
+    [Arguments('\u008D')] // printable characters in PDFDocEncoding
+    [Arguments('\u008F')]
+    [Arguments('\u0090')]
+    [Arguments('\u009D')]
     public void ACharacterPdfDocEncodingCannotHoldIsWrittenAsTheCurrencySign(char ch)
     {
         DocEncoding.GetBytes(ch.ToString()).Should().Equal(0xA4);
     }
 
-    [Fact]
+    [Test]
     public void NoCharacterComesBackAsADifferentCharacter()
     {
         // Whatever the encoder takes comes back either as itself or as the currency sign it
@@ -150,7 +150,7 @@ public class DocEncodingTests
         }
     }
 
-    [Fact]
+    [Test]
     public void RepresentativeTextComesBackAsItWent()
     {
         const string text = "Œuvres – “complètes” … ƒ(x) ‰ Šibenik ž ™ € ˆ˜";
@@ -158,7 +158,7 @@ public class DocEncodingTests
         DocEncoding.GetString(DocEncoding.GetBytes(text)).Should().Be(text);
     }
 
-    [Fact]
+    [Test]
     public void AStringMadeAsPdfDocEncodingIsWrittenInIt()
     {
         // PdfString.ToString is the one place a string's own value goes through the encoder.

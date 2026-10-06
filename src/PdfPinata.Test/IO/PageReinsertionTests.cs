@@ -6,7 +6,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -23,10 +23,10 @@ namespace PdfPinata.Test.IO;
 /// </remarks>
 public class PageReinsertionTests
 {
-    [Theory]
-    [InlineData(1, "p1,p2,p3")]
-    [InlineData(0, "p2,p1,p3")]
-    [InlineData(2, "p1,p3,p2")]
+    [Test]
+    [Arguments(1, "p1,p2,p3")]
+    [Arguments(0, "p2,p1,p3")]
+    [Arguments(2, "p1,p3,p2")]
     public void APageRemovedAndInsertedAgainIsWrittenWhereItWasPut(int index, string expected)
     {
         var document = ADocumentOf(3);
@@ -39,7 +39,7 @@ public class PageReinsertionTests
         Describe(document.Reopened()).Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void APageRemovedAcrossASaveAndInsertedAgainKeepsItsContent()
     {
         var document = ADocumentOf(3);
@@ -56,7 +56,7 @@ public class PageReinsertionTests
         ContentOf(reopened.Pages[1]).Should().Contain("0 0 1 rg");
     }
 
-    [Fact]
+    [Test]
     public void APageOfADocumentReadFromAFileCanBeRemovedAcrossASaveAndPutBack()
     {
         var document = ADocumentOf(3).Reopened();
@@ -69,7 +69,7 @@ public class PageReinsertionTests
         Describe(document.Reopened()).Should().Be("p2,p3,p1");
     }
 
-    [Fact]
+    [Test]
     public void ObjectsMadeAfterAPageIsPutBackAreNumberedPastIt()
     {
         // The last page's objects have the highest numbers. Removed and saved, the document is

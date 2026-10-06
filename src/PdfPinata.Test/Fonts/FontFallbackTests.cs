@@ -7,7 +7,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Fonts;
 using PdfPinata.HarfBuzz;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -30,7 +30,7 @@ namespace PdfPinata.Test.Fonts;
 ///     suite happened to be drawing beside it.
 ///   </para>
 /// </remarks>
-[Collection(TextShapingCollection.Name)]
+[TextShaperSensitive]
 public class FontFallbackTests
 {
     // Served by PinnedFontResolver itself rather than registered here. It used to be registered on
@@ -91,7 +91,7 @@ public class FontFallbackTests
 
     // ----- the seam ---------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void NothingIsFallenBackToUntilSomethingIsRegistered()
     {
         // Like the shaper and unlike the other three seams, reading this one unset is not an error:
@@ -99,7 +99,7 @@ public class FontFallbackTests
         GlobalFontSettings.FontFallback.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void AFallbackCanBeTakenAwayAgain()
     {
         var fallback = new FontFallbackList("Whatever");
@@ -114,7 +114,7 @@ public class FontFallbackTests
         }
     }
 
-    [Fact]
+    [Test]
     public void AListWithNoNameInItIsRefused()
     {
         Action naming = () => _ = new FontFallbackList("Noto Sans Arabic", "  ");
@@ -122,7 +122,7 @@ public class FontFallbackTests
         naming.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void IsFontFallbackSetAnswersWhetherAnythingWouldBeTried()
     {
         GlobalFontSettings.IsFontFallbackSet.Should().BeFalse(
@@ -139,7 +139,7 @@ public class FontFallbackTests
         }
     }
 
-    [Fact]
+    [Test]
     public void FontFallbackLifecycleSaysItMayBeSetAtAnyTime()
     {
         GlobalFontSettings.FontFallbackLifecycle.Should().Be(SeamLifecycle.SetAnytime,
@@ -149,7 +149,7 @@ public class FontFallbackTests
 
     // ----- the defect it exists for -------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void WithoutAFallbackACharacterTheFaceLacksIsDrawnAsNothing()
     {
         // The starting position, pinned so that the test below is measured against it: four
@@ -159,7 +159,7 @@ public class FontFallbackTests
             .And.HaveCount(4);
     }
 
-    [Fact]
+    [Test]
     public void WithAFallbackItIsDrawnByTheFaceThatHasIt()
     {
         var arabic = ArabicFont();
@@ -171,7 +171,7 @@ public class FontFallbackTests
             "the same glyphs the Arabic face draws when it is the face that was asked for");
     }
 
-    [Fact]
+    [Test]
     public void OnlyThePartTheFaceCannotDrawChangesFace()
     {
         var latin = Latin();
@@ -185,7 +185,7 @@ public class FontFallbackTests
             .And.EndWith(arabic);
     }
 
-    [Fact]
+    [Test]
     public void BothFacesAreEmbeddedAndBothAreSelected()
     {
         using var _ = SeamScope.FontFallback(new Only(Arabic, ArabicFamily));
@@ -199,7 +199,7 @@ public class FontFallbackTests
         selections.Select(match => match.Value).Distinct().Should().HaveCount(2);
     }
 
-    [Fact]
+    [Test]
     public void TheFaceTheCallerAskedForIsSelectedAgainAtTheEnd()
     {
         using var _ = SeamScope.FontFallback(new Only(Arabic, ArabicFamily));
@@ -216,7 +216,7 @@ public class FontFallbackTests
 
     // ----- measuring agrees with drawing ----------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TextIsMeasuredAgainstTheFaceThatWillDrawIt()
     {
         var arabic = ArabicFont();
@@ -248,7 +248,7 @@ public class FontFallbackTests
         public void Dispose() => _shaper.Dispose();
     }
 
-    [Fact]
+    [Test]
     public void TheShaperIsHandedTheFallbackFaceAndNotTheOneThatCouldNotDrawIt()
     {
         // The whole chain at once: Liberation Sans cannot draw this, the Arabic face is found for
@@ -271,7 +271,7 @@ public class FontFallbackTests
 
     // ----- what it declines to do -----------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AFamilyWithoutTheCharacterInItIsPassedOver()
     {
         var expected = DrawnText.Glyphs(DrawnText.Page(Arabic, ArabicFont()));
@@ -289,7 +289,7 @@ public class FontFallbackTests
             + "walked until one does");
     }
 
-    [Fact]
+    [Test]
     public void ACharacterNothingCanDrawIsLeftWhereItWas()
     {
         // Nothing offered covers it, so there is nothing to be gained by cutting the run there -
@@ -299,7 +299,7 @@ public class FontFallbackTests
         DrawnText.GlyphRuns(DrawnText.Page(Arabic, Latin())).Should().HaveCount(1);
     }
 
-    [Fact]
+    [Test]
     public void SpacesDoNotCutTheRunTheySitIn()
     {
 
@@ -312,7 +312,7 @@ public class FontFallbackTests
             .Should().HaveCount(1, "one face, one direction, one script, one run");
     }
 
-    [Fact]
+    [Test]
     public void AJoiningControlDoesNotCutTheRunEither()
     {
 
@@ -326,7 +326,7 @@ public class FontFallbackTests
             .Should().HaveCount(1);
     }
 
-    [Fact]
+    [Test]
     public void ASurrogatePairIsNotSplitBetweenTwoFaces()
     {
 
@@ -352,7 +352,7 @@ public class FontFallbackTests
             "the Arabic either side is untouched");
     }
 
-    [Fact]
+    [Test]
     public void AFallbackWithNothingToSayAboutTheTextChangesNothingAboutIt()
     {
         // The guarantee that makes this safe to leave switched on: a page that needed no fallback

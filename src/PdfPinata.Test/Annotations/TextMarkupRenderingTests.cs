@@ -7,7 +7,7 @@ using PdfPinata.Fonts;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Annotations;
@@ -18,7 +18,7 @@ namespace PdfPinata.Test.Annotations;
 ///   question, and the one issue #342 was really asking. A /Highlight carrying a rectangle and
 ///   no quadrilaterals rasterizes to no coloured pixels at all, which is what these count.
 /// </summary>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public sealed class TextMarkupRenderingTests : IDisposable
 {
     private const string OutDir = "Out/TextMarkupAnnotations";
@@ -31,7 +31,7 @@ public sealed class TextMarkupRenderingTests : IDisposable
     ///   are made. They cannot be left to the collector either: the bitmap behind one is
     ///   unmanaged and the collector cannot see how big it is, so a run of these tests exhausts
     ///   the process rather than provoking a collection - and the test host is killed with no
-    ///   test having failed. xUnit builds a new instance of this class per test, so disposing
+    ///   test having failed. TUnit builds a new instance of this class per test, so disposing
     ///   here frees them between tests.
     /// </remarks>
     private readonly Rasterizations _rasterized = new(OutDir);
@@ -44,7 +44,7 @@ public sealed class TextMarkupRenderingTests : IDisposable
     private static readonly XRect Line = new(30, 30, 70, 16);
     private const double Baseline = 42;
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AHighlightWashesTheLineItCovers()
     {
         var page = Rasterize(new PdfHighlightAnnotation(), "highlight");
@@ -57,7 +57,7 @@ public sealed class TextMarkupRenderingTests : IDisposable
     ///   A plain fill of the same rectangle would bury the glyphs, and the count of dark pixels
     ///   is what tells the two apart.
     /// </summary>
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AHighlightDoesNotPaintOverTheTextItCovers()
     {
         var highlighted = Rasterize(new PdfHighlightAnnotation(), "highlight_legible");
@@ -66,7 +66,7 @@ public sealed class TextMarkupRenderingTests : IDisposable
         Count(highlighted, IsDark).Should().BeCloseTo(Count(plain, IsDark), 60);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AnUnderlineRulesALineUnderTheText()
     {
         var underlined = Rasterize(new PdfUnderlineAnnotation(), "underline");
@@ -75,7 +75,7 @@ public sealed class TextMarkupRenderingTests : IDisposable
         Count(underlined, IsDark).Should().BeGreaterThan(Count(plain, IsDark) + 100);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AStrikeOutRulesALineThroughTheText()
     {
         var page = Rasterize(new PdfStrikeOutAnnotation(), "strikeout");
@@ -83,7 +83,7 @@ public sealed class TextMarkupRenderingTests : IDisposable
         Count(page, IsRed).Should().BeGreaterThan(100);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void ASquigglyRulesAWavyLineUnderTheText()
     {
         var page = Rasterize(new PdfSquigglyAnnotation(), "squiggly");
@@ -95,7 +95,7 @@ public sealed class TextMarkupRenderingTests : IDisposable
     ///   A run of text that wraps is marked up as one annotation over several quadrilaterals,
     ///   and every one of them has to be drawn.
     /// </summary>
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void EveryQuadOfAnAnnotationIsDrawn()
     {
         var one = Rasterize(new PdfHighlightAnnotation(), "one_quad",
@@ -117,7 +117,7 @@ public sealed class TextMarkupRenderingTests : IDisposable
     ///   The annotation of issue #342 itself: a rectangle, a colour, and no quadrilaterals.
     ///   Before this was implemented the same dictionary rasterized to nothing whatsoever.
     /// </summary>
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AnAnnotationGivenOnlyARectangleIsDrawn()
     {
         var rendered = Rasterize(new PdfHighlightAnnotation(), "rectangle_only",
@@ -126,7 +126,7 @@ public sealed class TextMarkupRenderingTests : IDisposable
         Count(rendered, IsYellow).Should().BeGreaterThan(1000);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void OpacityThinsTheWash()
     {
         var solid = Rasterize(new PdfHighlightAnnotation(), "opaque", (markup, page) =>

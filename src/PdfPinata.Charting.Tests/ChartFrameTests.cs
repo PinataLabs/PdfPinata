@@ -7,7 +7,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -22,15 +22,15 @@ namespace PdfPinata.Charting.Tests;
 /// </remarks>
 public class ChartFrameTests
 {
-    [Theory]
-    [InlineData(ChartType.Line)]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.ColumnStacked2D)]
-    [InlineData(ChartType.Bar2D)]
-    [InlineData(ChartType.BarStacked2D)]
-    [InlineData(ChartType.Area2D)]
-    [InlineData(ChartType.Pie2D)]
-    [InlineData(ChartType.PieExploded2D)]
+    [Test]
+    [Arguments(ChartType.Line)]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.ColumnStacked2D)]
+    [Arguments(ChartType.Bar2D)]
+    [Arguments(ChartType.BarStacked2D)]
+    [Arguments(ChartType.Area2D)]
+    [Arguments(ChartType.Pie2D)]
+    [Arguments(ChartType.PieExploded2D)]
     public void EveryChartTypeDrawsSomething(ChartType type)
     {
         var page = Drawn.Page(Charts.Of(type, 1.0, 5.0, 3.0));
@@ -47,7 +47,7 @@ public class ChartFrameTests
     ///   combination renderer instead - which is chosen from the series rather than from the
     ///   chart, so a chart of type Column2D holding one line series is not a column chart.
     /// </summary>
-    [Fact]
+    [Test]
     public void SeriesDisagreeingAboutTheirTypeAreDrawnTogether()
     {
         var chart = Charts.Empty(ChartType.Column2D);
@@ -70,7 +70,7 @@ public class ChartFrameTests
     ///   border around it first. Nothing else in the package draws a rounded rectangle, so the
     ///   curves are the signature.
     /// </summary>
-    [Fact]
+    [Test]
     public void DrawingTheFrameAddsABorderThatDrawingTheChartAloneDoesNot()
     {
         var chartOnly = Content(frame => frame.DrawChart);
@@ -80,7 +80,7 @@ public class ChartFrameTests
         Curves(chartOnly).Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void AFrameHoldingTwoChartsDrawsThemOneAboveTheOther()
     {
         var document = new PdfDocument();
@@ -118,7 +118,7 @@ public class ChartFrameTests
     ///   The scale is now worked out either way, as the value axis renderer has always worked out
     ///   its own, so what an absent axis costs is the labelling and nothing else.
     /// </remarks>
-    [Fact]
+    [Test]
     public void AChartWithNoXAxisIsStillDrawnAgainstItsData()
     {
         var chart = new Chart(ChartType.Column2D);
@@ -150,7 +150,7 @@ public class ChartFrameTests
     ///   What the absent axis does cost: no categories along the bottom. Everything inside the
     ///   plot area is unaffected, which is the whole of the difference.
     /// </summary>
-    [Fact]
+    [Test]
     public void AChartWithNoXAxisGoesUnlabelled()
     {
         var chart = new Chart(ChartType.Column2D);
@@ -184,15 +184,15 @@ public class ChartFrameTests
     ///   that - the same infinity that made a chart with no X axis draw at NaN. The renderers now
     ///   leave the matrix alone when there is nothing to plot against it.
     /// </remarks>
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.ColumnStacked2D)]
-    [InlineData(ChartType.Bar2D)]
-    [InlineData(ChartType.BarStacked2D)]
-    [InlineData(ChartType.Line)]
-    [InlineData(ChartType.Area2D)]
-    [InlineData(ChartType.Pie2D)]
-    [InlineData(ChartType.PieExploded2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.ColumnStacked2D)]
+    [Arguments(ChartType.Bar2D)]
+    [Arguments(ChartType.BarStacked2D)]
+    [Arguments(ChartType.Line)]
+    [Arguments(ChartType.Area2D)]
+    [Arguments(ChartType.Pie2D)]
+    [Arguments(ChartType.PieExploded2D)]
     public void AChartWithNoSeriesAtAllIsDrawnEmpty(ChartType type)
     {
         var page = Drawn.Page(Charts.Empty(type));
@@ -201,12 +201,12 @@ public class ChartFrameTests
         PaintedRectangles.FilledOn(page).Should().BeEmpty();
     }
 
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Bar2D)]
-    [InlineData(ChartType.Line)]
-    [InlineData(ChartType.Area2D)]
-    [InlineData(ChartType.Pie2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Bar2D)]
+    [Arguments(ChartType.Line)]
+    [Arguments(ChartType.Area2D)]
+    [Arguments(ChartType.Pie2D)]
     public void AChartWhoseSeriesHasNoPointsIsDrawnEmpty(ChartType type)
     {
         var chart = Charts.Empty(type);
@@ -218,7 +218,7 @@ public class ChartFrameTests
         PaintedRectangles.FilledOn(page).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void AChartWithCategoriesButNoSeriesIsDrawnEmpty()
     {
         var chart = Charts.Empty(ChartType.Column2D);
@@ -234,7 +234,7 @@ public class ChartFrameTests
     ///   A line needs two points to be a line, and one series with one point is not enough to
     ///   draw one - which the drawing surface answers by throwing rather than by drawing nothing.
     /// </summary>
-    [Fact]
+    [Test]
     public void ALineChartWithASinglePointDrawsNoLine()
     {
         var page = Drawn.Page(Charts.Of(ChartType.Line, 3.0));

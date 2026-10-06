@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 using AwesomeAssertions;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -23,7 +23,7 @@ public class UnitConversionTests
     private const double MillimetresPerInch = 25.4;
     private const double PicasPerInch = 6;
 
-    [Fact]
+    [Test]
     public void AnInchReadsTheSameLengthInEveryMeasure()
     {
         var inch = Unit.FromInch(1);
@@ -35,7 +35,7 @@ public class UnitConversionTests
         inch.Pica.Should().BeApproximately(PicasPerInch, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void SeventyTwoPointsReadTheSameLengthInEveryMeasure()
     {
         var point = Unit.FromPoint(PointsPerInch);
@@ -47,7 +47,7 @@ public class UnitConversionTests
         point.Pica.Should().BeApproximately(PicasPerInch, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void TwoAndAHalfCentimetresReadTheSameLengthInEveryMeasure()
     {
         var centimetre = Unit.FromCentimeter(CentimetresPerInch);
@@ -59,7 +59,7 @@ public class UnitConversionTests
         centimetre.Pica.Should().BeApproximately(PicasPerInch, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void TwentyFiveMillimetresReadTheSameLengthInEveryMeasure()
     {
         var millimetre = Unit.FromMillimeter(MillimetresPerInch);
@@ -71,7 +71,7 @@ public class UnitConversionTests
         millimetre.Pica.Should().BeApproximately(PicasPerInch, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void SixPicasReadTheSameLengthInEveryMeasure()
     {
         var pica = Unit.FromPica(PicasPerInch);
@@ -83,7 +83,7 @@ public class UnitConversionTests
         pica.Pica.Should().BeApproximately(PicasPerInch, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void AnUninitializedUnitIsNoLengthAtAllInEveryMeasure()
     {
         var empty = Unit.Empty;
@@ -98,12 +98,12 @@ public class UnitConversionTests
 
     // ----- converting the value itself ------------------------------------------------------------
 
-    [Theory]
-    [InlineData(UnitType.Point, PointsPerInch)]
-    [InlineData(UnitType.Centimeter, CentimetresPerInch)]
-    [InlineData(UnitType.Inch, 1)]
-    [InlineData(UnitType.Millimeter, MillimetresPerInch)]
-    [InlineData(UnitType.Pica, PicasPerInch)]
+    [Test]
+    [Arguments(UnitType.Point, PointsPerInch)]
+    [Arguments(UnitType.Centimeter, CentimetresPerInch)]
+    [Arguments(UnitType.Inch, 1)]
+    [Arguments(UnitType.Millimeter, MillimetresPerInch)]
+    [Arguments(UnitType.Pica, PicasPerInch)]
     public void ConvertingAnInchKeepsTheLengthAndChangesTheMeasure(UnitType type, double expected)
     {
         var unit = Unit.FromInch(1);
@@ -115,7 +115,7 @@ public class UnitConversionTests
         unit.Inch.Should().BeApproximately(1, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void ConvertingToTheMeasureItAlreadyHasChangesNothing()
     {
         var unit = Unit.FromCentimeter(3);
@@ -126,7 +126,7 @@ public class UnitConversionTests
         unit.Type.Should().Be(UnitType.Centimeter);
     }
 
-    [Fact]
+    [Test]
     public void ConvertingToAMeasureThatDoesNotExistIsRefused()
     {
         var unit = Unit.FromPoint(1);
@@ -136,7 +136,7 @@ public class UnitConversionTests
         converting.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AUnitCannotBeBuiltWithAMeasureThatDoesNotExist()
     {
         var building = () => new Unit(1, (UnitType)99);
@@ -146,18 +146,18 @@ public class UnitConversionTests
 
     // ----- printing --------------------------------------------------------------------------------
 
-    [Theory]
-    [InlineData(UnitType.Point, "3")]
-    [InlineData(UnitType.Centimeter, "3cm")]
-    [InlineData(UnitType.Inch, "3in")]
-    [InlineData(UnitType.Millimeter, "3mm")]
-    [InlineData(UnitType.Pica, "3pc")]
+    [Test]
+    [Arguments(UnitType.Point, "3")]
+    [Arguments(UnitType.Centimeter, "3cm")]
+    [Arguments(UnitType.Inch, "3in")]
+    [Arguments(UnitType.Millimeter, "3mm")]
+    [Arguments(UnitType.Pica, "3pc")]
     public void AUnitPrintsItsMeasureAfterItsValueAndPointPrintsNone(UnitType type, string expected)
     {
         new Unit(3, type).ToString().Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void AUnitPrintsThroughAFormatAndAFormatProvider()
     {
         var unit = Unit.FromCentimeter(2.5);
@@ -167,7 +167,7 @@ public class UnitConversionTests
         ((IFormattable)unit).ToString("0.0", CultureInfo.InvariantCulture).Should().Be("2.5cm");
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyUnitPrintsAZeroWhicheverWayItIsAsked()
     {
         var empty = Unit.Empty;

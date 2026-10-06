@@ -2,7 +2,7 @@ using System;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -21,10 +21,10 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class NonFiniteCoordinateTests
 {
-    [Theory]
-    [InlineData(double.NaN)]
-    [InlineData(double.PositiveInfinity)]
-    [InlineData(double.NegativeInfinity)]
+    [Test]
+    [Arguments(double.NaN)]
+    [Arguments(double.PositiveInfinity)]
+    [Arguments(double.NegativeInfinity)]
     public void ALineDrawnToANumberThatIsNotOneIsRefused(double poison)
     {
         var drawing = () => Draw(gfx =>
@@ -34,10 +34,10 @@ public class NonFiniteCoordinateTests
             .WithMessage("*not a finite number*");
     }
 
-    [Theory]
-    [InlineData(double.NaN)]
-    [InlineData(double.PositiveInfinity)]
-    [InlineData(double.NegativeInfinity)]
+    [Test]
+    [Arguments(double.NaN)]
+    [Arguments(double.PositiveInfinity)]
+    [Arguments(double.NegativeInfinity)]
     public void ARectangleOfANonFiniteSizeIsRefused(double poison)
     {
         var drawing = () => Draw(gfx =>
@@ -47,7 +47,7 @@ public class NonFiniteCoordinateTests
             .WithMessage("*not a finite number*");
     }
 
-    [Fact]
+    [Test]
     public void AnEllipseIsRefusedToo()
     {
         // Curves go out through a different formatting method than lines and rectangles do, so
@@ -59,7 +59,7 @@ public class NonFiniteCoordinateTests
             .WithMessage("*not a finite number*");
     }
 
-    [Fact]
+    [Test]
     public void TextDrawnAtANonFinitePositionIsRefused()
     {
         var font = new XFont("Liberation Sans", 12);
@@ -71,7 +71,7 @@ public class NonFiniteCoordinateTests
             .WithMessage("*not a finite number*");
     }
 
-    [Fact]
+    [Test]
     public void ATransformThatDividesByZeroIsCaughtAtTheFirstThingDrawnThroughIt()
     {
         // The chart defect in miniature. Nothing passed to DrawLine is a NaN; the scale is, and
@@ -89,7 +89,7 @@ public class NonFiniteCoordinateTests
             .WithMessage("*not a finite number*");
     }
 
-    [Fact]
+    [Test]
     public void TheMessageQuotesTheOperatorItWouldHaveWritten()
     {
         // "NaN NaN m" names the operator, and where the NaN falls among the operands says which
@@ -105,7 +105,7 @@ public class NonFiniteCoordinateTests
             .WithMessage("*\"NaN *m\"*");
     }
 
-    [Fact]
+    [Test]
     public void ADashPatternThatIsNotNumbersIsRefused()
     {
         // The custom dash pattern is assembled as text a piece at a time rather than formatted in
@@ -118,7 +118,7 @@ public class NonFiniteCoordinateTests
             .WithMessage("*not a finite number*");
     }
 
-    [Fact]
+    [Test]
     public void OrdinaryDrawingIsUnaffected()
     {
         var font = new XFont("Liberation Sans", 12);

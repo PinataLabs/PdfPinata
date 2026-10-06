@@ -5,7 +5,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -64,7 +64,7 @@ public sealed class ImportedPageFormTests : IDisposable
 
     // ----- reading a page out of a file -------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AFormReadsThePageSizeOutOfTheDocumentItPointsAt()
     {
         var path = AFileOf(new XSize(300, 400), new XSize(500, 600));
@@ -82,7 +82,7 @@ public sealed class ImportedPageFormTests : IDisposable
         form.Page.Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void AFormCanBeTurnedToAnyPageOfTheDocumentItPointsAt()
     {
         var path = AFileOf(new XSize(300, 400), new XSize(500, 600));
@@ -102,7 +102,7 @@ public sealed class ImportedPageFormTests : IDisposable
     ///   <c>report.pdf#2</c> is the second page. The same notation the DOM's image helper reads,
     ///   and the two parse it with the same code for the same reason.
     /// </summary>
-    [Fact]
+    [Test]
     public void APageNumberOnTheEndOfThePathIsThePageTheFormOpensAt()
     {
         var path = AFileOf(new XSize(300, 400), new XSize(500, 600));
@@ -113,7 +113,7 @@ public sealed class ImportedPageFormTests : IDisposable
         form.PointWidth.Should().BeApproximately(500, 1e-6);
     }
 
-    [Fact]
+    [Test]
     public void AFormOverAFileThatIsNotThereSaysSoRatherThanDrawingNothing()
     {
         var missing = Path.Combine(_directory, "no-such-file.pdf");
@@ -123,7 +123,7 @@ public sealed class ImportedPageFormTests : IDisposable
         opening.Should().Throw<FileNotFoundException>();
     }
 
-    [Fact]
+    [Test]
     public void AFormOverAFileThatIsNotAPdfSaysSoBeforeItIsDrawn()
     {
         var notAPdf = Path.Combine(_directory, "not-a-pdf.pdf");
@@ -134,7 +134,7 @@ public sealed class ImportedPageFormTests : IDisposable
         opening.Should().Throw<ArgumentException>().WithMessage("*no valid PDF file header*");
     }
 
-    [Fact]
+    [Test]
     public void AFormOverAStreamThatIsNotAPdfSaysSoTheSameWay()
     {
         using var stream = new MemoryStream([1, 2, 3, 4, 5]);
@@ -151,7 +151,7 @@ public sealed class ImportedPageFormTests : IDisposable
     ///   what importing costs and a page drawn on twenty pages would otherwise pay it twenty times.
     ///   The cache is keyed on the full path and lives on the thread.
     /// </summary>
-    [Fact]
+    [Test]
     public void TwoFormsOverOneFileShareTheDocumentBehindThem()
     {
         var path = AFileOf(new XSize(300, 400));
@@ -166,7 +166,7 @@ public sealed class ImportedPageFormTests : IDisposable
     ///   Disposing detaches the document from the cache, and a form made afterwards reads it again
     ///   rather than finding a document nobody is holding any more.
     /// </summary>
-    [Fact]
+    [Test]
     public void AFormReadsTheDocumentAgainAfterTheLastOneOverItWasDisposed()
     {
         var path = AFileOf(new XSize(300, 400));
@@ -183,7 +183,7 @@ public sealed class ImportedPageFormTests : IDisposable
 
     // ----- drawn onto a page ------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void APageDrawnOntoAnotherArrivesAsAFormXObject()
     {
         var path = AFileOf(new XSize(300, 400), new XSize(500, 600));
@@ -212,7 +212,7 @@ public sealed class ImportedPageFormTests : IDisposable
     ///   <see cref="XPdfForm"/> over a file is a page drawn elsewhere. They share a base class and
     ///   almost nothing else, so each refuses what only the other can do.
     /// </summary>
-    [Fact]
+    [Test]
     public void ATemplateIsOnePageAndHasNoDocumentToImportFrom()
     {
         var document = new PdfDocument();
@@ -227,7 +227,7 @@ public sealed class ImportedPageFormTests : IDisposable
         template.BoundingBox.Width.Should().Be(50);
     }
 
-    [Fact]
+    [Test]
     public void ATemplateMustBeGivenADocumentAndASizeToDrawOn()
     {
         var withoutSize = () => new XForm(new PdfDocument(), new XRect(0, 0, 0, 0));
@@ -242,7 +242,7 @@ public sealed class ImportedPageFormTests : IDisposable
     ///   than a second surface over the same content stream. A form holds one set of operators, so
     ///   two writers would interleave into it and the second would not know.
     /// </summary>
-    [Fact]
+    [Test]
     public void ATemplateHasOneGraphicsObjectHoweverOftenItIsAskedForOne()
     {
         var document = new PdfDocument();
@@ -258,7 +258,7 @@ public sealed class ImportedPageFormTests : IDisposable
     ///   asking to draw on one is refused rather than quietly producing a page with the drawing and
     ///   not the import.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnImportedPageCannotBeDrawnOn()
     {
         var path = AFileOf(new XSize(300, 400));
@@ -273,7 +273,7 @@ public sealed class ImportedPageFormTests : IDisposable
     ///   A template that has been drawn is written into the document it belongs to, so changing the
     ///   transform afterwards would move something already on the page.
     /// </summary>
-    [Fact]
+    [Test]
     public void ATemplateRefusesToBeMovedOnceItHasBeenDrawn()
     {
         var document = new PdfDocument();
@@ -292,7 +292,7 @@ public sealed class ImportedPageFormTests : IDisposable
             .WithMessage("*must not be modified*");
     }
 
-    [Fact]
+    [Test]
     public void AFormCanBeGivenAPlaceHolderForSurfacesThatCannotDrawIt()
     {
         var path = AFileOf(new XSize(300, 400));

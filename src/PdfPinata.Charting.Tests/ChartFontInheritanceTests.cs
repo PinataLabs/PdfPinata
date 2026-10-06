@@ -2,7 +2,7 @@ using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Charting.Tests.Helpers;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -32,7 +32,7 @@ public class ChartFontInheritanceTests
         return chart;
     }
 
-    [Fact]
+    [Test]
     public void TheChartsColourColoursEveryPieceOfTextItDraws()
     {
         var chart = ALabelledChart();
@@ -46,7 +46,7 @@ public class ChartFontInheritanceTests
         runs.Single(run => run.Text == "30.0").Colour.Should().Be(Blue, "a tick label");
     }
 
-    [Fact]
+    [Test]
     public void TextOnAChartThatSaysNoColourIsStillBlack()
     {
         var runs = ShownText.RunsOn(Drawn.Page(ALabelledChart()));
@@ -54,7 +54,7 @@ public class ChartFontInheritanceTests
         runs.Should().OnlyContain(run => run.Colour == PaintedRectangles.Grey(0));
     }
 
-    [Fact]
+    [Test]
     public void AColourOfItsOwnWinsOverTheCharts()
     {
         var chart = ALabelledChart();
@@ -67,7 +67,7 @@ public class ChartFontInheritanceTests
         runs.Single(run => run.Text == "Sales").Colour.Should().Be(Blue);
     }
 
-    [Fact]
+    [Test]
     public void ABoldChartMakesItsTitleBold()
     {
         var chart = ALabelledChart();
@@ -78,7 +78,7 @@ public class ChartFontInheritanceTests
         title.Face.Should().Contain("Bold");
     }
 
-    [Fact]
+    [Test]
     public void ATitleSayingNotBoldIsDrawnRegularUnderABoldChart()
     {
         var chart = ALabelledChart();
@@ -92,7 +92,7 @@ public class ChartFontInheritanceTests
         runs.Single(run => run.Text == "Sales").Face.Should().Contain("Bold", "the legend said nothing");
     }
 
-    [Fact]
+    [Test]
     public void ATitleSayingNotItalicIsDrawnUprightUnderAnItalicChart()
     {
         var chart = ALabelledChart();
@@ -105,7 +105,7 @@ public class ChartFontInheritanceTests
         runs.Single(run => run.Text == "Sales").Face.Should().Contain("Italic");
     }
 
-    [Fact]
+    [Test]
     public void ASeriesDataLabelTakesTheChartDataLabelsFontForWhatItDoesNotSet()
     {
         var chart = Charts.Of(ChartType.Column2D, 10, 20, 30);
@@ -119,7 +119,7 @@ public class ChartFontInheritanceTests
         labels.Should().OnlyContain(run => run.Size == 15 && run.Colour == Red);
     }
 
-    [Fact]
+    [Test]
     public void ASeriesDataLabelTakesTheChartDataLabelsPositionWhenItSetsNone()
     {
         // The chart's data label puts them at the foot of each column; the series' says only how
@@ -138,7 +138,7 @@ public class ChartFontInheritanceTests
             labels[idx].Y.Should().BeLessThan(columns[idx].Y + columns[idx].Height / 2, "at the foot of the column");
     }
 
-    [Fact]
+    [Test]
     public void ASeriesDataLabelTakesTheChartDataLabelsTypeWhenItSetsNone()
     {
         // A pie labels its wedges with percentages unless told otherwise.
@@ -149,7 +149,7 @@ public class ChartFontInheritanceTests
         ShownText.On(Drawn.Page(chart)).Should().Contain(["1.00", "3.00"]);
     }
 
-    [Fact]
+    [Test]
     public void TheGettersStillAnswerOnlyWhatWasSetOnTheFontItself()
     {
         var chart = ALabelledChart();

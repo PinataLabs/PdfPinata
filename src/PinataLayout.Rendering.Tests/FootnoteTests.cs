@@ -6,7 +6,7 @@ using PinataLayout.DocumentObjectModel;
 using PinataLayout.Rendering.Tests.Helpers;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -37,7 +37,7 @@ public class FootnoteTests
 
     // ----- the block exists at all -----
 
-    [Fact]
+    [Test]
     public void AFootnoteIsDrawnRatherThanDropped()
     {
         var document = Document(out var section);
@@ -48,7 +48,7 @@ public class FootnoteTests
         Glyphs.On(page).Should().ContainInOrder(Glyphs.For("The support."));
     }
 
-    [Fact]
+    [Test]
     public void TheNoteIsSeparatedFromTheBodyByARule()
     {
         var document = Document(out var section);
@@ -59,7 +59,7 @@ public class FootnoteTests
         Separator(page).Should().NotBeNull("a footnote block is ruled off from the text above it");
     }
 
-    [Fact]
+    [Test]
     public void APageWithNoFootnoteOnItIsRuledOffFromNothing()
     {
         // The guard on the test above: a rule drawn on every page would be worse than none.
@@ -71,7 +71,7 @@ public class FootnoteTests
         Separator(page).Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void TheNoteSitsBelowTheBodyText()
     {
         var document = Document(out var section);
@@ -91,7 +91,7 @@ public class FootnoteTests
 
     // ----- the room set aside for it -----
 
-    [Fact]
+    [Test]
     public void APageCarryingANoteHoldsLessBodyTextThanOneWithout()
     {
         // The whole of the reservation, in one assertion. The two documents are identical except
@@ -105,7 +105,7 @@ public class FootnoteTests
                 "the note has to come out of the page somewhere");
     }
 
-    [Fact]
+    [Test]
     public void TheBodyTextNeverRunsIntoTheNote()
     {
         var document = Filled(note: true);
@@ -120,7 +120,7 @@ public class FootnoteTests
         baselines.Should().NotContain(y => Math.Abs(y - rule.Y1) < 1.0);
     }
 
-    [Fact]
+    [Test]
     public void TheBlockStaysInsideTheBottomMargin()
     {
         // The reservation is only as good as the height it reserves. If the block is taller than
@@ -137,7 +137,7 @@ public class FootnoteTests
             "nothing the page draws belongs below the text area");
     }
 
-    [Fact]
+    [Test]
     public void TwoNotesOnOnePageAreRuledOffOnceBetweenThem()
     {
         var document = Document(out var section);
@@ -155,7 +155,7 @@ public class FootnoteTests
 
     // ----- where the block goes -----
 
-    [Fact]
+    [Test]
     public void BottomOfPagePinsTheBlockToTheFootWhateverThePageHolds()
     {
         var document = Document(out var section);
@@ -173,7 +173,7 @@ public class FootnoteTests
             "the note is pinned to the foot of an almost empty page");
     }
 
-    [Fact]
+    [Test]
     public void BeneathTextPutsTheBlockUnderTheTextRatherThanAtTheFoot()
     {
         var document = Document(out var section);
@@ -189,7 +189,7 @@ public class FootnoteTests
             "the note follows the text it belongs to rather than the page it is on");
     }
 
-    [Fact]
+    [Test]
     public void BeneathTextStillSitsBelowAFullPageOfText()
     {
         // The two locations only differ on a page with room to spare. On a full one, "beneath the
@@ -207,12 +207,12 @@ public class FootnoteTests
 
     // ----- numbering -----
 
-    [Theory]
-    [InlineData(FootnoteNumberStyle.Arabic, "1", "2", "3")]
-    [InlineData(FootnoteNumberStyle.LowercaseLetter, "a", "b", "c")]
-    [InlineData(FootnoteNumberStyle.UppercaseLetter, "A", "B", "C")]
-    [InlineData(FootnoteNumberStyle.LowercaseRoman, "i", "ii", "iii")]
-    [InlineData(FootnoteNumberStyle.UppercaseRoman, "I", "II", "III")]
+    [Test]
+    [Arguments(FootnoteNumberStyle.Arabic, "1", "2", "3")]
+    [Arguments(FootnoteNumberStyle.LowercaseLetter, "a", "b", "c")]
+    [Arguments(FootnoteNumberStyle.UppercaseLetter, "A", "B", "C")]
+    [Arguments(FootnoteNumberStyle.LowercaseRoman, "i", "ii", "iii")]
+    [Arguments(FootnoteNumberStyle.UppercaseRoman, "I", "II", "III")]
     public void EachNumberStyleMarksTheNotesItsOwnWay(
         FootnoteNumberStyle style, string first, string second, string third)
     {
@@ -224,7 +224,7 @@ public class FootnoteTests
         marks.Should().Equal(first, second, third);
     }
 
-    [Fact]
+    [Test]
     public void ACallersOwnReferenceIsUsedInsteadOfANumber()
     {
         var document = Document(out var section);
@@ -237,7 +237,7 @@ public class FootnoteTests
         CountOfMark(page, "*").Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void ACallersOwnReferenceDoesNotAdvanceTheNumbering()
     {
         // A note the caller marked shows a symbol of their choosing. Letting it count would make
@@ -255,7 +255,7 @@ public class FootnoteTests
         CountOfMark(page, "2").Should().Be(2, "the starred note is not counted");
     }
 
-    [Fact]
+    [Test]
     public void NumberingRestartsOnEveryPageByDefault()
     {
         // Worth pinning because it is a surprise. RestartPage is the first value of
@@ -271,7 +271,7 @@ public class FootnoteTests
         MarksOn(pages.Pages[1], "1", "2").Should().Equal("1");
     }
 
-    [Fact]
+    [Test]
     public void RestartContinuousCarriesTheNumberingAcrossPages()
     {
         var document = TwoPagesOfNotes();
@@ -284,7 +284,7 @@ public class FootnoteTests
         MarksOn(pages.Pages[1], "1", "2").Should().Equal("2");
     }
 
-    [Fact]
+    [Test]
     public void RestartSectionBeginsAgainInEverySectionAndNotOnEveryPage()
     {
         // A section spanning two pages, so the answer tells RestartSection apart from RestartPage.
@@ -308,7 +308,7 @@ public class FootnoteTests
             "the second section's notes count on from each other, not from the page");
     }
 
-    [Fact]
+    [Test]
     public void TheStartingNumberIsHonoured()
     {
         var document = ThreeNotesOnAPage(FootnoteNumberStyle.Arabic);
@@ -319,7 +319,7 @@ public class FootnoteTests
         MarksOn(page, "7", "8", "9").Should().Equal("7", "8", "9");
     }
 
-    [Fact]
+    [Test]
     public void AnUnsetStartingNumberBeginsAtOneRatherThanZero()
     {
         // The property's default is zero, which is the unset value rather than a request. A first
@@ -332,7 +332,7 @@ public class FootnoteTests
 
     // ----- the mark in the running text -----
 
-    [Fact]
+    [Test]
     public void TheMarkIsRaisedAboveTheLineItSitsOn()
     {
         var document = Document(out var section);

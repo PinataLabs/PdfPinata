@@ -3,7 +3,7 @@ using System.IO;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.IO.ResourceConformanceFixtures;
 
 namespace PdfPinata.Test.IO;
@@ -18,7 +18,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class ResourceConformanceRulesTests
 {
-    [Fact]
+    [Test]
     public void ATranslucentGraphicsStateBreaksPdfA1()
     {
         var saving = Saving(PdfAConformance.PdfA1B, PageWithATranslucentGraphicsState());
@@ -26,7 +26,7 @@ public class ResourceConformanceRulesTests
         saving.Should().Throw<InvalidOperationException>().WithMessage("*PDF/A-1*transparency*");
     }
 
-    [Fact]
+    [Test]
     public void TheSameTranslucentGraphicsStateIsFineUnderPdfA2()
     {
         var saving = Saving(PdfAConformance.PdfA2B, PageWithATranslucentGraphicsState());
@@ -34,7 +34,7 @@ public class ResourceConformanceRulesTests
         saving.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void AnExplicitlyOpaqueGraphicsStateDoesNotBreakPdfA1()
     {
         // An explicit /ca 1 is opaque, not merely absent — the rule is about what is painted, not
@@ -44,7 +44,7 @@ public class ResourceConformanceRulesTests
         saving.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void TransparencyReachedOnlyThroughANestedFormIsStillFound()
     {
         // The case a shallower walk would miss: the page's own resource dictionary names only a
@@ -54,7 +54,7 @@ public class ResourceConformanceRulesTests
         saving.Should().Throw<InvalidOperationException>().WithMessage("*PDF/A-1*transparency*");
     }
 
-    [Fact]
+    [Test]
     public void TransparencyReachedOnlyThroughASoftMaskIsStillFound()
     {
         var saving = Saving(PdfAConformance.PdfA1B, PageWithTransparencyThroughASoftMask());
@@ -62,7 +62,7 @@ public class ResourceConformanceRulesTests
         saving.Should().Throw<InvalidOperationException>().WithMessage("*PDF/A-1*transparency*");
     }
 
-    [Fact]
+    [Test]
     public void AJpeg2000ImageBreaksPdfA1()
     {
         var saving = Saving(PdfAConformance.PdfA1B, PageWithAJpeg2000Image());
@@ -70,7 +70,7 @@ public class ResourceConformanceRulesTests
         saving.Should().Throw<InvalidOperationException>().WithMessage("*PDF/A-1*JPEG 2000*");
     }
 
-    [Fact]
+    [Test]
     public void TheSameJpeg2000ImageIsFineUnderPdfA2()
     {
         var saving = Saving(PdfAConformance.PdfA2B, PageWithAJpeg2000Image());
@@ -78,7 +78,7 @@ public class ResourceConformanceRulesTests
         saving.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void AnOrdinaryImageDoesNotBreakPdfA1()
     {
         var saving = Saving(PdfAConformance.PdfA1B, PageWithAnOrdinaryImage());
@@ -86,10 +86,10 @@ public class ResourceConformanceRulesTests
         saving.Should().NotThrow();
     }
 
-    [Theory]
-    [InlineData(PdfAConformance.PdfA1B)]
-    [InlineData(PdfAConformance.PdfA2B)]
-    [InlineData(PdfAConformance.PdfA3B)]
+    [Test]
+    [Arguments(PdfAConformance.PdfA1B)]
+    [Arguments(PdfAConformance.PdfA2B)]
+    [Arguments(PdfAConformance.PdfA3B)]
     public void AnInterpolatedImageBreaksEveryArchivalProfile(PdfAConformance conformance)
     {
         var saving = Saving(conformance, PageWithAnInterpolatedImage());
@@ -97,7 +97,7 @@ public class ResourceConformanceRulesTests
         saving.Should().Throw<InvalidOperationException>().WithMessage("*interpolate*");
     }
 
-    [Fact]
+    [Test]
     public void MixingDeviceColourSpacesAgainstTheOutputIntentIsRefused()
     {
         // The default output intent this document is given is sRGB, a 3-component space, and the
@@ -108,7 +108,7 @@ public class ResourceConformanceRulesTests
             .WithMessage("*output intent*").WithMessage("*3-component*").WithMessage("*4-component*");
     }
 
-    [Fact]
+    [Test]
     public void PaintingOnlyInTheColourTheOutputIntentDescribesIsFine()
     {
         var saving = Saving(PdfAConformance.PdfA2B, PageDrawingOnlyRgb());
@@ -116,7 +116,7 @@ public class ResourceConformanceRulesTests
         saving.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void SelectingADeviceColourSpaceByNameCountsAsPaintingInIt()
     {
         // "/DeviceCMYK cs 0 0 0 1 sc" paints the same four numbers "0 0 0 1 k" does. The walk
@@ -128,7 +128,7 @@ public class ResourceConformanceRulesTests
             .WithMessage("*output intent*").WithMessage("*4-component*");
     }
 
-    [Fact]
+    [Test]
     public void APageWithNoResourceDictionaryIsStillWalked()
     {
         // Nothing to look up is not nothing to find: the content still names a colour outright.
@@ -138,7 +138,7 @@ public class ResourceConformanceRulesTests
             .WithMessage("*output intent*").WithMessage("*4-component*");
     }
 
-    [Fact]
+    [Test]
     public void AnIccBasedImageIsNotHeldToTheOutputIntent()
     {
         // The output intent exists to say what uncalibrated device numbers mean. An ICC-based space
@@ -149,7 +149,7 @@ public class ResourceConformanceRulesTests
         saving.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void ASeparationIsHeldToTheDeviceSpaceItFallsBackOn()
     {
         // The other half of the same rule: a separation is not device colour, but a reader without
@@ -160,7 +160,7 @@ public class ResourceConformanceRulesTests
             .WithMessage("*output intent*").WithMessage("*4-component*");
     }
 
-    [Fact]
+    [Test]
     public void AFormDrawnInTwoScopesIsReadInBothOfThem()
     {
         // A form without resources of its own resolves its names against whatever drew it, so the
@@ -172,7 +172,7 @@ public class ResourceConformanceRulesTests
             .WithMessage("*output intent*").WithMessage("*4-component*");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentClaimingNothingIsUnaffectedByAnyOfThis()
     {
         // The whole point of walking only when a profile is claimed: a document that never asks for

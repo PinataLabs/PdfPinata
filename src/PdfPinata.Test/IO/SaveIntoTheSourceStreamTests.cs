@@ -4,7 +4,7 @@ using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -18,7 +18,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class SaveIntoTheSourceStreamTests
 {
-    [Fact]
+    [Test]
     public void SavingIntoTheSourceStreamDoesNotKeepTheOriginalFileInFrontOfTheNewOne()
     {
         var original = File.ReadAllBytes(PathHelper.GetInstance().GetAssetPath("FamilyTree.pdf"));
@@ -42,7 +42,7 @@ public class SaveIntoTheSourceStreamTests
     ///   the original starts with and the one the save wrote. Counting them tells the two apart,
     ///   where looking at the first bytes of the file cannot, since both files start the same way.
     /// </summary>
-    [Fact]
+    [Test]
     public void ADocumentSavedIntoItsOwnSourceStreamHasOnlyOnePdfHeader()
     {
         using var pdf = new MemoryStream();
@@ -57,7 +57,7 @@ public class SaveIntoTheSourceStreamTests
         saved.IndexOf("%PDF-", 1, StringComparison.Ordinal).Should().Be(-1);
     }
 
-    [Fact]
+    [Test]
     public void ADocumentSavedIntoItsOwnSourceStreamCanBeReadBack()
     {
         using var pdf = new MemoryStream();
@@ -75,7 +75,7 @@ public class SaveIntoTheSourceStreamTests
     ///   The stream is the only copy of the document the caller has left. A save that fails has
     ///   to leave it as it was, rather than empty it and then find it has nothing to put back.
     /// </summary>
-    [Fact]
+    [Test]
     public void ASaveThatFailsLeavesTheSourceStreamAsItWas()
     {
         using var pdf = new MemoryStream();
@@ -98,7 +98,7 @@ public class SaveIntoTheSourceStreamTests
     ///   Only the stream the document was read from is rewound. A stream the caller has placed
     ///   content in and positioned deliberately is still written to where it was left.
     /// </summary>
-    [Fact]
+    [Test]
     public void SavingIntoAnUnrelatedStreamWritesAtThePositionTheCallerLeftIt()
     {
         using var input = File.OpenRead(PathHelper.GetInstance().GetAssetPath("FamilyTree.pdf"));

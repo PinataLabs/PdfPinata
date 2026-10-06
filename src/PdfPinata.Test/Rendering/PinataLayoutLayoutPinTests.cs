@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Rendering;
 
@@ -23,7 +23,7 @@ namespace PdfPinata.Test.Rendering;
 /// </remarks>
 public class PinataLayoutLayoutPinTests
 {
-    [Fact]
+    [Test]
     public void EveryDocumentInTheCorpusRendersExactlyAsItDid()
     {
         var rendered = SplitByDocument(Normalized(PinataLayoutDocCorpus.OfEveryDocument(tagged: false)));
@@ -57,7 +57,7 @@ public class PinataLayoutLayoutPinTests
     ///   exactly is the text: the same runs, in the same order, page for page.
     ///   </para>
     /// </remarks>
-    [Fact]
+    [Test]
     public void TaggingDrawsTheSameTextInTheSameOrder()
     {
         var tagged = SplitByDocument(Normalized(PinataLayoutDocCorpus.OfEveryDocument(tagged: true)));
@@ -104,7 +104,7 @@ public class PinataLayoutLayoutPinTests
         return runs;
     }
 
-    [Fact]
+    [Test]
     public void TheBaselineCoversEveryDocumentInTheCorpus()
     {
         var pinned = SplitByDocument(Normalized(File.ReadAllText(BaselinePath)));

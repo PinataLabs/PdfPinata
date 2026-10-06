@@ -6,7 +6,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using PdfPinata.Test.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Rendering;
 
@@ -16,7 +16,7 @@ namespace PdfPinata.Test.Rendering;
 /// </summary>
 public class TextBaselineTests
 {
-    [Fact]
+    [Test]
     public void TdMovesRelativeToTheLineBefore()
     {
         var page = PageDrawing("BT 50 700 Td (a) Tj 0 -12 Td (b) Tj 0 -12 Td (c) Tj ET");
@@ -24,7 +24,7 @@ public class TextBaselineTests
         TextBaselines.Of(page).Should().Equal(700, 688, 676);
     }
 
-    [Fact]
+    [Test]
     public void TmMovesToAPlaceRatherThanByADistance()
     {
         var page = PageDrawing("BT 50 700 Td (a) Tj 1 0 0 1 50 400 Tm (b) Tj ET");
@@ -32,7 +32,7 @@ public class TextBaselineTests
         TextBaselines.Of(page).Should().Equal(700, 400);
     }
 
-    [Fact]
+    [Test]
     public void TStarMovesDownByTheLeading()
     {
         var page = PageDrawing("BT 14 TL 50 700 Td (a) Tj T* (b) Tj T* (c) Tj ET");
@@ -40,7 +40,7 @@ public class TextBaselineTests
         TextBaselines.Of(page).Should().Equal(700, 686, 672);
     }
 
-    [Fact]
+    [Test]
     public void TheQuoteOperatorsMoveDownALineBeforeShowingTheirText()
     {
         // ' is T* then Tj, and " is the same after setting the spacing. Text shown by either
@@ -50,7 +50,7 @@ public class TextBaselineTests
         TextBaselines.Of(page).Should().Equal(700, 686, 672);
     }
 
-    [Fact]
+    [Test]
     public void TdSetsTheLeadingAsWellAsMoving()
     {
         // TD is Td with the leading set to the distance it moved down by, so the T* after it
@@ -60,7 +60,7 @@ public class TextBaselineTests
         TextBaselines.Of(page).Should().Equal(680, 660);
     }
 
-    [Fact]
+    [Test]
     public void ContentSplitAcrossStreamsIsReadAsOne()
     {
         // The streams of a page are one stream broken up, and the break falls between tokens

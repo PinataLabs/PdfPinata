@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using PdfPinata.Charting.Renderers;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -26,7 +26,7 @@ public class AxisTitleGeometryTests
     /// </summary>
     private static readonly XSize Caption = new(90, 12);
 
-    [Fact]
+    [Test]
     public void ACentredCaptionSitsInTheMiddleOfItsStrip()
     {
         var strip = new XRect(10, 20, 200, 80);
@@ -37,9 +37,9 @@ public class AxisTitleGeometryTests
         layout.Anchor.Should().Be(new XPoint(strip.X + strip.Width / 2, strip.Y + strip.Height / 2));
     }
 
-    [Theory]
-    [InlineData(HorizontalAlignment.Left)]
-    [InlineData(HorizontalAlignment.Right)]
+    [Test]
+    [Arguments(HorizontalAlignment.Left)]
+    [Arguments(HorizontalAlignment.Right)]
     public void AligningARotatedCaptionAcrossTheAxisMovesItNowhere(HorizontalAlignment alignment)
     {
         var strip = new XRect(0, 0, Caption.Width, 40);
@@ -52,7 +52,7 @@ public class AxisTitleGeometryTests
         moved.Anchor.Should().Be(centred.Anchor);
     }
 
-    [Fact]
+    [Test]
     public void EachVerticalAlignmentPutsARotatedCaptionSomewhereOfItsOwn()
     {
         var strip = new XRect(0, 0, Caption.Width, 100);
@@ -70,10 +70,10 @@ public class AxisTitleGeometryTests
             strip, Caption, 90, HorizontalAlignment.Center, alignment).Anchor.Y;
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(90)]
-    [InlineData(-45)]
+    [Test]
+    [Arguments(0)]
+    [Arguments(90)]
+    [Arguments(-45)]
     public void TheCaptionIsTurnedByTheNegationOfItsOrientation(double orientationDegrees)
     {
         var strip = new XRect(0, 0, Caption.Width, 40);

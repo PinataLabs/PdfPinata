@@ -4,7 +4,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -49,7 +49,7 @@ public class TextStateOperatorTests
 
     // ----- nothing asked for, nothing written ---------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AFormatThatAsksForNothingWritesNoTextStateAtAll()
     {
         // The guard on every existing document: a default format has to leave the content stream
@@ -64,7 +64,7 @@ public class TextStateOperatorTests
 
     // ----- character spacing, A3 ----------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void CharacterSpacingIsWrittenAsTc()
     {
         var format = XStringFormats.Default;
@@ -74,7 +74,7 @@ public class TextStateOperatorTests
             .Should().Equal(1.5);
     }
 
-    [Fact]
+    [Test]
     public void ANegativeCharacterSpacingIsWrittenAsItIs()
     {
         var format = XStringFormats.Default;
@@ -84,7 +84,7 @@ public class TextStateOperatorTests
             .Should().Equal(-0.75);
     }
 
-    [Fact]
+    [Test]
     public void CharacterSpacingAddsToBoldSimulationRatherThanReplacingIt()
     {
         // Bold simulation strokes the glyphs and spaces them out to match. Overwriting that
@@ -104,7 +104,7 @@ public class TextStateOperatorTests
 
     // ----- word spacing, A4 ---------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void WordSpacingIsWrittenAsTwForAFontEncodedAsWinAnsi()
     {
         var format = XStringFormats.Default;
@@ -117,7 +117,7 @@ public class TextStateOperatorTests
         TextOperators.ShowTextOperators(page).Should().Equal(OpCodeName.Tj);
     }
 
-    [Fact]
+    [Test]
     public void WordSpacingIsDrawnByHandForAFontEncodedAsUnicode()
     {
         var format = XStringFormats.Default;
@@ -136,7 +136,7 @@ public class TextStateOperatorTests
             .And.AllSatisfy(adjustment => adjustment.Should().BeApproximately(expected, 0.001));
     }
 
-    [Fact]
+    [Test]
     public void AUnicodeRunIsBrokenIntoOnePieceMoreThanItHasSpaces()
     {
         var format = XStringFormats.Default;
@@ -147,7 +147,7 @@ public class TextStateOperatorTests
         TextOperators.TjRunCounts(PageShowing("a b c", UnicodeFont, format)).Should().Equal(3);
     }
 
-    [Fact]
+    [Test]
     public void ATrailingSpaceStillGetsItsWordSpacing()
     {
         var format = XStringFormats.Default;
@@ -161,7 +161,7 @@ public class TextStateOperatorTests
         TextOperators.TjAdjustments(page).Should().HaveCount(1);
     }
 
-    [Fact]
+    [Test]
     public void AUnicodeRunWithNoWordSpacingIsStillDrawnInOneGo()
     {
         // A TJ array of one run would be correct but wasteful, and would change every existing
@@ -171,7 +171,7 @@ public class TextStateOperatorTests
         TextOperators.ShowTextOperators(page).Should().Equal(OpCodeName.Tj);
     }
 
-    [Fact]
+    [Test]
     public void AUnicodeRunWithoutSpacesIsDrawnInOneGoEvenWhenWordSpacingIsAskedFor()
     {
         var format = XStringFormats.Default;
@@ -189,7 +189,7 @@ public class TextStateOperatorTests
 
     // ----- horizontal scaling, A5 ---------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void HorizontalScalingIsWrittenAsTz()
     {
         var format = XStringFormats.Default;
@@ -199,7 +199,7 @@ public class TextStateOperatorTests
             .Should().Equal(75);
     }
 
-    [Fact]
+    [Test]
     public void AScalingOfAHundredIsNotWrittenBecauseThatIsWhereItStarts()
     {
         var format = XStringFormats.Default;
@@ -211,7 +211,7 @@ public class TextStateOperatorTests
 
     // ----- text rise, A6 ------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TextRiseIsWrittenAsTs()
     {
         var format = XStringFormats.Default;
@@ -221,7 +221,7 @@ public class TextStateOperatorTests
             .Should().Equal(5);
     }
 
-    [Fact]
+    [Test]
     public void ANegativeTextRiseLowersTheTextAndIsWrittenAsItIs()
     {
         var format = XStringFormats.Default;
@@ -231,14 +231,14 @@ public class TextStateOperatorTests
             .Should().Equal(-3);
     }
 
-    [Fact]
+    [Test]
     public void ARiseOfNothingIsNotWritten()
     {
         TextOperators.NumbersGivenTo(PageShowing("Hello", WinAnsiFont, XStringFormats.Default), OpCodeName.Ts)
             .Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void TextRiseDoesNotDisturbWhereTheNextStringGoes()
     {
         var raised = XStringFormats.Default;
@@ -259,7 +259,7 @@ public class TextStateOperatorTests
 
     // ----- oblique angle, D3 --------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnUprightStringNeedsNoTextMatrixAtAll()
     {
         var page = PageShowing("Hello", WinAnsiFont, XStringFormats.Default);
@@ -268,7 +268,7 @@ public class TextStateOperatorTests
         TextOperators.CountOf(page, OpCodeName.Td).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AnObliqueAngleLeansTheTextMatrixByItsTangent()
     {
         var format = XStringFormats.Default;
@@ -280,7 +280,7 @@ public class TextStateOperatorTests
             .Which.Should().BeApproximately(Math.Tan(20 * Math.PI / 180), StreamPrecision);
     }
 
-    [Fact]
+    [Test]
     public void ANegativeObliqueAngleLeansTheOtherWay()
     {
         var format = XStringFormats.Default;
@@ -291,7 +291,7 @@ public class TextStateOperatorTests
             .Which.Should().BeApproximately(Math.Tan(-15 * Math.PI / 180), StreamPrecision);
     }
 
-    [Fact]
+    [Test]
     public void AnObliqueAngleAddsToTheLeanItalicSimulationAlreadyGives()
     {
         // Source Code Pro has no italic face either, so asking for one skews the regular.
@@ -312,7 +312,7 @@ public class TextStateOperatorTests
             .Which.Should().BeApproximately(simulatedOnly[0] + Math.Tan(10 * Math.PI / 180), StreamPrecision);
     }
 
-    [Fact]
+    [Test]
     public void TheLeanIsSetOnceForTwoStringsThatShareIt()
     {
         var format = XStringFormats.Default;
@@ -330,7 +330,7 @@ public class TextStateOperatorTests
         TextOperators.CountOf(page, OpCodeName.Td).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void GoingBackToUprightSetsTheTextMatrixStraightAgain()
     {
         var leaning = XStringFormats.Default;
@@ -347,7 +347,7 @@ public class TextStateOperatorTests
         TextOperators.TextMatrixSkews(page)[1].Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void ATdThroughALeaningMatrixIsCorrectedForTheLean()
     {
         var leaning = XStringFormats.Default;
@@ -374,7 +374,7 @@ public class TextStateOperatorTests
 
     // ----- the state is state -------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TheTextStateIsWrittenOnceForTwoStringsThatShareIt()
     {
         var format = XStringFormats.Default;
@@ -392,7 +392,7 @@ public class TextStateOperatorTests
         TextOperators.NumbersGivenTo(page, OpCodeName.Tz).Should().Equal(80);
     }
 
-    [Fact]
+    [Test]
     public void TheTextStateIsWrittenAgainWhenItChanges()
     {
         var spaced = XStringFormats.Default;
@@ -408,7 +408,7 @@ public class TextStateOperatorTests
         TextOperators.NumbersGivenTo(page, OpCodeName.Tc).Should().Equal(3, 0);
     }
 
-    [Fact]
+    [Test]
     public void TheTextStateGoesBackWithTheGraphicsState()
     {
         var spaced = XStringFormats.Default;
@@ -436,7 +436,7 @@ public class TextStateOperatorTests
     // here is what was measured. The strings are read back as literals, which is why these use the
     // WinAnsi font: an Identity-H run writes glyph numbers instead.
 
-    [Fact]
+    [Test]
     public void ATabIsDrawnAsTheSpaceItIsMeasuredAs()
     {
         var page = PageShowing("Handgloves\tand quartz", WinAnsiFont, XStringFormats.Default);
@@ -444,7 +444,7 @@ public class TextStateOperatorTests
         TextOperators.ShownStrings(page).Should().Equal("Handgloves and quartz");
     }
 
-    [Fact]
+    [Test]
     public void AControlCharacterOtherThanATabIsNotDrawnAtAll()
     {
         // A carriage return has never been measured and is now not drawn either. Nothing here
@@ -455,7 +455,7 @@ public class TextStateOperatorTests
         TextOperators.ShownStrings(page).Should().Equal("Handgloves");
     }
 
-    [Fact]
+    [Test]
     public void AStringOfNothingButControlCharactersDrawsNothingAtAll()
     {
         // It normalizes to empty, and an empty string is not a font realization, a pen movement
@@ -465,7 +465,7 @@ public class TextStateOperatorTests
         TextOperators.ShowTextOperators(page).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void ATabInAUnicodeRunIsDrawnAsASpaceToo()
     {
         // The filtering happens before the font.Unicode branch, so the Identity-H path gets it
@@ -482,7 +482,7 @@ public class TextStateOperatorTests
         TextOperators.TjAdjustments(page).Should().ContainSingle();
     }
 
-    [Fact]
+    [Test]
     public void AWinAnsiStringIsPlacedByTheWidthMeasureStringReportsForTheCharactersItDraws()
     {
         // The assertion this whole change exists to make possible. Far alignment places the
@@ -508,7 +508,7 @@ public class TextStateOperatorTests
         (rect.Right - shown[0].X).Should().BeApproximately(measured, StreamPrecision);
     }
 
-    [Fact]
+    [Test]
     public void ALineFeedIsAbsorbedByDrawStringWhileMeasureStringStillReportsTwoLines()
     {
         // The one disagreement this change does not close, pinned so that it cannot go silent a

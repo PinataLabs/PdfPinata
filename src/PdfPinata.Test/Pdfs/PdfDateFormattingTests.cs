@@ -6,7 +6,7 @@ using System.Xml.Linq;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Metadata;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -44,7 +44,7 @@ public class PdfDateFormattingTests
         return XDocument.Load(stream).Descendants(Xmp + "CreateDate").Single().Value;
     }
 
-    [Fact]
+    [Test]
     public void APdfDateIsWrittenInTheGregorianCalendarWhateverTheCurrentCulture()
     {
         var instant = new DateTime(2026, 9, 26, 10, 30, 15, DateTimeKind.Utc);
@@ -54,7 +54,7 @@ public class PdfDateFormattingTests
         text.Should().Be("D:20260926103015+00'00'");
     }
 
-    [Fact]
+    [Test]
     public void AnXmpDateIsWrittenInTheGregorianCalendarWhateverTheCurrentCulture()
     {
         var instant = new DateTime(2026, 9, 26, 10, 30, 15, DateTimeKind.Utc);
@@ -64,10 +64,10 @@ public class PdfDateFormattingTests
         text.Should().Be("2026-09-26T10:30:15Z");
     }
 
-    [Theory]
-    [InlineData(DateTimeKind.Unspecified)]
-    [InlineData(DateTimeKind.Local)]
-    [InlineData(DateTimeKind.Utc)]
+    [Test]
+    [Arguments(DateTimeKind.Unspecified)]
+    [Arguments(DateTimeKind.Local)]
+    [Arguments(DateTimeKind.Utc)]
     public void InfoAndXmpDescribeTheSameInstant(DateTimeKind kind)
     {
         var document = new PdfDocument();

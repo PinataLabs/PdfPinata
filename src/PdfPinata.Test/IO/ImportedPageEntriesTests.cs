@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
@@ -6,7 +7,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -43,7 +44,7 @@ public class ImportedPageEntriesTests
     private const string AllEntries =
         "/UserUnit 2.5/Tabs/R/Trans<</Type/Trans/S/Dissolve/D 1.5>>/Dur 3/StructParents 0";
 
-    public static TheoryData<string> ImportPaths => ["Add", "Insert", "InsertRange"];
+    public static IEnumerable<string> ImportPaths => ["Add", "Insert", "InsertRange"];
 
     private static PdfDocument Imported(string path, Action<PdfPage> drawOn = null, string entries = AllEntries)
     {
@@ -70,8 +71,8 @@ public class ImportedPageEntriesTests
         return target.Reopened();
     }
 
-    [Theory]
-    [MemberData(nameof(ImportPaths))]
+    [Test]
+    [MethodDataSource(nameof(ImportPaths))]
     public void TheTransparencyGroupComesAlongAndSharesTheColourSpaceOfTheResources(string path)
     {
         var page = Imported(path).Pages[0];
@@ -92,8 +93,8 @@ public class ImportedPageEntriesTests
             "the group and the resources named one colour space, and it is imported once");
     }
 
-    [Theory]
-    [MemberData(nameof(ImportPaths))]
+    [Test]
+    [MethodDataSource(nameof(ImportPaths))]
     public void TheUserUnitTabOrderAndPresentationEntriesComeAlong(string path)
     {
         var page = Imported(path).Pages[0];
@@ -108,8 +109,8 @@ public class ImportedPageEntriesTests
         transition.Elements.GetReal("/D").Should().Be(1.5);
     }
 
-    [Theory]
-    [MemberData(nameof(ImportPaths))]
+    [Test]
+    [MethodDataSource(nameof(ImportPaths))]
     public void TheKeyIntoTheStructureTreeOfTheOtherDocumentIsLeftBehind(string path)
     {
         Imported(path).Pages[0].Elements.ContainsKey("/StructParents").Should().BeFalse(
@@ -121,9 +122,9 @@ public class ImportedPageEntriesTests
     ///   content paints nothing translucent, and the group an imported page now brings with it
     ///   has to be refused under that claim as any other transparency is.
     /// </summary>
-    [Theory]
-    [InlineData(PdfAConformance.PdfA1B, true)]
-    [InlineData(PdfAConformance.PdfA2B, false)]
+    [Test]
+    [Arguments(PdfAConformance.PdfA1B, true)]
+    [Arguments(PdfAConformance.PdfA2B, false)]
     public void AnImportedTransparencyGroupIsRefusedUnderPdfA1Alone(PdfAConformance conformance, bool refused)
     {
         // The group alone, since a user unit or a tab order would raise the version past what
@@ -145,25 +146,25 @@ public class ImportedPageEntriesTests
             saving.Should().NotThrow();
     }
 
-    [Theory]
-    [InlineData("/UserUnit 2.5", 16)]
-    [InlineData("/Tabs/R", 15)]
-    [InlineData("/Tabs/C", 15)]
+    [Test]
+    [Arguments("/UserUnit 2.5", 16)]
+    [Arguments("/Tabs/R", 15)]
+    [Arguments("/Tabs/C", 15)]
     public void AnEntryNewerThanTheDocumentRaisesItsVersion(string entries, int version)
     {
         Imported("Add", entries: entries).Version.Should().BeGreaterThanOrEqualTo(version);
     }
 
-    [Fact]
+    [Test]
     public void AnImportedPageWithNoNewerEntryLeavesTheVersionAlone()
     {
         Imported("Add", entries: "").Version.Should().Be(14);
     }
 
-    [Theory]
-    [InlineData("/R", "/R")]
-    [InlineData("/C", "/C")]
-    [InlineData("/S", null)]
+    [Test]
+    [Arguments("/R", "/R")]
+    [Arguments("/C", "/C")]
+    [Arguments("/S", null)]
     public void StructureOrderIsDroppedBecauseTheStructureTreeStaysBehind(string tabs, string expected)
     {
         var page = Imported("Add", entries: "/Tabs" + tabs).Pages[0];
@@ -175,7 +176,7 @@ public class ImportedPageEntriesTests
             page.Elements.GetName("/Tabs").Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void DrawingWithTransparencyOnTheImportedPageKeepsTheGroupItBrought()
     {
         var page = Imported("Add", target =>

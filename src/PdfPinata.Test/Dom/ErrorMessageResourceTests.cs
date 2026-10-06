@@ -5,7 +5,7 @@ using System.Reflection;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Internals;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -20,7 +20,7 @@ namespace PdfPinata.Test.Dom;
 /// </summary>
 public class ErrorMessageResourceTests
 {
-    [Fact]
+    [Test]
     public void EveryMessageCanBeRead()
     {
         // The guard that matters: one lookup name serves all of them, so one of these failing
@@ -30,14 +30,14 @@ public class ErrorMessageResourceTests
         read.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void NoMessageIsEmpty()
     {
         Messages().Should().NotBeEmpty();
         Messages().Should().AllSatisfy(message => message.Value.Should().NotBeNullOrWhiteSpace());
     }
 
-    [Fact]
+    [Test]
     public void AColourThatCannotBeReadIsNamedInTheComplaint()
     {
         var parse = () => Color.Parse("not a colour");
@@ -46,7 +46,7 @@ public class ErrorMessageResourceTests
             .WithMessage("*not a colour*");
     }
 
-    [Fact]
+    [Test]
     public void AUnitThatCannotBeReadIsNamedInTheComplaint()
     {
         var parse = () => Unit.Parse("not a unit");
@@ -55,7 +55,7 @@ public class ErrorMessageResourceTests
             .WithMessage("*not a unit*");
     }
 
-    [Fact]
+    [Test]
     public void AValueNameThatDoesNotExistIsNamedInTheComplaint()
     {
         var paragraph = new Document().AddSection().AddParagraph();
@@ -66,7 +66,7 @@ public class ErrorMessageResourceTests
             .WithMessage("*NoSuchValue*");
     }
 
-    [Fact]
+    [Test]
     public void ABaseStyleThatDoesNotExistIsNamedInTheComplaint()
     {
         var document = new Document();
@@ -92,7 +92,7 @@ public class ErrorMessageResourceTests
     ///   caller was actually shown worked.
     ///   </para>
     /// </summary>
-    [Fact]
+    [Test]
     public void EveryMessageIsReachableByTheIdentifierThatNamesIt()
     {
         // The guard that matters, again: one lookup serves all of them, so this failing for one
@@ -108,7 +108,7 @@ public class ErrorMessageResourceTests
         }
     }
 
-    [Fact]
+    [Test]
     public void AMessageIsFormattedWithWhatWentWrongRatherThanAPlaceholder()
     {
         FormatMessage(MsgId("UnexpectedSymbol"), "\\pagebreak")

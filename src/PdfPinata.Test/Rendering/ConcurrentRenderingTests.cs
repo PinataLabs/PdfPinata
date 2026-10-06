@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.Rendering;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Rendering;
 
@@ -21,7 +21,7 @@ public class ConcurrentRenderingTests
 
     private const int Renderers = 32;
 
-    [Fact]
+    [Test]
     public void SeveralThreadsRenderingAtOnceAllGetTheSamePageSize()
     {
         var sizes = new ConcurrentBag<(double Width, double Height)>();
@@ -49,7 +49,7 @@ public class ConcurrentRenderingTests
         });
     }
 
-    [Fact]
+    [Test]
     public void TheSharedDefaultsAreFullyFilledInBeforeAnyoneSeesThem()
     {
         var defaults = new Document().DefaultPageSetup;

@@ -10,7 +10,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -50,7 +50,7 @@ public class PageBleedTests
 
     // ----- the origin ---------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TheOriginIsTheCornerOfTheTrimmedPageRatherThanOfTheSheet()
     {
         var page = Trimmed();
@@ -64,7 +64,7 @@ public class PageBleedTests
         mark.Top.Should().BeApproximately(Inset, 0.001);
     }
 
-    [Fact]
+    [Test]
     public void ANegativeCoordinateReachesTheEdgeOfTheBleed()
     {
         var page = Trimmed();
@@ -81,7 +81,7 @@ public class PageBleedTests
         mark.Left.Should().BeApproximately(saved.BleedBox.X1, 0.001);
     }
 
-    [Fact]
+    [Test]
     public void TheSameDrawingSitsInTheSamePlaceOnTheTrimmedPageEitherWay()
     {
         var trimmed = Trimmed();
@@ -102,7 +102,7 @@ public class PageBleedTests
 
     // ----- the size of the page -----------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void SettingATrimMarginDoesNotChangeTheSizeOfThePageTheCallerDrawsOn()
     {
         var page = Trimmed();
@@ -111,7 +111,7 @@ public class PageBleedTests
         page.Height.Point.Should().Be(A5Height);
     }
 
-    [Fact]
+    [Test]
     public void ThePageStillReportsItsOwnSizeAfterItHasBeenSaved()
     {
         var page = Trimmed();
@@ -128,7 +128,7 @@ public class PageBleedTests
         page.Height.Point.Should().Be(A5Height);
     }
 
-    [Fact]
+    [Test]
     public void TheSheetIsLargerThanTheTrimmedPageByTheBleedAndTheMarkAllowance()
     {
         var page = Trimmed();
@@ -140,7 +140,7 @@ public class PageBleedTests
         boxes.MediaBox.Height.Should().BeApproximately(A5Height + 2 * Inset, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void SavingASecondTimeWritesTheSameSheet()
     {
         var page = Trimmed();
@@ -162,7 +162,7 @@ public class PageBleedTests
 
     // ----- the boxes ----------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ATrimmedPageIsSavedWithAllFiveBoxes()
     {
         var page = Trimmed();
@@ -173,7 +173,7 @@ public class PageBleedTests
         boxes.Names.Should().BeEquivalentTo("/MediaBox", "/CropBox", "/BleedBox", "/TrimBox", "/ArtBox");
     }
 
-    [Fact]
+    [Test]
     public void TheTrimBoxIsTheSheetInsetByTheBleedAndTheMarksAndTheArtBoxMatchesIt()
     {
         var page = Trimmed();
@@ -189,7 +189,7 @@ public class PageBleedTests
         boxes.ArtBox.ToString().Should().Be(boxes.TrimBox.ToString());
     }
 
-    [Fact]
+    [Test]
     public void TheBleedBoxLeavesTheMarkAllowanceOutsideIt()
     {
         var page = Trimmed();
@@ -206,7 +206,7 @@ public class PageBleedTests
         boxes.BleedBox.Height.Should().BeApproximately(A5Height + 2 * Bleed.Point, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void TheBoxesNest()
     {
         var page = Trimmed();
@@ -220,7 +220,7 @@ public class PageBleedTests
         Encloses(boxes.TrimBox, boxes.ArtBox).Should().BeTrue("the art box lies within the trim box");
     }
 
-    [Fact]
+    [Test]
     public void AnUnevenTrimMarginInsetsEachEdgeByItsOwnMargin()
     {
         var top = XUnit.FromMillimeter(10);
@@ -247,7 +247,7 @@ public class PageBleedTests
         (saved.TrimBox.Y1 - saved.MediaBox.Y1).Should().BeApproximately(bottom.Point, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void APageWithNoTrimMarginCarriesNoneOfTheExtraBoxes()
     {
         var page = Plain();
@@ -262,7 +262,7 @@ public class PageBleedTests
         boxes.MediaBox.Width.Should().Be(A5Width);
     }
 
-    [Fact]
+    [Test]
     public void ClearingTheMarkAllowanceGivesBackTheBoxesTheLibraryUsedToWrite()
     {
         var page = Trimmed();
@@ -280,7 +280,7 @@ public class PageBleedTests
 
     // ----- assigning the margins ------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AssigningTrimMarginsCopiesTheValuesRatherThanHoldingTheReference()
     {
         var page = Plain();
@@ -295,7 +295,7 @@ public class PageBleedTests
         page.TrimMargins.Should().NotBeSameAs(shared);
     }
 
-    [Fact]
+    [Test]
     public void AssigningMarkMarginsCopiesTheValuesRatherThanHoldingTheReference()
     {
         var page = Plain();
@@ -308,7 +308,7 @@ public class PageBleedTests
         page.MarkMargins.Should().NotBeSameAs(shared);
     }
 
-    [Fact]
+    [Test]
     public void EveryPageGetsItsOwnCopyOfTheDocumentWideTrimMargins()
     {
         var document = new PdfDocument();
@@ -328,7 +328,7 @@ public class PageBleedTests
 
     // ----- crop marks ---------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ATrimmedPageIsGivenTheEightStandardCropMarks()
     {
         var page = Trimmed();
@@ -339,7 +339,7 @@ public class PageBleedTests
         saved.Marks.Should().HaveCount(8, "two marks meet at each of the four corners");
     }
 
-    [Fact]
+    [Test]
     public void EveryMarkLiesInTheRoomOutsideTheBleedAndNoneCrossesIt()
     {
         var page = Trimmed();
@@ -360,7 +360,7 @@ public class PageBleedTests
         }
     }
 
-    [Fact]
+    [Test]
     public void TheMarksLineUpWithTheCutsTheyMark()
     {
         var page = Trimmed();
@@ -384,7 +384,7 @@ public class PageBleedTests
             .BeEquivalentTo([Math.Round(trim.X1, 2), Math.Round(trim.X2, 2)]);
     }
 
-    [Fact]
+    [Test]
     public void ClearingTheMarkAllowanceDrawsNoMarks()
     {
         var page = Trimmed();
@@ -394,7 +394,7 @@ public class PageBleedTests
         Save(page).Marks.Should().BeEmpty("there is no room on the sheet to put them");
     }
 
-    [Fact]
+    [Test]
     public void AnUntrimmedPageIsGivenNoMarks()
     {
         var page = Plain();
@@ -403,7 +403,7 @@ public class PageBleedTests
         Save(page).Marks.Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void TheMarksAreDrawnOnceHoweverManyTimesTheDocumentIsSaved()
     {
         var page = Trimmed();
@@ -418,30 +418,30 @@ public class PageBleedTests
         Reread(second).Marks.Should().HaveCount(8);
     }
 
-    [Fact]
+    [Test]
     public void AskingForMarksOnAPageWithNoBleedSaysWhyItCannotHaveThem()
     {
         var page = Plain();
 
-        var thrown = Assert.Throws<InvalidOperationException>(() => page.DrawCropMarks());
+        var thrown = FluentActions.Invoking(() => page.DrawCropMarks()).Should().ThrowExactly<InvalidOperationException>().Which;
 
         thrown.Message.Should().Contain("TrimMargins");
     }
 
-    [Fact]
+    [Test]
     public void AskingForMarksWithNoRoomForThemSaysWhyItCannotHaveThem()
     {
         var page = Trimmed();
         page.MarkMargins.All = 0;
 
-        var thrown = Assert.Throws<InvalidOperationException>(() => page.DrawCropMarks());
+        var thrown = FluentActions.Invoking(() => page.DrawCropMarks()).Should().ThrowExactly<InvalidOperationException>().Which;
 
         thrown.Message.Should().Contain("MarkMargins");
     }
 
     // ----- what is written into the content stream ----------------------------------------------
 
-    [Fact]
+    [Test]
     public void ContentDrawnIntoTheBleedIsWrittenRatherThanClippedAway()
     {
         var page = Trimmed();

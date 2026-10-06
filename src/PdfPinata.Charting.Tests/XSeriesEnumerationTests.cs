@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Linq;
 using AwesomeAssertions;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -15,7 +15,7 @@ namespace PdfPinata.Charting.Tests;
 /// </remarks>
 public class XSeriesEnumerationTests
 {
-    [Fact]
+    [Test]
     public void LinqSeesTheValuesOfAnXSeriesInOrder()
     {
         var xSeries = new XSeries();
@@ -26,7 +26,7 @@ public class XSeriesEnumerationTests
         xSeries.OfType<XValue>().Should().Equal(first, second);
     }
 
-    [Fact]
+    [Test]
     public void ABlankIsANullElementThatOfTypeLeavesOut()
     {
         var xSeries = new XSeries();
@@ -38,7 +38,7 @@ public class XSeriesEnumerationTests
         xSeries.OfType<XValue>().Should().Equal(first, third);
     }
 
-    [Fact]
+    [Test]
     public void AnXSeriesIsEnumerableThroughTheInterface()
     {
         var xSeries = new XSeries();

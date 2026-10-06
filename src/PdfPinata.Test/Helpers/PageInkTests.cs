@@ -4,7 +4,7 @@ using System.Linq;
 using AwesomeAssertions;
 using ImageMagick;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Helpers;
 
@@ -43,7 +43,7 @@ public class PageInkTests
         c => c.R > 240 || c.G > 240,
     ];
 
-    [Fact]
+    [Test]
     public void AWholeImageIsCountedAsTheNineCopiesCountedIt()
     {
         using var image = Noise();
@@ -52,7 +52,7 @@ public class PageInkTests
             PageInk.Count(image, test).Should().Be(CountAsCircleAnnotationTestsDid(image, test));
     }
 
-    [Fact]
+    [Test]
     public void ABoxIsCountedAsBothFieldAppearanceCopiesCountedIt()
     {
         using var image = Noise();
@@ -65,7 +65,7 @@ public class PageInkTests
         }
     }
 
-    [Fact]
+    [Test]
     public void IsBlueIsTheTestSixFilesWroteAlike()
     {
         using var image = Noise();
@@ -75,7 +75,7 @@ public class PageInkTests
             PageInk.IsBlue(colour).Should().Be(IsBlueAsPageEventsTestsHadIt(colour));
     }
 
-    [Fact]
+    [Test]
     public void APointIsReadAsEveryCopyReadIt()
     {
         using var image = Noise();
@@ -88,7 +88,7 @@ public class PageInkTests
         }
     }
 
-    [Fact]
+    [Test]
     public void APlaceInARectangleIsReadAsEveryCopyReadIt()
     {
         using var image = Noise();

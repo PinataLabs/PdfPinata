@@ -9,7 +9,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Signatures;
 using PdfPinata.Signing;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.SigningCertificates;
 
 namespace PdfPinata.Test.IO;
@@ -21,7 +21,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class SignatureTimestampTests
 {
-    [Fact]
+    [Test]
     public void ASignatureWithATimestampReportsWhatItSays()
     {
         var before = DateTimeOffset.UtcNow.AddSeconds(-5);
@@ -38,7 +38,7 @@ public class SignatureTimestampTests
         verification.Timestamp!.Value.Should().BeOnOrAfter(before).And.BeOnOrBefore(after);
     }
 
-    [Fact]
+    [Test]
     public void ASignatureWithoutATimestampReportsNone()
     {
         var verification = PdfSignatureVerifier.Verify(Sign(Unsigned())).Single();
@@ -49,7 +49,7 @@ public class SignatureTimestampTests
         verification.Timestamp.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void ATimestampTokenWhoseOwnSignatureIsDamagedIsNotIntactAndItsTimeIsNotReported()
     {
         var signer = new Pkcs7Signer(SigningCertificates.Default,
@@ -63,7 +63,7 @@ public class SignatureTimestampTests
         verification.Timestamp.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void ATimestampTokenTakenFromAnotherSignatureIsNotIntact()
     {
         var recorder = new RecordingTimestampProvider(Authority());
@@ -83,7 +83,7 @@ public class SignatureTimestampTests
         verification.Timestamp.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void ATokenWithoutItsCertificateIsCheckedAgainstTheCertificatesTheSignatureCarries()
     {
         var authorityCertificate = SigningCertificates.CreateTimestampAuthority("CN=PdfPinata Test TSA");
@@ -99,7 +99,7 @@ public class SignatureTimestampTests
         verification.HasTimestamp.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ATokenWhoseCertificateIsNowhereToBeFoundIsNotIntact()
     {
         var signer = new Pkcs7Signer(SigningCertificates.Default,
@@ -112,7 +112,7 @@ public class SignatureTimestampTests
         verification.Timestamp.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void ATimestampAttributeThatIsNotATokenIsNotIntact()
     {
         var signer = new Pkcs7Signer(SigningCertificates.Default,
@@ -125,7 +125,7 @@ public class SignatureTimestampTests
         verification.Timestamp.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void ATimestampIsCheckedOnASignatureTheDocumentNoLongerMatches()
     {
         // The token's imprint is the hash of the signature value, not of the document, so a change
@@ -144,7 +144,7 @@ public class SignatureTimestampTests
         verification.HasTimestamp.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ATimestampSourceThatFailsFailsTheSigningAndNothingIsWritten()
     {
         var signer = new Pkcs7Signer(SigningCertificates.Default, timestampProvider: new FailingTimestampProvider());

@@ -2,7 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -48,14 +48,14 @@ public class DdlHexEscapeTests
     private static string TextOf(Document document) =>
         string.Concat(((Paragraph)document.LastSection.Elements[0]).Elements.OfType<Text>().Select(text => text.Content));
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\\x41", "A")]
-    [InlineData("\\x7e", "~")]
-    [InlineData("\\x7E", "~")]
-    [InlineData("\\x9", "\t")]
-    [InlineData("\\xe9", "é")]
-    [InlineData("a\\x42z", "aBz")]
-    [InlineData("\\x41\\x42", "AB")]
+    [Test, Timeout(Patience)]
+    [Arguments("\\x41", "A")]
+    [Arguments("\\x7e", "~")]
+    [Arguments("\\x7E", "~")]
+    [Arguments("\\x9", "\t")]
+    [Arguments("\\xe9", "é")]
+    [Arguments("a\\x42z", "aBz")]
+    [Arguments("\\x41\\x42", "AB")]
     public async Task AHexEscapeIsTheCharacterItsDigitsName(string literalBody, string expected)
     {
         var document = await Read(literalBody);
@@ -63,7 +63,7 @@ public class DdlHexEscapeTests
         document.Info.Title.Should().Be(expected);
     }
 
-    [Fact(Timeout = Patience)]
+    [Test, Timeout(Patience)]
     public async Task TheCharacterAfterTheDigitsIsKept()
     {
         var document = await Read("\\x41 b");
@@ -71,7 +71,7 @@ public class DdlHexEscapeTests
         document.Info.Title.Should().Be("A b", "the space after the digits is part of the string");
     }
 
-    [Fact(Timeout = Patience)]
+    [Test, Timeout(Patience)]
     public async Task AnEscapeAtTheEndOfTheStringStillLetsTheStringEnd()
     {
         // The closing quote is the character after the digits here, and stepping over it is what
@@ -82,12 +82,12 @@ public class DdlHexEscapeTests
         TextOf(document).Should().Be("body", "everything after the title is still read");
     }
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\\x")]
-    [InlineData("\\xg")]
-    [InlineData("\\x414")]
+    [Test, Timeout(Patience)]
+    [Arguments("\\x")]
+    [Arguments("\\xg")]
+    [Arguments("\\x414")]
     // A letter that is a hex digit counts as one, so this is three digits rather than two and a c.
-    [InlineData("a\\x42c")]
+    [Arguments("a\\x42c")]
     public async Task AnEscapeWithNoDigitsOrMoreThanTwoIsRefused(string literalBody)
     {
         var complaints = await Task.Run(() => ReaderDiagnostics.ComplaintsAbout(DocumentTitled(literalBody)));

@@ -7,7 +7,7 @@ using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Tables;
 using PinataLayout.Rendering.Tests.Helpers;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -26,7 +26,7 @@ public class TableRenderingTests
     /// <summary>The width a table gives a border it was not told the width of.</summary>
     private const double DefaultBorderWidth = 0.5;
 
-    [Fact]
+    [Test]
     public void ACellBorderIsDrawnAtTheWidthTheCellAsksForRatherThanTheTables()
     {
         var page = Rendered.FirstPageOf(Bordered());
@@ -38,9 +38,9 @@ public class TableRenderingTests
             .Should().BeEquivalentTo([DefaultBorderWidth, 2.0, 8.0, 15.0]);
     }
 
-    [Theory]
-    [InlineData(14)]
-    [InlineData(40)]
+    [Test]
+    [Arguments(14)]
+    [Arguments(40)]
     public void ARowHeldToAnExactHeightIsDrawnAtThatHeight(double height)
     {
         var page = Rendered.FirstPageOf(OneRowOf(height));
@@ -52,7 +52,7 @@ public class TableRenderingTests
         (rules[0] - rules[^1]).Should().BeApproximately(height + DefaultBorderWidth, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void MergingACellToTheRightTakesAwayTheEdgeBetweenTheTwo()
     {
         // The edge is still drawn where the cells below it describe it, so what changes is not
@@ -64,7 +64,7 @@ public class TableRenderingTests
             .Should().NotBeEmpty("an unmerged row is ruled between its two cells");
     }
 
-    [Fact]
+    [Test]
     public void MergingACellDownwardsTakesAwayTheEdgeBetweenTheTwo()
     {
         SegmentsAcrossTheMiddleOfTheSecondColumn(Merged(cells => cells.TopRight.MergeDown = 1))
@@ -74,7 +74,7 @@ public class TableRenderingTests
             .Should().NotBeEmpty("an unmerged column is ruled between its two cells");
     }
 
-    [Fact]
+    [Test]
     public void ACentredCellPutsItsTextHalfwayBetweenWhereTheTopAndTheBottomWouldPutIt()
     {
         // A row taller than its text has to place that text somewhere, and the three alignments
@@ -161,10 +161,10 @@ public class TableRenderingTests
     // cell of such a row is not. Grafting upstream's version into this fork fails all three of
     // these with that message, so they are a guard rather than a formality.
 
-    [Theory]
-    [InlineData(2, 1)]
-    [InlineData(8, 1)]
-    [InlineData(8, 2)]
+    [Test]
+    [Arguments(2, 1)]
+    [Arguments(8, 1)]
+    [Arguments(8, 2)]
     public void ACellOverEveryColumnAndMoreThanOneRowIsDrawnWithTheRowsBelowIt(int columns, int mergeDown)
     {
         var page = Rendered.FirstPageOf(SpanningEveryColumn(columns, mergeDown));
@@ -213,28 +213,28 @@ public class TableRenderingTests
     // the object model had accepted without a word. It is read as reaching the edge now, which is
     // the reading the renderer's own KeepWith arithmetic has always taken.
 
-    [Fact]
+    [Test]
     public void AMergeRunningPastTheLastRowDrawsWhatOneStoppingAtItDraws()
     {
         PageDrawnBy(Overmerged(right: 1, down: 5))
             .Should().Be(PageDrawnBy(Overmerged(right: 1, down: 2)));
     }
 
-    [Fact]
+    [Test]
     public void AMergeRunningPastTheLastColumnDrawsWhatOneStoppingAtItDraws()
     {
         PageDrawnBy(Overmerged(right: 9, down: 1))
             .Should().Be(PageDrawnBy(Overmerged(right: 2, down: 1)));
     }
 
-    [Fact]
+    [Test]
     public void AMergeRunningPastBothEdgesIsStillJustTheTable()
     {
         PageDrawnBy(Overmerged(right: 9, down: 5))
             .Should().Be(PageDrawnBy(Overmerged(right: 2, down: 2)));
     }
 
-    [Fact]
+    [Test]
     public void TheCellsTheMergeDoesNotReachAreStillDrawn()
     {
         // So that the comparisons above are between two pages with something on them rather than

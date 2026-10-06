@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.Rendering.Tests.Helpers;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -40,15 +40,15 @@ public class SymbolAndDecimalTabTests
     ///   the only way to see it is to compare against a paragraph carrying that character as
     ///   text - which is what <see cref="Glyphs"/> exists for, the fonts being Identity-H.
     /// </summary>
-    [Theory]
-    [InlineData(SymbolName.Euro, "€")]
-    [InlineData(SymbolName.Copyright, "©")]
-    [InlineData(SymbolName.Trademark, "™")]
-    [InlineData(SymbolName.RegisteredTrademark, "®")]
-    [InlineData(SymbolName.Bullet, "•")]
-    [InlineData(SymbolName.Not, "¬")]
-    [InlineData(SymbolName.EmDash, "—")]
-    [InlineData(SymbolName.EnDash, "–")]
+    [Test]
+    [Arguments(SymbolName.Euro, "€")]
+    [Arguments(SymbolName.Copyright, "©")]
+    [Arguments(SymbolName.Trademark, "™")]
+    [Arguments(SymbolName.RegisteredTrademark, "®")]
+    [Arguments(SymbolName.Bullet, "•")]
+    [Arguments(SymbolName.Not, "¬")]
+    [Arguments(SymbolName.EmDash, "—")]
+    [Arguments(SymbolName.EnDash, "–")]
     public void EveryNamedSymbolDrawsTheCharacterItStandsFor(SymbolName symbol, string expected)
     {
         var page = Rendered.FirstPageOf(ADocumentShowing(symbol));
@@ -56,7 +56,7 @@ public class SymbolAndDecimalTabTests
         Glyphs.On(page).Should().Equal(GlyphsFor(expected));
     }
 
-    [Fact]
+    [Test]
     public void TheSymbolsAreAllDifferentFromOneAnother()
     {
         // A mapping that answered the same character for two of them would satisfy every case
@@ -71,7 +71,7 @@ public class SymbolAndDecimalTabTests
         drawn.Distinct().Should().HaveCount(8);
     }
 
-    [Fact]
+    [Test]
     public void ASymbolSitsBetweenTheTextEitherSideOfIt()
     {
         var page = Rendered.FirstPageOf(ADocumentShowing("a", SymbolName.Euro, "b"));
@@ -79,7 +79,7 @@ public class SymbolAndDecimalTabTests
         Glyphs.On(page).Should().Equal(GlyphsFor("a€b"));
     }
 
-    [Fact]
+    [Test]
     public void ACharacterGivenByNumberDrawsThatCharacter()
     {
         // The default arm: anything that is not one of the named symbols is the character the
@@ -96,11 +96,11 @@ public class SymbolAndDecimalTabTests
     ///   'é' is 0xE9, a lead byte with nothing after it, and came out as U+FFFD, and anything above
     ///   U+00FF lost its high byte before that.
     /// </summary>
-    [Theory]
-    [InlineData('é')]
-    [InlineData('ß')]
-    [InlineData('Ω')]
-    [InlineData('€')]
+    [Test]
+    [Arguments('é')]
+    [Arguments('ß')]
+    [Arguments('Ω')]
+    [Arguments('€')]
     public void ACharacterBeyondAsciiGivenByNumberDrawsThatCharacter(char ch)
     {
         var document = new Document();
@@ -109,7 +109,7 @@ public class SymbolAndDecimalTabTests
         Glyphs.On(Rendered.FirstPageOf(document)).Should().Equal(GlyphsFor(ch.ToString()));
     }
 
-    [Fact]
+    [Test]
     public void ACharacterAboveTheBasicMultilingualPlaneIsDrawnWhole()
     {
         // Reachable only through SymbolName, which keeps the whole code where Char keeps 16 bits.
@@ -128,11 +128,11 @@ public class SymbolAndDecimalTabTests
     ///   again. The formatter measured Count of them, so the extras were drawn into a width that
     ///   had not been reserved for them. See the backlog spec's finding F17.
     /// </summary>
-    [Theory]
-    [InlineData(1, "•")]
-    [InlineData(2, "••")]
-    [InlineData(3, "•••")]
-    [InlineData(5, "•••••")]
+    [Test]
+    [Arguments(1, "•")]
+    [Arguments(2, "••")]
+    [Arguments(3, "•••")]
+    [Arguments(5, "•••••")]
     public void ARepeatedSymbolIsDrawnAsManyTimesAsItSaysItIs(int count, string expected)
     {
         var document = new Document();
@@ -141,7 +141,7 @@ public class SymbolAndDecimalTabTests
         Glyphs.On(Rendered.FirstPageOf(document)).Should().Equal(GlyphsFor(expected));
     }
 
-    [Fact]
+    [Test]
     public void ARepeatedSymbolTakesTheWidthTheFormatterReservedForIt()
     {
         // The consequence of drawing more than were measured: the text after the symbols has to
@@ -163,7 +163,7 @@ public class SymbolAndDecimalTabTests
 
     // ----- the non-breakable blank ------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ANonBreakableBlankDrawsTheNoBreakSpace()
     {
         // It used to have no character at all: the symbol carries no code, so GetSymbol fell to
@@ -174,7 +174,7 @@ public class SymbolAndDecimalTabTests
         Glyphs.On(page).Should().Equal(GlyphsFor("a b"));
     }
 
-    [Fact]
+    [Test]
     public void ANonBreakableBlankTakesTheRoomOfASpace()
     {
         var withTheSymbol = TextBaselines.PositionsOf(
@@ -205,7 +205,7 @@ public class SymbolAndDecimalTabTests
         return Rendered.FirstPageOf(document);
     }
 
-    [Fact]
+    [Test]
     public void ALineIsNotBrokenAtANonBreakableBlank()
     {
         // The breaking blank first, to show the measure really does break between the last two
@@ -220,7 +220,7 @@ public class SymbolAndDecimalTabTests
         joined[1].Y.Should().Be(joined[^1].Y);
     }
 
-    [Fact]
+    [Test]
     public void ARunTooLongForAnyLineIsStillBrokenAtItsNonBreakableBlank()
     {
         // The last resort, as for a word longer than the measure: a run of words joined by
@@ -267,7 +267,7 @@ public class SymbolAndDecimalTabTests
         return runs.Max(run => run.X);
     }
 
-    [Fact]
+    [Test]
     public void ANumberOnADecimalTabIsSetSoItsPointLandsOnTheStop()
     {
         // The whole point of a decimal tab: however many digits come before the separator, the
@@ -276,7 +276,7 @@ public class SymbolAndDecimalTabTests
         WhereTheNumberStarts("1.5").Should().BeGreaterThan(WhereTheNumberStarts("1234.5"));
     }
 
-    [Fact]
+    [Test]
     public void TwoNumbersWithTheSameDigitsBeforeThePointStartTogether()
     {
         WhereTheNumberStarts("12.3").Should()
@@ -284,7 +284,7 @@ public class SymbolAndDecimalTabTests
                 "what follows the point does not move the point");
     }
 
-    [Fact]
+    [Test]
     public void ANumberWithNoPointIsTreatedAsThoughItEndedInOne()
     {
         // There is nothing after the separator, so the whole of it sits before the stop - the
@@ -293,7 +293,7 @@ public class SymbolAndDecimalTabTests
             .BeApproximately(WhereTheNumberStarts("123.4"), 0.01);
     }
 
-    [Fact]
+    [Test]
     public void ADecimalTabWithNothingAfterItIsStillLaidOut()
     {
         var document = new Document();
@@ -307,7 +307,7 @@ public class SymbolAndDecimalTabTests
         render.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void ADecimalTabFollowedByWordsRatherThanANumberIsStillLaidOut()
     {
         var render = () => Rendered.FirstPageOf(ANumberOnADecimalTab("no digits here"));

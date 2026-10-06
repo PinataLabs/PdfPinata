@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.IO.SharedResourceFixtures;
 
 namespace PdfPinata.Test.IO;
@@ -24,7 +24,7 @@ public class PruneCharProcsAndAppearancesTests
 {
     // ----- Type 3 glyph procedures ------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnImageDrawnOnlyByAGlyphOfATypeThreeFontSurvives()
     {
         // The glyph is the only thing that draws Im1: the page's own content stream just sets a
@@ -36,7 +36,7 @@ public class PruneCharProcsAndAppearancesTests
         XObjectsOf(document.Pages[0]).Should().Equal("/Im1");
     }
 
-    [Fact]
+    [Test]
     public void TheFontTheGlyphBelongsToSurvivesToo()
     {
         var document = Saved.Open(PageDrawingAGlyphThatDrawsAnImage());
@@ -46,7 +46,7 @@ public class PruneCharProcsAndAppearancesTests
         FontsOf(document.Pages[0]).Should().Equal("/T3");
     }
 
-    [Fact]
+    [Test]
     public void AnImageNoGlyphDrawsIsStillPruned()
     {
         // Said separately from the survival of Im1, because a pruner that gave up on the font and
@@ -60,7 +60,7 @@ public class PruneCharProcsAndAppearancesTests
 
     // ----- annotation appearance streams -------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnImageDrawnOnlyByAnAnnotationsAppearanceSurvives()
     {
         // The page's content stream draws nothing at all; everything visible comes from the
@@ -72,7 +72,7 @@ public class PruneCharProcsAndAppearancesTests
         XObjectsOf(document.Pages[0]).Should().Contain("/Im1");
     }
 
-    [Fact]
+    [Test]
     public void AnImageNoAppearanceDrawsIsStillPruned()
     {
         var document = Saved.Open(PageWithAnAnnotationAppearance());
@@ -88,7 +88,7 @@ public class PruneCharProcsAndAppearancesTests
     ///   button in a form carries. Every state has to be read, because the one that is not
     ///   showing today is the one that shows tomorrow.
     /// </summary>
-    [Fact]
+    [Test]
     public void EveryStateOfAVaryingAppearanceIsRead()
     {
         var document = Saved.Open(PageWithAnAnnotationAppearancePerState());
@@ -101,7 +101,7 @@ public class PruneCharProcsAndAppearancesTests
         kept.Should().NotContain("/Im3", "which nothing draws in any state");
     }
 
-    [Fact]
+    [Test]
     public void APageWithNoAnnotationsAtAllIsPrunedAsBefore()
     {
         // The early return, and a check that reading appearances did not change the ordinary case.

@@ -9,7 +9,7 @@ using PdfPinata.Pdf.Extraction;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Structure;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
 using Reader = PdfPinata.Pdf.IO.PdfReader;
@@ -36,7 +36,7 @@ namespace PdfPinata.Test.IO;
 /// </remarks>
 public class TaggedTextExtractionTests
 {
-    [Fact]
+    [Test]
     public void AWordDeclaredWholeAcrossTwoRunsExtractsAsOneWord()
     {
         // One sequence, opened once, spanning a line break - the shape a word broken at a hyphen
@@ -51,7 +51,7 @@ public class TaggedTextExtractionTests
         PdfTextExtractor.ExtractText(page).Should().Be("conformance");
     }
 
-    [Fact]
+    [Test]
     public void AGenuineHyphenSurvivesExtraction()
     {
         // No marked content at all - fixing the case above must not touch a real hyphen that was
@@ -61,7 +61,7 @@ public class TaggedTextExtractionTests
         PdfTextExtractor.ExtractText(page).Should().Be("well-formed");
     }
 
-    [Fact]
+    [Test]
     public void ARunningHeadIsAbsentFromTheJoinedTextButPresentAmongTheRuns()
     {
         // Both runs decode to the same word - WithContentReplaced can only reuse the glyph encoding
@@ -85,7 +85,7 @@ public class TaggedTextExtractionTests
             + "out entirely, rather than joined onto it as a second line");
     }
 
-    [Fact]
+    [Test]
     public void AStructuralSequenceNestedInsideAnArtifactIsStillFurniture()
     {
         // Malformed for this library's own writer - StructureTagger never tags anything while an
@@ -103,7 +103,7 @@ public class TaggedTextExtractionTests
             "the run is furniture however specific a tag its own nearer sequence claims");
     }
 
-    [Fact]
+    [Test]
     public void ALigatureStyleSpanExtractsAsTheCharactersItDeclares()
     {
         // The shape the ligature path already writes: one sequence, one run, no /MCID at all.
@@ -117,7 +117,7 @@ public class TaggedTextExtractionTests
         PdfTextExtractor.ExtractText(page).Should().Be("fi");
     }
 
-    [Fact]
+    [Test]
     public void ASequenceDeclaringTextOverSeveralRunsContributesItOnce()
     {
         var page = Reopen(WithContentReplaced((font, shown) =>
@@ -135,7 +135,7 @@ public class TaggedTextExtractionTests
             "the sequence says the word once, however many runs it spans");
     }
 
-    [Fact]
+    [Test]
     public void NestedSequencesReportTheInnermostTag()
     {
         var page = Reopen(WithContentReplaced((font, shown) =>
@@ -150,7 +150,7 @@ public class TaggedTextExtractionTests
         run.MarkedContentId.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void APropertyListNamedThroughResourcesIsHonouredLikeAnInlineOne()
     {
         var bytes = WithContentReplaced((font, shown) =>
@@ -177,7 +177,7 @@ public class TaggedTextExtractionTests
         run.MarkedContentId.Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void ANameThatResolvesToNothingIsASequenceWithNoProperties()
     {
         // No /Properties category was ever added to the page's resources, so /Missing resolves to
@@ -192,7 +192,7 @@ public class TaggedTextExtractionTests
         run.MarkedContentId.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void ADocumentWithNoMarkedContentExtractsExactlyAsBefore()
     {
         var page = Reopen(Draw(gfx => gfx.DrawString("Plain text", Font, XBrushes.Black, 40, 100)));
@@ -205,7 +205,7 @@ public class TaggedTextExtractionTests
         PdfTextExtractor.ExtractText(page).Should().Be("Plain text");
     }
 
-    [Fact]
+    [Test]
     public void AnUnterminatedSequenceDoesNotAbortExtraction()
     {
         // The BDC is never closed - the content simply ends. The run inside it still comes back.
@@ -217,7 +217,7 @@ public class TaggedTextExtractionTests
         run.Tag.Should().Be(PdfTag.Span);
     }
 
-    [Fact]
+    [Test]
     public void AnEndWithNoMatchingBeginIsIgnoredRatherThanThrowing()
     {
         var page = Reopen(WithContentReplaced((font, shown) =>
@@ -228,7 +228,7 @@ public class TaggedTextExtractionTests
         run.Tag.Should().BeNull("the stray EMC popped an empty stack rather than corrupting it");
     }
 
-    [Fact]
+    [Test]
     public void ATruncatedInlineDictionaryDoesNotAbortExtraction()
     {
         // The dictionary never sees its closing '>>' before the content ends. CLexer.ScanDictionary
@@ -242,7 +242,7 @@ public class TaggedTextExtractionTests
         extracting.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void AnEndPastTheDepthCapClosesItsOwnSequenceRatherThanATrackedOne()
     {
         // A thousand plain sequences push the tracked stack to its cap; the next one past it is

@@ -7,7 +7,7 @@ using PinataLayout.Rendering;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PinataLayout.DocumentObjectModel.Shapes.ImageSource;
 
 namespace PdfPinata.Test.Rendering;
@@ -25,32 +25,32 @@ namespace PdfPinata.Test.Rendering;
 /// </remarks>
 public class ImageSizingTests
 {
-    [Theory]
+    [Test]
     // Nothing said: the image's own pixels at its own resolution.
-    [InlineData(null, null, null, null, null, null, false, "384.00 x 384.00")]
+    [Arguments(null, null, null, null, null, null, false, "384.00 x 384.00")]
     // Ratio locked, the default: one extent given sets the other.
-    [InlineData(null, 4.0, null, null, null, null, false, "113.39 x 113.39")]
-    [InlineData(null, null, 3.0, null, null, null, false, "85.04 x 85.04")]
-    [InlineData(true, 4.0, 3.0, null, null, null, false, "85.04 x 85.04")]
-    [InlineData(true, 3.0, 4.0, null, null, null, false, "85.04 x 85.04")]
-    [InlineData(true, null, null, 0.5, null, null, false, "192.00 x 192.00")]
-    [InlineData(true, null, null, null, 0.25, null, false, "96.00 x 96.00")]
-    [InlineData(true, null, null, 0.5, 0.25, null, false, "192.00 x 192.00")]
-    [InlineData(true, 4.0, null, null, 0.5, null, false, "56.69 x 56.69")]
+    [Arguments(null, 4.0, null, null, null, null, false, "113.39 x 113.39")]
+    [Arguments(null, null, 3.0, null, null, null, false, "85.04 x 85.04")]
+    [Arguments(true, 4.0, 3.0, null, null, null, false, "85.04 x 85.04")]
+    [Arguments(true, 3.0, 4.0, null, null, null, false, "85.04 x 85.04")]
+    [Arguments(true, null, null, 0.5, null, null, false, "192.00 x 192.00")]
+    [Arguments(true, null, null, null, 0.25, null, false, "96.00 x 96.00")]
+    [Arguments(true, null, null, 0.5, 0.25, null, false, "192.00 x 192.00")]
+    [Arguments(true, 4.0, null, null, 0.5, null, false, "56.69 x 56.69")]
     // Ratio unlocked: each extent and each scale on its own terms.
-    [InlineData(false, null, null, null, null, null, false, "384.00 x 384.00")]
-    [InlineData(false, 4.0, 3.0, null, null, null, false, "113.39 x 85.04")]
-    [InlineData(false, 4.0, null, null, null, null, false, "113.39 x 384.00")]
-    [InlineData(false, null, 3.0, null, null, null, false, "384.00 x 85.04")]
-    [InlineData(false, 4.0, 3.0, 0.5, 0.25, null, false, "28.35 x 42.52")]
-    [InlineData(false, null, null, 0.5, null, null, false, "384.00 x 192.00")]
+    [Arguments(false, null, null, null, null, null, false, "384.00 x 384.00")]
+    [Arguments(false, 4.0, 3.0, null, null, null, false, "113.39 x 85.04")]
+    [Arguments(false, 4.0, null, null, null, null, false, "113.39 x 384.00")]
+    [Arguments(false, null, 3.0, null, null, null, false, "384.00 x 85.04")]
+    [Arguments(false, 4.0, 3.0, 0.5, 0.25, null, false, "28.35 x 42.52")]
+    [Arguments(false, null, null, 0.5, null, null, false, "384.00 x 192.00")]
     // A resolution given is used in place of the image's own.
-    [InlineData(null, null, null, null, null, 144.0, false, "256.00 x 256.00")]
-    [InlineData(false, 4.0, null, null, null, 144.0, false, "113.39 x 256.00")]
+    [Arguments(null, null, null, null, null, 144.0, false, "256.00 x 256.00")]
+    [Arguments(false, 4.0, null, null, null, 144.0, false, "113.39 x 256.00")]
     // A crop is taken off the laid-out size, and the image is drawn at its own scale behind it.
-    [InlineData(null, null, null, null, null, null, true, "384.00 x 383.47")]
-    [InlineData(null, 4.0, null, null, null, null, true, "113.39 x 113.23")]
-    [InlineData(false, 4.0, 3.0, null, null, 144.0, true, "113.39 x 85.04")]
+    [Arguments(null, null, null, null, null, null, true, "384.00 x 383.47")]
+    [Arguments(null, 4.0, null, null, null, null, true, "113.39 x 113.23")]
+    [Arguments(false, 4.0, 3.0, null, null, 144.0, true, "113.39 x 85.04")]
     public void AnImageIsDrawnAtTheSizeItsSettingsResolveTo(bool? lockAspectRatio, double? widthCm, double? heightCm,
         double? scaleHeight, double? scaleWidth, double? resolution, bool cropped, string expected)
     {

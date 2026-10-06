@@ -1,7 +1,7 @@
 using System;
 using AwesomeAssertions;
 using PdfPinata.Text;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Text;
 
@@ -12,7 +12,7 @@ namespace PdfPinata.Test.Text;
 /// </summary>
 public class UnicodePropertyTests
 {
-    [Fact]
+    [Test]
     public void TheTablesSayWhichUnicodeTheyCameFrom()
     {
         // Pinned rather than merely reported: the conformance suites in Assets/Unicode are from
@@ -23,34 +23,34 @@ public class UnicodePropertyTests
 
     // ----- Bidi_Class ----------------------------------------------------------------------------
 
-    [Theory]
-    [InlineData(0x0041, BidiClass.L, "Latin capital A")]
-    [InlineData(0x05D0, BidiClass.R, "Hebrew alef")]
-    [InlineData(0x0627, BidiClass.AL, "Arabic alef")]
-    [InlineData(0x0030, BidiClass.EN, "digit zero")]
-    [InlineData(0x0660, BidiClass.AN, "Arabic-Indic digit zero")]
-    [InlineData(0x0020, BidiClass.WS, "space")]
-    [InlineData(0x0009, BidiClass.S, "tab is a segment separator")]
-    [InlineData(0x000A, BidiClass.B, "line feed is a paragraph separator")]
-    [InlineData(0x0301, BidiClass.NSM, "combining acute accent")]
-    [InlineData(0x202B, BidiClass.RLE, "right-to-left embedding")]
-    [InlineData(0x2066, BidiClass.LRI, "left-to-right isolate")]
-    [InlineData(0x2069, BidiClass.PDI, "pop directional isolate")]
-    [InlineData(0x061C, BidiClass.AL, "Arabic letter mark")]
-    [InlineData(0x05BE, BidiClass.R, "Hebrew maqaf")]
-    [InlineData(0x4E00, BidiClass.L, "the first CJK ideograph")]
-    [InlineData(0x1F600, BidiClass.ON, "a grinning face is other neutral")]
-    [InlineData(0xFFFF, BidiClass.BN, "a noncharacter is boundary neutral")]
+    [Test]
+    [Arguments(0x0041, BidiClass.L, "Latin capital A")]
+    [Arguments(0x05D0, BidiClass.R, "Hebrew alef")]
+    [Arguments(0x0627, BidiClass.AL, "Arabic alef")]
+    [Arguments(0x0030, BidiClass.EN, "digit zero")]
+    [Arguments(0x0660, BidiClass.AN, "Arabic-Indic digit zero")]
+    [Arguments(0x0020, BidiClass.WS, "space")]
+    [Arguments(0x0009, BidiClass.S, "tab is a segment separator")]
+    [Arguments(0x000A, BidiClass.B, "line feed is a paragraph separator")]
+    [Arguments(0x0301, BidiClass.NSM, "combining acute accent")]
+    [Arguments(0x202B, BidiClass.RLE, "right-to-left embedding")]
+    [Arguments(0x2066, BidiClass.LRI, "left-to-right isolate")]
+    [Arguments(0x2069, BidiClass.PDI, "pop directional isolate")]
+    [Arguments(0x061C, BidiClass.AL, "Arabic letter mark")]
+    [Arguments(0x05BE, BidiClass.R, "Hebrew maqaf")]
+    [Arguments(0x4E00, BidiClass.L, "the first CJK ideograph")]
+    [Arguments(0x1F600, BidiClass.ON, "a grinning face is other neutral")]
+    [Arguments(0xFFFF, BidiClass.BN, "a noncharacter is boundary neutral")]
     public void ACharacterHasTheBidiClassTheDatabaseGivesIt(int codePoint, BidiClass expected, string what)
     {
         UnicodeProperties.BidiClassOf(codePoint).Should().Be(expected, what);
     }
 
-    [Theory]
-    [InlineData(0x05EB, BidiClass.R, "unassigned inside the Hebrew block")]
-    [InlineData(0x08B5, BidiClass.AL, "inside the Arabic block")]
-    [InlineData(0x20C0, BidiClass.ET, "unassigned inside the currency symbols block")]
-    [InlineData(0xFDD0, BidiClass.BN, "a noncharacter in the Arabic Presentation Forms block")]
+    [Test]
+    [Arguments(0x05EB, BidiClass.R, "unassigned inside the Hebrew block")]
+    [Arguments(0x08B5, BidiClass.AL, "inside the Arabic block")]
+    [Arguments(0x20C0, BidiClass.ET, "unassigned inside the currency symbols block")]
+    [Arguments(0xFDD0, BidiClass.BN, "a noncharacter in the Arabic Presentation Forms block")]
     public void AnUnassignedCodePointDefaultsByWhereItSitsAndNotToLeftToRight(
         int codePoint, BidiClass expected, string what)
     {
@@ -63,29 +63,29 @@ public class UnicodePropertyTests
 
     // ----- Script --------------------------------------------------------------------------------
 
-    [Theory]
-    [InlineData(0x0041, UnicodeScript.Latin)]
-    [InlineData(0x05D0, UnicodeScript.Hebrew)]
-    [InlineData(0x0627, UnicodeScript.Arabic)]
-    [InlineData(0x0930, UnicodeScript.Devanagari)]
-    [InlineData(0x4E00, UnicodeScript.Han)]
-    [InlineData(0x0030, UnicodeScript.Common)]
-    [InlineData(0x0301, UnicodeScript.Inherited)]
-    [InlineData(0x05EB, UnicodeScript.Unknown)]
+    [Test]
+    [Arguments(0x0041, UnicodeScript.Latin)]
+    [Arguments(0x05D0, UnicodeScript.Hebrew)]
+    [Arguments(0x0627, UnicodeScript.Arabic)]
+    [Arguments(0x0930, UnicodeScript.Devanagari)]
+    [Arguments(0x4E00, UnicodeScript.Han)]
+    [Arguments(0x0030, UnicodeScript.Common)]
+    [Arguments(0x0301, UnicodeScript.Inherited)]
+    [Arguments(0x05EB, UnicodeScript.Unknown)]
     public void ACharacterHasTheScriptTheDatabaseGivesIt(int codePoint, UnicodeScript expected)
     {
         UnicodeProperties.ScriptOf(codePoint).Should().Be(expected);
     }
 
-    [Theory]
-    [InlineData(UnicodeScript.Arabic, "arab")]
-    [InlineData(UnicodeScript.Latin, "latn")]
-    [InlineData(UnicodeScript.Devanagari, "deva")]
-    [InlineData(UnicodeScript.Hebrew, "hebr")]
-    [InlineData(UnicodeScript.Han, "hani")]
-    [InlineData(UnicodeScript.Common, "zyyy")]
-    [InlineData(UnicodeScript.Inherited, "zinh")]
-    [InlineData(UnicodeScript.Unknown, "zzzz")]
+    [Test]
+    [Arguments(UnicodeScript.Arabic, "arab")]
+    [Arguments(UnicodeScript.Latin, "latn")]
+    [Arguments(UnicodeScript.Devanagari, "deva")]
+    [Arguments(UnicodeScript.Hebrew, "hebr")]
+    [Arguments(UnicodeScript.Han, "hani")]
+    [Arguments(UnicodeScript.Common, "zyyy")]
+    [Arguments(UnicodeScript.Inherited, "zinh")]
+    [Arguments(UnicodeScript.Unknown, "zzzz")]
     public void AScriptKnowsTheFourLetterCodeAShaperIsToldItBy(UnicodeScript script, string code)
     {
         // Lowercased ISO 15924, which is what ITextShaper.Shape takes.
@@ -94,7 +94,7 @@ public class UnicodePropertyTests
 
     // ----- the shape of the tables ----------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void EveryCodePointHasBothProperties()
     {
         // The tables are a complete partition of the code space, so there is no code point either
@@ -113,9 +113,9 @@ public class UnicodePropertyTests
         undefined.Should().Be(0);
     }
 
-    [Theory]
-    [InlineData(-1)]
-    [InlineData(0x110000)]
+    [Test]
+    [Arguments(-1)]
+    [Arguments(0x110000)]
     public void SomethingThatIsNotACodePointIsRefused(int notACodePoint)
     {
         var bidi = () => UnicodeProperties.BidiClassOf(notACodePoint);

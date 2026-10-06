@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -20,10 +20,10 @@ namespace PdfPinata.Test.IO;
 /// </remarks>
 public class LexerLineContinuationTests
 {
-    [Theory(Timeout = 5000)]
-    [InlineData("\n")]
-    [InlineData("\r")]
-    [InlineData("\r\n")]
+    [Test, Timeout(5000)]
+    [Arguments("\n")]
+    [Arguments("\r")]
+    [Arguments("\r\n")]
     public async Task ABackslashBeforeALineEndingJoinsTheLines(string lineEnding)
     {
         var token = await ScanLiteralString("a\\" + lineEnding + "b");
@@ -31,10 +31,10 @@ public class LexerLineContinuationTests
         token.Should().Be("ab");
     }
 
-    [Theory(Timeout = 5000)]
-    [InlineData("\r\n\n", "a\nb")]
-    [InlineData("\n\n", "a\nb")]
-    [InlineData("\r\r", "a\rb")]
+    [Test, Timeout(5000)]
+    [Arguments("\r\n\n", "a\nb")]
+    [Arguments("\n\n", "a\nb")]
+    [Arguments("\r\r", "a\rb")]
     public async Task OnlyOneLineEndingIsSwallowed(string lineEndings, string expected)
     {
         var token = await ScanLiteralString("a\\" + lineEndings + "b");
@@ -42,7 +42,7 @@ public class LexerLineContinuationTests
         token.Should().Be(expected);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task ACrLfContinuationAtTheEndOfTheStringLeavesNothingBehind()
     {
         var token = await ScanLiteralString("ab\\\r\n");
@@ -56,7 +56,7 @@ public class LexerLineContinuationTests
         var pdf = Encoding.ASCII.GetBytes("(" + contents + ")");
 
         // On a thread of its own, so that the Timeout on these tests can interrupt a scan that
-        // does not end. xUnit honours it only on an async test.
+        // does not end. It is honoured only on an async test.
         return Interruptibly.Run(() =>
         {
             var lexer = new Lexer(new MemoryStream(pdf));

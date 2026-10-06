@@ -1,7 +1,7 @@
 using System;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -13,7 +13,7 @@ namespace PdfPinata.Test.Dom;
 /// </summary>
 public class DocumentAddStyleTests
 {
-    [Fact]
+    [Test]
     public void ANewStyleIsAddedAndFindableByName()
     {
         var document = new Document();
@@ -25,7 +25,7 @@ public class DocumentAddStyleTests
         document.Styles["Quiet"].Should().BeSameAs(added);
     }
 
-    [Fact]
+    [Test]
     public void ANewStyleTakesTheTypeOfTheStyleItIsBasedOn()
     {
         var document = new Document();
@@ -36,7 +36,7 @@ public class DocumentAddStyleTests
             .Type.Should().Be(StyleType.Paragraph);
     }
 
-    [Fact]
+    [Test]
     public void AStyleCanBeBuiltOnOneAddedAMomentAgo()
     {
         var document = new Document();
@@ -47,9 +47,9 @@ public class DocumentAddStyleTests
         quieter.BaseStyle.Should().Be("Quiet");
     }
 
-    [Theory]
-    [InlineData(null, Style.DefaultParagraphName, "name")]
-    [InlineData("Quiet", null, "baseStyle")]
+    [Test]
+    [Arguments(null, Style.DefaultParagraphName, "name")]
+    [Arguments("Quiet", null, "baseStyle")]
     public void NeitherNameCanBeNull(string name, string baseStyle, string offendingArgument)
     {
         var add = () => new Document().AddStyle(name, baseStyle);
@@ -58,9 +58,9 @@ public class DocumentAddStyleTests
             .And.ParamName.Should().Be(offendingArgument);
     }
 
-    [Theory]
-    [InlineData("", Style.DefaultParagraphName)]
-    [InlineData("Quiet", "")]
+    [Test]
+    [Arguments("", Style.DefaultParagraphName)]
+    [Arguments("Quiet", "")]
     public void NeitherNameCanBeEmpty(string name, string baseStyle)
     {
         var add = () => new Document().AddStyle(name, baseStyle);
@@ -68,7 +68,7 @@ public class DocumentAddStyleTests
         add.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AStyleCannotBeBuiltOnOneThatIsNotThere()
     {
         var add = () => new Document().AddStyle("Quiet", "NoSuchStyle");
@@ -76,7 +76,7 @@ public class DocumentAddStyleTests
         add.Should().Throw<ArgumentException>().WithMessage("*NoSuchStyle*");
     }
 
-    [Fact]
+    [Test]
     public void AddingANameThatIsAlreadyThereReplacesItRatherThanAddingASecond()
     {
         var document = new Document();
@@ -88,7 +88,7 @@ public class DocumentAddStyleTests
         document.Styles.Count.Should().Be(before + 1);
     }
 
-    [Fact]
+    [Test]
     public void TheStyleHandedBackIsTheOneTheDocumentIsHolding()
     {
         var document = new Document();

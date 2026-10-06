@@ -2,7 +2,7 @@ using System.IO;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Outlines;
 
@@ -14,7 +14,7 @@ namespace PdfPinata.Test.Outlines;
 /// </summary>
 public class ImportedOutlineTests
 {
-    [Fact]
+    [Test]
     public void AnEntryNamingItsDestinationThroughAGoToActionGoesToThePageTheNameStandsFor()
     {
         var outline = FirstOutlineOf(ImportedOutlineFixtures.NamedInGoToAction());
@@ -25,7 +25,7 @@ public class ImportedOutlineTests
         outline.Top.Should().Be(22);
     }
 
-    [Fact]
+    [Test]
     public void AnEntryNamingItsDestinationOutrightGoesToThePageTheNameStandsFor()
     {
         var outline = FirstOutlineOf(ImportedOutlineFixtures.NamedInDestEntry());
@@ -34,7 +34,7 @@ public class ImportedOutlineTests
         outline.Top.Should().Be(22);
     }
 
-    [Fact]
+    [Test]
     public void AnEntryNamingADestinationHeldTheWayPdf11HeldItGoesToTheRightPage()
     {
         var outline = FirstOutlineOf(ImportedOutlineFixtures.NamedInDestsDictionary());
@@ -43,7 +43,7 @@ public class ImportedOutlineTests
         outline.Top.Should().Be(22);
     }
 
-    [Fact]
+    [Test]
     public void AnEntryWhoseDestinationIsWrittenOutStillGoesToThePageItNames()
     {
         var outline = FirstOutlineOf(ImportedOutlineFixtures.WithDestinationArray());
@@ -53,7 +53,7 @@ public class ImportedOutlineTests
         outline.Top.Should().Be(22);
     }
 
-    [Fact]
+    [Test]
     public void AnEntryWhoseDestinationIsHeldInAnObjectOfItsOwnStillGoesToThePageItNames()
     {
         var outline = FirstOutlineOf(ImportedOutlineFixtures.WithIndirectDestinationArray());
@@ -62,7 +62,7 @@ public class ImportedOutlineTests
         outline.Top.Should().Be(22);
     }
 
-    [Fact]
+    [Test]
     public void AnEntryWhoseActionIsHeldInAnObjectOfItsOwnStillGoesToThePageItNames()
     {
         var outline = FirstOutlineOf(ImportedOutlineFixtures.WithIndirectGoToAction());
@@ -71,7 +71,7 @@ public class ImportedOutlineTests
         outline.Top.Should().Be(22);
     }
 
-    [Fact]
+    [Test]
     public void AnEntryGoingToAPageByNumberGoesToThatPage()
     {
         var outline = FirstOutlineOf(ImportedOutlineFixtures.WithPageNumberDestination(1));
@@ -80,7 +80,7 @@ public class ImportedOutlineTests
         outline.PageDestinationType.Should().Be(PdfPageDestinationType.Fit);
     }
 
-    [Fact]
+    [Test]
     public void AnEntryGoingToAPageTheDocumentDoesNotHaveIsReadWithoutADestination()
     {
         var outline = FirstOutlineOf(ImportedOutlineFixtures.WithPageNumberDestination(7));
@@ -88,7 +88,7 @@ public class ImportedOutlineTests
         outline.DestinationPage.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void AnEntryNamingADestinationTheDocumentDoesNotHoldIsReadWithoutOne()
     {
         var outline = FirstOutlineOf(ImportedOutlineFixtures.NamedNowhere());
@@ -99,9 +99,9 @@ public class ImportedOutlineTests
         outline.Elements.GetDictionary("/A").Should().NotBeNull();
     }
 
-    [Theory]
-    [InlineData("uri")]
-    [InlineData("remote")]
+    [Test]
+    [Arguments("uri")]
+    [Arguments("remote")]
     public void AnEntryPerformingAnActionThatLeavesTheDocumentIsReadAndLeftAlone(string kind)
     {
         var document = kind == "uri"
@@ -115,15 +115,15 @@ public class ImportedOutlineTests
         outline.Elements.GetDictionary("/A").Should().NotBeNull();
     }
 
-    [Theory]
+    [Test]
     // A destination that stops short of the parameters its type takes.
-    [InlineData("[4 0 R/XYZ]")]
-    [InlineData("[4 0 R/FitR 1 2]")]
+    [Arguments("[4 0 R/XYZ]")]
+    [Arguments("[4 0 R/FitR 1 2]")]
     // A destination whose type is not one of those the specification gives.
-    [InlineData("[4 0 R/FitNothing 1]")]
+    [Arguments("[4 0 R/FitNothing 1]")]
     // A name that reads as a number is still not one of the eight names.
-    [InlineData("[4 0 R/999 1]")]
-    [InlineData("[4 0 R/3 1]")]
+    [Arguments("[4 0 R/999 1]")]
+    [Arguments("[4 0 R/3 1]")]
     public void AnEntryWhoseDestinationIsMalformedStillGoesToThePageItNames(string destination)
     {
         var outline = FirstOutlineOf(ImportedOutlineFixtures.WithDestinationArray(destination));
@@ -131,10 +131,10 @@ public class ImportedOutlineTests
         outline.DestinationPage.Should().BeSameAs(PageTwoOf(outline));
     }
 
-    [Theory]
+    [Test]
     // A destination naming no page at all.
-    [InlineData("[]")]
-    [InlineData("[/XYZ 11 22 0]")]
+    [Arguments("[]")]
+    [Arguments("[/XYZ 11 22 0]")]
     public void AnEntryWhoseDestinationNamesNoPageIsReadWithoutOne(string destination)
     {
         var outline = FirstOutlineOf(ImportedOutlineFixtures.WithDestinationArray(destination));
@@ -142,7 +142,7 @@ public class ImportedOutlineTests
         outline.DestinationPage.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void ADestinationTakenFromANameSurvivesBeingSavedAgain()
     {
         using var input = new MemoryStream(ImportedOutlineFixtures.NamedInGoToAction());
@@ -160,12 +160,12 @@ public class ImportedOutlineTests
         outline.Top.Should().Be(22);
     }
 
-    [Theory]
-    [InlineData("/FitNothing")]
+    [Test]
+    [Arguments("/FitNothing")]
     // A name reading as a number past the types there are, and one reading as a number that lands
     // on a type - which is a type the destination never named either.
-    [InlineData("/999")]
-    [InlineData("/3")]
+    [Arguments("/999")]
+    [Arguments("/3")]
     public void ADestinationOfATypeThisLibraryDoesNotKnowIsSavedAsItWasFound(string type)
     {
         using var input = new MemoryStream(ImportedOutlineFixtures.WithDestinationArray("[4 0 R" + type + " 1]"));
@@ -184,7 +184,7 @@ public class ImportedOutlineTests
         destination.Elements.GetInteger(2).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AnEntryWhoseActionLeadsOnToAnotherStillGoesToThePageItNames()
     {
         var outline = FirstOutlineOf(ImportedOutlineFixtures.WithChainedGoToAction());
@@ -193,7 +193,7 @@ public class ImportedOutlineTests
         outline.Top.Should().Be(22);
     }
 
-    [Fact]
+    [Test]
     public void AnEntryWhoseActionLeadsOnToAnotherKeepsBothOfThemWhenItIsSaved()
     {
         using var input = new MemoryStream(ImportedOutlineFixtures.WithChainedGoToAction());
@@ -214,7 +214,7 @@ public class ImportedOutlineTests
         reopened.Outlines[0].Elements.ContainsKey("/Dest").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AnEntryGivenADestinationGoesThereRatherThanWhereItsActionLed()
     {
         using var input = new MemoryStream(ImportedOutlineFixtures.WithChainedGoToAction());

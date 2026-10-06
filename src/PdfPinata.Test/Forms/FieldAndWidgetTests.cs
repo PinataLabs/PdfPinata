@@ -8,7 +8,7 @@ using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using PdfPinata.Test.Pdfs.AcroForms;
-using Xunit;
+using TUnit.Core;
 using Reader = PdfPinata.Pdf.IO.PdfReader;
 
 namespace PdfPinata.Test.Forms;
@@ -55,7 +55,7 @@ public class FieldAndWidgetTests
         return document.Reopened(mode);
     }
 
-    [Fact]
+    [Test]
     public void AFieldsWidgetIsAWidgetAndNotAField()
     {
         var (_, field, widget) = ATextFieldOnAPage();
@@ -66,7 +66,7 @@ public class FieldAndWidgetTests
         field.IsTerminal.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AWidgetKnowsTheFieldItDraws()
     {
         var (_, field, widget) = ATextFieldOnAPage();
@@ -74,7 +74,7 @@ public class FieldAndWidgetTests
         widget.Field.Should().BeSameAs(field);
     }
 
-    [Fact]
+    [Test]
     public void WalkingTheFieldsLeavesTheWidgetThePageHas()
     {
         // The walk the issue reports: before, every widget it met was retyped as a field, which
@@ -96,7 +96,7 @@ public class FieldAndWidgetTests
         page.Annotations[0].Should().BeSameAs(widget);
     }
 
-    [Fact]
+    [Test]
     public void ReadBackTheFieldAndThePageShareOneWidget()
     {
         var (document, _, _) = ATextFieldOnAPage();
@@ -111,7 +111,7 @@ public class FieldAndWidgetTests
         reopened.AcroForm.Fields["text"].Should().BeSameAs(field);
     }
 
-    [Fact]
+    [Test]
     public void ATextValueGoesIntoTheFieldAndNotIntoAWidget()
     {
         var (_, field, widget) = ATextFieldOnAPage();
@@ -123,7 +123,7 @@ public class FieldAndWidgetTests
         widget.Elements.ContainsKey(PdfAnnotation.Keys.AP).Should().BeTrue("the widget is what is drawn");
     }
 
-    [Fact]
+    [Test]
     public void NestedFieldsAndTheirWidgetsSortApart()
     {
         var document = new PdfDocument();
@@ -146,7 +146,7 @@ public class FieldAndWidgetTests
         form.Fields["name.first"].Should().BeSameAs(first);
     }
 
-    [Fact]
+    [Test]
     public void AKidsArrayHoldingBothKindsIsSortedKidByKid()
     {
         // Not a shape ISO 32000-1 allows, but one a file can have. A test on the whole array - "the
@@ -164,7 +164,7 @@ public class FieldAndWidgetTests
         parent.Widgets.Should().Equal(widget);
     }
 
-    [Fact]
+    [Test]
     public void ATwinTickBoxHasTwoWidgetsAndNoFields()
     {
         var document = new AcroFormBuilder()
@@ -179,7 +179,7 @@ public class FieldAndWidgetTests
         field.Widgets.Should().OnlyContain(widget => widget.Field == field);
     }
 
-    [Fact]
+    [Test]
     public void ATextFieldDoesNotDrawItsValueIntoTheFieldsNestedUnderIt()
     {
         // The kids here are fields merged with their widgets, so each has a rectangle. The value
@@ -199,7 +199,7 @@ public class FieldAndWidgetTests
             .Should().OnlyContain(kid => !kid.Elements.ContainsKey(PdfAnnotation.Keys.AP));
     }
 
-    [Fact]
+    [Test]
     public void AMergedDictionaryIsOneFieldAndOneWidgetReadFieldFirst()
     {
         var document = AMergedFieldAndWidget();
@@ -214,7 +214,7 @@ public class FieldAndWidgetTests
         ((PdfWidgetAnnotation)annotation).Field.Should().BeSameAs(field);
     }
 
-    [Fact]
+    [Test]
     public void AMergedDictionaryIsOneFieldAndOneWidgetReadPageFirst()
     {
         var document = AMergedFieldAndWidget();
@@ -228,7 +228,7 @@ public class FieldAndWidgetTests
         document.Pages[0].Annotations[0].Should().BeSameAs(annotation);
     }
 
-    [Fact]
+    [Test]
     public void AMergedFieldStillReachesItsKidsAfterThePageIsRead()
     {
         // This threw NotImplementedException for /Kids: reading the page retyped the dictionary as
@@ -243,7 +243,7 @@ public class FieldAndWidgetTests
         field.IsTerminal.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AValueWrittenThroughTheFieldIsTheWidgetsToo()
     {
         var document = AMergedFieldAndWidget();
@@ -259,7 +259,7 @@ public class FieldAndWidgetTests
         ((PdfTextField)reopened.AcroForm.Fields["merged"]).Text.Should().Be("filled");
     }
 
-    [Fact]
+    [Test]
     public void AChangeMadeOnlyThroughTheWidgetIsInTheAppendedRevision()
     {
         // The view writes into the field's entries, which are what an incremental save asks about.
@@ -282,7 +282,7 @@ public class FieldAndWidgetTests
             .Should().Be(PdfAnnotationFlags.Print | PdfAnnotationFlags.ReadOnly);
     }
 
-    [Fact]
+    [Test]
     public void ACopiedFieldAddsToItsOwnKidsRatherThanTheOriginals()
     {
         // Copying is memberwise, and a page imported from another document copies its fields. A
@@ -301,7 +301,7 @@ public class FieldAndWidgetTests
             "the child is the copy's, and /Parent says so");
     }
 
-    [Fact]
+    [Test]
     public void ACopiedFormHasItsOwnViewOfItsFields()
     {
         var (document, _, _) = ATextFieldOnAPage();
@@ -313,7 +313,7 @@ public class FieldAndWidgetTests
         copy.Fields.Should().NotBeSameAs(form.Fields);
     }
 
-    [Fact]
+    [Test]
     public void ASecondWidgetOnAMergedFieldSeparatesTheFirst()
     {
         var document = AMergedFieldAndWidget();
@@ -335,7 +335,7 @@ public class FieldAndWidgetTests
         first.Elements.ContainsKey(PdfAcroField.Keys.T).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ASeparatedFieldIsWrittenAsAFieldWithTwoWidgets()
     {
         var document = AMergedFieldAndWidget();
@@ -353,7 +353,7 @@ public class FieldAndWidgetTests
         read.Elements.ContainsKey(PdfAnnotation.Keys.Rect).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AMergedFieldThatCannotBeChangedIsLeftMerged()
     {
         var stream = new MemoryStream();
@@ -369,7 +369,7 @@ public class FieldAndWidgetTests
         field.Widgets.Should().ContainSingle().Which.Should().BeSameAs(document.Pages[0].Annotations[0]);
     }
 
-    [Fact]
+    [Test]
     public void AMergedTickBoxStaysTickedWhenItGainsAWidget()
     {
         // /V is the field's and stays with it, and /AS is the widget's and goes with it, so the
@@ -388,7 +388,7 @@ public class FieldAndWidgetTests
         box.Elements.ContainsKey(PdfAnnotation.Keys.AS).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void SeparatingAMergedFieldGivesTheWidgetItsOwnTriggers()
     {
         // Focus and blur belong to the annotation, keystroke and validate to the field. Left on a
@@ -407,7 +407,7 @@ public class FieldAndWidgetTests
         field.Elements.GetDictionary(PdfAcroField.Keys.AA).Elements.Keys.Should().BeEquivalentTo("/K", "/V");
     }
 
-    [Fact]
+    [Test]
     public void AFieldReportsTheAppearanceStatesOfItsSeparateWidgets()
     {
         var document = new AcroFormBuilder()
@@ -419,7 +419,7 @@ public class FieldAndWidgetTests
         document.AcroForm.Fields["agree"].GetAppearanceNames().Should().BeEquivalentTo("/Ja", "/Off");
     }
 
-    [Fact]
+    [Test]
     public void AMergedTickBoxViewedBeforeItIsAddedKeepsItsValue()
     {
         // The view took the field's reference when it was made, which was none, and the setter

@@ -121,9 +121,9 @@ exist yet.** None is blocked on judgement, so any of them can be picked up cold:
 | Debug re-measure (§3.2) | The Roslyn analysis server stopped, so a Debug run can be compared against the spec's baseline table. |
 
 **Standing requirement, not a one-off task:**
-- [ ] Any test that scans malformed input carries `[Fact(Timeout = …)]` **with** the `Task.Run`
-      wrapper — xUnit honours a timeout only on an `async` test, and a lexer change hangs the host
-      rather than failing it.
+- [ ] Any test that scans malformed input carries `[Test, Timeout(…)]` **with** the
+      `Interruptibly.Run` wrapper — a timeout interrupts only an `async` test whose work is on a
+      thread of its own, and a lexer change hangs the host rather than failing it.
 
 **Expected yield:** the previous 14 batches turned up 20 real defects, three of them severe enough
 that a whole feature could not round-trip. Treat findings as the point, not the percentage.

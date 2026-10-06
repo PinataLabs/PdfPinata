@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Annotations;
 
@@ -26,11 +26,11 @@ namespace PdfPinata.Test.Annotations;
 /// </remarks>
 public class GenericAnnotationTests
 {
-    [Theory]
-    [InlineData("/Square", "/Square")]
-    [InlineData("Square", "/Square")]
-    [InlineData("/FreeText", "/FreeText")]
-    [InlineData("Circle", "/Circle")]
+    [Test]
+    [Arguments("/Square", "/Square")]
+    [Arguments("Square", "/Square")]
+    [Arguments("/FreeText", "/FreeText")]
+    [Arguments("Circle", "/Circle")]
     public void AnAnnotationNamesTheSubtypeItWasGiven(string given, string written)
     {
         var document = new PdfDocument();
@@ -44,10 +44,10 @@ public class GenericAnnotationTests
         annotation.Elements.GetName("/Type").Should().Be("/Annot");
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
+    [Test]
+    [Arguments(null)]
+    [Arguments("")]
+    [Arguments("   ")]
     public void AnAnnotationWithNoSubtypeIsRefused(string subtype)
     {
         Action act = () => _ = new PdfGenericAnnotation(subtype);
@@ -57,7 +57,7 @@ public class GenericAnnotationTests
         act.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AnAppearanceIsWrittenAsTheNormalOneUnderAp()
     {
         var document = new PdfDocument();
@@ -78,7 +78,7 @@ public class GenericAnnotationTests
         normal.Stream.Length.Should().BeGreaterThan(0);
     }
 
-    [Fact]
+    [Test]
     public void AnAppearanceMustBelongToTheSameDocument()
     {
         var document = new PdfDocument();
@@ -94,7 +94,7 @@ public class GenericAnnotationTests
         act.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AnAppearanceNeedsTheAnnotationToBeOnAPageFirst()
     {
         var document = new PdfDocument();
@@ -106,7 +106,7 @@ public class GenericAnnotationTests
         act.Should().Throw<InvalidOperationException>();
     }
 
-    [Fact]
+    [Test]
     public void NamedAppearancesAccumulateAndTheLastOneNamedIsShown()
     {
         var document = new PdfDocument();
@@ -128,7 +128,7 @@ public class GenericAnnotationTests
         widget.Elements.GetName("/AS").Should().Be("/Yes");
     }
 
-    [Fact]
+    [Test]
     public void ASingleAppearanceReplacesASetOfNamedOnes()
     {
         var document = new PdfDocument();
@@ -149,7 +149,7 @@ public class GenericAnnotationTests
         annotation.Elements.ContainsKey("/AS").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AFormCannotBeDrawnOnAfterItHasBeenGivenToAnAnnotation()
     {
         var document = new PdfDocument();
@@ -167,7 +167,7 @@ public class GenericAnnotationTests
         act.Should().Throw<InvalidOperationException>();
     }
 
-    [Fact]
+    [Test]
     public void AnAppearanceThatDrawsNothingIsStillAnAppearance()
     {
         var document = new PdfDocument();
@@ -187,7 +187,7 @@ public class GenericAnnotationTests
         states.Elements.ContainsKey("/Off").Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void TheShowingStateCanBeNamedWithOrWithoutItsSolidus()
     {
         var document = new PdfDocument();
@@ -209,7 +209,7 @@ public class GenericAnnotationTests
         widget.Elements.ContainsKey("/AS").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AnAppearanceStateWithNoNameIsRefusedTheWaySettingOneIs()
     {
         var document = new PdfDocument();

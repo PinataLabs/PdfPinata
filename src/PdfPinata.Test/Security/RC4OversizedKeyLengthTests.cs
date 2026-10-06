@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Security;
 
@@ -25,9 +25,9 @@ public class RC4OversizedKeyLengthTests
     private static string Asset =>
         PathHelper.GetInstance().GetAssetPath("rc4-r3-length256-ghostscript.pdf");
 
-    [Theory]
-    [InlineData("owner", true)]
-    [InlineData("user", false)]
+    [Test]
+    [Arguments("owner", true)]
+    [Arguments("user", false)]
     public void ItOpensAs128BitWithEitherPassword(string password, bool owner)
     {
         using var document = Pdf.IO.PdfReader.Open(Asset, password, PdfDocumentOpenMode.ReadOnly);

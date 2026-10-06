@@ -5,7 +5,7 @@ using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.Rendering.Tests.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -28,7 +28,7 @@ namespace PinataLayout.Rendering.Tests;
 /// </remarks>
 public class ChosenNoteIdentifierTests
 {
-    [Fact]
+    [Test]
     public void AnUnsetIdentifierIsStillGenerated()
     {
         // The default, and the behaviour every existing document depends on.
@@ -38,7 +38,7 @@ public class ChosenNoteIdentifierTests
         Structure.Of(document).Single("Note").Id.Should().Be("note1");
     }
 
-    [Fact]
+    [Test]
     public void AChosenIdentifierIsWhatIsWritten()
     {
         var document = Document(out var section);
@@ -48,7 +48,7 @@ public class ChosenNoteIdentifierTests
         Structure.Of(document).Single("Note").Id.Should().Be("clause-4-note");
     }
 
-    [Fact]
+    [Test]
     public void ChoosingOneDoesNotRenumberTheNotesAroundIt()
     {
         // The counter advances for every note whether or not its name came from the counter, so the
@@ -64,7 +64,7 @@ public class ChosenNoteIdentifierTests
             .Should().Equal("note1", "chosen", "note3");
     }
 
-    [Fact]
+    [Test]
     public void TwoNotesUnderOneChosenNameAreRefused()
     {
         // The identifier tree refuses it, and has to: an identifier is what something else points
@@ -79,7 +79,7 @@ public class ChosenNoteIdentifierTests
         rendering.Should().Throw<InvalidOperationException>().WithMessage("*same*");
     }
 
-    [Fact]
+    [Test]
     public void CollidingWithAGeneratedNameIsRefusedToo()
     {
         // The trap the prefix exists to make visible rather than to prevent: "note2" is exactly the
@@ -94,7 +94,7 @@ public class ChosenNoteIdentifierTests
         rendering.Should().Throw<InvalidOperationException>().WithMessage("*note2*");
     }
 
-    [Fact]
+    [Test]
     public void TheIdentifierSurvivesAWriteAndReadOfTheDocumentModel()
     {
         // It is a DOM property, so it belongs in MDDDL like every other one - a document written out
@@ -112,7 +112,7 @@ public class ChosenNoteIdentifierTests
         footnote.Identifier.Should().Be("clause-4-note");
     }
 
-    [Fact]
+    [Test]
     public void AnUnsetIdentifierIsNotWrittenToTheDocumentModel()
     {
         // Nothing gained by writing the empty string into every footnote in every MDDDL file.

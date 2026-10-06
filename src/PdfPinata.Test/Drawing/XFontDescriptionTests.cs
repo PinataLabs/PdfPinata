@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -17,7 +17,7 @@ public class XFontDescriptionTests
     private const string Family = "Arial";
     private const double EmSize = 12;
 
-    [Fact]
+    [Test]
     public void AFontIsTheSizeAndStyleItWasAskedForAndTheFamilyItActuallyGot()
     {
         // Name is the family the resolver handed back rather than the one the caller asked for,
@@ -32,13 +32,13 @@ public class XFontDescriptionTests
         font.Name.Should().Be(font.FontFamily.Name);
     }
 
-    [Theory]
-    [InlineData(XFontStyle.Regular, false, false, false, false)]
-    [InlineData(XFontStyle.Bold, true, false, false, false)]
-    [InlineData(XFontStyle.Italic, false, true, false, false)]
-    [InlineData(XFontStyle.BoldItalic, true, true, false, false)]
-    [InlineData(XFontStyle.Underline, false, false, true, false)]
-    [InlineData(XFontStyle.Strikeout, false, false, false, true)]
+    [Test]
+    [Arguments(XFontStyle.Regular, false, false, false, false)]
+    [Arguments(XFontStyle.Bold, true, false, false, false)]
+    [Arguments(XFontStyle.Italic, false, true, false, false)]
+    [Arguments(XFontStyle.BoldItalic, true, true, false, false)]
+    [Arguments(XFontStyle.Underline, false, false, true, false)]
+    [Arguments(XFontStyle.Strikeout, false, false, false, true)]
     public void EachPartOfTheStyleIsReadableOnItsOwn(
         XFontStyle style, bool bold, bool italic, bool underline, bool strikeout)
     {
@@ -51,7 +51,7 @@ public class XFontDescriptionTests
         font.Strikeout.Should().Be(strikeout);
     }
 
-    [Fact]
+    [Test]
     public void AFontHasPdfOptionsWhetherOrNotItWasGivenAny()
     {
         new XFont(Family, EmSize).PdfOptions.Should().NotBeNull();
@@ -60,7 +60,7 @@ public class XFontDescriptionTests
         new XFont(Family, EmSize, XFontStyle.Regular, options).PdfOptions.Should().BeSameAs(options);
     }
 
-    [Fact]
+    [Test]
     public void AFontIsAsTallAsItsAscentAndDescentTogether()
     {
         var font = new XFont(Family, EmSize);
@@ -73,7 +73,7 @@ public class XFontDescriptionTests
         font.Height.Should().BePositive();
     }
 
-    [Fact]
+    [Test]
     public void ABiggerFontIsTaller()
     {
         // The cell values are in design units and so do not change with the size; the height in
@@ -85,7 +85,7 @@ public class XFontDescriptionTests
         large.GetHeight().Should().BeApproximately(small.GetHeight() * 2, 1e-6);
     }
 
-    [Fact]
+    [Test]
     public void TheMetricsAreTheSameFontMeasuredInDesignUnits()
     {
         var font = new XFont(Family, EmSize);
@@ -101,7 +101,7 @@ public class XFontDescriptionTests
         metrics.LineSpacing.Should().Be(font.CellSpace);
     }
 
-    [Fact]
+    [Test]
     public void TheMetricsCarryTheMeasurementsTheRulesAndTheDescriptorAreDrawnFrom()
     {
         var metrics = new XFont(Family, EmSize).Metrics;
@@ -115,7 +115,7 @@ public class XFontDescriptionTests
         metrics.Leading.Should().Be(metrics.LineSpacing - metrics.Ascent - metrics.Descent);
     }
 
-    [Fact]
+    [Test]
     public void TheStemWidthsAndTheWidthSummariesAreNeverFilledInAtAll()
     {
         // Both stem widths and the two width summaries come out as zero: the horizontal stem and
@@ -131,7 +131,7 @@ public class XFontDescriptionTests
         metrics.MaxWidth.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void AFamilyKnowsItsOwnMetricsWithoutAFontToGoWithThem()
     {
         var family = new XFontFamily(Family);
@@ -143,7 +143,7 @@ public class XFontDescriptionTests
         family.GetLineSpacing(XFontStyle.Regular).Should().BePositive();
     }
 
-    [Fact]
+    [Test]
     public void AFamilyAgreesWithAFontOfTheSameFamily()
     {
         var family = new XFontFamily(Family);
@@ -155,7 +155,7 @@ public class XFontDescriptionTests
         family.GetEmHeight(XFontStyle.Regular).Should().Be(font.Metrics.UnitsPerEm);
     }
 
-    [Fact]
+    [Test]
     public void AFamilyAskedForTwiceIsTheSameFamilyUnderneath()
     {
         // Families are cached by name, so two XFontFamily objects for one name share their
@@ -163,7 +163,7 @@ public class XFontDescriptionTests
         new XFontFamily(Family).Name.Should().Be(new XFontFamily(Family).Name);
     }
 
-    [Fact]
+    [Test]
     public void NoStyleIsReportedAsAvailableWhicheverIsAskedAbout()
     {
         // Upstream never implemented the lookup and answers no to everything. Pinned so that the
@@ -174,7 +174,7 @@ public class XFontDescriptionTests
         family.IsStyleAvailable(XFontStyle.Bold).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void TwoFontsOfTheSameDescriptionMeasureTheSameText()
     {
         var document = new PdfDocument();
@@ -188,7 +188,7 @@ public class XFontDescriptionTests
         first.Height.Should().BePositive();
     }
 
-    [Fact]
+    [Test]
     public void BoldTextIsWiderThanTheSameTextRegular()
     {
         var document = new PdfDocument();
@@ -200,7 +200,7 @@ public class XFontDescriptionTests
         bold.Width.Should().BeGreaterThan(regular.Width);
     }
 
-    [Fact]
+    [Test]
     public void MeasuringNothingIsNoWidthAtAll()
     {
         var document = new PdfDocument();
@@ -211,7 +211,7 @@ public class XFontDescriptionTests
 
     // ----- image formats -------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void EachImageFormatIsItselfAndNoneOfTheOthers()
     {
         var formats = new[]
@@ -237,7 +237,7 @@ public class XFontDescriptionTests
         }
     }
 
-    [Fact]
+    [Test]
     public void AnImageFormatIsTheSameObjectEveryTimeItIsAskedFor()
     {
         XImageFormat.Png.Should().BeSameAs(XImageFormat.Png);

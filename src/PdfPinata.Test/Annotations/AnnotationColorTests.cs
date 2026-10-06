@@ -5,7 +5,7 @@ using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Annotations;
 
@@ -18,7 +18,7 @@ public class AnnotationColorTests
 {
     private static readonly XColor Teal = XColor.FromArgb(0, 127, 128);
 
-    [Fact]
+    [Test]
     public void AColourWrittenAsAnIndirectArrayIsReadThroughItsReference()
     {
         var document = new PdfDocument();
@@ -34,7 +34,7 @@ public class AnnotationColorTests
         note.Color.Should().Be(XColor.FromArgb(0, 128, 255));
     }
 
-    [Fact]
+    [Test]
     public void AnIndirectColourSurvivesARoundTripThroughAFile()
     {
         var document = new PdfDocument();
@@ -48,7 +48,7 @@ public class AnnotationColorTests
         Reopened(document).Pages[0].Annotations[0].Color.Should().Be(XColor.FromArgb(0, 128, 255));
     }
 
-    [Fact]
+    [Test]
     public void AColourAssignedIsWrittenAsThreeComponentsAndReadBackUnrounded()
     {
         var document = new PdfDocument();
@@ -64,7 +64,7 @@ public class AnnotationColorTests
         Reopened(document).Pages[0].Annotations[0].Color.Should().Be(Teal);
     }
 
-    [Fact]
+    [Test]
     public void AnAnnotationWithNoColourReadsAsBlack()
     {
         var document = new PdfDocument();

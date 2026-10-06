@@ -9,7 +9,7 @@ using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Signatures;
 using PdfPinata.Signing;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.SigningCertificates;
 using Reader = PdfPinata.Pdf.IO.PdfReader;
 
@@ -25,7 +25,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class SignatureValidationDataTests
 {
-    [Fact]
+    [Test]
     public void ValidationDataLeavesAFreshSignatureIntact()
     {
         var signed = Sign(Unsigned());
@@ -40,7 +40,7 @@ public class SignatureValidationDataTests
         verification.IsIntact.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ValidationDataAddedToASignatureFromAnotherProducerLeavesItIntact()
     {
         // "Another producer" here is only "signed earlier, by a call that has already returned" —
@@ -54,7 +54,7 @@ public class SignatureValidationDataTests
         PdfSignatureVerifier.Verify(withData).Single().IsIntact.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AReopenedDocumentWithValidationDataReportsItIsPresent()
     {
         var signed = Sign(Unsigned());
@@ -65,7 +65,7 @@ public class SignatureValidationDataTests
         PdfValidationData.IsPresent(document).Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ADocumentWithNoValidationDataReportsItIsAbsent()
     {
         var document = Reader.Open(new MemoryStream(Sign(Unsigned())), PdfDocumentOpenMode.ReadOnly);
@@ -73,7 +73,7 @@ public class SignatureValidationDataTests
         PdfValidationData.IsPresent(document).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void TheStoreCarriesTheCertificateAndTheEvidenceTheProviderSupplied()
     {
         var provider = new StubRevocationDataProvider();
@@ -94,7 +94,7 @@ public class SignatureValidationDataTests
     ///   outlive the signing certificate — with nothing to check it by once its own certificate has
     ///   expired.
     /// </summary>
-    [Fact]
+    [Test]
     public void ATimestampedSignatureHasItsAuthoritysCertificateStoredAndAskedAbout()
     {
         var authority = SigningCertificates.CreateTimestampAuthority("CN=PdfPinata Test TSA");
@@ -119,7 +119,7 @@ public class SignatureValidationDataTests
     ///   is often the CA that issued the signer's. The signer's certificates are therefore among
     ///   those an OCSP request for the authority's certificate may find its issuer in.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheAuthoritysCertificateIsAskedAboutWithTheSignersCertificatesAmongItsCandidateIssuers()
     {
         var authority = SigningCertificates.CreateTimestampAuthority("CN=PdfPinata Test TSA");
@@ -133,7 +133,7 @@ public class SignatureValidationDataTests
             .Contain(authority.Thumbprint).And.Contain(SigningCertificates.Default.Thumbprint);
     }
 
-    [Fact]
+    [Test]
     public void ValidationDataCanBeAddedToADocumentCertifiedAgainstAllOtherChange()
     {
         // Deliberately not gated by /DocMDP: a document certified NoChangesAllowed is exactly the
@@ -147,7 +147,7 @@ public class SignatureValidationDataTests
         PdfValidationData.IsPresent(document).Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AddingValidationDataToADocumentNotOpenedForAppendingIsRefused()
     {
         var document = new PdfDocument();
@@ -165,7 +165,7 @@ public class SignatureValidationDataTests
     ///   ever reached, rather than the refusal merely happening to arrive before a provider call that
     ///   ran anyway.
     /// </summary>
-    [Fact]
+    [Test]
     public void AddingValidationDataWithNoOutputStreamIsRefusedBeforeAskingAProviderForAnything()
     {
         var document = Reader.Open(new MemoryStream(Sign(Unsigned())), PdfDocumentOpenMode.Append);

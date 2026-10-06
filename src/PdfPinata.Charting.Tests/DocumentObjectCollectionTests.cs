@@ -2,7 +2,7 @@ using System.Collections;
 using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Charting.Tests.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -22,7 +22,7 @@ namespace PdfPinata.Charting.Tests;
 /// </remarks>
 public class DocumentObjectCollectionTests
 {
-    [Fact]
+    [Test]
     public void AddingAnElementMakesTheCollectionItsParent()
     {
         var elements = new XSeriesElements();
@@ -34,7 +34,7 @@ public class DocumentObjectCollectionTests
         value.Parent.Should().BeSameAs(elements);
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyCollectionHasNoFirstOrLastElement()
     {
         var elements = new XSeriesElements();
@@ -44,7 +44,7 @@ public class DocumentObjectCollectionTests
         elements.LastObject.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void FirstAndLastObjectAreTheEndsOfTheCollection()
     {
         var elements = new XSeriesElements();
@@ -60,7 +60,7 @@ public class DocumentObjectCollectionTests
     ///   A blank is a null, and it takes a place in the collection like any value: it is counted,
     ///   and the elements after it keep their indices.
     /// </summary>
-    [Fact]
+    [Test]
     public void ABlankTakesItsPlaceAsANull()
     {
         var elements = new XSeriesElements { "A" };
@@ -73,7 +73,7 @@ public class DocumentObjectCollectionTests
         elements.LastObject.Should().BeSameAs(after);
     }
 
-    [Fact]
+    [Test]
     public void InsertingPutsTheElementAtTheIndexGiven()
     {
         var elements = new XSeriesElements();
@@ -87,7 +87,7 @@ public class DocumentObjectCollectionTests
         elements.IndexOf(b).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void IndexOfAnElementNotInTheCollectionIsMinusOne()
     {
         var elements = new XSeriesElements { "A" };
@@ -95,7 +95,7 @@ public class DocumentObjectCollectionTests
         elements.IndexOf(new XValue("A")).Should().Be(-1, "the search is by identity, not by value");
     }
 
-    [Fact]
+    [Test]
     public void RemovingAnElementClosesUpTheGap()
     {
         var elements = new XSeriesElements();
@@ -108,7 +108,7 @@ public class DocumentObjectCollectionTests
         elements.Cast<XValue>().Should().Equal(a, c);
     }
 
-    [Fact]
+    [Test]
     public void ClearingEmptiesTheCollection()
     {
         var elements = new XSeriesElements { "A", "B", "C" };
@@ -119,7 +119,7 @@ public class DocumentObjectCollectionTests
         elements.First.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void TheIndexerReplacesAnElementInPlace()
     {
         var elements = new XSeriesElements { "A", "B" };
@@ -131,7 +131,7 @@ public class DocumentObjectCollectionTests
         elements[1].Should().BeSameAs(replacement);
     }
 
-    [Fact]
+    [Test]
     public void CopyToWritesTheElementsInOrderFromTheIndexGiven()
     {
         var elements = new XSeriesElements();
@@ -144,7 +144,7 @@ public class DocumentObjectCollectionTests
         array.Should().Equal(null, a, b);
     }
 
-    [Fact]
+    [Test]
     public void EnumeratingVisitsTheElementsInOrder()
     {
         var series = new Series();
@@ -157,7 +157,7 @@ public class DocumentObjectCollectionTests
     ///   What <see cref="IList"/> says about the collection, and its indexer, which is the one
     ///   <see cref="IList"/> member that reads and writes the same list the typed members do.
     /// </summary>
-    [Fact]
+    [Test]
     public void AsAnIListTheCollectionIsWritableAndGrowable()
     {
         var elements = new XSeriesElements();
@@ -181,7 +181,7 @@ public class DocumentObjectCollectionTests
     ///   An element put in place by the indexer belongs to the collection, as an added one does,
     ///   rather than keeping no parent or the parent it came from.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheIndexerMakesTheCollectionTheParentOfTheElementSet()
     {
         var elements = new XSeriesElements { "A", "B" };
@@ -192,7 +192,7 @@ public class DocumentObjectCollectionTests
         replacement.Parent.Should().BeSameAs(elements);
     }
 
-    [Fact]
+    [Test]
     public void TheIListIndexerMakesTheCollectionTheParentOfTheElementSet()
     {
         var elements = new XSeriesElements { "A" };
@@ -204,7 +204,7 @@ public class DocumentObjectCollectionTests
         replacement.Parent.Should().BeSameAs(elements);
     }
 
-    [Fact]
+    [Test]
     public void TheIndexerCanSetABlank()
     {
         var elements = new XSeriesElements { "A", "B" };
@@ -215,7 +215,7 @@ public class DocumentObjectCollectionTests
         elements[0].Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void InsertingMakesTheCollectionTheParentOfTheElement()
     {
         var elements = new XSeriesElements { "A" };
@@ -228,7 +228,7 @@ public class DocumentObjectCollectionTests
 
     // ----- IList -----
 
-    [Fact]
+    [Test]
     public void IListAddAppendsTheElementAndAnswersItsIndex()
     {
         var elements = new XSeriesElements { "A" };
@@ -242,7 +242,7 @@ public class DocumentObjectCollectionTests
         added.Parent.Should().BeSameAs(elements);
     }
 
-    [Fact]
+    [Test]
     public void IListAddAcceptsABlank()
     {
         var elements = new XSeriesElements();
@@ -254,7 +254,7 @@ public class DocumentObjectCollectionTests
         elements[0].Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void IListInsertPutsTheElementAtTheIndexGivenAndOwnsIt()
     {
         var elements = new XSeriesElements();
@@ -269,7 +269,7 @@ public class DocumentObjectCollectionTests
         b.Parent.Should().BeSameAs(elements);
     }
 
-    [Fact]
+    [Test]
     public void IListRemoveAtClosesUpTheGap()
     {
         var elements = new XSeriesElements();
@@ -283,7 +283,7 @@ public class DocumentObjectCollectionTests
         elements.Cast<XValue>().Should().Equal(a, c);
     }
 
-    [Fact]
+    [Test]
     public void IListRemoveTakesOutTheElementAndIgnoresOneNotThere()
     {
         var elements = new XSeriesElements();
@@ -298,7 +298,7 @@ public class DocumentObjectCollectionTests
         elements.Cast<XValue>().Should().Equal(b);
     }
 
-    [Fact]
+    [Test]
     public void IListSearchesAreByIdentity()
     {
         var elements = new XSeriesElements { "A" };
@@ -311,7 +311,7 @@ public class DocumentObjectCollectionTests
         list.Contains(new XValue("B")).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void IListSearchesFindABlankAndNeverFindSomethingElse()
     {
         var elements = new XSeriesElements { "A" };
@@ -324,7 +324,7 @@ public class DocumentObjectCollectionTests
         list.Contains(42).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void IListRefusesToStoreSomethingThatIsNotADocumentObject()
     {
         var elements = new XSeriesElements { "A" };
@@ -340,7 +340,7 @@ public class DocumentObjectCollectionTests
         elements.Count.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void IListAddReachesTheCollectionsOwnAdd()
     {
         // The IList route is the same list the typed members keep, on every collection.
@@ -362,7 +362,7 @@ public class DocumentObjectCollectionTests
     ///   A clone is deep: every element is copied rather than shared, so a change to one side does
     ///   not reach the other, and the copy stands on its own with no parent.
     /// </summary>
-    [Fact]
+    [Test]
     public void ACloneCopiesEveryElementRatherThanSharingIt()
     {
         var series = new Series();
@@ -388,7 +388,7 @@ public class DocumentObjectCollectionTests
     ///   The same through a chart: the series of a cloned chart are copies, so adding a value to
     ///   one of them leaves the original series as it was.
     /// </summary>
-    [Fact]
+    [Test]
     public void ACloneOfASeriesCollectionCopiesTheSeriesInIt()
     {
         var chart = Charts.OfSeries(ChartType.Column2D, [1.0, 2.0], [3.0, 4.0]);
@@ -410,7 +410,7 @@ public class DocumentObjectCollectionTests
     ///   Cloned through the base type, a collection is still copied as what it really is, so
     ///   code that handles any chart collection gets back one of the same kind.
     /// </summary>
-    [Fact]
+    [Test]
     public void ACloneThroughTheBaseTypeIsStillTheDerivedCollection()
     {
         var series = new Series();
@@ -428,7 +428,7 @@ public class DocumentObjectCollectionTests
     ///   A blank is copied as what it is - a null in the same place - rather than dereferenced,
     ///   so the values after it keep their indices in the copy as they do in the original.
     /// </summary>
-    [Fact]
+    [Test]
     public void ACloneKeepsABlankWhereItWas()
     {
         var elements = new XSeriesElements();
@@ -448,7 +448,7 @@ public class DocumentObjectCollectionTests
     ///   And for a series' points, whose values can be read back: the ones either side of the
     ///   blank are copied as they were.
     /// </summary>
-    [Fact]
+    [Test]
     public void ACloneOfASeriesKeepsABlankBetweenItsValues()
     {
         var series = new Series();
@@ -465,7 +465,7 @@ public class DocumentObjectCollectionTests
     ///   The same through a chart, which is how a caller meets it: a series holding a blank, and
     ///   the chart it belongs to copied whole.
     /// </summary>
-    [Fact]
+    [Test]
     public void AChartWhoseSeriesHoldsABlankCanStillBeCloned()
     {
         var chart = Charts.Of(ChartType.Line, 1.0, 2.0);
@@ -484,7 +484,7 @@ public class DocumentObjectCollectionTests
     ///   A copied element belongs to the copy, as an added one belongs to the collection it was
     ///   added to - not to nothing, and not to the collection it was copied from.
     /// </summary>
-    [Fact]
+    [Test]
     public void ACloneIsTheParentOfEveryElementItCopied()
     {
         var elements = new XSeriesElements { "A", "B" };
@@ -494,7 +494,7 @@ public class DocumentObjectCollectionTests
         copy.Cast<XValue>().Should().OnlyContain(value => value.Parent == copy);
     }
 
-    [Fact]
+    [Test]
     public void ACloneOfAnEmptyCollectionIsEmpty()
     {
         var copy = new XSeriesElements().Clone();

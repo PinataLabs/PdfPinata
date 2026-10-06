@@ -7,7 +7,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -39,7 +39,7 @@ public class DocumentInternalsAndOutlineCollectionTests
 
     // ----- the objects a document is made of --------------------------------------------------
 
-    [Fact]
+    [Test]
     public void EveryIndirectObjectCanBeFoundByItsNumberAndAnsweredBackAsItself()
     {
         var document = ADocumentOf();
@@ -58,7 +58,7 @@ public class DocumentInternalsAndOutlineCollectionTests
         internals.ExtGStateTable.Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void AskingForTheNumbersOfNothingSaysSoRatherThanAnsweringZero()
     {
         var takingAReference = () => PdfInternals.GetReference(null);
@@ -77,7 +77,7 @@ public class DocumentInternalsAndOutlineCollectionTests
     ///   <see cref="Guid"/> is a convenience over exactly those bytes. Anything that is not sixteen
     ///   bytes long is not one, and answers the empty guid rather than throwing part-way through.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheDocumentIdentifierIsReadableAsBytesOrAsAGuid()
     {
         var document = ADocumentOf(1);
@@ -95,7 +95,7 @@ public class DocumentInternalsAndOutlineCollectionTests
     ///   and already in the table. It goes through the constructor taking a document, and a type
     ///   without one is refused with the reason rather than with a reflection failure.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnObjectCreatedThroughTheDocumentIsAlreadyPartOfIt()
     {
         var document = ADocumentOf(1);
@@ -107,7 +107,7 @@ public class DocumentInternalsAndOutlineCollectionTests
         document.Internals.GetAllObjects().Should().Contain(dictionary);
     }
 
-    [Fact]
+    [Test]
     public void AnObjectCanBeAddedToADocumentAndTakenOutOfItAgain()
     {
         var document = ADocumentOf(1);
@@ -123,7 +123,7 @@ public class DocumentInternalsAndOutlineCollectionTests
         document.Internals.GetAllObjects().Should().NotContain(dictionary);
     }
 
-    [Fact]
+    [Test]
     public void AnObjectFromAnotherDocumentIsRefusedRatherThanRenumbered()
     {
         var document = ADocumentOf(1);
@@ -139,7 +139,7 @@ public class DocumentInternalsAndOutlineCollectionTests
             .WithMessage("*does not belong to this document*");
     }
 
-    [Fact]
+    [Test]
     public void ADirectObjectCannotBeRemovedBecauseNothingIsHoldingItByNumber()
     {
         var document = ADocumentOf(1);
@@ -154,7 +154,7 @@ public class DocumentInternalsAndOutlineCollectionTests
     ///   The closure of an object is everything reachable from it, which is what has to travel with
     ///   it when it is copied into another document. A page's closure holds its own resources.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheClosureOfAPageHoldsEverythingThePageReachesDownTo()
     {
         var document = ADocumentOf(1);
@@ -169,7 +169,7 @@ public class DocumentInternalsAndOutlineCollectionTests
         shallow.Length.Should().BeLessThanOrEqualTo(closure.Length);
     }
 
-    [Fact]
+    [Test]
     public void AnObjectCanBeWrittenOutOnItsOwn()
     {
         var document = ADocumentOf(1);
@@ -182,7 +182,7 @@ public class DocumentInternalsAndOutlineCollectionTests
 
     // ----- the bookmarks ----------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TheOutlineCollectionBehavesAsTheListItSaysItIs()
     {
         var document = ADocumentOf(3);
@@ -204,7 +204,7 @@ public class DocumentInternalsAndOutlineCollectionTests
         copied.Should().Equal(first, second, third);
     }
 
-    [Fact]
+    [Test]
     public void AnOutlineCanBePutAtAGivenPlaceTakenOutOrReplaced()
     {
         var document = ADocumentOf();
@@ -234,7 +234,7 @@ public class DocumentInternalsAndOutlineCollectionTests
     ///   used to be refused there - into an empty list, at index 0, as well. An entry put there has
     ///   to be linked into the tree as one added is, or the file would lose it.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnOutlineInsertedAtTheCountIsAppendedAndSurvivesTheFile()
     {
         var document = ADocumentOf();
@@ -257,7 +257,7 @@ public class DocumentInternalsAndOutlineCollectionTests
         reopened.Outlines[2].Outlines.Select(outline => outline.Title).Should().Equal("child");
     }
 
-    [Fact]
+    [Test]
     public void AnOutlineIndexOutsideTheListIsRefusedRatherThanReadPastTheEnd()
     {
         var document = ADocumentOf(1);
@@ -283,7 +283,7 @@ public class DocumentInternalsAndOutlineCollectionTests
     ///   it is added rather than where it is written, which is the only place the two documents are
     ///   both in view.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnOutlineOntoAnotherDocumentsPageIsRefused()
     {
         var document = ADocumentOf(1);
@@ -302,7 +302,7 @@ public class DocumentInternalsAndOutlineCollectionTests
     ///   own interface to hide, whether to fit the window to the page, and which way the pages
     ///   read. All of them are optional, and a reader that finds none does whatever it likes.
     /// </summary>
-    [Fact]
+    [Test]
     public void EveryViewerPreferenceSurvivesBeingWrittenAndReadBack()
     {
         var document = ADocumentOf(1);
@@ -337,9 +337,9 @@ public class DocumentInternalsAndOutlineCollectionTests
     ///   slash and the getter matched against the two names without one, so this was a property a
     ///   caller could set and never read - in the same document, or out of the file it wrote.
     /// </summary>
-    [Theory]
-    [InlineData(PdfReadingDirection.RightToLeft)]
-    [InlineData(PdfReadingDirection.LeftToRight)]
+    [Test]
+    [Arguments(PdfReadingDirection.RightToLeft)]
+    [Arguments(PdfReadingDirection.LeftToRight)]
     public void TheReadingDirectionIsReadBackAsWhateverItWasSetTo(PdfReadingDirection direction)
     {
         var document = ADocumentOf(1);
@@ -350,7 +350,7 @@ public class DocumentInternalsAndOutlineCollectionTests
         document.Reopened().ViewerPreferences.Direction.Should().Be(direction);
     }
 
-    [Fact]
+    [Test]
     public void AReadingDirectionSetBackToNothingIsTakenOutOfTheDocument()
     {
         var document = ADocumentOf(1);

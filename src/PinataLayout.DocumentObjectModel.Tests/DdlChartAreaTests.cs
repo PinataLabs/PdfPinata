@@ -5,7 +5,7 @@ using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
 using PinataLayout.DocumentObjectModel.Tables;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -35,7 +35,7 @@ public class DdlChartAreaTests
 
     // ----- an area written as plain content ---------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnAreaCanBeWrittenAsNothingButItsText()
     {
         // The shorthand: no \paragraph, just the words. The area has to notice that what follows
@@ -45,13 +45,13 @@ public class DdlChartAreaTests
         TextOf(chart.HeaderArea.Elements[0] as Paragraph).Should().Be("Sales by quarter");
     }
 
-    [Theory]
-    [InlineData("headerarea")]
-    [InlineData("footerarea")]
-    [InlineData("toparea")]
-    [InlineData("bottomarea")]
-    [InlineData("leftarea")]
-    [InlineData("rightarea")]
+    [Test]
+    [Arguments("headerarea")]
+    [Arguments("footerarea")]
+    [Arguments("toparea")]
+    [Arguments("bottomarea")]
+    [Arguments("leftarea")]
+    [Arguments("rightarea")]
     public void EveryOneOfTheSixTextAreasIsReadOntoItself(string areaKeyword)
     {
         var chart = ChartFrom("\\" + areaKeyword + "{here}");
@@ -74,7 +74,7 @@ public class DdlChartAreaTests
 
     // ----- an area written as a list of blocks -------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnAreaCanHoldParagraphsWrittenOutInFull()
     {
         var chart = ChartFrom("\\toparea{\\paragraph{first}\\paragraph{second}}");
@@ -83,7 +83,7 @@ public class DdlChartAreaTests
         TextOf(chart.TopArea.Elements[1] as Paragraph).Should().Be("second");
     }
 
-    [Fact]
+    [Test]
     public void AnAreaCanHoldALegend()
     {
         var chart = ChartFrom("\\rightarea{\\legend[Style = \"Normal\"]}");
@@ -91,7 +91,7 @@ public class DdlChartAreaTests
         chart.RightArea.Elements.OfType<Legend>().Should().ContainSingle();
     }
 
-    [Fact]
+    [Test]
     public void AnAreaCanHoldATable()
     {
         var chart = ChartFrom(
@@ -102,7 +102,7 @@ public class DdlChartAreaTests
         TextOf(table[0, 0].Elements[0] as Paragraph).Should().Be("n");
     }
 
-    [Fact]
+    [Test]
     public void AnAreaCanHoldATextFrame()
     {
         var chart = ChartFrom("\\leftarea{\\textframe[Width = \"3cm\"]{\\paragraph{inside}}}");
@@ -110,7 +110,7 @@ public class DdlChartAreaTests
         chart.LeftArea.Elements.OfType<Shapes.TextFrame>().Should().ContainSingle();
     }
 
-    [Fact]
+    [Test]
     public void AnAreaCanHoldMoreThanOneKindOfThingAtOnce()
     {
         // The loop's real job: it keeps dispatching until the closing brace, so the blocks need
@@ -123,7 +123,7 @@ public class DdlChartAreaTests
 
     // ----- the attributes and the empty cases ----------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnAreaCanCarryAttributesBeforeItsContent()
     {
         var chart = ChartFrom("\\headerarea[Style = \"Heading1\"]{titled}");
@@ -131,7 +131,7 @@ public class DdlChartAreaTests
         chart.HeaderArea.Style.Should().Be("Heading1");
     }
 
-    [Fact]
+    [Test]
     public void AnAreaCanCarryAttributesAndNoContentAtAll()
     {
         // The early return: attributes, then no brace. Nothing follows and the area is still read.
@@ -141,20 +141,20 @@ public class DdlChartAreaTests
         chart.HeaderArea.Elements.Count.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void AnAreaCanBeEmpty()
     {
         ChartFrom("\\toparea{}").TopArea.Elements.Count.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void AKeywordThatIsNotAnAreaBlockIsComplainedAbout()
     {
         ComplaintsAbout("\\document{\\section{\\chart(Line){\\toparea{\\cell{stray}}}}}")
             .Should().NotBeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void AChartTypeThatIsNotOneIsNamedInTheComplaint()
     {
         ComplaintsAbout("\\document{\\section{\\chart(NoSuchType){\\toparea{x}}}}")

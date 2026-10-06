@@ -3,7 +3,7 @@ using System.IO;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -56,7 +56,7 @@ public sealed class ImagePathAndReaderTests : IDisposable
 
     // ----- where an image looks for its file ---------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnImagePathIsTakenRelativeToTheWorkingDirectoryItWasGiven()
     {
         var image = AnImageNamed(new Document(), "picture.png");
@@ -66,7 +66,7 @@ public sealed class ImagePathAndReaderTests : IDisposable
         path.Should().Be(Path.Combine(_directory, "picture.png"));
     }
 
-    [Fact]
+    [Test]
     public void AnImageWithNoWorkingDirectoryLooksInTheCurrentOne()
     {
         var image = AnImageNamed(new Document(), "picture.png");
@@ -77,7 +77,7 @@ public sealed class ImagePathAndReaderTests : IDisposable
         path.Should().StartWith(Directory.GetCurrentDirectory());
     }
 
-    [Fact]
+    [Test]
     public void AnImageIsFoundInOneOfTheDirectoriesTheDocumentLists()
     {
         var document = new Document { ImagePath = _directory };
@@ -89,7 +89,7 @@ public sealed class ImagePathAndReaderTests : IDisposable
         path.Should().Be(Path.Combine(_directory, "found.png"));
     }
 
-    [Fact]
+    [Test]
     public void AnImageTheDocumentsPathDoesNotHoldStillAnswersAPath()
     {
         var document = new Document { ImagePath = _directory };
@@ -102,7 +102,7 @@ public sealed class ImagePathAndReaderTests : IDisposable
 
     // ----- the image itself --------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnImageWithASourceIsNotEmptyWhateverElseItSays()
     {
         var bare = new Image();
@@ -112,7 +112,7 @@ public sealed class ImagePathAndReaderTests : IDisposable
         bare.IsNull().Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void APictureFormatCanBeAssignedWholesale()
     {
         var image = new Image();
@@ -123,7 +123,7 @@ public sealed class ImagePathAndReaderTests : IDisposable
         image.PictureFormat.CropLeft.Centimeter.Should().BeApproximately(1, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void AnImageClonesItsFormatWithIt()
     {
         var image = new Image { ScaleWidth = 2, Resolution = 300, LockAspectRatio = true, PictureFormat = { CropTop = "3mm" } };
@@ -141,7 +141,7 @@ public sealed class ImagePathAndReaderTests : IDisposable
 
     private const string ADocument = "\\document{ \\section{ \\paragraph{ hello } } }";
 
-    [Fact]
+    [Test]
     public void ADocumentIsReadFromAFile()
     {
         var file = Path.Combine(_directory, "document.mdddl");
@@ -153,7 +153,7 @@ public sealed class ImagePathAndReaderTests : IDisposable
         document.DdlFile.Should().Be(file, "a document read from a file remembers which one");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentIsReadFromAStream()
     {
         using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(ADocument));
@@ -165,7 +165,7 @@ public sealed class ImagePathAndReaderTests : IDisposable
         document.DdlFile.Should().BeEmpty("nothing read from a stream has a file name");
     }
 
-    [Fact]
+    [Test]
     public void AnObjectIsReadFromAStringAndFromAFile()
     {
         const string paragraph = "\\paragraph{ hello }";
@@ -182,7 +182,7 @@ public sealed class ImagePathAndReaderTests : IDisposable
     ///   A reader given somewhere to put its errors still throws the first one it cannot carry on
     ///   past; the collection is for the ones it can. An object's DDL has to begin with an object.
     /// </summary>
-    [Fact]
+    [Test]
     public void DdlThatDoesNotBeginWithAnObjectIsRefused()
     {
         var errors = new DdlReaderErrors();

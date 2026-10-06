@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.Rendering.Tests.Helpers;
 using PdfPinata.Pdf;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -30,7 +30,7 @@ public class TaggedFootnoteTests
 {
     // ── The shape of it ─────────────────────────────────────────────────────────────────────────
 
-    [Fact]
+    [Test]
     public void AFootnoteIsANote()
     {
         var document = Document(out var section);
@@ -41,7 +41,7 @@ public class TaggedFootnoteTests
         tree.OfTag("Note").Should().HaveCount(1, "one note was cited, so there is one Note");
     }
 
-    [Fact]
+    [Test]
     public void TheMarkInTheSentenceIsAReferenceToIt()
     {
         var document = Document(out var section);
@@ -53,7 +53,7 @@ public class TaggedFootnoteTests
         reference.MarkCount.Should().Be(1, "the raised mark is what the reference is drawn from");
     }
 
-    [Fact]
+    [Test]
     public void TheNoteReadsWhereItWasCitedRatherThanWhereItIsDrawn()
     {
         // The whole point of building the element at the citation. Drawing order would put every note
@@ -73,7 +73,7 @@ public class TaggedFootnoteTests
         paragraphs[0].ChildTags().Should().Equal("Reference", "Note");
     }
 
-    [Fact]
+    [Test]
     public void TheNoteHoldsTheParagraphsOfItsOwnContent()
     {
         var document = Document(out var section);
@@ -85,7 +85,7 @@ public class TaggedFootnoteTests
         note.ChildTags().Should().Contain("P", "and the note's text is a paragraph like any other");
     }
 
-    [Fact]
+    [Test]
     public void TheNoteItselfHoldsNoMarksDirectly()
     {
         // Entered rather than marked. A Note carrying marks of its own would claim that some of the
@@ -96,7 +96,7 @@ public class TaggedFootnoteTests
         note.MarkCount.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void ANoteWithSeveralParagraphsKeepsThemAllInside()
     {
         var document = Document(out var section);
@@ -111,7 +111,7 @@ public class TaggedFootnoteTests
 
     // ── The identifier PDF/UA asks for ──────────────────────────────────────────────────────────
 
-    [Fact]
+    [Test]
     public void EveryNoteCanBePointedAt()
     {
         // ISO 14289-1 7.9. A note exists to be pointed at from the mark that cited it, and an element
@@ -121,7 +121,7 @@ public class TaggedFootnoteTests
         note.Id.Should().NotBeNullOrEmpty();
     }
 
-    [Fact]
+    [Test]
     public void TwoNotesGetIdentifiersOfTheirOwn()
     {
         var document = Document(out var section);
@@ -136,7 +136,7 @@ public class TaggedFootnoteTests
             "an identifier nothing can tell apart names neither of them");
     }
 
-    [Fact]
+    [Test]
     public void TheIdentifiersAreIndexedSoThatSomethingCanResolveThem()
     {
         // ISO 32000-1 requires the IDTree the moment any element carries an /ID: an identifier nothing
@@ -153,7 +153,7 @@ public class TaggedFootnoteTests
         ((PdfString)names.Elements[0]).Value.Should().Be(note.Id);
     }
 
-    [Fact]
+    [Test]
     public void SavingTwiceIndexesTheIdentifiersOnceRatherThanTwice()
     {
         // Saving to a stream and then to a file is an ordinary thing to do, and the index is written
@@ -179,7 +179,7 @@ public class TaggedFootnoteTests
             "one name and the element it names, not both twice over");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentWithNoNotesInItHasNoIdentifierIndex()
     {
         var document = Document(out var section);
@@ -194,7 +194,7 @@ public class TaggedFootnoteTests
 
     // ── The furniture ───────────────────────────────────────────────────────────────────────────
 
-    [Fact]
+    [Test]
     public void TheSeparatorRuleIsFurnitureRatherThanContent()
     {
         // Everything on a page is either content or an artifact, and a rule that is neither is what a
@@ -208,7 +208,7 @@ public class TaggedFootnoteTests
 
     // ── What a PDF/UA claim makes of it ─────────────────────────────────────────────────────────
 
-    [Fact]
+    [Test]
     public void ADocumentWithFootnotesCanClaimAccessibility()
     {
         // The rule added here has teeth, so this is the test that says a footnote PinataLayout rendered
@@ -233,7 +233,7 @@ public class TaggedFootnoteTests
         saving.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void ANoteWithNoIdentifierIsRefused()
     {
         // Not reachable through MigraDoc, which always writes one - so built by hand, which is the

@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -19,18 +19,18 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 /// <remarks>
 ///   Reading input the parser does not expect can hang rather than fail, so every test that scans
-///   runs inside a <see cref="Task"/> xUnit can time out.
+///   runs inside a <see cref="Task"/> a timeout can abandon.
 /// </remarks>
 public class TolerantParsingTests
 {
     // ----- What is taken as the end of an object that does not say "endobj" -------------------------
 
-    [Theory(Timeout = 5000)]
-    [InlineData("xref", Symbol.XRef)]
-    [InlineData("trailer", Symbol.Trailer)]
-    [InlineData("startxref", Symbol.StartXRef)]
-    [InlineData("%%EOF", Symbol.Eof)]
-    [InlineData("", Symbol.Eof)]
+    [Test, Timeout(5000)]
+    [Arguments("xref", Symbol.XRef)]
+    [Arguments("trailer", Symbol.Trailer)]
+    [Arguments("startxref", Symbol.StartXRef)]
+    [Arguments("%%EOF", Symbol.Eof)]
+    [Arguments("", Symbol.Eof)]
     public async Task EndsAnObject_takesWhatEndsTheBodyOfTheFileAsTheEndOfTheObject(string body, Symbol expected)
     {
         var (symbol, endsIt) = await Task.Run(() =>
@@ -44,7 +44,7 @@ public class TolerantParsingTests
         endsIt.Should().BeTrue();
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task EndsAnObject_takesTheObjectNumberOfTheNextObjectAsTheEndOfThisOne()
     {
         // The reported file: object 59 does not close, so the "60" opening object 60 is what
@@ -54,11 +54,11 @@ public class TolerantParsingTests
         endsIt.Should().BeTrue();
     }
 
-    [Theory(Timeout = 5000)]
-    [InlineData("60")]      // nothing behind it at all
-    [InlineData("60 0")]    // a generation number, but no keyword
-    [InlineData("60 0 R")]  // a reference, which is a value rather than a header
-    [InlineData("0 0 obj")] // object numbers count from one; zero heads the list of free objects
+    [Test, Timeout(5000)]
+    [Arguments("60")]      // nothing behind it at all
+    [Arguments("60 0")]    // a generation number, but no keyword
+    [Arguments("60 0 R")]  // a reference, which is a value rather than a header
+    [Arguments("0 0 obj")] // object numbers count from one; zero heads the list of free objects
     public async Task EndsAnObject_stillReportsAStrayNumberThatOpensNoObject(string body)
     {
         var endsIt = await Task.Run(() => EndsAnObject(body));
@@ -66,12 +66,12 @@ public class TolerantParsingTests
         endsIt.Should().BeFalse();
     }
 
-    [Theory(Timeout = 5000)]
-    [InlineData("/Name")]
-    [InlineData("(a string)")]
-    [InlineData("[")]
-    [InlineData("endstream")]
-    [InlineData("true")]
+    [Test, Timeout(5000)]
+    [Arguments("/Name")]
+    [Arguments("(a string)")]
+    [Arguments("[")]
+    [Arguments("endstream")]
+    [Arguments("true")]
     public async Task EndsAnObject_reportsAnythingElseFoundWhereTheKeywordShouldBe(string body)
     {
         var endsIt = await Task.Run(() => EndsAnObject(body));
@@ -79,7 +79,7 @@ public class TolerantParsingTests
         endsIt.Should().BeFalse();
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task BeginsAnIndirectObject_leavesTheInputWhereItFoundIt()
     {
         // Looking ahead is all it does: the caller goes on to read the number itself, so what it
@@ -98,7 +98,7 @@ public class TolerantParsingTests
 
     // ----- The stream a dictionary does not describe -------------------------------------------------
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task TryReadStreamUpToEndOfStream_readsUpToTheKeywordWithoutTheEndOfLineBeforeIt()
     {
         var dict = await Task.Run(() => StreamOf("<< >>\nstream\r\nDATA\r\nendstream"));
@@ -106,7 +106,7 @@ public class TolerantParsingTests
         dict.Stream.Value.Should().Equal(ParserProbe.Bytes("DATA"));
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task TryReadStreamUpToEndOfStream_readsAStreamThatEndsWithNoEndOfLineAtAll()
     {
         // A document that gets its stream lengths wrong is not one to be trusted to write the
@@ -116,7 +116,7 @@ public class TolerantParsingTests
         dict.Stream.Value.Should().Equal(ParserProbe.Bytes("DATA"));
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task TryReadStreamUpToEndOfStream_recordsTheLengthItRead()
     {
         // The dictionary has to describe its stream correctly once the document is written again.
@@ -125,7 +125,7 @@ public class TolerantParsingTests
         dict.Elements.GetInteger("/Length").Should().Be(4);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task TryReadStreamUpToEndOfStream_reportsADocumentThatHoldsNoKeywordAtAll()
     {
         var (found, dict) = await Task.Run(() =>
@@ -143,13 +143,13 @@ public class TolerantParsingTests
         dict.Stream.Should().BeNull("nothing was found to read");
     }
 
-    [Theory]
-    [InlineData("DATA\r\n", "DATA")]
-    [InlineData("DATA\n", "DATA")]
-    [InlineData("DATA\r", "DATA")]
-    [InlineData("DATA\n\n", "DATA\n")] // one end-of-line belongs to the file; the rest is data
-    [InlineData("\n", "")]
-    [InlineData("", "")]
+    [Test]
+    [Arguments("DATA\r\n", "DATA")]
+    [Arguments("DATA\n", "DATA")]
+    [Arguments("DATA\r", "DATA")]
+    [Arguments("DATA\n\n", "DATA\n")] // one end-of-line belongs to the file; the rest is data
+    [Arguments("\n", "")]
+    [Arguments("", "")]
     public void WithoutTheEndOfLineBeforeTheKeyword_dropsTheOneSeparatorAndNoMore(string read, string expected)
     {
         var bytes = ParserProbe.WithoutTheEndOfLineBeforeTheKeyword(ParserProbe.Bytes(read));
@@ -157,7 +157,7 @@ public class TolerantParsingTests
         bytes.Should().Equal(ParserProbe.Bytes(expected));
     }
 
-    [Fact]
+    [Test]
     public void WithoutTheEndOfLineBeforeTheKeyword_handsBackTheDataItselfWhenThereIsNothingToDrop()
     {
         var read = ParserProbe.Bytes("DATA");
@@ -167,7 +167,7 @@ public class TolerantParsingTests
 
     // ----- References to objects that are not there --------------------------------------------------
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task ParseObject_readsAReferenceToAnObjectTheTableDoesNotHoldAsNull()
     {
         // PDF Reference 3.2.9: an indirect reference to an undefined object is not an error, it is
@@ -181,7 +181,7 @@ public class TolerantParsingTests
         items.Should().ContainSingle().Which.Should().Be(PdfNull.Value);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task ParseObject_makesATemporaryReferenceWhileTheTableIsStillBeingBuilt()
     {
         // A document with more than one cross-reference table can have its first trailer refer to
@@ -199,7 +199,7 @@ public class TolerantParsingTests
         iref.Position.Should().Be(0, "where the object really is is not known yet");
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task ParseObject_readsAReferenceToAKnownObjectAsTheTablesOwnEntry()
     {
         var (items, owner) = await Task.Run(() =>
@@ -216,7 +216,7 @@ public class TolerantParsingTests
 
     // ----- A dictionary whose entries do not pair up ---------------------------------------------------
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task ReadDictionary_keepsThePairsAroundAValueThatHasNoKey()
     {
         // pdfTeX writes its PTEX.FullBanner as two strings with no key in front of them.

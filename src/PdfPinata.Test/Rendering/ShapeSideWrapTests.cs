@@ -10,7 +10,7 @@ using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.Rendering;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Rendering;
 
@@ -42,7 +42,7 @@ public class ShapeSideWrapTests
 
     // ----- the room the shape reserves ------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TextRunsBesideAWrappedShapeRatherThanBelowIt()
     {
         // Text on the left, so the shape goes on the right. Asking for the text on the side the
@@ -57,7 +57,7 @@ public class ShapeSideWrapTests
         below.LevelWithTheShape.Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void TheLinesLevelWithTheShapeAreShortenedAndTheOthersAreNot()
     {
         var laid = LaidOut(WrapStyle.Right);
@@ -71,7 +71,7 @@ public class ShapeSideWrapTests
             "the lines below it run the full measure");
     }
 
-    [Fact]
+    [Test]
     public void NoLineIsDrawnAcrossTheShape()
     {
         var laid = LaidOut(WrapStyle.Right, shapeWidth: "6cm");
@@ -83,7 +83,7 @@ public class ShapeSideWrapTests
         }
     }
 
-    [Fact]
+    [Test]
     public void NothingIsLostToTheWrapAndNothingIsRepeated()
     {
         var wrapped = GlyphsAcross(RenderDocument(WrapStyle.Left, ShapePosition.Right, "4cm", "4cm", 12, null));
@@ -94,7 +94,7 @@ public class ShapeSideWrapTests
 
     // ----- which side ------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AskingForTheTextOnTheLeftPutsItOnTheLeft()
     {
         var laid = LaidOut(WrapStyle.Left, ShapePosition.Right);
@@ -104,7 +104,7 @@ public class ShapeSideWrapTests
             "the text begins at the margin and stops before the shape");
     }
 
-    [Fact]
+    [Test]
     public void AskingForTheTextOnTheRightPutsItOnTheRight()
     {
         var laid = LaidOut(WrapStyle.Right);
@@ -114,7 +114,7 @@ public class ShapeSideWrapTests
             "the text begins after the shape");
     }
 
-    [Fact]
+    [Test]
     public void TheTwoSidesAreNotTheSameWayRound()
     {
         // The one failure a single page cannot show: a wrap that is consistently backwards.
@@ -124,7 +124,7 @@ public class ShapeSideWrapTests
         left.First().X.Should().BeLessThan(right.First().X - 50);
     }
 
-    [Fact]
+    [Test]
     public void AskingForEitherSideFillsTheRoomierOne()
     {
         // Against the left margin, so the room is on the right.
@@ -134,7 +134,7 @@ public class ShapeSideWrapTests
         laid.LevelWithTheShape.Should().OnlyContain(line => line.X >= laid.ShapeRight - 1);
     }
 
-    [Fact]
+    [Test]
     public void AskingForTheLargestSideIsTheSameAsAskingForEitherSide()
     {
         // Documented on the enumeration and asserted here, so that the day they part company a
@@ -148,7 +148,7 @@ public class ShapeSideWrapTests
 
     // ----- the distances ---------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AHorizontalDistanceHoldsTheTextOffTheShape()
     {
         var tight = LaidOut(WrapStyle.Right, arrange: wrap => wrap.DistanceRight = 0);
@@ -159,7 +159,7 @@ public class ShapeSideWrapTests
                 "DistanceRight is the gap between the shape and the text beside it");
     }
 
-    [Fact]
+    [Test]
     public void NoDistanceAtAllLetsTheTextRunUpToTheShape()
     {
         var laid = LaidOut(WrapStyle.Right,
@@ -168,7 +168,7 @@ public class ShapeSideWrapTests
         laid.LevelWithTheShape.First().X.Should().BeApproximately(laid.ShapeRight, 1.0);
     }
 
-    [Fact]
+    [Test]
     public void AVerticalDistancePushesTheFirstClearLineFurtherDown()
     {
         var tight = LaidOut(WrapStyle.Right, arrange: wrap => wrap.DistanceBottom = 0);
@@ -193,7 +193,7 @@ public class ShapeSideWrapTests
 
     // ----- existing styles are untouched ----------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AShapePlacedBetweenItsNeighboursStillPushesThemDown()
     {
         var laid = LaidOut(WrapStyle.TopBottom);
@@ -203,7 +203,7 @@ public class ShapeSideWrapTests
         laid.LevelWithTheShape.Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void AShapeTheTextIgnoresIsStillIgnored()
     {
         var through = LaidOut(WrapStyle.Through).Lines;
@@ -213,7 +213,7 @@ public class ShapeSideWrapTests
             .Should().Equal(none.Select(line => (Math.Round(line.X, 3), Math.Round(line.Y, 3))));
     }
 
-    [Fact]
+    [Test]
     public void AShapeTheTextIgnoresHasTextDrawnAcrossIt()
     {
         var laid = LaidOut(WrapStyle.Through);
@@ -226,7 +226,7 @@ public class ShapeSideWrapTests
 
     // ----- falling back rather than misplacing ----------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AShapeTallerThanTheAreaIsPlacedBetweenItsNeighboursInstead()
     {
         // Taller than the text area, so it cannot stand in it: the obstacle would outlive the area
@@ -239,7 +239,7 @@ public class ShapeSideWrapTests
             .Should().NotBeEmpty("the text is still laid out somewhere");
     }
 
-    [Fact]
+    [Test]
     public void AWrappedShapeOnADocumentThatBreaksKeepsAllOfItsText()
     {
         var wrapped = GlyphsAcross(RenderDocument(WrapStyle.Left, ShapePosition.Right, "4cm", "4cm", 40, null));
@@ -250,7 +250,7 @@ public class ShapeSideWrapTests
 
     // ----- justified text beside a shape ----------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void JustifiedTextBesideAShapeStaysInsideTheMeasure()
     {
         var document = RenderDocument(WrapStyle.Right, ShapePosition.Left, "4cm", "4cm", 12, null,

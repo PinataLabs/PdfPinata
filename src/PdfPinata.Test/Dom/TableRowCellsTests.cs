@@ -5,7 +5,7 @@ using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Internals;
 using PinataLayout.DocumentObjectModel.Tables;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -20,7 +20,7 @@ public class TableRowCellsTests
 {
     private const int Columns = 4;
 
-    [Fact]
+    [Test]
     public void ARowHasACellForEveryColumnOfItsTable()
     {
         var table = ATableOf(Columns, rows: 3);
@@ -29,7 +29,7 @@ public class TableRowCellsTests
             row.Cells.Count.Should().Be(Columns);
     }
 
-    [Fact]
+    [Test]
     public void EnumeratingARowReachesEveryOneOfItsCells()
     {
         var table = ATableOf(Columns, rows: 3);
@@ -38,7 +38,7 @@ public class TableRowCellsTests
             ColumnIndicesOf(row).Should().Equal(Enumerable.Range(0, Columns));
     }
 
-    [Fact]
+    [Test]
     public void ARowStillHasEveryCellWhenSomethingHasAlreadyTouchedOne()
     {
         // Touching a cell by index is what used to decide how many the row had.
@@ -48,7 +48,7 @@ public class TableRowCellsTests
         ColumnIndicesOf(table.Rows[1]).Should().Equal(Enumerable.Range(0, Columns));
     }
 
-    [Fact]
+    [Test]
     public void SettingSomethingOnEveryCellOfEveryRowReachesTheWholeTable()
     {
         // The loop from https://github.com/empira/PDFsharp/issues/228, which reached a triangle
@@ -65,7 +65,7 @@ public class TableRowCellsTests
                 ColourOf(table[row, column]).Should().Be(green);
     }
 
-    [Fact]
+    [Test]
     public void ARowAddedRatherThanCreatedByTheTableHasItsCellsToo()
     {
         // Not every row arrives through AddRow.
@@ -75,7 +75,7 @@ public class TableRowCellsTests
         table.Rows[0].Cells.Count.Should().Be(Columns);
     }
 
-    [Fact]
+    [Test]
     public void ARowInsertedAmongTheOthersHasItsCellsToo()
     {
         var table = ATableOf(Columns, rows: 2);
@@ -85,7 +85,7 @@ public class TableRowCellsTests
         table.Rows.Count.Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void TheCellsOfARowAreTheCellsTheTableAddressesByIndex()
     {
         // Filling the row must not leave the table addressing different objects.
@@ -96,7 +96,7 @@ public class TableRowCellsTests
                 table[row, column].Should().BeSameAs(table.Rows[row].Cells[column]);
     }
 
-    [Fact]
+    [Test]
     public void ARowWithNoTableYetHasNoCellsToGive()
     {
         // A row on its own knows no column count, and asking for one must not invent cells.
@@ -105,7 +105,7 @@ public class TableRowCellsTests
         row.Cells.Count.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void ATableSurvivesAWriteAndAReadUnchanged()
     {
         // The cells now written out explicitly are read back as the same table.
@@ -121,7 +121,7 @@ public class TableRowCellsTests
         rewritten.Should().Be(written);
     }
 
-    [Fact]
+    [Test]
     public void ATableReadFromDdlHasACellForEveryColumnAsWell()
     {
         var document = DdlReader.DocumentFromString(

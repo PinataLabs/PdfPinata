@@ -7,8 +7,7 @@ using System.Linq;
 using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Text;
-using Xunit;
-using Xunit.Abstractions;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Text;
 
@@ -33,17 +32,13 @@ namespace PdfPinata.Test.Text;
 ///     <c>UnicodeProperties.UnicodeVersion</c> is pinned in a test for.
 ///   </para>
 ///   <para>
-///     One <c>[Fact]</c> per suite rather than a theory per case: half a million xUnit test cases
+///     One <c>[Test]</c> per suite rather than a theory per case: half a million test cases
 ///     is not a test run, it is a denial of service on the runner. Each collects its failures and
 ///     reports the first few with everything needed to reproduce them by hand.
 ///   </para>
 /// </remarks>
 public class BidiConformanceTests
 {
-    private readonly ITestOutputHelper _out;
-
-    public BidiConformanceTests(ITestOutputHelper output) => _out = output;
-
     /// <summary>
     ///   A code point of each Bidi_Class, for BidiTest.txt - which gives its cases as class names
     ///   rather than as characters, and leaves the choice of representative to the implementation.
@@ -80,7 +75,7 @@ public class BidiConformanceTests
         ["PDI"] = 0x2069
     };
 
-    [Fact]
+    [Test]
     public void EveryRepresentativeCharacterReallyHasTheClassItStandsFor()
     {
         // The suite is only meaningful if the substitution is faithful, and a wrong representative
@@ -105,7 +100,7 @@ public class BidiConformanceTests
 
     // ----- BidiTest.txt -------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TheBidiTestSuitePasses()
     {
         var failures = new List<string>();
@@ -180,7 +175,7 @@ public class BidiConformanceTests
 
     // ----- BidiCharacterTest.txt ----------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TheBidiCharacterTestSuitePasses()
     {
         var failures = new List<string>();
@@ -306,9 +301,9 @@ public class BidiConformanceTests
 
     private void Report(int cases, List<string> failures, string suite)
     {
-        _out.WriteLine($"{suite}: {cases - failures.Count} of {cases} cases passed.");
+        TestContext.Current!.Output.WriteLine($"{suite}: {cases - failures.Count} of {cases} cases passed.");
         foreach (var failure in failures.Take(20))
-            _out.WriteLine("  " + failure);
+            TestContext.Current!.Output.WriteLine("  " + failure);
 
         cases.Should().BeGreaterThan(0, $"{suite} should have been read and parsed");
         failures.Should().BeEmpty(

@@ -5,7 +5,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -21,7 +21,7 @@ namespace PdfPinata.Test.Drawing;
 ///   itself either way.
 ///   </para>
 /// </summary>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public class TextStateRenderingTests
 {
     private const double FontSize = 24;
@@ -95,7 +95,7 @@ public class TextStateRenderingTests
         return (meanTop - meanBottom) / PixelsPerPoint;
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void CharacterSpacingPushesTheGlyphsApartOnThePage()
     {
         const double spacing = 4;
@@ -111,7 +111,7 @@ public class TextStateRenderingTests
         (spaced - plain).Should().BeApproximately(2 * spacing, 1.5);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void WordSpacingPushesTheWordsApartForAFontEncodedAsWinAnsi()
     {
         const double spacing = 6;
@@ -126,7 +126,7 @@ public class TextStateRenderingTests
         (spaced - plain).Should().BeApproximately(2 * spacing, 1.5);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void WordSpacingPushesTheWordsApartForAFontEncodedAsUnicode()
     {
         const double spacing = 6;
@@ -142,7 +142,7 @@ public class TextStateRenderingTests
         (spaced - plain).Should().BeApproximately(2 * spacing, 1.5);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void TheTwoEncodingsSpaceTheirWordsOutTheSameAmount()
     {
         var format = XStringFormats.Default;
@@ -155,7 +155,7 @@ public class TextStateRenderingTests
         unicode.Should().BeApproximately(winAnsi, 1.5);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void HorizontalScalingSquashesTheTextOnThePage()
     {
         var plain = InkedWidthOf("abcdef", WinAnsiFont, XStringFormats.Default);
@@ -167,7 +167,7 @@ public class TextStateRenderingTests
         squashed.Should().BeApproximately(plain / 2, 1.5);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void TextRiseLiftsTheTextUpThePage()
     {
         const double rise = 10;
@@ -183,7 +183,7 @@ public class TextStateRenderingTests
         (raised - level).Should().BeApproximately(rise, 1.5);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void ANegativeTextRiseDropsTheTextDownThePage()
     {
         var level = InkedTopOf("Hxy", WinAnsiFont, XStringFormats.Default);
@@ -195,7 +195,7 @@ public class TextStateRenderingTests
         (lowered - level).Should().BeApproximately(-10, 1.5);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AnObliqueAngleLeansTheTextToTheRight()
     {
         var upright = LeanOf("H", WinAnsiFont, XStringFormats.Default);
@@ -210,7 +210,7 @@ public class TextStateRenderingTests
         leaning.Should().BeGreaterThan(upright + 5);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void ANegativeObliqueAngleLeansTheTextToTheLeft()
     {
         var format = XStringFormats.Default;
@@ -219,7 +219,7 @@ public class TextStateRenderingTests
         LeanOf("H", WinAnsiFont, format).Should().BeLessThan(-5);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void ASteeperObliqueAngleLeansFurther()
     {
         var gentle = XStringFormats.Default;

@@ -2,7 +2,7 @@ using System.Linq;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -43,7 +43,7 @@ public class ChartDomTests
 
     // ----- DeepCopy ------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ACopiedChartKeepsWhatTheOriginalSaid()
     {
         var chart = AFullyPopulatedChart();
@@ -65,7 +65,7 @@ public class ChartDomTests
     ///   to the original afterwards leaves the copy where it was. A child that was referenced
     ///   rather than cloned passes every other test and fails this one.
     /// </summary>
-    [Fact]
+    [Test]
     public void WritingToTheOriginalAfterwardsDoesNotReachTheCopy()
     {
         var chart = AFullyPopulatedChart();
@@ -90,13 +90,13 @@ public class ChartDomTests
         copy.XValues.Count.Should().Be(1);
     }
 
-    [Theory]
-    [InlineData("HeaderArea")]
-    [InlineData("FooterArea")]
-    [InlineData("TopArea")]
-    [InlineData("BottomArea")]
-    [InlineData("LeftArea")]
-    [InlineData("RightArea")]
+    [Test]
+    [Arguments("HeaderArea")]
+    [Arguments("FooterArea")]
+    [Arguments("TopArea")]
+    [Arguments("BottomArea")]
+    [Arguments("LeftArea")]
+    [Arguments("RightArea")]
     public void EveryTextAreaIsCopiedRatherThanShared(string areaName)
     {
         var chart = AFullyPopulatedChart();
@@ -108,7 +108,7 @@ public class ChartDomTests
             .Be(1, "the copy's {0} is its own", areaName);
     }
 
-    [Fact]
+    [Test]
     public void ACopiedChartCanBePutInAnotherDocumentAndWrittenThere()
     {
         // The other half of a deep copy is reparenting each clone onto the copy. A child still
@@ -126,7 +126,7 @@ public class ChartDomTests
             written.Should().Contain("\\" + keyword, "the copied {0} knows what it is", keyword);
     }
 
-    [Fact]
+    [Test]
     public void ACopyOfAnEmptyChartIsStillAChart()
     {
         // Every one of the fourteen clones is guarded by a null check, and a chart with nothing
@@ -155,13 +155,13 @@ public class ChartDomTests
     ///   compares it against each of the six by reference. The answer is the keyword the area is
     ///   written as, so serializing a chart is what asks the question.
     /// </summary>
-    [Theory]
-    [InlineData("HeaderArea", "headerarea")]
-    [InlineData("FooterArea", "footerarea")]
-    [InlineData("TopArea", "toparea")]
-    [InlineData("BottomArea", "bottomarea")]
-    [InlineData("LeftArea", "leftarea")]
-    [InlineData("RightArea", "rightarea")]
+    [Test]
+    [Arguments("HeaderArea", "headerarea")]
+    [Arguments("FooterArea", "footerarea")]
+    [Arguments("TopArea", "toparea")]
+    [Arguments("BottomArea", "bottomarea")]
+    [Arguments("LeftArea", "leftarea")]
+    [Arguments("RightArea", "rightarea")]
     public void EachAreaIsWrittenUnderTheKeywordThatNamesIt(string areaName, string keyword)
     {
         var document = new Document();
@@ -171,7 +171,7 @@ public class ChartDomTests
         DdlWriter.WriteToString(document).Should().Contain("\\" + keyword);
     }
 
-    [Fact]
+    [Test]
     public void EachOfTheSixIsToldApartFromTheOtherFive()
     {
         // All six populated at once, which is the case where getting the comparison wrong would

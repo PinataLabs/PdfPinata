@@ -1,8 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Drawing.Layout;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing.Layout;
 
@@ -26,7 +27,7 @@ public class FlowGeometryTests
 
     // ----- a run ----------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ARunKnowsHowFarItRuns()
     {
         var run = new XInterval(20, 50);
@@ -37,7 +38,7 @@ public class FlowGeometryTests
         run.IsEmpty.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ARunOfNoWidthIsEmptyButIsNotAnError()
     {
         // It is an ordinary measurement - two obstacles meeting exactly leave one of these - and
@@ -45,7 +46,7 @@ public class FlowGeometryTests
         new XInterval(20, 20).IsEmpty.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ARunEndingBeforeItStartsIsRefused()
     {
         var build = () => new XInterval(50, 20);
@@ -53,30 +54,30 @@ public class FlowGeometryTests
         build.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Theory]
-    [InlineData(0, 10, 10, 20, false)]   // touching end to end
-    [InlineData(0, 10, 9, 20, true)]
-    [InlineData(0, 10, 20, 30, false)]
-    [InlineData(0, 100, 20, 30, true)]   // one inside the other
+    [Test]
+    [Arguments(0, 10, 10, 20, false)]   // touching end to end
+    [Arguments(0, 10, 9, 20, true)]
+    [Arguments(0, 10, 20, 30, false)]
+    [Arguments(0, 100, 20, 30, true)]   // one inside the other
     public void RunsOverlapOnlyWhereTheyShareWidth(double aStart, double aEnd,
         double bStart, double bEnd, bool expected)
     {
         new XInterval(aStart, aEnd).Overlaps(new XInterval(bStart, bEnd)).Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void TheOverlapOfTwoRunsIsTheirCommonPart()
     {
         new XInterval(0, 50).Intersect(new XInterval(30, 80)).Should().Be(new XInterval(30, 50));
     }
 
-    [Fact]
+    [Test]
     public void TheOverlapOfRunsThatDoNotMeetIsEmpty()
     {
         new XInterval(0, 20).Intersect(new XInterval(50, 80)).IsEmpty.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void TwoRunsOfTheSameExtentAreTheSameRun()
     {
         // ReSharper disable once EqualExpressionComparison
@@ -86,7 +87,7 @@ public class FlowGeometryTests
 
     // ----- the slice a line occupies --------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ABandKnowsHowDeepItIs()
     {
         var band = new FlowBand(100, 112);
@@ -96,7 +97,7 @@ public class FlowGeometryTests
         band.Height.Should().Be(12);
     }
 
-    [Fact]
+    [Test]
     public void ABandEndingAboveWhereItStartsIsRefused()
     {
         // y runs down the page here as it does everywhere else in layout.
@@ -105,14 +106,14 @@ public class FlowGeometryTests
         build.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Theory]
-    [InlineData(0, 50, false)]      // wholly above
-    [InlineData(0, 100, false)]     // foot exactly level with the band's top
-    [InlineData(0, 101, true)]      // one point of ascender inside it
-    [InlineData(111, 200, true)]    // one point of descender inside it
-    [InlineData(112, 200, false)]   // head exactly level with the band's bottom
-    [InlineData(150, 200, false)]   // wholly below
-    [InlineData(102, 105, true)]    // wholly inside
+    [Test]
+    [Arguments(0, 50, false)]      // wholly above
+    [Arguments(0, 100, false)]     // foot exactly level with the band's top
+    [Arguments(0, 101, true)]      // one point of ascender inside it
+    [Arguments(111, 200, true)]    // one point of descender inside it
+    [Arguments(112, 200, false)]   // head exactly level with the band's bottom
+    [Arguments(150, 200, false)]   // wholly below
+    [Arguments(102, 105, true)]    // wholly inside
     public void ABandIsOverlappedByAnythingStandingInsideIt(double top, double bottom, bool expected)
     {
         // Touching counts for nothing, both ways, so obstacles stacked end to end never both claim
@@ -122,7 +123,7 @@ public class FlowGeometryTests
 
     // ----- a set of runs --------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ASetPutsItsRunsInOrder()
     {
         var set = IntervalSet.Of(new XInterval(60, 80), new XInterval(0, 20));
@@ -130,7 +131,7 @@ public class FlowGeometryTests
         Runs(set).Should().Equal((0d, 20d), (60d, 80d));
     }
 
-    [Fact]
+    [Test]
     public void ASetMergesRunsThatOverlap()
     {
         var set = IntervalSet.Of(new XInterval(0, 40), new XInterval(20, 70));
@@ -138,7 +139,7 @@ public class FlowGeometryTests
         Runs(set).Should().Equal((0d, 70d));
     }
 
-    [Fact]
+    [Test]
     public void ASetMergesRunsThatMeetEndToEnd()
     {
         // Two runs touching are one run. Left apart they would offer a caller two narrow spans
@@ -149,7 +150,7 @@ public class FlowGeometryTests
         Runs(set).Should().Equal((0d, 70d));
     }
 
-    [Fact]
+    [Test]
     public void ASetDropsRunsCoveringNothing()
     {
         var set = IntervalSet.Of(new XInterval(10, 10), new XInterval(20, 30));
@@ -157,7 +158,7 @@ public class FlowGeometryTests
         Runs(set).Should().Equal((20d, 30d));
     }
 
-    [Fact]
+    [Test]
     public void ARunSwallowedByAWiderOneAddsNothing()
     {
         var set = IntervalSet.Of(new XInterval(0, 100), new XInterval(20, 30));
@@ -167,7 +168,7 @@ public class FlowGeometryTests
 
     // ----- taking things out of a set -------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TakingSomethingFromTheMiddleLeavesTwoRuns()
     {
         // The property the whole abstraction exists for: the geometry answers honestly that there
@@ -177,27 +178,27 @@ public class FlowGeometryTests
         Runs(left).Should().Equal((0d, 40d), (60d, 100d));
     }
 
-    [Fact]
+    [Test]
     public void TakingSomethingFromTheLeftLeavesTheRest()
     {
         Runs(IntervalSet.Of(0, 100).Subtract([new XInterval(0, 30)]))
             .Should().Equal((30d, 100d));
     }
 
-    [Fact]
+    [Test]
     public void TakingSomethingFromTheRightLeavesTheRest()
     {
         Runs(IntervalSet.Of(0, 100).Subtract([new XInterval(70, 100)]))
             .Should().Equal((0d, 70d));
     }
 
-    [Fact]
+    [Test]
     public void TakingTheWholeThingLeavesNothing()
     {
         IntervalSet.Of(0, 100).Subtract([new XInterval(0, 100)]).IsEmpty.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void TakingSomethingThatHangsOffTheEndTakesOnlyWhatOverlaps()
     {
         Runs(IntervalSet.Of(0, 100).Subtract([new XInterval(-40, 25)]))
@@ -207,14 +208,14 @@ public class FlowGeometryTests
             .Should().Equal((0d, 80d));
     }
 
-    [Fact]
+    [Test]
     public void TakingSomethingEntirelyOutsideTakesNothing()
     {
         Runs(IntervalSet.Of(0, 100).Subtract([new XInterval(150, 200)]))
             .Should().Equal((0d, 100d));
     }
 
-    [Fact]
+    [Test]
     public void ThingsTakenOutMayArriveInAnyOrderAndMayOverlapEachOther()
     {
         var jumbled = IntervalSet.Of(0, 100)
@@ -223,7 +224,7 @@ public class FlowGeometryTests
         Runs(jumbled).Should().Equal((0d, 20d), (50d, 70d), (90d, 100d));
     }
 
-    [Fact]
+    [Test]
     public void TakingSomethingFromASetOfSeveralRunsCarvesEachOfThem()
     {
         var set = IntervalSet.Of(new XInterval(0, 40), new XInterval(60, 100));
@@ -232,7 +233,7 @@ public class FlowGeometryTests
             .Should().Equal((0d, 20d), (80d, 100d));
     }
 
-    [Fact]
+    [Test]
     public void TakingNothingLeavesTheSetAsItWas()
     {
         var set = IntervalSet.Of(0, 100);
@@ -240,7 +241,7 @@ public class FlowGeometryTests
         set.Subtract([]).Should().BeSameAs(set);
     }
 
-    [Fact]
+    [Test]
     public void ASetIsNotChangedByWhatIsTakenFromIt()
     {
         // Immutable: a line's room is worked out once and read by several things after that.
@@ -253,7 +254,7 @@ public class FlowGeometryTests
 
     // ----- picking a run to lay a line in ---------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TheWidestRunIsTheOneOffered()
     {
         var left = IntervalSet.Of(0, 100).Subtract([new XInterval(30, 60)]);
@@ -262,7 +263,7 @@ public class FlowGeometryTests
         widest.Should().Be(new XInterval(60, 100));
     }
 
-    [Fact]
+    [Test]
     public void ATieGoesToTheRunFurthestLeft()
     {
         var left = IntervalSet.Of(0, 100).Subtract([new XInterval(40, 60)]);
@@ -271,13 +272,13 @@ public class FlowGeometryTests
         widest.Should().Be(new XInterval(0, 40));
     }
 
-    [Fact]
+    [Test]
     public void AnEmptySetOffersNothing()
     {
         IntervalSet.Empty.TryWidest(Tolerance, out _).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ARunNarrowerThanTheToleranceIsNoRoomAtAll()
     {
         var slivers = IntervalSet.Of(0, 100)
@@ -287,7 +288,7 @@ public class FlowGeometryTests
         slivers.TryWidest(Tolerance, out _).Should().BeFalse("but it is not room");
     }
 
-    [Fact]
+    [Test]
     public void ANegativeToleranceIsRefused()
     {
         var pick = () => IntervalSet.Of(0, 100).TryWidest(-1, out _);
@@ -302,14 +303,14 @@ public class FlowGeometryTests
     ///   untouched and does its damage later — which is why these are refused where they enter
     ///   rather than where they are noticed.
     /// </summary>
-    public static TheoryData<double> NotRealNumbers => [
+    public static IEnumerable<double> NotRealNumbers => [
         double.NaN,
         double.PositiveInfinity,
         double.NegativeInfinity
     ];
 
-    [Theory]
-    [MemberData(nameof(NotRealNumbers))]
+    [Test]
+    [MethodDataSource(nameof(NotRealNumbers))]
     public void ARunThatDoesNotStartAtARealCoordinateIsRefused(double value)
     {
         var build = () => new XInterval(value, 100);
@@ -317,8 +318,8 @@ public class FlowGeometryTests
         build.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Theory]
-    [MemberData(nameof(NotRealNumbers))]
+    [Test]
+    [MethodDataSource(nameof(NotRealNumbers))]
     public void ARunThatDoesNotEndAtARealCoordinateIsRefused(double value)
     {
         var build = () => new XInterval(0, value);
@@ -326,8 +327,8 @@ public class FlowGeometryTests
         build.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Theory]
-    [MemberData(nameof(NotRealNumbers))]
+    [Test]
+    [MethodDataSource(nameof(NotRealNumbers))]
     public void ABandThatDoesNotStartAtARealDepthIsRefused(double value)
     {
         var build = () => new FlowBand(value, 100);
@@ -335,8 +336,8 @@ public class FlowGeometryTests
         build.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Theory]
-    [MemberData(nameof(NotRealNumbers))]
+    [Test]
+    [MethodDataSource(nameof(NotRealNumbers))]
     public void ABandThatDoesNotEndAtARealDepthIsRefused(double value)
     {
         var build = () => new FlowBand(0, value);
@@ -344,8 +345,8 @@ public class FlowGeometryTests
         build.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Theory]
-    [MemberData(nameof(NotRealNumbers))]
+    [Test]
+    [MethodDataSource(nameof(NotRealNumbers))]
     public void AToleranceThatIsNotARealWidthIsRefused(double value)
     {
         // NaN in particular is not merely useless here: it seeds the running widest, and nothing

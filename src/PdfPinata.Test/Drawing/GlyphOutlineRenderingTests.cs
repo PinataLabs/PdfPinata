@@ -6,7 +6,7 @@ using ImageMagick;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -15,7 +15,7 @@ namespace PdfPinata.Test.Drawing;
 ///   drawn with a pen, a brush or both covers stroking and filling with a solid colour, and a
 ///   caller who wants only that should use it. These need geometry.
 /// </summary>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public sealed class GlyphOutlineRenderingTests : IDisposable
 {
     private const string OutDir = "Out/GlyphOutlines";
@@ -28,7 +28,7 @@ public sealed class GlyphOutlineRenderingTests : IDisposable
 
     public void Dispose() => _rasterized.Dispose();
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void GlyphsCanBeFilledWithAGradient()
     {
         var page = Rasterize("gradient_text", gfx =>
@@ -48,7 +48,7 @@ public sealed class GlyphOutlineRenderingTests : IDisposable
         rightmost.B.Should().BeGreaterThan(rightmost.R);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void GlyphsCanBeUsedAsAClipForAPhotograph()
     {
         var photograph = XImage.FromFile(PathHelper.GetInstance().GetAssetPath("frog-and-toad.jpg"));
@@ -71,7 +71,7 @@ public sealed class GlyphOutlineRenderingTests : IDisposable
         through.Should().BeLessThan(whole / 3);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AnEmptyStringDrawsNothingAtAll()
     {
         var page = Rasterize("empty_text", gfx =>

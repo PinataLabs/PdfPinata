@@ -9,7 +9,7 @@ using PdfPinata.Drawing.Layout;
 using PdfPinata.Drawing.Layout.enums;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing.Layout;
 
@@ -25,7 +25,7 @@ namespace PdfPinata.Test.Drawing.Layout;
 /// </remarks>
 public class SegmentFormatterLayoutPinTests
 {
-    [Fact]
+    [Test]
     public void SegmentsAreLaidOutExactlyAsTheyWere()
     {
         var written = SplitByArrangement(Normalized(OfEveryArrangement()));

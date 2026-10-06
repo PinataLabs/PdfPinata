@@ -2,7 +2,7 @@ using System;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Tables;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -37,7 +37,7 @@ public class TableStructureFormattingTests
     ///   walks back up to the table through its collection, which is the one route nothing else
     ///   takes - a column knows its table only by asking its parent's parent.
     /// </summary>
-    [Fact]
+    [Test]
     public void AColumnReachesTheSameCellTheRowDoes()
     {
         var table = ATable();
@@ -57,7 +57,7 @@ public class TableStructureFormattingTests
     ///   way to describe a table's shape and the one route that builds a column without a table
     ///   above it.
     /// </summary>
-    [Fact]
+    [Test]
     public void AColumnCollectionCanBeBuiltFromNothingButWidths()
     {
         var columns = new Columns(Unit.FromCentimeter(1), Unit.FromCentimeter(2), Unit.FromCentimeter(3));
@@ -67,7 +67,7 @@ public class TableStructureFormattingTests
         new Columns().Count.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void ARowAndAColumnCopyThemselvesIntoTheirOwnType()
     {
         var table = ATable();
@@ -84,7 +84,7 @@ public class TableStructureFormattingTests
     ///   every row a cell short. The collection refuses rather than growing the rows behind the
     ///   caller, because a cell added silently is a cell nothing has written into.
     /// </summary>
-    [Fact]
+    [Test]
     public void AColumnCannotBeAddedOnceThereAreRowsToBeShortOfIt()
     {
         var table = ATable(2, 1);
@@ -97,7 +97,7 @@ public class TableStructureFormattingTests
 
     // ----- what a column writes ---------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AColumnWritesEverythingItWasGivenAndNothingItWasNot()
     {
         var table = ATable(1, 0);
@@ -131,7 +131,7 @@ public class TableStructureFormattingTests
             .And.Contain("the only column");
     }
 
-    [Fact]
+    [Test]
     public void AColumnHandedAFormatBordersOrShadingUsesTheOneItWasHanded()
     {
         var table = ATable(1, 0);
@@ -150,7 +150,7 @@ public class TableStructureFormattingTests
     ///   A width on the collection is the default every column without one of its own is drawn at,
     ///   and it is written at the collection rather than repeated on each column.
     /// </summary>
-    [Fact]
+    [Test]
     public void AWidthOnTheCollectionIsWrittenOnceForEveryColumn()
     {
         var table = new Document().AddSection().AddTable();
@@ -167,7 +167,7 @@ public class TableStructureFormattingTests
     ///   A table with no columns cannot be drawn at all, and the writer says so in the file rather
     ///   than leaving a reader to work out why nothing appeared.
     /// </summary>
-    [Fact]
+    [Test]
     public void ATableWithNoColumnsIsWrittenWithAComplaintInIt()
     {
         var table = new Document().AddSection().AddTable();
@@ -177,7 +177,7 @@ public class TableStructureFormattingTests
 
     // ----- what a row writes ------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ARowWritesEverythingItWasGivenAndNothingItWasNot()
     {
         var table = ATable(1, 1);
@@ -214,7 +214,7 @@ public class TableStructureFormattingTests
             .And.Contain("the only row");
     }
 
-    [Fact]
+    [Test]
     public void ARowHandedAFormatBordersOrShadingUsesTheOneItWasHanded()
     {
         var table = ATable(1, 1);

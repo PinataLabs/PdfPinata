@@ -1,9 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf.Filters;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO.Filters;
 
@@ -35,20 +36,20 @@ public class AsciiFilterTests
         return data;
     }
 
-    public static TheoryData<int> EveryLengthUpTo(int count)
+    public static IEnumerable<int> EveryLengthUpTo(int count)
     {
-        var data = new TheoryData<int>();
+        var data = new List<int>();
         for (var length = 0; length <= count; length++)
             data.Add(length);
         return data;
     }
 
-    public static TheoryData<int> Lengths => EveryLengthUpTo(24);
+    public static IEnumerable<int> Lengths => EveryLengthUpTo(24);
 
     // ----- ASCII85 -------------------------------------------------------------------------------
 
-    [Theory]
-    [MemberData(nameof(Lengths))]
+    [Test]
+    [MethodDataSource(nameof(Lengths))]
     public void Ascii85CarriesAnyNumberOfBytesThereAndBack(int length)
     {
         // Four bytes become five characters, and a trailing group of one, two or three becomes two,
@@ -61,8 +62,8 @@ public class AsciiFilterTests
         decoded.Should().Equal(original);
     }
 
-    [Theory]
-    [MemberData(nameof(Lengths))]
+    [Test]
+    [MethodDataSource(nameof(Lengths))]
     public void Ascii85CarriesRunsOfZeroBytesThereAndBack(int length)
     {
         // Four zero bytes are written as the single character z rather than as five exclamation
@@ -88,13 +89,13 @@ public class AsciiFilterTests
     ///   in this same class writes those streams, so PDFsharp could not read back what PDFsharp
     ///   wrote, and zero runs are what image and embedded-file data is full of.
     /// </remarks>
-    [Theory]
-    [InlineData(5)]
-    [InlineData(6)]
-    [InlineData(9)]
-    [InlineData(10)]
-    [InlineData(13)]
-    [InlineData(14)]
+    [Test]
+    [Arguments(5)]
+    [Arguments(6)]
+    [Arguments(9)]
+    [Arguments(10)]
+    [Arguments(13)]
+    [Arguments(14)]
     public void Ascii85CarriesARunOfZeroBytesThatEndsInAPartialGroup(int length)
     {
         var original = new byte[length];
@@ -105,7 +106,7 @@ public class AsciiFilterTests
         decoded.Should().Equal(original);
     }
 
-    [Fact]
+    [Test]
     public void Ascii85ReadsAZeroRunWhereverItFalls()
     {
         // The shortcut is taken wherever four zero bytes land on a group boundary, not only at the
@@ -130,7 +131,7 @@ public class AsciiFilterTests
         }
     }
 
-    [Fact]
+    [Test]
     public void Ascii85WritesFourZeroBytesAsOneCharacter()
     {
         var encoded = Filtering.ASCII85Decode.Encode(new byte[8]);
@@ -138,14 +139,14 @@ public class AsciiFilterTests
         Encoding.ASCII.GetString(encoded).Should().Be("zz~>");
     }
 
-    [Fact]
+    [Test]
     public void Ascii85WritesNothingAsTheEndMarkerAlone()
     {
         Encoding.ASCII.GetString(Filtering.ASCII85Decode.Encode([])).Should().Be("~>");
         Filtering.ASCII85Decode.Decode("~>"u8.ToArray(), (FilterParms)null).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void Ascii85SpendsFiveCharactersOnFourBytesAndTwoMoreOnTheEndMarker()
     {
         Filtering.ASCII85Decode.Encode(Bytes(4)).Should().HaveCount(5 + 2);
@@ -155,7 +156,7 @@ public class AsciiFilterTests
         Filtering.ASCII85Decode.Encode(Bytes(7)).Should().HaveCount(5 + 4 + 2);
     }
 
-    [Fact]
+    [Test]
     public void Ascii85SkipsCharactersThatAreNotPartOfTheEncoding()
     {
         // A writer is free to break the stream into lines, so the decoder ignores anything outside
@@ -168,7 +169,7 @@ public class AsciiFilterTests
         Filtering.ASCII85Decode.Decode(broken, (FilterParms)null).Should().Equal(original);
     }
 
-    [Fact]
+    [Test]
     public void Ascii85RefusesAStreamThatNeverEnds()
     {
         var act = () => Filtering.ASCII85Decode.Decode("<+oue"u8.ToArray(), (FilterParms)null);
@@ -176,7 +177,7 @@ public class AsciiFilterTests
         act.Should().Throw<ArgumentException>("the end-of-data marker is what says the stream is whole");
     }
 
-    [Fact]
+    [Test]
     public void Ascii85RefusesAnEndMarkerThatIsNotOne()
     {
         var act = () => Filtering.ASCII85Decode.Decode("<+oue~x"u8.ToArray(), (FilterParms)null);
@@ -184,7 +185,7 @@ public class AsciiFilterTests
         act.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void Ascii85RefusesATrailingGroupOfOneCharacter()
     {
         // A group of one carries no whole byte, so a stream ending in one was mis-encoded.
@@ -193,7 +194,7 @@ public class AsciiFilterTests
         act.Should().Throw<InvalidOperationException>();
     }
 
-    [Fact]
+    [Test]
     public void Ascii85RefusesAGroupThatWouldNotFitInFourBytes()
     {
         // "uuuuu" is 85^4 x 84 + ... which overflows the four bytes a group stands for.
@@ -202,9 +203,9 @@ public class AsciiFilterTests
         act.Should().Throw<InvalidOperationException>();
     }
 
-    [Theory]
-    [InlineData("!!z!!~>")]
-    [InlineData("<+oue!z~>")]
+    [Test]
+    [Arguments("!!z!!~>")]
+    [Arguments("<+oue!z~>")]
     public void Ascii85RefusesAZeroGroupInsideAnotherGroup(string encoded)
     {
         // A z stands for a whole group of zeros, so it can only begin one. Inside a group it used
@@ -214,7 +215,7 @@ public class AsciiFilterTests
         act.Should().Throw<ArgumentException>().WithMessage("*'z'*");
     }
 
-    [Fact]
+    [Test]
     public void Ascii85ReadsAZeroGroupBetweenWholeGroups()
     {
         var original = new byte[] { 1, 2, 3, 4, 0, 0, 0, 0, 5, 6, 7, 8 };
@@ -224,7 +225,7 @@ public class AsciiFilterTests
         Filtering.ASCII85Decode.Decode(encoded, (FilterParms)null).Should().Equal(original);
     }
 
-    [Fact]
+    [Test]
     public void Ascii85DecodingCompactsTheBufferItWasGivenRatherThanACopyOfIt()
     {
         // The decoder squeezes the characters it keeps down to the front of the caller's array
@@ -242,8 +243,8 @@ public class AsciiFilterTests
 
     // ----- ASCIIHex ------------------------------------------------------------------------------
 
-    [Theory]
-    [MemberData(nameof(Lengths))]
+    [Test]
+    [MethodDataSource(nameof(Lengths))]
     public void AsciiHexCarriesAnyNumberOfBytesThereAndBack(int length)
     {
         var original = Bytes(length);
@@ -255,21 +256,21 @@ public class AsciiFilterTests
         decoded.Should().Equal(original);
     }
 
-    [Fact]
+    [Test]
     public void AsciiHexWritesTheDigitsInUpperCase()
     {
         Encoding.ASCII.GetString(Filtering.ASCIIHexDecode.Encode([0x00, 0x0F, 0xA5, 0xFF]))
             .Should().Be("000FA5FF");
     }
 
-    [Fact]
+    [Test]
     public void AsciiHexReadsLowerCaseDigitsToo()
     {
         Filtering.ASCIIHexDecode.Decode("00afA5ff"u8.ToArray(), (FilterParms)null)
             .Should().Equal(0x00, 0xAF, 0xA5, 0xFF);
     }
 
-    [Fact]
+    [Test]
     public void AsciiHexIgnoresTheWhiteSpaceAWriterBreaksTheStreamWith()
     {
         // Null, tab, line feed, form feed, carriage return and space are all white space to a
@@ -280,14 +281,14 @@ public class AsciiFilterTests
             .Should().Equal("ABCDE"u8.ToArray());
     }
 
-    [Fact]
+    [Test]
     public void AsciiHexStopsAtTheEndOfDataMarker()
     {
         Filtering.ASCIIHexDecode.Decode("414243>"u8.ToArray(), (FilterParms)null)
             .Should().Equal("ABC"u8.ToArray());
     }
 
-    [Fact]
+    [Test]
     public void AsciiHexDecodesNothingFromNothing()
     {
         Filtering.ASCIIHexDecode.Decode([], (FilterParms)null).Should().BeEmpty();
@@ -301,11 +302,11 @@ public class AsciiFilterTests
     ///   character '0', and 0x00 goes through the digit arithmetic as -48, which used to leave
     ///   every odd-length stream ending in a byte 48 too small.
     /// </summary>
-    [Theory]
-    [InlineData("4", 0x40)]
-    [InlineData("41424", 0x40)]
-    [InlineData("F", 0xF0)]
-    [InlineData("414243F>", 0xF0)]
+    [Test]
+    [Arguments("4", 0x40)]
+    [Arguments("41424", 0x40)]
+    [Arguments("F", 0xF0)]
+    [Arguments("414243F>", 0xF0)]
     public void AsciiHexTreatsAMissingLastDigitAsZero(string hex, int expected)
     {
         var decoded = Filtering.ASCIIHexDecode.Decode(Encoding.ASCII.GetBytes(hex), (FilterParms)null);
@@ -313,7 +314,7 @@ public class AsciiFilterTests
         decoded.Last().Should().Be((byte)expected);
     }
 
-    [Fact]
+    [Test]
     public void AsciiHexReadsNothingAfterTheEndOfDataMarkerWhereverItComes()
     {
         // The marker ends the data wherever it is, so what follows it - even what is not hex at
@@ -322,18 +323,18 @@ public class AsciiFilterTests
             .Should().Equal("AB"u8.ToArray());
     }
 
-    [Fact]
+    [Test]
     public void AsciiHexTreatsAMissingLastDigitAsZeroWhenTheMarkerComesMidStream()
     {
         Filtering.ASCIIHexDecode.Decode("41 4>43"u8.ToArray(), (FilterParms)null)
             .Should().Equal(0x41, 0x40);
     }
 
-    [Theory]
-    [InlineData("41G2")]
-    [InlineData("41-42")]
-    [InlineData("<4142>")]
-    [InlineData("41\u000B42")]   // vertical tab is not white space to PDF
+    [Test]
+    [Arguments("41G2")]
+    [Arguments("41-42")]
+    [Arguments("<4142>")]
+    [Arguments("41\u000B42")]   // vertical tab is not white space to PDF
     public void AsciiHexRefusesACharacterThatIsNeitherADigitNorWhiteSpace(string hex)
     {
         // "Any other characters shall cause an error." They used to go through the digit
@@ -343,7 +344,7 @@ public class AsciiFilterTests
         act.Should().Throw<ArgumentException>().WithMessage("*Illegal character*");
     }
 
-    [Fact]
+    [Test]
     public void AsciiHexLeavesTheBufferItWasGivenAsItWas()
     {
         var withSpace = "41 42"u8.ToArray();
@@ -356,7 +357,7 @@ public class AsciiFilterTests
 
     // ----- what every filter has in common -------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AFilterEncodesAStringByItsBytesAndDecodesBackToTheSameString()
     {
         const string text = "Hello, filter.";
@@ -367,7 +368,7 @@ public class AsciiFilterTests
         Filtering.ASCIIHexDecode.DecodeToString(encoded, null).Should().Be(text);
     }
 
-    [Fact]
+    [Test]
     public void EveryFilterRefusesToWorkOnNothingAtAll()
     {
         var hexEncode = () => Filtering.ASCIIHexDecode.Encode((byte[])null);

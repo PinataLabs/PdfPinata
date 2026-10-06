@@ -8,7 +8,7 @@ using PinataLayout.Rendering.Tests.Helpers;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -27,7 +27,7 @@ namespace PinataLayout.Rendering.Tests;
 /// </remarks>
 public class ParagraphRenderingTests
 {
-    [Fact]
+    [Test]
     public void ABlankCharacterSetsTheSameTextAtTheSameSpacingAsASpaceInTheRunDoes()
     {
         // The harness this comes from built its text out of AddCharacter(SymbolName.Blank) rather
@@ -42,7 +42,7 @@ public class ParagraphRenderingTests
             "a blank takes the same width as the space it stands for");
     }
 
-    [Fact]
+    [Test]
     public void ABlankAtTheHeadOfALineIsKeptWhereALeadingSpaceIsTrimmed()
     {
         // The one place the two differ, and it is a constant offset rather than a drift: the line
@@ -59,7 +59,7 @@ public class ParagraphRenderingTests
         offsets.Single().Should().BePositive();
     }
 
-    [Fact]
+    [Test]
     public void EveryFontSizeAParagraphNamesReachesThePage()
     {
         var page = Rendered.FirstPageOf(Formatted());
@@ -70,7 +70,7 @@ public class ParagraphRenderingTests
         FontSizesOn(page).Should().Contain([6.0, 8.0, 14.0, 16.0, 20.0]);
     }
 
-    [Fact]
+    [Test]
     public void AStruckRunIsRuledThroughAndTheTextBesideItIsNot()
     {
         var page = Rendered.FirstPageOf(StruckThenPlain());
@@ -86,7 +86,7 @@ public class ParagraphRenderingTests
         Math.Max(rules[0].X1, rules[0].X2).Should().BeLessThan(runs[1]);
     }
 
-    [Fact]
+    [Test]
     public void EachAlignmentInTurnStartsALineFurtherAcrossThePage()
     {
         // Asserted as an order rather than as three positions, so that the test says what
@@ -100,7 +100,7 @@ public class ParagraphRenderingTests
         starts.Should().OnlyHaveUniqueItems();
     }
 
-    [Fact]
+    [Test]
     public void ANegativeFirstLineIndentHangsTheFirstLineLeftOfTheRest()
     {
         var page = Rendered.FirstPageOf(Hanging());
@@ -115,7 +115,7 @@ public class ParagraphRenderingTests
         lines.Skip(1).Should().AllSatisfy(start => start.Should().BeApproximately(lines[1], 0.1));
     }
 
-    [Fact]
+    [Test]
     public void ARightAlignedTabStopEndsTheTextThatFollowsItAtTheStop()
     {
         // Where the run ends cannot be read off the content - that would mean measuring the
@@ -140,7 +140,7 @@ public class ParagraphRenderingTests
     ///   run is set short of the stop is therefore checked against the run's own width here, read
     ///   from where a run placed straight after it begins.
     /// </summary>
-    [Fact]
+    [Test]
     public void ARightAlignedTabStopSetsTheRunItsOwnWidthShortOfTheStop()
     {
         var tabbed = Tabbed(Unit.FromCentimeter(10));
@@ -148,7 +148,7 @@ public class ParagraphRenderingTests
         (tabbed.Stop - tabbed.Runs[1]).Should().BeApproximately(WidthOf("after"), 0.01);
     }
 
-    [Fact]
+    [Test]
     public void ACenterAlignedTabStopSetsTheRunHalfItsWidthEitherSideOfTheStop()
     {
         var tabbed = Tabbed(Unit.FromCentimeter(10), TabAlignment.Center);
@@ -156,7 +156,7 @@ public class ParagraphRenderingTests
         (tabbed.Stop - tabbed.Runs[1]).Should().BeApproximately(WidthOf("after") / 2, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void AParagraphsBordersStandOffItsTextByTheDistancesItNames()
     {
         var page = Rendered.FirstPageOf(Bordered());

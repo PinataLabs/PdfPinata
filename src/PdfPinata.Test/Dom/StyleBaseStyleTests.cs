@@ -1,7 +1,7 @@
 using System;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -29,7 +29,7 @@ public class StyleBaseStyleTests
 
     // ----- what it accepts ------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AStyleCanBeRebasedOnAnotherStyleThatExists()
     {
         var document = WithAChain();
@@ -40,7 +40,7 @@ public class StyleBaseStyleTests
         document.Styles["Grandchild"].BaseStyle.Should().Be("Sibling");
     }
 
-    [Fact]
+    [Test]
     public void ABaseStyleIsFoundWhateverCaseItIsWrittenIn()
     {
         // The whole collection is searched case-insensitively, so the name stored is the one
@@ -58,7 +58,7 @@ public class StyleBaseStyleTests
     ///   check - which is what lets the stored spelling change without the collection being
     ///   searched again. The comment in the source dates the carve-out to 2007.
     /// </summary>
-    [Fact]
+    [Test]
     public void AStyleCanBeGivenTheBaseStyleItAlreadyHasInADifferentCase()
     {
         var document = WithAChain();
@@ -70,7 +70,7 @@ public class StyleBaseStyleTests
 
     // ----- what it refuses ------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AStyleCannotBeBasedOnNothing()
     {
         var document = WithAChain();
@@ -80,7 +80,7 @@ public class StyleBaseStyleTests
         assign.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AStyleThatHasABaseCannotHaveItTakenAway()
     {
         var document = WithAChain();
@@ -90,7 +90,7 @@ public class StyleBaseStyleTests
         assign.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AStyleCannotBeBasedOnOneThatIsNotThere()
     {
         var document = WithAChain();
@@ -101,9 +101,9 @@ public class StyleBaseStyleTests
             "the name that could not be found is the useful half of the complaint");
     }
 
-    [Theory]
-    [InlineData(Style.DefaultParagraphName)]
-    [InlineData(Style.DefaultParagraphFontName)]
+    [Test]
+    [Arguments(Style.DefaultParagraphName)]
+    [Arguments(Style.DefaultParagraphFontName)]
     public void TheTwoRootStylesCannotBeGivenABaseStyle(string rootStyleName)
     {
         // They are where every chain ends. Giving either one a base would make the end of the
@@ -115,7 +115,7 @@ public class StyleBaseStyleTests
         assign.Should().Throw<ArgumentException>().WithMessage("*cannot be altered*");
     }
 
-    [Fact]
+    [Test]
     public void AStyleCannotBeBasedOnItself()
     {
         var document = WithAChain();
@@ -125,7 +125,7 @@ public class StyleBaseStyleTests
         assign.Should().Throw<ArgumentException>().WithMessage("*circular*");
     }
 
-    [Fact]
+    [Test]
     public void AStyleCannotBeBasedOnOneThatIsAlreadyBasedOnIt()
     {
         // Derived is Grandchild's base, so basing Derived on Grandchild closes the loop. The
@@ -137,7 +137,7 @@ public class StyleBaseStyleTests
         assign.Should().Throw<ArgumentException>().WithMessage("*circular*");
     }
 
-    [Fact]
+    [Test]
     public void AStyleCannotBeBasedOnOneFurtherDownItsOwnChain()
     {
         // The same loop two links long rather than one, which is the case a check that only
@@ -150,7 +150,7 @@ public class StyleBaseStyleTests
         assign.Should().Throw<ArgumentException>().WithMessage("*circular*");
     }
 
-    [Fact]
+    [Test]
     public void NothingIsStoredWhenTheAssignmentIsRefused()
     {
         // The check that matters: a refusal that had already written the value would leave the
@@ -170,7 +170,7 @@ public class StyleBaseStyleTests
     ///   saying what is wrong. Building a style before adding it is otherwise a reasonable thing
     ///   to do - <c>Styles.Add</c> exists for exactly that.
     /// </summary>
-    [Fact]
+    [Test]
     public void AStyleNotYetInADocumentCannotBeBasedOnAnythingAtAll()
     {
         var loose = new Style("Loose", Style.DefaultParagraphName);

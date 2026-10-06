@@ -3,7 +3,7 @@ using System.IO;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -16,7 +16,7 @@ namespace PdfPinata.Test.Pdfs;
 /// </summary>
 public class PdfStringTests
 {
-    [Fact]
+    [Test]
     public void AStringMadeFromNullIsEmptyAndRaw()
     {
         var text = new PdfString(null);
@@ -27,9 +27,9 @@ public class PdfStringTests
         text.HexLiteral.Should().BeFalse();
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
+    [Test]
+    [Arguments(null)]
+    [Arguments("")]
     public void AnEmptyRawStringIsAcceptedAndStaysEmpty(string value)
     {
         var text = new PdfString(value, PdfStringEncoding.RawEncoding);
@@ -40,10 +40,10 @@ public class PdfStringTests
         text.ToString().Should().Be("()");
     }
 
-    [Theory]
-    [InlineData(0x0F)]                // inside the encoding mask, but no encoding
-    [InlineData(0x86)]                // Unicode with the hex-literal flag, which is not an encoding
-    [InlineData(-1)]
+    [Test]
+    [Arguments(0x0F)]                // inside the encoding mask, but no encoding
+    [Arguments(0x86)]                // Unicode with the hex-literal flag, which is not an encoding
+    [Arguments(-1)]
     public void AnEncodingTheConstructorHasNoCaseForIsRefused(int encoding)
     {
         FluentActions.Invoking(() => new PdfString("text", (PdfStringEncoding)encoding))
@@ -51,7 +51,7 @@ public class PdfStringTests
             .Which.ParamName.Should().Be("encoding");
     }
 
-    [Fact]
+    [Test]
     public void AWinAnsiStringKeepsItsValueAndSaysItIsWinAnsi()
     {
         var text = new PdfString("café", PdfStringEncoding.WinAnsiEncoding);
@@ -62,7 +62,7 @@ public class PdfStringTests
         text.ToString().Should().Be("(café)");
     }
 
-    [Fact]
+    [Test]
     public void AWinAnsiStringComesBackFromTheFileWithTheSameCharacters()
     {
         // é is 0xE9 in WinAnsi and in the Latin-1 the reader takes an unmarked string's bytes as.
@@ -78,23 +78,23 @@ public class PdfStringTests
         item.Should().BeOfType<PdfString>().Which.Value.Should().Be("café");
     }
 
-    [Fact]
+    [Test]
     public void ReadingAsPdfDocEncodingLeavesAsciiAsItIs()
     {
         new PdfString("Chapter 1: (Intro)").ToStringFromPdfDocEncoded().Should().Be("Chapter 1: (Intro)");
     }
 
-    [Theory]
-    [InlineData('\x80', '•')] // bullet
-    [InlineData('\x84', '—')] // em dash
-    [InlineData('\x8D', '“')] // left double quotation mark
-    [InlineData('\x92', '™')] // trade mark
-    [InlineData('\x93', 'ﬁ')] // fi ligature
-    [InlineData('\x96', 'Œ')] // OE ligature
-    [InlineData('\x9E', 'ž')] // z caron
-    [InlineData('\xA0', '€')] // euro sign
-    [InlineData('\xE9', 'é')] // the upper half agrees with Latin-1 from 0xA1
-    [InlineData('\xFF', 'ÿ')]
+    [Test]
+    [Arguments('\x80', '•')] // bullet
+    [Arguments('\x84', '—')] // em dash
+    [Arguments('\x8D', '“')] // left double quotation mark
+    [Arguments('\x92', '™')] // trade mark
+    [Arguments('\x93', 'ﬁ')] // fi ligature
+    [Arguments('\x96', 'Œ')] // OE ligature
+    [Arguments('\x9E', 'ž')] // z caron
+    [Arguments('\xA0', '€')] // euro sign
+    [Arguments('\xE9', 'é')] // the upper half agrees with Latin-1 from 0xA1
+    [Arguments('\xFF', 'ÿ')]
     public void ReadingAsPdfDocEncodingMapsEachByteToTheCharacterItStandsFor(char encoded, char expected)
     {
         var text = new PdfString(new string(encoded, 1), PdfStringEncoding.RawEncoding);
@@ -102,7 +102,7 @@ public class PdfStringTests
         text.ToStringFromPdfDocEncoded().Should().Be(new string(expected, 1));
     }
 
-    [Fact]
+    [Test]
     public void ReadingAsPdfDocEncodingMapsEveryCharacterOfTheString()
     {
         var text = new PdfString("\u0093nal \u0084 \u00A0" + "5", PdfStringEncoding.RawEncoding);
@@ -111,7 +111,7 @@ public class PdfStringTests
         text.Value.Should().Be("\u0093nal \u0084 \u00A0" + "5", "the string itself is a simple type and does not change");
     }
 
-    [Fact]
+    [Test]
     public void ReadingAsPdfDocEncodingRefusesACharacterNoByteCanHold()
     {
         FluentActions.Invoking(() => new PdfString("Ā", PdfStringEncoding.Unicode).ToStringFromPdfDocEncoded())

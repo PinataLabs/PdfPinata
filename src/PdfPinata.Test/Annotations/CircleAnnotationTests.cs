@@ -7,7 +7,7 @@ using PdfPinata.Fonts;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Annotations;
@@ -22,7 +22,7 @@ namespace PdfPinata.Test.Annotations;
 ///   <see cref="PdfSquareCircleAnnotation"/> and is covered by <see cref="SquareAnnotationTests"/>;
 ///   repeating it would only pin the same code twice.
 /// </remarks>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public sealed class CircleAnnotationTests : IDisposable
 {
     private const string OutDir = "Out/CircleAnnotations";
@@ -34,7 +34,7 @@ public sealed class CircleAnnotationTests : IDisposable
     /// <summary>A wide rectangle, so that "circle" is visibly an ellipse inscribed in it.</summary>
     private static readonly XRect Where = new(60, 60, 200, 100);
 
-    [Fact]
+    [Test]
     public void ACircleNamesItsSubtype()
     {
         var document = new PdfDocument();
@@ -44,7 +44,7 @@ public sealed class CircleAnnotationTests : IDisposable
         circle.Elements.GetName("/Subtype").Should().Be("/Circle");
     }
 
-    [Fact]
+    [Test]
     public void ACircleCarriesTheSameInteriorAndBorderAsASquare()
     {
         var document = new PdfDocument();
@@ -62,10 +62,10 @@ public sealed class CircleAnnotationTests : IDisposable
         circle.Elements.GetDictionary("/AP").Should().NotBeNull();
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
+    [Test]
+    [Arguments(null)]
+    [Arguments("")]
+    [Arguments("   ")]
     public void ASubtypeIsRequiredOfWhateverDerivesFromTheSharedBase(string subtype)
     {
         // The constructors are protected on a public class, so a subtype can come from outside
@@ -76,7 +76,7 @@ public sealed class CircleAnnotationTests : IDisposable
         act.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AskingForNothingClearsTheAppearanceStateAsWellAsTheAppearance()
     {
         var document = new PdfDocument();
@@ -109,7 +109,7 @@ public sealed class CircleAnnotationTests : IDisposable
         }
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AFilledCircleIsAnEllipseInscribedInTheRectangle()
     {
         var page = Rasterize("filled", circle =>
@@ -136,7 +136,7 @@ public sealed class CircleAnnotationTests : IDisposable
         }
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AnUnfilledCircleIsAnOutlineWithAnEmptyMiddle()
     {
         var page = Rasterize("outline", circle =>

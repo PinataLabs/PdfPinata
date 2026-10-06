@@ -6,7 +6,7 @@ using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.Rendering.Tests.Helpers;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PinataLayout.DocumentObjectModel.Shapes.ImageSource;
 
 namespace PinataLayout.Rendering.Tests;
@@ -31,7 +31,7 @@ namespace PinataLayout.Rendering.Tests;
 /// </remarks>
 public class ImageFailureTests
 {
-    [Fact]
+    [Test]
     public void AnImageOfNoPixelsIsReportedRatherThanLeavingABlankPage()
     {
         var failures = Render(Failing.OfNoPixels());
@@ -40,7 +40,7 @@ public class ImageFailureTests
             .Which.Failure.Should().Be(ImageFailure.EmptySize);
     }
 
-    [Fact]
+    [Test]
     public void AnImageOfNoPixelsStillDrawsItsPlaceholder()
     {
         var document = Document(Failing.OfNoPixels());
@@ -53,7 +53,7 @@ public class ImageFailureTests
         Rendered.Of(Document(Failing.OfNoPixels())).PageCount.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AnImageThatWillNotDecodeIsReportedAsAnInvalidType()
     {
         var failures = Render(Failing.OfAnUnreadableType());
@@ -63,7 +63,7 @@ public class ImageFailureTests
         failures[0].Exception.Should().BeOfType<InvalidOperationException>();
     }
 
-    [Fact]
+    [Test]
     public void AnImageThatThrowsSomethingElseWhileBeingOpenedIsReportedAsNotRead()
     {
         // Only an InvalidOperationException from there says the type is unreadable. Anything else
@@ -76,7 +76,7 @@ public class ImageFailureTests
         failures[0].Exception.Should().BeOfType<IOException>();
     }
 
-    [Fact]
+    [Test]
     public void AnImageThatThrowsWhileBeingMeasuredIsReportedAsNotRead()
     {
         var failures = Render(Failing.WhenMeasured());
@@ -86,7 +86,7 @@ public class ImageFailureTests
         failures[0].Exception.Should().BeOfType<InvalidDataException>();
     }
 
-    [Fact]
+    [Test]
     public void AnImageThatThrowsWhileBeingDrawnIsReportedAsNotRead()
     {
         // Measured perfectly and failed only when its bytes were asked for, which is the one case
@@ -98,7 +98,7 @@ public class ImageFailureTests
         failures[0].Exception.Should().BeOfType<IOException>();
     }
 
-    [Fact]
+    [Test]
     public void TheExceptionReportedIsTheOneThatWasThrown()
     {
         var thrown = new InvalidDataException("this exact instance");
@@ -109,7 +109,7 @@ public class ImageFailureTests
             .Which.Exception.Should().BeSameAs(thrown);
     }
 
-    [Fact]
+    [Test]
     public void EachFailingImageIsReportedExactlyOnce()
     {
         var document = new Document();
@@ -128,7 +128,7 @@ public class ImageFailureTests
         Collect(document).Should().HaveCount(4);
     }
 
-    [Fact]
+    [Test]
     public void AnImageWithARealSizeIsNotCalledEmpty()
     {
         // The guard has to let a measurable image through. This one has no bytes behind it and so

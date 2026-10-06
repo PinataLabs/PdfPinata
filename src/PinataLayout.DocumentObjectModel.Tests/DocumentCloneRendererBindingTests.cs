@@ -1,5 +1,5 @@
 using AwesomeAssertions;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -13,7 +13,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class DocumentCloneRendererBindingTests
 {
-    [Fact]
+    [Test]
     public void ACloneOfABoundDocumentStartsUnbound()
     {
         var document = new Document();
@@ -24,7 +24,7 @@ public class DocumentCloneRendererBindingTests
         clone.IsBoundToRenderer.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ACloneOfABoundDocumentCanBeBoundToADifferentRenderer()
     {
         var document = new Document();
@@ -36,7 +36,7 @@ public class DocumentCloneRendererBindingTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void CloningDoesNotUnbindTheOriginal()
     {
         var document = new Document();

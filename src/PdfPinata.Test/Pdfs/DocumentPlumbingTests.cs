@@ -5,7 +5,7 @@ using System.Reflection;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -25,15 +25,15 @@ public class DocumentPlumbingTests
     ///   a comment reading "HACK in PdfCatalog". So the declared default is never what a document
     ///   actually claims, and 1.4 is the answer that matters.
     /// </summary>
-    [Fact]
+    [Test]
     public void ACatalogClaimsVersionOnePointFourUntilItIsToldOtherwise()
     {
         ACatalog().Version.Should().Be("1.4");
     }
 
-    [Theory]
-    [InlineData("1.3")]
-    [InlineData("1.4")]
+    [Test]
+    [Arguments("1.3")]
+    [Arguments("1.4")]
     public void TheTwoVersionsTheCatalogAcceptsAreKept(string version)
     {
         var catalog = ACatalog();
@@ -49,12 +49,12 @@ public class DocumentPlumbingTests
     ///   is a limitation rather than a defect, and is pinned rather than argued with because
     ///   raising it would change what every document declares.
     /// </summary>
-    [Theory]
-    [InlineData("1.0")]
-    [InlineData("1.1")]
-    [InlineData("1.2")]
-    [InlineData("1.5")]
-    [InlineData("1.6")]
+    [Test]
+    [Arguments("1.0")]
+    [Arguments("1.1")]
+    [Arguments("1.2")]
+    [Arguments("1.5")]
+    [Arguments("1.6")]
     public void AVersionThisLibraryWillNotClaimIsRefusedAsUnsupported(string version)
     {
         var catalog = ACatalog();
@@ -64,17 +64,17 @@ public class DocumentPlumbingTests
         assign.Should().Throw<InvalidOperationException>().WithMessage("*Unsupported*");
     }
 
-    [Theory]
-    [InlineData("1.7")]
-    [InlineData("2.0")]
-    [InlineData("1.30")]
-    [InlineData("1,3")]
-    [InlineData("1.3 ")]
-    [InlineData(" 1.3")]
-    [InlineData("PDF 1.3")]
-    [InlineData("13")]
-    [InlineData("")]
-    [InlineData(null)]
+    [Test]
+    [Arguments("1.7")]
+    [Arguments("2.0")]
+    [Arguments("1.30")]
+    [Arguments("1,3")]
+    [Arguments("1.3 ")]
+    [Arguments(" 1.3")]
+    [Arguments("PDF 1.3")]
+    [Arguments("13")]
+    [Arguments("")]
+    [Arguments(null)]
     public void AnythingElseIsNotAVersionAtAll(string version)
     {
         var catalog = ACatalog();
@@ -85,7 +85,7 @@ public class DocumentPlumbingTests
             "an unreadable version and an unsupported one are different complaints");
     }
 
-    [Fact]
+    [Test]
     public void ARefusedVersionLeavesTheCatalogSayingWhatItSaidBefore()
     {
         var catalog = ACatalog();
@@ -139,7 +139,7 @@ public class DocumentPlumbingTests
         // ReSharper restore PossibleNullReferenceException
     }
 
-    [Fact]
+    [Test]
     public void ADocumentImportedFromIsRemembered()
     {
         var table = FormTableProbe.For(new PdfDocument());
@@ -149,7 +149,7 @@ public class DocumentPlumbingTests
         FormTableProbe.Count(table).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void RememberingTheSameDocumentTwiceRemembersItOnce()
     {
         var table = FormTableProbe.For(new PdfDocument());
@@ -161,7 +161,7 @@ public class DocumentPlumbingTests
         FormTableProbe.Count(table).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void DetachingADocumentForgetsThatOneAndKeepsTheRest()
     {
         // The point of the method: one imported document going away must not cost the others
@@ -178,7 +178,7 @@ public class DocumentPlumbingTests
         FormTableProbe.Count(table).Should().Be(1, "the second is still imported from");
     }
 
-    [Fact]
+    [Test]
     public void DetachingADocumentThatWasNeverImportedFromChangesNothing()
     {
         var table = FormTableProbe.For(new PdfDocument());
@@ -189,7 +189,7 @@ public class DocumentPlumbingTests
         FormTableProbe.Count(table).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void DetachingFromAnEmptyTableIsNotAnError()
     {
         var table = FormTableProbe.For(new PdfDocument());
@@ -199,7 +199,7 @@ public class DocumentPlumbingTests
         detach.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void DetachingEveryDocumentEmptiesTheTable()
     {
         var table = FormTableProbe.For(new PdfDocument());

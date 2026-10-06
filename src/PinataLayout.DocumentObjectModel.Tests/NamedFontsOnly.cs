@@ -42,7 +42,7 @@ internal sealed class NamedFontsOnly : IFontResolver
 
     /// <summary>
     ///   Registered for the whole assembly rather than per test, because the resolver may only be
-    ///   set before the first font is created and xUnit gives no ordering guarantee that would let
+    ///   set before the first font is created and nothing guarantees an order that would let
     ///   a fixture get there first. The same reasoning as <c>PdfPinata.Test</c>'s
     ///   <c>TestBackendSetup</c>, which is a module initializer for the same reason.
     /// </summary>

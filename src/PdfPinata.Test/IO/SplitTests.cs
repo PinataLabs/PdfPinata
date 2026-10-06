@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.IO.ImportedPageFixtures;
 
 namespace PdfPinata.Test.IO;
@@ -21,15 +21,15 @@ public class SplitTests
     ///   The destination of the link on the first page. It names the second page in all of them,
     ///   the difference being where in the annotation the destination sits.
     /// </summary>
-    public static TheoryData<string> Destinations =>
+    public static IEnumerable<string> Destinations =>
     [
         "/Dest[4 0 R/Fit]",                 // A destination on the annotation.
         "/A<</S/GoTo/D[4 0 R/Fit]>>",       // A go-to action.
         "/P 3 0 R/Dest[4 0 R/Fit]" // Both, and a page back reference.
     ];
 
-    [Theory]
-    [MemberData(nameof(Destinations))]
+    [Test]
+    [MethodDataSource(nameof(Destinations))]
     public void SplittingAPageThatLinksToAnotherOneLeavesThatPageBehind(string destination)
     {
         var pages = Split(LinkedPagesDocument(Link(destination)));
@@ -38,8 +38,8 @@ public class SplitTests
         pages.Should().OnlyContain(page => page.Length < 2 * ImageLength);
     }
 
-    [Theory]
-    [MemberData(nameof(Destinations))]
+    [Test]
+    [MethodDataSource(nameof(Destinations))]
     public void SplittingAPageDropsTheLinkThatHasNowhereToGo(string destination)
     {
         var page = Split(LinkedPagesDocument(Link(destination)))[0];
@@ -49,8 +49,8 @@ public class SplitTests
         annotation.Elements.ContainsKey("/A").Should().BeFalse();
     }
 
-    [Theory]
-    [MemberData(nameof(Destinations))]
+    [Test]
+    [MethodDataSource(nameof(Destinations))]
     public void MergingKeepsALinkPointingAtThePageItGoesTo(string destination)
     {
         using var input = new MemoryStream(LinkedPagesDocument(Link(destination)));

@@ -16,10 +16,14 @@ finds nothing to run.
 
 ```powershell
 dotnet build src/PdfPinata.slnx
-dotnet test src/PdfPinata.slnx
-dotnet test src/PdfPinata.slnx -f net10.0                                   # one target framework
-dotnet test src/PdfPinata.slnx --filter "FullyQualifiedName~CLexerTests"    # one test class
+dotnet test --solution src/PdfPinata.slnx
+dotnet test --solution src/PdfPinata.slnx -f net10.0                                  # one target framework
+dotnet test --project src/PdfPinata.Test --treenode-filter "/*/*/CLexerTests/*"       # one test class
 ```
+
+The tests use [TUnit](https://tunit.dev) on Microsoft.Testing.Platform, which `global.json` selects
+for `dotnet test`. That is why the solution is passed with `--solution` and a filter is a
+`--treenode-filter` path: assembly, namespace, class and test, with `*` for any part.
 
 Some tests turn PDFs into images and compare them with reference images. They need Ghostscript. On
 Windows it comes from a NuGet package and needs no setup. On Linux and macOS, install it with the
@@ -28,10 +32,11 @@ against reference images skip themselves when Ghostscript cannot draw on the mac
 Linux, which is the reference platform for rendering.
 
 :::warning Judge a test run by its exit code
-When Ghostscript fails inside the test host, the whole process can end. `dotnet test` then prints
-"Test host process crashed" and a `Passed!` line with a total lower than the number of tests. That
-run did not pass. Check the exit code, and compare the total with `dotnet test --list-tests`. Add
-`--blame-crash` to find the test that did not finish, and run again before you believe it.
+When Ghostscript fails inside the test host, the whole process can end. The run then reports that
+the test application did not exit gracefully, with a total lower than the number of tests. That run
+did not pass. Check the exit code, and compare the total with `--list-tests`. Add `--crashdump` to
+find the test that did not finish: the run lists the tests that were still running, and writes a
+sequence log to `TestResults`. Run again before you believe it.
 :::
 
 ## Run the demos

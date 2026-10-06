@@ -7,7 +7,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
 using Reader = PdfPinata.Pdf.IO.PdfReader;
@@ -130,13 +130,13 @@ public class CrossReferenceConsistencyTests
         }
     }
 
-    [Fact]
+    [Test]
     public void AWrittenDocumentNumbersEveryObjectOnce()
     {
         ShouldBeConsistent(ADocumentOf(3));
     }
 
-    [Fact]
+    [Test]
     public void ADocumentOpenedAndWrittenAgainIsStillConsistent()
     {
         // PdfReader.Open in Modify mode compacts and renumbers, which is where the removed checks
@@ -146,7 +146,7 @@ public class CrossReferenceConsistencyTests
         ShouldBeConsistent(Saved.Bytes(reopened));
     }
 
-    [Fact]
+    [Test]
     public void ImportingPagesFromAnotherDocumentRenumbersWithoutCollision()
     {
         // The case the invariant exists for. Both documents number their objects from one, so
@@ -163,7 +163,7 @@ public class CrossReferenceConsistencyTests
         Reader.Open(new MemoryStream(written), PdfDocumentOpenMode.Modify).PageCount.Should().Be(5);
     }
 
-    [Fact]
+    [Test]
     public void RemovingAPageLeavesTheRemainingObjectsConsistent()
     {
         var document = Reader.Open(new MemoryStream(ADocumentOf(4)), PdfDocumentOpenMode.Modify);

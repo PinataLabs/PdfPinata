@@ -2,7 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -14,7 +14,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 ///   line: the first comment swallowed the rest of the document, and every error was on line 1.
 ///   <para>
 ///   Each read runs under a timeout, because a scanner that misses the end of a line can miss the
-///   end of the document with it. xUnit honours <c>Timeout</c> only on an async test, hence the
+///   end of the document with it. <c>Timeout</c> is honoured only on an async test, hence the
 ///   <c>Task.Run</c>.
 ///   </para>
 /// </summary>
@@ -53,9 +53,9 @@ public class DdlLineEndTests
     private static Task<string> RereadAndWritten(string ddl) =>
         Task.Run(() => DdlWriter.WriteToString(DdlReader.DocumentFromString(ddl)));
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\r")]
-    [InlineData("\r\n")]
+    [Test, Timeout(Patience)]
+    [Arguments("\r")]
+    [Arguments("\r\n")]
     public async Task ADocumentReadsTheSameWhateverEndsItsLines(string lineEnd)
     {
         var expected = await RereadAndWritten(Commented);
@@ -63,7 +63,7 @@ public class DdlLineEndTests
         (await RereadAndWritten(WithLineEnds(Commented, lineEnd))).Should().Be(expected);
     }
 
-    [Fact(Timeout = Patience)]
+    [Test, Timeout(Patience)]
     public async Task ACommentInADocumentWithCarriageReturnsAloneEndsAtTheEndOfItsLine()
     {
         var document = await Task.Run(() => DdlReader.DocumentFromString(WithLineEnds(Commented, "\r")));
@@ -75,10 +75,10 @@ public class DdlLineEndTests
             .Should().Be("Second");
     }
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\n")]
-    [InlineData("\r")]
-    [InlineData("\r\n")]
+    [Test, Timeout(Patience)]
+    [Arguments("\n")]
+    [Arguments("\r")]
+    [Arguments("\r\n")]
     public async Task AnErrorIsReportedOnTheLineItIsOn(string lineEnd)
     {
         var errors = await Task.Run(() =>
@@ -100,7 +100,7 @@ public class DdlLineEndTests
         errors[0].SourceLine.Should().Be(5);
     }
 
-    [Fact(Timeout = Patience)]
+    [Test, Timeout(Patience)]
     public async Task TwoCarriageReturnsAreTwoLineEndsAndACarriageReturnBeforeALineFeedIsOne()
     {
         // "\r\r\n" is a lone CR followed by a CRLF: two line ends, so the fault that follows is on

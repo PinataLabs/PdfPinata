@@ -4,7 +4,7 @@ using ImageMagick;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Drawing;
@@ -20,7 +20,7 @@ namespace PdfPinata.Test.Drawing;
 ///   Every assertion below reads pixels, because a shading dictionary with the right keys is no
 ///   proof that a reader paints anything with it.
 /// </remarks>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public sealed class RadialGradientRenderingTests : IDisposable
 {
     private const string OutDir = "Out/RadialGradient";
@@ -32,7 +32,7 @@ public sealed class RadialGradientRenderingTests : IDisposable
     private static readonly XPoint Centre = new(300, 300);
     private static readonly XRect Square = new(200, 200, 200, 200);
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void ARadialGradientIsDrawnInItsColoursFromTheCentreOut()
     {
         var page = Rasterize("colours", gfx =>
@@ -53,7 +53,7 @@ public sealed class RadialGradientRenderingTests : IDisposable
         halfWay.B.Should().BeInRange(70, 190);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void OnlyExtendRightPaintsTheCornersBeyondTheOuterCircle()
     {
         var corner = new XPoint(Square.X + 5, Square.Y + 5);
@@ -75,7 +75,7 @@ public sealed class RadialGradientRenderingTests : IDisposable
         extendedCorner.R.Should().BeLessThan(60);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void OnlyExtendLeftFillsTheHoleInsideTheInnerCircle()
     {
         var page = Rasterize("extend_left", gfx =>
@@ -96,7 +96,7 @@ public sealed class RadialGradientRenderingTests : IDisposable
         filled.B.Should().BeLessThan(60);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void ALinearGradientExtendsPastBothOfItsPoints()
     {
         var band = new XRect(100, 200, 400, 100);
@@ -124,7 +124,7 @@ public sealed class RadialGradientRenderingTests : IDisposable
         after.R.Should().BeLessThan(60, "white is not blue");
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void TheBrushsOwnTransformPlacesAndStretchesTheGradient()
     {
         var page = Rasterize("brush_transform", gfx =>
@@ -146,7 +146,7 @@ public sealed class RadialGradientRenderingTests : IDisposable
         IsWhite(At(page, Centre.X, Centre.Y + 75)).Should().BeTrue("the ellipse reaches only 50 points down");
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void ALinearGradientTurnsWithItsBrushsTransform()
     {
         var band = new XRect(200, 200, 200, 100);
@@ -176,7 +176,7 @@ public sealed class RadialGradientRenderingTests : IDisposable
         ((int)left.B).Should().BeCloseTo(right.B, 8);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AGraphicsTransformThatSquashesTheCircleDrawsAnEllipse()
     {
         var page = Rasterize("graphics_transform", gfx =>
@@ -197,7 +197,7 @@ public sealed class RadialGradientRenderingTests : IDisposable
         IsWhite(At(page, Centre.X, Centre.Y + 75)).Should().BeTrue();
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void TheSoftMaskOfATranslucentGradientExtendsWithItsColours()
     {
         var corner = new XPoint(Square.X + 5, Square.Y + 5);

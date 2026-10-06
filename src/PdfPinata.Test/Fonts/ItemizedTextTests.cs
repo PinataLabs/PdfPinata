@@ -5,7 +5,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Fonts;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -28,7 +28,7 @@ namespace PdfPinata.Test.Fonts;
 ///     right one.
 ///   </para>
 /// </remarks>
-[Collection(TextShapingCollection.Name)]
+[TextShaperSensitive]
 public class ItemizedTextTests
 {
     // Served by PinnedFontResolver itself. See the note on ArabicFamilyName: a family registered on
@@ -58,7 +58,7 @@ public class ItemizedTextTests
 
     // ----- the complaint this whole gap exists for -------------------------------------------------
 
-    [Fact]
+    [Test]
     public void RightToLeftTextIsDrawnLastLetterFirst()
     {
         var font = Arabic();
@@ -72,7 +72,7 @@ public class ItemizedTextTests
             + "word is the last one written");
     }
 
-    [Fact]
+    [Test]
     public void LatinBesideArabicIsDrawnOnEachSideOfTheBoundary()
     {
         var font = Arabic();
@@ -86,7 +86,7 @@ public class ItemizedTextTests
             + "whole string reversed");
     }
 
-    [Fact]
+    [Test]
     public void WhichWayTheParagraphRunsDecidesWhichRunIsDrawnFirst()
     {
         var font = Arabic();
@@ -102,7 +102,7 @@ public class ItemizedTextTests
 
     // ----- what it costs everything else ------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void OrdinaryLatinTextIsStillOneRunDrawnInOneGo()
     {
         // The case that must not have been made slower or longer: no reordering, no script change,
@@ -113,7 +113,7 @@ public class ItemizedTextTests
         Runs("Hello, world!", Latin()).Should().HaveCount(1);
     }
 
-    [Fact]
+    [Test]
     public void DigitsAndPunctuationDoNotStartARunOfTheirOwn()
     {
         // Script Common and bidirectional class European Number, neither of which is Latin - and
@@ -122,7 +122,7 @@ public class ItemizedTextTests
         Runs("Item 42 (of 99).", Latin()).Should().HaveCount(1);
     }
 
-    [Fact]
+    [Test]
     public void AChangeOfScriptIsARunBoundaryEvenWithoutAChangeOfDirection()
     {
         // Both left to right, so nothing is reordered - but a face applies one script's rules at a
@@ -131,7 +131,7 @@ public class ItemizedTextTests
         Runs("Hi " + Greek, Latin()).Should().HaveCount(2);
     }
 
-    [Fact]
+    [Test]
     public void APrivateUseCharacterIsARunOfItsOwn()
     {
         // Nobody knows anything about a private-use character - it is script Unknown - so it gets
@@ -141,7 +141,7 @@ public class ItemizedTextTests
         Runs("a\uE000b", Latin()).Should().HaveCount(3);
     }
 
-    [Fact]
+    [Test]
     public void AJoiningControlIsInTheRunAndNotOnThePage()
     {
         var font = Arabic();
@@ -160,7 +160,7 @@ public class ItemizedTextTests
 
     // ----- measuring and drawing still agree ---------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AStringOfSeveralRunsIsAsWideAsItsRunsAddUpTo()
     {
         var font = Arabic();
@@ -170,7 +170,7 @@ public class ItemizedTextTests
             "the same glyphs are drawn whichever order they are drawn in");
     }
 
-    [Fact]
+    [Test]
     public void TurningTextRoundDoesNotChangeHowWideItIs()
     {
         var font = Arabic();
@@ -219,7 +219,7 @@ public class ItemizedTextTests
         }
     }
 
-    [Fact]
+    [Test]
     public void EachRunIsHandedOverWithItsOwnScriptAndDirection()
     {
         var font = Arabic();

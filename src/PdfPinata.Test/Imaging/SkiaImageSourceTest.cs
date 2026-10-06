@@ -6,7 +6,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Skia;
 using SkiaSharp;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Imaging;
 
@@ -24,7 +24,7 @@ public class SkiaImageSourceTest
     private static SKBitmap CreateBitmap(int width, int height)
         => new(new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Unpremul));
 
-    [Fact]
+    [Test]
     public void GetPixelsReportsTheSizeOfTheBitmap()
     {
         var pixels = GetPixels(CreateBitmap(3, 2));
@@ -35,7 +35,7 @@ public class SkiaImageSourceTest
         pixels.IsEmpty.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void GetPixelsKeepsRowsTopDown()
     {
         var bitmap = CreateBitmap(1, 2);
@@ -55,7 +55,7 @@ public class SkiaImageSourceTest
         pixels[6].Should().Be(40);
     }
 
-    [Fact]
+    [Test]
     public void GetPixelsPutsEveryCornerWhereItBelongs()
     {
         // Four distinct corners, so a vertical flip, a horizontal flip and a half turn are each
@@ -75,7 +75,7 @@ public class SkiaImageSourceTest
             43, 42, 41, 255);
     }
 
-    [Fact]
+    [Test]
     public void GetPixelsKeepsStraightAlpha()
     {
         var bitmap = CreateBitmap(1, 1);
@@ -88,7 +88,7 @@ public class SkiaImageSourceTest
         pixels[3].Should().Be(128, "alpha is carried in the fourth byte");
     }
 
-    [Fact]
+    [Test]
     public void GetPixelsRefusesAPremultipliedBitmap()
     {
         // FromSkiaBitmap takes whatever bitmap a caller has already decoded, and premultiplied
@@ -104,7 +104,7 @@ public class SkiaImageSourceTest
             .WithMessage("*premultiplied*");
     }
 
-    [Fact]
+    [Test]
     public void GetPixelsAcceptsAnOpaqueBitmap()
     {
         // Opaque is not premultiplied-by-another-name: alpha is 255 throughout, so the colour
@@ -116,7 +116,7 @@ public class SkiaImageSourceTest
         GetPixels(bitmap).Pixels.ToArray().Should().Equal(30, 20, 10, 255);
     }
 
-    [Fact]
+    [Test]
     public void TransparentPngRoundTripsThroughPdfImage()
     {
         var bitmap = CreateBitmap(8, 8);
@@ -136,7 +136,7 @@ public class SkiaImageSourceTest
         ms.Length.Should().BeGreaterThan(0);
     }
 
-    [Fact]
+    [Test]
     public void OpaqueJpegTakesTheJpegPath()
     {
         var bitmap = CreateBitmap(8, 8);

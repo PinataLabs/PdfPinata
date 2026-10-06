@@ -3,7 +3,7 @@ using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Helpers;
 
@@ -23,7 +23,7 @@ public class SavedTests
         return document;
     }
 
-    [Fact]
+    [Test]
     public void TheBytesAreAWholeFile()
     {
         var bytes = Saved.Bytes(TwoPages("Bytes"));
@@ -33,11 +33,11 @@ public class SavedTests
         text.TrimEnd().Should().EndWith("%%EOF");
     }
 
-    [Theory]
-    [InlineData(PdfDocumentOpenMode.Modify, false)]
-    [InlineData(PdfDocumentOpenMode.Append, false)]
-    [InlineData(PdfDocumentOpenMode.Import, true)]
-    [InlineData(PdfDocumentOpenMode.ReadOnly, true)]
+    [Test]
+    [Arguments(PdfDocumentOpenMode.Modify, false)]
+    [Arguments(PdfDocumentOpenMode.Append, false)]
+    [Arguments(PdfDocumentOpenMode.Import, true)]
+    [Arguments(PdfDocumentOpenMode.ReadOnly, true)]
     public void AReopenedDocumentIsOpenedInTheModeAskedFor(PdfDocumentOpenMode mode, bool readOnly)
     {
         var reopened = TwoPages("Reopened").Reopened(mode);
@@ -48,7 +48,7 @@ public class SavedTests
         reopened.Info.Title.Should().Be("Reopened");
     }
 
-    [Fact]
+    [Test]
     public void AReopenedDocumentIsOpenedToModifyUnlessToldOtherwise()
     {
         var reopened = TwoPages("Default").Reopened();
@@ -57,7 +57,7 @@ public class SavedTests
         reopened.Invoking(document => document.AddPage()).Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void AnOpenedDocumentIsReadFromTheBytesGiven()
     {
         var bytes = Saved.Bytes(TwoPages("Opened"));
@@ -69,7 +69,7 @@ public class SavedTests
         opened.Info.Title.Should().Be("Opened");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentOpenedToAppendToCanStillWriteItsRevision()
     {
         // Append copies the original bytes when it opens; the stream Open made is never disposed

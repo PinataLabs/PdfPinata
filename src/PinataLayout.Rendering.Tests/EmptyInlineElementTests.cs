@@ -2,7 +2,7 @@ using System;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.Rendering.Tests.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -26,7 +26,7 @@ namespace PinataLayout.Rendering.Tests;
 /// </remarks>
 public class EmptyInlineElementTests
 {
-    [Fact]
+    [Test]
     public void AnEmptyFormattedTextLeavesTheRestOfTheParagraphToDraw()
     {
         var withEmpty = Paragraph(paragraph =>
@@ -42,7 +42,7 @@ public class EmptyInlineElementTests
                 "an element holding no text contributes nothing to the page");
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyFormattedTextOnItsOwnIsAParagraphWithNoWordsInIt()
     {
         // Nothing follows it, so the empty collection is the paragraph's only leaf and is both the
@@ -52,7 +52,7 @@ public class EmptyInlineElementTests
         Glyphs.On(Rendered.FirstPageOf(document)).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyHyperlinkIsTheSameKindOfLeafAndAlsoDrawsNothing()
     {
         var document = Paragraph(paragraph =>
@@ -67,7 +67,7 @@ public class EmptyInlineElementTests
             .Should().Equal(Glyphs.On(Rendered.FirstPageOf(withoutIt)));
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyFormattedTextInsideAHyperlinkStillLeavesTheWordsInTheLink()
     {
         // The other half of the same walk: it exists to find the hyperlink a word sits in, and a
@@ -93,7 +93,7 @@ public class EmptyInlineElementTests
     // it the walk asks for the parent of nothing and throws exactly as an empty FormattedText
     // used to. Asked of the renderer directly, because nothing else can ask it.
 
-    [Fact]
+    [Test]
     public void TheWalkEndsAtTheTopWhenTheLeafBelongsToNoParagraph()
     {
         var detached = new FormattedText();
@@ -102,7 +102,7 @@ public class EmptyInlineElementTests
         HyperlinkWalkProbe.Around(detached.Elements).Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void TheSameWalkStillFindsAHyperlinkItPassesOnTheWayUp()
     {
         // The control for the test above: the walk answers null there because it ran out of

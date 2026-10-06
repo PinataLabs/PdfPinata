@@ -6,7 +6,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.IO.enums;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -38,13 +38,13 @@ namespace PdfPinata.Test.IO;
 /// </remarks>
 public class HybridCrossReferenceTests
 {
-    [Fact]
+    [Test]
     public void TheObjectTheTableCallsFreeIsFoundThroughTheStream()
     {
         GraphicsStateOf(Opened(Hybrid())).Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void ItIsTheSameObjectTheOrdinaryFileHas()
     {
         // The control: the same page, with the object written the ordinary way and named by the
@@ -54,7 +54,7 @@ public class HybridCrossReferenceTests
             .Should().Be(GraphicsStateOf(Opened(Plain())).Elements.GetReal("/CA"));
     }
 
-    [Fact]
+    [Test]
     public void ThePageCarriesItIntoADocumentItIsImportedInto()
     {
         // The reported failure. The import walks the page's object graph and copies what it finds,
@@ -66,7 +66,7 @@ public class HybridCrossReferenceTests
         GraphicsStateOf(target.Pages[0]).Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void ItSurvivesBeingSavedAsAnOrdinaryFile()
     {
         // What is written out is a plain file - the /XRefStm entry is dropped on the way - so the
@@ -80,7 +80,7 @@ public class HybridCrossReferenceTests
             .Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void TheDocumentIsStillTheOneTheClassicTrailerDescribes()
     {
         // A cross-reference stream is a trailer as well as a table, and this one says the catalog
@@ -92,7 +92,7 @@ public class HybridCrossReferenceTests
         document.PageCount.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void TheStreamIsReadWhetherOrNotTheTableListsIt()
     {
         // Which is how a real one looks: the stream is an object of the file like any other, and a
@@ -102,7 +102,7 @@ public class HybridCrossReferenceTests
 
     // ----- when the stream cannot be read -------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ADamagedStreamIsRefusedByNameRatherThanBySymptom()
     {
         // /W says every entry is 27 bytes long, and there are four bytes to read them out of.
@@ -111,7 +111,7 @@ public class HybridCrossReferenceTests
         open.Should().Throw<PdfReaderException>().WithMessage("*/XRefStm*");
     }
 
-    [Fact]
+    [Test]
     public void APositionOutsideTheFileIsRefusedTheSameWay()
     {
         Action open = () => Opened(Hybrid(namedPosition: 9_999_999));
@@ -119,7 +119,7 @@ public class HybridCrossReferenceTests
         open.Should().Throw<PdfReaderException>().WithMessage("*not inside the file*");
     }
 
-    [Fact]
+    [Test]
     public void APositionWhereThereIsNoStreamIsRefusedTheSameWay()
     {
         // In range, and pointing at a dictionary rather than at a cross-reference stream - which
@@ -129,7 +129,7 @@ public class HybridCrossReferenceTests
         open.Should().Throw<PdfReaderException>().WithMessage("*no cross-reference stream*");
     }
 
-    [Fact]
+    [Test]
     public void ModerateAccuracyReadsTheDocumentTheTableDescribes()
     {
         // The classic table is a complete section of its own, which is the whole point of writing
@@ -141,7 +141,7 @@ public class HybridCrossReferenceTests
         GraphicsStateOf(document).Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void ModerateAccuracyKeepsNothingOfAStreamDamagedPartWayThrough()
     {
         // The stream's first entry is good and says where object 7 is; its second points at no
@@ -153,7 +153,7 @@ public class HybridCrossReferenceTests
         GraphicsStateOf(document).Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void ModerateAccuracyKeepsNothingOfACompressedEntryReadBeforeTheDamage()
     {
         // The same, with the good entry a compressed one. Those are resolved by PdfReader once the
@@ -165,7 +165,7 @@ public class HybridCrossReferenceTests
         GraphicsStateOf(document).Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void ANewerRevisionGivingTheStreamsNumberToAnotherObjectKeepsThatObject()
     {
         // The newer revision is read first, so its entry for 6 is in the table, with a position and
@@ -177,7 +177,7 @@ public class HybridCrossReferenceTests
         GraphicsStateOf(document).Should().NotBeNull("the stream still says where object 7 is");
     }
 
-    [Fact]
+    [Test]
     public void ModerateAccuracyOpensAFileWhoseXRefStmNamesNoStream()
     {
         var document = Opened(Hybrid(nameTheCatalog: true), accuracy: PdfReadAccuracy.Moderate);

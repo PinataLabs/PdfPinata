@@ -3,7 +3,7 @@ using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Charting.Tests.Helpers;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -20,7 +20,7 @@ namespace PdfPinata.Charting.Tests;
 /// </remarks>
 public class CategoryAxisTests
 {
-    [Fact]
+    [Test]
     public void AColumnChartWritesItsCategoriesLeftToRightInOrder()
     {
         var page = Drawn.Page(Charts.Of(ChartType.Column2D, 1.0, 5.0, 3.0));
@@ -31,7 +31,7 @@ public class CategoryAxisTests
         categories.Should().BeInAscendingOrder(run => run.X);
     }
 
-    [Fact]
+    [Test]
     public void AColumnChartPutsEachCategoryUnderItsOwnColumn()
     {
         var page = Drawn.Page(Charts.Of(ChartType.Column2D, 1.0, 5.0, 3.0));
@@ -44,7 +44,7 @@ public class CategoryAxisTests
             categories[idx].X.Should().BeApproximately(columns[idx].CentreX, LabelTolerance);
     }
 
-    [Fact]
+    [Test]
     public void ABarChartWritesItsCategoriesUpTheSideInReverse()
     {
         var page = Drawn.Page(Charts.Of(ChartType.Bar2D, 1.0, 5.0, 3.0));
@@ -57,7 +57,7 @@ public class CategoryAxisTests
         categories.Should().BeInDescendingOrder(run => run.Y);
     }
 
-    [Fact]
+    [Test]
     public void ABarChartPutsEachCategoryBesideItsOwnBar()
     {
         var page = Drawn.Page(Charts.Of(ChartType.Bar2D, 1.0, 5.0, 3.0));
@@ -81,9 +81,9 @@ public class CategoryAxisTests
     ///   A chart given no categories of its own is labelled 1, 2, 3 - the axis renderer fills them
     ///   in from the scale rather than leaving the axis blank.
     /// </summary>
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Bar2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Bar2D)]
     public void AChartWithNoCategoriesIsLabelledByPosition(ChartType type)
     {
         var chart = Charts.Empty(type);
@@ -94,7 +94,7 @@ public class CategoryAxisTests
         shown.Should().Contain("1").And.Contain("2").And.Contain("3");
     }
 
-    [Fact]
+    [Test]
     public void TurningOffEveryTickMarkLeavesNothingStrokedOnTheAxes()
     {
         var chart = Charts.Of(ChartType.Column2D, 1.0, 3.0);
@@ -120,7 +120,7 @@ public class CategoryAxisTests
     ///   no pen until a caller sets one, so a default chart had tick marks up the side and none
     ///   along the bottom.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheCategoryAxisDrawsTickMarksByDefault()
     {
         var chart = Charts.Of(ChartType.Column2D, 1.0, 3.0, 2.0, 4.0);
@@ -134,7 +134,7 @@ public class CategoryAxisTests
     ///   tick marks - still waits on <see cref="Axis.LineFormat"/>, which holds no pen until a
     ///   caller sets one.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheCategoryAxissOwnLineStillWaitsForALineFormat()
     {
         var chart = Charts.Of(ChartType.Column2D, 1.0, 3.0, 2.0, 4.0);
@@ -160,9 +160,9 @@ public class CategoryAxisTests
     ///   same defect class the major ticks were already guarded against, just for a pen that stays
     ///   null until a caller asks for minor ticks at all.
     /// </summary>
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Bar2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Bar2D)]
     public void AnEmptyChartsMinorTickMarksStillWriteNoNaN(ChartType type)
     {
         var chart = Charts.Empty(type);
@@ -173,7 +173,7 @@ public class CategoryAxisTests
         Encoding.ASCII.GetString(PageContent.Of(page)).Should().NotContain("NaN");
     }
 
-    [Fact]
+    [Test]
     public void AskingForMinorTickMarksDrawsMoreOfThemThanMajorOnesAlone()
     {
         var majorOnly = Charts.Of(ChartType.Column2D, 1.0, 3.0, 2.0, 4.0);
@@ -195,7 +195,7 @@ public class CategoryAxisTests
     ///   here running across rather than up - are stroked by default, and only its own line still
     ///   waits on a line format.
     /// </summary>
-    [Fact]
+    [Test]
     public void ABarChartsCategoryAxisDrawsTickMarksByDefaultButNotItsOwnLine()
     {
         var chart = Charts.Of(ChartType.Bar2D, 3.0, 6.0);
@@ -218,7 +218,7 @@ public class CategoryAxisTests
         lines.Should().Contain(line => line.IsHorizontal);
     }
 
-    [Fact]
+    [Test]
     public void ABarChartsCategoryAxisDrawsAnAxisLineWhenItHasALineFormat()
     {
         var chart = Charts.Of(ChartType.Bar2D, 3.0, 6.0);
@@ -235,10 +235,10 @@ public class CategoryAxisTests
         lines[0].IsVertical.Should().BeTrue();
     }
 
-    [Theory]
-    [InlineData(TickMarkType.Inside)]
-    [InlineData(TickMarkType.Outside)]
-    [InlineData(TickMarkType.Cross)]
+    [Test]
+    [Arguments(TickMarkType.Inside)]
+    [Arguments(TickMarkType.Outside)]
+    [Arguments(TickMarkType.Cross)]
     public void EachKindOfTickMarkIsDrawnSomewhereOfItsOwn(TickMarkType kind)
     {
         var lines = TickMarks(kind);
@@ -253,7 +253,7 @@ public class CategoryAxisTests
     ///   A category with no value is skipped rather than drawn: the horizontal renderer tests each
     ///   X value for null before it measures it.
     /// </summary>
-    [Fact]
+    [Test]
     public void AColumnChartSkipsACategoryWithNoValue()
     {
         var chart = Charts.Empty(ChartType.Column2D);
@@ -273,7 +273,7 @@ public class CategoryAxisTests
     ///   without testing it first - the two are otherwise the same method, and it was a guard one
     ///   of them was missing rather than a difference either was designed to have.
     /// </summary>
-    [Fact]
+    [Test]
     public void ABarChartSkipsACategoryWithNoValue()
     {
         var chart = Charts.Empty(ChartType.Bar2D);
@@ -292,7 +292,7 @@ public class CategoryAxisTests
     ///   The blank keeps its place: the categories around it are still drawn beside their own
     ///   bars, rather than closing up over the gap.
     /// </summary>
-    [Fact]
+    [Test]
     public void ABlankCategoryStillTakesItsPlaceOnTheAxis()
     {
         var chart = Charts.Empty(ChartType.Bar2D);
@@ -317,7 +317,7 @@ public class CategoryAxisTests
     ///   end of the category list - is what keeps it in bounds, and the vertical renderer has no
     ///   such condition.
     /// </summary>
-    [Fact]
+    [Test]
     public void AColumnChartDrawsTheCategoriesItHasWhenThereAreFewerThanValues()
     {
         var chart = Charts.Empty(ChartType.Column2D);
@@ -327,7 +327,7 @@ public class CategoryAxisTests
         ShownText.On(Drawn.Page(chart)).Should().Contain("A").And.Contain("B");
     }
 
-    [Fact]
+    [Test]
     public void ABarChartDrawsTheCategoriesItHasWhenThereAreFewerThanValues()
     {
         var chart = Charts.Empty(ChartType.Bar2D);

@@ -5,7 +5,7 @@ using PdfPinata.Drawing.Layout;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
 using PdfPinata.Text;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing.Layout;
 
@@ -71,7 +71,7 @@ public class BidirectionalLayoutTests
 
     // ----- what the formatter gets for free ---------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AFormatterLineOfRightToLeftTextComesOutInVisualOrder()
     {
         var font = Font();
@@ -89,7 +89,7 @@ public class BidirectionalLayoutTests
             "the line is reordered across the words in it and not only inside each of them");
     }
 
-    [Fact]
+    [Test]
     public void OneRightToLeftWordIsDrawnLastLetterFirst()
     {
         var font = Font();
@@ -117,7 +117,7 @@ public class BidirectionalLayoutTests
         return new XRect(12, 12, (enough + tooMuch) / 2, 100);
     }
 
-    [Fact]
+    [Test]
     public void AJustifiedLineIsLaidOutRightToLeftAcrossItsWordsToo()
     {
         var font = Font();
@@ -136,7 +136,7 @@ public class BidirectionalLayoutTests
             "the word written first is the rightmost, so it is placed last");
     }
 
-    [Fact]
+    [Test]
     public void AnEnglishPhraseInsideAJustifiedRightToLeftLineKeepsItsOwnWordOrder()
     {
         // The case that says the words are really being ordered rather than the line being turned
@@ -157,7 +157,7 @@ public class BidirectionalLayoutTests
             Reversed(First, font)));
     }
 
-    [Fact]
+    [Test]
     public void AJustifiedLeftToRightLineIsPlacedExactlyAsItAlwaysWas()
     {
         var font = Font();
@@ -176,7 +176,7 @@ public class BidirectionalLayoutTests
 
     // ----- saying which way it runs rather than leaving it to be guessed --------------------------
 
-    [Fact]
+    [Test]
     public void ADeclaredDirectionOverridesWhatTheFirstStrongCharacterSays()
     {
         // "one" is the first strong character of this line, so the algorithm left to itself makes
@@ -196,7 +196,7 @@ public class BidirectionalLayoutTests
             "the Hebrew is drawn leftmost although it was written last");
     }
 
-    [Fact]
+    [Test]
     public void LeavingItToBeGuessedIsStillWhatHappensByDefault()
     {
         var font = Font();

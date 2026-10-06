@@ -5,7 +5,7 @@ using PinataLayout.DocumentObjectModel.Fields;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Tables;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -26,7 +26,7 @@ public class DocumentFieldsAndFootnoteTests
 
     // ----- the document's own settings --------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ADocumentWritesEverySettingItWasGivenAndNoneItWasNot()
     {
         var document = new Document();
@@ -55,7 +55,7 @@ public class DocumentFieldsAndFootnoteTests
             .And.Contain("UseCmykColor = true");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentTakesASectionOrAStyleThatWasBuiltBeforeIt()
     {
         var document = new Document();
@@ -67,7 +67,7 @@ public class DocumentFieldsAndFootnoteTests
         document.Styles["Loud"].Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void ADocumentHandedItsOwnPartsUsesTheOnesItWasHanded()
     {
         var document = new Document();
@@ -88,7 +88,7 @@ public class DocumentFieldsAndFootnoteTests
     ///   the first had already changed. The document refuses the second rather than producing two
     ///   files that disagree, and says to clone it.
     /// </summary>
-    [Fact]
+    [Test]
     public void ADocumentBelongsToOneRendererAndRefusesASecond()
     {
         var document = new Document();
@@ -100,7 +100,7 @@ public class DocumentFieldsAndFootnoteTests
             .WithMessage("*already bound to another renderer*");
     }
 
-    [Fact]
+    [Test]
     public void TheDocumentInformationWritesEveryFieldItWasGiven()
     {
         var document = new Document
@@ -130,7 +130,7 @@ public class DocumentFieldsAndFootnoteTests
 
     // ----- fields -----------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void EveryKindOfFieldWritesItselfAsItsOwnRun()
     {
         var paragraph = new Document().AddSection().AddParagraph();
@@ -161,7 +161,7 @@ public class DocumentFieldsAndFootnoteTests
     ///   text that follows a field may itself start with a bracket - and a reader with no way to
     ///   tell the two apart reads the text as the field's own attributes.
     /// </summary>
-    [Fact]
+    [Test]
     public void ADateFieldWithNoFormatStillWritesTheBracketsThatEndIt()
     {
         var paragraph = new Document().AddSection().AddParagraph();
@@ -175,7 +175,7 @@ public class DocumentFieldsAndFootnoteTests
         DdlOf(formatted).Should().Contain("\\field(Date)[Format = \"yyyy-MM-dd\"]");
     }
 
-    [Fact]
+    [Test]
     public void APageReferenceCarriesItsFormatAlongsideTheBookmarkItPointsAt()
     {
         var paragraph = new Document().AddSection().AddParagraph();
@@ -190,7 +190,7 @@ public class DocumentFieldsAndFootnoteTests
     ///   Both of these would render as nothing at all, so both refuse to be written rather than
     ///   producing a document with a silent gap where a page number or a title should be.
     /// </summary>
-    [Fact]
+    [Test]
     public void AFieldWithNothingToStandForRefusesToBeWritten()
     {
         var bookmarked = new Document().AddSection().AddParagraph();
@@ -202,7 +202,7 @@ public class DocumentFieldsAndFootnoteTests
             .WithMessage("*Name*");
     }
 
-    [Fact]
+    [Test]
     public void AnInfoFieldRefusesANameThatIsNotOneOfTheDocumentsOwn()
     {
         var field = new Document().AddSection().AddParagraph().AddInfoField(InfoFieldType.Title);
@@ -213,7 +213,7 @@ public class DocumentFieldsAndFootnoteTests
         field.Clone().Name.Should().Be("Title");
     }
 
-    [Fact]
+    [Test]
     public void AFieldIsNeverNullBecauseItsPresenceIsWhatItMeans()
     {
         var paragraph = new Document().AddSection().AddParagraph();
@@ -225,7 +225,7 @@ public class DocumentFieldsAndFootnoteTests
 
     // ----- footnotes --------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AFootnoteTakesContentBuiltBeforeItAndBuildsItToo()
     {
         var footnote = new Document().AddSection().AddParagraph("text").AddFootnote();
@@ -241,7 +241,7 @@ public class DocumentFieldsAndFootnoteTests
         footnote.Elements.Count.Should().Be(6);
     }
 
-    [Fact]
+    [Test]
     public void AFootnoteMadeFromATextCarriesThatTextAsItsFirstParagraph()
     {
         var paragraph = new Document().AddSection().AddParagraph("text");
@@ -267,12 +267,12 @@ public class DocumentFieldsAndFootnoteTests
     ///   of a document rather than a file called that, so the number comes off before the file is
     ///   looked for and is handed back separately.
     /// </summary>
-    [Theory]
-    [InlineData("report.pdf#3", "report.pdf", 3)]
-    [InlineData("report.pdf#12", "report.pdf", 12)]
-    [InlineData("picture.png", "picture.png", 0)]
-    [InlineData("#123", "#123", 0)]
-    [InlineData("", "", 0)]
+    [Test]
+    [Arguments("report.pdf#3", "report.pdf", 3)]
+    [Arguments("report.pdf#12", "report.pdf", 12)]
+    [Arguments("picture.png", "picture.png", 0)]
+    [Arguments("#123", "#123", 0)]
+    [Arguments("", "", 0)]
     public void APageNumberOnTheEndOfANameIsTakenOffBeforeTheFileIsLookedFor(
         string given, string expectedPath, int expectedPage)
     {
@@ -282,7 +282,7 @@ public class DocumentFieldsAndFootnoteTests
         pageNumber.Should().Be(expectedPage);
     }
 
-    [Fact]
+    [Test]
     public void ANameWithNoPathAtAllIsRefusedRatherThanSearchedFor()
     {
         var extracting = () => ImageHelper.ExtractPageNumber(null, out _);
@@ -290,7 +290,7 @@ public class DocumentFieldsAndFootnoteTests
         extracting.Should().Throw<ArgumentNullException>();
     }
 
-    [Fact]
+    [Test]
     public void AnImageIsFoundInWhicheverSubfolderOfTheSearchPathHoldsIt()
     {
         var root = Path.Combine(Path.GetTempPath(), "PinataLayoutImageHelper" + Guid.NewGuid().ToString("N"));

@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -37,9 +37,9 @@ public abstract class IoBaseTest
     protected void ValidateFileIsPdf(string v)
     {
         var path = GetOutFilePath(v);
-        Assert.True(File.Exists(path));
+        File.Exists(path).Should().BeTrue();
         var fi = new FileInfo(path);
-        Assert.True(fi.Length > 1);
+        fi.Length.Should().BeGreaterThan(1);
 
         using var stream = File.OpenRead(path);
         ReadStreamAndVerifyPdfHeaderSignature(stream);
@@ -64,7 +64,7 @@ public abstract class IoBaseTest
             File.Delete(path);
         }
 
-        Assert.False(File.Exists(path));
+        File.Exists(path).Should().BeFalse();
     }
 
     protected string GetOutFilePath(string name)

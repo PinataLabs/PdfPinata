@@ -4,7 +4,7 @@ using PinataLayout.DocumentObjectModel;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -34,7 +34,7 @@ public class TextMeasurementAndRenderObjectTests
         return new TextMeasurement(gfx, new Font("Arial", 12)).MeasureString("Measure me", unit);
     }
 
-    [Fact]
+    [Test]
     public void MeasuringInPointsReportsSomethingOfASensibleSize()
     {
         var size = MeasuredIn(UnitType.Point);
@@ -43,13 +43,13 @@ public class TextMeasurementAndRenderObjectTests
         size.Height.Should().BeGreaterThan(0);
     }
 
-    [Theory]
+    [Test]
     // Each conversion is asserted against the measurement in points rather than against a number
     // typed in, so the test says what the unit means and stays true whatever the font measures.
-    [InlineData(UnitType.Centimeter, 2.54 / 72)]
-    [InlineData(UnitType.Inch, 1.0 / 72)]
-    [InlineData(UnitType.Millimeter, 25.4 / 72)]
-    [InlineData(UnitType.Pica, 1.0 / 12)]
+    [Arguments(UnitType.Centimeter, 2.54 / 72)]
+    [Arguments(UnitType.Inch, 1.0 / 72)]
+    [Arguments(UnitType.Millimeter, 25.4 / 72)]
+    [Arguments(UnitType.Pica, 1.0 / 12)]
     public void EveryUnitIsTheMeasurementInPointsConvertedIntoIt(UnitType unit, double factor)
     {
         var inPoints = MeasuredIn(UnitType.Point);
@@ -60,7 +60,7 @@ public class TextMeasurementAndRenderObjectTests
         converted.Height.Should().BeApproximately(inPoints.Height * factor, inPoints.Height * factor * 0.001);
     }
 
-    [Fact]
+    [Test]
     public void TheOverloadWithoutAUnitMeasuresInPoints()
     {
         using var gfx = OnAPage();
@@ -73,7 +73,7 @@ public class TextMeasurementAndRenderObjectTests
         implied.Height.Should().Be(stated.Height);
     }
 
-    [Fact]
+    [Test]
     public void MeasuringNothingIsRefusedRatherThanAnsweredWithZero()
     {
         using var gfx = OnAPage();
@@ -84,7 +84,7 @@ public class TextMeasurementAndRenderObjectTests
         measuring.Should().Throw<ArgumentNullException>();
     }
 
-    [Fact]
+    [Test]
     public void AUnitThatIsNotOneOfTheUnitsIsRefused()
     {
         // The guard exists because the switch below it has an arm per unit and a Debug.Assert(false)
@@ -98,7 +98,7 @@ public class TextMeasurementAndRenderObjectTests
         measuring.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void ChangingTheFontChangesWhatIsMeasured()
     {
         // The cached XFont is dropped when the font is replaced, which is the only reason the second
@@ -135,7 +135,7 @@ public class TextMeasurementAndRenderObjectTests
     /// </remarks>
     private static string ShownOn(PdfPage page) => string.Concat(TextOperators.ShownStrings(page));
 
-    [Fact]
+    [Test]
     public void AParagraphCanBeDrawnOnItsOwnWithoutLayingTheDocumentOut()
     {
         var document = new Document();
@@ -150,7 +150,7 @@ public class TextMeasurementAndRenderObjectTests
         ShownOn(page).Should().Contain("Standalone");
     }
 
-    [Fact]
+    [Test]
     public void ATableCanBeDrawnOnItsOwn()
     {
         var document = new Document();
@@ -167,7 +167,7 @@ public class TextMeasurementAndRenderObjectTests
         ShownOn(page).Should().Contain("Celled");
     }
 
-    [Fact]
+    [Test]
     public void AShapeCanBeDrawnOnItsOwn()
     {
         var document = new Document();
@@ -185,7 +185,7 @@ public class TextMeasurementAndRenderObjectTests
         ShownOn(page).Should().Contain("Framed");
     }
 
-    [Fact]
+    [Test]
     public void DrawingWithNoGraphicsToDrawOnIsRefused()
     {
         var document = new Document();
@@ -198,7 +198,7 @@ public class TextMeasurementAndRenderObjectTests
         drawing.Should().Throw<ArgumentNullException>();
     }
 
-    [Fact]
+    [Test]
     public void DrawingNothingIsRefused()
     {
         var document = new Document();
@@ -212,7 +212,7 @@ public class TextMeasurementAndRenderObjectTests
         drawing.Should().Throw<ArgumentNullException>();
     }
 
-    [Fact]
+    [Test]
     public void SomethingThatIsNotAParagraphTableOrShapeIsRefusedByName()
     {
         // Only three kinds of object have a renderer that can be given a rectangle and asked to fill

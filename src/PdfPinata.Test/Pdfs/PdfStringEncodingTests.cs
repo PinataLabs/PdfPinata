@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -15,7 +15,7 @@ namespace PdfPinata.Test.Pdfs;
 /// </summary>
 public class PdfStringEncodingTests
 {
-    [Fact]
+    [Test]
     public void EveryEncodingIsAValueOfItsOwn()
     {
         var values = Enum.GetValues<PdfStringEncoding>();
@@ -25,12 +25,12 @@ public class PdfStringEncodingTests
         ((int)PdfStringEncoding.MacExpertEncoding).Should().Be(5);
     }
 
-    [Theory]
-    [InlineData(PdfStringEncoding.StandardEncoding)]
-    [InlineData(PdfStringEncoding.PDFDocEncoding)]
-    [InlineData(PdfStringEncoding.MacRomanEncoding)]
-    [InlineData(PdfStringEncoding.MacExpertEncoding)]
-    [InlineData(PdfStringEncoding.Unicode)]
+    [Test]
+    [Arguments(PdfStringEncoding.StandardEncoding)]
+    [Arguments(PdfStringEncoding.PDFDocEncoding)]
+    [Arguments(PdfStringEncoding.MacRomanEncoding)]
+    [Arguments(PdfStringEncoding.MacExpertEncoding)]
+    [Arguments(PdfStringEncoding.Unicode)]
     public void AStringReportsTheEncodingItWasMadeWith(PdfStringEncoding encoding)
     {
         var text = new PdfString("text", encoding);
@@ -38,7 +38,7 @@ public class PdfStringEncodingTests
         text.Encoding.Should().Be(encoding);
     }
 
-    [Fact]
+    [Test]
     public void ANameEveryEncodingHasIsAcceptedByTheConstructor()
     {
         // The constructor switches over the names one by one; a name with no case of its own
@@ -46,8 +46,21 @@ public class PdfStringEncodingTests
         // value, and giving MacRoman its own would have left it to throw without one.
         var refused = Enum.GetValues<PdfStringEncoding>()
             .Where(encoding => encoding is not (PdfStringEncoding.RawEncoding or PdfStringEncoding.WinAnsiEncoding))
-            .Where(encoding => Record.Exception(() => new PdfString("text", encoding)) != null);
+            .Where(encoding => !Constructs(() => new PdfString("text", encoding)));
 
         refused.Should().BeEmpty();
+    }
+
+    private static bool Constructs(Func<PdfString> construct)
+    {
+        try
+        {
+            construct();
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 }

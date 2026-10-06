@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -44,7 +44,7 @@ public class LexerUnicodeStringTests
     private const byte H = (byte)'H';
     private const byte I = (byte)'I';
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AUnicodeStringIsRecognisedByItsByteOrderMark()
     {
         var scanned = await ScanLiteralString(Bom0, Bom1, Nul, H, Nul, I);
@@ -53,7 +53,7 @@ public class LexerUnicodeStringTests
         scanned.Codes.Should().Equal(H, I);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AUnicodeStringMissingHalfOfItsLastCharacterEndsInAZero()
     {
         // Five bytes: the mark, one whole character, and the high half of a second with nothing
@@ -65,7 +65,7 @@ public class LexerUnicodeStringTests
         scanned.Codes.Should().Equal(H, Nul);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task ALittleEndianUnicodeStringIsReadTheOtherWayRound()
     {
         var scanned = await ScanLiteralString(Bom1, Bom0, H, Nul, I, Nul);
@@ -74,7 +74,7 @@ public class LexerUnicodeStringTests
         scanned.Codes.Should().Equal(H, I);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task ALittleEndianUnicodeStringMissingHalfOfItsLastCharacterKeepsThatCharacter()
     {
         // The same shortfall the other way round loses the *high* half, which is a zero anyway for
@@ -86,7 +86,7 @@ public class LexerUnicodeStringTests
         scanned.Codes.Should().Equal(H, I);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AStringWithNoByteOrderMarkIsReadAByteToTheCharacter()
     {
         // The mark is what decides it, so the same bytes without one are not UTF-16 at all and an
@@ -97,7 +97,7 @@ public class LexerUnicodeStringTests
         scanned.Codes.Should().Equal(H, I, H);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AByteOrderMarkWithNothingAfterItIsAnEmptyUnicodeString()
     {
         var scanned = await ScanLiteralString(Bom0, Bom1);
@@ -124,7 +124,7 @@ public class LexerUnicodeStringTests
         pdf.Add((byte)')');
 
         // On a thread of its own, so that the Timeout on these tests can interrupt a scan that
-        // does not end. xUnit honours it only on an async test.
+        // does not end. It is honoured only on an async test.
         return Interruptibly.Run(() =>
         {
             var lexer = new Lexer(new MemoryStream([..pdf]));

@@ -4,7 +4,7 @@ using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
 using PinataLayout.DocumentObjectModel.Tables;
 using PdfPinata.Text;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -33,7 +33,7 @@ public class DdlSerializationTests
 
     // ----- Font.Serialize ----------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void EveryThingAFontCanSayIsWrittenAndReadBack()
     {
         var document = DocumentWithAParagraph(out var paragraph);
@@ -58,7 +58,7 @@ public class DdlSerializationTests
         again.Format.Font.Superscript.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void SubscriptAndSuperscriptAreWrittenSeparatelyRatherThanAsOneChoice()
     {
         // They are two properties in the model and one thing in a document, so the serializer has
@@ -73,7 +73,7 @@ public class DdlSerializationTests
         again.Format.Font.Superscript.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AFontThatSaysNothingWritesNothing()
     {
         // The paragraph on its own rather than the whole document: a document carries the built-in
@@ -93,7 +93,7 @@ public class DdlSerializationTests
 
     // ----- ParagraphFormat.Serialize -------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void EveryThingAParagraphFormatCanSayIsWrittenAndReadBack()
     {
         var document = DocumentWithAParagraph(out var paragraph);
@@ -130,7 +130,7 @@ public class DdlSerializationTests
         again.TextDirection.Should().Be(BidiParagraphDirection.RightToLeft);
     }
 
-    [Fact]
+    [Test]
     public void TheTabStopsOfAParagraphSurviveWithTheirLeadersAndAlignments()
     {
         var document = DocumentWithAParagraph(out var paragraph);
@@ -147,7 +147,7 @@ public class DdlSerializationTests
         again.TabStops[1].Alignment.Should().Be(TabAlignment.Decimal);
     }
 
-    [Fact]
+    [Test]
     public void TheShadingBehindAParagraphSurvives()
     {
         var document = DocumentWithAParagraph(out var paragraph);
@@ -161,7 +161,7 @@ public class DdlSerializationTests
 
     // ----- Borders.Serialize ---------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ABorderSetOnEverySideAtOnceIsWrittenOnce()
     {
         // Setting the collection rather than a side is the shorthand, and the serializer is
@@ -184,7 +184,7 @@ public class DdlSerializationTests
         ddl.Should().NotContain("Top", "the shorthand covers every side");
     }
 
-    [Fact]
+    [Test]
     public void EachSideOfABorderKeepsWhatWasSaidAboutItAlone()
     {
         var document = DocumentWithAParagraph(out var paragraph);
@@ -203,7 +203,7 @@ public class DdlSerializationTests
         again.Bottom.Style.Should().Be(BorderStyle.DashDot);
     }
 
-    [Fact]
+    [Test]
     public void TheDistanceFromTheTextToTheBorderSurvivesOnEverySide()
     {
         var document = DocumentWithAParagraph(out var paragraph);
@@ -222,7 +222,7 @@ public class DdlSerializationTests
         again.DistanceFromBottom.Millimeter.Should().BeApproximately(4, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void ACellsOwnBordersSurviveInsideATable()
     {
         var document = new Document();
@@ -242,7 +242,7 @@ public class DdlSerializationTests
 
     // ----- Chart.Serialize -------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AChartIsWrittenWithItsTypeAndReadBackAsTheSameKind()
     {
         var document = new Document();
@@ -257,7 +257,7 @@ public class DdlSerializationTests
         again.Type.Should().Be(ChartType.Line);
     }
 
-    [Fact]
+    [Test]
     public void AChartsAxesAndAreasSurviveTheRoundTrip()
     {
         var document = new Document();
@@ -279,7 +279,7 @@ public class DdlSerializationTests
         DdlWriter.WriteToString(again.HeaderArea).Should().Contain("Heading");
     }
 
-    [Fact]
+    [Test]
     public void AChartKeepsTheNumbersInItsSeriesAndTheGapsBetweenThem()
     {
         var document = new Document();
@@ -301,7 +301,7 @@ public class DdlSerializationTests
 
     // ----- the whole document ----------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ADocumentWithSomethingOfEveryKindInItSurvives()
     {
         var document = new Document
@@ -343,7 +343,7 @@ public class DdlSerializationTests
     private static string TextOf(DocumentObject element) =>
         string.Concat(((Paragraph)element).Elements.OfType<Text>().Select(t => t.Content));
 
-    [Fact]
+    [Test]
     public void ALonePlainParagraphAfterAPrimaryHeaderSurvives()
     {
         var document = new Document();
@@ -358,7 +358,7 @@ public class DdlSerializationTests
         TextOf(again.Elements[0]!).Should().Be("Body");
     }
 
-    [Fact]
+    [Test]
     public void ALonePlainParagraphAfterAPrimaryFooterSurvives()
     {
         var document = new Document();
@@ -373,7 +373,7 @@ public class DdlSerializationTests
         TextOf(again.Elements[0]!).Should().Be("Body");
     }
 
-    [Fact]
+    [Test]
     public void ALonePlainParagraphAfterAnEvenPageHeaderSurvives()
     {
         var document = new Document();
@@ -388,7 +388,7 @@ public class DdlSerializationTests
         TextOf(again.Elements[0]!).Should().Be("Body");
     }
 
-    [Fact]
+    [Test]
     public void ALonePlainParagraphInASectionWithNoHeaderIsStillWrittenAsBareText()
     {
         var document = new Document();

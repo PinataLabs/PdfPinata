@@ -5,7 +5,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -25,33 +25,33 @@ namespace PdfPinata.Test.IO;
 /// </remarks>
 public class LiteralStringEscapeParityTests
 {
-    [Theory(Timeout = 5000)]
+    [Test, Timeout(5000)]
     // Table 3, each written as a backslash and a character.
-    [InlineData(@"(a\nb)", "a\nb")]
-    [InlineData(@"(a\rb)", "a\rb")]
-    [InlineData(@"(a\tb)", "a\tb")]
-    [InlineData(@"(a\bb)", "a\bb")]
-    [InlineData(@"(a\fb)", "a\fb")]
-    [InlineData(@"(a\(b)", "a(b")]
-    [InlineData(@"(a\)b)", "a)b")]
-    [InlineData(@"(a\\b)", @"a\b")]
+    [Arguments(@"(a\nb)", "a\nb")]
+    [Arguments(@"(a\rb)", "a\rb")]
+    [Arguments(@"(a\tb)", "a\tb")]
+    [Arguments(@"(a\bb)", "a\bb")]
+    [Arguments(@"(a\fb)", "a\fb")]
+    [Arguments(@"(a\(b)", "a(b")]
+    [Arguments(@"(a\)b)", "a)b")]
+    [Arguments(@"(a\\b)", @"a\b")]
     // Not in Table 3, so the backslash is ignored and the character stands for itself. A space is
     // read this way rather than by being listed.
-    [InlineData(@"(a\ b)", "a b")]
-    [InlineData(@"(\ )", " ")]
-    [InlineData(@"(a\qb)", "aqb")]
+    [Arguments(@"(a\ b)", "a b")]
+    [Arguments(@"(\ )", " ")]
+    [Arguments(@"(a\qb)", "aqb")]
     // Octal codes of one to three digits, and the scan stops at the third.
-    [InlineData(@"(\101)", "A")]
-    [InlineData(@"(\1)", "\u0001")]
-    [InlineData(@"(\12)", "\n")]
-    [InlineData(@"(\377)", "ÿ")]
-    [InlineData(@"(\1012)", "A2")]
+    [Arguments(@"(\101)", "A")]
+    [Arguments(@"(\1)", "\u0001")]
+    [Arguments(@"(\12)", "\n")]
+    [Arguments(@"(\377)", "ÿ")]
+    [Arguments(@"(\1012)", "A2")]
     // An '8' or a '9' is not an octal digit: it ends a code already begun, and otherwise loses
     // only its backslash.
-    [InlineData(@"(\8)", "8")]
-    [InlineData(@"(\9)", "9")]
-    [InlineData(@"(\18)", "\u0001" + "8")]
-    [InlineData(@"(\118)", "\t" + "8")]
+    [Arguments(@"(\8)", "8")]
+    [Arguments(@"(\9)", "9")]
+    [Arguments(@"(\18)", "\u0001" + "8")]
+    [Arguments(@"(\118)", "\t" + "8")]
     public async Task BothLexersReadAnEscapeAsTheSameCharacter(string literal, string expected)
     {
         var content = Encoding.ASCII.GetBytes(literal);
@@ -68,7 +68,7 @@ public class LiteralStringEscapeParityTests
     ///   gains nothing for the backslash - in particular not the end-of-file marker, U+FFFF, which
     ///   the document lexer used to append as if it had been escaped.
     /// </summary>
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task ABackslashTheSourceEndsOnAddsNothingToTheString()
     {
         var content = Encoding.ASCII.GetBytes(@"(ab\");
@@ -82,7 +82,7 @@ public class LiteralStringEscapeParityTests
     }
 
     // Each on a thread of its own, so that the Timeout on these tests can interrupt a scan that
-    // does not end. xUnit honours it only on an async test.
+    // does not end. It is honoured only on an async test.
 
     private static Task<string> ScanWithDocumentLexer(byte[] content) =>
         Interruptibly.Run(() =>

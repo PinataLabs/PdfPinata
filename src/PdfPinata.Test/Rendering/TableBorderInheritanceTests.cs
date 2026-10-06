@@ -9,7 +9,7 @@ using PinataLayout.Rendering;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Rendering;
 
@@ -25,7 +25,7 @@ public class TableBorderInheritanceTests
 {
     private const int Columns = 3;
 
-    [Fact]
+    [Test]
     public void TheLastCellOfAHeaderRowIsNotGivenTheBorderOfTheColumnsBeforeIt()
     {
         var page = Render(InnerColumnRulesWithABandedHeader);
@@ -39,7 +39,7 @@ public class TableBorderInheritanceTests
         edges.Should().AllSatisfy(x => x.Should().BeInRange(left + 1, right - 1));
     }
 
-    [Fact]
+    [Test]
     public void AHeaderRowIsRuledTheSameWayTheRowsBelowItAre()
     {
         var page = Render(InnerColumnRulesWithABandedHeader);
@@ -56,7 +56,7 @@ public class TableBorderInheritanceTests
         header.Should().Equal(data);
     }
 
-    [Fact]
+    [Test]
     public void ACellDoesNotShareItsBordersWithAnotherCell()
     {
         var document = new Document();
@@ -67,7 +67,7 @@ public class TableBorderInheritanceTests
         borders.Should().OnlyHaveUniqueItems();
     }
 
-    [Fact]
+    [Test]
     public void ACellKeepsOwnershipOfItsBordersAcrossRendering()
     {
         var document = new Document();
@@ -88,7 +88,7 @@ public class TableBorderInheritanceTests
         }
     }
 
-    [Fact]
+    [Test]
     public void ACellStillInheritsTheBordersOfItsRow()
     {
         var page = Render(InnerColumnRulesWithABandedHeader);

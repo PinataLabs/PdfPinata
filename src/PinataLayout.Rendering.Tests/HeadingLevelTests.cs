@@ -3,7 +3,7 @@ using System.IO;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PdfPinata.Pdf;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -53,7 +53,7 @@ public class HeadingLevelTests
 
     // ----- what is refused ----------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AHeadingThatSkipsALevelIsRefused()
     {
         // The case the rule exists for, and the one a styles sheet falls into by choosing a heading
@@ -62,7 +62,7 @@ public class HeadingLevelTests
             .WithMessage("*skips level 2*");
     }
 
-    [Fact]
+    [Test]
     public void SkippingSeveralLevelsSaysSoInThePlural()
     {
         // Worth its own test only because the message builds the list, and a message that reads
@@ -71,7 +71,7 @@ public class HeadingLevelTests
             .WithMessage("*skips levels 2 to 3*");
     }
 
-    [Fact]
+    [Test]
     public void StartingBelowLevelOneIsRefused()
     {
         // There is nothing before the first heading, so a document opening at /H2 skips /H1. This
@@ -80,7 +80,7 @@ public class HeadingLevelTests
             .WithMessage("*skips level 1*");
     }
 
-    [Fact]
+    [Test]
     public void TheMessageSaysWhereToFixIt()
     {
         Saving(Claiming(1, 3)).Should().Throw<InvalidOperationException>()
@@ -89,13 +89,13 @@ public class HeadingLevelTests
 
     // ----- what is allowed ----------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void DescendingOneLevelAtATimeIsAllowed()
     {
         Saving(Claiming(1, 2, 3)).Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void ComingBackUpAnyDistanceIsNotASkip()
     {
         // /H3 to /H1 closes two sections rather than inventing one, so it is not a skip and must not
@@ -103,13 +103,13 @@ public class HeadingLevelTests
         Saving(Claiming(1, 2, 3, 1)).Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void RepeatingALevelIsNotASkip()
     {
         Saving(Claiming(1, 2, 2, 2)).Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void DescendingAgainAfterComingBackUpIsAllowed()
     {
         // The sequence that catches a rule which remembers the deepest level reached rather than
@@ -117,13 +117,13 @@ public class HeadingLevelTests
         Saving(Claiming(1, 2, 3, 1, 2)).Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void ADocumentWithNoHeadingsAtAllIsAllowed()
     {
         Saving(Claiming()).Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void ADocumentThatClaimsNothingIsNotHeldToTheRule()
     {
         // The rule belongs to the PDF/UA claim. A document making no claim is not refused for

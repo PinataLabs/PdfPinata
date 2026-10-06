@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Annotations;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -29,7 +29,7 @@ public class KeyValueTypeTests
 
     // ----- the two that can be created ---------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AMissingDictionaryKeyIsCreatedAsADictionary()
     {
         var page = APage();
@@ -40,7 +40,7 @@ public class KeyValueTypeTests
         page.Elements.ContainsKey("/Group").Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AMissingArrayKeyIsCreatedAsAnArray()
     {
         var page = APage();
@@ -55,7 +55,7 @@ public class KeyValueTypeTests
     ///   array or dictionary its type would otherwise give: <c>/Annots</c> is declared
     ///   <c>KeyType.Array</c> with <c>typeof(PdfAnnotations)</c>, and the declared class wins.
     /// </summary>
-    [Fact]
+    [Test]
     public void AKeyThatNamesItsOwnClassIsCreatedAsThatClass()
     {
         var page = APage();
@@ -64,7 +64,7 @@ public class KeyValueTypeTests
             .Should().BeOfType<PdfAnnotations>();
     }
 
-    [Fact]
+    [Test]
     public void AskingForAKeyThatIsAlreadyThereReturnsItRatherThanReplacingIt()
     {
         var page = APage();
@@ -75,7 +75,7 @@ public class KeyValueTypeTests
         second.Should().BeSameAs(first);
     }
 
-    [Fact]
+    [Test]
     public void AskingNotToCreateCreatesNothing()
     {
         var page = APage();
@@ -84,7 +84,7 @@ public class KeyValueTypeTests
         page.Elements.ContainsKey("/Group").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AnIndirectlyCreatedValueIsRegisteredWithTheDocument()
     {
         var page = APage();
@@ -103,13 +103,13 @@ public class KeyValueTypeTests
     ///   created at all - the caller has to write the value itself. Pinned rather than fixed: what
     ///   a created-but-unset integer or date should contain is a decision, not an oversight.
     /// </summary>
-    [Theory]
-    [InlineData("/Tabs", "a name")]
-    [InlineData("/ID", "a string")]
-    [InlineData("/StructParents", "an integer")]
-    [InlineData("/Dur", "a real")]
-    [InlineData("/LastModified", "a date")]
-    [InlineData("/BleedBox", "a rectangle")]
+    [Test]
+    [Arguments("/Tabs", "a name")]
+    [Arguments("/ID", "a string")]
+    [Arguments("/StructParents", "an integer")]
+    [Arguments("/Dur", "a real")]
+    [Arguments("/LastModified", "a date")]
+    [Arguments("/BleedBox", "a rectangle")]
     public void AKeyDeclaredAsAScalarCannotBeCreated(string key, string what)
     {
         var page = APage();
@@ -125,7 +125,7 @@ public class KeyValueTypeTests
     ///   for something impossible - though it makes <c>VCF.Create</c> unsafe to use with a key
     ///   the library does not know, such as one of an extension's own.
     /// </summary>
-    [Fact]
+    [Test]
     public void AKeyNothingKnowsAboutCannotBeCreatedAndSaysWhichKeyItWas()
     {
         var page = APage();
@@ -136,7 +136,7 @@ public class KeyValueTypeTests
             .WithMessage("*/NoSuchKeyIsDeclared*");
     }
 
-    [Fact]
+    [Test]
     public void AKeyNothingKnowsAboutIsSimplyAbsentWhenNothingIsToBeCreated()
     {
         APage().Elements.GetValue("/NoSuchKeyIsDeclared", VCF.None).Should().BeNull();

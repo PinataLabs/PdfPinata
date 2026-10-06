@@ -11,14 +11,15 @@ namespace PdfPinata.Test.Helpers;
 /// <para>
 /// A lexer or parser handed malformed input can loop forever rather than fail, and a test that
 /// calls one straight ends the whole test host instead of going red. The tests that scan such input
-/// carry <c>[Fact(Timeout = …)]</c> to turn that back into a failure - and xUnit honours it only on
-/// an <c>async</c> test, and only for what is not running on the test's own thread. So the work has
+/// carry <c>[Test, Timeout(…)]</c> to turn that back into a failure - and the timeout can only
+/// abandon a test that has handed control back, which a synchronous test never does: TUnit lets one
+/// spinning past its timeout run on and pass. So the test has to be <c>async</c> and the work has
 /// to be handed somewhere else, and every one of those tests does hand it somewhere else.
 /// </para>
 /// <para>
-/// <b>The thread pool is the wrong somewhere.</b> xUnit starts the clock when it calls the test
-/// method, so a timeout covers however long the work waited to begin as well as how long it ran.
-/// Under <c>Task.Run</c> that is a queue: xUnit runs tests in parallel, coverage instrumentation
+/// <b>The thread pool is the wrong somewhere.</b> The clock starts when the test method is called,
+/// so a timeout covers however long the work waited to begin as well as how long it ran.
+/// Under <c>Task.Run</c> that is a queue: tests run in parallel, coverage instrumentation
 /// slows each of them, Ghostscript rasterizes inside this same process, and a CI runner has two
 /// cores to spread it over. A work item can sit unstarted past the timeout, and the test then fails
 /// saying it timed out having scanned nothing at all. That is what happened to

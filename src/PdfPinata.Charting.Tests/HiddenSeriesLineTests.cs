@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PdfPinata.Charting.Tests.Helpers;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -37,15 +37,15 @@ public class HiddenSeriesLineTests
 
     private static int StrokedInRed(PdfPage page) => PaintedPaths.StrokedIn(page, Red).Count;
 
-    [Theory]
-    [InlineData(ChartType.Line)]
-    [InlineData(ChartType.Area2D)]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.ColumnStacked2D)]
-    [InlineData(ChartType.Bar2D)]
-    [InlineData(ChartType.BarStacked2D)]
-    [InlineData(ChartType.Pie2D)]
-    [InlineData(ChartType.PieExploded2D)]
+    [Test]
+    [Arguments(ChartType.Line)]
+    [Arguments(ChartType.Area2D)]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.ColumnStacked2D)]
+    [Arguments(ChartType.Bar2D)]
+    [Arguments(ChartType.BarStacked2D)]
+    [Arguments(ChartType.Pie2D)]
+    [Arguments(ChartType.PieExploded2D)]
     public void AVisibleLineFormatIsStroked(ChartType type)
     {
         // The other half of the question: the format is honoured when it asks for a line, so that
@@ -53,22 +53,22 @@ public class HiddenSeriesLineTests
         StrokedInRed(Drawn.Page(WithARedLine(type, visible: true))).Should().BeGreaterThan(0);
     }
 
-    [Theory]
-    [InlineData(ChartType.Line)]
-    [InlineData(ChartType.Area2D)]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.ColumnStacked2D)]
-    [InlineData(ChartType.Bar2D)]
-    [InlineData(ChartType.BarStacked2D)]
-    [InlineData(ChartType.Pie2D)]
-    [InlineData(ChartType.PieExploded2D)]
+    [Test]
+    [Arguments(ChartType.Line)]
+    [Arguments(ChartType.Area2D)]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.ColumnStacked2D)]
+    [Arguments(ChartType.Bar2D)]
+    [Arguments(ChartType.BarStacked2D)]
+    [Arguments(ChartType.Pie2D)]
+    [Arguments(ChartType.PieExploded2D)]
     public void AHiddenLineFormatIsNotStrokedAtAll(ChartType type)
     {
         StrokedInRed(Drawn.Page(WithARedLine(type, visible: false))).Should().Be(0,
             "a line format that says Visible = false is no line, not a hairline");
     }
 
-    [Fact]
+    [Test]
     public void AHiddenLineStillHasItsMarkersAndLeavesTheOtherSeriesAlone()
     {
         // Visible is about the line. The markers are the series' points and are drawn - filled in
@@ -83,7 +83,7 @@ public class HiddenSeriesLineTests
                 "exactly one line - the hidden one - is missing");
     }
 
-    [Fact]
+    [Test]
     public void AnAreaWithAHiddenOutlineIsStillFilled()
     {
         var hidden = Drawn.Page(WithARedLine(ChartType.Area2D, visible: false));
@@ -93,7 +93,7 @@ public class HiddenSeriesLineTests
             .Should().Be(PaintedPaths.On(shown).Count(path => path.Filled));
     }
 
-    [Fact]
+    [Test]
     public void AHiddenLineIsNotDrawnInTheLegendEither()
     {
         // A line chart's legend draws a stroke of the line with its marker on it. The stroke is
@@ -109,11 +109,11 @@ public class HiddenSeriesLineTests
         PaintedPaths.FilledIn(page, Red).Count.Should().Be(4, "three points and the legend's marker");
     }
 
-    [Theory]
-    [InlineData(ChartType.Area2D)]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Bar2D)]
-    [InlineData(ChartType.Pie2D)]
+    [Test]
+    [Arguments(ChartType.Area2D)]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Bar2D)]
+    [Arguments(ChartType.Pie2D)]
     public void AHiddenBorderIsNotDrawnRoundTheLegendSwatchEither(ChartType type)
     {
         // Every other chart's legend draws a swatch of the fill outlined with the series' line,

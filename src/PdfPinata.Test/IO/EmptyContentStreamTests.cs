@@ -8,7 +8,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Filters;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -21,7 +21,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class EmptyContentStreamTests
 {
-    [Fact]
+    [Test]
     public void AnXGraphicsThatDrawsNothingLeavesTheContentStreamsAsTheyWere()
     {
         using var input = new MemoryStream(BuildDocumentWithThreeContentStreams());
@@ -35,7 +35,7 @@ public class EmptyContentStreamTests
         ContentStreamsOf(saved).Should().HaveCount(3);
     }
 
-    [Fact]
+    [Test]
     public void NoContentStreamIsWrittenEmpty()
     {
         using var input = new MemoryStream(BuildDocumentWithThreeContentStreams());
@@ -49,7 +49,7 @@ public class EmptyContentStreamTests
         ContentStreamsOf(saved).Should().OnlyContain(stream => stream.Length > 0);
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyStreamIsNotWrittenAsEightBytesOfCompressedNothing()
     {
         using var input = new MemoryStream(BuildDocumentWithThreeContentStreams());
@@ -68,7 +68,7 @@ public class EmptyContentStreamTests
         IndexOf(saved, deflatedNothing).Should().Be(-1);
     }
 
-    [Fact]
+    [Test]
     public void TheContentThatWasAlreadyOnThePageKeepsEveryMarkAndGainsOnlyItsQAndQ()
     {
         using var input = new MemoryStream(BuildDocumentWithThreeContentStreams());
@@ -89,7 +89,7 @@ public class EmptyContentStreamTests
             "1 0 0 RG 30 30 100 100 re S Q\n");
     }
 
-    [Fact]
+    [Test]
     public void AnXGraphicsThatDoesDrawKeepsItsContentStream()
     {
         using var input = new MemoryStream(BuildDocumentWithThreeContentStreams());
@@ -104,7 +104,7 @@ public class EmptyContentStreamTests
         streams[3].Should().Contain("re");
     }
 
-    [Fact]
+    [Test]
     public void AnXGraphicsThatIsNeverDisposedLeavesNoEmptyStreamEither()
     {
         using var input = new MemoryStream(BuildDocumentWithThreeContentStreams());
@@ -116,7 +116,7 @@ public class EmptyContentStreamTests
         ContentStreamsOf(Saved.Bytes(document)).Should().HaveCount(3);
     }
 
-    [Fact]
+    [Test]
     public void APageWhoseOnlyContentIsEmptyIsStillAPage()
     {
         var document = new PdfDocument();
@@ -131,7 +131,7 @@ public class EmptyContentStreamTests
         ContentStreamsOf(saved).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void AContentStreamTooShortToCompressIsWrittenAsItIs()
     {
         var document = new PdfDocument();
@@ -146,7 +146,7 @@ public class EmptyContentStreamTests
         RawObjectsOf(saved).Should().Contain(body => body.Contains("q Q") && !body.Contains("FlateDecode"));
     }
 
-    [Fact]
+    [Test]
     public void AContentStreamWorthCompressingStillIs()
     {
         var document = new PdfDocument();

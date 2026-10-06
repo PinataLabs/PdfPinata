@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
-using Xunit;
+using TUnit.Core;
 using PdfInt = PdfPinata.Pdf.PdfInteger;
 
 namespace PdfPinata.Test.Pdfs;
@@ -27,9 +27,9 @@ public class ArrayElementCollectionTests
 
     // ----- the bounds check -----------------------------------------------------------------------
 
-    [Theory]
-    [InlineData(-1)]
-    [InlineData(1)]
+    [Test]
+    [Arguments(-1)]
+    [Arguments(1)]
     public void EveryTypedAccessorChecksItsIndexBeforeItReads(int index)
     {
         var array = AnArray(ADocument(), new PdfInt(1));
@@ -43,7 +43,7 @@ public class ArrayElementCollectionTests
 
     // ----- what each accessor makes of what it finds ----------------------------------------------
 
-    [Fact]
+    [Test]
     public void ANullIsZeroAnEmptyStringAndAnEmptyName()
     {
         var array = AnArray(ADocument(), PdfNull.Value);
@@ -54,7 +54,7 @@ public class ArrayElementCollectionTests
         array.Elements.GetName(0).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void AnIntegerIsRefusedWhenItIsAName()
     {
         var array = AnArray(ADocument(), new PdfName("/Two"));
@@ -64,7 +64,7 @@ public class ArrayElementCollectionTests
         reading.Should().Throw<InvalidCastException>();
     }
 
-    [Fact]
+    [Test]
     public void AnIntegerObjectBehindAReferenceIsAPerfectlyGoodReal()
     {
         var document = ADocument();
@@ -75,7 +75,7 @@ public class ArrayElementCollectionTests
         array.Elements.GetReal(0).Should().Be(5);
     }
 
-    [Fact]
+    [Test]
     public void ARealIsRefusedWhenItIsAName()
     {
         var array = AnArray(ADocument(), new PdfName("/Wide"));
@@ -85,7 +85,7 @@ public class ArrayElementCollectionTests
         reading.Should().Throw<InvalidCastException>();
     }
 
-    [Fact]
+    [Test]
     public void ANameIsRefusedWhenItIsANumber()
     {
         var array = AnArray(ADocument(), new PdfInt(1));
@@ -95,7 +95,7 @@ public class ArrayElementCollectionTests
         reading.Should().Throw<InvalidCastException>();
     }
 
-    [Fact]
+    [Test]
     public void GetArrayAnswersOnlyForAnArray()
     {
         var document = ADocument();
@@ -113,7 +113,7 @@ public class ArrayElementCollectionTests
 
     // ----- the list surface -----------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnArrayFindsRemovesAndClearsTheItemsItHolds()
     {
         var document = ADocument();
@@ -133,7 +133,7 @@ public class ArrayElementCollectionTests
         array.Elements.Count.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void AnItemCanBeInsertedRemovedByIndexAndReplaced()
     {
         var array = AnArray(ADocument(), new PdfInt(1), new PdfInt(3));
@@ -149,7 +149,7 @@ public class ArrayElementCollectionTests
         array.Elements.GetInteger(1).Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void AnItemCannotBeSetToNothing()
     {
         var array = AnArray(ADocument(), new PdfInt(1));
@@ -159,7 +159,7 @@ public class ArrayElementCollectionTests
         setting.Should().Throw<ArgumentNullException>();
     }
 
-    [Fact]
+    [Test]
     public void AddingAnIndirectObjectStoresItsReferenceInstead()
     {
         var document = ADocument();
@@ -172,7 +172,7 @@ public class ArrayElementCollectionTests
         array.Elements[0].Should().BeSameAs(dictionary.Reference);
     }
 
-    [Fact]
+    [Test]
     public void TheItemsCanBeCopiedIntoAnArrayOfTheirOwn()
     {
         var array = AnArray(ADocument(), new PdfInt(1), new PdfInt(2));
@@ -183,7 +183,7 @@ public class ArrayElementCollectionTests
         copy.Should().BeEquivalentTo(array.Elements.Items);
     }
 
-    [Fact]
+    [Test]
     public void TheCollectionDescribesItselfAsAWritableListOfNoFixedSize()
     {
         var elements = new PdfArray(ADocument()).Elements;
@@ -194,7 +194,7 @@ public class ArrayElementCollectionTests
         elements.SyncRoot.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void AnArrayEnumeratesItsItemsEitherWayRound()
     {
         var array = AnArray(ADocument(), new PdfInt(1), new PdfInt(2));
@@ -211,7 +211,7 @@ public class ArrayElementCollectionTests
         untyped.Should().HaveCount(2);
     }
 
-    [Fact]
+    [Test]
     public void AnArrayClonesItselfDeeplyEnoughToBeEditedApart()
     {
         var array = AnArray(ADocument(), new PdfInt(1), new PdfInt(2));
@@ -223,7 +223,7 @@ public class ArrayElementCollectionTests
         array.Elements.Count.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void AnArrayPrintsItselfInBrackets()
     {
         var array = AnArray(ADocument(), new PdfInt(1), new PdfName("/A"));

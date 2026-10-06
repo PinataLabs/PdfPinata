@@ -4,7 +4,7 @@ using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PinataLayout.DocumentObjectModel.Shapes.ImageSource;
 
 namespace PdfPinata.Test.Dom;
@@ -39,7 +39,7 @@ public class ImageSerializationTests
     ///   parser, which puts <c>\image("path")</c> on <c>Source</c> as well - so every image in
     ///   every document was written as <c>\image("")</c>. See the backlog spec's finding F9.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnImageIsWrittenWithThePathItWasGiven()
     {
         var document = ADocumentWithAnImage(out _);
@@ -47,7 +47,7 @@ public class ImageSerializationTests
         Write(document).Should().Contain("frog-and-toad.jpg");
     }
 
-    [Fact]
+    [Test]
     public void AnImagePathSurvivesBeingWrittenAndReadBack()
     {
         var document = ADocumentWithAnImage(out _);
@@ -55,7 +55,7 @@ public class ImageSerializationTests
         RoundTrip(document).Source.Name.Should().Be(AnImagePath());
     }
 
-    [Fact]
+    [Test]
     public void EverythingAnImageCanSayIsWrittenAndReadBack()
     {
         var document = ADocumentWithAnImage(out var image);
@@ -76,7 +76,7 @@ public class ImageSerializationTests
         reread.PictureFormat.CropLeft.Centimeter.Should().BeApproximately(1, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void AnImageWithNothingSetButItsSourceIsStillWritten()
     {
         var document = ADocumentWithAnImage(out _);
@@ -84,7 +84,7 @@ public class ImageSerializationTests
         RoundTrip(document).Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void ABackslashInThePathIsEscapedSoItReadsBackAsItself()
     {
         // The path is written inside a quoted literal, where a backslash would otherwise begin an

@@ -5,7 +5,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Drawing.Layout;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing.Layout;
 
@@ -14,7 +14,7 @@ namespace PdfPinata.Test.Drawing.Layout;
 ///   of its layout rectangle. Checked by rasterizing, because which way round a positive angle
 ///   turns is a sign in a transform and would read just as plausibly either way.
 /// </summary>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public class XTextFormatterRotationTests
 {
     private const double PageSide = 200;
@@ -50,7 +50,7 @@ public class XTextFormatterRotationTests
     /// <summary>The pixel column of the corner the text turns about.</summary>
     private static double OriginColumn => Layout.X * PixelsPerPoint;
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void TextThatIsNotTurnedRunsAcrossThePage()
     {
         var ink = InkOf(0);
@@ -59,7 +59,7 @@ public class XTextFormatterRotationTests
             .BeGreaterThan(ink.Max(p => p.Y) - ink.Min(p => p.Y));
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AQuarterTurnStandsTheTextOnEnd()
     {
         var ink = InkOf(90);
@@ -68,7 +68,7 @@ public class XTextFormatterRotationTests
             .BeGreaterThan(ink.Max(p => p.X) - ink.Min(p => p.X));
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void APositiveAngleTurnsTheTextAnticlockwise()
     {
         // Unturned the text runs right from the corner and hangs below it. Turned a quarter
@@ -81,7 +81,7 @@ public class XTextFormatterRotationTests
         above.Should().BeGreaterThan(below * 4);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void ANegativeAngleTurnsTheTextClockwise()
     {
         var ink = InkOf(-90);
@@ -92,7 +92,7 @@ public class XTextFormatterRotationTests
         below.Should().BeGreaterThan(above * 4);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void TheTextIsTurnedAboutTheCornerItStartsFrom()
     {
         // A half turn puts the text on the far side of the corner in both directions, which it

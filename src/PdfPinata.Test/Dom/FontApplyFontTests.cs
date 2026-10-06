@@ -1,7 +1,7 @@
 using System;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -30,7 +30,7 @@ public class FontApplyFontTests
         Subscript = true
     };
 
-    [Fact]
+    [Test]
     public void EveryPropertyTheGivenFontStatesIsCopiedOver()
     {
         var target = new Font();
@@ -47,7 +47,7 @@ public class FontApplyFontTests
         target.Subscript.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void APropertyTheGivenFontDoesNotStateLeavesTheTargetAsItWas()
     {
         // The point of the whole method: an empty font applied over a stated one changes nothing.
@@ -65,7 +65,7 @@ public class FontApplyFontTests
         target.Subscript.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AStatedPropertyOverwritesAStatedOne()
     {
         var target = new Font("Courier New") { Bold = true, Size = 14 };
@@ -77,7 +77,7 @@ public class FontApplyFontTests
         target.Size.Point.Should().BeApproximately(9, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void OnlyTheStatedPropertiesOfAPartlyStatedFontAreCopied()
     {
         var target = FullyStated();
@@ -89,7 +89,7 @@ public class FontApplyFontTests
         target.Name.Should().Be("Courier New");
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyNameIsNotAName()
     {
         // The name is the one property held as a string rather than a nullable, so "not stated"
@@ -103,7 +103,7 @@ public class FontApplyFontTests
 
     // ----- the pair -----------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void SuperscriptIsCopiedWhenSubscriptIsNotStated()
     {
         var target = new Font();
@@ -119,7 +119,7 @@ public class FontApplyFontTests
     ///   last. Worth pinning because the merge reads the fields rather than the properties, so it
     ///   would be perfectly capable of applying both if a font could hold both.
     /// </summary>
-    [Fact]
+    [Test]
     public void AFontStatesOneOfSubscriptAndSuperscriptRatherThanBoth()
     {
         var source = new Font { Subscript = true, Superscript = true };
@@ -131,7 +131,7 @@ public class FontApplyFontTests
         target.Subscript.Should().BeFalse("writing superscript unstated it");
     }
 
-    [Fact]
+    [Test]
     public void ApplyingASubscriptFontOverASuperscriptOneTurnsTheTargetRound()
     {
         var target = new Font { Superscript = true };
@@ -144,7 +144,7 @@ public class FontApplyFontTests
 
     // ----- refusals -----------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ThereIsNoFontToApply()
     {
         var apply = () => new Font().ApplyFont(null);

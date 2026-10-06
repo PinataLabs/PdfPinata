@@ -2,7 +2,7 @@ using System;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Visitors;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -15,7 +15,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class ListNestingLevelTests
 {
-    [Fact]
+    [Test]
     public void AListItemThatNeverSetsALevelIsLevelOne()
     {
         // The default has to be the outermost level, or every document written before this existed
@@ -25,7 +25,7 @@ public class ListNestingLevelTests
         listInfo.NestingLevel.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void ANestingLevelIsWhateverItWasSetTo()
     {
         var listInfo = new ListInfo { NestingLevel = 3 };
@@ -33,9 +33,9 @@ public class ListNestingLevelTests
         listInfo.NestingLevel.Should().Be(3);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
+    [Test]
+    [Arguments(0)]
+    [Arguments(-1)]
     public void ANestingLevelBelowOneIsRefused(int level)
     {
         // The scale starts at one, unlike MergeRight or MergeDown where zero is the meaningful
@@ -49,7 +49,7 @@ public class ListNestingLevelTests
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Fact]
+    [Test]
     public void ANestingLevelRoundTripsThroughTheMarkup()
     {
         var document = new Document();
@@ -64,7 +64,7 @@ public class ListNestingLevelTests
         again.Format.ListInfo.NestingLevel.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void ADocumentThatNeverSetsALevelWritesNothingForIt()
     {
         // A generated property that always wrote its default would grow every existing document's
@@ -78,7 +78,7 @@ public class ListNestingLevelTests
         text.Should().NotContain("NestingLevel");
     }
 
-    [Fact]
+    [Test]
     public void ANestingLevelSurvivesADeepCopy()
     {
         var listInfo = new ListInfo { NestingLevel = 4 };
@@ -88,7 +88,7 @@ public class ListNestingLevelTests
         clone.NestingLevel.Should().Be(4);
     }
 
-    [Fact]
+    [Test]
     public void ANestingLevelSurvivesCloningTheWholeParagraph()
     {
         var document = new Document();
@@ -101,7 +101,7 @@ public class ListNestingLevelTests
         clone.Format.ListInfo.NestingLevel.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void ANestingLevelFlattensDownFromAStyle()
     {
         // The same mechanism every other list property already goes through - VisitorBase.FlattenListInfo -
@@ -120,7 +120,7 @@ public class ListNestingLevelTests
         paragraph.Format.ListInfo.NestingLevel.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void AParagraphKeepsItsOwnLevelWhereItDisagreesWithItsStyle()
     {
         var document = new Document();

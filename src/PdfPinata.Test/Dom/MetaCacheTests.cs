@@ -5,7 +5,7 @@ using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Internals;
 using PinataLayout.DocumentObjectModel.Shapes;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -22,7 +22,7 @@ public class MetaCacheTests
 {
     private const int Threads = 64;
 
-    [Fact]
+    [Test]
     public void EveryInstanceOfATypeSharesOneMeta()
     {
         var first = Meta.GetMeta(new Document());
@@ -31,7 +31,7 @@ public class MetaCacheTests
         second.Should().BeSameAs(first);
     }
 
-    [Fact]
+    [Test]
     public void EveryThreadIsHandedTheSameMeta()
     {
         var metas = new ConcurrentBag<Meta>();
@@ -42,7 +42,7 @@ public class MetaCacheTests
         metas.Distinct().Should().ContainSingle();
     }
 
-    [Fact]
+    [Test]
     public void DifferentTypesGetDifferentMetas()
     {
         var document = Meta.GetMeta(new Document());
@@ -51,7 +51,7 @@ public class MetaCacheTests
         image.Should().NotBeSameAs(document);
     }
 
-    [Fact]
+    [Test]
     public void BuildingManyDifferentMetasAtOnceIsStable()
     {
         var results = new ConcurrentBag<string>();

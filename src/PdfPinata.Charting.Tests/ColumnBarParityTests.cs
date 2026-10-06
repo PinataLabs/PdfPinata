@@ -9,7 +9,7 @@ using PdfPinata.Charting.Tests.Helpers;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -43,19 +43,19 @@ public class ColumnBarParityTests
     ///   stacked segment actually covers rather than to its own value, which on a stacked chart is
     ///   a length and not a position. A blank has no segment, and is skipped.
     /// </summary>
-    [Theory]
+    [Test]
     // The third segment's top, at 6, is past the end of the scale at 5.
-    [InlineData(new[] { 0, 1 }, 0, 5, new[] { 2.0, 2.0, 2.0 })]
+    [Arguments(new[] { 0, 1 }, 0, 5, new[] { 2.0, 2.0, 2.0 })]
     // The first segment starts at zero, below a scale starting at 2; the second, 3 to 4, is on it.
-    [InlineData(new[] { 1 }, 2, 10, new[] { 3.0, 1.0 })]
+    [Arguments(new[] { 1 }, 2, 10, new[] { 3.0, 1.0 })]
     // The negative pile reaches -2, below a scale starting at -1.
-    [InlineData(new[] { 0 }, -1, 5, new[] { 3.0, -2.0 })]
+    [Arguments(new[] { 0 }, -1, 5, new[] { 3.0, -2.0 })]
     // A blank is not a segment, and the one above it stacks as if it were not there.
-    [InlineData(new[] { 0, 2 }, 0, 5, new[] { 2.0, double.NaN, 2.0 })]
-    [InlineData(new[] { 0, 1, 2 }, -5, 5, new[] { 2.0, -2.0, 2.0 })]
+    [Arguments(new[] { 0, 2 }, 0, 5, new[] { 2.0, double.NaN, 2.0 })]
+    [Arguments(new[] { 0, 1, 2 }, -5, 5, new[] { 2.0, -2.0, 2.0 })]
     // A scale ending at the total: 0.1 + 0.2 sums to a hair over 0.3, and is still on it.
-    [InlineData(new[] { 0, 1 }, 0, 0.3, new[] { 0.1, 0.2 })]
-    [InlineData(new[] { 0, 1 }, -0.3, 0, new[] { -0.1, -0.2 })]
+    [Arguments(new[] { 0, 1 }, 0, 0.3, new[] { 0.1, 0.2 })]
+    [Arguments(new[] { 0, 1 }, -0.3, 0, new[] { -0.1, -0.2 })]
     public void StackedColumnsAndBarsDrawTheSameSegments(int[] drawn, double minimum, double maximum, double[] stack)
     {
         var expected = drawn.Select(series => Colours[series]);
@@ -70,9 +70,9 @@ public class ColumnBarParityTests
     ///   used to start instead wherever the bar before it had ended, because the start was carried
     ///   from one bar to the next and a negative value is swapped into it.
     /// </summary>
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Bar2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Bar2D)]
     public void AValueOffTheScaleLeavesTheNextOneWhereItWouldHaveBeen(ChartType type)
     {
         var afterOneOnTheScale = LengthOfLast(type, -2.0, -5.0);
@@ -87,9 +87,9 @@ public class ColumnBarParityTests
     ///   would be written with nothing under it - outside the plot area, over the axis or the
     ///   legend. The third segment here reaches 5.75 on a scale ending at 5.
     /// </summary>
-    [Theory]
-    [InlineData(ChartType.ColumnStacked2D)]
-    [InlineData(ChartType.BarStacked2D)]
+    [Test]
+    [Arguments(ChartType.ColumnStacked2D)]
+    [Arguments(ChartType.BarStacked2D)]
     public void AStackedSegmentLeftOffTheScaleIsNotLabelled(ChartType type)
     {
         var chart = Charts.OfSeries(type, [1.25], [1.5], [3.0]);
@@ -103,9 +103,9 @@ public class ColumnBarParityTests
     ///   The same of a clustered column or bar whose value is off the scale: it is not drawn, and
     ///   neither is its label, while the label of the one on the scale is.
     /// </summary>
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Bar2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Bar2D)]
     public void AClusteredValueOffTheScaleIsNotLabelled(ChartType type)
     {
         var chart = Charts.Of(type, 1.25, 40.0);
@@ -121,25 +121,25 @@ public class ColumnBarParityTests
     ///   below zero, several series, blanks, values off an explicit scale, a scale wholly below
     ///   zero, and a scale worked out from the data.
     /// </summary>
-    public static TheoryData<bool, double?[][], double?, double?> Plots => new()
-    {
-        { false, [[1.0, 5.0, 3.0]], null, null },
-        { false, [[2.0, -3.0, 4.0]], null, null },
-        { false, [[1.0, 2.0], [3.0, -1.0], [2.0, 2.0]], null, null },
-        { false, [[1.0, null, 3.0], [2.0, 2.0, null]], null, null },
-        { false, [[1.0, 5.0, 3.0]], 0.0, 4.0 },
-        { false, [[2.0, -3.0, 4.0]], -5.0, 5.0 },
-        { false, [[-2.0, -5.0, -8.0], [-1.0, -12.0, -3.0]], -10.0, -1.0 },
-        { false, [[0.5, 1.5], [1.0, 0.25]], 0.0, 2.0 },
-        { false, [[1.0, 3.0], [4.0, 2.5]], 2.0, 5.0 },
-        { true, [[1.0, 5.0, 3.0]], null, null },
-        { true, [[2.0, -3.0, 4.0], [1.0, -1.0, 2.0]], null, null },
-        { true, [[1.0, 2.0], [3.0, -1.0], [2.0, 2.0]], null, null },
-        { true, [[1.0, null, 3.0], [2.0, 2.0, null]], null, null },
-        { true, [[1.0, 2.0, 3.0], [2.0, 2.0, 2.0]], 0.0, 4.0 },
-        { true, [[2.0, -3.0, 4.0], [1.0, -1.0, 2.0]], -5.0, 7.0 },
-        { true, [[0.5, 1.5], [1.0, 0.25]], 0.0, 2.0 }
-    };
+    public static IEnumerable<(bool, double?[][], double?, double?)> Plots =>
+    [
+        (false, [[1.0, 5.0, 3.0]], null, null),
+        (false, [[2.0, -3.0, 4.0]], null, null),
+        (false, [[1.0, 2.0], [3.0, -1.0], [2.0, 2.0]], null, null),
+        (false, [[1.0, null, 3.0], [2.0, 2.0, null]], null, null),
+        (false, [[1.0, 5.0, 3.0]], 0.0, 4.0),
+        (false, [[2.0, -3.0, 4.0]], -5.0, 5.0),
+        (false, [[-2.0, -5.0, -8.0], [-1.0, -12.0, -3.0]], -10.0, -1.0),
+        (false, [[0.5, 1.5], [1.0, 0.25]], 0.0, 2.0),
+        (false, [[1.0, 3.0], [4.0, 2.5]], 2.0, 5.0),
+        (true, [[1.0, 5.0, 3.0]], null, null),
+        (true, [[2.0, -3.0, 4.0], [1.0, -1.0, 2.0]], null, null),
+        (true, [[1.0, 2.0], [3.0, -1.0], [2.0, 2.0]], null, null),
+        (true, [[1.0, null, 3.0], [2.0, 2.0, null]], null, null),
+        (true, [[1.0, 2.0, 3.0], [2.0, 2.0, 2.0]], 0.0, 4.0),
+        (true, [[2.0, -3.0, 4.0], [1.0, -1.0, 2.0]], -5.0, 7.0),
+        (true, [[0.5, 1.5], [1.0, 0.25]], 0.0, 2.0)
+    ];
 
     /// <summary>
     ///   Every rectangle a column chart paints - each column's body, and the border around it - is
@@ -150,8 +150,8 @@ public class ColumnBarParityTests
     ///   same ones, including a point with a border of its own and leaving out one whose border is
     ///   hidden.
     /// </summary>
-    [Theory]
-    [MemberData(nameof(Plots))]
+    [Test]
+    [MethodDataSource(nameof(Plots))]
     public void EveryColumnIsABarTurnedOnItsSide(bool stacked, double?[][] series, double? minimum, double? maximum)
     {
         var column = Plotted(Build(stacked ? ChartType.ColumnStacked2D : ChartType.Column2D, series, minimum, maximum), isBar: false);
@@ -168,12 +168,12 @@ public class ColumnBarParityTests
     ///   for a line of another; the zero line is stroked with the value axis's gridlines, and
     ///   counted among them.
     /// </summary>
-    [Theory]
-    [InlineData(false, null, null)]
-    [InlineData(false, -6.0, 6.0)]
-    [InlineData(false, 0.0, 4.5)]
-    [InlineData(true, null, null)]
-    [InlineData(true, -6.0, 8.0)]
+    [Test]
+    [Arguments(false, null, null)]
+    [Arguments(false, -6.0, 6.0)]
+    [Arguments(false, 0.0, 4.5)]
+    [Arguments(true, null, null)]
+    [Arguments(true, -6.0, 8.0)]
     public void EveryGridlineOfAColumnChartIsAGridlineOfABarChartTurnedOnItsSide(bool stacked, double? minimum, double? maximum)
     {
         double?[][] series = [[2.0, -3.0, 4.0], [1.0, -1.0, 2.0]];
@@ -191,23 +191,23 @@ public class ColumnBarParityTests
     ///   just beyond the end (<c>OutsideEnd</c>). The end a value reaches is its top on a column
     ///   and its right on a bar when the value is positive, and the other one when it is negative.
     /// </summary>
-    [Theory]
-    [InlineData(ChartType.Column2D, DataLabelPosition.Center)]
-    [InlineData(ChartType.Column2D, DataLabelPosition.InsideEnd)]
-    [InlineData(ChartType.Column2D, DataLabelPosition.InsideBase)]
-    [InlineData(ChartType.Column2D, DataLabelPosition.OutsideEnd)]
-    [InlineData(ChartType.Bar2D, DataLabelPosition.Center)]
-    [InlineData(ChartType.Bar2D, DataLabelPosition.InsideEnd)]
-    [InlineData(ChartType.Bar2D, DataLabelPosition.InsideBase)]
-    [InlineData(ChartType.Bar2D, DataLabelPosition.OutsideEnd)]
-    [InlineData(ChartType.ColumnStacked2D, DataLabelPosition.Center)]
-    [InlineData(ChartType.ColumnStacked2D, DataLabelPosition.InsideEnd)]
-    [InlineData(ChartType.ColumnStacked2D, DataLabelPosition.InsideBase)]
-    [InlineData(ChartType.ColumnStacked2D, DataLabelPosition.OutsideEnd)]
-    [InlineData(ChartType.BarStacked2D, DataLabelPosition.Center)]
-    [InlineData(ChartType.BarStacked2D, DataLabelPosition.InsideEnd)]
-    [InlineData(ChartType.BarStacked2D, DataLabelPosition.InsideBase)]
-    [InlineData(ChartType.BarStacked2D, DataLabelPosition.OutsideEnd)]
+    [Test]
+    [Arguments(ChartType.Column2D, DataLabelPosition.Center)]
+    [Arguments(ChartType.Column2D, DataLabelPosition.InsideEnd)]
+    [Arguments(ChartType.Column2D, DataLabelPosition.InsideBase)]
+    [Arguments(ChartType.Column2D, DataLabelPosition.OutsideEnd)]
+    [Arguments(ChartType.Bar2D, DataLabelPosition.Center)]
+    [Arguments(ChartType.Bar2D, DataLabelPosition.InsideEnd)]
+    [Arguments(ChartType.Bar2D, DataLabelPosition.InsideBase)]
+    [Arguments(ChartType.Bar2D, DataLabelPosition.OutsideEnd)]
+    [Arguments(ChartType.ColumnStacked2D, DataLabelPosition.Center)]
+    [Arguments(ChartType.ColumnStacked2D, DataLabelPosition.InsideEnd)]
+    [Arguments(ChartType.ColumnStacked2D, DataLabelPosition.InsideBase)]
+    [Arguments(ChartType.ColumnStacked2D, DataLabelPosition.OutsideEnd)]
+    [Arguments(ChartType.BarStacked2D, DataLabelPosition.Center)]
+    [Arguments(ChartType.BarStacked2D, DataLabelPosition.InsideEnd)]
+    [Arguments(ChartType.BarStacked2D, DataLabelPosition.InsideBase)]
+    [Arguments(ChartType.BarStacked2D, DataLabelPosition.OutsideEnd)]
     public void EachPositionPutsADataLabelInTheSamePlaceWhicheverWayTheChartRuns(ChartType type, DataLabelPosition position)
     {
         foreach (var scale in new (double?, double?)[] { (null, null), (-5.0, 5.0) })
@@ -228,17 +228,17 @@ public class ColumnBarParityTests
     ///   negative value's would go - below the line on a column chart's terms, and to the left of
     ///   the axis on its own.
     /// </summary>
-    [Theory]
-    [InlineData(ChartType.Column2D, DataLabelPosition.InsideEnd)]
-    [InlineData(ChartType.Column2D, DataLabelPosition.InsideBase)]
-    [InlineData(ChartType.Column2D, DataLabelPosition.OutsideEnd)]
-    [InlineData(ChartType.ColumnStacked2D, DataLabelPosition.InsideEnd)]
-    [InlineData(ChartType.ColumnStacked2D, DataLabelPosition.OutsideEnd)]
-    [InlineData(ChartType.Bar2D, DataLabelPosition.InsideEnd)]
-    [InlineData(ChartType.Bar2D, DataLabelPosition.InsideBase)]
-    [InlineData(ChartType.Bar2D, DataLabelPosition.OutsideEnd)]
-    [InlineData(ChartType.BarStacked2D, DataLabelPosition.InsideEnd)]
-    [InlineData(ChartType.BarStacked2D, DataLabelPosition.OutsideEnd)]
+    [Test]
+    [Arguments(ChartType.Column2D, DataLabelPosition.InsideEnd)]
+    [Arguments(ChartType.Column2D, DataLabelPosition.InsideBase)]
+    [Arguments(ChartType.Column2D, DataLabelPosition.OutsideEnd)]
+    [Arguments(ChartType.ColumnStacked2D, DataLabelPosition.InsideEnd)]
+    [Arguments(ChartType.ColumnStacked2D, DataLabelPosition.OutsideEnd)]
+    [Arguments(ChartType.Bar2D, DataLabelPosition.InsideEnd)]
+    [Arguments(ChartType.Bar2D, DataLabelPosition.InsideBase)]
+    [Arguments(ChartType.Bar2D, DataLabelPosition.OutsideEnd)]
+    [Arguments(ChartType.BarStacked2D, DataLabelPosition.InsideEnd)]
+    [Arguments(ChartType.BarStacked2D, DataLabelPosition.OutsideEnd)]
     public void AZerosLabelGoesWhereAPositiveValuesWould(ChartType type, DataLabelPosition position)
     {
         var chart = Build(type, [[0.0, 2.25]], -4.0, 4.0);
@@ -255,9 +255,9 @@ public class ColumnBarParityTests
     ///   used to make a rectangle of negative size of it, which <c>XRect</c> refuses - so the chart
     ///   could not be drawn at all.
     /// </summary>
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Bar2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Bar2D)]
     public void AClusteredValueBetweenZeroAndAPositiveMinimumIsLeftUndrawn(ChartType type)
     {
         var chart = Build(type, [[1.0, 3.0]], 2.0, 5.0);
@@ -271,11 +271,11 @@ public class ColumnBarParityTests
     ///   matrix that was never scaled, and a stacked column chart threw for a rectangle of negative
     ///   size; the bar charts had always returned first.
     /// </summary>
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Bar2D)]
-    [InlineData(ChartType.ColumnStacked2D)]
-    [InlineData(ChartType.BarStacked2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Bar2D)]
+    [Arguments(ChartType.ColumnStacked2D)]
+    [Arguments(ChartType.BarStacked2D)]
     public void AScaleTurnedUpsideDownDrawsNothing(ChartType type)
     {
         var chart = Build(type, [[3.0, 5.0]], 6.0, 2.0);
@@ -290,9 +290,9 @@ public class ColumnBarParityTests
     ///   lines, and each label placed on its column as the column chart places it. The line
     ///   series beside them is drawn as a path, which none of these readers sees.
     /// </summary>
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.ColumnStacked2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.ColumnStacked2D)]
     public void ACombinationDrawsItsColumnsAsAColumnChartDoes(ChartType type)
     {
         double?[][] columns = [[2.25, -1.75, 3.5], [1.5, -0.5, 1.25]];
@@ -502,7 +502,8 @@ public class ColumnBarParityTests
     private static void ShouldBePlaced(ShownText.Run label, PaintedRectangles.Rectangle rect, DataLabelPosition position,
         bool positive, bool isBar)
     {
-        var size = Measure.MeasureString(label.Text, LabelFont);
+        using var measure = MeasureContext();
+        var size = measure.MeasureString(label.Text, LabelFont);
         var ascent = LabelFont.GetHeight() * LabelFont.CellAscent / LabelFont.CellSpace;
         var bottom = label.Y + ascent * 3 / 8 - size.Height / 2;
 
@@ -534,7 +535,9 @@ public class ColumnBarParityTests
 
     private static readonly XFont LabelFont = new(LabelFontName, LabelFontSize);
 
-    private static readonly XGraphics Measure =
+    // One per measurement: the tests in a class run alongside one another, and an XGraphics is not
+    // safe to share between them.
+    private static XGraphics MeasureContext() =>
         XGraphics.CreateMeasureContext(new XSize(1000, 1000), XGraphicsUnit.Point, XPageDirection.Downwards);
 
     private static readonly XColor WallColour = XColors.LightYellow;

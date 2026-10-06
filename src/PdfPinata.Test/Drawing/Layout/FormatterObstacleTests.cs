@@ -6,7 +6,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Drawing.Layout;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing.Layout;
 
@@ -28,7 +28,7 @@ namespace PdfPinata.Test.Drawing.Layout;
 ///     them take it away.
 ///   </para>
 /// </remarks>
-[Collection(GlyphOutlineCollection.Name)]
+[GlyphOutlineSensitive]
 public class FormatterObstacleTests
 {
     private const string Prose =
@@ -120,7 +120,7 @@ public class FormatterObstacleTests
 
     // ----- nothing supplied -----------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ABlockWithNothingInItIsLaidOutExactlyAsBefore()
     {
         // The compatibility claim of the whole feature. FormatterLayoutPinTests pins it across
@@ -134,7 +134,7 @@ public class FormatterObstacleTests
 
     // ----- one obstacle, from each direction ------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void LinesBesideAnObstacleAtTheLeftBeginToTheRightOfIt()
     {
         var lines = LinesOf(Render(arrange: f => f.Obstacles.Add(Standing(0, 80))));
@@ -145,7 +145,7 @@ public class FormatterObstacleTests
             "and a line below it is back at the margin");
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleAtTheRightShortensTheLinesItStandsBeside()
     {
         var plain = Render();
@@ -161,7 +161,7 @@ public class FormatterObstacleTests
         full.Take(shortened.Count).Should().Equal(shortened, "the same words, only broken differently");
     }
 
-    [Fact]
+    [Test]
     public void TextTakesTheRoomierSideOfAnObstacleStandingInTheMiddle()
     {
         // 100 wide starting 60 in: 60 free to its left, 140 to its right. The right wins.
@@ -172,7 +172,7 @@ public class FormatterObstacleTests
 
     // ----- no room at all -------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TextWithNoRoomBesideAnObstacleBeginsBelowIt()
     {
         // Measured against the same text with nothing in the way, because the page counts y upwards
@@ -187,7 +187,7 @@ public class FormatterObstacleTests
             "the first line has moved down past the whole depth of the obstacle");
     }
 
-    [Fact]
+    [Test]
     public void ALineMovesPastTheNearerObstacleAndNoFurtherThanItHasTo()
     {
         // Neither of these covers the block alone; together they leave the top of it with nothing.
@@ -215,7 +215,7 @@ public class FormatterObstacleTests
 
     // ----- padding --------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void PaddingHoldsTheTextOffTheObstacle()
     {
         var touching = LinesOf(Render(arrange: f => f.Obstacles.Add(Standing(0, 80))));
@@ -226,7 +226,7 @@ public class FormatterObstacleTests
 
     // ----- columns --------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnObstacleStandingInOneColumnLeavesTheOtherAlone()
     {
         // An obstacle 100 wide at the left is wholly inside the first column.
@@ -241,7 +241,7 @@ public class FormatterObstacleTests
                 "and every line of it begins at its own left edge, untouched by the obstacle");
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleStraddlingTheGutterNarrowsBothColumns()
     {
         var lines = LinesOf(Render(area: TwoColumnBlock, arrange: f =>
@@ -262,7 +262,7 @@ public class FormatterObstacleTests
 
     // ----- with a drop cap ------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ACapAndAnObstacleNarrowTheSameLineTogether()
     {
         // Both reservations have to land on one line, so the test has to fail if either is
@@ -282,7 +282,7 @@ public class FormatterObstacleTests
             "and the obstacle took the right-hand end of the same line");
     }
 
-    [Fact]
+    [Test]
     public void ACapStillNarrowsOnlyTheFirstColumn()
     {
         // The rule used to be a test on the column index and is now a consequence of where the cap
@@ -300,7 +300,7 @@ public class FormatterObstacleTests
 
     // ----- truncation -----------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnEllipsisOnANarrowedLastLineStaysInsideTheLine()
     {
         // Shallow enough that the text runs out while still beside the obstacle, so the last line
@@ -320,7 +320,7 @@ public class FormatterObstacleTests
 
     // ----- rotation -------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnObstacleSuppliedWhileTheTextIsRotatedIsRefused()
     {
         // The two readings - the turned frame and the page frame - put text in visibly different
@@ -335,7 +335,7 @@ public class FormatterObstacleTests
             .WithMessage("*Rotation*");
     }
 
-    [Fact]
+    [Test]
     public void AGapInTheObstacleListIsRefused()
     {
         // Skipping it instead would drop an obstacle without saying so, and the page would look
@@ -346,7 +346,7 @@ public class FormatterObstacleTests
         draw.Should().Throw<InvalidOperationException>().WithMessage("*Obstacles[0]*");
     }
 
-    [Fact]
+    [Test]
     public void RotationWithNoObstacleIsUntouched()
     {
         var draw = () => Render(arrange: f => f.Rotation = 30);
@@ -354,7 +354,7 @@ public class FormatterObstacleTests
         draw.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void ADropCapUnderRotationIsNotRefused()
     {
         // The cap is an obstacle the formatter makes for itself, in the frame it lays out in. It

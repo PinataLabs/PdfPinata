@@ -10,7 +10,7 @@ using PinataLayout.Rendering;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Rendering;
 
@@ -28,9 +28,9 @@ public class TableSetEdgeTests
     private const int Size = 4;
     private static readonly Color Green = new(0, 255, 0);
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
+    [Test]
+    [Arguments(false)]
+    [Arguments(true)]
     public void ClearingTheInteriorOfATableLeavesOnlyItsOutline(bool colourTheBorders)
     {
         var page = Render(table =>
@@ -47,7 +47,7 @@ public class TableSetEdgeTests
         Distinct(lines.Where(line => line.IsHorizontal), line => line.Y1).Should().HaveCount(2);
     }
 
-    [Fact]
+    [Test]
     public void AnOutlineLeftBehindIsDrawnInTheColourTheCellsWereGiven()
     {
         var page = Render(table =>
@@ -61,7 +61,7 @@ public class TableSetEdgeTests
         StrokedLines.Of(page).Select(line => line.Colour).Distinct().Should().Equal("0,1,0");
     }
 
-    [Fact]
+    [Test]
     public void SettingTheInteriorOfATableRulesBetweenEveryCell()
     {
         var page = Render(table => table.SetEdge(0, 0, Size, Size, Edge.Interior, BorderStyle.Single, 1));
@@ -73,7 +73,7 @@ public class TableSetEdgeTests
         Distinct(lines.Where(line => line.IsHorizontal), line => line.Y1).Should().HaveCount(Size + 1);
     }
 
-    [Fact]
+    [Test]
     public void ClearingTheInteriorOfAPartOfATableLeavesTheRestOfItRuled()
     {
         var page = Render(table => table.SetEdge(0, 0, 2, 2, Edge.Interior, BorderStyle.None, 0));
@@ -93,7 +93,7 @@ public class TableSetEdgeTests
         rule.Should().AllSatisfy(line => line.Top.Should().BeLessThan(middle));
     }
 
-    [Fact]
+    [Test]
     public void ClearingTheInteriorClearsBothSidesOfEveryEdgeItCrosses()
     {
         var table = Build();
@@ -107,7 +107,7 @@ public class TableSetEdgeTests
         BorderOf(table[1, 0], "Top").Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void ClearingTheInteriorLeavesTheEdgesOfTheTableAlone()
     {
         var table = Build();

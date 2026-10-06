@@ -1,6 +1,6 @@
 using AwesomeAssertions;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -11,7 +11,7 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class XBitmapImageTests
 {
-    [Fact]
+    [Test]
     public void ABitmapIsThePixelSizeItWasCreatedAt()
     {
 #pragma warning disable CS0618 // pins what the obsolete member does until it is removed

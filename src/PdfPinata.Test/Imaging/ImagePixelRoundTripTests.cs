@@ -12,7 +12,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SkiaSharp;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Imaging;
 
@@ -41,7 +41,7 @@ public class ImagePixelRoundTripTests
     /// </summary>
     private static readonly byte[] Alphas = [255, 200, 128, 127, 64, 0];
 
-    [Fact]
+    [Test]
     public void TheImageStreamHoldsTheSourcePixelsRowForRowAndChannelForChannel()
     {
         var placement = Draw(Skia(opaque: true));
@@ -54,7 +54,7 @@ public class ImagePixelRoundTripTests
         placement.XObject.Stream.UnfilteredValue.Should().Equal(ExpectedRgb());
     }
 
-    [Fact]
+    [Test]
     public void AnOpaqueImageIsWrittenWithNoMaskOfEitherKind()
     {
         var placement = Draw(Skia(opaque: true));
@@ -63,7 +63,7 @@ public class ImagePixelRoundTripTests
         placement.XObject.Elements.ContainsKey("/SMask").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void APartlyTransparentImageStillWritesEveryColourSample()
     {
         // The alpha byte moves out of the main stream into the masks; the colour samples beside it
@@ -73,7 +73,7 @@ public class ImagePixelRoundTripTests
         placement.XObject.Stream.UnfilteredValue.Should().Equal(ExpectedRgb());
     }
 
-    [Fact]
+    [Test]
     public void ThePartlyTransparentImageCarriesItsAlphaInTheSoftMask()
     {
         var placement = Draw(Skia(opaque: false));
@@ -89,7 +89,7 @@ public class ImagePixelRoundTripTests
         smask.Stream.UnfilteredValue.Should().Equal(Alphas);
     }
 
-    [Fact]
+    [Test]
     public void ThePartlyTransparentImageCarriesNoOnebitMaskBesideTheSoftMask()
     {
         var placement = Draw(Skia(opaque: false));
@@ -101,7 +101,7 @@ public class ImagePixelRoundTripTests
         placement.XObject.Elements.ContainsKey("/Mask").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AnImageWhoseTransparencyIsBinaryCarriesTheOnebitMaskAndNoSoftMask()
     {
         // Nothing between clear and opaque, so the stencil says the whole of it and there is
@@ -121,7 +121,7 @@ public class ImagePixelRoundTripTests
         mask.Stream.UnfilteredValue.Should().Equal(0x80, 0xA0);
     }
 
-    [Fact]
+    [Test]
     public void TheTwoBackendsWriteTheSameImage()
     {
         // The R/B swap used to be a side effect of BmpEncoder writing a valid BMP, which both
@@ -144,7 +144,7 @@ public class ImagePixelRoundTripTests
             .Should().Equal(skia.XObject.Elements.GetDictionary("/SMask").Stream.UnfilteredValue);
     }
 
-    [Fact]
+    [Test]
     public void TheTwoBackendsHandBackTheSamePixels()
     {
         // The same thing one step earlier, at the seam itself, so a divergence names the backend

@@ -1,7 +1,7 @@
 using System;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -24,13 +24,13 @@ public class ReadOnlyStyleTests
     // which is its own oddity and not what these tests are about.
     private static Style DefaultParagraphFont() => (Style)new Document().Styles[0];
 
-    [Fact]
+    [Test]
     public void TheBuiltInCharacterStyleIsReadOnly()
     {
         DefaultParagraphFont().IsReadOnly.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void WritingToAReadOnlyStylesFontThrows()
     {
         var style = DefaultParagraphFont();
@@ -42,7 +42,7 @@ public class ReadOnlyStyleTests
             .WithMessage("*AddStyle*", "the message says what to do instead");
     }
 
-    [Fact]
+    [Test]
     public void WritingToAReadOnlyStylesParagraphFormatThrows()
     {
         var style = DefaultParagraphFont();
@@ -52,7 +52,7 @@ public class ReadOnlyStyleTests
         write.Should().Throw<InvalidOperationException>();
     }
 
-    [Fact]
+    [Test]
     public void AWriteThatUsedToVanishNoLongerDoes()
     {
         var style = DefaultParagraphFont();
@@ -63,7 +63,7 @@ public class ReadOnlyStyleTests
             "it was never going to be applied - the point is that the caller is now told");
     }
 
-    [Fact]
+    [Test]
     public void ReadingAReadOnlyStyleStillWorks()
     {
         var style = DefaultParagraphFont();
@@ -72,7 +72,7 @@ public class ReadOnlyStyleTests
             .Should().NotThrow("inspecting a built-in style is legitimate");
     }
 
-    [Fact]
+    [Test]
     public void AUserDefinedStyleIsUnaffected()
     {
         var document = new Document();
@@ -90,7 +90,7 @@ public class ReadOnlyStyleTests
     ///   A style based on the read-only one is not itself read-only. The guard walks the parent
     ///   chain of the object being written, not the style inheritance chain.
     /// </summary>
-    [Fact]
+    [Test]
     public void AStyleBasedOnAReadOnlyStyleIsWritable()
     {
         var document = new Document();
@@ -101,7 +101,7 @@ public class ReadOnlyStyleTests
         style.Font.Italic.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void TheDocumentStillBuildsAndSerializes()
     {
         var document = new Document();

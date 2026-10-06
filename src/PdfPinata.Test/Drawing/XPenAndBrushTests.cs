@@ -1,7 +1,8 @@
 using System;
+using System.Collections.Generic;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -17,7 +18,7 @@ public class XPenAndBrushTests
 {
     // ----- pens ----------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void APenIsOneUnitWideAndSolidUnlessItIsToldOtherwise()
     {
         var pen = new XPen(XColors.Red);
@@ -33,13 +34,13 @@ public class XPenAndBrushTests
         pen.Brush.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void APenCanBeGivenItsWidthUpFront()
     {
         new XPen(XColors.Red, 4.5).Width.Should().Be(4.5);
     }
 
-    [Fact]
+    [Test]
     public void APenCanStrokeWithABrushInsteadOfAColour()
     {
         var brush = new XSolidBrush(XColors.Blue);
@@ -49,7 +50,7 @@ public class XPenAndBrushTests
         new XPen(brush, 3).Width.Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void EverySettingOnAPenCanBeChangedAfterTheFact()
     {
         var pen = new XPen(XColors.Red)
@@ -72,7 +73,7 @@ public class XPenAndBrushTests
         pen.Overprint.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void GivingAPenAColourTakesAwayItsBrushAndTheOtherWayRound()
     {
         // The two are alternatives rather than layers - a pen strokes with one or the other, so
@@ -85,7 +86,7 @@ public class XPenAndBrushTests
         pen.Color.Should().Be(XColor.Empty);
     }
 
-    [Fact]
+    [Test]
     public void GivingAPenADashPatternMakesItACustomDashedPen()
     {
         var pen = new XPen(XColors.Red) { DashPattern = [3, 1, 1, 1] };
@@ -94,7 +95,7 @@ public class XPenAndBrushTests
         pen.DashPattern.Should().Equal(3, 1, 1, 1);
     }
 
-    [Fact]
+    [Test]
     public void ADashPatternIsCopiedInSoLaterChangesToTheArrayDoNotReachThePen()
     {
         var pattern = new double[] { 3, 1 };
@@ -105,9 +106,9 @@ public class XPenAndBrushTests
         pen.DashPattern.Should().Equal(3, 1);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
+    [Test]
+    [Arguments(0)]
+    [Arguments(-1)]
     public void ADashOfNoLengthIsRefused(double dash)
     {
         var act = () => new XPen(XColors.Red) { DashPattern = [3, dash] };
@@ -115,7 +116,7 @@ public class XPenAndBrushTests
         act.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyDashPatternIsAllowedAndStillSwitchesTheStyleToCustom()
     {
         var pen = new XPen(XColors.Red) { DashPattern = [] };
@@ -124,7 +125,7 @@ public class XPenAndBrushTests
         pen.DashPattern.Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void ACopiedPenCarriesEverySettingAndItsOwnCopyOfThePattern()
     {
         var original = new XPen(XColors.Red, 3)
@@ -150,7 +151,7 @@ public class XPenAndBrushTests
         original.Width.Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void CopyingAPenWithNoDashPatternIsNotAnError()
     {
         var copy = new XPen(new XPen(XColors.Red));
@@ -176,23 +177,23 @@ public class XPenAndBrushTests
         () => XPens.Black.Overprint = true
     ];
 
-    public static TheoryData<int> EachWayOfChangingAPredefinedPen()
+    public static IEnumerable<int> EachWayOfChangingAPredefinedPen()
     {
-        var data = new TheoryData<int>();
+        var data = new List<int>();
         for (var index = 0; index < WaysOfChangingAPredefinedPen.Length; index++)
             data.Add(index);
         return data;
     }
 
-    [Theory]
-    [MemberData(nameof(EachWayOfChangingAPredefinedPen))]
+    [Test]
+    [MethodDataSource(nameof(EachWayOfChangingAPredefinedPen))]
     public void APredefinedPenRefusesToBeChanged(int index)
     {
         WaysOfChangingAPredefinedPen[index].Should().Throw<ArgumentException>()
             .WithMessage("*XPen*");
     }
 
-    [Fact]
+    [Test]
     public void APredefinedPenIsAFreshObjectEveryTimeItIsAskedFor()
     {
         // Which is why refusing the setters is the only protection there is: two callers holding
@@ -200,7 +201,7 @@ public class XPenAndBrushTests
         XPens.Black.Should().NotBeSameAs(XPens.Black);
     }
 
-    [Fact]
+    [Test]
     public void ACopyOfAPredefinedPenCanBeChangedFreely()
     {
         var pen = XPens.Black.Clone();
@@ -213,7 +214,7 @@ public class XPenAndBrushTests
 
     // ----- solid brushes -------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ABrushIsTheColourItWasGivenAndNothingElse()
     {
         var brush = new XSolidBrush(XColors.Red);
@@ -222,13 +223,13 @@ public class XPenAndBrushTests
         brush.Overprint.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ABrushMadeWithNoColourIsEmptyRatherThanUnusable()
     {
         new XSolidBrush().Color.Should().Be(XColor.Empty);
     }
 
-    [Fact]
+    [Test]
     public void ABrushCanBeRecolouredAfterTheFact()
     {
         var brush = new XSolidBrush(XColors.Red) { Color = XColors.Green, Overprint = true };
@@ -237,7 +238,7 @@ public class XPenAndBrushTests
         brush.Overprint.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ACopiedBrushIsTheSameColourAndGoesItsOwnWayAfterwards()
     {
         var original = new XSolidBrush(XColors.Red);
@@ -248,7 +249,7 @@ public class XPenAndBrushTests
         original.Color.Should().Be(XColors.Red);
     }
 
-    [Fact]
+    [Test]
     public void APredefinedBrushRefusesToBeRecolouredOrOverprinted()
     {
         var recolour = () => XBrushes.Black.Color = XColors.Red;
@@ -258,7 +259,7 @@ public class XPenAndBrushTests
         overprint.Should().Throw<ArgumentException>().WithMessage("*XSolidBrush*");
     }
 
-    [Fact]
+    [Test]
     public void ACopyOfAPredefinedBrushCanBeRecoloured()
     {
         var brush = new XSolidBrush(XBrushes.Black) { Color = XColors.Red };
@@ -269,7 +270,7 @@ public class XPenAndBrushTests
 
     // ----- gradient brushes ----------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ALinearGradientRunsBetweenTwoPointsOrAcrossARectangle()
     {
         var betweenPoints = new XLinearGradientBrush(
@@ -281,7 +282,7 @@ public class XPenAndBrushTests
         acrossARectangle.Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void AGradientAcrossARectangleWithNoAreaIsRefused()
     {
         var noWidth = () => new XLinearGradientBrush(
@@ -293,7 +294,7 @@ public class XPenAndBrushTests
         noHeight.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AGradientModeThatDoesNotExistIsRefused()
     {
         var act = () => new XLinearGradientBrush(
@@ -302,7 +303,7 @@ public class XPenAndBrushTests
         act.Should().Throw<System.ComponentModel.InvalidEnumArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void ARadialGradientCanHaveOneCentreOrTwo()
     {
         new XRadialGradientBrush(new XPoint(50, 50), 0, 40, XColors.Red, XColors.Blue)
@@ -311,7 +312,7 @@ public class XPenAndBrushTests
             .Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void AGradientStartsWithNoTransformOfItsOwn()
     {
         var brush = new XLinearGradientBrush(
@@ -320,7 +321,7 @@ public class XPenAndBrushTests
         brush.Transform.IsIdentity.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void EachWayOfTransformingAGradientChangesItsMatrix()
     {
         var brush = new XLinearGradientBrush(
@@ -336,7 +337,7 @@ public class XPenAndBrushTests
         brush.Transform.IsIdentity.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void EveryTransformOnAGradientAlsoTakesAnExplicitOrder()
     {
         // Prepending and appending give different answers once there is more than one transform,
@@ -355,7 +356,7 @@ public class XPenAndBrushTests
         appended.Transform.Transform(new XPoint(0, 0)).Should().Be(new XPoint(10, 0));
     }
 
-    [Fact]
+    [Test]
     public void AGradientCanBeRotatedScaledAndMultipliedByAMatrix()
     {
         var brush = new XLinearGradientBrush(
@@ -383,7 +384,7 @@ public class XPenAndBrushTests
         brush.Transform.Transform(new XPoint(0, 0)).Should().Be(new XPoint(5, 5));
     }
 
-    [Fact]
+    [Test]
     public void AGradientCanBeHandedAMatrixOutright()
     {
         var brush = new XRadialGradientBrush(new XPoint(50, 50), 0, 40, XColors.Red, XColors.Blue)

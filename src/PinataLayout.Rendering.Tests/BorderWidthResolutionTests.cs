@@ -3,7 +3,7 @@ using System.Reflection;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -52,35 +52,35 @@ public class BorderWidthResolutionTests
         Visible
     }
 
-    [Theory]
+    [Test]
     // A border of its own decides, and the collection is consulted only for a width to draw it at.
-    [InlineData(Own.Hidden, Shared.Width, BorderType.Top, 0)]
-    [InlineData(Own.HiddenWithAWidth, Shared.Width, BorderType.Top, 0)]
-    [InlineData(Own.Width, Shared.Nothing, BorderType.Top, OwnWidth)]
-    [InlineData(Own.Width, Shared.Width, BorderType.Top, OwnWidth)]
-    [InlineData(Own.Width, Shared.Hidden, BorderType.Top, OwnWidth)]
-    [InlineData(Own.Colour, Shared.Width, BorderType.Top, SharedWidth)]
-    [InlineData(Own.Colour, Shared.Nothing, BorderType.Top, Default)]
-    [InlineData(Own.Style, Shared.Width, BorderType.Top, SharedWidth)]
-    [InlineData(Own.Style, Shared.Nothing, BorderType.Top, Default)]
-    [InlineData(Own.Visible, Shared.Width, BorderType.Top, SharedWidth)]
-    [InlineData(Own.Visible, Shared.Nothing, BorderType.Top, Default)]
-    [InlineData(Own.SaysNothing, Shared.Width, BorderType.Top, 0)]
-    [InlineData(Own.SaysNothing, Shared.Visible, BorderType.Top, 0)]
+    [Arguments(Own.Hidden, Shared.Width, BorderType.Top, 0)]
+    [Arguments(Own.HiddenWithAWidth, Shared.Width, BorderType.Top, 0)]
+    [Arguments(Own.Width, Shared.Nothing, BorderType.Top, OwnWidth)]
+    [Arguments(Own.Width, Shared.Width, BorderType.Top, OwnWidth)]
+    [Arguments(Own.Width, Shared.Hidden, BorderType.Top, OwnWidth)]
+    [Arguments(Own.Colour, Shared.Width, BorderType.Top, SharedWidth)]
+    [Arguments(Own.Colour, Shared.Nothing, BorderType.Top, Default)]
+    [Arguments(Own.Style, Shared.Width, BorderType.Top, SharedWidth)]
+    [Arguments(Own.Style, Shared.Nothing, BorderType.Top, Default)]
+    [Arguments(Own.Visible, Shared.Width, BorderType.Top, SharedWidth)]
+    [Arguments(Own.Visible, Shared.Nothing, BorderType.Top, Default)]
+    [Arguments(Own.SaysNothing, Shared.Width, BorderType.Top, 0)]
+    [Arguments(Own.SaysNothing, Shared.Visible, BorderType.Top, 0)]
     // A diagonal of its own is resolved exactly as any other border is.
-    [InlineData(Own.Width, Shared.Nothing, BorderType.DiagonalDown, OwnWidth)]
-    [InlineData(Own.Colour, Shared.Width, BorderType.DiagonalUp, SharedWidth)]
-    [InlineData(Own.Hidden, Shared.Width, BorderType.DiagonalUp, 0)]
+    [Arguments(Own.Width, Shared.Nothing, BorderType.DiagonalDown, OwnWidth)]
+    [Arguments(Own.Colour, Shared.Width, BorderType.DiagonalUp, SharedWidth)]
+    [Arguments(Own.Hidden, Shared.Width, BorderType.DiagonalUp, 0)]
     // With no border of its own, the collection decides - for every edge but a diagonal.
-    [InlineData(Own.Absent, Shared.Nothing, BorderType.Top, 0)]
-    [InlineData(Own.Absent, Shared.Hidden, BorderType.Top, 0)]
-    [InlineData(Own.Absent, Shared.HiddenWithAWidth, BorderType.Top, 0)]
-    [InlineData(Own.Absent, Shared.Width, BorderType.Left, SharedWidth)]
-    [InlineData(Own.Absent, Shared.Colour, BorderType.Bottom, Default)]
-    [InlineData(Own.Absent, Shared.Style, BorderType.Right, Default)]
-    [InlineData(Own.Absent, Shared.Visible, BorderType.Top, Default)]
-    [InlineData(Own.Absent, Shared.Width, BorderType.DiagonalDown, 0)]
-    [InlineData(Own.Absent, Shared.Visible, BorderType.DiagonalUp, 0)]
+    [Arguments(Own.Absent, Shared.Nothing, BorderType.Top, 0)]
+    [Arguments(Own.Absent, Shared.Hidden, BorderType.Top, 0)]
+    [Arguments(Own.Absent, Shared.HiddenWithAWidth, BorderType.Top, 0)]
+    [Arguments(Own.Absent, Shared.Width, BorderType.Left, SharedWidth)]
+    [Arguments(Own.Absent, Shared.Colour, BorderType.Bottom, Default)]
+    [Arguments(Own.Absent, Shared.Style, BorderType.Right, Default)]
+    [Arguments(Own.Absent, Shared.Visible, BorderType.Top, Default)]
+    [Arguments(Own.Absent, Shared.Width, BorderType.DiagonalDown, 0)]
+    [Arguments(Own.Absent, Shared.Visible, BorderType.DiagonalUp, 0)]
     public void ABorderIsDrawnAtTheWidthItsSettingsResolveTo(Own own, Shared shared, BorderType type, double expected)
     {
         var borders = new Document().AddSection().AddParagraph().Format.Borders;

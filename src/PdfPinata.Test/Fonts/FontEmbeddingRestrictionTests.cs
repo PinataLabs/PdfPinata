@@ -8,7 +8,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -48,7 +48,7 @@ public class FontEmbeddingRestrictionTests
     private static readonly Lazy<byte[]> Liberation = new(() => File.ReadAllBytes(
         PathHelper.GetInstance().GetAssetPath("Fonts", "LiberationSans-Regular.ttf")));
 
-    [Fact]
+    [Test]
     public void WithTheOptionOffARestrictedFontIsEmbeddedAsBefore()
     {
         var saved = Draw(RestrictedLicense, respect: false).Reopened();
@@ -59,10 +59,10 @@ public class FontEmbeddingRestrictionTests
             "the option being off, the font is subsetted exactly as it always was");
     }
 
-    [Theory]
-    [InlineData(RestrictedLicense, "Restricted License")]
-    [InlineData(BitmapEmbeddingOnly, "Bitmap Embedding Only")]
-    [InlineData(Editable | BitmapEmbeddingOnly, "Bitmap Embedding Only")]
+    [Test]
+    [Arguments(RestrictedLicense, "Restricted License")]
+    [Arguments(BitmapEmbeddingOnly, "Bitmap Embedding Only")]
+    [Arguments(Editable | BitmapEmbeddingOnly, "Bitmap Embedding Only")]
     public void WithTheOptionOnAFontThatForbidsEmbeddingIsRefusedWhereItIsDrawn(int value, string restriction)
     {
         var fsType = (ushort)value;
@@ -76,7 +76,7 @@ public class FontEmbeddingRestrictionTests
         thrown.Message.Should().Contain(nameof(PdfDocumentOptions.RespectFontEmbeddingRestrictions));
     }
 
-    [Fact]
+    [Test]
     public void SettingTheOptionAfterDrawingStillRefusesTheFontAtSaveTime()
     {
         var document = Draw(RestrictedLicense, respect: false);
@@ -87,12 +87,12 @@ public class FontEmbeddingRestrictionTests
         saving.Should().Throw<InvalidOperationException>().WithMessage("*Restricted License*");
     }
 
-    [Theory]
-    [InlineData(Installable)]
-    [InlineData(PreviewAndPrint)]
-    [InlineData(Editable)]
-    [InlineData(RestrictedLicense | Editable)]
-    [InlineData(RestrictedLicense | PreviewAndPrint)]
+    [Test]
+    [Arguments(Installable)]
+    [Arguments(PreviewAndPrint)]
+    [Arguments(Editable)]
+    [Arguments(RestrictedLicense | Editable)]
+    [Arguments(RestrictedLicense | PreviewAndPrint)]
     public void WithTheOptionOnAFontThatPermitsEmbeddingIsSubsettedAsBefore(int value)
     {
         var fsType = (ushort)value;
@@ -106,9 +106,9 @@ public class FontEmbeddingRestrictionTests
         FontProgramOf(descriptor).Length.Should().BeLessThan(Font(fsType).Length);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
+    [Test]
+    [Arguments(true)]
+    [Arguments(false)]
     public void WithTheOptionOnAFontThatForbidsSubsettingIsEmbeddedWholeAndNamedSo(bool unicode)
     {
         var saved = Draw(NoSubsetting, respect: true, unicode).Reopened();
@@ -122,7 +122,7 @@ public class FontEmbeddingRestrictionTests
         BaseFontNamesOf(saved).Should().OnlyContain(baseFont => baseFont == name);
     }
 
-    [Fact]
+    [Test]
     public void TurningTheOptionOffBetweenTwoSavesPutsTheSubsetTagBack()
     {
         var document = Draw(NoSubsetting, respect: true);
@@ -137,7 +137,7 @@ public class FontEmbeddingRestrictionTests
             "the program is a subset again, and has to say so");
     }
 
-    [Fact]
+    [Test]
     public void WithTheOptionOffAFontThatForbidsSubsettingIsSubsettedAsBefore()
     {
         var saved = Draw(NoSubsetting, respect: false).Reopened();

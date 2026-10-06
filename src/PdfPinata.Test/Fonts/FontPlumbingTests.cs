@@ -6,7 +6,7 @@ using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PdfPinata.Drawing;
 using PdfPinata.Fonts;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -43,11 +43,11 @@ public class FontPlumbingTests
         // ReSharper restore PossibleNullReferenceException
     }
 
-    [Theory]
-    [InlineData(XFontStyle.Regular, false, false, false)]
-    [InlineData(XFontStyle.Bold, true, false, false)]
-    [InlineData(XFontStyle.Italic, false, true, false)]
-    [InlineData(XFontStyle.BoldItalic, true, true, true)]
+    [Test]
+    [Arguments(XFontStyle.Regular, false, false, false)]
+    [Arguments(XFontStyle.Bold, true, false, false)]
+    [Arguments(XFontStyle.Italic, false, true, false)]
+    [Arguments(XFontStyle.BoldItalic, true, true, true)]
     public void TheStyleAskedForIsReadableOneBitAtATime(
         XFontStyle style, bool bold, bool italic, bool boldItalic)
     {
@@ -63,7 +63,7 @@ public class FontPlumbingTests
         MemberOf(options, "MustSimulateItalic").Should().Be(false);
     }
 
-    [Fact]
+    [Test]
     public void SimulationCanBeDemandedRatherThanLeftToTheResolver()
     {
         // The second constructor is how a caller says "I know there is no bold file, stroke it" -
@@ -77,7 +77,7 @@ public class FontPlumbingTests
 
     // ----- what a resolver hands back ------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AResolvedFaceIsNamedAndSimulatesNothingUnlessItSaysSo()
     {
         var info = new FontResolverInfo("LiberationSans-Regular.ttf");
@@ -88,11 +88,11 @@ public class FontPlumbingTests
         info.StyleSimulations.Should().Be(XStyleSimulations.None);
     }
 
-    [Theory]
-    [InlineData(false, false, XStyleSimulations.None)]
-    [InlineData(true, false, XStyleSimulations.BoldSimulation)]
-    [InlineData(false, true, XStyleSimulations.ItalicSimulation)]
-    [InlineData(true, true, XStyleSimulations.BoldItalicSimulation)]
+    [Test]
+    [Arguments(false, false, XStyleSimulations.None)]
+    [Arguments(true, false, XStyleSimulations.BoldSimulation)]
+    [Arguments(false, true, XStyleSimulations.ItalicSimulation)]
+    [Arguments(true, true, XStyleSimulations.BoldItalicSimulation)]
     public void TheTwoSimulationFlagsAndTheSimulationEnumSayTheSameThing(
         bool bold, bool italic, XStyleSimulations expected)
     {
@@ -104,7 +104,7 @@ public class FontPlumbingTests
         byEnum.MustSimulateItalic.Should().Be(italic);
     }
 
-    [Fact]
+    [Test]
     public void AResolvedFaceMustBeNamedSomething()
     {
         var nothing = () => new FontResolverInfo(null);
@@ -114,7 +114,7 @@ public class FontPlumbingTests
         empty.Should().Throw<ArgumentNullException>();
     }
 
-    [Fact]
+    [Test]
     public void TwoFacesThatDifferOnlyInCaseShareAKeyAndSimulationsDoNot()
     {
         // The key is what the font cache is indexed by. Face names come from a resolver written by
@@ -133,7 +133,7 @@ public class FontPlumbingTests
         // ReSharper restore PossibleNullReferenceException
     }
 
-    [Fact]
+    [Test]
     public void AFaceFromAFontCollectionIsNotSupportedYetAndSaysSo()
     {
         // The collection index is vestigial: a collection is taken apart by the resolver, which
@@ -151,7 +151,7 @@ public class FontPlumbingTests
 
     // ----- a glyph's outline ---------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void EachKindOfOutlineSegmentCarriesWhatItNeedsAndNothingElse()
     {
         var start = XGlyphSegment.StartAt(new XPoint(1, 2));
@@ -174,7 +174,7 @@ public class FontPlumbingTests
         close.End.Should().Be(new XPoint(), "a close carries no point");
     }
 
-    [Fact]
+    [Test]
     public void AnOutlineKeepsItsSegmentsInTheOrderTheyAreDrawn()
     {
         var segments = new[]
@@ -191,7 +191,7 @@ public class FontPlumbingTests
         outline.Segments[2].Kind.Should().Be(XGlyphSegmentKind.Close);
     }
 
-    [Fact]
+    [Test]
     public void AnOutlineCopiesItsSegmentsInSoTheCallersListCanChangeAfterwards()
     {
         var segments = new List<XGlyphSegment> { XGlyphSegment.StartAt(new XPoint(0, 0)) };
@@ -202,7 +202,7 @@ public class FontPlumbingTests
         outline.Segments.Should().HaveCount(1);
     }
 
-    [Fact]
+    [Test]
     public void AGlyphWithNoOutlineIsAnOutlineWithNoSegments()
     {
         // A space, or a character the font draws with a bitmap. Empty rather than null, so that
@@ -210,7 +210,7 @@ public class FontPlumbingTests
         new XGlyphOutline([]).Segments.Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void AnOutlineOfNothingAtAllIsRefused()
     {
         var act = () => new XGlyphOutline(null);
@@ -250,7 +250,7 @@ public class FontPlumbingTests
             .GetProperty(name).GetValue(null);
     // ReSharper restore PossibleNullReferenceException
 
-    [Fact]
+    [Test]
     public void ReadingTheFontResolverBeforeOneIsSetSaysHowToSetOne()
     {
         var act = () => OnAColdCopyOfTheLibrary(assembly => SettingsProperty(assembly, "FontResolver"));
@@ -260,7 +260,7 @@ public class FontPlumbingTests
             .WithMessage("*PdfPinata.Skia*");
     }
 
-    [Fact]
+    [Test]
     public void ReadingTheGlyphOutlineProviderBeforeOneIsSetSaysHowToSetOne()
     {
         var act = () => OnAColdCopyOfTheLibrary(
@@ -271,7 +271,7 @@ public class FontPlumbingTests
             .WithMessage("*PdfPinata.Skia*");
     }
 
-    [Fact]
+    [Test]
     public void TheFontResolverCannotBeTakenAway()
     {
         var act = () => OnAColdCopyOfTheLibrary(assembly =>
@@ -286,7 +286,7 @@ public class FontPlumbingTests
         act.Should().Throw<ArgumentNullException>("nothing works without one");
     }
 
-    [Fact]
+    [Test]
     public void TheDefaultFontEncodingIsUnicodeUntilSomebodySaysOtherwise()
     {
         var encoding = OnAColdCopyOfTheLibrary(
@@ -295,7 +295,7 @@ public class FontPlumbingTests
         encoding.ToString().Should().Be("Unicode");
     }
 
-    [Fact]
+    [Test]
     public void TheDefaultFontEncodingCannotBeChangedOnceItHasBeenRead()
     {
         // Reading it settles it, so a caller who measures a string and then asks for Windows-1252
@@ -316,7 +316,7 @@ public class FontPlumbingTests
         act.Should().Throw<InvalidOperationException>().WithMessage("*DefaultFontEncoding*");
     }
 
-    [Fact]
+    [Test]
     public void SettingTheDefaultFontEncodingToWhatItAlreadyIsIsAllowed()
     {
         // A web application sets it on every request, so setting the same value twice must not be
@@ -340,7 +340,7 @@ public class FontPlumbingTests
 
     // ----- asking whether a seam is set, without catching -----------------------------------------
 
-    [Fact]
+    [Test]
     public void IsFontResolverSetIsFalseOnACopyOfTheLibraryNothingHasTouchedYet()
     {
         var isSet = OnAColdCopyOfTheLibrary(assembly => SettingsProperty(assembly, "IsFontResolverSet"));
@@ -348,7 +348,7 @@ public class FontPlumbingTests
         isSet.Should().Be(false, "reading this without catching an exception is the point of it");
     }
 
-    [Fact]
+    [Test]
     public void IsFontResolverSetIsTrueInThisProcessBecauseTheTestAssemblyAlreadyRegisteredOne()
     {
         // Unlike the cold-copy tests above, this asks the question of the resolver the whole suite
@@ -357,14 +357,14 @@ public class FontPlumbingTests
         GlobalFontSettings.IsFontResolverSet.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void FontResolverLifecycleSaysItRefusesASecondWrite()
     {
         GlobalFontSettings.FontResolverLifecycle.Should().Be(SeamLifecycle.SetOnce,
             "changing it once a font has been resolved would disagree with what is already cached");
     }
 
-    [Fact]
+    [Test]
     public void IsGlyphOutlineProviderSetIsFalseOnACopyOfTheLibraryNothingHasTouchedYet()
     {
         var isSet = OnAColdCopyOfTheLibrary(
@@ -373,14 +373,14 @@ public class FontPlumbingTests
         isSet.Should().Be(false);
     }
 
-    [Fact]
+    [Test]
     public void GlyphOutlineProviderLifecycleSaysItMayBeSetAtAnyTime()
     {
         GlobalFontSettings.GlyphOutlineProviderLifecycle.Should().Be(SeamLifecycle.SetAnytime,
             "only XGraphicsPath.AddString reads it, so nothing is cached against it");
     }
 
-    [Fact]
+    [Test]
     public void IsDefaultFontEncodingSetIsFalseUntilTheDefaultOrAChoiceIsRead()
     {
         var isSet = OnAColdCopyOfTheLibrary(assembly => SettingsProperty(assembly, "IsDefaultFontEncodingSet"));
@@ -390,7 +390,7 @@ public class FontPlumbingTests
             "tell its default apart from a value a caller chose");
     }
 
-    [Fact]
+    [Test]
     public void IsDefaultFontEncodingSetBecomesTrueOnceItHasBeenRead()
     {
         // DefaultFontEncoding answers its own default the first time it is read, and settles itself
@@ -409,13 +409,13 @@ public class FontPlumbingTests
         isSet.Should().Be(true);
     }
 
-    [Fact]
+    [Test]
     public void DefaultFontEncodingLifecycleSaysItRefusesASecondWriteToADifferentValue()
     {
         GlobalFontSettings.DefaultFontEncodingLifecycle.Should().Be(SeamLifecycle.SetOnce);
     }
 
-    [Fact]
+    [Test]
     public void IsImageSourceImplSetIsFalseOnACopyOfTheLibraryNothingHasTouchedYet()
     {
         var isSet = OnAColdCopyOfTheLibrary(assembly =>
@@ -431,13 +431,13 @@ public class FontPlumbingTests
         isSet.Should().Be(false);
     }
 
-    [Fact]
+    [Test]
     public void IsImageSourceImplSetIsTrueInThisProcessBecauseTheTestAssemblyAlreadyRegisteredOne()
     {
         ImageSource.IsImageSourceImplSet.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ImageSourceImplLifecycleSaysItMayBeSetAtAnyTime()
     {
         ImageSource.ImageSourceImplLifecycle.Should().Be(SeamLifecycle.SetAnytime,

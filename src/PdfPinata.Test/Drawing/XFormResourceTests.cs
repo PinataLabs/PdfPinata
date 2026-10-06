@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -39,7 +39,7 @@ public class XFormResourceTests
 
     // ----- what a form will not be built from -------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AFormMustBeBigEnoughToDrawOn()
     {
         var document = new PdfDocument();
@@ -48,7 +48,7 @@ public class XFormResourceTests
         ((Action)(() => _ = new XForm(document, new XRect(0, 0, 10, 0.5)))).Should().Throw<ArgumentNullException>();
     }
 
-    [Fact]
+    [Test]
     public void AFormMustBelongToADocumentFromTheStart()
     {
         var building = () => new XForm(null!, new XSize(100, 100));
@@ -56,7 +56,7 @@ public class XFormResourceTests
         building.Should().Throw<ArgumentNullException>();
     }
 
-    [Fact]
+    [Test]
     public void AFormCanBeSizedByARectangleBySizeOrByTwoLengths()
     {
         var document = new PdfDocument();
@@ -74,7 +74,7 @@ public class XFormResourceTests
     ///   table — text, an image and another form — and then puts the form on a page, which is what
     ///   finishes it and writes the resources out.
     /// </summary>
-    [Fact]
+    [Test]
     public void AFormGathersAFontAnImageAndANestedFormIntoItsOwnResources()
     {
         var document = new PdfDocument();
@@ -104,7 +104,7 @@ public class XFormResourceTests
         resources.Elements.GetDictionary("/XObject")!.Elements.Count.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void AFontDrawnTwiceIntoAFormIsRegisteredOnce()
     {
         var document = new PdfDocument();
@@ -131,7 +131,7 @@ public class XFormResourceTests
     ///   has rather than building a second. The form itself refuses a second association; the
     ///   factory never lets it get that far.
     /// </summary>
-    [Fact]
+    [Test]
     public void AFormUnderConstructionHandsBackTheGraphicsObjectItAlreadyHas()
     {
         var document = new PdfDocument();
@@ -141,7 +141,7 @@ public class XFormResourceTests
         XGraphics.FromForm(form).Should().BeSameAs(first);
     }
 
-    [Fact]
+    [Test]
     public void AFormThatHasFinishedDrawingCannotBeDrawnOnAgain()
     {
         var document = new PdfDocument();
@@ -155,7 +155,7 @@ public class XFormResourceTests
         again.Should().Throw<InvalidOperationException>();
     }
 
-    [Fact]
+    [Test]
     public void FinishingAFormTwiceIsHarmless()
     {
         var document = new PdfDocument();
@@ -169,7 +169,7 @@ public class XFormResourceTests
         again.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void AFormThatWasNeverDrawnOnCanStillBeFinished()
     {
         var document = new PdfDocument();
@@ -180,7 +180,7 @@ public class XFormResourceTests
         finishing.Should().NotThrow("an empty form is an empty content stream, which is a thing to be");
     }
 
-    [Fact]
+    [Test]
     public void TheTransformOfAFinishedFormMayNotBeChanged()
     {
         var document = new PdfDocument();
@@ -195,7 +195,7 @@ public class XFormResourceTests
         setting.Should().Throw<InvalidOperationException>();
     }
 
-    [Fact]
+    [Test]
     public void AFormReportsTheSizeAndBoundingBoxItWasGiven()
     {
         var document = new PdfDocument();

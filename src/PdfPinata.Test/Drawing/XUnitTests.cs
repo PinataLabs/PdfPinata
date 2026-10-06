@@ -1,8 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -35,16 +36,16 @@ public class XUnitTests
         XUnit.FromPresentation(OneInchInPresentation)
     ];
 
-    public static TheoryData<int> EachWayOfWritingOneInch()
+    public static IEnumerable<int> EachWayOfWritingOneInch()
     {
-        var data = new TheoryData<int>();
+        var data = new List<int>();
         for (var index = 0; index < OneInchEachWay.Length; index++)
             data.Add(index);
         return data;
     }
 
-    [Theory]
-    [MemberData(nameof(EachWayOfWritingOneInch))]
+    [Test]
+    [MethodDataSource(nameof(EachWayOfWritingOneInch))]
     public void EveryGetterReadsTheSameLengthWhicheverUnitItWasStoredIn(int index)
     {
         var unit = OneInchEachWay[index];
@@ -56,8 +57,8 @@ public class XUnitTests
         unit.Presentation.Should().BeApproximately(OneInchInPresentation, 1e-9);
     }
 
-    [Theory]
-    [MemberData(nameof(EachWayOfWritingOneInch))]
+    [Test]
+    [MethodDataSource(nameof(EachWayOfWritingOneInch))]
     public void TheRawValueAndTypeAreWhatWasStoredRatherThanAConversionOfIt(int index)
     {
         var unit = OneInchEachWay[index];
@@ -77,7 +78,7 @@ public class XUnitTests
         unit.Value.Should().Be(throughItsOwnGetter);
     }
 
-    [Fact]
+    [Test]
     public void SettingAGetterAlsoSetsTheTypeItBelongsTo()
     {
         // Each setter is documented as storing the value in its own unit, so an XUnit that was
@@ -100,7 +101,7 @@ public class XUnitTests
     ///   <see cref="XUnit.Presentation"/>, which is why a copy of the Point setter sat here
     ///   unnoticed.
     /// </summary>
-    [Fact]
+    [Test]
     public void SettingPresentationLeavesTheUnitCallingItselfPresentation()
     {
         var unit = XUnit.FromInch(1);
@@ -113,12 +114,12 @@ public class XUnitTests
         unit.Point.Should().BeApproximately(72, 1e-9);
     }
 
-    [Theory]
-    [InlineData(XGraphicsUnit.Point)]
-    [InlineData(XGraphicsUnit.Inch)]
-    [InlineData(XGraphicsUnit.Millimeter)]
-    [InlineData(XGraphicsUnit.Centimeter)]
-    [InlineData(XGraphicsUnit.Presentation)]
+    [Test]
+    [Arguments(XGraphicsUnit.Point)]
+    [Arguments(XGraphicsUnit.Inch)]
+    [Arguments(XGraphicsUnit.Millimeter)]
+    [Arguments(XGraphicsUnit.Centimeter)]
+    [Arguments(XGraphicsUnit.Presentation)]
     public void ConvertTypeKeepsTheLengthAndChangesOnlyHowItIsWritten(XGraphicsUnit type)
     {
         var unit = XUnit.FromInch(1);
@@ -129,7 +130,7 @@ public class XUnitTests
         unit.Point.Should().BeApproximately(OneInchInPoint, 1e-9);
     }
 
-    [Fact]
+    [Test]
     public void ConvertingToTheTypeItAlreadyHasIsLeftAlone()
     {
         var unit = XUnit.FromCentimeter(3);
@@ -140,7 +141,7 @@ public class XUnitTests
         unit.Type.Should().Be(XGraphicsUnit.Centimeter);
     }
 
-    [Fact]
+    [Test]
     public void ConvertingToAUnitThatDoesNotExistIsRefused()
     {
         var unit = XUnit.FromPoint(1);
@@ -150,7 +151,7 @@ public class XUnitTests
         act.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AUnitCannotBeBuiltOnATypeThatDoesNotExist()
     {
         var act = () => new XUnit(1, (XGraphicsUnit)99);
@@ -158,16 +159,16 @@ public class XUnitTests
         act.Should().Throw<ArgumentException>().Which.ParamName.Should().Be("type");
     }
 
-    [Theory]
-    [InlineData("3cm", XGraphicsUnit.Centimeter, 3)]
-    [InlineData("3 cm", XGraphicsUnit.Centimeter, 3)]
-    [InlineData("2in", XGraphicsUnit.Inch, 2)]
-    [InlineData("15mm", XGraphicsUnit.Millimeter, 15)]
-    [InlineData("10pt", XGraphicsUnit.Point, 10)]
-    [InlineData("10pu", XGraphicsUnit.Presentation, 10)]
-    [InlineData("10", XGraphicsUnit.Point, 10)]
-    [InlineData("-2.5cm", XGraphicsUnit.Centimeter, -2.5)]
-    [InlineData("+2.5CM", XGraphicsUnit.Centimeter, 2.5)]
+    [Test]
+    [Arguments("3cm", XGraphicsUnit.Centimeter, 3)]
+    [Arguments("3 cm", XGraphicsUnit.Centimeter, 3)]
+    [Arguments("2in", XGraphicsUnit.Inch, 2)]
+    [Arguments("15mm", XGraphicsUnit.Millimeter, 15)]
+    [Arguments("10pt", XGraphicsUnit.Point, 10)]
+    [Arguments("10pu", XGraphicsUnit.Presentation, 10)]
+    [Arguments("10", XGraphicsUnit.Point, 10)]
+    [Arguments("-2.5cm", XGraphicsUnit.Centimeter, -2.5)]
+    [Arguments("+2.5CM", XGraphicsUnit.Centimeter, 2.5)]
     public void AStringCarriesItsUnitWithIt(string text, XGraphicsUnit expectedType, double expectedValue)
     {
         XUnit unit = text;
@@ -176,7 +177,7 @@ public class XUnitTests
         unit.Value.Should().BeApproximately(expectedValue, 1e-9);
     }
 
-    [Fact]
+    [Test]
     public void ACommaIsReadAsADecimalPointWhateverTheCurrentCulture()
     {
         // The conversion replaces ',' with '.' before parsing, so that a German-entered "2,5cm"
@@ -188,13 +189,13 @@ public class XUnitTests
         unit.Value.Should().BeApproximately(2.5, 1e-9);
     }
 
-    [Fact]
+    [Test]
     public void ParseIsTheSameConversionUnderAnotherName()
     {
         XUnit.Parse("3cm").Should().Be((XUnit)"3cm");
     }
 
-    [Fact]
+    [Test]
     public void AStringWithNoNumberInItIsRefused()
     {
         var act = () => XUnit.Parse("cm");
@@ -202,7 +203,7 @@ public class XUnitTests
         act.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AStringWithAUnitNobodyKnowsIsRefused()
     {
         var act = () => XUnit.Parse("3furlongs");
@@ -210,7 +211,7 @@ public class XUnitTests
         act.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AnIntAndADoubleBothArriveAsPoint()
     {
         XUnit fromInt = 5;
@@ -222,7 +223,7 @@ public class XUnitTests
         fromDouble.Value.Should().Be(5.5);
     }
 
-    [Fact]
+    [Test]
     public void ConvertingToDoubleGivesThePointValueRatherThanTheRawOne()
     {
         // The implicit conversion is what every drawing call sees, and a length in centimetres
@@ -232,12 +233,12 @@ public class XUnitTests
         asDouble.Should().BeApproximately(OneInchInPoint, 1e-9);
     }
 
-    [Theory]
-    [InlineData(XGraphicsUnit.Point, "pt")]
-    [InlineData(XGraphicsUnit.Inch, "in")]
-    [InlineData(XGraphicsUnit.Millimeter, "mm")]
-    [InlineData(XGraphicsUnit.Centimeter, "cm")]
-    [InlineData(XGraphicsUnit.Presentation, "pu")]
+    [Test]
+    [Arguments(XGraphicsUnit.Point, "pt")]
+    [Arguments(XGraphicsUnit.Inch, "in")]
+    [Arguments(XGraphicsUnit.Millimeter, "mm")]
+    [Arguments(XGraphicsUnit.Centimeter, "cm")]
+    [Arguments(XGraphicsUnit.Presentation, "pu")]
     public void ToStringWritesTheRawValueAndTheSuffixOfItsOwnUnit(XGraphicsUnit type, string suffix)
     {
         var unit = new XUnit(3, type);
@@ -245,7 +246,7 @@ public class XUnitTests
         unit.ToString().Should().Be("3" + suffix);
     }
 
-    [Fact]
+    [Test]
     public void ToStringRoundTripsThroughTheStringConversion()
     {
         var unit = XUnit.FromMillimeter(12.5);
@@ -255,7 +256,7 @@ public class XUnitTests
         again.Should().Be(unit);
     }
 
-    [Fact]
+    [Test]
     public void AFormatProviderDecidesHowTheNumberIsWrittenButNotTheSuffix()
     {
         var german = CultureInfo.GetCultureInfo("de-DE");
@@ -263,7 +264,7 @@ public class XUnitTests
         XUnit.FromCentimeter(2.5).ToString(german).Should().Be("2,5cm");
     }
 
-    [Fact]
+    [Test]
     public void AFormatStringIsAppliedToTheNumberAlone()
     {
         IFormattable unit = XUnit.FromPoint(1.23456);
@@ -271,7 +272,7 @@ public class XUnitTests
         unit.ToString("0.00", CultureInfo.InvariantCulture).Should().Be("1.23pt");
     }
 
-    [Fact]
+    [Test]
     public void TwoUnitsAreEqualOnlyWhenBothTheNumberAndTheUnitAgree()
     {
         // Documented as a memberwise comparison: one inch and 72 point are the same length but
@@ -288,7 +289,7 @@ public class XUnitTests
         oneInch.GetHashCode().Should().Be(XUnit.FromInch(1).GetHashCode());
     }
 
-    [Fact]
+    [Test]
     public void TheThreeWaysOfAskingWhetherTwoUnitsAreEqualAgree()
     {
         // XUnit implements IEquatable<XUnit>, so Equals(XUnit) is what an overload resolution
@@ -312,7 +313,7 @@ public class XUnitTests
         point.Equals((object)samePoint).Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void SomethingThatIsNotAUnitIsNotEqualToOne()
     {
         // XUnit converts implicitly from string, so without the Equals(string) overload written to
@@ -324,7 +325,7 @@ public class XUnitTests
         XUnit.FromPoint(1).Equals("an inch").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ANumberIsEqualToTheUnitItConvertsTo()
     {
         // int, double and float convert to XUnit implicitly, and XUnit is a better conversion
@@ -347,7 +348,7 @@ public class XUnitTests
         XUnit.FromPoint(72).Equals((object)72).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ZeroIsZeroPoint()
     {
         XUnit.Zero.Value.Should().Be(0);

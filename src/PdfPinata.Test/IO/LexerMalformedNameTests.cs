@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -17,16 +17,16 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class LexerMalformedNameTests
 {
-    [Theory(Timeout = 5000)]
-    [InlineData("/A#41 ", "/AA")]            // an escape, as before
-    [InlineData("/A#e9 ", "/Aé")]      // in lower case too
-    [InlineData("/A##41 ", "/A#A")]          // a '#' that is not an escape, then one that is
-    [InlineData("/A#ZZ ", "/A#ZZ")]          // no hexadecimal digit at all
-    [InlineData("/A#4G ", "/A#4G")]          // only the first is one
-    [InlineData("/A#4 ", "/A#4")]            // one digit and then the end of the name
-    [InlineData("/A#4", "/A#4")]             // one digit and then the end of the file
-    [InlineData("/A# ", "/A#")]              // none, and the end of the name
-    [InlineData("/A#", "/A#")]               // none, and the end of the file
+    [Test, Timeout(5000)]
+    [Arguments("/A#41 ", "/AA")]            // an escape, as before
+    [Arguments("/A#e9 ", "/Aé")]      // in lower case too
+    [Arguments("/A##41 ", "/A#A")]          // a '#' that is not an escape, then one that is
+    [Arguments("/A#ZZ ", "/A#ZZ")]          // no hexadecimal digit at all
+    [Arguments("/A#4G ", "/A#4G")]          // only the first is one
+    [Arguments("/A#4 ", "/A#4")]            // one digit and then the end of the name
+    [Arguments("/A#4", "/A#4")]             // one digit and then the end of the file
+    [Arguments("/A# ", "/A#")]              // none, and the end of the name
+    [Arguments("/A#", "/A#")]               // none, and the end of the file
     public async Task AHashIsAnEscapeOnlyWhenTwoHexadecimalDigitsFollowIt(string pdf, string name)
     {
         var scanned = await ScanFirstToken(pdf);
@@ -35,7 +35,7 @@ public class LexerMalformedNameTests
         scanned.Token.Should().Be(name);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AHashWithOneDigitEndsTheNameWhereADelimiterSaysSo()
     {
         var scanned = await Interruptibly.Run(() =>
@@ -52,7 +52,7 @@ public class LexerMalformedNameTests
 
     // ----- The end-of-file marker ------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TheEndOfFileMarkerIsScannedAsTheEndOfTheFileAndRememberedAsSuch()
     {
         var lexer = LexerOver("%%EOF\n");
@@ -61,7 +61,7 @@ public class LexerMalformedNameTests
         lexer.Symbol.Should().Be(Symbol.Eof, "every other token the lexer scans is remembered too");
     }
 
-    [Fact]
+    [Test]
     public void ScanningTokensPassesOverTheEndOfFileMarker()
     {
         // An incrementally updated file has a %%EOF at the end of every revision but the last, and

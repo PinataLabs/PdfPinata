@@ -1,6 +1,6 @@
 using System;
 using AwesomeAssertions;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -13,8 +13,8 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class FontCloneTests
 {
-    [Theory]
-    [MemberData(nameof(FontMemberCases.All), MemberType = typeof(FontMemberCases))]
+    [Test]
+    [MethodDataSource(typeof(FontMemberCases), nameof(FontMemberCases.All))]
     public void ClonePreservesEveryFontMember(string member, Action<Font> set, Func<Font, object> read)
     {
         var font = new Font();

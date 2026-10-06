@@ -4,7 +4,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -27,7 +27,7 @@ namespace PdfPinata.Test.IO;
 ///   Both cases share one rendering of the original, because rasterizing is the expensive part.
 ///   </para>
 /// </summary>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public class PageResizeRenderingTests
 {
     private const string OutDir = "Out/PageResize";
@@ -38,13 +38,13 @@ public class PageResizeRenderingTests
     /// </summary>
     private const double MaxDifference = 0.001;
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void FamilyTreeSurvivesBeingResized() => ResizingDoesNotChangeTheDrawing("FamilyTree.pdf");
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void TestDocumentSurvivesBeingResized() => ResizingDoesNotChangeTheDrawing("test.pdf");
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void Pdf20SurvivesBeingResized() => ResizingDoesNotChangeTheDrawing("Pdf20.pdf");
 
     private static void ResizingDoesNotChangeTheDrawing(string asset)
