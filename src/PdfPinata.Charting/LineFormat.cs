@@ -139,8 +139,7 @@ public class LineFormat : DocumentObject
     get => dashPattern == null ? [] : (double[])dashPattern.Clone();
     set
     {
-      if (value == null)
-        throw new ArgumentNullException(nameof(value));
+      ArgumentNullException.ThrowIfNull(value);
       foreach (var length in value)
       {
         // Written so that NaN is refused too. Infinity is refused here rather than when the

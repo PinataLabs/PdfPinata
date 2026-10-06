@@ -220,7 +220,7 @@ public class XColorTests
     };
 
     [Theory]
-    [MemberData(nameof(WhiteAndBlackEachWayIn))]
+    [MemberData(nameof(WhiteAndBlackEachWayIn), DisableDiscoveryEnumeration = true)]
     public void GreyMeansHowLightAColourIsWhicheverWayItWasBuilt(string route, XColor color, double expected)
     {
         // RgbChanged used to store the black ink it found as the grey - white 0, black 1 - where

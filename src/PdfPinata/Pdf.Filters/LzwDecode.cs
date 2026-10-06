@@ -103,7 +103,7 @@ public class LzwDecode : Filter
     /// <summary>
     /// Writes the string a code stands for, and adds the table entry that code completes.
     /// </summary>
-    private void WriteString(Stream outputStream, int code, int oldCode)
+    private void WriteString(MemoryStream outputStream, int code, int oldCode)
     {
         byte[] str;
         if (code < _tableIndex)

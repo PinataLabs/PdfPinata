@@ -78,7 +78,7 @@ internal static class DerHttp
         int read;
         while ((read = await stream.ReadAsync(chunk, cancellationToken).ConfigureAwait(false)) > 0)
         {
-            buffer.Write(chunk, 0, read);
+            await buffer.WriteAsync(chunk.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
             if (buffer.Length > maxBytes)
                 throw TooLarge(uri, maxBytes);
         }

@@ -132,7 +132,7 @@ public class AcroFieldCollectionEnumerationTests
 
         // Each of these names PdfAcroField as its element type without a Cast: the collection is
         // an IReadOnlyList<PdfAcroField> and nothing else, so LINQ has one type to choose.
-        PdfAcroField first = fields.First();
+        PdfAcroField first = fields.First(field => field.Name.Length > 0);
         var check = fields.Single(field => field.Name == "check");
         var names = fields.Select(field => field.Name).ToArray();
 
