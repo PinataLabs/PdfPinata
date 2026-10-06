@@ -7,7 +7,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -28,7 +28,7 @@ public class CompositeGlyphClosureTest
 {
     private const string FamilyName = "Nested Composite Probe";
 
-    [Fact]
+    [Test]
     public void ASubsetCarriesTheGlyphsReachedThroughAComponentThatIsItselfComposite()
     {
         var original = File.ReadAllBytes(

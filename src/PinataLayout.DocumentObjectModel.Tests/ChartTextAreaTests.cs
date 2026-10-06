@@ -6,7 +6,7 @@ using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
 using PinataLayout.DocumentObjectModel.Tables;
-using Xunit;
+using TUnit.Core;
 using static PinataLayout.DocumentObjectModel.Shapes.ImageSource;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
@@ -32,7 +32,7 @@ public class ChartTextAreaTests
     private static Chart RoundTrip(Document document) =>
         (Chart)DdlReader.DocumentFromString(DdlWriter.WriteToString(document)).LastSection.Elements[0];
 
-    [Fact]
+    [Test]
     public void EveryAddMethodOnATextAreaAddsWhatItReturns()
     {
         var area = new Chart(ChartType.Line).TopArea;
@@ -49,7 +49,7 @@ public class ChartTextAreaTests
         area.Elements.Cast<object>().Should().Equal(added);
     }
 
-    [Fact]
+    [Test]
     public void EveryAddOverloadOnATextAreaAddsTheElementItIsGiven()
     {
         var area = new Chart(ChartType.Line).BottomArea;
@@ -66,7 +66,7 @@ public class ChartTextAreaTests
         area.Elements.Cast<object>().Should().Equal(paragraph, table, image, legend);
     }
 
-    [Fact]
+    [Test]
     public void ATextAreaKeepsWhatItIsGiven()
     {
         var area = new Chart(ChartType.Line).LeftArea;
@@ -87,7 +87,7 @@ public class ChartTextAreaTests
         area.Style.Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void ACloneIsDeep()
     {
         var area = new Chart(ChartType.Line).HeaderArea;
@@ -101,7 +101,7 @@ public class ChartTextAreaTests
         clone.Elements.Count.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void EverythingATextAreaCanSayIsWrittenAndReadBack()
     {
         var document = new Document();
@@ -133,13 +133,13 @@ public class ChartTextAreaTests
         again.Elements.Count.Should().Be(1);
     }
 
-    [Theory]
-    [InlineData("headerarea")]
-    [InlineData("footerarea")]
-    [InlineData("toparea")]
-    [InlineData("bottomarea")]
-    [InlineData("leftarea")]
-    [InlineData("rightarea")]
+    [Test]
+    [Arguments("headerarea")]
+    [Arguments("footerarea")]
+    [Arguments("toparea")]
+    [Arguments("bottomarea")]
+    [Arguments("leftarea")]
+    [Arguments("rightarea")]
     public void EachAreaIsWrittenUnderItsOwnKeyword(string keyword)
     {
         var document = new Document();

@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Outlines;
 
@@ -19,7 +19,7 @@ public class OutlineStyleTests
         return document;
     }
 
-    [Fact]
+    [Test]
     public void ARegularEntryIsWrittenWithoutAStyle()
     {
         var document = OnePage();
@@ -31,10 +31,10 @@ public class OutlineStyleTests
         reopened.Outlines[0].Style.Should().Be(PdfOutlineStyle.Regular);
     }
 
-    [Theory]
-    [InlineData(PdfOutlineStyle.Italic, 1)]
-    [InlineData(PdfOutlineStyle.Bold, 2)]
-    [InlineData(PdfOutlineStyle.BoldItalic, 3)]
+    [Test]
+    [Arguments(PdfOutlineStyle.Italic, 1)]
+    [Arguments(PdfOutlineStyle.Bold, 2)]
+    [Arguments(PdfOutlineStyle.BoldItalic, 3)]
     public void AStyledEntryIsWrittenWithItsFlags(PdfOutlineStyle style, int flags)
     {
         var document = OnePage();
@@ -46,7 +46,7 @@ public class OutlineStyleTests
         reopened.Outlines[0].Style.Should().Be(style);
     }
 
-    [Fact]
+    [Test]
     public void AStyledEntryInADocumentOlderThanPdf14IsWrittenWithoutAStyle()
     {
         var document = OnePage(version: 13);
@@ -59,7 +59,7 @@ public class OutlineStyleTests
         bold.Style.Should().Be(PdfOutlineStyle.Bold);
     }
 
-    [Fact]
+    [Test]
     public void AnEntryMadeRegularAgainLosesTheStyleItWasReadWith()
     {
         var document = OnePage();
@@ -73,7 +73,7 @@ public class OutlineStyleTests
         twice.Outlines[0].Elements.ContainsKey("/F").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AStyleSurvivesAReadAndAnotherSave()
     {
         var document = OnePage(version: 17);

@@ -7,7 +7,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Security;
-using Xunit;
+using TUnit.Core;
 
 // This namespace has a StandardSecurity of its own, so the reader needs saying in full.
 using Reader = PdfPinata.Pdf.IO.PdfReader;
@@ -50,7 +50,7 @@ public class DecryptedStringReplacementTests
         return (PdfString)factory.Invoke(null, [bytes, Enum.Parse(Flags, flagName)]);
     }
 
-    [Fact]
+    [Test]
     public void PlainBytesBecomeThePlainStringTheySpell()
     {
         var decrypted = FromEncryptionValue("Original title"u8.ToArray(), "RawEncoding");
@@ -59,7 +59,7 @@ public class DecryptedStringReplacementTests
         decrypted.Encoding.Should().Be(PdfStringEncoding.RawEncoding);
     }
 
-    [Fact]
+    [Test]
     public void ByteOrderMarkedBytesBecomeAUnicodeStringWithoutTheMark()
     {
         // The one case the old setter existed for. A text string keeps its mark inside the
@@ -74,7 +74,7 @@ public class DecryptedStringReplacementTests
             "the mark is what says the string was UTF-16BE all along");
     }
 
-    [Fact]
+    [Test]
     public void BytesAlreadyKnownToBeUnicodeAreReadAsUnicode()
     {
         var bytes = Encoding.BigEndianUnicode.GetBytes("Ångström");
@@ -85,7 +85,7 @@ public class DecryptedStringReplacementTests
         decrypted.Encoding.Should().Be(PdfStringEncoding.Unicode);
     }
 
-    [Fact]
+    [Test]
     public void EverythingButTheEncodingSurvivesTheReplacement()
     {
         // HexLiteral lives in the same field as the encoding, and the string has to go back out the
@@ -95,7 +95,7 @@ public class DecryptedStringReplacementTests
         decrypted.HexLiteral.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void TheDecryptedStringIsANewObject()
     {
         // The whole point: the string handed in is not the string handed back, so nothing holding
@@ -117,7 +117,7 @@ public class DecryptedStringReplacementTests
         decrypted.Value.Should().Be(original.Value);
     }
 
-    [Fact]
+    [Test]
     public void PdfStringNoLongerOffersAWayToAssignItsValue()
     {
         // The repair is only a repair while there is no second door back into the field.
@@ -130,7 +130,7 @@ public class DecryptedStringReplacementTests
 
     // ----- what going through the indexer costs ---------------------------------------------------
 
-    [Fact]
+    [Test]
     public void DecryptingADocumentOnOpenLeavesNothingMarkedAsChanged()
     {
         // Replacing an entry through DictionaryElements's own indexer calls MarkOwnerAsChanged,
@@ -149,7 +149,7 @@ public class DecryptedStringReplacementTests
             "the information dictionary held the encrypted title, but decrypting it is reading, not changing");
     }
 
-    [Fact]
+    [Test]
     public void NothingAnEncryptedDocumentWasReadWithIsReportedAsChanged()
     {
         // The same fact for every object the decryption walk went through, not just the one that
@@ -163,7 +163,7 @@ public class DecryptedStringReplacementTests
             "a document that has only been read has not been changed");
     }
 
-    [Fact]
+    [Test]
     public void ADecryptedDocumentStillSaysWhatItSaid()
     {
         // The fix has to be invisible from outside the library: same strings, same places, same

@@ -2,7 +2,7 @@ using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Tables;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -44,7 +44,7 @@ public class TableCloneAndLineFormatTests
 
     // ----- Table.DeepCopy ---------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ACopiedTableCarriesEverythingTheOriginalHad()
     {
         var copy = ATableWithEveryChildSet().Clone();
@@ -58,7 +58,7 @@ public class TableCloneAndLineFormatTests
         copy.Format.Alignment.Should().Be(ParagraphAlignment.Center);
     }
 
-    [Fact]
+    [Test]
     public void ChangingTheOriginalAfterCopyingDoesNotMoveTheCopy()
     {
         // The assertion that makes this a test of a *deep* copy. Each of these reaches one of the
@@ -81,7 +81,7 @@ public class TableCloneAndLineFormatTests
         TextOfCell(copy, 0, 0).Should().Be("left");
     }
 
-    [Fact]
+    [Test]
     public void ChangingTheCopyDoesNotMoveTheOriginalEither()
     {
         var original = ATableWithEveryChildSet();
@@ -94,7 +94,7 @@ public class TableCloneAndLineFormatTests
         original.Rows.Count.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void ACopiedTableBelongsToWhateverDocumentItIsPutIn()
     {
         // The reparenting half, which is not directly observable - parent is protected internal - so
@@ -113,7 +113,7 @@ public class TableCloneAndLineFormatTests
 
     // ----- LineFormat.Serialize ---------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void EveryAttributeALineFormatHoldsIsWrittenOut()
     {
         // All five arms at once. The frame carries a size of its own as well, because the DOM treats
@@ -140,7 +140,7 @@ public class TableCloneAndLineFormatTests
         ddl.Should().Contain("Color");
     }
 
-    [Fact]
+    [Test]
     public void ALineFormatSurvivesBeingWrittenAndReadAgain()
     {
         var document = new Document();
@@ -164,7 +164,7 @@ public class TableCloneAndLineFormatTests
         format.Color.Should().Be(Colors.Blue);
     }
 
-    [Fact]
+    [Test]
     public void ALineFormatThatStatesNothingWritesNoAttributes()
     {
         // The other side of the five guards: each attribute is written only when it has been set,

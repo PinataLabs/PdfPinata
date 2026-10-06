@@ -5,7 +5,7 @@ using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
 using PinataLayout.DocumentObjectModel.Tables;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -38,7 +38,7 @@ public class ShapePlacementTests
     ///   Five ways to say the same left edge, one per implicit conversion. A number with no unit is
     ///   points, which is what <see cref="Unit"/> means by a bare double.
     /// </summary>
-    [Fact]
+    [Test]
     public void ALeftEdgeCanBeGivenAsAUnitAStringANumberOrAName()
     {
         var frame = AFrame();
@@ -59,7 +59,7 @@ public class ShapePlacementTests
         frame.Left.ShapePosition.Should().Be(ShapePosition.Center);
     }
 
-    [Fact]
+    [Test]
     public void ATopEdgeCanBeGivenTheSameFiveWays()
     {
         var frame = AFrame();
@@ -84,7 +84,7 @@ public class ShapePlacementTests
     ///   A position writes itself as whichever of the two it is holding, under the same attribute
     ///   name. A reader takes both back, which is what makes the two representations one property.
     /// </summary>
-    [Fact]
+    [Test]
     public void APositionIsWrittenAsANumberOrAsANameAndReadBackEitherWay()
     {
         var byNumber = AFrame();
@@ -106,7 +106,7 @@ public class ShapePlacementTests
     ///   each has to refuse what the other takes - a left edge at the bottom of the page means
     ///   nothing, and the alternative is a shape silently placed somewhere nobody asked for.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnEdgeRefusesANameThatMeansNothingInItsDirection()
     {
         var frame = AFrame();
@@ -120,7 +120,7 @@ public class ShapePlacementTests
 
     // ----- what a shape is drawn with ---------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AShapeWritesEverythingItWasGivenAndNothingItWasNot()
     {
         var frame = AFrame();
@@ -151,7 +151,7 @@ public class ShapePlacementTests
             .And.Contain("Height = \"2cm\"");
     }
 
-    [Fact]
+    [Test]
     public void AShapeCopiesItselfIntoItsOwnType()
     {
         var frame = AFrame();
@@ -162,7 +162,7 @@ public class ShapePlacementTests
 
     // ----- a text frame's own members ---------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ATextFrameTakesContentBuiltBeforeItAndBuildsItToo()
     {
         var frame = AFrame();
@@ -181,7 +181,7 @@ public class ShapePlacementTests
         frame.Elements.Count.Should().Be(9);
     }
 
-    [Fact]
+    [Test]
     public void ATextFrameWritesItsFourMarginsAndItsOrientation()
     {
         var frame = AFrame();
@@ -204,7 +204,7 @@ public class ShapePlacementTests
             .And.Contain("Orientation = Upward");
     }
 
-    [Fact]
+    [Test]
     public void ATextFrameCopiesItselfWithTheContentInIt()
     {
         var frame = AFrame();
@@ -218,7 +218,7 @@ public class ShapePlacementTests
 
     // ----- an image's own members -------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnImageWritesTheNameOfItsSourceAndEveryDialTurnedOnIt()
     {
         var image = new Document().AddSection().AddImage(new NamedImage("picture.png"));

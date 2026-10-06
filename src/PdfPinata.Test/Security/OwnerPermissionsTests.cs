@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Security;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Security;
 
@@ -43,7 +43,7 @@ public class OwnerPermissionsTests
         return buffer;
     }
 
-    [Fact]
+    [Test]
     public void TheOwnerPasswordBringsOwnerPermissions()
     {
         using var buffer = Protected();
@@ -52,7 +52,7 @@ public class OwnerPermissionsTests
         opened.SecuritySettings.HasOwnerPermissions.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void TheUserPasswordDoesNot()
     {
         using var buffer = Protected();
@@ -62,7 +62,7 @@ public class OwnerPermissionsTests
             "the whole point of the property is to tell the two passwords apart");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentWithOnlyAnOwnerPasswordOpensWithoutOneAndIsNotTheOwner()
     {
         // The arrangement most "protected" PDFs actually use: no user password, so anyone can
@@ -74,7 +74,7 @@ public class OwnerPermissionsTests
         opened.SecuritySettings.HasOwnerPermissions.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ADocumentThatWasNeverEncryptedStillHasOwnerPermissions()
     {
         // Nothing to be shut out of, and the property is read by callers deciding whether they may
@@ -91,7 +91,7 @@ public class OwnerPermissionsTests
         opened.SecuritySettings.HasOwnerPermissions.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ADocumentBeingWrittenHasOwnerPermissions()
     {
         // The document in hand is the one being created, so its creator is its owner. This is the
@@ -99,7 +99,7 @@ public class OwnerPermissionsTests
         new PdfDocument().SecuritySettings.HasOwnerPermissions.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ThePasswordProviderRouteReachesTheSameAnswer()
     {
         // The other way in. Whichever overload supplied the password, what it validated as has to
@@ -111,7 +111,7 @@ public class OwnerPermissionsTests
         opened.SecuritySettings.HasOwnerPermissions.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ThePermissionsThemselvesSurviveTheRoundTrip()
     {
         // The guard beside it: reading the flags back is what a caller does after checking

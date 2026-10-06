@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using AwesomeAssertions;
 using PdfPinata.Utils;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -24,7 +24,7 @@ public class FontResolverParityTest
         public FontMetadata Read(string path) => ReadFontMetadata(path);
     }
 
-    [Fact]
+    [Test]
     public void BothBackendsReportTheSameFamilyAndStyle()
     {
         var fontFiles = PlatformFontFiles();

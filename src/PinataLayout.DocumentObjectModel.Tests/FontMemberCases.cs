@@ -1,5 +1,6 @@
 using System;
-using Xunit;
+using System.Collections.Generic;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -11,16 +12,16 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 internal static class FontMemberCases
 {
-    public static TheoryData<string, Action<Font>, Func<Font, object>> All() => new()
-    {
-        { "Name", f => f.Name = "Verdana", f => f.Name },
-        { "Size", f => f.Size = 20, f => f.Size.Point },
-        { "Bold", f => f.Bold = true, f => f.Bold },
-        { "Italic", f => f.Italic = true, f => f.Italic },
-        { "Underline", f => f.Underline = Underline.Single, f => f.Underline },
-        { "Color", f => f.Color = Colors.Purple, f => f.Color },
-        { "Superscript", f => f.Superscript = true, f => f.Superscript },
-        { "Subscript", f => f.Subscript = true, f => f.Subscript },
-        { "Strikethrough", f => f.Strikethrough = Strikethrough.Single, f => f.Strikethrough }
-    };
+    public static IEnumerable<(string, Action<Font>, Func<Font, object>)> All() =>
+    [
+        ("Name", f => f.Name = "Verdana", f => f.Name),
+        ("Size", f => f.Size = 20, f => f.Size.Point),
+        ("Bold", f => f.Bold = true, f => f.Bold),
+        ("Italic", f => f.Italic = true, f => f.Italic),
+        ("Underline", f => f.Underline = Underline.Single, f => f.Underline),
+        ("Color", f => f.Color = Colors.Purple, f => f.Color),
+        ("Superscript", f => f.Superscript = true, f => f.Superscript),
+        ("Subscript", f => f.Subscript = true, f => f.Subscript),
+        ("Strikethrough", f => f.Strikethrough = Strikethrough.Single, f => f.Strikethrough)
+    ];
 }

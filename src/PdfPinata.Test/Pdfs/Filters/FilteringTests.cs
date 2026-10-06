@@ -1,7 +1,7 @@
 using System;
 using AwesomeAssertions;
 using PdfPinata.Pdf.Filters;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs.Filters;
 
@@ -14,11 +14,11 @@ namespace PdfPinata.Test.Pdfs.Filters;
 /// </summary>
 public class FilteringTests
 {
-    [Theory]
-    [InlineData("ASCIIHexDecode", typeof(AsciiHexDecode))]
-    [InlineData("ASCII85Decode", typeof(Ascii85Decode))]
-    [InlineData("LZWDecode", typeof(LzwDecode))]
-    [InlineData("FlateDecode", typeof(FlateDecode))]
+    [Test]
+    [Arguments("ASCIIHexDecode", typeof(AsciiHexDecode))]
+    [Arguments("ASCII85Decode", typeof(Ascii85Decode))]
+    [Arguments("LZWDecode", typeof(LzwDecode))]
+    [Arguments("FlateDecode", typeof(FlateDecode))]
     public void AnImplementedFilterIsReturnedByItsFullName(string name, Type expected)
     {
         Filtering.GetFilter(name).Should().BeOfType(expected);
@@ -28,11 +28,11 @@ public class FilteringTests
     /// Some writers use the abbreviations the specification allows for inline images, and they
     /// reach this lookup from the same place the full names do.
     /// </summary>
-    [Theory]
-    [InlineData("AHx", typeof(AsciiHexDecode))]
-    [InlineData("A85", typeof(Ascii85Decode))]
-    [InlineData("LZW", typeof(LzwDecode))]
-    [InlineData("Fl", typeof(FlateDecode))]
+    [Test]
+    [Arguments("AHx", typeof(AsciiHexDecode))]
+    [Arguments("A85", typeof(Ascii85Decode))]
+    [Arguments("LZW", typeof(LzwDecode))]
+    [Arguments("Fl", typeof(FlateDecode))]
     public void AnImplementedFilterIsReturnedByItsAbbreviation(string name, Type expected)
     {
         Filtering.GetFilter(name).Should().BeOfType(expected);
@@ -41,13 +41,13 @@ public class FilteringTests
     /// <summary>
     /// The name arrives as a PDF name, so it may still carry the slash that introduces one.
     /// </summary>
-    [Theory]
-    [InlineData("/ASCIIHexDecode", typeof(AsciiHexDecode))]
-    [InlineData("/ASCII85Decode", typeof(Ascii85Decode))]
-    [InlineData("/LZWDecode", typeof(LzwDecode))]
-    [InlineData("/FlateDecode", typeof(FlateDecode))]
-    [InlineData("/AHx", typeof(AsciiHexDecode))]
-    [InlineData("/Fl", typeof(FlateDecode))]
+    [Test]
+    [Arguments("/ASCIIHexDecode", typeof(AsciiHexDecode))]
+    [Arguments("/ASCII85Decode", typeof(Ascii85Decode))]
+    [Arguments("/LZWDecode", typeof(LzwDecode))]
+    [Arguments("/FlateDecode", typeof(FlateDecode))]
+    [Arguments("/AHx", typeof(AsciiHexDecode))]
+    [Arguments("/Fl", typeof(FlateDecode))]
     public void ALeadingSlashIsStrippedBeforeTheLookup(string name, Type expected)
     {
         Filtering.GetFilter(name).Should().BeOfType(expected);
@@ -58,22 +58,22 @@ public class FilteringTests
     /// rather than an exception, which is what lets a reader carry on past a stream it cannot
     /// decode.
     /// </summary>
-    [Theory]
-    [InlineData("CCITTFaxDecode")]
-    [InlineData("JBIG2Decode")]
-    [InlineData("DCTDecode")]
-    [InlineData("JPXDecode")]
-    [InlineData("Crypt")]
-    [InlineData("/DCTDecode")]
+    [Test]
+    [Arguments("CCITTFaxDecode")]
+    [Arguments("JBIG2Decode")]
+    [Arguments("DCTDecode")]
+    [Arguments("JPXDecode")]
+    [Arguments("Crypt")]
+    [Arguments("/DCTDecode")]
     public void AFilterThatIsRecognisedButNotImplementedIsNull(string name)
     {
         Filtering.GetFilter(name).Should().BeNull();
     }
 
-    [Theory]
-    [InlineData("NoSuchDecode")]
-    [InlineData("")]
-    [InlineData("/")]
+    [Test]
+    [Arguments("NoSuchDecode")]
+    [Arguments("")]
+    [Arguments("/")]
     public void AnUnknownFilterThrows(string name)
     {
         Action lookup = () => Filtering.GetFilter(name);
@@ -85,11 +85,11 @@ public class FilteringTests
     /// The lookup is case sensitive, as its own summary says. A name in the wrong case is not
     /// quietly accepted — it is simply unknown.
     /// </summary>
-    [Theory]
-    [InlineData("flatedecode")]
-    [InlineData("FLATEDECODE")]
-    [InlineData("Ascii85decode")]
-    [InlineData("fl")]
+    [Test]
+    [Arguments("flatedecode")]
+    [Arguments("FLATEDECODE")]
+    [Arguments("Ascii85decode")]
+    [Arguments("fl")]
     public void AFilterNameInTheWrongCaseIsUnknown(string name)
     {
         Action lookup = () => Filtering.GetFilter(name);
@@ -101,7 +101,7 @@ public class FilteringTests
     /// Each filter is held as a singleton, and the abbreviation reaches the same instance the
     /// full name does — the abbreviation is a second way in, not a second filter.
     /// </summary>
-    [Fact]
+    [Test]
     public void AFilterIsTheSameInstanceHoweverItIsAskedFor()
     {
         Filtering.GetFilter("FlateDecode").Should().BeSameAs(Filtering.GetFilter("Fl"));
@@ -116,7 +116,7 @@ public class FilteringTests
     /// A null name is refused as a bad argument. It used to reach the test for a leading slash
     /// and fail there instead, which named neither the parameter nor the caller's mistake.
     /// </summary>
-    [Fact]
+    [Test]
     public void ANullFilterNameThrows()
     {
         Action lookup = () => Filtering.GetFilter(null);

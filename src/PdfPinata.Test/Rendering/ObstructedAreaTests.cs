@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using PinataLayout.Rendering;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Rendering;
 
@@ -24,7 +24,7 @@ public class ObstructedAreaTests
 
     // ----- one obstacle, from each direction ------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnObstacleAtTheLeftLeavesTheRoomToItsRight()
     {
         var area = AreaProbe.Obstructed(Bounds, AreaProbe.Rectangle(0, 0, 30, 40));
@@ -32,7 +32,7 @@ public class ObstructedAreaTests
         area.FittingRect(0, 10).Bounds().Should().Be((30, 0, 70, 10));
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleAtTheRightLeavesTheRoomToItsLeft()
     {
         var area = AreaProbe.Obstructed(Bounds, AreaProbe.Rectangle(70, 0, 30, 40));
@@ -40,7 +40,7 @@ public class ObstructedAreaTests
         area.FittingRect(0, 10).Bounds().Should().Be((0, 0, 70, 10));
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleInTheMiddleLeavesTheWiderOfTheTwoSides()
     {
         // 40 to the left of it, 25 to the right. One rectangle comes back, and it is the wider.
@@ -49,7 +49,7 @@ public class ObstructedAreaTests
         area.FittingRect(0, 10).Bounds().Should().Be((0, 0, 40, 10));
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleInTheMiddleLeavesTheWiderSideWhicheverSideThatIs()
     {
         // The mirror of the case above, so that "the wider" is not passing by choosing the left.
@@ -58,7 +58,7 @@ public class ObstructedAreaTests
         area.FittingRect(0, 10).Bounds().Should().Be((60, 0, 40, 10));
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleSpanningTheFullWidthLeavesNowhereToPutTheLine()
     {
         var area = AreaProbe.Obstructed(Bounds, AreaProbe.Rectangle(0, 0, 100, 40));
@@ -67,7 +67,7 @@ public class ObstructedAreaTests
         area.FittingRect(0, 10).Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleWiderThanTheAreaAlsoLeavesNowhere()
     {
         var area = AreaProbe.Obstructed(Bounds, AreaProbe.Rectangle(-20, 0, 200, 40));
@@ -77,7 +77,7 @@ public class ObstructedAreaTests
 
     // ----- obstacles the band does not reach ------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnObstacleAboveTheBandDoesNotNarrowIt()
     {
         var area = AreaProbe.Obstructed(Bounds, AreaProbe.Rectangle(0, 0, 30, 20));
@@ -86,7 +86,7 @@ public class ObstructedAreaTests
         area.FittingRect(20, 10).Bounds().Should().Be((0, 20, 100, 10));
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleBelowTheBandDoesNotNarrowIt()
     {
         var area = AreaProbe.Obstructed(Bounds, AreaProbe.Rectangle(0, 50, 30, 20));
@@ -94,7 +94,7 @@ public class ObstructedAreaTests
         area.FittingRect(20, 10).Bounds().Should().Be((0, 20, 100, 10));
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleOverlappingTheBandByAnyAmountNarrowsIt()
     {
         // Ends one point into the band. Overlap is by the band's box and not by a line within it:
@@ -104,7 +104,7 @@ public class ObstructedAreaTests
         area.FittingRect(20, 10).Bounds().Should().Be((30, 20, 70, 10));
     }
 
-    [Fact]
+    [Test]
     public void ATallObstacleNarrowsEveryBandItCrosses()
     {
         var area = AreaProbe.Obstructed(Bounds, AreaProbe.Rectangle(0, 10, 30, 50));
@@ -117,7 +117,7 @@ public class ObstructedAreaTests
 
     // ----- more than one -------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TwoObstaclesAtOppositeEdgesLeaveTheRoomBetweenThem()
     {
         var area = AreaProbe.Obstructed(Bounds,
@@ -127,7 +127,7 @@ public class ObstructedAreaTests
         area.FittingRect(0, 10).Bounds().Should().Be((20, 0, 60, 10));
     }
 
-    [Fact]
+    [Test]
     public void TwoObstaclesLeaveTheWidestOfTheThreeGaps()
     {
         // Gaps of 20, 15 and 35. The last one wins.
@@ -138,7 +138,7 @@ public class ObstructedAreaTests
         area.FittingRect(0, 10).Bounds().Should().Be((65, 0, 35, 10));
     }
 
-    [Fact]
+    [Test]
     public void OverlappingObstaclesAreTreatedAsOne()
     {
         var area = AreaProbe.Obstructed(Bounds,
@@ -149,7 +149,7 @@ public class ObstructedAreaTests
         area.FittingRect(0, 10).Bounds().Should().Be((60, 0, 40, 10));
     }
 
-    [Fact]
+    [Test]
     public void ObstaclesGivenOutOfOrderGiveTheSameAnswer()
     {
         var forwards = AreaProbe.Obstructed(Bounds,
@@ -163,7 +163,7 @@ public class ObstructedAreaTests
         backwards.FittingRect(0, 10).Bounds().Should().Be(forwards.FittingRect(0, 10).Bounds());
     }
 
-    [Fact]
+    [Test]
     public void OnlyTheObstaclesInTheBandCount()
     {
         var area = AreaProbe.Obstructed(Bounds,
@@ -177,7 +177,7 @@ public class ObstructedAreaTests
 
     // ----- no obstacles at all --------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnAreaWithNothingInItAnswersExactlyAsARectangleDoes()
     {
         var obstructed = AreaProbe.Obstructed(Bounds);
@@ -186,7 +186,7 @@ public class ObstructedAreaTests
         obstructed.FittingRect(20, 10).Bounds().Should().Be(plain.FittingRect(20, 10).Bounds());
     }
 
-    [Fact]
+    [Test]
     public void ABandOffTheBottomHasNowhereToGoWhateverStandsInTheArea()
     {
         var area = AreaProbe.Obstructed(Bounds, AreaProbe.Rectangle(0, 0, 30, 40));
@@ -199,7 +199,7 @@ public class ObstructedAreaTests
 
     // ----- the parts kept deliberately simple -----------------------------------------------------
 
-    [Fact]
+    [Test]
     public void UnitingWithAnObstructedAreaGivesAPlainRectangleCoveringBoth()
     {
         var area = AreaProbe.Obstructed(Bounds, AreaProbe.Rectangle(0, 0, 30, 40));
@@ -213,7 +213,7 @@ public class ObstructedAreaTests
         united.Bounds().Should().Be((0, 0, 150, 150));
     }
 
-    [Fact]
+    [Test]
     public void LoweringKeepsTheObstaclesWhereTheyStand()
     {
         var area = AreaProbe.Obstructed(Bounds, AreaProbe.Rectangle(0, 30, 30, 40));
@@ -228,7 +228,7 @@ public class ObstructedAreaTests
         lowered.FittingRect(75, 10).Bounds().Should().Be((0, 75, 100, 10));
     }
 
-    [Fact]
+    [Test]
     public void AnAreaWithNoWidthAndNothingInItStillAnswersWithItself()
     {
         // The band is clear, so this answers with the area however narrow the area is. The scan the
@@ -240,7 +240,7 @@ public class ObstructedAreaTests
         area.FittingRect(0, 10).Bounds().Should().Be((0, 0, 0, 10));
     }
 
-    [Fact]
+    [Test]
     public void ChangingTheListAfterwardsCannotMoveAnObstacle()
     {
         var obstacle = AreaProbe.Rectangle(0, 0, 30, 40);

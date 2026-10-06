@@ -2,7 +2,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Annotations;
 
@@ -15,7 +15,7 @@ namespace PdfPinata.Test.Annotations;
 /// </summary>
 public class LinkAnnotationConformanceTests
 {
-    [Fact]
+    [Test]
     public void ADocumentLinkPrintsAndIsNeitherHiddenNorInvisibleNorKeptOutOfView()
     {
         var link = PdfLinkAnnotation.CreateDocumentLink(new PdfRectangle(new XRect(0, 0, 10, 10)), 1);
@@ -23,7 +23,7 @@ public class LinkAnnotationConformanceTests
         AssertsPdfARequiresOf(link);
     }
 
-    [Fact]
+    [Test]
     public void AWebLinkPrintsAndIsNeitherHiddenNorInvisibleNorKeptOutOfView()
     {
         var link = PdfLinkAnnotation.CreateWebLink(new PdfRectangle(new XRect(0, 0, 10, 10)), "https://example.org");
@@ -31,7 +31,7 @@ public class LinkAnnotationConformanceTests
         AssertsPdfARequiresOf(link);
     }
 
-    [Fact]
+    [Test]
     public void AFileLinkPrintsAndIsNeitherHiddenNorInvisibleNorKeptOutOfView()
     {
         var link = PdfLinkAnnotation.CreateFileLink(new PdfRectangle(new XRect(0, 0, 10, 10)), "attachment.txt");
@@ -39,7 +39,7 @@ public class LinkAnnotationConformanceTests
         AssertsPdfARequiresOf(link);
     }
 
-    [Fact]
+    [Test]
     public void ANamedLinkPrintsAndIsNeitherHiddenNorInvisibleNorKeptOutOfView()
     {
         var link = PdfLinkAnnotation.CreateNamedLink(new PdfRectangle(new XRect(0, 0, 10, 10)), "chapter-3");

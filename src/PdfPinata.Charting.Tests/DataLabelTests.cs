@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Charting.Tests.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -24,7 +24,7 @@ namespace PdfPinata.Charting.Tests;
 /// </remarks>
 public class DataLabelTests
 {
-    [Fact]
+    [Test]
     public void AChartWithNoDataLabelsWritesNoneOfTheValues()
     {
         var page = Drawn.Page(Charts.Of(ChartType.Column2D, 12.0, 34.0));
@@ -32,7 +32,7 @@ public class DataLabelTests
         ShownText.On(page).Should().NotContain("12").And.NotContain("34");
     }
 
-    [Fact]
+    [Test]
     public void AskingTheChartForDataLabelsLabelsEverySeries()
     {
         var chart = Charts.OfSeries(ChartType.Column2D, [1.0, 2.0], [3.0, 4.0]);
@@ -48,7 +48,7 @@ public class DataLabelTests
     ///   has labels whether or not anything set the flag, because the renderer treats the object's
     ///   existence as the request.
     /// </summary>
-    [Fact]
+    [Test]
     public void GivingTheChartADataLabelFormatIsItselfAskingForLabels()
     {
         var chart = Charts.Of(ChartType.Column2D, 1.5, 2.5);
@@ -57,7 +57,7 @@ public class DataLabelTests
         ShownText.On(Drawn.Page(chart)).Take(2).Should().Equal("1.50", "2.50");
     }
 
-    [Fact]
+    [Test]
     public void TheDefaultFormatRoundsToAWholeNumber()
     {
         var chart = Charts.Of(ChartType.Column2D, 1.4, 2.5);
@@ -66,7 +66,7 @@ public class DataLabelTests
         ShownText.On(Drawn.Page(chart)).Take(2).Should().Equal("1", "3");
     }
 
-    [Fact]
+    [Test]
     public void AskingOneSeriesForLabelsLeavesTheOthersUnlabelled()
     {
         var chart = Charts.OfSeries(ChartType.Column2D, [1.0, 2.0], [3.0, 4.0]);
@@ -78,7 +78,7 @@ public class DataLabelTests
         shown.Should().NotContain("1").And.NotContain("2");
     }
 
-    [Fact]
+    [Test]
     public void ASeriesWithItsOwnFormatUsesItRatherThanTheCharts()
     {
         var chart = Charts.OfSeries(ChartType.Column2D, [1.0, 2.0], [3.0, 4.0]);
@@ -90,7 +90,7 @@ public class DataLabelTests
         shown.Take(4).Should().Equal("1.0", "2.0", "3.000", "4.000");
     }
 
-    [Fact]
+    [Test]
     public void ADataLabelIsDrawnOverTheColumnItBelongsTo()
     {
         var chart = Charts.Of(ChartType.Column2D, 1.0, 5.0, 3.0);
@@ -111,7 +111,7 @@ public class DataLabelTests
     ///   A pie is labelled with percentages rather than values unless it is told otherwise - the
     ///   one place where the default type depends on the kind of chart being drawn.
     /// </summary>
-    [Fact]
+    [Test]
     public void APieIsLabelledWithPercentagesByDefault()
     {
         var chart = Charts.Of(ChartType.Pie2D, 1.0, 2.0, 1.0);
@@ -120,7 +120,7 @@ public class DataLabelTests
         ShownText.On(Drawn.Page(chart)).Should().Equal("25%", "50%", "25%");
     }
 
-    [Fact]
+    [Test]
     public void APieAskedForValuesIsLabelledWithThem()
     {
         var chart = Charts.Of(ChartType.Pie2D, 1.0, 2.0, 1.0);
@@ -134,7 +134,7 @@ public class DataLabelTests
     ///   rather than drawing something wrong, which is worth pinning down because the type is
     ///   accepted by the object model without complaint and only refused at the point of drawing.
     /// </summary>
-    [Fact]
+    [Test]
     public void AColumnChartRefusesToLabelItselfWithPercentages()
     {
         var chart = Charts.Of(ChartType.Column2D, 1.0, 3.0);
@@ -146,7 +146,7 @@ public class DataLabelTests
             .WithMessage("*cannot be set to 'Percent'*");
     }
 
-    [Fact]
+    [Test]
     public void AnExplodedPieIsLabelledLikeAClosedOne()
     {
         var chart = Charts.Of(ChartType.PieExploded2D, 1.0, 1.0, 1.0, 1.0);
@@ -160,7 +160,7 @@ public class DataLabelTests
     ///   distinct: outside the wedge is further from the middle of the pie than inside its end,
     ///   which is further than the centre.
     /// </summary>
-    [Fact]
+    [Test]
     public void APiesLabelPositionDecidesHowFarFromTheMiddleTheLabelsSit()
     {
         var centre = SpreadOfLabels(DataLabelPosition.Center);
@@ -182,7 +182,7 @@ public class DataLabelTests
     ///   being the same point - so neither adjustment ever ran. The tests are now on the direction
     ///   the wedge runs in, which is what they were reaching for.
     /// </remarks>
-    [Fact]
+    [Test]
     public void APieLabelledAtItsBaseGivesEachWedgeItsOwnCorner()
     {
         var chart = Charts.Of(ChartType.Pie2D, 1.0, 1.0, 1.0, 1.0);
@@ -197,14 +197,14 @@ public class DataLabelTests
         labels.Select(label => (label.X, label.Y)).Distinct().Should().HaveCount(4);
     }
 
-    [Fact]
+    [Test]
     public void APieLabelledAtItsBaseKeepsItsLabelsNearerTheMiddleThanAnyOtherPosition()
     {
         SpreadOfLabels(DataLabelPosition.InsideBase)
             .Should().BeLessThan(SpreadOfLabels(DataLabelPosition.Center));
     }
 
-    [Fact]
+    [Test]
     public void APieTooSmallForItsLabelsStillSpreadsThemRoundIt()
     {
         // The gap comes off the radius, so a small pie asked for large labels could otherwise have
@@ -221,7 +221,7 @@ public class DataLabelTests
         labels.Select(label => (label.X, label.Y)).Distinct().Should().HaveCount(4);
     }
 
-    [Fact]
+    [Test]
     public void APieAskedForNoLabelTypeIsLeftUnlabelled()
     {
         var chart = Charts.Of(ChartType.Pie2D, 1.0, 2.0, 1.0);
@@ -230,7 +230,7 @@ public class DataLabelTests
         ShownText.On(Drawn.Page(chart)).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void EveryWedgeOfAPieIsLabelledSomewhereDifferent()
     {
         var chart = Charts.Of(ChartType.Pie2D, 1.0, 1.0, 1.0, 1.0);
@@ -281,7 +281,7 @@ public class DataLabelTests
     private static IReadOnlyList<ShownText.Run> ValueLabelsOf(IReadOnlyList<ShownText.Run> runs) =>
         [..runs.Where(run => run.Text is "10" or "20" or "30")];
 
-    [Fact]
+    [Test]
     public void EveryBarIsLabelledWithItsValue()
     {
         var labels = ValueLabelsOf(BarLabelsAt(DataLabelPosition.Center));
@@ -289,17 +289,17 @@ public class DataLabelTests
         labels.Select(label => label.Text).Should().BeEquivalentTo("10", "20", "30");
     }
 
-    [Theory]
-    [InlineData(DataLabelPosition.Center)]
-    [InlineData(DataLabelPosition.InsideBase)]
-    [InlineData(DataLabelPosition.InsideEnd)]
-    [InlineData(DataLabelPosition.OutsideEnd)]
+    [Test]
+    [Arguments(DataLabelPosition.Center)]
+    [Arguments(DataLabelPosition.InsideBase)]
+    [Arguments(DataLabelPosition.InsideEnd)]
+    [Arguments(DataLabelPosition.OutsideEnd)]
     public void EveryLabelPositionPutsALabelOnEveryBar(DataLabelPosition position)
     {
         ValueLabelsOf(BarLabelsAt(position)).Should().HaveCount(3);
     }
 
-    [Fact]
+    [Test]
     public void EachLabelPositionPutsTheLabelSomewhereDifferentAlongTheBar()
     {
         // The four arms of the switch differ only in the x they choose, so the y is expected to
@@ -313,7 +313,7 @@ public class DataLabelTests
         atEnd[0].Y.Should().BeApproximately(atBase[0].Y, 0.01, "every position sits mid-bar");
     }
 
-    [Fact]
+    [Test]
     public void ALongerBarIsLabelledFurtherAlongThanAShorterOne()
     {
         // The position is worked out from the bar's own rectangle, so the three labels of three
@@ -325,7 +325,7 @@ public class DataLabelTests
         byValue[1].X.Should().BeLessThan(byValue[2].X);
     }
 
-    [Fact]
+    [Test]
     public void ABarChartWithABlankInItIsStillLabelled()
     {
         // A blank is a null, and reading it as a number is what throws. The renderer has to reach

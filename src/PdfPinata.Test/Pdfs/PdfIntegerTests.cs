@@ -6,7 +6,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using PdfIntegerValue = PdfPinata.Pdf.PdfInteger;
 
 namespace PdfPinata.Test.Pdfs;
@@ -19,7 +19,7 @@ namespace PdfPinata.Test.Pdfs;
 /// </summary>
 public class PdfIntegerTests
 {
-    [Fact]
+    [Test]
     public void ANewIntegerIsZero()
     {
         var value = new PdfIntegerValue();
@@ -28,18 +28,18 @@ public class PdfIntegerTests
         value.ToString().Should().Be("0");
     }
 
-    [Theory]
-    [InlineData(0, "0")]
-    [InlineData(42, "42")]
-    [InlineData(-42, "-42")]
-    [InlineData(int.MaxValue, "2147483647")]
-    [InlineData(int.MinValue, "-2147483648")]
+    [Test]
+    [Arguments(0, "0")]
+    [Arguments(42, "42")]
+    [Arguments(-42, "-42")]
+    [Arguments(int.MaxValue, "2147483647")]
+    [Arguments(int.MinValue, "-2147483648")]
     public void AnIntegerIsSpelledAsTheInvariantCultureSpellsIt(int number, string expected)
     {
         new PdfIntegerValue(number).ToString().Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void AnIntegerIsSpelledTheSameWhateverTheCurrentCulture()
     {
         // A culture with its own negative sign would put that sign into a content stream or a
@@ -59,14 +59,14 @@ public class PdfIntegerTests
         }
     }
 
-    [Fact]
+    [Test]
     public void ItReportsItselfAsAThirtyTwoBitInteger()
     {
         new PdfIntegerValue(1).GetTypeCode().Should().Be(TypeCode.Int32);
         Convert.GetTypeCode(new PdfIntegerValue(1)).Should().Be(TypeCode.Int32);
     }
 
-    [Fact]
+    [Test]
     public void ItConvertsToEveryWiderNumericType()
     {
         var value = new PdfIntegerValue(-123456);
@@ -78,7 +78,7 @@ public class PdfIntegerTests
         Convert.ToDecimal(value).Should().Be(-123456m);
     }
 
-    [Fact]
+    [Test]
     public void ItConvertsToANarrowerTypeWhenTheValueFits()
     {
         var value = new PdfIntegerValue(200);
@@ -91,7 +91,7 @@ public class PdfIntegerTests
         Convert.ToChar(new PdfIntegerValue('A')).Should().Be('A');
     }
 
-    [Fact]
+    [Test]
     public void ANarrowingConversionOfAValueThatDoesNotFitOverflows()
     {
         // The same as converting the int itself, rather than a silent truncation.
@@ -103,11 +103,11 @@ public class PdfIntegerTests
         FluentActions.Invoking(() => Convert.ToChar(new PdfIntegerValue(-1))).Should().Throw<OverflowException>();
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(5)]
-    [InlineData(sbyte.MaxValue)]
-    [InlineData(sbyte.MinValue)]
+    [Test]
+    [Arguments(0)]
+    [Arguments(5)]
+    [Arguments(sbyte.MaxValue)]
+    [Arguments(sbyte.MinValue)]
     public void ItConvertsToASignedByteWhenTheValueFits(int number)
     {
         // ToSByte used to throw InvalidCastException for every value, where every other narrowing
@@ -115,24 +115,24 @@ public class PdfIntegerTests
         Convert.ToSByte(new PdfIntegerValue(number)).Should().Be((sbyte)number);
     }
 
-    [Theory]
-    [InlineData(sbyte.MaxValue + 1)]
-    [InlineData(sbyte.MinValue - 1)]
+    [Test]
+    [Arguments(sbyte.MaxValue + 1)]
+    [Arguments(sbyte.MinValue - 1)]
     public void ASignedByteConversionOfAValueThatDoesNotFitOverflows(int number)
     {
         FluentActions.Invoking(() => Convert.ToSByte(new PdfIntegerValue(number))).Should().Throw<OverflowException>();
     }
 
-    [Theory]
-    [InlineData(0, false)]
-    [InlineData(1, true)]
-    [InlineData(-1, true)]
+    [Test]
+    [Arguments(0, false)]
+    [Arguments(1, true)]
+    [Arguments(-1, true)]
     public void ItConvertsToABooleanTheWayAnIntegerDoes(int number, bool expected)
     {
         Convert.ToBoolean(new PdfIntegerValue(number)).Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void ItConvertsToAStringWithTheFormatProviderGiven()
     {
         var provider = new NumberFormatInfo { NegativeSign = "~" };
@@ -140,11 +140,11 @@ public class PdfIntegerTests
         Convert.ToString(new PdfIntegerValue(-5), provider).Should().Be("~5");
     }
 
-    [Theory]
-    [InlineData("{0:D5}", "00042")]
-    [InlineData("{0:X}", "2A")]
-    [InlineData("{0}", "42")]
-    [InlineData("[{0,4}]", "[  42]")]
+    [Test]
+    [Arguments("{0:D5}", "00042")]
+    [Arguments("{0:X}", "2A")]
+    [Arguments("{0}", "42")]
+    [Arguments("[{0,4}]", "[  42]")]
     public void ItFormatsAsTheIntegerItWrapsWould(string format, string expected)
     {
         // IFormattable used to answer the format string itself, and so nothing at all when there
@@ -152,7 +152,7 @@ public class PdfIntegerTests
         string.Format(CultureInfo.InvariantCulture, format, new PdfIntegerValue(42)).Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void AnInterpolatedIntegerIsItsValue()
     {
         var value = new PdfIntegerValue(42);
@@ -161,7 +161,7 @@ public class PdfIntegerTests
         $"{value:N0}".Should().Be(42.ToString("N0"));
     }
 
-    [Fact]
+    [Test]
     public void ItFormatsWithTheFormatProviderGiven()
     {
         IFormattable value = new PdfIntegerValue(-5);
@@ -171,7 +171,7 @@ public class PdfIntegerTests
         value.ToString(null, provider).Should().Be("~5");
     }
 
-    [Fact]
+    [Test]
     public void ToTypeConvertsAsTheIntegerItWrapsWould()
     {
         IConvertible value = new PdfIntegerValue(65);
@@ -183,19 +183,19 @@ public class PdfIntegerTests
             .Should().Throw<InvalidCastException>();
     }
 
-    [Fact]
+    [Test]
     public void ChangeTypeReachesTheConversionsToo()
     {
         Convert.ChangeType(new PdfIntegerValue(12), typeof(decimal), CultureInfo.InvariantCulture)
             .Should().Be(12m);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    [InlineData(1234567)]
-    [InlineData(int.MaxValue)]
-    [InlineData(int.MinValue)]
+    [Test]
+    [Arguments(0)]
+    [Arguments(-1)]
+    [Arguments(1234567)]
+    [Arguments(int.MaxValue)]
+    [Arguments(int.MinValue)]
     public void AnIntegerComesBackFromTheFileAsTheSameInteger(int number)
     {
         var document = new PdfDocument();
@@ -212,7 +212,7 @@ public class PdfIntegerTests
         reread.Internals.Catalog.Elements.GetInteger("/TestValue").Should().Be(number);
     }
 
-    [Fact]
+    [Test]
     public void ConvertingToADateTimeIsRefusedAsItIsForTheIntItWraps()
     {
         // It used to answer DateTime.MinValue, a date nobody asked for, where Int32 throws.

@@ -13,7 +13,7 @@ using PdfPinata.Pdf.Extraction;
 using PdfPinata.Pdf.IO;
 // The content-stream readers are linked in from the other test project and keep their namespace.
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -40,7 +40,7 @@ public class TaggedOutputTests
     private static StructureNode Body(StructureNode listItem) => listItem.Children.First(child => child.Tag == "LBody");
 
 
-    [Fact]
+    [Test]
     public void AParagraphIsAParagraphAndAHeadingIsAHeading()
     {
         var document = new Document();
@@ -54,18 +54,18 @@ public class TaggedOutputTests
         tree.Single("Sect").ChildTags().Should().Equal("H1", "P");
     }
 
-    [Theory]
-    [InlineData("Heading1", "H1")]
-    [InlineData("Heading2", "H2")]
-    [InlineData("Heading3", "H3")]
-    [InlineData("Heading4", "H4")]
-    [InlineData("Heading5", "H5")]
+    [Test]
+    [Arguments("Heading1", "H1")]
+    [Arguments("Heading2", "H2")]
+    [Arguments("Heading3", "H3")]
+    [Arguments("Heading4", "H4")]
+    [Arguments("Heading5", "H5")]
     // PinataLayout has nine heading levels and PDF has six, so the last four land on the deepest one
     // PDF has. A heading too deep to name exactly is still a heading, and calling it a paragraph
     // would lose more than calling it an H6 does.
-    [InlineData("Heading6", "H6")]
-    [InlineData("Heading7", "H6")]
-    [InlineData("Heading9", "H6")]
+    [Arguments("Heading6", "H6")]
+    [Arguments("Heading7", "H6")]
+    [Arguments("Heading9", "H6")]
     public void AHeadingIsTaggedAtItsOwnLevel(string style, string expected)
     {
         var document = new Document();
@@ -74,7 +74,7 @@ public class TaggedOutputTests
         Structure.Of(document).Single("Sect").ChildTags().Should().Equal(expected);
     }
 
-    [Fact]
+    [Test]
     public void ATableIsRowsAndCellsAndItsHeadingRowSaysWhichWayItReaches()
     {
         var document = new Document();
@@ -104,7 +104,7 @@ public class TaggedOutputTests
         tagged.Children[0].Children.Should().AllSatisfy(cell => cell.Scope.Should().Be("Column"));
     }
 
-    [Fact]
+    [Test]
     public void AMergedCellSaysHowFarItReaches()
     {
         var document = new Document();
@@ -125,7 +125,7 @@ public class TaggedOutputTests
         merged.ColumnSpan.Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void AMergeThatRunsPastTheTableSaysOnlyHowFarItReaches()
     {
         var document = new Document();
@@ -148,7 +148,7 @@ public class TaggedOutputTests
         merged.RowSpan.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void AListIsAListAndItsBulletIsALabel()
     {
         var document = new Document();
@@ -166,7 +166,7 @@ public class TaggedOutputTests
         list.Children[0].Single("Lbl").MarkCount.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void ARunOfListItemsIsOneListAndAChangeOfKindStartsAnother()
     {
         var document = new Document();
@@ -184,7 +184,7 @@ public class TaggedOutputTests
         section1.Children[2].Children.Should().HaveCount(1);
     }
 
-    [Fact]
+    [Test]
     public void AListStartingANewSectionIsTaggedInThatSection()
     {
         // Nothing but the list is tagged at the section break, so the run is not ended there: the
@@ -200,7 +200,7 @@ public class TaggedOutputTests
         sections[1].ChildTags().Should().Equal("L");
     }
 
-    [Fact]
+    [Test]
     public void ANestedListIsAListInsideAnItemsBody()
     {
         // docs/specs/nested-lists.md. Two outer items with two inner ones between them: the tree
@@ -237,7 +237,7 @@ public class TaggedOutputTests
         secondItem.OfTag("L").Should().BeEmpty("returning to the outer level closes the inner list");
     }
 
-    [Fact]
+    [Test]
     public void ThreeLevelsNestJustAsTwoDo()
     {
         // Nothing about the tagger's rule is special-cased for the second level - a third has to
@@ -264,7 +264,7 @@ public class TaggedOutputTests
         innermostList.Children[0].Single("Lbl").MarkCount.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void ASkippedLevelOpensOneNestedListRatherThanTwoOrAnError()
     {
         // An item at level three straight after one at level one is one level deeper, not two -
@@ -285,7 +285,7 @@ public class TaggedOutputTests
         body.Children[0].ChildTags().Should().Equal("LI");
     }
 
-    [Fact]
+    [Test]
     public void MixedTypesNestNumbersOutsideAndBulletsInside()
     {
         var document = new Document();
@@ -308,7 +308,7 @@ public class TaggedOutputTests
         innerList.Children.Should().HaveCount(1);
     }
 
-    [Fact]
+    [Test]
     public void ADocumentThatNeverSetsALevelProducesExactlyTodaysTreeItemForItem()
     {
         // User story 8: adopting the new property changes nothing for a document that never sets it.
@@ -324,7 +324,7 @@ public class TaggedOutputTests
             listItem.ChildTags().Should().Equal("Lbl", "LBody");
     }
 
-    [Fact]
+    [Test]
     public void EveryListItemHasABodyNestedOrNot()
     {
         var document = new Document();
@@ -342,7 +342,7 @@ public class TaggedOutputTests
         tree.OfTag("LI").Should().OnlyContain(li => li.Children.Any(child => child.Tag == "LBody"));
     }
 
-    [Fact]
+    [Test]
     public void NestingSurvivesAPageBreakInTheMiddleOfAnInnerList()
     {
         var document = new Document();
@@ -372,7 +372,7 @@ public class TaggedOutputTests
         innerList.ChildTags().Should().Equal("LI", "LI", "LI", "LI", "LI", "LI", "LI", "LI");
     }
 
-    [Fact]
+    [Test]
     public void NumberingContinuesAcrossANestedList()
     {
         // Depth does not touch numbering: an outer numbered list resuming after a nested list keeps
@@ -395,7 +395,7 @@ public class TaggedOutputTests
         shown.Should().Contain("2.");
     }
 
-    [Fact]
+    [Test]
     public void AnImageWithAlternativeTextIsAFigureThatSaysWhatItShows()
     {
         var document = new Document();
@@ -407,7 +407,7 @@ public class TaggedOutputTests
         figure.AlternateText.Should().Be("The company logo.");
     }
 
-    [Fact]
+    [Test]
     public void AnImageWithNothingToSayIsDrawnAsDecorationRatherThanAsAFigureWithNothingToSay()
     {
         var document = new Document();
@@ -419,7 +419,7 @@ public class TaggedOutputTests
         Structure.Of(document).OfTag("Figure").Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void AChartIsAFigureToo()
     {
         var document = new Document();
@@ -436,9 +436,9 @@ public class TaggedOutputTests
             .Should().Be("Sales by quarter, rising through the year.");
     }
 
-    [Theory]
-    [InlineData("image")]
-    [InlineData("chart")]
+    [Test]
+    [Arguments("image")]
+    [Arguments("chart")]
     public void ADescribedPictureBetweenTwoListItemsEndsTheList(string kind)
     {
         var document = new Document();
@@ -455,9 +455,9 @@ public class TaggedOutputTests
         sect.Children[2].ChildTags().Should().Equal("LI");
     }
 
-    [Theory]
-    [InlineData("image")]
-    [InlineData("chart")]
+    [Test]
+    [Arguments("image")]
+    [Arguments("chart")]
     public void AnUndescribedPictureBetweenTwoListItemsLeavesThemOneList(string kind)
     {
         var document = new Document();
@@ -474,7 +474,7 @@ public class TaggedOutputTests
         sect.Children[0].ChildTags().Should().Equal("LI", "LI");
     }
 
-    [Fact]
+    [Test]
     public void AnUndescribedChartWithATitleBetweenTwoListItemsLeavesThemOneList()
     {
         var document = new Document();
@@ -491,7 +491,7 @@ public class TaggedOutputTests
         sect.Children[0].ChildTags().Should().Equal("LI", "LI");
     }
 
-    [Fact]
+    [Test]
     public void AListRunningOverAPageBreakUnderARunningHeadIsStillOneList()
     {
         var document = new Document();
@@ -510,7 +510,7 @@ public class TaggedOutputTests
         sect.Children[0].Children.Should().HaveCount(80);
     }
 
-    [Fact]
+    [Test]
     public void AListRunningOverAPageBreakPastAFootnoteIsStillOneList()
     {
         var document = new Document();
@@ -540,7 +540,7 @@ public class TaggedOutputTests
         Body(items[3]).Single("Note").OfTag("P").Should().HaveCount(1);
     }
 
-    [Fact]
+    [Test]
     public void AListInsideAFootnoteIsTheNotesOwnAndLeavesTheBodysListAlone()
     {
         var document = new Document();
@@ -589,7 +589,7 @@ public class TaggedOutputTests
         return chart;
     }
 
-    [Fact]
+    [Test]
     public void AHyperlinkIsALinkThatReachesItsAnnotation()
     {
         var document = new Document();
@@ -607,7 +607,7 @@ public class TaggedOutputTests
         link.AnnotationCount.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AWordBrokenAtAHyphenSaysWhatItReallyIs()
     {
         var tree = Structure.Of(Hyphenated());
@@ -624,7 +624,7 @@ public class TaggedOutputTests
         span.MarkCount.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void AWordBrokenAtAHyphenExtractsWhole()
     {
         // docs/specs/tagged-text-extraction.md gap G7: the extractor is page-scoped and never
@@ -639,7 +639,7 @@ public class TaggedOutputTests
         PdfTextExtractor.ExtractText(page).Should().Be("In demonstrate");
     }
 
-    [Fact]
+    [Test]
     public void AHyphenThatBreaksNothingIsNotTaggedAtAll()
     {
         var document = new Document();
@@ -652,7 +652,7 @@ public class TaggedOutputTests
         Structure.Of(document).OfTag("Span").Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void AWordBrokenAcrossAPageIsStillOneWord()
     {
         var document = new Document();
@@ -682,7 +682,7 @@ public class TaggedOutputTests
         span.MarkCount.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void SayingWhatTheWordIsDoesNotChangeWhatIsDrawn()
     {
         var tagged = Glyphs.On(Rendered.FirstPageOf(Hyphenated()));
@@ -694,7 +694,7 @@ public class TaggedOutputTests
         tagged.Should().Equal(plain);
     }
 
-    [Fact]
+    [Test]
     public void EveryMarkedContentSequenceOnAPageIsClosed()
     {
         var document = new Document();
@@ -735,7 +735,7 @@ public class TaggedOutputTests
         return found;
     }
 
-    [Fact]
+    [Test]
     public void ARunningHeadIsFurnitureAndNotSomethingToReadOut()
     {
         var document = new Document();
@@ -752,7 +752,7 @@ public class TaggedOutputTests
         tree.Descendants().Should().HaveCount(3, "Document, Sect and the one paragraph");
     }
 
-    [Fact]
+    [Test]
     public void ADescribedImageInARunningHeadDoesNotDescribeSomethingElseInstead()
     {
         var document = new Document();
@@ -775,7 +775,7 @@ public class TaggedOutputTests
             "nothing in the tree is described by an image that is not in the tree");
     }
 
-    [Fact]
+    [Test]
     public void OneObjectCanBeDrawnOnAPageThatWasNeverBegun()
     {
         // RenderObject draws a single object onto a surface the caller owns, and nothing about that
@@ -801,7 +801,7 @@ public class TaggedOutputTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void ADescribedTableInARunningHeadDoesNotSummariseSomethingElseInstead()
     {
         var document = new Document();
@@ -819,7 +819,7 @@ public class TaggedOutputTests
         tree.Descendants().Should().OnlyContain(node => string.IsNullOrEmpty(node.Summary));
     }
 
-    [Fact]
+    [Test]
     public void APageThatDrawsNothingIsStillInTheTree()
     {
         var document = new Document();
@@ -840,7 +840,7 @@ public class TaggedOutputTests
         }
     }
 
-    [Fact]
+    [Test]
     public void EveryTaggedPageOrdersItsTabsByStructure()
     {
         var document = new Document();
@@ -850,7 +850,7 @@ public class TaggedOutputTests
         rendered.Pages[0].Elements.GetName("/Tabs").Should().Be("/S");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentThatAsksNotToBeTaggedIsWrittenAsItAlwaysWas()
     {
         var document = new Document();
@@ -869,7 +869,7 @@ public class TaggedOutputTests
         saved.Pages[0].Elements.ContainsKey("/StructParents").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void TheDocumentSaysWhatLanguageItIsIn()
     {
         var document = new Document();

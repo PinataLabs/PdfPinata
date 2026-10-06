@@ -10,7 +10,7 @@ using PdfPinata.Drawing.Layout;
 using PdfPinata.Fonts;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing.Layout;
 
@@ -37,7 +37,7 @@ namespace PdfPinata.Test.Drawing.Layout;
 ///     provider and putting it back.
 ///   </para>
 /// </remarks>
-[Collection(GlyphOutlineCollection.Name)]
+[GlyphOutlineSensitive]
 public class DropCapTests
 {
     private const string Prose =
@@ -66,7 +66,7 @@ public class DropCapTests
 
     // ----- the room the cap reserves --------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TheOpeningLinesBeginToTheRightOfTheCapAndTheRestAtTheMargin()
     {
         var withCap = BodyLinesOf(Prose, cap: 3);
@@ -80,10 +80,10 @@ public class DropCapTests
         withCap[3].X.Should().BeApproximately(margin, 0.01, "the fourth line is back at the margin");
     }
 
-    [Theory]
-    [InlineData(2)]
-    [InlineData(3)]
-    [InlineData(5)]
+    [Test]
+    [Arguments(2)]
+    [Arguments(3)]
+    [Arguments(5)]
     public void ExactlyAsManyLinesAreNarrowedAsTheCapIsDeep(int depth)
     {
         var withCap = BodyLinesOf(Prose, cap: depth);
@@ -92,7 +92,7 @@ public class DropCapTests
         withCap.TakeWhile(line => line.X > margin + 0.01).Should().HaveCount(depth);
     }
 
-    [Fact]
+    [Test]
     public void NothingIsLostToTheCapAndNothingIsRepeated()
     {
         // The cap takes the first character; everything after it is laid out in full and in order.
@@ -102,7 +102,7 @@ public class DropCapTests
         withCap.Should().Equal(without, "the cap is the first glyph and the rest follow unchanged");
     }
 
-    [Fact]
+    [Test]
     public void ANarrowedLineCarriesFewerWordsThanAFullOne()
     {
         var withCap = BodyLinesOf(Prose, cap: 3);
@@ -114,7 +114,7 @@ public class DropCapTests
 
     // ----- the cap itself --------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TheFirstCharacterIsDrawnOnceAtTheCapsSizeAndNotAgainAtBodySize()
     {
         var page = Render(Prose, cap: 3);
@@ -126,7 +126,7 @@ public class DropCapTests
         sizes[0].Should().BeGreaterThan(sizes[1] * 2, "the cap is set far larger than the body");
     }
 
-    [Fact]
+    [Test]
     public void TheCapRestsOnTheBaselineOfTheLastLineItIsSetInto()
     {
         var page = Render(Prose, cap: 3);
@@ -141,14 +141,14 @@ public class DropCapTests
 
     // ----- where the cap sits against the text ------------------------------------------------------
 
-    [Theory]
-    [InlineData("T", 2)]
-    [InlineData("T", 3)]
-    [InlineData("H", 2)]
-    [InlineData("H", 3)]
-    [InlineData("A", 3)]
-    [InlineData("M", 3)]
-    [InlineData("M", 4)]
+    [Test]
+    [Arguments("T", 2)]
+    [Arguments("T", 3)]
+    [Arguments("H", 2)]
+    [Arguments("H", 3)]
+    [Arguments("A", 3)]
+    [Arguments("M", 3)]
+    [Arguments("M", 4)]
     public void TheCapsHeadIsLevelWithTheHeadOfTheTextAndItsFootWithTheLastLinesBaseline(
         string initial, int depth)
     {
@@ -160,7 +160,7 @@ public class DropCapTests
             "the foot of the cap rests on the baseline of the last line it is set into");
     }
 
-    [Fact]
+    [Test]
     public void TheCapIsHungFromTheHeadOfTheTextRatherThanTheTopOfTheLineBox()
     {
         // The regression this pins. A line's box reaches an ascent above its baseline and the
@@ -175,11 +175,11 @@ public class DropCapTests
             "and the two are far enough apart in this face for the distinction to be worth making");
     }
 
-    [Theory]
-    [InlineData(BodyFamily, BodyFamily)]
-    [InlineData(PinnedFontResolver.CffFamilyName, PinnedFontResolver.CffFamilyName)]
-    [InlineData(BodyFamily, PinnedFontResolver.CffFamilyName)]
-    [InlineData(PinnedFontResolver.CffFamilyName, BodyFamily)]
+    [Test]
+    [Arguments(BodyFamily, BodyFamily)]
+    [Arguments(PinnedFontResolver.CffFamilyName, PinnedFontResolver.CffFamilyName)]
+    [Arguments(BodyFamily, PinnedFontResolver.CffFamilyName)]
+    [Arguments(PinnedFontResolver.CffFamilyName, BodyFamily)]
     public void TheCapIsHungFromTheBodysCapHeightWhicheverFaceEitherIsSetIn(string body, string capFamily)
     {
         // Two faces whose ascent stands a different distance above their capitals - a fifth of the
@@ -193,9 +193,9 @@ public class DropCapTests
         cap.Foot.Should().BeApproximately(cap.LastSpannedBaseline, Tolerance);
     }
 
-    [Theory]
-    [InlineData(BodyFamily)]
-    [InlineData(PinnedFontResolver.CffFamilyName)]
+    [Test]
+    [Arguments(BodyFamily)]
+    [Arguments(PinnedFontResolver.CffFamilyName)]
     public void TheFacesTestedAgainstEachHaveAnAscentWellAboveTheirCapitals(string family)
     {
         // Without this the alignment tests above would pass just as well on a face whose cap
@@ -207,7 +207,7 @@ public class DropCapTests
             "the distinction only shows in a face that keeps room above its capitals");
     }
 
-    [Fact]
+    [Test]
     public void ADeeperCapIsSetLargerAndReservesMoreRoom()
     {
         var two = Render(Prose, cap: 2);
@@ -217,7 +217,7 @@ public class DropCapTests
         BodyLinesOf(Prose, cap: 3)[0].X.Should().BeGreaterThan(BodyLinesOf(Prose, cap: 2)[0].X);
     }
 
-    [Fact]
+    [Test]
     public void TheCapsInkStartsAtTheBlocksLeftEdgeRatherThanItsPen()
     {
         var page = Render(Prose, cap: 3);
@@ -229,7 +229,7 @@ public class DropCapTests
         capPen.Should().BeGreaterThan(Area.X - 12, "the bearing is small, not a whole letter");
     }
 
-    [Fact]
+    [Test]
     public void AWiderGutterPushesTheTextFurtherFromTheCap()
     {
         var tight = BodyLinesOf(Prose, cap: 3, arrange: f => f.DropCap.Gutter = 0)[0].X;
@@ -238,10 +238,10 @@ public class DropCapTests
         (loose - tight).Should().BeApproximately(20, 0.01);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(6)]
-    [InlineData(20)]
+    [Test]
+    [Arguments(0)]
+    [Arguments(6)]
+    [Arguments(20)]
     public void TheRoomLeftBetweenTheCapsInkAndTheTextIsTheGutterAndNothingElse(double gutter)
     {
         // The horizontal half of the placement, pinned beside the vertical one: resizing the cap
@@ -259,9 +259,9 @@ public class DropCapTests
 
     // ----- justification and truncation against the narrowed measure --------------------------------
 
-    [Theory]
-    [InlineData(XParagraphAlignment.Right)]
-    [InlineData(XParagraphAlignment.Justify)]
+    [Test]
+    [Arguments(XParagraphAlignment.Right)]
+    [Arguments(XParagraphAlignment.Justify)]
     public void AnAlignedBlockBesideTheCapStillReachesTheColumnsRightEdge(XParagraphAlignment alignment)
     {
         // The laid-out bounds are the one place a line's real right edge is observable: they are
@@ -276,7 +276,7 @@ public class DropCapTests
         (without.X + without.Width).Should().BeApproximately(Area.Width, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void NoJustifiedLineBesideTheCapRunsPastTheColumnsRightEdge()
     {
         var page = Render(Prose, cap: 3, arrange: f => f.Alignment = XParagraphAlignment.Justify);
@@ -290,7 +290,7 @@ public class DropCapTests
         starts.Where(x => x > Area.X + 10).Should().NotBeEmpty("some blocks sit beside the cap");
     }
 
-    [Fact]
+    [Test]
     public void ATruncatedLineBesideTheCapKeepsItsEllipsisInsideTheColumn()
     {
         // Shallow enough that the text runs out of room while still beside the cap.
@@ -313,7 +313,7 @@ public class DropCapTests
     /// </summary>
     private static readonly XRect NarrowerThanTheCap = new(40, 40, 30, 300);
 
-    [Fact]
+    [Test]
     public void TextIsKeptInsideAColumnTooNarrowToSetAnythingBesideTheCap()
     {
         // Before this was fixed the words went to the right of the column - one to a line, for as
@@ -328,7 +328,7 @@ public class DropCapTests
         starts.Should().OnlyContain(x => x <= NarrowerThanTheCap.X + NarrowerThanTheCap.Width + Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void TextWithNoRoomBesideTheCapBeginsBelowItRatherThanLevelWithIt()
     {
         var page = Render(Prose, cap: 5, area: NarrowerThanTheCap);
@@ -342,7 +342,7 @@ public class DropCapTests
             "the text clears the cap in one move rather than being set beside it");
     }
 
-    [Fact]
+    [Test]
     public void ACapTooWideForItsColumnLosesNoTextOnTheWayPastIt()
     {
         // The skip moves the text down and a column this narrow then runs out of room for the end
@@ -356,7 +356,7 @@ public class DropCapTests
         roomy.Take(narrow.Count).Should().Equal(narrow, "what is set is the start of the text, in order");
     }
 
-    [Fact]
+    [Test]
     public void ACapWithNoRoomBesideItAndNoRoomBelowItDrawsTheCapAndStops()
     {
         // Nowhere for the text to go at all: too narrow to sit beside the cap and too short to sit
@@ -368,7 +368,7 @@ public class DropCapTests
             .Should().ContainSingle("only the cap is drawn");
     }
 
-    [Fact]
+    [Test]
     public void TextWithNoRoomBesideTheCapMovesToTheNextColumnWhenThereIsNoRoomBelowIt()
     {
         // The cap belongs to the first column only, so clearing it can mean going across rather
@@ -383,7 +383,7 @@ public class DropCapTests
         starts.Should().OnlyContain(x => x > 40 + 50, "all of it is in the second column");
     }
 
-    [Fact]
+    [Test]
     public void ACapWithNoRoomBesideItStillEndsWhenOverflowIsAllowed()
     {
         // Overflow means no column ever fills, so nothing outside the skip can stop it. What stops
@@ -396,7 +396,7 @@ public class DropCapTests
 
     // ----- the edges ------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TextShorterThanTheCapIsDeepIsDrawnAndDoesNotThrow()
     {
         var draw = () => Render("Two words", cap: 5);
@@ -405,7 +405,7 @@ public class DropCapTests
         GlyphCountOf(TextOperators.ShownStrings(Render("Two words", cap: 5))[0]).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyStringDrawsNothingAndThrowsNothing()
     {
         var draw = () => Render("", cap: 3);
@@ -414,7 +414,7 @@ public class DropCapTests
         TextOperators.ShownStrings(Render("", cap: 3)).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void ASingleCharacterBecomesTheCapAndLeavesNoBodyText()
     {
         var runs = TextOperators.ShownStrings(Render("T", cap: 3));
@@ -422,7 +422,7 @@ public class DropCapTests
         GlyphCountOf(runs.Should().ContainSingle().Subject).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void TextBeginningWithASpaceIsLaidOutWithNoCapAtAll()
     {
         // A space is not an initial letter. Setting one as a cap would reserve room for nothing at
@@ -433,7 +433,7 @@ public class DropCapTests
         withLeadingSpace.Should().Equal(plain);
     }
 
-    [Fact]
+    [Test]
     public void NoDropCapLeavesEveryLineAtTheMargin()
     {
         var lines = BodyLinesOf(Prose, cap: 0);
@@ -442,7 +442,7 @@ public class DropCapTests
         lines.Should().OnlyContain(line => Math.Abs(line.X - margin) < 0.01);
     }
 
-    [Fact]
+    [Test]
     public void ADepthOfLessThanOneLineIsRefused()
     {
         var build = () => new XDropCap(new XFont("Arial", 12), 0);
@@ -450,7 +450,7 @@ public class DropCapTests
         build.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Fact]
+    [Test]
     public void ACapWithNoFontIsRefused()
     {
         var build = () => new XDropCap(null, 3);
@@ -460,7 +460,7 @@ public class DropCapTests
 
     // ----- without an outline provider ------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ACapIsStillDrawnAndRoomStillReservedWhenNoOutlineProviderIsRegistered()
     {
         WithoutOutlineProvider(() =>
@@ -475,7 +475,7 @@ public class DropCapTests
         });
     }
 
-    [Fact]
+    [Test]
     public void TheCapSitsOnTheSameBaselineWhicheverWayItWasMeasured()
     {
         var withInk = TextBaselines.PositionsOf(Render(Prose, cap: 3))[0].Y;
@@ -488,7 +488,7 @@ public class DropCapTests
         withInk.Should().BeApproximately(byAdvance, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void TheCapsHeadIsLevelWithTheTextEvenWhenItWasSizedWithoutOutlines()
     {
         // Rendered with no provider registered, so the cap is sized from the face's declared cap
@@ -504,7 +504,7 @@ public class DropCapTests
         cap.Foot.Should().BeApproximately(cap.LastSpannedBaseline, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void MeasuringByInkAndByMetricDifferInTheInsetRatherThanTheSize()
     {
         var byInk = Render(ProseBeginningWith("T"), cap: 3);

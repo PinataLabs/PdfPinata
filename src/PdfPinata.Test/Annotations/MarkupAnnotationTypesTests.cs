@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using AwesomeAssertions;
 using ImageMagick;
@@ -6,7 +7,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Annotations;
@@ -21,7 +22,7 @@ namespace PdfPinata.Test.Annotations;
 ///   the right entries and no appearance rasterizes to nothing in most readers, and asserting the
 ///   keys would pass on a page nobody can see.
 /// </remarks>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public sealed class MarkupAnnotationTypesTests : IDisposable
 {
     private const string OutDir = "Out/MarkupAnnotationTypes";
@@ -32,7 +33,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
 
     // ----- ink ------------------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnInkStrokeIsPainted()
     {
         var page = Rasterize("ink", document =>
@@ -45,7 +46,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
         Count(page, IsRed).Should().BeGreaterThan(300);
     }
 
-    [Fact]
+    [Test]
     public void AnInkAnnotationEnclosesItsStrokesAndTheWidthOfThePen()
     {
         var ink = OnAPage(new PdfInkAnnotation { BorderWidth = 4 });
@@ -59,7 +60,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
         rect.Y2.Should().Be(602);
     }
 
-    [Fact]
+    [Test]
     public void InkStrokesSurviveTheFile()
     {
         var ink = OnAPage(new PdfInkAnnotation());
@@ -71,7 +72,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
         read.Strokes[0].Should().Equal(new XPoint(10, 20), new XPoint(30, 40), new XPoint(50, 60));
     }
 
-    [Fact]
+    [Test]
     public void InkWithNoStrokesOrNoWidthHasNoAppearance()
     {
         var ink = OnAPage(new PdfInkAnnotation());
@@ -89,7 +90,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
         ink.Elements.GetArray("/InkList").Elements.Count.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void AStrokeOfOnePointIsRefused()
     {
         var ink = new PdfInkAnnotation();
@@ -101,7 +102,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
 
     // ----- polygon and polyline -------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AFilledPolygonIsPainted()
     {
         var page = Rasterize("polygon", document =>
@@ -114,7 +115,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
         Count(page, IsBlue).Should().BeGreaterThan(3000);
     }
 
-    [Fact]
+    [Test]
     public void APolyLineIsPaintedWithItsEnding()
     {
         var withEnding = Rasterize("polyline-arrow", document =>
@@ -136,7 +137,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
         Count(withEnding, IsRed).Should().BeGreaterThan(Count(without, IsRed));
     }
 
-    [Fact]
+    [Test]
     public void AnEndingWidensThePolyLinesRectangle()
     {
         var polyline = OnAPage(new PdfPolyLineAnnotation { BorderWidth = 2 });
@@ -150,7 +151,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
         polyline.Elements.GetArray("/LE").Elements.GetName(1).Should().Be("/None");
     }
 
-    [Fact]
+    [Test]
     public void VerticesAndEndingsSurviveTheFile()
     {
         var polyline = OnAPage(new PdfPolyLineAnnotation { Interior = XColors.Green });
@@ -165,7 +166,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
         read.Interior.G.Should().Be(XColors.Green.G);
     }
 
-    [Fact]
+    [Test]
     public void APolygonOfFewerThanTwoVerticesHasNoAppearance()
     {
         var polygon = OnAPage(new PdfPolygonAnnotation());
@@ -179,7 +180,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
 
     // ----- caret ----------------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ACaretIsPaintedInItsRectangle()
     {
         var page = Rasterize("caret", document =>
@@ -192,7 +193,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
         Count(page, IsBlue).Should().BeGreaterThan(300);
     }
 
-    [Fact]
+    [Test]
     public void ACaretsSymbolIsWrittenOnlyWhenItIsAParagraph()
     {
         var caret = OnAPage(new PdfCaretAnnotation());
@@ -207,7 +208,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
 
     // ----- redaction ------------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ARedactionIsOutlinedAndLeavesWhatIsUnderneathVisible()
     {
         var page = Rasterize("redact", document =>
@@ -227,7 +228,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
         red.Should().BeLessThan((int)(region / 4));
     }
 
-    [Fact]
+    [Test]
     public void ARedactionsRegionsAndOverlaySurviveTheFile()
     {
         var redact = OnAPage(new PdfRedactAnnotation { Interior = XColors.Black });
@@ -249,7 +250,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
 
     // ----- pop-ups and the markup entries ---------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void APopupIsLinkedToItsAnnotationBothWays()
     {
         var document = new PdfDocument();
@@ -277,7 +278,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
         readPopup.Open.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void APopupCannotBeLinkedBeforeItIsOnAPage()
     {
         var document = new PdfDocument();
@@ -289,7 +290,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
         act.Should().Throw<InvalidOperationException>().WithMessage("*not on a page*");
     }
 
-    [Fact]
+    [Test]
     public void ARepliesThreadRichTextAndIntentSurviveTheFile()
     {
         var document = new PdfDocument();
@@ -316,32 +317,32 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
         ((PdfMarkupAnnotation)annotations[0]).ReplyType.Should().Be(PdfReplyType.Reply);
     }
 
-    public static TheoryData<PdfAnnotation, bool> MarkupOrNot => new()
-    {
-        { new PdfTextAnnotation(), true },
-        { new PdfFreeTextAnnotation(), true },
-        { new PdfLineAnnotation(), true },
-        { new PdfSquareAnnotation(), true },
-        { new PdfCircleAnnotation(), true },
-        { new PdfHighlightAnnotation(), true },
-        { new PdfRubberStampAnnotation(), true },
-        { new PdfFileAttachmentAnnotation(), true },
-        { new PdfInkAnnotation(), true },
-        { new PdfPolygonAnnotation(), true },
-        { new PdfPolyLineAnnotation(), true },
-        { new PdfCaretAnnotation(), true },
-        { new PdfRedactAnnotation(), true },
-        { new PdfLinkAnnotation(), false },
-        { new PdfWidgetAnnotation(), false },
-        { new PdfPopupAnnotation(), false }
-    };
+    public static IEnumerable<(PdfAnnotation, bool)> MarkupOrNot =>
+    [
+        (new PdfTextAnnotation(), true),
+        (new PdfFreeTextAnnotation(), true),
+        (new PdfLineAnnotation(), true),
+        (new PdfSquareAnnotation(), true),
+        (new PdfCircleAnnotation(), true),
+        (new PdfHighlightAnnotation(), true),
+        (new PdfRubberStampAnnotation(), true),
+        (new PdfFileAttachmentAnnotation(), true),
+        (new PdfInkAnnotation(), true),
+        (new PdfPolygonAnnotation(), true),
+        (new PdfPolyLineAnnotation(), true),
+        (new PdfCaretAnnotation(), true),
+        (new PdfRedactAnnotation(), true),
+        (new PdfLinkAnnotation(), false),
+        (new PdfWidgetAnnotation(), false),
+        (new PdfPopupAnnotation(), false)
+    ];
 
     /// <summary>
     ///   ISO 32000-1 Table 170 lists which subtypes are markup annotations; a link, a widget and a
     ///   pop-up are not.
     /// </summary>
-    [Theory]
-    [MemberData(nameof(MarkupOrNot), DisableDiscoveryEnumeration = true)]
+    [Test]
+    [MethodDataSource(nameof(MarkupOrNot))]
     public void TheMarkupAnnotationsAreTheOnesTheSpecificationNames(PdfAnnotation annotation, bool isMarkup)
     {
         (annotation is PdfMarkupAnnotation).Should().Be(isMarkup);

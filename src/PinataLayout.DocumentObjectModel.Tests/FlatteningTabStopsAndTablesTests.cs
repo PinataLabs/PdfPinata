@@ -2,7 +2,7 @@ using System.Linq;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.Tables;
 using PinataLayout.DocumentObjectModel.Visitors;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -38,7 +38,7 @@ public class FlatteningTabStopsAndTablesTests
         return document;
     }
 
-    [Fact]
+    [Test]
     public void AParagraphInheritsTheTabStopsOfItsStyle()
     {
         var document = ADocumentWithStyledTabStops(out var paragraph);
@@ -48,7 +48,7 @@ public class FlatteningTabStopsAndTablesTests
         PositionsOf(paragraph.Format.TabStops).Should().Equal(2.0, 4.0);
     }
 
-    [Fact]
+    [Test]
     public void AParagraphKeepsItsOwnTabStopsAlongsideTheOnesItInherits()
     {
         var document = ADocumentWithStyledTabStops(out var paragraph);
@@ -59,7 +59,7 @@ public class FlatteningTabStopsAndTablesTests
         PositionsOf(paragraph.Format.TabStops).Should().Equal(2.0, 4.0, 6.0);
     }
 
-    [Fact]
+    [Test]
     public void AParagraphCanCancelATabStopItWouldOtherwiseInherit()
     {
         // The tombstone: RemoveTabStop records a stop marked not to be added, and flattening is
@@ -73,7 +73,7 @@ public class FlatteningTabStopsAndTablesTests
         PositionsOf(paragraph.Format.TabStops).Should().Equal([4.0], "the cancelled one is gone, not merely marked");
     }
 
-    [Fact]
+    [Test]
     public void AParagraphCanRefuseToInheritAnyTabStopAtAll()
     {
         var document = ADocumentWithStyledTabStops(out var paragraph);
@@ -84,7 +84,7 @@ public class FlatteningTabStopsAndTablesTests
         paragraph.Format.TabStops.Count.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void AParagraphThatClearsAllStillKeepsTheStopsItAddsItself()
     {
         var document = ADocumentWithStyledTabStops(out var paragraph);
@@ -96,7 +96,7 @@ public class FlatteningTabStopsAndTablesTests
         PositionsOf(paragraph.Format.TabStops).Should().Equal(9.0);
     }
 
-    [Fact]
+    [Test]
     public void AStopTheParagraphAlreadyHasIsNotInheritedOverTheTopOfIt()
     {
         // Inheritance is by position, so a stop at the same place is the same stop and the
@@ -111,7 +111,7 @@ public class FlatteningTabStopsAndTablesTests
             .Alignment.Should().Be(TabAlignment.Decimal);
     }
 
-    [Fact]
+    [Test]
     public void AFlattenedParagraphInheritsNothingFurther()
     {
         // Flattening leaves the collection complete, which it says by marking it cleared - so
@@ -137,7 +137,7 @@ public class FlatteningTabStopsAndTablesTests
         return table;
     }
 
-    [Fact]
+    [Test]
     public void ATableWithNoStyleIsGivenTheNormalOne()
     {
         var document = new Document();
@@ -150,7 +150,7 @@ public class FlatteningTabStopsAndTablesTests
         table.Format.Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void ATableTakesOnWhatItsStyleSays()
     {
         var document = new Document();
@@ -164,7 +164,7 @@ public class FlatteningTabStopsAndTablesTests
         table.Format.Font.Bold.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ATableIsGivenPaddingWhereItStatedNone()
     {
         var document = new Document();
@@ -177,7 +177,7 @@ public class FlatteningTabStopsAndTablesTests
         table.RightPadding.Millimeter.Should().BeApproximately(1.2, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void AColumnInheritsTheTablesPaddingAndFormat()
     {
         var document = new Document();
@@ -192,7 +192,7 @@ public class FlatteningTabStopsAndTablesTests
         table.Columns[0].Format.Font.Italic.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ACellEndsUpWithTheFormatOfTheTableItIsIn()
     {
         var document = new Document();
@@ -205,7 +205,7 @@ public class FlatteningTabStopsAndTablesTests
         table[0, 0].Format.Font.Size.Point.Should().BeApproximately(17, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void ACellKeepsItsOwnAnswerWhereItDisagreesWithTheTable()
     {
         var document = new Document();
@@ -220,7 +220,7 @@ public class FlatteningTabStopsAndTablesTests
         table[1, 1].Format.Font.Size.Point.Should().BeApproximately(8, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void ATableWithNoRowsOrColumnsIsFlattenedWithoutComplaint()
     {
         var document = new Document();
@@ -242,7 +242,7 @@ public class FlatteningTabStopsAndTablesTests
     private static FormattedText FormattedTextOf(Paragraph paragraph) =>
         paragraph.Elements.OfType<FormattedText>().Single();
 
-    [Fact]
+    [Test]
     public void AFormattedTextNamingAStyleTakesThatStylesFont()
     {
         var document = new Document();
@@ -253,7 +253,7 @@ public class FlatteningTabStopsAndTablesTests
         FormattedTextOf(RtfFlattened(document)).Font.Bold.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AFormattedTextKeepsWhatItSaysItselfOverWhatItsStyleSays()
     {
         var document = new Document();
@@ -270,7 +270,7 @@ public class FlatteningTabStopsAndTablesTests
         flattened.Font.Size.Point.Should().BeApproximately(8, 1e-4, "and this was its own");
     }
 
-    [Fact]
+    [Test]
     public void AFormattedTextNamingNoStyleIsLeftAlone()
     {
         var document = new Document();
@@ -288,7 +288,7 @@ public class FlatteningTabStopsAndTablesTests
     ///   than to no style at all, so a document with a typo in it still renders and looks wrong in
     ///   a way that is meant to be noticed.
     /// </summary>
-    [Fact]
+    [Test]
     public void AFormattedTextNamingAStyleThatDoesNotExistFallsBackToTheInvalidOne()
     {
         var document = new Document();
@@ -310,7 +310,7 @@ public class FlatteningTabStopsAndTablesTests
         font.Color.Should().Be(invalid.Color);
     }
 
-    [Fact]
+    [Test]
     public void AHyperlinkTakesTheHyperlinkStylesFont()
     {
         var document = new Document();

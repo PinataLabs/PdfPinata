@@ -2,7 +2,7 @@ using System;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -16,12 +16,12 @@ namespace PdfPinata.Test.Pdfs;
 ///   <c>finally</c> and live in a collection that does not run beside anything else.
 ///   </para>
 /// </summary>
-[Collection(ClockCollection.Name)]
+[ClockSensitive]
 public class GlobalTimeSettingsTests
 {
     private static readonly DateTime AFixedTime = new(2019, 7, 16, 13, 45, 22);
 
-    [Fact]
+    [Test]
     public void TheClockReadsTheSystemClockUntilOneIsSet()
     {
         var before = DateTime.Now;
@@ -30,7 +30,7 @@ public class GlobalTimeSettingsTests
         reading.Should().BeOnOrAfter(before).And.BeOnOrBefore(DateTime.Now);
     }
 
-    [Fact]
+    [Test]
     public void ADocumentIsStampedWithTheTimeTheClockReports()
     {
         try
@@ -51,7 +51,7 @@ public class GlobalTimeSettingsTests
     ///   Two documents created a moment apart carry the same date when the clock is fixed, which is
     ///   the point of fixing it: it is what lets a caller compare one run's output against another's.
     /// </summary>
-    [Fact]
+    [Test]
     public void TwoDocumentsCreatedUnderAFixedClockCarryTheSameDate()
     {
         try
@@ -69,7 +69,7 @@ public class GlobalTimeSettingsTests
         }
     }
 
-    [Fact]
+    [Test]
     public void SettingTheClockToNullPutsTheSystemClockBack()
     {
         GlobalTimeSettings.Clock = () => AFixedTime;
@@ -80,7 +80,7 @@ public class GlobalTimeSettingsTests
         GlobalTimeSettings.Now.Should().BeOnOrAfter(before).And.BeOnOrBefore(DateTime.Now);
     }
 
-    [Fact]
+    [Test]
     public void TheClockIsReadEachTimeRatherThanOnce()
     {
         try

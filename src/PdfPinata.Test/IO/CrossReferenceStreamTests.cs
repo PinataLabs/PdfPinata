@@ -6,7 +6,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Security;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
 using Reader = PdfPinata.Pdf.IO.PdfReader;
@@ -27,7 +27,7 @@ public class CrossReferenceStreamTests
 {
     private const string Title = "A document indexed by a cross-reference stream";
 
-    [Fact]
+    [Test]
     public void TheClassicCrossReferenceTableIsStillWhatADocumentGetsByDefault()
     {
         var bytes = Save(_ => { });
@@ -37,7 +37,7 @@ public class CrossReferenceStreamTests
             + "has not asked for anything, and that is not a change to make silently");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentIndexedByACrossReferenceStreamHasNoTrailerAndNoCrossReferenceTable()
     {
         var bytes = Save(document => document.Options.CrossReferenceFormat = PdfCrossReferenceFormat.Stream);
@@ -47,7 +47,7 @@ public class CrossReferenceStreamTests
         text.Should().Contain("/Type /XRef", "the index is now an object rather than a section of its own");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentIndexedByACrossReferenceStreamIsReadBack()
     {
         var bytes = Save(document =>
@@ -63,7 +63,7 @@ public class CrossReferenceStreamTests
         reread.Info.Title.Should().Be(Title);
     }
 
-    [Fact]
+    [Test]
     public void APageOfADocumentIndexedByACrossReferenceStreamKeepsItsSize()
     {
         // The page dictionaries are exactly the objects that get moved into an object stream, so
@@ -82,7 +82,7 @@ public class CrossReferenceStreamTests
         reread.Pages[1].Height.Point.Should().BeApproximately(400, 0.5);
     }
 
-    [Fact]
+    [Test]
     public void TheObjectsThatMayBeCompressedAreGatheredIntoAnObjectStream()
     {
         var bytes = Save(document => document.Options.CrossReferenceFormat = PdfCrossReferenceFormat.Stream);
@@ -91,7 +91,7 @@ public class CrossReferenceStreamTests
             "the dictionary of an object stream is in plain sight; only the bodies it holds are compressed");
     }
 
-    [Fact]
+    [Test]
     public void AContentStreamIsNotMovedIntoAnObjectStream()
     {
         // A stream cannot nest inside a stream, so a page's content has to stay an object of its
@@ -102,7 +102,7 @@ public class CrossReferenceStreamTests
             "the content streams are still written out one by one, outside any object stream");
     }
 
-    [Fact]
+    [Test]
     public void TheVersionIsRaisedToOnePointFive()
     {
         var bytes = Save(document => document.Options.CrossReferenceFormat = PdfCrossReferenceFormat.Stream);
@@ -112,7 +112,7 @@ public class CrossReferenceStreamTests
             + "announce itself as anything earlier");
     }
 
-    [Fact]
+    [Test]
     public void AnObjectHeavyDocumentIsSmallerThanItIsInTheClassicForm()
     {
         var classic = Save(WithManyOutlines);
@@ -126,9 +126,9 @@ public class CrossReferenceStreamTests
             "gathering the dictionaries into one compression window is the entire point of doing this");
     }
 
-    [Theory]
-    [InlineData(PdfDocumentSecurityLevel.Encrypted40Bit)]
-    [InlineData(PdfDocumentSecurityLevel.Encrypted128Bit)]
+    [Test]
+    [Arguments(PdfDocumentSecurityLevel.Encrypted40Bit)]
+    [Arguments(PdfDocumentSecurityLevel.Encrypted128Bit)]
     public void AStringInAnEncryptedDocumentSurvivesBeingMovedIntoAnObjectStream(
         PdfDocumentSecurityLevel level)
     {
@@ -158,7 +158,7 @@ public class CrossReferenceStreamTests
         reread.Info.Author.Should().Be("Ångström");
     }
 
-    [Fact]
+    [Test]
     public void TheEncryptionDictionaryIsNotMovedIntoAnObjectStream()
     {
         // A reader has to reach the encryption dictionary before it can decrypt anything, and that
@@ -176,7 +176,7 @@ public class CrossReferenceStreamTests
             "the encryption dictionary has to be readable before anything else is");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentSavedBothWaysHasTheSamePagesAndTheSameProperties()
     {
         var classic = ReopenAndDescribe(Save(WithManyOutlines));
@@ -190,7 +190,7 @@ public class CrossReferenceStreamTests
             "the format decides how the objects are indexed and nothing about what they say");
     }
 
-    [Fact]
+    [Test]
     public void MoreObjectsThanFitOneObjectStreamAreSplitAcrossSeveral()
     {
         var bytes = Save(document =>
@@ -207,7 +207,7 @@ public class CrossReferenceStreamTests
             "splitting changes which stream an object is in and nothing about finding it");
     }
 
-    [Fact]
+    [Test]
     public void AnObjectStreamHasToHoldAtLeastOneObject()
     {
         var document = new PdfDocument();

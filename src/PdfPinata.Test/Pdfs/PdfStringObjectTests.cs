@@ -7,7 +7,7 @@ using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using PdfPinata.Test.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -28,7 +28,7 @@ public class PdfStringObjectTests
 {
     private const string Japanese = "日本語";
 
-    [Fact]
+    [Test]
     public void ANewStringObjectIsEmptyAndRaw()
     {
         var text = new PdfStringObject();
@@ -40,7 +40,7 @@ public class PdfStringObjectTests
         text.IsIndirect.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AStringObjectMadeWithAnEncodingSaysSo()
     {
         var text = new PdfStringObject(Japanese, PdfStringEncoding.Unicode);
@@ -52,7 +52,7 @@ public class PdfStringObjectTests
         text.ToString().Should().Be(Japanese);
     }
 
-    [Fact]
+    [Test]
     public void AStringObjectMadeForADocumentIsRawUntilToldOtherwise()
     {
         var text = new PdfStringObject(new PdfDocument(), "plain");
@@ -61,7 +61,7 @@ public class PdfStringObjectTests
         text.Encoding.Should().Be(PdfStringEncoding.RawEncoding);
     }
 
-    [Fact]
+    [Test]
     public void ChangingTheEncodingKeepsTheHexLiteralFlag()
     {
         var text = new PdfStringObject("abc", PdfStringEncoding.RawEncoding)
@@ -79,7 +79,7 @@ public class PdfStringObjectTests
         text.HexLiteral.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ChangingTheHexLiteralFlagKeepsTheEncoding()
     {
         var text = new PdfStringObject("abc", PdfStringEncoding.WinAnsiEncoding) { HexLiteral = true };
@@ -93,7 +93,7 @@ public class PdfStringObjectTests
         text.Encoding.Should().Be(PdfStringEncoding.WinAnsiEncoding);
     }
 
-    [Fact]
+    [Test]
     public void TheValueChangesInPlace()
     {
         // A PdfObject, not a simple type: the same instance takes the new value.
@@ -107,7 +107,7 @@ public class PdfStringObjectTests
         same.ToString().Should().Be("after");
     }
 
-    [Fact]
+    [Test]
     public void AssigningNullLeavesAnEmptyValue()
     {
         var text = new PdfStringObject("something", PdfStringEncoding.RawEncoding) { Value = null };
@@ -117,7 +117,7 @@ public class PdfStringObjectTests
         text.ToString().Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void AnIndirectStringIsWrittenAsAnObjectOfItsOwnAndReadBackAsOne()
     {
         var (saved, number) = SaveWithIndirectString(new PdfStringObject("indirect text", PdfStringEncoding.RawEncoding));
@@ -129,7 +129,7 @@ public class PdfStringObjectTests
         reread.Internals.Catalog.Elements.GetString("/TestText").Should().Be("indirect text");
     }
 
-    [Fact]
+    [Test]
     public void AHexLiteralStringObjectIsWrittenInHexadecimal()
     {
         var text = new PdfStringObject("Hi!", PdfStringEncoding.RawEncoding) { HexLiteral = true };
@@ -141,7 +141,7 @@ public class PdfStringObjectTests
         ReadBack(reread).Value.Should().Be("Hi!");
     }
 
-    [Fact]
+    [Test]
     public void AUnicodeStringObjectIsWrittenAsUtf16AndReadBackAsTheSameText()
     {
         var (saved, number) = SaveWithIndirectString(new PdfStringObject(Japanese, PdfStringEncoding.Unicode));
@@ -154,7 +154,7 @@ public class PdfStringObjectTests
         ReadBack(reread).Value.Should().Be(Japanese);
     }
 
-    [Fact]
+    [Test]
     public void AUnicodeStringObjectSurvivesBeingSavedASecondTime()
     {
         // The parser used to make every string object raw whatever the lexer had recognised, so
@@ -172,11 +172,11 @@ public class PdfStringObjectTests
         Encoding.Latin1.GetString(savedAgain).Should().Contain(number + " 0 obj\n<FEFF65E5672C8A9E>\nendobj");
     }
 
-    [Theory]
-    [InlineData("(plain)", "plain", PdfStringEncoding.RawEncoding, false)]
-    [InlineData("<706C61696E>", "plain", PdfStringEncoding.RawEncoding, true)]
-    [InlineData("(þÿ\u0000A\u0000B)", "AB", PdfStringEncoding.Unicode, false)]
-    [InlineData("<FEFF00410042>", "AB", PdfStringEncoding.Unicode, true)]
+    [Test]
+    [Arguments("(plain)", "plain", PdfStringEncoding.RawEncoding, false)]
+    [Arguments("<706C61696E>", "plain", PdfStringEncoding.RawEncoding, true)]
+    [Arguments("(þÿ\u0000A\u0000B)", "AB", PdfStringEncoding.Unicode, false)]
+    [Arguments("<FEFF00410042>", "AB", PdfStringEncoding.Unicode, true)]
     public void AStringObjectIsReadWithTheEncodingAndFormTheLexerFoundInIt(
         string written, string value, PdfStringEncoding encoding, bool hexLiteral)
     {
@@ -197,7 +197,7 @@ public class PdfStringObjectTests
         text.HexLiteral.Should().Be(hexLiteral);
     }
 
-    [Fact]
+    [Test]
     public void AStringObjectInAFileWrittenByHandIsReadAsOne()
     {
         var saved = RawPdf.Build(new List<string>
@@ -215,9 +215,9 @@ public class PdfStringObjectTests
         text.Reference.ObjectNumber.Should().Be(4);
     }
 
-    [Theory]
-    [InlineData("plain ASCII", PdfStringEncoding.RawEncoding, "(plain ASCII)")]
-    [InlineData(Japanese, PdfStringEncoding.Unicode, "<FEFF65E5672C8A9E>")]
+    [Test]
+    [Arguments("plain ASCII", PdfStringEncoding.RawEncoding, "(plain ASCII)")]
+    [Arguments(Japanese, PdfStringEncoding.Unicode, "<FEFF65E5672C8A9E>")]
     public void AStringObjectInAnEncryptedFileIsDecryptedAsTheFileIsOpened(
         string value, PdfStringEncoding encoding, string writtenInTheClear)
     {
@@ -242,7 +242,7 @@ public class PdfStringObjectTests
         decrypted.Encoding.Should().Be(encoding);
     }
 
-    [Fact]
+    [Test]
     public void EncryptingAUnicodeStringObjectTwiceGivesBackTheText()
     {
         // The standard handler's RC4 is its own inverse, which is how the same method both

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -27,13 +27,13 @@ public class XKnownColorTests
     private static IEnumerable<PropertyInfo> PropertiesOf(Type type) =>
         type.GetProperties(BindingFlags.Public | BindingFlags.Static);
 
-    [Fact]
+    [Test]
     public void ThereAreAsManyNamedColoursAsTheDocumentationClaims()
     {
         AllKnownColors.Should().HaveCount(141);
     }
 
-    [Fact]
+    [Test]
     public void EveryNamedColourHasAPropertyOnXColorsThatIsThatColour()
     {
         var properties = PropertiesOf(typeof(XColors)).ToDictionary(property => property.Name);
@@ -49,7 +49,7 @@ public class XKnownColorTests
         }
     }
 
-    [Fact]
+    [Test]
     public void XColorsOffersNothingBeyondTheNamedColours()
     {
         var names = AllKnownColors.Select(known => known.ToString()).ToHashSet();
@@ -58,7 +58,7 @@ public class XKnownColorTests
             .Should().OnlyContain(name => names.Contains(name));
     }
 
-    [Fact]
+    [Test]
     public void EveryNamedColourHasAPenOfTheSameColourAWholeUnitWide()
     {
         var properties = PropertiesOf(typeof(XPens)).ToDictionary(property => property.Name);
@@ -74,7 +74,7 @@ public class XKnownColorTests
         }
     }
 
-    [Fact]
+    [Test]
     public void EveryNamedColourHasABrushOfTheSameColour()
     {
         var properties = PropertiesOf(typeof(XBrushes)).ToDictionary(property => property.Name);
@@ -89,7 +89,7 @@ public class XKnownColorTests
         }
     }
 
-    [Fact]
+    [Test]
     public void EveryNamedColourExceptTransparentIsOpaque()
     {
         foreach (var known in AllKnownColors.Where(known => known != XKnownColor.Transparent))
@@ -98,7 +98,7 @@ public class XKnownColorTests
         XColor.FromKnownColor(XKnownColor.Transparent).A.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void TheTwoPairsOfSynonymsAreTheSameColourTwice()
     {
         // Left in for compatibility with GDI+, which has both spellings of each.
@@ -106,28 +106,28 @@ public class XKnownColorTests
         XColors.Fuchsia.Should().Be(XColors.Magenta);
     }
 
-    [Fact]
+    [Test]
     public void EveryNamedColourIsRecognisedAsOne()
     {
         foreach (var known in AllKnownColors)
             XColor.FromKnownColor(known).IsKnownColor.Should().BeTrue($"{known} is in the table");
     }
 
-    [Fact]
+    [Test]
     public void AColourThatIsNotInTheTableIsNotAKnownColour()
     {
         XColors.Black.IsKnownColor.Should().BeTrue();
         XColor.FromArgb(1, 2, 3).IsKnownColor.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AKnownColourCanBeFoundAgainFromItsArgbValue()
     {
         XColorResourceManager.GetKnownColor(0xFFFF0000).Should().Be(XKnownColor.Red);
         XColorResourceManager.GetKnownColor(0xFF000000).Should().Be(XKnownColor.Black);
     }
 
-    [Fact]
+    [Test]
     public void AnArgbValueThatNamesNoColourIsRefused()
     {
         var act = () => XColorResourceManager.GetKnownColor(0xFF010203);
@@ -135,7 +135,7 @@ public class XKnownColorTests
         act.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void TheListOfKnownColoursCanBeHadWithOrWithoutTransparent()
     {
         var withTransparent = XColorResourceManager.GetKnownColors(true);
@@ -148,7 +148,7 @@ public class XKnownColorTests
         withoutTransparent.Should().Contain(XKnownColor.Red);
     }
 
-    [Fact]
+    [Test]
     public void EveryColourTheResourceManagerListsCanBeNamedInBothItsLanguages()
     {
         // The manager translates into German and falls back to English for everything else, and
@@ -164,7 +164,7 @@ public class XKnownColorTests
         }
     }
 
-    [Fact]
+    [Test]
     public void TheGermanNameIsUsedForAGermanCultureAndTheEnglishOneOtherwise()
     {
         new XColorResourceManager(CultureInfo.GetCultureInfo("de-DE")).ToColorName(XKnownColor.Black)
@@ -175,7 +175,7 @@ public class XKnownColorTests
             .Should().Be("Black", "there is no French translation, so it falls back to English");
     }
 
-    [Fact]
+    [Test]
     public void AManagerWithNoCultureUsesTheOneTheMachineIsSetTo()
     {
         // Only that it works and names the colour - which name it picks depends on the machine,
@@ -183,7 +183,7 @@ public class XKnownColorTests
         new XColorResourceManager().ToColorName(XKnownColor.Black).Should().NotBeNullOrWhiteSpace();
     }
 
-    [Fact]
+    [Test]
     public void AColourTheTableDoesNotListCannotBeNamed()
     {
         var act = () => new XColorResourceManager(CultureInfo.InvariantCulture)
@@ -192,7 +192,7 @@ public class XKnownColorTests
         act.Should().Throw<InvalidEnumArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AColourIsNamedWhenItIsKnownAndSpelledOutWhenItIsNot()
     {
         var manager = new XColorResourceManager(CultureInfo.InvariantCulture);

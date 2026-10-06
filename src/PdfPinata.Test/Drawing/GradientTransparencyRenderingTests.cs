@@ -4,7 +4,7 @@ using ImageMagick;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Drawing;
@@ -14,7 +14,7 @@ namespace PdfPinata.Test.Drawing;
 ///   well formed; only rasterizing says a reader makes a blend of it rather than the flat opaque
 ///   band this library used to paint.
 /// </summary>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public sealed class GradientTransparencyRenderingTests : IDisposable
 {
     private const string OutDir = "Out/GradientTransparency";
@@ -30,7 +30,7 @@ public sealed class GradientTransparencyRenderingTests : IDisposable
     /// <summary>The band the gradient is drawn across, in the space the drawing uses.</summary>
     private static readonly XRect Band = new(50, 50, 400, 200);
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void ATransparentToOpaqueGradientLetsTheFillBeneathItThrough()
     {
         var page = Rasterize("fade_over_red", gfx =>
@@ -55,7 +55,7 @@ public sealed class GradientTransparencyRenderingTests : IDisposable
         Luminance(middle).Should().BeGreaterThan(Luminance(right));
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AHalfTransparentGradientOverWhiteIsMidGreyRatherThanBlack()
     {
         var page = Rasterize("half_over_white", gfx =>
@@ -71,7 +71,7 @@ public sealed class GradientTransparencyRenderingTests : IDisposable
         }
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void ARadialGradientWithATransparentEdgeVeilsWhatIsUnderIt()
     {
         var centre = new XPoint(Band.X + Band.Width / 2, Band.Y + Band.Height / 2);
@@ -93,7 +93,7 @@ public sealed class GradientTransparencyRenderingTests : IDisposable
         atEdge.R.Should().BeGreaterThan(150);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AnOpaqueShapeDrawnAfterAMaskedGradientIsFullyOpaque()
     {
         var after = new XRect(50, 300, 400, 100);
@@ -110,7 +110,7 @@ public sealed class GradientTransparencyRenderingTests : IDisposable
             Luminance(SampleAt(page, across, after)).Should().BeLessThan(40);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void TwoGradientsOnOnePageDoNotMaskEachOther()
     {
         var lower = new XRect(50, 300, 400, 200);

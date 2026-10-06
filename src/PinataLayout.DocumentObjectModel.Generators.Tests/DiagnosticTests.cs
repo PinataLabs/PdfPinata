@@ -1,7 +1,7 @@
 using System.Linq;
 using AwesomeAssertions;
 using Microsoft.CodeAnalysis;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Generators.Tests;
 
@@ -14,7 +14,7 @@ public class DiagnosticTests
 {
     private const string Ns = "using PinataLayout.DocumentObjectModel;\nusing PinataLayout.DocumentObjectModel.Internals;\nnamespace Probe;\n";
 
-    [Fact]
+    [Test]
     public void AValidTypeProducesATableAndNoDiagnostics()
     {
         var result = GeneratorHarness.Run(Ns + """
@@ -32,7 +32,7 @@ public class DiagnosticTests
         result.AllGenerated.Should().Contain("\"parent\"", "inherited [DV] members are included");
     }
 
-    [Fact]
+    [Test]
     public void TheGeneratedTableCompiles()
     {
         var result = GeneratorHarness.Run(Ns + """
@@ -46,7 +46,7 @@ public class DiagnosticTests
             "the emitted source must bind, not merely be produced");
     }
 
-    [Fact]
+    [Test]
     public void EachKindIsClassifiedAsTheModelExpects()
     {
         var result = GeneratorHarness.Run(Ns + """
@@ -77,7 +77,7 @@ public class DiagnosticTests
         generated.Should().Contain("ValueKind.Collection");
     }
 
-    [Fact]
+    [Test]
     public void MDG001_TypeWithDvMembersMustBePartial()
     {
         var result = GeneratorHarness.Run(Ns + """
@@ -90,7 +90,7 @@ public class DiagnosticTests
         result.Ids.Should().Contain("MDG001");
     }
 
-    [Fact]
+    [Test]
     public void MDG002_MemberTypeTheModelCannotDescribe()
     {
         // Replaces Debug.Assert(false, type.FullName) followed by a null descriptor - nothing at
@@ -105,7 +105,7 @@ public class DiagnosticTests
         result.Ids.Should().Contain("MDG002");
     }
 
-    [Fact]
+    [Test]
     public void MDG003_StaticMember()
     {
         var result = GeneratorHarness.Run(Ns + """
@@ -118,7 +118,7 @@ public class DiagnosticTests
         result.Ids.Should().Contain("MDG003");
     }
 
-    [Fact]
+    [Test]
     public void MDG003_PrivateMember()
     {
         var result = GeneratorHarness.Run(Ns + """
@@ -131,7 +131,7 @@ public class DiagnosticTests
         result.Ids.Should().Contain("MDG003");
     }
 
-    [Fact]
+    [Test]
     public void MDG004_TwoMembersCollidingUnderCaseInsensitiveLookup()
     {
         // The name table is case-insensitive. Before the generator this threw from Hashtable.Add
@@ -147,7 +147,7 @@ public class DiagnosticTests
         result.Ids.Should().Contain("MDG004");
     }
 
-    [Fact]
+    [Test]
     public void MDG005_DvOutsideADocumentObject()
     {
         var result = GeneratorHarness.Run(Ns + """
@@ -160,7 +160,7 @@ public class DiagnosticTests
         result.Ids.Should().Contain("MDG005");
     }
 
-    [Fact]
+    [Test]
     public void MDG006_RefOnlyOnAValueMember()
     {
         var result = GeneratorHarness.Run(Ns + """
@@ -173,7 +173,7 @@ public class DiagnosticTests
         result.Ids.Should().Contain("MDG006");
     }
 
-    [Fact]
+    [Test]
     public void MDG007_MemberNamedInNoStringLiteralWithinSerialize()
     {
         // The check this task's spec asks for: a member the generator drives correctly, but the
@@ -191,7 +191,7 @@ public class DiagnosticTests
         result.Ids.Should().Contain("MDG007");
     }
 
-    [Fact]
+    [Test]
     public void MDG007_SaysNothingWhenTheMemberIsNamed()
     {
         var result = GeneratorHarness.Run(Ns + """
@@ -209,7 +209,7 @@ public class DiagnosticTests
         result.Ids.Should().NotContain("MDG007");
     }
 
-    [Fact]
+    [Test]
     public void MDG007_MatchesCaseInsensitively()
     {
         // A [DV] field is conventionally camelCase and the DDL attribute name Serialize writes it
@@ -230,7 +230,7 @@ public class DiagnosticTests
         result.Ids.Should().NotContain("MDG007");
     }
 
-    [Fact]
+    [Test]
     public void MDG007_SaysNothingAboutATypeWithNoSerializeOfItsOwn()
     {
         // No Serialize method means this type is not the one responsible for getting its members
@@ -245,7 +245,7 @@ public class DiagnosticTests
         result.Ids.Should().NotContain("MDG007");
     }
 
-    [Fact]
+    [Test]
     public void MDG007_SaysNothingAboutARefOnlyMember()
     {
         // RefOnly exists so parent isn't walked forever by IsNull and SetNull; the same reason
@@ -269,14 +269,14 @@ public class DiagnosticTests
     /// by which point the symbol that caused it is gone. Carrying a value-equatable LocationInfo
     /// through the pipeline is what fixed it, and this is the test that keeps it fixed.
     /// </summary>
-    [Theory]
-    [InlineData("MDG001", "public class Widget : DocumentObject { [DV] internal bool? visible; }")]
-    [InlineData("MDG002", "public partial class Widget : DocumentObject { [DV] internal System.Collections.Generic.List<int> bad; }")]
-    [InlineData("MDG003", "public partial class Widget : DocumentObject { [DV] internal static bool? visible; }")]
-    [InlineData("MDG004", "public partial class Widget : DocumentObject { [DV] internal bool? caption; [DV] public bool? Caption { get; set; } }")]
-    [InlineData("MDG005", "public partial class NotADomType { [DV] internal bool? visible; }")]
-    [InlineData("MDG006", "public partial class Widget : DocumentObject { [DV(RefOnly = true)] internal bool? visible; }")]
-    [InlineData("MDG007", "public partial class Widget : DocumentObject { [DV] internal bool? visible; internal void Serialize(object serializer) { } }")]
+    [Test]
+    [Arguments("MDG001", "public class Widget : DocumentObject { [DV] internal bool? visible; }")]
+    [Arguments("MDG002", "public partial class Widget : DocumentObject { [DV] internal System.Collections.Generic.List<int> bad; }")]
+    [Arguments("MDG003", "public partial class Widget : DocumentObject { [DV] internal static bool? visible; }")]
+    [Arguments("MDG004", "public partial class Widget : DocumentObject { [DV] internal bool? caption; [DV] public bool? Caption { get; set; } }")]
+    [Arguments("MDG005", "public partial class NotADomType { [DV] internal bool? visible; }")]
+    [Arguments("MDG006", "public partial class Widget : DocumentObject { [DV(RefOnly = true)] internal bool? visible; }")]
+    [Arguments("MDG007", "public partial class Widget : DocumentObject { [DV] internal bool? visible; internal void Serialize(object serializer) { } }")]
     public void EveryDiagnosticPointsAtSource(string id, string snippet)
     {
         var result = GeneratorHarness.Run(Ns + snippet);
@@ -287,7 +287,7 @@ public class DiagnosticTests
         reported.Location.GetLineSpan().Path.Should().Be(GeneratorHarness.SnippetPath);
     }
 
-    [Fact]
+    [Test]
     public void MDG004_PointsAtTheLaterOfTheTwoDeclarations()
     {
         // Base chain is walked base first, so the second declaration seen is the one the collision
@@ -315,7 +315,7 @@ public class DiagnosticTests
     ///   without one it fails to implement DocumentObject.Meta. Fifteen real DOM types are in this
     ///   position, and an attribute-driven provider alone cannot see them.
     /// </summary>
-    [Fact]
+    [Test]
     public void ATypeWithNoDvMembersOfItsOwnStillGetsATable()
     {
         var result = GeneratorHarness.Run(Ns + """
@@ -332,7 +332,7 @@ public class DiagnosticTests
     ///   An abstract class needs no table: it cannot be instantiated, and its members are picked up
     ///   by every concrete type below it.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnAbstractTypeGetsNoTableButItsMembersAreInherited()
     {
         var result = GeneratorHarness.Run(Ns + """
@@ -354,7 +354,7 @@ public class DiagnosticTests
         result.AllGenerated.Should().Contain("\"visible\"");
     }
 
-    [Fact]
+    [Test]
     public void MDG007_APragmaDoesNotSuppressIt()
     {
         // Checked against a real build of the DOM, not guessed: a plain #pragma warning disable
@@ -377,7 +377,7 @@ public class DiagnosticTests
         result.Ids.Should().Contain("MDG007");
     }
 
-    [Fact]
+    [Test]
     public void MDG007_SuppressedByAttributeOnTheClass()
     {
         // The mechanism this task's spec actually asks for: "suppress it once, in source, with a
@@ -395,7 +395,7 @@ public class DiagnosticTests
         result.Ids.Should().NotContain("MDG007");
     }
 
-    [Fact]
+    [Test]
     public void MDG007_TheAttributeSuppressesEveryMemberOfTheType()
     {
         var result = GeneratorHarness.Run(Ns + """

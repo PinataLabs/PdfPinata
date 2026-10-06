@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### PDF Reader & Writer
+
+#### Fixed
+
+- **Two LZW streams decoded on two threads at once no longer corrupt each other.** `Filtering.LzwDecode` is one instance for the process, and it kept its string table and read position in fields, so two documents read concurrently could each decode with the other's table and come back short or empty. Each decode now has an instance of its own.
+
 ## [0.4.0] - 2026-10-06
 
 ### PDF Reader & Writer

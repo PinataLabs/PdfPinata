@@ -3,7 +3,7 @@ using System.IO;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.IO.ImportedPageFixtures;
 using static PdfPinata.Test.IO.SplitTests;
 
@@ -26,7 +26,7 @@ public class ImportedAnnotationsTests
 {
     private const string Url = "http://www.example.com/a?b=c";
 
-    [Fact]
+    [Test]
     public void AddingAPageKeepsItsWebLink()
     {
         using var output = Import(source =>
@@ -39,7 +39,7 @@ public class ImportedAnnotationsTests
         UrlOf(output).Should().Be(Url);
     }
 
-    [Fact]
+    [Test]
     public void InsertingARangeKeepsTheWebLinkOfThePage()
     {
         using var output = Import(source =>
@@ -52,7 +52,7 @@ public class ImportedAnnotationsTests
         UrlOf(output).Should().Be(Url);
     }
 
-    [Fact]
+    [Test]
     public void DeepCopyingAnnotationsKeepsTheWebLink()
     {
         using var output = Import(source =>
@@ -65,7 +65,7 @@ public class ImportedAnnotationsTests
         UrlOf(output).Should().Be(Url);
     }
 
-    [Fact]
+    [Test]
     public void AskingForNoAnnotationsLeavesThePageWithout()
     {
         using var output = Import(source =>
@@ -83,7 +83,7 @@ public class ImportedAnnotationsTests
     ///   along with it. The fixture pages weigh an image each, which is how one that came along
     ///   would show.
     /// </summary>
-    [Fact]
+    [Test]
     public void AWebLinkTakesNoPageOfTheDocumentWithIt()
     {
         using var output = Import(source =>

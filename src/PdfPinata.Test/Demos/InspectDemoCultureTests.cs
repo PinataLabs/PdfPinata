@@ -6,7 +6,7 @@ using PdfPinata.Pdf.Extraction;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using SampleApp.Infrastructure;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Demos;
 
@@ -18,12 +18,12 @@ namespace PdfPinata.Test.Demos;
 /// </summary>
 public class InspectDemoCultureTests
 {
-    [Fact]
+    [Test]
     public void AnOperandIsShownWithAFullStopWhateverTheCurrentCulture()
     {
         DemoRegistry.TryGet("Inspect", out var demo).Should().BeTrue();
 
-        // CurrentCulture is per thread and xUnit gives a test method a thread to itself, so this
+        // CurrentCulture follows the async flow and every test runs in a flow of its own, so this
         // does not reach a test running beside it.
         var previous = CultureInfo.CurrentCulture;
         CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("de-DE");

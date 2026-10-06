@@ -3,7 +3,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -42,13 +42,13 @@ public class TextDecorationTests
 
     // ----- D1, decoration without the font style -------------------------------------------------
 
-    [Fact]
+    [Test]
     public void NothingIsDrawnUnderPlainText()
     {
         RulesFilledOn(PageShowing("Hello", Plain, XStringFormats.Default)).Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void AnUnderlineCanBeAskedForWithoutSettingItOnTheFont()
     {
         var format = XStringFormats.Default;
@@ -57,7 +57,7 @@ public class TextDecorationTests
         RulesFilledOn(PageShowing("Hello", Plain, format)).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AStrikeoutCanBeAskedForWithoutSettingItOnTheFont()
     {
         var format = XStringFormats.Default;
@@ -66,7 +66,7 @@ public class TextDecorationTests
         RulesFilledOn(PageShowing("Hello", Plain, format)).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void TheFontStyleStillUnderlinesOnItsOwn()
     {
         // The way it was done before the format could say it, and the way every existing caller
@@ -74,13 +74,13 @@ public class TextDecorationTests
         RulesFilledOn(PageShowing("Hello", Underlined, XStringFormats.Default)).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void TheFontStyleStillStrikesOutOnItsOwn()
     {
         RulesFilledOn(PageShowing("Hello", StruckOut, XStringFormats.Default)).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void BothAtOnceDrawTwoRules()
     {
         var format = XStringFormats.Default;
@@ -90,7 +90,7 @@ public class TextDecorationTests
         RulesFilledOn(PageShowing("Hello", Plain, format)).Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void TheFormatDecidesTheStyleWhenTheFontAlsoAsksForOne()
     {
         var format = XStringFormats.Default;
@@ -105,7 +105,7 @@ public class TextDecorationTests
 
     // ----- D2, the styles ------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ASolidRuleIsFilledRatherThanStroked()
     {
         var format = XStringFormats.Default;
@@ -117,11 +117,11 @@ public class TextDecorationTests
         RulesStrokedOn(page).Should().Be(0);
     }
 
-    [Theory]
-    [InlineData(XTextDecoration.Dotted)]
-    [InlineData(XTextDecoration.Dash)]
-    [InlineData(XTextDecoration.DotDash)]
-    [InlineData(XTextDecoration.DotDotDash)]
+    [Test]
+    [Arguments(XTextDecoration.Dotted)]
+    [Arguments(XTextDecoration.Dash)]
+    [Arguments(XTextDecoration.DotDash)]
+    [Arguments(XTextDecoration.DotDotDash)]
     public void ABrokenRuleIsStrokedWithADashPattern(XTextDecoration style)
     {
         var format = XStringFormats.Default;
@@ -136,11 +136,11 @@ public class TextDecorationTests
         TextOperators.OperandsGivenTo(page, OpCodeName.d).Should().NotBeEmpty();
     }
 
-    [Theory]
-    [InlineData(XTextDecoration.Dotted)]
-    [InlineData(XTextDecoration.Dash)]
-    [InlineData(XTextDecoration.DotDash)]
-    [InlineData(XTextDecoration.DotDotDash)]
+    [Test]
+    [Arguments(XTextDecoration.Dotted)]
+    [Arguments(XTextDecoration.Dash)]
+    [Arguments(XTextDecoration.DotDash)]
+    [Arguments(XTextDecoration.DotDotDash)]
     public void EachBrokenStyleAsksForADifferentPattern(XTextDecoration style)
     {
         var format = XStringFormats.Default;
@@ -155,7 +155,7 @@ public class TextDecorationTests
         TextOperators.CountOf(PageShowing("Hello", Plain, solid), OpCodeName.S).Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void UnderliningWordsLeavesTheSpacesBetweenThemUnmarked()
     {
         var format = XStringFormats.Default;
@@ -165,7 +165,7 @@ public class TextDecorationTests
         RulesFilledOn(PageShowing("one two three", Plain, format)).Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void UnderliningWordsIgnoresTheSpaceAtEitherEnd()
     {
         var format = XStringFormats.Default;
@@ -174,7 +174,7 @@ public class TextDecorationTests
         RulesFilledOn(PageShowing("  one  two  ", Plain, format)).Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void UnderliningWordsOfASingleWordIsOneRule()
     {
         var format = XStringFormats.Default;
@@ -183,7 +183,7 @@ public class TextDecorationTests
         RulesFilledOn(PageShowing("Hello", Plain, format)).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void TheRulesUnderWordsFollowTheWordsAcrossTheLine()
     {
         var format = XStringFormats.Default;
@@ -200,7 +200,7 @@ public class TextDecorationTests
 
     // ----- D2, the colour ------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ARuleFollowsTheColourOfTheTextByDefault()
     {
         var format = XStringFormats.Default;
@@ -216,7 +216,7 @@ public class TextDecorationTests
             colour => colour.Should().Equal(1d, 0d, 0d));
     }
 
-    [Fact]
+    [Test]
     public void ARuleCanBeGivenAColourOfItsOwn()
     {
         var format = XStringFormats.Default;
@@ -252,7 +252,7 @@ public class TextDecorationTests
         return TextBaselines.PositionsOf(page)[0].Y;
     }
 
-    [Fact]
+    [Test]
     public void HangingTextIsDroppedByItsAscent()
     {
         // PDF measures up the page, so putting the top of the text on the line moves the baseline
@@ -261,21 +261,21 @@ public class TextDecorationTests
             .Should().BeApproximately(AscentOf(Plain), 0.01);
     }
 
-    [Fact]
+    [Test]
     public void IdeographicTextIsLiftedByItsDescent()
     {
         (BaselineFor(XLineAlignment.Ideographic) - BaselineFor(XLineAlignment.BaseLine))
             .Should().BeApproximately(DescentOf(Plain), 0.01);
     }
 
-    [Fact]
+    [Test]
     public void SvgMiddleTextIsDroppedByHalfItsXHeight()
     {
         (BaselineFor(XLineAlignment.BaseLine) - BaselineFor(XLineAlignment.SvgMiddle))
             .Should().BeApproximately(XHeightOf(Plain) / 2, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void HangingIsWhereNearIsWhenThereIsNoRectangleToSpeakOf()
     {
         // The two differ only in what they are measured against, and a rectangle of no height
@@ -283,7 +283,7 @@ public class TextDecorationTests
         BaselineFor(XLineAlignment.Hanging).Should().BeApproximately(BaselineFor(XLineAlignment.Near), 0.01);
     }
 
-    [Fact]
+    [Test]
     public void TheThreeNewBaselinesSitInTheOrderTheirNamesSuggest()
     {
         var hanging = BaselineFor(XLineAlignment.Hanging);
@@ -297,7 +297,7 @@ public class TextDecorationTests
         alphabetic.Should().BeLessThan(ideographic);
     }
 
-    [Fact]
+    [Test]
     public void TheBaselinesThatWereThereBeforeHaveNotMoved()
     {
         var format = XStringFormats.Default;

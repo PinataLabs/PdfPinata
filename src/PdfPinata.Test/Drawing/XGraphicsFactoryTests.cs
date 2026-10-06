@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -91,12 +91,12 @@ public class XGraphicsFactoryTests
 
     // ----- the page surface -------------------------------------------------------------------------
 
-    [Theory]
-    [InlineData(XGraphicsUnit.Point, 1)]
-    [InlineData(XGraphicsUnit.Inch, 72)]
-    [InlineData(XGraphicsUnit.Millimeter, 72 / 25.4)]
-    [InlineData(XGraphicsUnit.Centimeter, 72 / 2.54)]
-    [InlineData(XGraphicsUnit.Presentation, 0.75)]
+    [Test]
+    [Arguments(XGraphicsUnit.Point, 1)]
+    [Arguments(XGraphicsUnit.Inch, 72)]
+    [Arguments(XGraphicsUnit.Millimeter, 72 / 25.4)]
+    [Arguments(XGraphicsUnit.Centimeter, 72 / 2.54)]
+    [Arguments(XGraphicsUnit.Presentation, 0.75)]
     public void APageSurfaceMeasuresItsPageInTheUnitItWasGiven(XGraphicsUnit unit, double pointsPerUnit)
     {
         using var gfx = XGraphics.FromPdfPage(AnA4Page(), unit);
@@ -105,7 +105,7 @@ public class XGraphicsFactoryTests
         gfx.PageSize.Width.Should().BeApproximately(APageWidthInPoints / pointsPerUnit, 1e-3);
     }
 
-    [Fact]
+    [Test]
     public void APageSurfaceInAUnitThatDoesNotExistIsRefused()
     {
         var making = () => XGraphics.FromPdfPage(AnA4Page(), (XGraphicsUnit)99);
@@ -118,7 +118,7 @@ public class XGraphicsFactoryTests
     ///   <see cref="XPageDirection.Downwards"/> is worth asking for: the other member is marked
     ///   obsolete and never implemented, so naming it here would be a warning rather than a test.
     /// </summary>
-    [Fact]
+    [Test]
     public void APageSurfaceRecordsThePageDirectionItWasBuiltWith()
     {
         using var gfx = XGraphics.FromPdfPage(AnA4Page(), XPageDirection.Downwards);
@@ -126,10 +126,10 @@ public class XGraphicsFactoryTests
         gfx.PageDirection.Should().Be(XPageDirection.Downwards);
     }
 
-    [Theory]
-    [InlineData(XGraphicsPdfPageOptions.Append)]
-    [InlineData(XGraphicsPdfPageOptions.Prepend)]
-    [InlineData(XGraphicsPdfPageOptions.Replace)]
+    [Test]
+    [Arguments(XGraphicsPdfPageOptions.Append)]
+    [Arguments(XGraphicsPdfPageOptions.Prepend)]
+    [Arguments(XGraphicsPdfPageOptions.Replace)]
     public void EachWayOfJoiningThePagesExistingContentMakesASurface(XGraphicsPdfPageOptions options)
     {
         var page = AnA4Page();
@@ -142,7 +142,7 @@ public class XGraphicsFactoryTests
         gfx.PageSize.Width.Should().BeApproximately(APageWidthInPoints, 1e-3);
     }
 
-    [Fact]
+    [Test]
     public void EveryPageOverloadReachesTheSameSurface()
     {
         var document = new PdfDocument();
@@ -163,7 +163,7 @@ public class XGraphicsFactoryTests
             byDirection.PageDirection.Should().Be(XPageDirection.Downwards);
     }
 
-    [Fact]
+    [Test]
     public void APageAlreadyBeingDrawnOnWillNotGiveASecondSurface()
     {
         var page = AnA4Page();
@@ -174,7 +174,7 @@ public class XGraphicsFactoryTests
         second.Should().Throw<InvalidOperationException>();
     }
 
-    [Fact]
+    [Test]
     public void APageThatBelongsToNoDocumentCannotBeDrawnOn()
     {
         var making = () => XGraphics.FromPdfPage(new PdfPage());
@@ -182,7 +182,7 @@ public class XGraphicsFactoryTests
         making.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AMissingPageIsRefusedRatherThanFollowed()
     {
         var making = () => XGraphics.FromPdfPage(null!);
@@ -192,12 +192,12 @@ public class XGraphicsFactoryTests
 
     // ----- the measuring surface --------------------------------------------------------------------
 
-    [Theory]
-    [InlineData(XGraphicsUnit.Point, 1)]
-    [InlineData(XGraphicsUnit.Inch, 72)]
-    [InlineData(XGraphicsUnit.Millimeter, 72 / 25.4)]
-    [InlineData(XGraphicsUnit.Centimeter, 72 / 2.54)]
-    [InlineData(XGraphicsUnit.Presentation, 0.75)]
+    [Test]
+    [Arguments(XGraphicsUnit.Point, 1)]
+    [Arguments(XGraphicsUnit.Inch, 72)]
+    [Arguments(XGraphicsUnit.Millimeter, 72 / 25.4)]
+    [Arguments(XGraphicsUnit.Centimeter, 72 / 2.54)]
+    [Arguments(XGraphicsUnit.Presentation, 0.75)]
     public void AMeasuringSurfaceMeasuresInTheUnitItWasGiven(XGraphicsUnit unit, double pointsPerUnit)
     {
         var gfx = XGraphics.CreateMeasureContext(
@@ -206,7 +206,7 @@ public class XGraphicsFactoryTests
         gfx.PageSize.Width.Should().BeApproximately(720 / pointsPerUnit, 1e-3);
     }
 
-    [Fact]
+    [Test]
     public void AMeasuringSurfaceInAUnitThatDoesNotExistIsRefused()
     {
         var making = () => XGraphics.CreateMeasureContext(
@@ -215,7 +215,7 @@ public class XGraphicsFactoryTests
         making.Should().Throw<NotImplementedException>();
     }
 
-    [Fact]
+    [Test]
     public void DrawingOnAMeasuringSurfaceHasNoEffectAndDoesNotThrow()
     {
         var gfx = XGraphics.CreateMeasureContext(
@@ -228,12 +228,12 @@ public class XGraphicsFactoryTests
 
     // ----- a surface over a renderer of the caller's own ----------------------------------------------
 
-    [Theory]
-    [InlineData(XGraphicsUnit.Point, 1)]
-    [InlineData(XGraphicsUnit.Inch, 72)]
-    [InlineData(XGraphicsUnit.Millimeter, 72 / 25.4)]
-    [InlineData(XGraphicsUnit.Centimeter, 72 / 2.54)]
-    [InlineData(XGraphicsUnit.Presentation, 0.75)]
+    [Test]
+    [Arguments(XGraphicsUnit.Point, 1)]
+    [Arguments(XGraphicsUnit.Inch, 72)]
+    [Arguments(XGraphicsUnit.Millimeter, 72 / 25.4)]
+    [Arguments(XGraphicsUnit.Centimeter, 72 / 2.54)]
+    [Arguments(XGraphicsUnit.Presentation, 0.75)]
     public void ASurfaceOverARendererMeasuresInTheUnitItWasGiven(XGraphicsUnit unit, double pointsPerUnit)
     {
         var gfx = XGraphics.FromRenderer(new SilentRenderer(),
@@ -242,7 +242,7 @@ public class XGraphicsFactoryTests
         gfx.PageSize.Width.Should().BeApproximately(720 / pointsPerUnit, 1e-3);
     }
 
-    [Fact]
+    [Test]
     public void ASurfaceOverARendererInAUnitThatDoesNotExistIsRefused()
     {
         var making = () => XGraphics.FromRenderer(new SilentRenderer(),
@@ -251,7 +251,7 @@ public class XGraphicsFactoryTests
         making.Should().Throw<NotImplementedException>();
     }
 
-    [Fact]
+    [Test]
     public void ASurfaceNeedsARendererToBeBuiltOver()
     {
         var making = () => XGraphics.FromRenderer(null!,
@@ -260,7 +260,7 @@ public class XGraphicsFactoryTests
         making.Should().Throw<ArgumentNullException>();
     }
 
-    [Fact]
+    [Test]
     public void EveryDrawingCallReachesTheRendererItWasBuiltOver()
     {
         var renderer = new SilentRenderer();
@@ -284,7 +284,7 @@ public class XGraphicsFactoryTests
         renderer.Calls.Should().HaveCount(7, "the two rectangles of the series arrive one each");
     }
 
-    [Fact]
+    [Test]
     public void ASeriesOfRectanglesNeedsSomethingToDrawThemWithAndSomethingToDraw()
     {
         var gfx = XGraphics.FromRenderer(new SilentRenderer(),
@@ -303,7 +303,7 @@ public class XGraphicsFactoryTests
     ///   left, so the point overload has to flip the y. The rectangle overload cannot answer for a
     ///   point: it encloses rather than maps, so which corner a point became is lost.
     /// </summary>
-    [Fact]
+    [Test]
     public void APointIsMappedFromWorldSpaceToDefaultPageSpace()
     {
         var page = AnA4Page();
@@ -315,7 +315,7 @@ public class XGraphicsFactoryTests
         mapped.Y.Should().BeApproximately(gfx.PageSize.Height - 20, 1e-6);
     }
 
-    [Fact]
+    [Test]
     public void ARectangleIsEnclosedRatherThanMapped()
     {
         var page = AnA4Page();
@@ -329,7 +329,7 @@ public class XGraphicsFactoryTests
 
     // ----- text drawn into a rectangle ----------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void EveryDrawStringOverloadPutsSomethingOnThePage()
     {
         var document = new PdfDocument();
@@ -354,7 +354,7 @@ public class XGraphicsFactoryTests
 
     // ----- disposing ----------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ASurfaceCanBeDisposedTwice()
     {
         var gfx = XGraphics.FromPdfPage(AnA4Page());

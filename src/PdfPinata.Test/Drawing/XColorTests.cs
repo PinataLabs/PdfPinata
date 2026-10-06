@@ -1,8 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -20,7 +21,7 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class XColorTests
 {
-    [Fact]
+    [Test]
     public void APackedArgbValueUnpacksIntoItsFourBytes()
     {
         var color = XColor.FromArgb(unchecked((int)0x80FF8040));
@@ -32,13 +33,13 @@ public class XColorTests
         color.ColorSpace.Should().Be(XColorSpace.Rgb);
     }
 
-    [Fact]
+    [Test]
     public void TheUnsignedOverloadPacksTheSameWayTheSignedOneDoes()
     {
         XColor.FromArgb(0x80FF8040u).Should().Be(XColor.FromArgb(unchecked((int)0x80FF8040)));
     }
 
-    [Fact]
+    [Test]
     public void ThreeComponentsMeanFullyOpaque()
     {
         var color = XColor.FromArgb(10, 20, 30);
@@ -49,7 +50,7 @@ public class XColorTests
         color.B.Should().Be(30);
     }
 
-    [Fact]
+    [Test]
     public void FourComponentsIncludeTheTransparency()
     {
         var color = XColor.FromArgb(0, 10, 20, 30);
@@ -58,12 +59,12 @@ public class XColorTests
         color.R.Should().Be(10);
     }
 
-    [Theory]
-    [InlineData(-1, 0, 0, 0)]
-    [InlineData(256, 0, 0, 0)]
-    [InlineData(0, -1, 0, 0)]
-    [InlineData(0, 0, 256, 0)]
-    [InlineData(0, 0, 0, -1)]
+    [Test]
+    [Arguments(-1, 0, 0, 0)]
+    [Arguments(256, 0, 0, 0)]
+    [Arguments(0, -1, 0, 0)]
+    [Arguments(0, 0, 256, 0)]
+    [Arguments(0, 0, 0, -1)]
     public void AComponentOutsideAByteIsRefused(int alpha, int red, int green, int blue)
     {
         var act = () => XColor.FromArgb(alpha, red, green, blue);
@@ -71,7 +72,7 @@ public class XColorTests
         act.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AComponentOutsideAByteIsRefusedByTheThreeComponentOverloadToo()
     {
         var act = () => XColor.FromArgb(0, 0, 256);
@@ -79,7 +80,7 @@ public class XColorTests
         act.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void GivingAnExistingColourAnAlphaLeavesEverythingElseAsItWas()
     {
         var opaque = XColor.FromArgb(10, 20, 30);
@@ -92,12 +93,12 @@ public class XColorTests
         translucent.B.Should().Be(30);
     }
 
-    [Theory]
-    [InlineData(0, 0, 0, 0, 255, 255, 255)]
-    [InlineData(0, 0, 0, 1, 0, 0, 0)]
-    [InlineData(1, 0, 0, 0, 0, 255, 255)]
-    [InlineData(0, 1, 0, 0, 255, 0, 255)]
-    [InlineData(0, 0, 1, 0, 255, 255, 0)]
+    [Test]
+    [Arguments(0, 0, 0, 0, 255, 255, 255)]
+    [Arguments(0, 0, 0, 1, 0, 0, 0)]
+    [Arguments(1, 0, 0, 0, 0, 255, 255)]
+    [Arguments(0, 1, 0, 0, 255, 0, 255)]
+    [Arguments(0, 0, 1, 0, 255, 255, 0)]
     public void ACmykColourAlsoKnowsWhatItIsInRgb(
         double cyan, double magenta, double yellow, double black, int red, int green, int blue)
     {
@@ -110,7 +111,7 @@ public class XColorTests
         color.B.Should().Be((byte)blue);
     }
 
-    [Fact]
+    [Test]
     public void ACmykComponentOutsideItsRangeIsClampedRatherThanRefused()
     {
         var color = XColor.FromCmyk(2, -1, 0.5, 2, -3);
@@ -122,16 +123,16 @@ public class XColorTests
         color.K.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void ACmykColourCanBeTranslucentToo()
     {
         XColor.FromCmyk(0.5, 0, 0, 0, 0).A.Should().BeApproximately(0.5, 1e-6);
     }
 
-    [Theory]
-    [InlineData(0, 0)]
-    [InlineData(0.5, 127)]
-    [InlineData(1, 255)]
+    [Test]
+    [Arguments(0, 0)]
+    [Arguments(0.5, 127)]
+    [Arguments(1, 255)]
     public void AGreyColourIsTheSameNumberOnAllThreeRgbChannels(double gray, int expected)
     {
         var color = XColor.FromGrayScale(gray);
@@ -144,9 +145,9 @@ public class XColorTests
         color.K.Should().BeApproximately(1 - gray, 1e-6);
     }
 
-    [Theory]
-    [InlineData(2, 1, 255)]
-    [InlineData(-1, 0, 0)]
+    [Test]
+    [Arguments(2, 1, 255)]
+    [Arguments(-1, 0, 0)]
     public void AGreyOutsideItsRangeIsClampedIntoIt(double given, double expected, int expectedChannel)
     {
         // The way this went wrong is worth remembering: the constructor clamped into the field and
@@ -162,10 +163,10 @@ public class XColorTests
         color.K.Should().Be(1 - expected);
     }
 
-    [Theory]
-    [InlineData(2)]
-    [InlineData(-1)]
-    [InlineData(0.25)]
+    [Test]
+    [Arguments(2)]
+    [Arguments(-1)]
+    [Arguments(0.25)]
     public void BuildingAGreyAndAssigningOneComeToTheSameColour(double gray)
     {
         // The setter always clamped; the constructor is what did not. They are two ways of saying
@@ -178,7 +179,7 @@ public class XColorTests
         built.Should().Be(assigned);
     }
 
-    [Fact]
+    [Test]
     public void SettingARgbComponentRecalculatesTheCmykOne()
     {
         // Pure red has no cyan in it, all the magenta and yellow there is, and no black. Setting
@@ -197,7 +198,7 @@ public class XColorTests
         color.K.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void BlackIsTheOneRgbColourThatIsAllBlackAndNothingElse()
     {
         var black = XColor.FromArgb(0, 0, 0);
@@ -209,18 +210,18 @@ public class XColorTests
         black.GS.Should().Be(0, "grey is how light a colour is, and black has no light in it");
     }
 
-    public static TheoryData<string, XColor, double> WhiteAndBlackEachWayIn() => new()
-    {
-        { "white from RGB", XColor.FromArgb(255, 255, 255), 1 },
-        { "white from CMYK", XColor.FromCmyk(0, 0, 0, 0), 1 },
-        { "white from grey", XColor.FromGrayScale(1), 1 },
-        { "black from RGB", XColor.FromArgb(0, 0, 0), 0 },
-        { "black from CMYK", XColor.FromCmyk(0, 0, 0, 1), 0 },
-        { "black from grey", XColor.FromGrayScale(0), 0 },
-    };
+    public static IEnumerable<(string, XColor, double)> WhiteAndBlackEachWayIn() =>
+    [
+        ("white from RGB", XColor.FromArgb(255, 255, 255), 1),
+        ("white from CMYK", XColor.FromCmyk(0, 0, 0, 0), 1),
+        ("white from grey", XColor.FromGrayScale(1), 1),
+        ("black from RGB", XColor.FromArgb(0, 0, 0), 0),
+        ("black from CMYK", XColor.FromCmyk(0, 0, 0, 1), 0),
+        ("black from grey", XColor.FromGrayScale(0), 0),
+    ];
 
-    [Theory]
-    [MemberData(nameof(WhiteAndBlackEachWayIn), DisableDiscoveryEnumeration = true)]
+    [Test]
+    [MethodDataSource(nameof(WhiteAndBlackEachWayIn))]
     public void GreyMeansHowLightAColourIsWhicheverWayItWasBuilt(string route, XColor color, double expected)
     {
         // RgbChanged used to store the black ink it found as the grey - white 0, black 1 - where
@@ -228,7 +229,7 @@ public class XColorTests
         color.GS.Should().Be(expected, route);
     }
 
-    [Fact]
+    [Test]
     public void AnRgbColoursGreyIsItsWeightedLightness()
     {
         // A grey is its own lightness exactly, and anything else weighs its channels as the CMYK
@@ -239,7 +240,7 @@ public class XColorTests
         XColor.FromArgb(0, 0, 255).GS.Should().BeApproximately(0.11, 1e-6);
     }
 
-    [Fact]
+    [Test]
     public void WhiteAndBlackAreEachOneColourWhicheverWayTheyWereBuilt()
     {
         // Equality compares every component, the derived grey included, and the grey was the one
@@ -250,7 +251,7 @@ public class XColorTests
         XColor.FromArgb(255, 255, 255).Should().Be(XColor.FromGrayScale(1));
     }
 
-    [Fact]
+    [Test]
     public void AnRgbColourDeclaredGreyKeepsTheGreyItsChannelsSay()
     {
         // Changing the space changes no component, so what a grey writer reads - GS - has to
@@ -265,7 +266,7 @@ public class XColorTests
         white.GS.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void SettingACmykComponentRecalculatesTheRgbOne()
     {
         var color = XColor.FromCmyk(0, 0, 0, 0);
@@ -278,10 +279,10 @@ public class XColorTests
         color.B.Should().Be(255);
     }
 
-    [Theory]
-    [InlineData(-1, 0)]
-    [InlineData(2, 1)]
-    [InlineData(0.25, 0.25)]
+    [Test]
+    [Arguments(-1, 0)]
+    [Arguments(2, 1)]
+    [Arguments(0.25, 0.25)]
     public void EveryCmykSetterClampsToItsRange(double given, double expected)
     {
         var color = XColor.FromCmyk(0, 0, 0, 0);
@@ -297,10 +298,10 @@ public class XColorTests
         color.K.Should().BeApproximately(expected, 1e-6);
     }
 
-    [Theory]
-    [InlineData(-1, 0)]
-    [InlineData(2, 1)]
-    [InlineData(0.25, 0.25)]
+    [Test]
+    [Arguments(-1, 0)]
+    [Arguments(2, 1)]
+    [Arguments(0.25, 0.25)]
     public void TheGreySetterClampsToItsRangeAndTakesTheColourWithIt(double given, double expected)
     {
         var color = XColor.FromArgb(255, 0, 0);
@@ -313,10 +314,10 @@ public class XColorTests
         color.G.Should().Be(color.B);
     }
 
-    [Theory]
-    [InlineData(-1, 0)]
-    [InlineData(2, 1)]
-    [InlineData(0.25, 0.25)]
+    [Test]
+    [Arguments(-1, 0)]
+    [Arguments(2, 1)]
+    [Arguments(0.25, 0.25)]
     public void TheAlphaSetterClampsToItsRange(double given, double expected)
     {
         var color = XColor.FromArgb(255, 0, 0);
@@ -326,7 +327,7 @@ public class XColorTests
         color.A.Should().BeApproximately(expected, 1e-6);
     }
 
-    [Fact]
+    [Test]
     public void TheColourSpaceCanBeChangedWithoutChangingTheColour()
     {
         // The space is only a decision about how to write the colour out, so setting it leaves
@@ -339,7 +340,7 @@ public class XColorTests
         color.R.Should().Be(10);
     }
 
-    [Fact]
+    [Test]
     public void AColourSpaceThatDoesNotExistIsRefused()
     {
         var act = () => { var color = XColor.FromArgb(0, 0, 0); color.ColorSpace = (XColorSpace)99; };
@@ -347,18 +348,18 @@ public class XColorTests
         act.Should().Throw<InvalidEnumArgumentException>();
     }
 
-    [Theory]
-    [InlineData(255, 0, 0, 0)]
-    [InlineData(0, 255, 0, 120)]
-    [InlineData(0, 0, 255, 240)]
-    [InlineData(255, 255, 0, 60)]
-    [InlineData(128, 128, 128, 0)]
+    [Test]
+    [Arguments(255, 0, 0, 0)]
+    [Arguments(0, 255, 0, 120)]
+    [Arguments(0, 0, 255, 240)]
+    [Arguments(255, 255, 0, 60)]
+    [Arguments(128, 128, 128, 0)]
     public void HueIsMeasuredInDegreesRoundTheColourWheel(int red, int green, int blue, double expected)
     {
         XColor.FromArgb(red, green, blue).GetHue().Should().BeApproximately(expected, 1e-6);
     }
 
-    [Fact]
+    [Test]
     public void SaturationIsZeroForGreyAndOneForAPureHue()
     {
         XColor.FromArgb(128, 128, 128).GetSaturation().Should().Be(0);
@@ -369,7 +370,7 @@ public class XColorTests
         XColor.FromArgb(255, 128, 128).GetSaturation().Should().BeApproximately(1, 1e-6);
     }
 
-    [Fact]
+    [Test]
     public void BrightnessRunsFromBlackToWhite()
     {
         XColor.FromArgb(0, 0, 0).GetBrightness().Should().Be(0);
@@ -377,7 +378,7 @@ public class XColorTests
         XColor.FromArgb(255, 0, 0).GetBrightness().Should().BeApproximately(0.5, 1e-6);
     }
 
-    [Fact]
+    [Test]
     public void TwoColoursAreEqualWhenEveryComponentIs()
     {
         var color = XColor.FromArgb(10, 20, 30);
@@ -391,7 +392,7 @@ public class XColorTests
         color.GetHashCode().Should().Be(XColor.FromArgb(10, 20, 30).GetHashCode());
     }
 
-    [Fact]
+    [Test]
     public void RedBuiltFromRgbAndRedBuiltFromCmykAreTheSameColour()
     {
         // Equality takes in every channel, the derived grey included. The grey used to be the one
@@ -414,7 +415,7 @@ public class XColorTests
         asRgb.GetHashCode().Should().Be(asCmyk.GetHashCode());
     }
 
-    [Fact]
+    [Test]
     public void TheDefaultColourIsTheEmptyOne()
     {
         new XColor().IsEmpty.Should().BeTrue();
@@ -424,7 +425,7 @@ public class XColorTests
             "ink on the CMYK side, and empty has none");
     }
 
-    [Fact]
+    [Test]
     public void AskingForAColourByNameIsNotImplementedAndSaysSoByGivingBackNothing()
     {
         // Upstream left FromName returning Empty rather than throwing. Pinned so that the day it
@@ -434,7 +435,7 @@ public class XColorTests
         XColor.FromName("nonsense").IsEmpty.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void EveryComponentSurvivesTheSerializerRoundTrip()
     {
         // RgbCmykG exists so that XmlSerializer can carry all three representations across

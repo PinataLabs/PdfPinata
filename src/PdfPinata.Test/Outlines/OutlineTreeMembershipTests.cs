@@ -5,7 +5,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Outlines;
 
@@ -31,7 +31,7 @@ public class OutlineTreeMembershipTests
 {
     // ── What is refused ─────────────────────────────────────────────────────────────────────────
 
-    [Fact]
+    [Test]
     public void AnEntryAlreadyInTheListIsRefused()
     {
         var document = ADocumentOf(1);
@@ -44,7 +44,7 @@ public class OutlineTreeMembershipTests
         Tree(document.Reopened()).Should().Be("a");
     }
 
-    [Fact]
+    [Test]
     public void AnEntryUnderAnotherParentIsRefusedHoweverItIsPut()
     {
         var document = ADocumentOf(1);
@@ -64,7 +64,7 @@ public class OutlineTreeMembershipTests
         Tree(document.Reopened()).Should().Be("a(x),b(b1)");
     }
 
-    [Fact]
+    [Test]
     public void AnEntryCannotBePutUnderItselfOrUnderAnythingBelowIt()
     {
         var document = ADocumentOf(1);
@@ -87,7 +87,7 @@ public class OutlineTreeMembershipTests
         Tree(document.Reopened()).Should().Be("a(b)");
     }
 
-    [Fact]
+    [Test]
     public void EntriesUnderAnEntryNotYetInADocumentAreRefusedWithAReason()
     {
         // This used to be a NullReferenceException.
@@ -98,7 +98,7 @@ public class OutlineTreeMembershipTests
         adding.Should().Throw<InvalidOperationException>().WithMessage("*not in a document yet*");
     }
 
-    [Fact]
+    [Test]
     public void ACollectionAskedForBeforeItsEntryWasAddedFollowsTheEntryIntoTheDocument()
     {
         var document = ADocumentOf(1);
@@ -111,7 +111,7 @@ public class OutlineTreeMembershipTests
         Tree(document.Reopened()).Should().Be("a(a1)");
     }
 
-    [Fact]
+    [Test]
     public void AnEntryOfAnotherDocumentIsRefused()
     {
         var document = ADocumentOf(1);
@@ -127,7 +127,7 @@ public class OutlineTreeMembershipTests
 
     // ── What is allowed, and what the file then says ────────────────────────────────────────────
 
-    [Fact]
+    [Test]
     public void AnEntryRemovedFromOneParentCanBeAddedToAnother()
     {
         var document = ADocumentOf(1);
@@ -144,7 +144,7 @@ public class OutlineTreeMembershipTests
             "a was saved with x as its /First and /Last, and has none now");
     }
 
-    [Fact]
+    [Test]
     public void AnEntryRemovedAndAddedAgainGoesAtTheEnd()
     {
         var document = ADocumentOf(1);
@@ -158,7 +158,7 @@ public class OutlineTreeMembershipTests
         Tree(document.Reopened()).Should().Be("a,c,b");
     }
 
-    [Fact]
+    [Test]
     public void AnEntryRemovedAcrossASaveComesBackWithEverythingUnderIt()
     {
         // The save between the two drops the entry and its child from the object table and
@@ -176,7 +176,7 @@ public class OutlineTreeMembershipTests
         Tree(document.Reopened()).Should().Be("a,c,b(b1)");
     }
 
-    [Fact]
+    [Test]
     public void RemovingTheLastEntryOfASavedTreeLeavesNoLinkToIt()
     {
         var document = ADocumentOf(1);
@@ -190,7 +190,7 @@ public class OutlineTreeMembershipTests
         Tree(document.Reopened()).Should().Be("a,b", "b was saved with a /Next to c");
     }
 
-    [Fact]
+    [Test]
     public void RemovingEntriesOfADocumentReadFromAFileTakesThemOutOfTheFile()
     {
         var original = ADocumentOf(1);
@@ -209,7 +209,7 @@ public class OutlineTreeMembershipTests
             "the outline root was read with a /First and a /Last naming entries now gone");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentWhoseOutlinesWereOnlyLookedAtIsWellFormed()
     {
         // Asking document.Outlines anything creates the root. With no entries it was never
@@ -224,7 +224,7 @@ public class OutlineTreeMembershipTests
         Tree(reopened.Reopened()).Should().Be("added later");
     }
 
-    [Fact]
+    [Test]
     public void AnEntryReplacedThroughTheIndexerIsFreeToBeAddedElsewhere()
     {
         var document = ADocumentOf(1);

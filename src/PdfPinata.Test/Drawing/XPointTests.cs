@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -16,7 +16,7 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class XPointTests
 {
-    [Fact]
+    [Test]
     public void APointPlusAVectorIsAPointFurtherAlong()
     {
         var moved = new XPoint(10, 20) + new XVector(3, -4);
@@ -25,7 +25,7 @@ public class XPointTests
         XPoint.Add(new XPoint(10, 20), new XVector(3, -4)).Should().Be(moved);
     }
 
-    [Fact]
+    [Test]
     public void APointMinusAVectorGoesBackTheOtherWay()
     {
         var moved = new XPoint(10, 20) - new XVector(3, -4);
@@ -34,7 +34,7 @@ public class XPointTests
         XPoint.Subtract(new XPoint(10, 20), new XVector(3, -4)).Should().Be(moved);
     }
 
-    [Fact]
+    [Test]
     public void APointMinusAPointIsTheVectorBetweenThem()
     {
         var between = new XPoint(13, 16) - new XPoint(10, 20);
@@ -43,7 +43,7 @@ public class XPointTests
         XPoint.Subtract(new XPoint(13, 16), new XPoint(10, 20)).Should().Be(between);
     }
 
-    [Fact]
+    [Test]
     public void APointPlusASizeMovesItByTheExtent()
     {
         // The operator is obsolete, not gone: it still has to do what it always did until it is.
@@ -52,7 +52,7 @@ public class XPointTests
         #pragma warning restore CS0618
     }
 
-    [Fact]
+    [Test]
     public void OffsetMovesThePointInPlace()
     {
         var point = new XPoint(1, 2);
@@ -62,14 +62,14 @@ public class XPointTests
         point.Should().Be(new XPoint(11, 22));
     }
 
-    [Fact]
+    [Test]
     public void ScalingAPointMultipliesBothCoordinatesWhicheverSideTheNumberIsOn()
     {
         (new XPoint(3, 4) * 2).Should().Be(new XPoint(6, 8));
         (2 * new XPoint(3, 4)).Should().Be(new XPoint(6, 8));
     }
 
-    [Fact]
+    [Test]
     public void MultiplyingByAMatrixIsTheSameAsAskingTheMatrixToTransformIt()
     {
         var matrix = new XMatrix();
@@ -81,7 +81,7 @@ public class XPointTests
         XPoint.Multiply(point, matrix).Should().Be(matrix.Transform(point));
     }
 
-    [Fact]
+    [Test]
     public void APointConvertsToASizeByDroppingItsSigns()
     {
         // A size may not be negative, so the conversion takes absolute values rather than
@@ -89,13 +89,13 @@ public class XPointTests
         ((XSize)new XPoint(-3, -4)).Should().Be(new XSize(3, 4));
     }
 
-    [Fact]
+    [Test]
     public void APointConvertsToAVectorAsItStands()
     {
         ((XVector)new XPoint(-3, -4)).Should().Be(new XVector(-3, -4));
     }
 
-    [Fact]
+    [Test]
     public void XAndYCanBeSetAfterTheFact()
     {
         var point = new XPoint { X = 4, Y = 5 };
@@ -104,7 +104,7 @@ public class XPointTests
         point.Y.Should().Be(5);
     }
 
-    [Fact]
+    [Test]
     public void TwoPointsAreEqualWhenBothCoordinatesAre()
     {
         var point = new XPoint(1, 2);
@@ -120,7 +120,7 @@ public class XPointTests
         point.GetHashCode().Should().Be(new XPoint(1, 2).GetHashCode());
     }
 
-    [Fact]
+    [Test]
     public void APointIsWrittenAsTwoNumbersAndReadBackTheSameWay()
     {
         var point = new XPoint(1.5, -2.5);
@@ -131,7 +131,7 @@ public class XPointTests
         XPoint.Parse(text).Should().Be(point);
     }
 
-    [Fact]
+    [Test]
     public void AFormatStringIsAppliedToBothCoordinates()
     {
         IFormattable point = new XPoint(1.23456, 2.34567);
@@ -139,7 +139,7 @@ public class XPointTests
         point.ToString("0.0", CultureInfo.InvariantCulture).Should().Be("1.2,2.3");
     }
 
-    [Fact]
+    [Test]
     public void ASpaceSeparatedListParsesIntoAnArrayOfPoints()
     {
         var points = XPoint.ParsePoints("1,2 3,4 5,6");
@@ -147,7 +147,7 @@ public class XPointTests
         points.Should().Equal(new XPoint(1, 2), new XPoint(3, 4), new XPoint(5, 6));
     }
 
-    [Fact]
+    [Test]
     public void ParsingPointsFromNothingIsRefusedRatherThanReturningNothing()
     {
         var act = () => XPoint.ParsePoints(null);

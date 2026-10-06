@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.Rendering;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Rendering;
 
@@ -30,7 +30,7 @@ public class FittingRectContractTests
         "The quick brown fox jumps over the lazy dog, and having jumped it lands and looks about " +
         "for somewhere else to be, which takes rather longer than the jump did.";
 
-    [Fact]
+    [Test]
     public void ABandInsideTheAreaFitsAndKeepsTheAreasWidth()
     {
         var area = AreaProbe.Rectangle(x: 10, y: 20, width: 300, height: 200);
@@ -41,7 +41,7 @@ public class FittingRectContractTests
         rect.Bounds().Should().Be((10, 50, 300, 12));
     }
 
-    [Fact]
+    [Test]
     public void ABandRunningOffTheBottomHasNowhereToGo()
     {
         var area = AreaProbe.Rectangle(x: 10, y: 20, width: 300, height: 200);
@@ -50,7 +50,7 @@ public class FittingRectContractTests
         area.FittingRect(yPosition: 215, height: 12).Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void ABandEndingExactlyOnTheBottomStillFits()
     {
         var area = AreaProbe.Rectangle(x: 10, y: 20, width: 300, height: 200);
@@ -60,7 +60,7 @@ public class FittingRectContractTests
         area.FittingRect(yPosition: 208, height: 12).Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void ATallerBandThanTheWholeAreaHasNowhereToGo()
     {
         var area = AreaProbe.Rectangle(x: 10, y: 20, width: 300, height: 40);
@@ -70,7 +70,7 @@ public class FittingRectContractTests
 
     // ----- what the renderer does with it ---------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AParagraphTallerThanThePageIsCarriedOnRatherThanLost()
     {
         // Every line after the first page's worth asks for a band the area cannot give, which is
@@ -85,7 +85,7 @@ public class FittingRectContractTests
         pages.Should().BeGreaterThan(1, "the text is carried onto further pages, not dropped");
     }
 
-    [Fact]
+    [Test]
     public void APageWithNoRoomForASingleLineDoesNotHangOrThrow()
     {
         // A text area shorter than one line: every request for a band comes back null, from the
@@ -102,7 +102,7 @@ public class FittingRectContractTests
         render.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void NoPageIsLeftBlankByALineThatFoundNowhereToGo()
     {
         // A band coming back null at the foot of a page must move the line to the next page, not
@@ -125,7 +125,7 @@ public class FittingRectContractTests
         }
     }
 
-    [Fact]
+    [Test]
     public void AJustifiedParagraphAtAPageBreakIsRenderedWithoutFailing()
     {
         // Justification reads the fitting rect again in the rendering phase, at a point where the
@@ -144,7 +144,7 @@ public class FittingRectContractTests
         render.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void AParagraphWithTabsAtAPageBreakIsRenderedWithoutFailing()
     {
         // Tab alignment reads the fitting rect too, and was another unchecked dereference.

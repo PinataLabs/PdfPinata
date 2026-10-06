@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.Shapes;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -85,39 +85,39 @@ public class LeftAndTopPositionParityTests
     // Everything the two must answer identically, asserted against both from one table.
     // ---------------------------------------------------------------------------------------
 
-    [Theory]
+    [Test]
     // A bare number is a Unit, and the sign characters are why the first character is looked at.
-    [InlineData("5")]
-    [InlineData("+5")]
-    [InlineData("-5")]
-    [InlineData("0")]
-    [InlineData("2.5")]
+    [Arguments("5")]
+    [Arguments("+5")]
+    [Arguments("-5")]
+    [Arguments("0")]
+    [Arguments("2.5")]
     // A number with a unit on it takes the same path.
-    [InlineData("2.5cm")]
-    [InlineData("10pt")]
-    [InlineData("1in")]
-    [InlineData("3mm")]
+    [Arguments("2.5cm")]
+    [Arguments("10pt")]
+    [Arguments("1in")]
+    [Arguments("3mm")]
     // Surrounding whitespace is trimmed before the first character is read.
-    [InlineData(" 5 ")]
-    [InlineData("\t5")]
+    [Arguments(" 5 ")]
+    [Arguments("\t5")]
     // Center is the one member both accept, so it is a shared case rather than an asymmetric one.
-    [InlineData("Center")]
-    [InlineData("center")]
-    [InlineData("CENTER")]
-    [InlineData(" Center ")]
+    [Arguments("Center")]
+    [Arguments("center")]
+    [Arguments("CENTER")]
+    [Arguments(" Center ")]
     // Undefined is a member of the enum like any other, and the private constructors admit it
     // explicitly, so it parses rather than throwing - and yields a position that is null.
-    [InlineData("Undefined")]
+    [Arguments("Undefined")]
     // A name that is in no enum at all.
-    [InlineData("Sideways")]
-    [InlineData("Middle")]
+    [Arguments("Sideways")]
+    [Arguments("Middle")]
     // The guard cases. Null and empty are refused; whitespace alone is F21.
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    [InlineData("\t")]
+    [Arguments(null)]
+    [Arguments("")]
+    [Arguments("   ")]
+    [Arguments("\t")]
     // A number with trailing junk, which only Unit.Parse can rule on.
-    [InlineData("5x")]
+    [Arguments("5x")]
     public void TheTwoPositionsAnswerTheSameWayForEverythingTheyShare(string value)
     {
         ByLeft(value).Should().Be(ByTop(value),
@@ -128,66 +128,66 @@ public class LeftAndTopPositionParityTests
     // The deliberate asymmetry: one enum, two different subsets of it.
     // ---------------------------------------------------------------------------------------
 
-    [Theory]
-    [InlineData("Left", ShapePosition.Left)]
-    [InlineData("Right", ShapePosition.Right)]
-    [InlineData("Center", ShapePosition.Center)]
-    [InlineData("Inside", ShapePosition.Inside)]
-    [InlineData("Outside", ShapePosition.Outside)]
-    [InlineData("left", ShapePosition.Left)]
-    [InlineData("OUTSIDE", ShapePosition.Outside)]
+    [Test]
+    [Arguments("Left", ShapePosition.Left)]
+    [Arguments("Right", ShapePosition.Right)]
+    [Arguments("Center", ShapePosition.Center)]
+    [Arguments("Inside", ShapePosition.Inside)]
+    [Arguments("Outside", ShapePosition.Outside)]
+    [Arguments("left", ShapePosition.Left)]
+    [Arguments("OUTSIDE", ShapePosition.Outside)]
     public void ALeftPositionTakesTheFiveNamesThatMeanSomethingHorizontal(string value, ShapePosition expected)
     {
         LeftPosition.Parse(value).ShapePosition.Should().Be(expected);
     }
 
-    [Theory]
-    [InlineData("Top", ShapePosition.Top)]
-    [InlineData("Bottom", ShapePosition.Bottom)]
-    [InlineData("Center", ShapePosition.Center)]
-    [InlineData("top", ShapePosition.Top)]
-    [InlineData("BOTTOM", ShapePosition.Bottom)]
+    [Test]
+    [Arguments("Top", ShapePosition.Top)]
+    [Arguments("Bottom", ShapePosition.Bottom)]
+    [Arguments("Center", ShapePosition.Center)]
+    [Arguments("top", ShapePosition.Top)]
+    [Arguments("BOTTOM", ShapePosition.Bottom)]
     public void ATopPositionTakesTheThreeNamesThatMeanSomethingVertical(string value, ShapePosition expected)
     {
         TopPosition.Parse(value).ShapePosition.Should().Be(expected);
     }
 
-    [Theory]
-    [InlineData("Top")]
-    [InlineData("Bottom")]
+    [Test]
+    [Arguments("Top")]
+    [Arguments("Bottom")]
     public void ALeftPositionRefusesAVerticalName(string value)
     {
-        Assert.Throws<ArgumentException>(() => LeftPosition.Parse(value));
+        FluentActions.Invoking(() => LeftPosition.Parse(value)).Should().ThrowExactly<ArgumentException>();
     }
 
-    [Theory]
-    [InlineData("Left")]
-    [InlineData("Right")]
-    [InlineData("Inside")]
-    [InlineData("Outside")]
+    [Test]
+    [Arguments("Left")]
+    [Arguments("Right")]
+    [Arguments("Inside")]
+    [Arguments("Outside")]
     public void ATopPositionRefusesAHorizontalName(string value)
     {
-        Assert.Throws<ArgumentException>(() => TopPosition.Parse(value));
+        FluentActions.Invoking(() => TopPosition.Parse(value)).Should().ThrowExactly<ArgumentException>();
     }
 
     // ---------------------------------------------------------------------------------------
     // What a parsed value actually holds.
     // ---------------------------------------------------------------------------------------
 
-    [Theory]
-    [InlineData("5", 5)]
-    [InlineData("+5", 5)]
-    [InlineData("-5", -5)]
-    [InlineData("0", 0)]
-    [InlineData("10pt", 10)]
-    [InlineData(" 12 ", 12)]
+    [Test]
+    [Arguments("5", 5)]
+    [Arguments("+5", 5)]
+    [Arguments("-5", -5)]
+    [Arguments("0", 0)]
+    [Arguments("10pt", 10)]
+    [Arguments(" 12 ", 12)]
     public void ANumberIsReadAsAPositionInPoints(string value, double expectedPoints)
     {
         LeftPosition.Parse(value).Position.Point.Should().BeApproximately(expectedPoints, 0.001);
         TopPosition.Parse(value).Position.Point.Should().BeApproximately(expectedPoints, 0.001);
     }
 
-    [Fact]
+    [Test]
     public void ACentimetreIsConvertedToPointsRatherThanKeptAsANumber()
     {
         // 2.54 cm to the inch, 72 points to the inch.
@@ -195,7 +195,7 @@ public class LeftAndTopPositionParityTests
         TopPosition.Parse("2.54cm").Position.Point.Should().BeApproximately(72, 0.001);
     }
 
-    [Fact]
+    [Test]
     public void ANamedPositionCarriesNoUnitAndAUnitCarriesNoName()
     {
         var named = LeftPosition.Parse("Right");
@@ -207,7 +207,7 @@ public class LeftAndTopPositionParityTests
         measured.Position.IsEmpty.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void UndefinedParsesToAPositionThatStatesNothing()
     {
         // Worth pinning rather than assuming: "Undefined" is a member of the enum, and both private
@@ -217,40 +217,40 @@ public class LeftAndTopPositionParityTests
         TopPosition.Parse("Undefined").ShapePosition.Should().Be(ShapePosition.Undefined);
     }
 
-    [Theory]
-    [InlineData("Sideways")]
-    [InlineData("Middle")]
-    [InlineData("Lefty")]
+    [Test]
+    [Arguments("Sideways")]
+    [Arguments("Middle")]
+    [Arguments("Lefty")]
     public void ANameInNoEnumAtAllIsRefused(string value)
     {
-        Assert.Throws<ArgumentException>(() => LeftPosition.Parse(value));
-        Assert.Throws<ArgumentException>(() => TopPosition.Parse(value));
+        FluentActions.Invoking(() => LeftPosition.Parse(value)).Should().ThrowExactly<ArgumentException>();
+        FluentActions.Invoking(() => TopPosition.Parse(value)).Should().ThrowExactly<ArgumentException>();
     }
 
     // ---------------------------------------------------------------------------------------
     // The guard, and finding F21.
     // ---------------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void NothingAtAllIsRefusedRatherThanParsed()
     {
-        Assert.Throws<ArgumentNullException>(() => LeftPosition.Parse(null));
-        Assert.Throws<ArgumentNullException>(() => TopPosition.Parse(null));
-        Assert.Throws<ArgumentNullException>(() => LeftPosition.Parse(""));
-        Assert.Throws<ArgumentNullException>(() => TopPosition.Parse(""));
+        FluentActions.Invoking(() => LeftPosition.Parse(null)).Should().ThrowExactly<ArgumentNullException>();
+        FluentActions.Invoking(() => TopPosition.Parse(null)).Should().ThrowExactly<ArgumentNullException>();
+        FluentActions.Invoking(() => LeftPosition.Parse("")).Should().ThrowExactly<ArgumentNullException>();
+        FluentActions.Invoking(() => TopPosition.Parse("")).Should().ThrowExactly<ArgumentNullException>();
     }
 
-    [Theory]
-    [InlineData("   ")]
-    [InlineData("\t")]
-    [InlineData(" \t ")]
-    [InlineData("\r\n")]
+    [Test]
+    [Arguments("   ")]
+    [Arguments("\t")]
+    [Arguments(" \t ")]
+    [Arguments("\r\n")]
     public void WhitespaceAloneIsRefusedTheSameWayAsNothingAtAll(string value)
     {
         // F21. The guard tested the untrimmed string, so whitespace alone passed it, trimmed away
         // to nothing, and then read value[0] off the end of an empty string - IndexOutOfRangeException
         // out of a public API, identically in both copies. Refused as empty now, which is what it is.
-        Assert.Throws<ArgumentNullException>(() => LeftPosition.Parse(value));
-        Assert.Throws<ArgumentNullException>(() => TopPosition.Parse(value));
+        FluentActions.Invoking(() => LeftPosition.Parse(value)).Should().ThrowExactly<ArgumentNullException>();
+        FluentActions.Invoking(() => TopPosition.Parse(value)).Should().ThrowExactly<ArgumentNullException>();
     }
 }

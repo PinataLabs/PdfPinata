@@ -13,7 +13,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -33,7 +33,7 @@ namespace PdfPinata.Test.Fonts;
 ///     <c>TextShapingSeamTests</c> for why that matters.
 ///   </para>
 /// </remarks>
-[Collection(TextShapingCollection.Name)]
+[TextShaperSensitive]
 public class ShapedFontEmbeddingTests
 {
     // ----- installing a shaper for one string only -----------------------------------------------
@@ -162,7 +162,7 @@ public class ShapedFontEmbeddingTests
 
     private const string WidthSentinel = "ShapedWidthProbe";
 
-    [Fact]
+    [Test]
     public void AGlyphOnlyTheShaperKnowsAboutIsStillGivenAWidth()
     {
         // Glyph 300 is a real glyph of the face and one the cmap would never return for any of
@@ -175,7 +175,7 @@ public class ShapedFontEmbeddingTests
             + "missing from the subset is not there to draw at all");
     }
 
-    [Fact]
+    [Test]
     public void TheGlyphsAShaperDidNotChooseAreNotCarriedAlongForNothing()
     {
         using var _ = SeamScope.TextShaper(new SelectiveShaper(WidthSentinel,
@@ -192,7 +192,7 @@ public class ShapedFontEmbeddingTests
 
     private const string MeaningSentinel = "ShapedProbeAB";
 
-    [Fact]
+    [Test]
     public void AGlyphThatStandsForSeveralCharactersSaysAllOfThemInToUnicode()
     {
         // Two glyphs for thirteen characters: the first cluster runs from 0 up to the second
@@ -208,7 +208,7 @@ public class ShapedFontEmbeddingTests
         meanings.Should().ContainKey(301).WhoseValue.Should().Be("AB");
     }
 
-    [Fact]
+    [Test]
     public void AnUnshapedRunStillMapsEveryGlyphToItsOneCharacter()
     {
         // The regression guard: with no shaper registered nothing about the written font changes,
@@ -241,7 +241,7 @@ public class ShapedFontEmbeddingTests
     // "e" and a combining acute accent, which the face composes into its precomposed e-acute.
     private const string ComposedSentinel = "\u0065\u0301";
 
-    [Fact]
+    [Test]
     public void HarfBuzzComposesAnAccentAndTheDocumentSaysWhatTheGlyphMeant()
     {
         using var shaper = new OnlyFor(ComposedSentinel);
@@ -268,7 +268,7 @@ public class ShapedFontEmbeddingTests
     // right-to-left text with left-to-right code cannot be misread.
     private const string ArabicSentinel = "\u0639\u0631\u0628\u064A";
 
-    [Fact]
+    [Test]
     public void ArabicIsWrittenWithItsMarksPlacedAndItsLettersStillReadable()
     {
 
@@ -301,7 +301,7 @@ public class ShapedFontEmbeddingTests
     // character and the order they are drawn in is readable straight off the document.
     private const string Salam = "\u0633\u0644\u0627\u0645";
 
-    [Fact]
+    [Test]
     public void ShapedRightToLeftTextIsDrawnJoinedUpAndInTheOrderItIsRead()
     {
 

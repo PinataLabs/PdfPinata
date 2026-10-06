@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -16,7 +16,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class PageLabelTests
 {
-    [Fact]
+    [Test]
     public void ADocumentWithoutLabelsHasNoneAndIsGivenNone()
     {
         var document = WithPages(3);
@@ -29,7 +29,7 @@ public class PageLabelTests
         document.Internals.Catalog.Elements.ContainsKey("/PageLabels").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void TheFrontMatterAndTheBodyAreLabelledSeparately()
     {
         var document = WithPages(8);
@@ -45,7 +45,7 @@ public class PageLabelTests
         document.PageLabels.GetLabel(7).Should().Be("4");
     }
 
-    [Fact]
+    [Test]
     public void ARangeRunsUntilTheNextOneBegins()
     {
         var document = WithPages(10);
@@ -57,7 +57,7 @@ public class PageLabelTests
         document.PageLabels.GetRange(9).StartPageIndex.Should().Be(5);
     }
 
-    [Fact]
+    [Test]
     public void ARangeCanStartCountingFromSomewhereOtherThanOne()
     {
         var document = WithPages(4);
@@ -68,7 +68,7 @@ public class PageLabelTests
         document.PageLabels.GetLabel(2).Should().Be("44");
     }
 
-    [Fact]
+    [Test]
     public void APrefixIsPutInFrontOfTheNumber()
     {
         var document = WithPages(4);
@@ -79,7 +79,7 @@ public class PageLabelTests
         document.PageLabels.GetLabel(3).Should().Be("A-4");
     }
 
-    [Fact]
+    [Test]
     public void ARangeWithNoStyleIsLabelledByItsPrefixAlone()
     {
         var document = WithPages(3);
@@ -92,16 +92,16 @@ public class PageLabelTests
         document.PageLabels.GetLabel(2).Should().Be("Cover");
     }
 
-    [Theory]
-    [InlineData(1, "I")]
-    [InlineData(4, "IV")]
-    [InlineData(9, "IX")]
-    [InlineData(14, "XIV")]
-    [InlineData(40, "XL")]
-    [InlineData(90, "XC")]
-    [InlineData(400, "CD")]
-    [InlineData(900, "CM")]
-    [InlineData(1987, "MCMLXXXVII")]
+    [Test]
+    [Arguments(1, "I")]
+    [Arguments(4, "IV")]
+    [Arguments(9, "IX")]
+    [Arguments(14, "XIV")]
+    [Arguments(40, "XL")]
+    [Arguments(90, "XC")]
+    [Arguments(400, "CD")]
+    [Arguments(900, "CM")]
+    [Arguments(1987, "MCMLXXXVII")]
     public void RomanNumeralsAreWrittenTheUsualWay(int number, string expected)
     {
         var document = WithPages(1);
@@ -110,12 +110,12 @@ public class PageLabelTests
         document.PageLabels.GetLabel(0).Should().Be(expected);
     }
 
-    [Theory]
-    [InlineData(1, "A")]
-    [InlineData(26, "Z")]
-    [InlineData(27, "AA")]
-    [InlineData(52, "ZZ")]
-    [InlineData(53, "AAA")]
+    [Test]
+    [Arguments(1, "A")]
+    [Arguments(26, "Z")]
+    [Arguments(27, "AA")]
+    [Arguments(52, "ZZ")]
+    [Arguments(53, "AAA")]
     public void LettersRepeatRatherThanCountingUpInBaseTwentySix(int number, string expected)
     {
         // The standard asks for A to Z, then AA to ZZ. The twenty-seventh is AA, not AB.
@@ -125,7 +125,7 @@ public class PageLabelTests
         document.PageLabels.GetLabel(0).Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void LowercaseStylesAreWrittenInLowercase()
     {
         var document = WithPages(2);
@@ -136,7 +136,7 @@ public class PageLabelTests
         document.PageLabels.GetLabel(1).Should().Be("aa");
     }
 
-    [Fact]
+    [Test]
     public void LabelsSurviveBeingSavedAndReadBack()
     {
         var document = WithPages(8);
@@ -151,7 +151,7 @@ public class PageLabelTests
         reopened.PageLabels.GetLabel(6).Should().Be("Part-3");
     }
 
-    [Fact]
+    [Test]
     public void TheRangesOfADocumentCanBeReadBack()
     {
         var document = WithPages(6);
@@ -166,7 +166,7 @@ public class PageLabelTests
         range.Start.Should().Be(7);
     }
 
-    [Fact]
+    [Test]
     public void ARangeAddedFurtherInBringsOneAtPageZeroWithIt()
     {
         var document = WithPages(4);
@@ -182,7 +182,7 @@ public class PageLabelTests
         document.PageLabels.GetLabel(2).Should().Be("1");
     }
 
-    [Fact]
+    [Test]
     public void ARangeAtPageZeroTakesThePlaceOfTheOneBroughtIn()
     {
         var document = WithPages(6);
@@ -195,7 +195,7 @@ public class PageLabelTests
         document.PageLabels.GetLabel(3).Should().Be("1");
     }
 
-    [Fact]
+    [Test]
     public void ARangeAddedAtPageZeroBringsNoOtherWithIt()
     {
         var document = WithPages(4);
@@ -205,7 +205,7 @@ public class PageLabelTests
         document.PageLabels.Count.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void TakingAwayTheRangeAtPageZeroPutsOneBackWhileOthersRemain()
     {
         var document = WithPages(6);
@@ -220,7 +220,7 @@ public class PageLabelTests
         document.PageLabels.GetLabel(0).Should().Be("1");
     }
 
-    [Fact]
+    [Test]
     public void EveryDocumentWithLabelsLabelsPageZero()
     {
         var document = WithPages(9);
@@ -233,7 +233,7 @@ public class PageLabelTests
         reopened.PageLabels.GetLabel(0).Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void ARangeCanBeTakenAwayAgain()
     {
         var document = WithPages(6);
@@ -247,7 +247,7 @@ public class PageLabelTests
         document.PageLabels.GetLabel(3).Should().Be("iv");
     }
 
-    [Fact]
+    [Test]
     public void TakingAwayTheLastRangeLeavesTheDocumentLabelledByPositionAgain()
     {
         var document = WithPages(4);
@@ -261,7 +261,7 @@ public class PageLabelTests
         document.Reopened().PageLabels.Count.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void TakingAwayOneOfSeveralRangesLeavesTheRest()
     {
         var document = WithPages(6);
@@ -274,7 +274,7 @@ public class PageLabelTests
         document.Reopened().PageLabels.Count.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void ClearingLeavesTheDocumentLabelledByPositionAgain()
     {
         var document = WithPages(4);
@@ -287,7 +287,7 @@ public class PageLabelTests
         document.Reopened().PageLabels.Count.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void ANegativePageOrAStartBelowOneIsRefused()
     {
         var document = WithPages(2);
@@ -299,7 +299,7 @@ public class PageLabelTests
         zeroStart.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Fact]
+    [Test]
     public void TheDefaultStartIsLeftOutOfTheFile()
     {
         var document = WithPages(2);

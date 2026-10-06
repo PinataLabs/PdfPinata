@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.IO.enums;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -15,9 +15,9 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class UnterminatedObjectTests
 {
-    [Theory]
-    [InlineData(PdfReadAccuracy.Strict)]
-    [InlineData(PdfReadAccuracy.Moderate)]
+    [Test]
+    [Arguments(PdfReadAccuracy.Strict)]
+    [Arguments(PdfReadAccuracy.Moderate)]
     public void ADocumentHoldingAnObjectThatOpensADictionaryAndNeverClosesItCanBeRead(PdfReadAccuracy accuracy)
     {
         using var input = new MemoryStream(BuildDocumentWhoseFifthObjectIs("<<"));
@@ -27,7 +27,7 @@ public class UnterminatedObjectTests
         document.PageCount.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void TheDictionaryThatWasNeverClosedIsReadAsAnEmptyOne()
     {
         using var input = new MemoryStream(BuildDocumentWhoseFifthObjectIs("<<"));
@@ -38,7 +38,7 @@ public class UnterminatedObjectTests
         truncated.Elements.Count.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void ADictionaryCutShortAfterAKeyKeepsThePairsItDoesHave()
     {
         using var input = new MemoryStream(BuildDocumentWhoseFifthObjectIs("<</Type/Metadata/Subtype"));
@@ -51,7 +51,7 @@ public class UnterminatedObjectTests
         truncated.Elements.Count.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AnArrayThatWasNeverClosedKeepsTheItemsItDoesHave()
     {
         using var input = new MemoryStream(BuildDocumentWhoseFifthObjectIs("[ 1 2 3"));
@@ -62,7 +62,7 @@ public class UnterminatedObjectTests
         truncated.Elements.Count.Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void ADocumentHoldingAnUnterminatedObjectCanBeMergedAndSaved()
     {
         using var input = new MemoryStream(BuildDocumentWhoseFifthObjectIs("<<"));

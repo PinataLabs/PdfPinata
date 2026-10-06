@@ -9,7 +9,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Extraction;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
 using Reader = PdfPinata.Pdf.IO.PdfReader;
@@ -29,7 +29,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class TextExtractionTests
 {
-    [Fact]
+    [Test]
     public void TextDrawnOnAPageIsReadBack()
     {
         var page = Reopen(Draw(gfx => gfx.DrawString("Hello world", Font, XBrushes.Black, 40, 100)));
@@ -37,7 +37,7 @@ public class TextExtractionTests
         PdfTextExtractor.ExtractText(page).Should().Be("Hello world");
     }
 
-    [Fact]
+    [Test]
     public void EachRunSaysWhereItsBaselineStarts()
     {
         var page = Reopen(Draw(gfx => gfx.DrawString("Positioned", Font, XBrushes.Black, 72, 200)));
@@ -51,7 +51,7 @@ public class TextExtractionTests
         run.Origin.Y.Should().BeApproximately(842 - 200, 1);
     }
 
-    [Fact]
+    [Test]
     public void ARunKnowsTheSizeItWasDrawnAt()
     {
         var page = Reopen(Draw(gfx => gfx.DrawString("Large", new XFont("Arial", 24), XBrushes.Black, 40, 100)));
@@ -59,7 +59,7 @@ public class TextExtractionTests
         PdfTextExtractor.ExtractRuns(page).Single().FontSize.Should().BeApproximately(24, 0.5);
     }
 
-    [Fact]
+    [Test]
     public void ARunIsAsWideAsTheTextItHolds()
     {
         var page = Reopen(Draw(gfx => gfx.DrawString("Wide enough to measure", Font, XBrushes.Black, 40, 100)));
@@ -72,7 +72,7 @@ public class TextExtractionTests
         run.Width.Should().BeApproximately(expected, expected * 0.05);
     }
 
-    [Fact]
+    [Test]
     public void TextOnSeparateBaselinesComesBackOnSeparateLines()
     {
         var page = Reopen(Draw(gfx =>
@@ -84,7 +84,7 @@ public class TextExtractionTests
         PdfTextExtractor.ExtractText(page).Should().Be("First line\nSecond line");
     }
 
-    [Fact]
+    [Test]
     public void TwoRunsOnOneBaselineAreOneLine()
     {
         var page = Reopen(Draw(gfx =>
@@ -100,7 +100,7 @@ public class TextExtractionTests
         text.Should().Contain(" ", "a gap the pen jumped is a space, even though none was drawn");
     }
 
-    [Fact]
+    [Test]
     public void AccentedTextSurvivesTheRoundTrip()
     {
         // The point of reading /ToUnicode rather than guessing: these are not code points the glyph
@@ -110,7 +110,7 @@ public class TextExtractionTests
         PdfTextExtractor.ExtractText(page).Should().Be("Ångström café");
     }
 
-    [Fact]
+    [Test]
     public void TextIsReadBackFromEveryPage()
     {
         var document = new PdfDocument();
@@ -127,7 +127,7 @@ public class TextExtractionTests
             .Should().Equal("One", "Two", "Three");
     }
 
-    [Fact]
+    [Test]
     public void APageWithNoTextYieldsNoRuns()
     {
         var page = Reopen(Draw(gfx => gfx.DrawRectangle(XBrushes.LightGray, 10, 10, 100, 50)));
@@ -135,7 +135,7 @@ public class TextExtractionTests
         PdfTextExtractor.ExtractRuns(page).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void TextDrawnUnderATransformIsReportedWhereItLanded()
     {
         // The extractor has to keep the current transformation matrix as well as the text matrix,
@@ -152,7 +152,7 @@ public class TextExtractionTests
         run.Origin.Y.Should().BeApproximately(842 - 150, 1);
     }
 
-    [Fact]
+    [Test]
     public void ARunNamesTheFontResourceItWasDrawnWith()
     {
         var page = Reopen(Draw(gfx => gfx.DrawString("Named", Font, XBrushes.Black, 40, 100)));
@@ -160,7 +160,7 @@ public class TextExtractionTests
         PdfTextExtractor.ExtractRuns(page).Single().FontName.Should().StartWith("/F");
     }
 
-    [Fact]
+    [Test]
     public void RunsComeBackInTheOrderTheyWereDrawn()
     {
         var page = Reopen(Draw(gfx =>
@@ -176,7 +176,7 @@ public class TextExtractionTests
             .Should().Equal("Third", "First", "Second");
     }
 
-    [Fact]
+    [Test]
     public void ARunUnderAScaledTransformIsAsWideAsItLooks()
     {
         // The width and the size have to be measured through the same matrix. Measuring the width
@@ -196,7 +196,7 @@ public class TextExtractionTests
         run.Width.Should().BeApproximately(unscaled * 2, unscaled * 0.1);
     }
 
-    [Fact]
+    [Test]
     public void ADestinationOfMoreThanOneCharacterDoesNotAbortExtraction()
     {
         // A /ToUnicode destination is a string of UTF-16 code units, not a scalar. Reading it as one
@@ -209,7 +209,7 @@ public class TextExtractionTests
         PdfTextExtractor.ExtractText(page).Should().Be("Hello");
     }
 
-    [Fact]
+    [Test]
     public void AnArrayOfDestinationsDoesNotShiftTheEntriesAfterIt()
     {
         // The array form — <lo> <hi> [<d1> <d2> …] — was documented as not read. It was not skipped
@@ -225,7 +225,7 @@ public class TextExtractionTests
         PdfTextExtractor.ExtractText(page).Should().Be("Hello");
     }
 
-    [Fact]
+    [Test]
     public void TheSpacingOperandsOfAQuotedShowAreNotReadAsKerning()
     {
         // " takes aw ac string. Showing from operand zero reads the two spacing numbers as though
@@ -240,7 +240,7 @@ public class TextExtractionTests
         runs[^1].Width.Should().BeApproximately(runs[^2].Width, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void ExtractingFromNothingIsRefusedRatherThanReturningNothing()
     {
         var extracting = () => PdfTextExtractor.ExtractRuns(null);
@@ -255,7 +255,7 @@ public class TextExtractionTests
     // them, and is what a page from another producer would contain.
     // ---------------------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TextDrawnInvisiblyIsNotExtracted()
     {
         // Render mode 3 is how the OCR layer under a scanned page is drawn. Reporting it would give
@@ -271,7 +271,7 @@ public class TextExtractionTests
         runs[0].Origin.Y.Should().BeApproximately(700, 0.5, "the visible one is the one that survives");
     }
 
-    [Fact]
+    [Test]
     public void TextAfterAnInvisibleRunIsExtractedAgain()
     {
         // The other side of it: render mode is text state and persists past ET, so the mode has to
@@ -287,7 +287,7 @@ public class TextExtractionTests
         runs[0].Origin.Y.Should().BeApproximately(650, 0.5, "the second run is the visible one");
     }
 
-    [Fact]
+    [Test]
     public void TheNextLineOperatorMovesDownByTheLeading()
     {
         var page = Reopen(WithContentReplaced((font, shown) =>
@@ -302,7 +302,7 @@ public class TextExtractionTests
             "T* returns to the start of the line rather than to where the last run ended");
     }
 
-    [Fact]
+    [Test]
     public void AQuotedShowMovesToTheNextLineBeforeShowingIt()
     {
         // ' is T* and Tj in one operator.
@@ -316,7 +316,7 @@ public class TextExtractionTests
         runs[1].Origin.X.Should().BeApproximately(40, 0.5);
     }
 
-    [Fact]
+    [Test]
     public void MovingTheLineWithTdAlsoSetsTheLeadingForWhatFollows()
     {
         // TD is Td with a side effect: it sets the leading to the negation of its ty, so a following
@@ -333,7 +333,7 @@ public class TextExtractionTests
         runs[2].Origin.Y.Should().BeApproximately(660, 0.5, "and left the leading at 20 for T*");
     }
 
-    [Fact]
+    [Test]
     public void HorizontalScalingNarrowsTheRunItIsSetFor()
     {
         var page = Reopen(WithContentReplaced((font, shown) =>
@@ -347,7 +347,7 @@ public class TextExtractionTests
             "Tz is a percentage, so 50 is half as wide");
     }
 
-    [Fact]
+    [Test]
     public void ARiseLiftsTheBaselineOfWhatFollowsIt()
     {
         // Ts is what a superscript is drawn with.
@@ -361,7 +361,7 @@ public class TextExtractionTests
         runs[1].Origin.Y.Should().BeApproximately(706, 0.5, "the rise is added to the baseline");
     }
 
-    [Fact]
+    [Test]
     public void RestoringTheGraphicsStateUndoesTheTransformUnderIt()
     {
         // q, cm and Q. Both blocks name the same text position, so the only thing that can separate
@@ -377,7 +377,7 @@ public class TextExtractionTests
         runs[1].Origin.Y.Should().BeApproximately(600, 0.5, "and Q put the matrix back for the rest");
     }
 
-    [Fact]
+    [Test]
     public void AnUnbalancedRestoreIsIgnoredRatherThanThrowing()
     {
         // A Q with no q under it is malformed, and a content stream from anywhere can be. The stack
@@ -388,9 +388,9 @@ public class TextExtractionTests
         PdfTextExtractor.ExtractRuns(page).Should().ContainSingle();
     }
 
-    [Theory(Timeout = 10_000)]
-    [InlineData(-1, int.MaxValue)] // the span overflows an int and slips under the length guard
-    [InlineData(int.MaxValue - 7, int.MaxValue)] // short, but a code counting up to it wraps before passing it
+    [Test, Timeout(10_000)]
+    [Arguments(-1, int.MaxValue)] // the span overflows an int and slips under the length guard
+    [Arguments(int.MaxValue - 7, int.MaxValue)] // short, but a code counting up to it wraps before passing it
     public async Task AWidthRunReachingTheLastCodeDoesNotHangExtraction(int first, int last)
     {
         // A /W run is read by counting from its first code to its last, and an int counter never

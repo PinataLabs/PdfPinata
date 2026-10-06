@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -13,7 +13,7 @@ namespace PdfPinata.Test.Drawing;
 ///   check that the reader does something different with each of them: outlined text is hollow,
 ///   filled text is solid, and a thick pen is visibly thicker than a thin one.
 /// </summary>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public class StrokedTextRenderingTests
 {
     private const double FontSize = 60;
@@ -51,7 +51,7 @@ public class StrokedTextRenderingTests
         return (ink.Max(p => p.X) - ink.Min(p => p.X), ink.Max(p => p.Y) - ink.Min(p => p.Y));
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void OutlinedTextIsHollowWhereFilledTextIsSolid()
     {
         var filled = InkOf(null, XBrushes.Black);
@@ -68,7 +68,7 @@ public class StrokedTextRenderingTests
         outlined.Count.Should().BeLessThan(filled.Count / 2);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AThickerPenLaysDownMoreInkThanAThinOne()
     {
         var thin = InkOf(new XPen(XColors.Black, 1), null);
@@ -77,7 +77,7 @@ public class StrokedTextRenderingTests
         thick.Count.Should().BeGreaterThan(thin.Count);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void FillingAndStrokingTogetherCoversAtLeastAsMuchAsFillingAlone()
     {
         var filled = InkOf(null, XBrushes.Black);
@@ -87,7 +87,7 @@ public class StrokedTextRenderingTests
         both.Count.Should().BeGreaterThan(filled.Count);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AStrokeIsDrawnInThePensOwnColour()
     {
         using var output = PdfHelper.Rasterize(PageShowing(new XPen(XColors.Red, 3), null));

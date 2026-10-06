@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -37,7 +37,7 @@ public sealed class DdlWriterTests : IDisposable
         return elements;
     }
 
-    [Fact]
+    [Test]
     public void EveryStringOverloadForAnObjectAgreesWithTheOthers()
     {
         var document = ADocument();
@@ -49,7 +49,7 @@ public sealed class DdlWriterTests : IDisposable
         DdlReader.DocumentFromString(byDefault).LastSection.Elements.Count.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void EveryStringOverloadForACollectionAgreesWithTheOthers()
     {
         var elements = SomeElements();
@@ -61,7 +61,7 @@ public sealed class DdlWriterTests : IDisposable
         DdlWriter.WriteToString(elements, 2, 0).Should().Be(byDefault);
     }
 
-    [Fact]
+    [Test]
     public void AWiderIndentWritesWiderLines()
     {
         var document = ADocument();
@@ -73,7 +73,7 @@ public sealed class DdlWriterTests : IDisposable
         wide.Should().StartWith("    ");
     }
 
-    [Fact]
+    [Test]
     public void WritingAnObjectToAFileWritesWhatWritingToAStringDoes()
     {
         var document = ADocument();
@@ -89,7 +89,7 @@ public sealed class DdlWriterTests : IDisposable
         File.ReadAllText(_file).Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void WritingACollectionToAFileWritesWhatWritingToAStringDoes()
     {
         var elements = SomeElements();
@@ -105,7 +105,7 @@ public sealed class DdlWriterTests : IDisposable
         File.ReadAllText(_file).Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void AStreamGetsTheSameTextAsAString()
     {
         var document = ADocument();
@@ -126,7 +126,7 @@ public sealed class DdlWriterTests : IDisposable
             .Should().Be(DdlWriter.WriteToString(document) + DdlWriter.WriteToString(elements));
     }
 
-    [Fact]
+    [Test]
     public void ATextWriterIsLeftOpenForItsOwner()
     {
         using var text = new StringWriter();

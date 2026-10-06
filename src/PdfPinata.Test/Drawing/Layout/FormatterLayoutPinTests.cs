@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using AwesomeAssertions;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing.Layout;
 
@@ -23,7 +23,7 @@ namespace PdfPinata.Test.Drawing.Layout;
 /// </remarks>
 public class FormatterLayoutPinTests
 {
-    [Fact]
+    [Test]
     public void TextLaidOutWithNothingNarrowingItIsWrittenExactlyAsItWas()
     {
         var written = Normalized(FormatterOutput.OfEveryArrangement());
@@ -41,7 +41,7 @@ public class FormatterLayoutPinTests
                 "the '" + arrangement + "' arrangement must lay out as it did before");
     }
 
-    [Fact]
+    [Test]
     public void TheBaselineCoversEveryArrangementTheFormatterOffers()
     {
         var pinned = SplitByArrangement(Normalized(File.ReadAllText(BaselinePath)));

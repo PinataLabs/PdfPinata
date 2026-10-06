@@ -30,7 +30,33 @@
       The tree is clean of it, so this costs nothing today and makes the next such edit fail loudly.
     -->
     <WarningsAsErrors>$(WarningsAsErrors);CS8073</WarningsAsErrors>
+
+    <!--
+      TUnit would otherwise add "global using TUnit.Core" and "global using static
+      TUnit.Core.HookType" to every test project. The second puts Assembly, Class and Test in scope
+      as bare names in every file, beside System.Reflection.Assembly. Each test file says
+      "using TUnit.Core;" itself instead, as it said "using Xunit;" before.
+    -->
+    <TUnitImplicitUsings>false</TUnitImplicitUsings>
+
+    <!--
+      TUnit0015 asks every test with a [Timeout] to take the CancellationToken the timeout cancels.
+      These timeouts are not there to cancel anything cooperatively: they catch a lexer or parser
+      that loops forever on malformed input, which never looks at a token, so the parameter would
+      be one nobody reads. Interruptibly explains what makes such a timeout fire at all.
+    -->
+    <NoWarn>$(NoWarn);TUnit0015</NoWarn>
   </PropertyGroup>
+
+  <!--
+    What coverlet measures, for every test project: Microsoft.Testing.Platform reads testconfig.json
+    from beside the test assembly. IsTestingPlatformApplication is set by TUnit's own package, which
+    is imported after this file - but an item's condition is evaluated after every property, so it
+    sees the value.
+  -->
+  <ItemGroup Condition="'$(IsTestingPlatformApplication)' == 'true'">
+    <None Include="$(MSBuildThisFileDirectory)testconfig.json" Link="testconfig.json" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
 
   <!--
     Polyfills/ holds the members the .NET analyzers ask for that netstandard2.1 lacks - the throw

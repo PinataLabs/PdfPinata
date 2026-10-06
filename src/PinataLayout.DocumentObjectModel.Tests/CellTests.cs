@@ -6,7 +6,7 @@ using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
 using PinataLayout.DocumentObjectModel.Tables;
-using Xunit;
+using TUnit.Core;
 using static PinataLayout.DocumentObjectModel.Shapes.ImageSource;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
@@ -37,7 +37,7 @@ public class CellTests
         return table;
     }
 
-    [Fact]
+    [Test]
     public void EveryAddMethodOnACellAddsWhatItReturns()
     {
         var cell = new Cell();
@@ -55,7 +55,7 @@ public class CellTests
         cell.Elements.Cast<object>().Should().Equal(added);
     }
 
-    [Fact]
+    [Test]
     public void EveryAddOverloadOnACellAddsTheElementItIsGiven()
     {
         var cell = new Cell();
@@ -72,7 +72,7 @@ public class CellTests
         cell.Elements.Cast<object>().Should().Equal(paragraph, chart, image, frame);
     }
 
-    [Fact]
+    [Test]
     public void ACellKnowsItsTableRowAndColumn()
     {
         var table = TwoByTwo(new Document().AddSection());
@@ -85,13 +85,13 @@ public class CellTests
         table[0, 0].Column.Should().BeSameAs(table.Columns[0]);
     }
 
-    [Fact]
+    [Test]
     public void ACellInNoTableHasNoTable()
     {
         new Cell().Table.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void ACellKeepsWhatItIsGiven()
     {
         var cell = new Cell();
@@ -115,7 +115,7 @@ public class CellTests
         new Cell().Style.Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void ACloneIsDeep()
     {
         var table = TwoByTwo(new Document().AddSection());
@@ -130,7 +130,7 @@ public class CellTests
         clone.Elements.Count.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void EverythingACellCanSayIsWrittenAndReadBack()
     {
         var document = new Document();
@@ -167,7 +167,7 @@ public class CellTests
     // never. What each says is therefore how far the cell reaches *for*, and these two say how far
     // it reaches.
 
-    [Fact]
+    [Test]
     public void AMergeInsideTheTableEndsWhereItSays()
     {
         var document = new Document();
@@ -179,7 +179,7 @@ public class CellTests
         table[0, 0].MergedBottomRowIndex.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void AMergeWithNothingMergedIsTheCellItself()
     {
         var document = new Document();
@@ -189,7 +189,7 @@ public class CellTests
         table[1, 2].MergedBottomRowIndex.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AMergePastTheTableEndsAtTheEdgeOfIt()
     {
         var document = new Document();
@@ -201,7 +201,7 @@ public class CellTests
         table[0, 0].MergedBottomRowIndex.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void TheMergeItselfStillReadsBackAsItWasWritten()
     {
         // Because it is what the caller set and what a writer has to put back out again; only the

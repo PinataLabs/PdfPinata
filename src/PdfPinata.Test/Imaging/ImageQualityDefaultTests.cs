@@ -7,7 +7,7 @@ using PinataLayout.DocumentObjectModel.Shapes;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SkiaSharp;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Imaging;
 
@@ -20,7 +20,7 @@ namespace PdfPinata.Test.Imaging;
 /// </summary>
 public class ImageQualityDefaultTests
 {
-    [Fact]
+    [Test]
     public void TheRegisteredBackendTakesNullAsTheDefaultFromBytes()
     {
         var png = Png();
@@ -30,7 +30,7 @@ public class ImageQualityDefaultTests
         jpeg.Should().Equal(Jpeg(ImageSource.FromBinary("probe", () => png, quality: 75)));
     }
 
-    [Fact]
+    [Test]
     public void TheRegisteredBackendTakesNullAsTheDefaultFromAStream()
     {
         var png = Png();
@@ -40,7 +40,7 @@ public class ImageQualityDefaultTests
         jpeg.Should().Equal(Jpeg(ImageSource.FromStream("probe", () => new MemoryStream(png), quality: 75)));
     }
 
-    [Fact]
+    [Test]
     public void TheRegisteredBackendTakesNullAsTheDefaultFromAFile()
     {
         var path = Path.Combine(Path.GetTempPath(), $"quality-default-{Guid.NewGuid():N}.png");
@@ -57,7 +57,7 @@ public class ImageQualityDefaultTests
         }
     }
 
-    [Fact]
+    [Test]
     public void ASkiaBitmapTakesNullAsTheDefault()
     {
         var jpeg = Jpeg(SkiaImageSource.FromSkiaBitmap(Bitmap(), transparent: false, quality: null));
@@ -65,7 +65,7 @@ public class ImageQualityDefaultTests
         jpeg.Should().Equal(Jpeg(SkiaImageSource.FromSkiaBitmap(Bitmap(), transparent: false, quality: 75)));
     }
 
-    [Fact]
+    [Test]
     public void AnImageSharpImageTakesNullAsTheDefault()
     {
         var png = Png();
@@ -82,7 +82,7 @@ public class ImageQualityDefaultTests
     ///   runs alongside this one. So the ImageSharp backend's decoding path is called through a
     ///   subclass, as the public <see cref="ImageSource"/> methods call it.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheImageSharpBackendTakesNullAsTheDefault()
     {
         var png = Png();

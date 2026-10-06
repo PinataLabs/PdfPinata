@@ -7,7 +7,7 @@ using PdfPinata.Charting.Tests.Helpers;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -50,7 +50,7 @@ public class LegendTests
 
     // ----- whether there is a legend at all -----
 
-    [Fact]
+    [Test]
     public void AChartThatNeverAskedForALegendNamesNoSeries()
     {
         var page = Drawn.Page(TwoNamedSeries(ChartType.Column2D));
@@ -62,7 +62,7 @@ public class LegendTests
     ///   Reading <see cref="Chart.Legend"/> is itself the request: the property creates the legend
     ///   the first time it is asked for, and the renderer draws one whenever it exists.
     /// </summary>
-    [Fact]
+    [Test]
     public void AskingForTheLegendIsEnoughToHaveOneDrawn()
     {
         var chart = TwoNamedSeries(ChartType.Column2D);
@@ -71,11 +71,11 @@ public class LegendTests
         ShownText.On(Drawn.Page(chart)).Should().ContainInOrder("North", "South");
     }
 
-    [Theory]
-    [InlineData(DockingType.Top)]
-    [InlineData(DockingType.Bottom)]
-    [InlineData(DockingType.Left)]
-    [InlineData(DockingType.Right)]
+    [Test]
+    [Arguments(DockingType.Top)]
+    [Arguments(DockingType.Bottom)]
+    [Arguments(DockingType.Left)]
+    [Arguments(DockingType.Right)]
     public void EveryDockingPositionNamesEverySeriesInOrder(DockingType docking)
     {
         var chart = TwoNamedSeries(ChartType.Column2D);
@@ -86,7 +86,7 @@ public class LegendTests
 
     // ----- where the legend goes -----
 
-    [Fact]
+    [Test]
     public void ALegendDockedRightIsDrawnAgainstTheRightEdgeAndClearOfEveryColumn()
     {
         var page = Drawn.Page(Bordered(DockingType.Right));
@@ -98,7 +98,7 @@ public class LegendTests
         Columns(page).Should().NotBeEmpty().And.OnlyContain(column => column.Right <= border.X);
     }
 
-    [Fact]
+    [Test]
     public void ALegendDockedLeftIsDrawnAgainstTheLeftEdgeAndClearOfTheValueAxis()
     {
         var page = Drawn.Page(Bordered(DockingType.Left));
@@ -111,7 +111,7 @@ public class LegendTests
             "the value axis is pushed right to make room, labels and all");
     }
 
-    [Fact]
+    [Test]
     public void ALegendDockedTopIsDrawnAgainstTheTopEdgeAndAboveEveryColumn()
     {
         var page = Drawn.Page(Bordered(DockingType.Top));
@@ -124,7 +124,7 @@ public class LegendTests
         TickLabels(page).Should().NotBeEmpty().And.OnlyContain(label => label.Y <= border.Y);
     }
 
-    [Fact]
+    [Test]
     public void ALegendDockedBottomIsDrawnAgainstTheBottomEdgeAndBelowTheCategoryLabels()
     {
         var page = Drawn.Page(Bordered(DockingType.Bottom));
@@ -140,7 +140,7 @@ public class LegendTests
     ///   The legend's room comes out of the plot area's rather than being drawn over it, so the
     ///   same columns end further left once a legend has been docked to their right.
     /// </summary>
-    [Fact]
+    [Test]
     public void ALegendTakesItsRoomFromThePlotArea()
     {
         var without = Drawn.Page(TwoNamedSeries(ChartType.Column2D));
@@ -155,10 +155,10 @@ public class LegendTests
     ///   Beside the chart the entries are stacked, each one a line of text below the last with the
     ///   entry spacing between them - which depends on the legend's own font, not the chart's.
     /// </summary>
-    [Theory]
-    [InlineData(DockingType.Left, 0)]
-    [InlineData(DockingType.Right, 0)]
-    [InlineData(DockingType.Right, 20)]
+    [Test]
+    [Arguments(DockingType.Left, 0)]
+    [Arguments(DockingType.Right, 0)]
+    [Arguments(DockingType.Right, 20)]
     public void ALegendBesideTheChartStacksItsEntries(DockingType docking, double fontSize)
     {
         var chart = TwoNamedSeries(ChartType.Column2D);
@@ -179,9 +179,9 @@ public class LegendTests
     ///   Above or below the chart the entries run side by side, each one starting the entry
     ///   spacing after the last one's text ends.
     /// </summary>
-    [Theory]
-    [InlineData(DockingType.Top)]
-    [InlineData(DockingType.Bottom)]
+    [Test]
+    [Arguments(DockingType.Top)]
+    [Arguments(DockingType.Bottom)]
     public void ALegendAboveOrBelowTheChartSetsItsEntriesSideBySide(DockingType docking)
     {
         var chart = TwoNamedSeries(ChartType.Column2D);
@@ -199,7 +199,7 @@ public class LegendTests
     /// <summary>
     ///   A column series is keyed with a square swatch of its own fill, set just before its name.
     /// </summary>
-    [Fact]
+    [Test]
     public void AColumnSeriesIsKeyedWithASwatchOfItsFill()
     {
         var chart = TwoNamedSeries(ChartType.Column2D);
@@ -224,7 +224,7 @@ public class LegendTests
     ///   A stacked column is drawn bottom up, first series lowest, so its legend lists the series
     ///   the other way round - the order a reader sees them in the stack.
     /// </summary>
-    [Fact]
+    [Test]
     public void AStackedColumnLegendListsItsSeriesInStackOrder()
     {
         var chart = TwoNamedSeries(ChartType.ColumnStacked2D);
@@ -239,7 +239,7 @@ public class LegendTests
     ///   The same in a combination chart, for the stacked columns among themselves: the series
     ///   drawn beside the stack keeps its place in the list.
     /// </summary>
-    [Fact]
+    [Test]
     public void ACombinationLegendListsItsStackedColumnsInStackOrder()
     {
         var chart = Charts.OfSeries(ChartType.Line,
@@ -260,7 +260,7 @@ public class LegendTests
     /// <summary>
     ///   A series with no name still has its entry, and the entry is only its swatch.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnUnnamedSeriesIsKeyedWithItsSwatchAlone()
     {
         var chart = TwoNamedSeries(ChartType.Column2D);
@@ -280,7 +280,7 @@ public class LegendTests
 
     // ----- the border -----
 
-    [Fact]
+    [Test]
     public void ALegendWithNoLineFormatHasNoBorder()
     {
         var chart = TwoNamedSeries(ChartType.Column2D);
@@ -296,7 +296,7 @@ public class LegendTests
     /// <summary>
     ///   A visible line format draws the border in its colour and at its width, round every entry.
     /// </summary>
-    [Fact]
+    [Test]
     public void ALegendBorderIsStrokedInItsLineFormatAroundEveryEntry()
     {
         var chart = Bordered(DockingType.Right);
@@ -318,7 +318,7 @@ public class LegendTests
     ///   A visible line format that states no width is drawn at the legend's own default - a
     ///   twentieth of a millimetre - rather than at nothing.
     /// </summary>
-    [Fact]
+    [Test]
     public void ALegendBorderWithNoWidthIsDrawnAtTheDefaultWidth()
     {
         var page = Drawn.Page(Bordered(DockingType.Right));
@@ -332,7 +332,7 @@ public class LegendTests
     ///   that the entries do not touch the line. The first swatch starts one padding inside the
     ///   border, and the whole legend is one padding wider on each side than it would be unbordered.
     /// </summary>
-    [Fact]
+    [Test]
     public void ABorderedLegendIsPaddedInsideItsBorderAsWellAsOutside()
     {
         var bordered = Drawn.Page(Bordered(DockingType.Right));
@@ -354,9 +354,9 @@ public class LegendTests
     ///   A border that is not visible is no border, so it takes no room either: the legend is laid
     ///   out exactly as one with no line format at all, rather than padded for a line nobody sees.
     /// </summary>
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Bar2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Bar2D)]
     public void AHiddenLegendBorderIsNotPaddedFor(ChartType type)
     {
         var plain = TwoNamedSeries(type);
@@ -379,9 +379,9 @@ public class LegendTests
     ///   the marker itself drawn on the middle of it - but never shorter than three swatches, so a
     ///   small marker still has a line to sit on.
     /// </summary>
-    [Theory]
-    [InlineData(10, 30)]
-    [InlineData(4, 21)]
+    [Test]
+    [Arguments(10, 30)]
+    [Arguments(4, 21)]
     public void ALineSeriesIsKeyedWithAStrokeOfTheLineCarryingItsMarker(double markerSize, double keyLength)
     {
         var chart = Charts.Of(ChartType.Line, 1.0, 3.0, 2.0);
@@ -414,7 +414,7 @@ public class LegendTests
     ///   given in - a centimetre is 28.35 points, so its key is three times that rather than
     ///   three times one.
     /// </summary>
-    [Fact]
+    [Test]
     public void ALineKeyIsMeasuredFromAMarkerSizeInPointsWhateverItsUnit()
     {
         var chart = Charts.Of(ChartType.Line, 1.0, 3.0, 2.0);
@@ -446,7 +446,7 @@ public class LegendTests
     ///   to the widest marker: a column series beside a line series is keyed with a swatch as wide
     ///   as the line's key, which is what keeps the two lined up.
     /// </summary>
-    [Fact]
+    [Test]
     public void AColumnSwatchBesideALineKeyIsWidenedToMatchIt()
     {
         var chart = TwoNamedSeries(ChartType.Column2D);
@@ -467,7 +467,7 @@ public class LegendTests
     ///   A pie has one series and keys its wedges rather than its series, so its legend names the
     ///   categories - and is the only text a pie draws when it has no data labels.
     /// </summary>
-    [Fact]
+    [Test]
     public void APieLegendNamesItsCategories()
     {
         var chart = Charts.Of(ChartType.Pie2D, 1.0, 2.0, 3.0);
@@ -487,7 +487,7 @@ public class LegendTests
     ///   their names. <see cref="XSeries.AddBlank"/> stores a null, whose value the legend used to
     ///   read.
     /// </summary>
-    [Fact]
+    [Test]
     public void APieLegendKeysABlankCategoryWithNoText()
     {
         var chart = Charts.Empty(ChartType.Pie2D);
@@ -509,7 +509,7 @@ public class LegendTests
     ///   numbers its entries then, as it does for a chart that never asked for the collection at all.
     ///   It used to read the first series without asking whether there was one.
     /// </summary>
-    [Fact]
+    [Test]
     public void APieLegendWithAnEmptyCategoryCollectionNumbersItsEntries()
     {
         var chart = Charts.Empty(ChartType.Pie2D);
@@ -527,11 +527,11 @@ public class LegendTests
     ///   across the chart, and then start a new row under the last - where they used to run on in
     ///   a single row centred on the chart, off both edges of it and of the page it was on.
     /// </summary>
-    [Theory]
-    [InlineData(ChartType.Pie2D, DockingType.Bottom)]
-    [InlineData(ChartType.Pie2D, DockingType.Top)]
-    [InlineData(ChartType.Column2D, DockingType.Bottom)]
-    [InlineData(ChartType.Bar2D, DockingType.Bottom)]
+    [Test]
+    [Arguments(ChartType.Pie2D, DockingType.Bottom)]
+    [Arguments(ChartType.Pie2D, DockingType.Top)]
+    [Arguments(ChartType.Column2D, DockingType.Bottom)]
+    [Arguments(ChartType.Bar2D, DockingType.Bottom)]
     public void ALegendTooWideForTheChartWrapsItsEntriesOntoMoreRows(ChartType type, DockingType docking)
     {
         var chart = NamedEntries(type, TwelveRegions);
@@ -555,7 +555,7 @@ public class LegendTests
     ///   The rows of a wrapped legend are each centred across the chart, as a single row always was,
     ///   and they stack with the entry spacing between one row and the next.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheRowsOfAWrappedLegendAreCentredAndSpacedAsEntriesAre()
     {
         var chart = NamedEntries(ChartType.Pie2D, TwelveRegions);
@@ -582,9 +582,9 @@ public class LegendTests
     ///   An entry that would be wider than the chart on its own is word wrapped inside its entry,
     ///   with its swatch against the first line, rather than pushing the legend off both sides.
     /// </summary>
-    [Theory]
-    [InlineData(DockingType.Bottom)]
-    [InlineData(DockingType.Right)]
+    [Test]
+    [Arguments(DockingType.Bottom)]
+    [Arguments(DockingType.Right)]
     public void AnEntryWiderThanTheChartIsWordWrapped(DockingType docking)
     {
         const string longName = "The quarterly revenue of every northern region taken together, before tax";
@@ -612,7 +612,7 @@ public class LegendTests
     ///   A line break in a series name starts a new line of its entry, where it used to be dropped
     ///   and the two halves run together.
     /// </summary>
-    [Fact]
+    [Test]
     public void ALineBreakInASeriesNameStartsANewLineOfItsEntry()
     {
         var chart = TwoNamedSeries(ChartType.Column2D);

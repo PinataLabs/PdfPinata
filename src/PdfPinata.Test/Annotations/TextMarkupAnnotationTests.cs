@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Annotations;
 
@@ -15,11 +15,11 @@ namespace PdfPinata.Test.Annotations;
 /// </summary>
 public class TextMarkupAnnotationTests
 {
-    [Theory]
-    [InlineData(typeof(PdfHighlightAnnotation), "/Highlight")]
-    [InlineData(typeof(PdfUnderlineAnnotation), "/Underline")]
-    [InlineData(typeof(PdfStrikeOutAnnotation), "/StrikeOut")]
-    [InlineData(typeof(PdfSquigglyAnnotation), "/Squiggly")]
+    [Test]
+    [Arguments(typeof(PdfHighlightAnnotation), "/Highlight")]
+    [Arguments(typeof(PdfUnderlineAnnotation), "/Underline")]
+    [Arguments(typeof(PdfStrikeOutAnnotation), "/StrikeOut")]
+    [Arguments(typeof(PdfSquigglyAnnotation), "/Squiggly")]
     public void EachSubtypeNamesItself(System.Type type, string subtype)
     {
         var annotation = (PdfTextMarkupAnnotation)System.Activator.CreateInstance(type);
@@ -28,7 +28,7 @@ public class TextMarkupAnnotationTests
         annotation.Elements.GetName("/Subtype").Should().Be(subtype);
     }
 
-    [Fact]
+    [Test]
     public void AQuadIsWrittenAsTheFourCornersEveryProducerWrites()
     {
         var annotation = OnAPage(new PdfHighlightAnnotation());
@@ -42,7 +42,7 @@ public class TextMarkupAnnotationTests
             30, 700, 100, 700);
     }
 
-    [Fact]
+    [Test]
     public void TheRectangleBecomesTheBoxAroundEveryQuad()
     {
         var annotation = OnAPage(new PdfHighlightAnnotation());
@@ -53,7 +53,7 @@ public class TextMarkupAnnotationTests
         Numbers(annotation, "/Rect").Should().Equal(30, 660, 160, 716);
     }
 
-    [Fact]
+    [Test]
     public void QuadsReadBackAsTheyWereGiven()
     {
         var annotation = OnAPage(new PdfHighlightAnnotation());
@@ -68,7 +68,7 @@ public class TextMarkupAnnotationTests
             ]);
     }
 
-    [Fact]
+    [Test]
     public void ClearingTheQuadsLeavesNone()
     {
         var annotation = OnAPage(new PdfHighlightAnnotation());
@@ -85,7 +85,7 @@ public class TextMarkupAnnotationTests
     ///   annotation that took that literally would carry no quads and draw nothing, which is
     ///   the complaint the issue was raised about.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnAnnotationGivenOnlyARectangleIsStillDrawn()
     {
         var document = new PdfDocument();
@@ -98,7 +98,7 @@ public class TextMarkupAnnotationTests
         Content(annotation).Should().Contain("30 700 100 20 re f");
     }
 
-    [Fact]
+    [Test]
     public void TheAppearanceIsAFormCoveringTheAnnotationRectangle()
     {
         var annotation = OnAPage(new PdfHighlightAnnotation());
@@ -116,7 +116,7 @@ public class TextMarkupAnnotationTests
     ///   stream is an object in the document. Whichever side of the Add a property is set,
     ///   it has to reach the appearance.
     /// </summary>
-    [Fact]
+    [Test]
     public void PropertiesSetBeforeTheAnnotationIsAddedReachTheAppearance()
     {
         var document = new PdfDocument();
@@ -130,7 +130,7 @@ public class TextMarkupAnnotationTests
         Content(annotation).Should().Contain("0 1 0 rg");
     }
 
-    [Fact]
+    [Test]
     public void PropertiesSetAfterTheAnnotationIsAddedReachTheAppearance()
     {
         var annotation = OnAPage(new PdfHighlightAnnotation());
@@ -145,7 +145,7 @@ public class TextMarkupAnnotationTests
     ///   Opacity is carried in the graphics state of the appearance rather than left in /CA,
     ///   which a viewer ignores once there is an appearance for it to apply.
     /// </summary>
-    [Fact]
+    [Test]
     public void OpacityReachesTheGraphicsStateOfTheAppearance()
     {
         var annotation = OnAPage(new PdfHighlightAnnotation());
@@ -164,7 +164,7 @@ public class TextMarkupAnnotationTests
     ///   The appearance is rewritten in place, so changing a colour twenty times does not leave
     ///   twenty streams behind in the document.
     /// </summary>
-    [Fact]
+    [Test]
     public void RewritingTheAppearanceDoesNotLeaveTheOldOneBehind()
     {
         var document = new PdfDocument();
@@ -184,7 +184,7 @@ public class TextMarkupAnnotationTests
         Content(annotation).Should().Contain("1 1 0 rg");
     }
 
-    [Fact]
+    [Test]
     public void AnAnnotationNeverAddedToAPageHasNoAppearance()
     {
         var annotation = new PdfHighlightAnnotation();
@@ -194,7 +194,7 @@ public class TextMarkupAnnotationTests
         annotation.Elements.ContainsKey("/AP").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void TheUnderlineIsRuledAlongTheFootOfTheQuad()
     {
         var annotation = OnAPage(new PdfUnderlineAnnotation());
@@ -205,7 +205,7 @@ public class TextMarkupAnnotationTests
         Content(annotation).Should().Contain("30 701 70 1 re f");
     }
 
-    [Fact]
+    [Test]
     public void TheStrikeOutIsRuledThroughTheQuad()
     {
         var annotation = OnAPage(new PdfStrikeOutAnnotation());
@@ -215,7 +215,7 @@ public class TextMarkupAnnotationTests
         Content(annotation).Should().Contain("30 706 70 1 re f");
     }
 
-    [Fact]
+    [Test]
     public void TheSquigglyIsStrokedAsAZigzagThatStopsAtTheEndOfTheQuad()
     {
         var annotation = OnAPage(new PdfSquigglyAnnotation());
@@ -229,7 +229,7 @@ public class TextMarkupAnnotationTests
         Numbers(annotation, "/Rect").Should().Equal(30, 700, 100, 714);
     }
 
-    [Fact]
+    [Test]
     public void EveryQuadIsDrawn()
     {
         var annotation = OnAPage(new PdfHighlightAnnotation());
@@ -242,9 +242,9 @@ public class TextMarkupAnnotationTests
         content.Should().Contain("120 660 40 12 re f");
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
+    [Test]
+    [Arguments(true)]
+    [Arguments(false)]
     public void TheAnnotationSurvivesBeingSavedAndRead(bool quadsBeforeTheAnnotationIsAdded)
     {
         // The quad array is built before the annotation has an owning document in one of these

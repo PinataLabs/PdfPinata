@@ -1,7 +1,7 @@
 using System;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -18,7 +18,7 @@ namespace PdfPinata.Test.Dom;
 /// </summary>
 public class UnitNullConversionTests
 {
-    [Fact]
+    [Test]
     public void ConvertingANullStringThrowsSomethingThatExplainsItself()
     {
         var convert = () => { Unit _ = null; };
@@ -32,7 +32,7 @@ public class UnitNullConversionTests
     ///   The expression this is really about. It compiles, no compiler warning can catch it, and
     ///   before the guard it threw a bare NullReferenceException.
     /// </summary>
-    [Fact]
+    [Test]
     public void ComparingAUnitToNullThrowsSomethingThatExplainsItself()
     {
         var unit = Unit.FromPoint(3);
@@ -42,7 +42,7 @@ public class UnitNullConversionTests
         compare.Should().Throw<ArgumentNullException>();
     }
 
-    [Fact]
+    [Test]
     public void ConvertingARealStringStillWorks()
     {
         Unit fromPoints = "12pt";
@@ -54,7 +54,7 @@ public class UnitNullConversionTests
         bare.Point.Should().BeApproximately(5, 1e-6, "point is assumed when there is no suffix");
     }
 
-    [Fact]
+    [Test]
     public void EmptinessIsTestedWithIsEmpty()
     {
         var unset = new Unit();

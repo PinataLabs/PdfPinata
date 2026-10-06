@@ -10,12 +10,12 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing.Layout;
 
-[Collection(RasterizingCollection.Name)]
-public class XTextFormatterTest
+[Rasterizing]
+public class XTextFormatterTest : IDisposable
 {
     private static readonly string OutDir = "TestResults/XTextFormatterTest";
     private static readonly string ExpectedImagesPath = Path.Combine("Drawing", "Layout");
@@ -44,8 +44,10 @@ public class XTextFormatterTest
         _renderer = XGraphics.FromPdfPage(_page);
         _textFormatter = new XTextFormatter(_renderer);
     }
+
+    public void Dispose() => _document.Dispose();
         
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void DrawSingleLineString()
     {
         var layout = new XRect(12, 12, 200, 50);
@@ -56,7 +58,7 @@ public class XTextFormatterTest
         diffResult.DiffValue.Should().BeLessThan(MaxDifference);
     }
         
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void DrawMultilineStringWithTruncate()
     {
         var layout = new XRect(12, 12, 200, 40);
@@ -68,7 +70,7 @@ public class XTextFormatterTest
         diffResult.DiffValue.Should().BeLessThan(MaxDifference);
     }
         
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void DrawMultiLineStringWithOverflow()
     {
         var layout = new XRect(12, 12, 200, 40);
@@ -81,7 +83,7 @@ public class XTextFormatterTest
         diffResult.DiffValue.Should().BeLessThan(MaxDifference);
     }
         
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void DrawMultiLineStringsWithAlignment()
     {
         var layout1 = new XRect(12, 12, 200, 80);
@@ -103,7 +105,7 @@ public class XTextFormatterTest
         diffResult.DiffValue.Should().BeLessThan(MaxDifference);
     }
         
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void DrawMultiLineStringsWithLineHeight()
     {
         var font = new XFont("Arial", 12);
@@ -132,10 +134,10 @@ public class XTextFormatterTest
         diffResult.DiffValue.Should().BeLessThan(MaxDifference);
     }
 
-    [Theory]
-    [InlineData("Line1\r\nLine2")] // Windows
-    [InlineData("Line1\nLine2")]   // Unix
-    [InlineData("Line1\rLine2")]   // classic Mac
+    [Test]
+    [Arguments("Line1\r\nLine2")] // Windows
+    [Arguments("Line1\nLine2")]   // Unix
+    [Arguments("Line1\rLine2")]   // classic Mac
     public void DrawStringPutsEachLineOfABreakedTextOnItsOwnLine(string text)
     {
         var font = new XFont("Arial", 12);
@@ -149,7 +151,7 @@ public class XTextFormatterTest
         LineDistance(shownText).Should().BeApproximately(font.GetHeight(), 0.001);
     }
 
-    [Fact]
+    [Test]
     public void DrawStringDoesNotDrawTextThatDoesNotFitTheLayoutRectangle()
     {
         var font = new XFont("Arial", 12);
@@ -172,7 +174,7 @@ public class XTextFormatterTest
         shownText.Select(t => t.Text.Length).Distinct().Should().HaveCount(1, "every line holds one word");
     }
 
-    [Fact]
+    [Test]
     public void DrawStringKeepsBlankLines()
     {
         var font = new XFont("Arial", 12);
@@ -185,7 +187,7 @@ public class XTextFormatterTest
         LineDistance(shownText).Should().BeApproximately(2 * font.GetHeight(), 0.001);
     }
 
-    [Fact]
+    [Test]
     public void GetLayoutReportsOneLineHeightPerLineOfABreakedText()
     {
         var font = new XFont("Arial", 12);
@@ -196,7 +198,7 @@ public class XTextFormatterTest
         required.Height.Should().BeApproximately(2 * font.GetHeight(), 0.001);
     }
 
-    [Fact]
+    [Test]
     public void DrawStringStretchesJustifiedLinesButNotTheLastOneOfTheText()
     {
         var font = new XFont("Arial", 12);
@@ -212,7 +214,7 @@ public class XTextFormatterTest
         lines.Last().Should().HaveCount(1, "the last line of the text is not stretched");
     }
 
-    [Fact]
+    [Test]
     public void DrawStringDoesNotStretchTheJustifiedLineBeforeALineBreak()
     {
         var font = new XFont("Arial", 12);

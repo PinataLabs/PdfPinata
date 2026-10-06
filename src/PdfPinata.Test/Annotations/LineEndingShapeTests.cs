@@ -2,7 +2,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Annotations;
 
@@ -44,16 +44,16 @@ public class LineEndingShapeTests
         return normal == null ? "" : normal.Stream.ToString();
     }
 
-    [Theory]
-    [InlineData(PdfLineEnding.Square)]
-    [InlineData(PdfLineEnding.Circle)]
-    [InlineData(PdfLineEnding.Diamond)]
-    [InlineData(PdfLineEnding.OpenArrow)]
-    [InlineData(PdfLineEnding.ClosedArrow)]
-    [InlineData(PdfLineEnding.Butt)]
-    [InlineData(PdfLineEnding.ROpenArrow)]
-    [InlineData(PdfLineEnding.RClosedArrow)]
-    [InlineData(PdfLineEnding.Slash)]
+    [Test]
+    [Arguments(PdfLineEnding.Square)]
+    [Arguments(PdfLineEnding.Circle)]
+    [Arguments(PdfLineEnding.Diamond)]
+    [Arguments(PdfLineEnding.OpenArrow)]
+    [Arguments(PdfLineEnding.ClosedArrow)]
+    [Arguments(PdfLineEnding.Butt)]
+    [Arguments(PdfLineEnding.ROpenArrow)]
+    [Arguments(PdfLineEnding.RClosedArrow)]
+    [Arguments(PdfLineEnding.Slash)]
     public void EveryEndingDrawsSomethingBeyondTheLineItself(PdfLineEnding ending)
     {
         var plain = AppearanceOf(ALineEndedWith(PdfLineEnding.None, PdfLineEnding.None));
@@ -64,12 +64,12 @@ public class LineEndingShapeTests
             "the ending is drawn on top of the line, so its operators are added to the stream");
     }
 
-    [Theory]
-    [InlineData(PdfLineEnding.Square)]
-    [InlineData(PdfLineEnding.Circle)]
-    [InlineData(PdfLineEnding.Diamond)]
-    [InlineData(PdfLineEnding.ClosedArrow)]
-    [InlineData(PdfLineEnding.RClosedArrow)]
+    [Test]
+    [Arguments(PdfLineEnding.Square)]
+    [Arguments(PdfLineEnding.Circle)]
+    [Arguments(PdfLineEnding.Diamond)]
+    [Arguments(PdfLineEnding.ClosedArrow)]
+    [Arguments(PdfLineEnding.RClosedArrow)]
     public void AFilledEndingPaintsItselfWithTheInteriorColour(PdfLineEnding ending)
     {
         var appearance = AppearanceOf(ALineEndedWith(ending, ending));
@@ -78,11 +78,11 @@ public class LineEndingShapeTests
         appearance.Should().Contain(" rg");
     }
 
-    [Theory]
-    [InlineData(PdfLineEnding.OpenArrow)]
-    [InlineData(PdfLineEnding.ROpenArrow)]
-    [InlineData(PdfLineEnding.Butt)]
-    [InlineData(PdfLineEnding.Slash)]
+    [Test]
+    [Arguments(PdfLineEnding.OpenArrow)]
+    [Arguments(PdfLineEnding.ROpenArrow)]
+    [Arguments(PdfLineEnding.Butt)]
+    [Arguments(PdfLineEnding.Slash)]
     public void AHollowEndingIsStrokedRatherThanFilled(PdfLineEnding ending)
     {
         var appearance = AppearanceOf(ALineEndedWith(ending, ending));
@@ -97,7 +97,7 @@ public class LineEndingShapeTests
     ///   a different place. Both are worth having because the reversal is one line of code that
     ///   nothing else reaches.
     /// </summary>
-    [Fact]
+    [Test]
     public void AReversedArrowheadIsTheSameShapeTheOtherWayRound()
     {
         var forwards = AppearanceOf(ALineEndedWith(PdfLineEnding.OpenArrow, PdfLineEnding.OpenArrow));
@@ -109,7 +109,7 @@ public class LineEndingShapeTests
             "and is otherwise the same drawing, give or take how the coordinates round");
     }
 
-    [Fact]
+    [Test]
     public void TheTwoEndsCanBeEndedDifferently()
     {
         var line = ALineEndedWith(PdfLineEnding.Square, PdfLineEnding.Circle);
@@ -120,7 +120,7 @@ public class LineEndingShapeTests
         endings.Elements.GetName(1).Should().Be("/Circle");
     }
 
-    [Fact]
+    [Test]
     public void ALineBuiltOnADocumentIsReadyToBeUsedWithoutBeingPlacedFirst()
     {
         var document = new PdfDocument();
@@ -137,7 +137,7 @@ public class LineEndingShapeTests
     ///   An endpoint is read back out of <c>/L</c> rather than kept in a field, so a document whose
     ///   <c>/L</c> is missing or too short answers the origin rather than throwing.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnEndpointOfALineWithNoProperLineArrayIsTheOrigin()
     {
         var document = new PdfDocument();

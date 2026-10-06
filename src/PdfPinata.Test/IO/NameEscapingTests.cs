@@ -5,7 +5,7 @@ using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -47,25 +47,25 @@ public class NameEscapingTests
         return new string(stream.ToArray().Select(b => (char)b).ToArray());
     }
 
-    [Theory]
-    [InlineData("/A[B")]
-    [InlineData("/A]B")]
-    [InlineData("/A{B")]
-    [InlineData("/A}B")]
-    [InlineData("/A(B)C<D>E/F%G#H")]
-    [InlineData("/A B")]
+    [Test]
+    [Arguments("/A[B")]
+    [Arguments("/A]B")]
+    [Arguments("/A{B")]
+    [Arguments("/A}B")]
+    [Arguments("/A(B)C<D>E/F%G#H")]
+    [Arguments("/A B")]
     public void ANameHoldingADelimiterReadsBackWhole(string name)
     {
         RoundTripped(name).Should().Be(name);
     }
 
-    [Fact]
+    [Test]
     public void EveryDelimiterIsWrittenAsAHashEscape()
     {
         Saved("/x()<>[]{}/%#").Should().Contain("/x#28#29#3C#3E#5B#5D#7B#7D#2F#25#23");
     }
 
-    [Fact]
+    [Test]
     public void ABytePastTildeIsWrittenAsAHashEscapeAndReadsBackAsTheSameByte()
     {
         // One char per byte, never decoded: 0xE9 is written as #E9 and read back as 0xE9.
@@ -75,7 +75,7 @@ public class NameEscapingTests
         RoundTripped(name).Should().Be(name);
     }
 
-    [Fact]
+    [Test]
     public void ANameACallerWroteInUnicodeIsWrittenAsItsUtf8Bytes()
     {
         // U+4E2D U+6587. The writer used to escape each char by its whole value, "#4E2D#6587",
@@ -85,7 +85,7 @@ public class NameEscapingTests
         Saved(name).Should().Contain("/Zh#E4#B8#AD#E6#96#87");
     }
 
-    [Fact]
+    [Test]
     public void ANameACallerWroteInUnicodeReadsBackAsItsUtf8BytesOneCharPerByte()
     {
         // A name that is read is never decoded, so what comes back is the UTF-8 bytes of what was
@@ -99,7 +99,7 @@ public class NameEscapingTests
         reread.Should().Be("/Zh" + (char)0xE4 + (char)0xB8 + (char)0xAD + (char)0xE6 + (char)0x96 + (char)0x87);
     }
 
-    [Fact]
+    [Test]
     public void ACharBelow256InANameThatAlsoHoldsUnicodeIsEncodedAsUtf8Too()
     {
         // The whole name is one encoding or the other: once a char past 0xFF says the caller wrote
@@ -109,7 +109,7 @@ public class NameEscapingTests
         Saved(name).Should().Contain("/caf#C3#A9#E4#B8#AD");
     }
 
-    [Fact]
+    [Test]
     public void ADelimiterInANameWrittenInUnicodeIsStillEscaped()
     {
         var name = "/a b(\u4E2D)";
@@ -118,7 +118,7 @@ public class NameEscapingTests
         RoundTripped(name).Should().Be("/a b(" + (char)0xE4 + (char)0xB8 + (char)0xAD + ")");
     }
 
-    [Fact]
+    [Test]
     public void ANameHoldingAnUnpairedSurrogateIsRefusedRatherThanWrittenAsAReplacementCharacter()
     {
         // The UTF-8 encoder used to put U+FFFD in the surrogate's place, so the name written was
@@ -140,7 +140,7 @@ public class NameEscapingTests
         }
     }
 
-    [Fact]
+    [Test]
     public void ANameHoldingASurrogatePairIsWrittenAsTheUtf8OfTheCharacterItMakes()
     {
         // U+1F600 is F0 9F 98 80: a pair is one character, not two lone halves.

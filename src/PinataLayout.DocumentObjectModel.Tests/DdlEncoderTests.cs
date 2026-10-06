@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -43,38 +43,38 @@ public class DdlEncoderTests
 
     // ----- StringToText: running paragraph text ---------------------------------------------------
 
-    [Theory]
+    [Test]
     // Nothing that means anything to the scanner passes through untouched.
-    [InlineData("", "")]
-    [InlineData("plain", "plain")]
-    [InlineData("a b c", "a b c")]
+    [Arguments("", "")]
+    [Arguments("plain", "plain")]
+    [Arguments("a b c", "a b c")]
     // A backslash is the escape character, so it escapes itself.
-    [InlineData("\\", "\\\\")]
-    [InlineData("a\\b", "a\\\\b")]
+    [Arguments("\\", "\\\\")]
+    [Arguments("a\\b", "a\\\\b")]
     // Braces open and close nested elements in paragraph content.
-    [InlineData("{", "\\{")]
-    [InlineData("}", "\\}")]
-    [InlineData("{}", "\\{\\}")]
-    [InlineData("a{b}c", "a\\{b\\}c")]
+    [Arguments("{", "\\{")]
+    [Arguments("}", "\\}")]
+    [Arguments("{}", "\\{\\}")]
+    [Arguments("a{b}c", "a\\{b\\}c")]
     // Two slashes begin a comment; one does not, and is left alone.
-    [InlineData("/", "/")]
-    [InlineData("a/b", "a/b")]
-    [InlineData("//", "\\//")]
-    [InlineData("a//b", "a\\//b")]
+    [Arguments("/", "/")]
+    [Arguments("a/b", "a/b")]
+    [Arguments("//", "\\//")]
+    [Arguments("a//b", "a\\//b")]
     // Every slash that begins a pair is escaped, so a run of them cannot leave two adjacent
     // unescaped slashes behind. See finding F22: escaping only the first of each pair left
     // "///" as "\///", which reads back as one slash and then a comment.
-    [InlineData("///", "\\/\\//")]
-    [InlineData("////", "\\/\\/\\//")]
+    [Arguments("///", "\\/\\//")]
+    [Arguments("////", "\\/\\/\\//")]
     // A slash at the very end has no character after it to look at, which is the bound the
     // lookahead exists for.
-    [InlineData("a/", "a/")]
+    [Arguments("a/", "a/")]
     public void TextEscapesOnlyWhatWouldEndTheTextEarly(string input, string expected)
     {
         DdlEncoder.StringToText(input).Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void TextHandsBackNullRatherThanEncodingIt()
     {
         // Unlike StringToLiteral, which answers an empty literal. Pinned because the two public
@@ -84,28 +84,28 @@ public class DdlEncoderTests
 
     // ----- StringToLiteral: a quoted string --------------------------------------------------------
 
-    [Theory]
+    [Test]
     // Nothing to escape, but always quoted.
-    [InlineData("abc", "\"abc\"")]
-    [InlineData("a b c", "\"a b c\"")]
+    [Arguments("abc", "\"abc\"")]
+    [Arguments("a b c", "\"a b c\"")]
     // The quote would end the literal, and the backslash escapes itself.
-    [InlineData("\"", "\"\\\"\"")]
-    [InlineData("a\"b", "\"a\\\"b\"")]
-    [InlineData("\\", "\"\\\\\"")]
-    [InlineData("a\\b", "\"a\\\\b\"")]
+    [Arguments("\"", "\"\\\"\"")]
+    [Arguments("a\"b", "\"a\\\"b\"")]
+    [Arguments("\\", "\"\\\\\"")]
+    [Arguments("a\\b", "\"a\\\\b\"")]
     // Braces and comment markers mean nothing inside a literal, so they are not escaped. This is
     // the difference from StringToText, and it is deliberate rather than an omission.
-    [InlineData("{}", "\"{}\"")]
-    [InlineData("//", "\"//\"")]
-    [InlineData("a{b}//c", "\"a{b}//c\"")]
+    [Arguments("{}", "\"{}\"")]
+    [Arguments("//", "\"//\"")]
+    [Arguments("a{b}//c", "\"a{b}//c\"")]
     public void ALiteralEscapesOnlyTheQuoteAndTheBackslash(string input, string expected)
     {
         DdlEncoder.StringToLiteral(input).Should().Be(expected);
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
+    [Test]
+    [Arguments(null)]
+    [Arguments("")]
     public void NothingAtAllIsWrittenAsAnEmptyLiteral(string input)
     {
         DdlEncoder.StringToLiteral(input).Should().Be("\"\"");
@@ -113,18 +113,18 @@ public class DdlEncoderTests
 
     // ----- the round trips, which are what the escaping is for -------------------------------------
 
-    [Theory]
-    [InlineData("plain")]
-    [InlineData("a b c")]
-    [InlineData("a\\b")]
-    [InlineData("a{b}c")]
-    [InlineData("a}b{c")]
-    [InlineData("a//b")]
-    [InlineData("a/b")]
-    [InlineData("a///b")]
-    [InlineData("a////b")]
-    [InlineData("C:\\Temp\\file.txt")]
-    [InlineData("100% of {this} is a//comment")]
+    [Test]
+    [Arguments("plain")]
+    [Arguments("a b c")]
+    [Arguments("a\\b")]
+    [Arguments("a{b}c")]
+    [Arguments("a}b{c")]
+    [Arguments("a//b")]
+    [Arguments("a/b")]
+    [Arguments("a///b")]
+    [Arguments("a////b")]
+    [Arguments("C:\\Temp\\file.txt")]
+    [Arguments("100% of {this} is a//comment")]
     public void TextSurvivesBeingWrittenAndReadAgain(string text)
     {
         TextOf(RoundTrip(DocumentSaying(text))).Should().Be(text,
@@ -147,12 +147,12 @@ public class DdlEncoderTests
     ///   text with a single letter in front of it round trips, which is what the theory above says.
     ///   </para>
     /// </remarks>
-    [Theory]
-    [InlineData("{}")]
-    [InlineData("{a}")]
-    [InlineData("}")]
-    [InlineData("//")]
-    [InlineData("///")]
+    [Test]
+    [Arguments("{}")]
+    [Arguments("{a}")]
+    [Arguments("}")]
+    [Arguments("//")]
+    [Arguments("///")]
     public void TextBeginningWithAnEscapedCharacterCannotBeReadBack(string text)
     {
         var ddl = DdlWriter.WriteToString(DocumentSaying(text));
@@ -162,7 +162,7 @@ public class DdlEncoderTests
         reading.Should().Throw<Exception>("the escape is written but read outside paragraph content");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentTitleSurvivesTheQuotesAndBackslashesInIt()
     {
         // The literal path rather than the text path: Info.Title is written as a quoted string.

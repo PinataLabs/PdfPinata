@@ -2,7 +2,7 @@ using System;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Tables;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -53,7 +53,7 @@ public class TableSetShadingTests
 
     // ----- the block it colours ---------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ABlockIsColouredAndNothingAroundItIs()
     {
         var table = ATable();
@@ -63,7 +63,7 @@ public class TableSetShadingTests
         Shaded(table, Colors.Red).Should().Be(".##./.##./....");
     }
 
-    [Fact]
+    [Test]
     public void ASingleCellIsABlockOfOne()
     {
         var table = ATable();
@@ -73,7 +73,7 @@ public class TableSetShadingTests
         Shaded(table, Colors.Red).Should().Be("..../..#./....");
     }
 
-    [Fact]
+    [Test]
     public void TheWholeTableIsABlockToo()
     {
         var table = ATable();
@@ -83,7 +83,7 @@ public class TableSetShadingTests
         Shaded(table, Colors.Red).Should().Be("####/####/####");
     }
 
-    [Fact]
+    [Test]
     public void ABlockThatEndsOnTheLastCellIsAllowed()
     {
         // The off-by-one that the count checks exist for, from the inside: clm + clms is exactly
@@ -95,7 +95,7 @@ public class TableSetShadingTests
         Shaded(table, Colors.Red).Should().Be("..../..##/..##");
     }
 
-    [Fact]
+    [Test]
     public void ColouringOneBlockAndThenAnotherLeavesBoth()
     {
         var table = ATable();
@@ -108,17 +108,17 @@ public class TableSetShadingTests
 
     // ----- the ranges it refuses --------------------------------------------------------------
 
-    [Theory]
-    [InlineData(0, -1, 1, 1, "row")]
-    [InlineData(0, Rows, 1, 1, "row")]
-    [InlineData(-1, 0, 1, 1, "clm")]
-    [InlineData(Columns, 0, 1, 1, "clm")]
-    [InlineData(0, 0, 1, 0, "rows")]
-    [InlineData(0, 0, 1, -1, "rows")]
-    [InlineData(0, 1, 1, Rows, "rows")]
-    [InlineData(0, 0, 0, 1, "clms")]
-    [InlineData(0, 0, -1, 1, "clms")]
-    [InlineData(1, 0, Columns, 1, "clms")]
+    [Test]
+    [Arguments(0, -1, 1, 1, "row")]
+    [Arguments(0, Rows, 1, 1, "row")]
+    [Arguments(-1, 0, 1, 1, "clm")]
+    [Arguments(Columns, 0, 1, 1, "clm")]
+    [Arguments(0, 0, 1, 0, "rows")]
+    [Arguments(0, 0, 1, -1, "rows")]
+    [Arguments(0, 1, 1, Rows, "rows")]
+    [Arguments(0, 0, 0, 1, "clms")]
+    [Arguments(0, 0, -1, 1, "clms")]
+    [Arguments(1, 0, Columns, 1, "clms")]
     public void ARangeOutsideTheTableIsRefusedAndSaysWhichArgumentIsWrong(
         int clm, int row, int clms, int rows, string offendingArgument)
     {
@@ -130,7 +130,7 @@ public class TableSetShadingTests
             .And.ParamName.Should().Be(offendingArgument);
     }
 
-    [Fact]
+    [Test]
     public void ARefusedRangeColoursNothingAtAll()
     {
         // A range check that ran cell by cell would colour the part of the block that fits and
@@ -149,7 +149,7 @@ public class TableSetShadingTests
     ///   null until something has asked for the collection, so the first line of the method failed
     ///   before any of the checks below it could run.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnEmptyTableHasNoRangeToColour()
     {
         var empty = new Document().AddSection().AddTable();
@@ -160,7 +160,7 @@ public class TableSetShadingTests
             .And.ParamName.Should().Be("row");
     }
 
-    [Fact]
+    [Test]
     public void ATableWithColumnsButNoRowsHasNoRangeToColourEither()
     {
         var noRows = new Document().AddSection().AddTable();

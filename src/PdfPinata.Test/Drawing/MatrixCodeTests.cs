@@ -8,7 +8,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Drawing.BarCodes;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -25,7 +25,7 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class MatrixCodeTests
 {
-    [Fact]
+    [Test]
     public void ADataMatrixCanBeDrawnAtAll()
     {
         // The snippet on the issue.
@@ -37,7 +37,7 @@ public class MatrixCodeTests
         drawing.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void TheComplaintAboutANullImageIsGone()
     {
         var code = new CodeDataMatrix("HELLO-DATAMATRIX-1234", 26, 26);
@@ -47,7 +47,7 @@ public class MatrixCodeTests
         drawing.Should().NotThrow<ArgumentNullException>();
     }
 
-    [Fact]
+    [Test]
     public void ACodeGivenNoSizeIsDrawnAtOneOfItsOwnRatherThanAtNoneAtAll()
     {
         // Five of the eight constructors default Size to XSize.Empty, and an empty XSize is
@@ -76,14 +76,14 @@ public class MatrixCodeTests
         }
     }
 
-    [Theory]
-    [InlineData("A", 10, 10)]
-    [InlineData("12", 10, 10)]
-    [InlineData("HELLO", 14, 14)]
-    [InlineData("123456789012", 16, 16)]
-    [InlineData("Wikipedia, the free encyclopedia", 26, 26)]
-    [InlineData("Test~!@#$%^&*()_+", 22, 22)]
-    [InlineData("The quick brown fox jumps over the lazy dog", 32, 32)]
+    [Test]
+    [Arguments("A", 10, 10)]
+    [Arguments("12", 10, 10)]
+    [Arguments("HELLO", 14, 14)]
+    [Arguments("123456789012", 16, 16)]
+    [Arguments("Wikipedia, the free encyclopedia", 26, 26)]
+    [Arguments("Test~!@#$%^&*()_+", 22, 22)]
+    [Arguments("The quick brown fox jumps over the lazy dog", 32, 32)]
     public void AnIndependentReaderReadsBackWhatWasEncoded(string text, int rows, int columns)
     {
         var modules = DataMatrixModules.Of(text, rows, columns);
@@ -91,20 +91,20 @@ public class MatrixCodeTests
         DataMatrixModules.Read(modules).Should().Be(text);
     }
 
-    [Theory]
+    [Test]
     // Every symbol size the standard defines, filled to capacity. The rectangular ones, the
     // ones built of several data regions, and the ones whose codewords are split into more
     // than one interleaved block are all in here.
-    [InlineData(10, 10, 3)] [InlineData(12, 12, 5)] [InlineData(8, 18, 5)]
-    [InlineData(14, 14, 8)] [InlineData(8, 32, 10)] [InlineData(16, 16, 12)]
-    [InlineData(12, 26, 16)] [InlineData(18, 18, 18)] [InlineData(20, 20, 22)]
-    [InlineData(12, 36, 22)] [InlineData(22, 22, 30)] [InlineData(16, 36, 32)]
-    [InlineData(24, 24, 36)] [InlineData(26, 26, 44)] [InlineData(16, 48, 49)]
-    [InlineData(32, 32, 62)] [InlineData(36, 36, 86)] [InlineData(40, 40, 114)]
-    [InlineData(44, 44, 144)] [InlineData(48, 48, 174)] [InlineData(52, 52, 204)]
-    [InlineData(64, 64, 280)] [InlineData(72, 72, 368)] [InlineData(80, 80, 456)]
-    [InlineData(88, 88, 576)] [InlineData(96, 96, 696)] [InlineData(104, 104, 816)]
-    [InlineData(120, 120, 1050)] [InlineData(132, 132, 1304)]
+    [Arguments(10, 10, 3)] [Arguments(12, 12, 5)] [Arguments(8, 18, 5)]
+    [Arguments(14, 14, 8)] [Arguments(8, 32, 10)] [Arguments(16, 16, 12)]
+    [Arguments(12, 26, 16)] [Arguments(18, 18, 18)] [Arguments(20, 20, 22)]
+    [Arguments(12, 36, 22)] [Arguments(22, 22, 30)] [Arguments(16, 36, 32)]
+    [Arguments(24, 24, 36)] [Arguments(26, 26, 44)] [Arguments(16, 48, 49)]
+    [Arguments(32, 32, 62)] [Arguments(36, 36, 86)] [Arguments(40, 40, 114)]
+    [Arguments(44, 44, 144)] [Arguments(48, 48, 174)] [Arguments(52, 52, 204)]
+    [Arguments(64, 64, 280)] [Arguments(72, 72, 368)] [Arguments(80, 80, 456)]
+    [Arguments(88, 88, 576)] [Arguments(96, 96, 696)] [Arguments(104, 104, 816)]
+    [Arguments(120, 120, 1050)] [Arguments(132, 132, 1304)]
     public void EverySymbolSizeCarriesItsFullCapacity(int rows, int columns, int capacity)
     {
         // Digits pack two to a codeword, so this is exactly full.
@@ -115,7 +115,7 @@ public class MatrixCodeTests
         DataMatrixModules.Read(modules).Should().Be(text);
     }
 
-    [Fact]
+    [Test]
     public void TheLargestSymbolIsBuiltEvenThoughTheReaderWillNotReadItBack()
     {
         // 144x144 is left out of the sweep above because ZXing cannot read one back - not
@@ -130,7 +130,7 @@ public class MatrixCodeTests
         Dark(modules).Should().BeGreaterThan(0).And.BeLessThan(144 * 144);
     }
 
-    [Fact]
+    [Test]
     public void TheSameTextGivesTheSameCodeEveryTime()
     {
         var first = DataMatrixModules.Of("REPEATABLE-1234", 20, 20);
@@ -141,7 +141,7 @@ public class MatrixCodeTests
         first.Should().BeEquivalentTo(second);
     }
 
-    [Fact]
+    [Test]
     public void EveryDataRegionIsGivenItsFinderPattern()
     {
         // A symbol of four data regions. Each carries a solid edge down its left and along
@@ -159,7 +159,7 @@ public class MatrixCodeTests
         }
     }
 
-    [Fact]
+    [Test]
     public void TextTooLongForTheSymbolSaysSoRatherThanBeingCutShort()
     {
         var tooMuch = new string('A', 40);
@@ -170,7 +170,7 @@ public class MatrixCodeTests
         drawing.Should().Throw<InvalidOperationException>().WithMessage("*too big*");
     }
 
-    [Fact]
+    [Test]
     public void ASizeThatIsNotOneOfTheStandardSizesSaysSo()
     {
         var code = new CodeDataMatrix("HELLO", 11, 11);
@@ -180,7 +180,7 @@ public class MatrixCodeTests
         drawing.Should().Throw<InvalidOperationException>().WithMessage("*invalid*");
     }
 
-    [Fact]
+    [Test]
     public void AnEncodationThatIsNotWrittenSaysSoRatherThanWritingAscii()
     {
         var code = new CodeDataMatrix("HELLO", DataMatrixEncoding.C40, 26, 26, XSize.Empty);
@@ -192,7 +192,7 @@ public class MatrixCodeTests
         drawing.Should().Throw<NotImplementedException>().WithMessage("*encodation*");
     }
 
-    [Fact]
+    [Test]
     public void AQuietZoneLeavesTheCodeReadable()
     {
         var text = "QUIET-ZONE-42";
@@ -203,7 +203,7 @@ public class MatrixCodeTests
         drawing.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void TheBarCodesThatWereAlreadyDrawnStillAre()
     {
         var drawing = () => Draw(gfx =>

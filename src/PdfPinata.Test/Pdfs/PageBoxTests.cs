@@ -7,7 +7,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using PdfPinata.Test.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -26,10 +26,10 @@ namespace PdfPinata.Test.Pdfs;
 /// </summary>
 public class PageBoxTests
 {
-    public static TheoryData<string> OptionalBoxes => ["/CropBox", "/BleedBox", "/TrimBox", "/ArtBox"];
+    public static IEnumerable<string> OptionalBoxes => ["/CropBox", "/BleedBox", "/TrimBox", "/ArtBox"];
 
-    [Theory]
-    [MemberData(nameof(OptionalBoxes))]
+    [Test]
+    [MethodDataSource(nameof(OptionalBoxes))]
     public void ReadingABoxThePageDoesNotStateDoesNotGiveThePageOne(string key)
     {
         var document = new PdfDocument();
@@ -44,8 +44,8 @@ public class PageBoxTests
         reread.Pages[0].Elements.ContainsKey(key).Should().BeFalse();
     }
 
-    [Theory]
-    [MemberData(nameof(OptionalBoxes))]
+    [Test]
+    [MethodDataSource(nameof(OptionalBoxes))]
     public void ReadingABoxOnAPageReadFromAFileDoesNotGiveThePageOne(string key)
     {
         var document = OpenOnePage("/MediaBox[0 0 300 400]");
@@ -56,7 +56,7 @@ public class PageBoxTests
         document.Reopened().Pages[0].Elements.ContainsKey(key).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ReadingTheMediaBoxOfAPageThatStatesNoneDoesNotGiveItAnEmptyOne()
     {
         // The media box is required, but a file can still leave it out, and a reader then falls
@@ -69,7 +69,7 @@ public class PageBoxTests
         document.Pages[0].Elements.ContainsKey("/MediaBox").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ANewPageHasAMediaBoxAndNoneOfTheOthers()
     {
         var page = new PdfDocument().AddPage();
@@ -81,7 +81,7 @@ public class PageBoxTests
         page.HasArtBox.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void EachHasSaysWhetherThatBoxIsStated()
     {
         var page = new PdfDocument().AddPage();
@@ -98,7 +98,7 @@ public class PageBoxTests
         page.HasArtBox.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ABoxInheritedFromThePageTreeCountsAsStated()
     {
         var objects = new List<string>
@@ -114,10 +114,10 @@ public class PageBoxTests
         page.EffectiveTrimBox.Should().Be(Box(5, 5, 295, 395));
     }
 
-    [Theory]
-    [InlineData("/CropBox null")]
-    [InlineData("/CropBox 42")]
-    [InlineData("/CropBox[1 2 3]")]
+    [Test]
+    [Arguments("/CropBox null")]
+    [Arguments("/CropBox 42")]
+    [Arguments("/CropBox[1 2 3]")]
     public void AnEntryThatIsNotARectangleIsNoBox(string entry)
     {
         var page = OpenOnePage("/MediaBox[0 0 300 400]" + entry).Pages[0];
@@ -127,7 +127,7 @@ public class PageBoxTests
         page.EffectiveCropBox.Should().Be(Box(0, 0, 300, 400));
     }
 
-    [Fact]
+    [Test]
     public void WithNoBoxesStatedEveryEffectiveBoxIsTheMediaBox()
     {
         var page = OpenOnePage("/MediaBox[0 0 300 400]").Pages[0];
@@ -138,7 +138,7 @@ public class PageBoxTests
         page.EffectiveArtBox.Should().Be(Box(0, 0, 300, 400));
     }
 
-    [Fact]
+    [Test]
     public void TheBleedTrimAndArtBoxesDefaultToTheCropBox()
     {
         var page = OpenOnePage("/MediaBox[0 0 300 400]/CropBox[10 20 290 380]").Pages[0];
@@ -148,7 +148,7 @@ public class PageBoxTests
         page.EffectiveArtBox.Should().Be(Box(10, 20, 290, 380));
     }
 
-    [Fact]
+    [Test]
     public void AStatedBoxIsItsOwnEffectiveBoxWhateverTheCropBoxSays()
     {
         // The standard reduces a box to the media box, not to the crop box.
@@ -160,7 +160,7 @@ public class PageBoxTests
         page.EffectiveArtBox.Should().Be(Box(30, 30, 270, 370));
     }
 
-    [Fact]
+    [Test]
     public void ABoxReachingOutsideTheMediaBoxIsReducedToThePartInside()
     {
         var page = OpenOnePage("/MediaBox[0 0 300 400]/CropBox[-10 100 500 900]/TrimBox[250 -50 350 50]").Pages[0];
@@ -172,7 +172,7 @@ public class PageBoxTests
         page.CropBox.Should().Be(Box(-10, 100, 500, 900));
     }
 
-    [Fact]
+    [Test]
     public void ABoxWhollyOutsideTheMediaBoxHasNoEffectiveArea()
     {
         var page = OpenOnePage("/MediaBox[0 0 300 400]/ArtBox[400 500 600 700]").Pages[0];
@@ -180,7 +180,7 @@ public class PageBoxTests
         page.EffectiveArtBox.IsEmpty.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AnEffectiveBoxIsWrittenLowerLeftCornerFirst()
     {
         var page = OpenOnePage("/MediaBox[300 400 0 0]/CropBox[290 380 10 20]").Pages[0];
@@ -189,7 +189,7 @@ public class PageBoxTests
         page.EffectiveTrimBox.Should().Be(Box(10, 20, 290, 380));
     }
 
-    [Fact]
+    [Test]
     public void AnEffectiveBoxOfALandscapePageIsMeasuredAgainstTheMediaBoxAsWritten()
     {
         // The media box of a page built as landscape is held upright and turned over as it is
@@ -212,7 +212,7 @@ public class PageBoxTests
         reread.EffectiveTrimBox.Should().Be(page.EffectiveTrimBox);
     }
 
-    [Fact]
+    [Test]
     public void ReadingTheEffectiveBoxesDoesNotChangeThePage()
     {
         var document = new PdfDocument();
@@ -230,7 +230,7 @@ public class PageBoxTests
             page.Elements.ContainsKey(key).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void APageWithNoMediaBoxIsNotClipped()
     {
         var page = OpenOnePage("/CropBox[10 20 290 380]").Pages[0];
@@ -240,7 +240,7 @@ public class PageBoxTests
         OpenOnePage("").Pages[0].EffectiveTrimBox.IsEmpty.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ALandscapePageWithNoMediaBoxIsNotGivenAnEmptyOneWhenSaved()
     {
         // Turning the empty rectangle over as the page is written used to be the other way a

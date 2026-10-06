@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -28,7 +28,7 @@ namespace PdfPinata.Test.IO;
 /// </remarks>
 public class MalformedPageTreeTests
 {
-    [Fact]
+    [Test]
     public void ANodeWithNoKidsAtAllIsANodeWithNoChildren()
     {
         var document = Read(RawPdf.Build([
@@ -42,7 +42,7 @@ public class MalformedPageTreeTests
     /// <summary>
     ///   And the pages a tree does list are still read when one of its nodes lists none.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnEmptyNodeCostsOnlyItsOwnSubtree()
     {
         var document = Read(RawPdf.Build([
@@ -59,7 +59,7 @@ public class MalformedPageTreeTests
     ///   The supported shape that the null dereference sat behind: <c>/Kids</c> as an indirect
     ///   reference to the array rather than the array itself.
     /// </summary>
-    [Fact]
+    [Test]
     public void KidsMayBeAnIndirectReferenceToTheArray()
     {
         var document = Read(RawPdf.Build([
@@ -72,10 +72,10 @@ public class MalformedPageTreeTests
         document.Pages.Count.Should().Be(1);
     }
 
-    [Theory]
-    [InlineData("/Kids 42", "PdfInteger")]
-    [InlineData("/Kids<</Type/Pages>>", "PdfDictionary")]
-    [InlineData("/Kids/Identity", "PdfName")]
+    [Test]
+    [Arguments("/Kids 42", "PdfInteger")]
+    [Arguments("/Kids<</Type/Pages>>", "PdfDictionary")]
+    [Arguments("/Kids/Identity", "PdfName")]
     public void AKidsEntryThatIsNotAnArrayNamesTheNodeItIsOn(string kids, string found)
     {
         var opening = Opening(RawPdf.Build([
@@ -88,7 +88,7 @@ public class MalformedPageTreeTests
             .WithMessage("*/Kids*2 0*" + found + "*array*");
     }
 
-    [Fact]
+    [Test]
     public void AKidsReferenceToSomethingThatIsNotAnArrayNamesTheNodeToo()
     {
         var opening = Opening(RawPdf.Build([
@@ -101,7 +101,7 @@ public class MalformedPageTreeTests
         opening.Should().Throw<PdfReaderException>().WithMessage("*/Kids*2 0*array*");
     }
 
-    [Fact]
+    [Test]
     public void AKidThatIsNotAReferenceNamesTheNodeItIsIn()
     {
         var opening = Opening(RawPdf.Build([
@@ -113,7 +113,7 @@ public class MalformedPageTreeTests
             .WithMessage("*/Kids*2 0*indirect reference*");
     }
 
-    [Fact]
+    [Test]
     public void AKidThatRefersToSomethingOtherThanADictionaryNamesTheObject()
     {
         var opening = Opening(RawPdf.Build([
@@ -132,7 +132,7 @@ public class MalformedPageTreeTests
     ///   <c>DanglingReferenceTests</c> covers for the rest of a page - so it is read here as a node
     ///   with no children rather than as a node that cannot be walked.
     /// </summary>
-    [Fact]
+    [Test]
     public void AKidsReferenceTheFileNeverDefinesIsNoKidsAtAll()
     {
         var document = Read(RawPdf.Build([
@@ -144,7 +144,7 @@ public class MalformedPageTreeTests
     }
 
     /// <summary>The same rule with the null spelled out rather than dangled into.</summary>
-    [Fact]
+    [Test]
     public void AKidsEntryWrittenAsNullIsNoKidsEither()
     {
         var document = Read(RawPdf.Build([
@@ -159,7 +159,7 @@ public class MalformedPageTreeTests
     ///   A well-formed tree, so that what these tests report as broken is broken and not merely
     ///   hand-written.
     /// </summary>
-    [Fact]
+    [Test]
     public void AWellFormedTreeIsStillWalked()
     {
         var document = Read(RawPdf.Build([
@@ -181,7 +181,7 @@ public class MalformedPageTreeTests
     // https://github.com/empira/PDFsharp/issues/361, reported against a file from a corpus of
     // documents written to make readers loop.
 
-    [Fact]
+    [Test]
     public void ANodeThatListsTheNodeAboveItIsALoopRatherThanADeeperTree()
     {
         // The reported shape: 2 lists 3, and 3 lists 2 straight back.
@@ -194,7 +194,7 @@ public class MalformedPageTreeTests
         opening.Should().Throw<PdfReaderException>().WithMessage("*2 0*loop*tree*");
     }
 
-    [Fact]
+    [Test]
     public void ANodeThatListsItselfIsTheSameAnswer()
     {
         var opening = Opening(RawPdf.Build([
@@ -205,7 +205,7 @@ public class MalformedPageTreeTests
         opening.Should().Throw<PdfReaderException>().WithMessage("*2 0*loop*");
     }
 
-    [Fact]
+    [Test]
     public void ALoopIsFoundWithRealPagesAroundIt()
     {
         // The corpus has this one too, and it is the one that says the walk is watched all the way
@@ -222,7 +222,7 @@ public class MalformedPageTreeTests
         opening.Should().Throw<PdfReaderException>().WithMessage("*4 0*loop*");
     }
 
-    [Fact]
+    [Test]
     public void ATreeNestedDeeperThanTheStackCanHoldIsRefusedByName()
     {
         // No loop here and nothing repeats, so the ancestors alone would not have saved it. Two
@@ -239,7 +239,7 @@ public class MalformedPageTreeTests
         opening.Should().Throw<PdfReaderException>().WithMessage("*levels deep*");
     }
 
-    [Fact]
+    [Test]
     public void ANodeThatTwoParentsListIsNotALoop()
     {
         // A subtree hanging in two places is a page counted twice: malformed, and something this
@@ -257,7 +257,7 @@ public class MalformedPageTreeTests
         document.Pages.Count.Should().Be(2);
     }
 
-    [Fact(Timeout = 30_000)]
+    [Test, Timeout(30_000)]
     public async Task ANodeListedTwiceAtEveryLevelIsRefusedRatherThanWalkedForever()
     {
         // No loop and nothing deep, just every node listed twice by its parent - which the test

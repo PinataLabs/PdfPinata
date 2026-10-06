@@ -2,7 +2,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Security;
 
@@ -38,10 +38,10 @@ public class RC4ShortKeyTests
     private static string Asset(int bits) =>
         PathHelper.GetInstance().GetAssetPath($"rc4-r3-{bits}bit-ghostscript.pdf");
 
-    [Theory]
-    [InlineData(40)]
-    [InlineData(56)]
-    [InlineData(96)]
+    [Test]
+    [Arguments(40)]
+    [Arguments(56)]
+    [Arguments(96)]
     public void TheOwnerPasswordOpensItWithOwnerPermissions(int bits)
     {
         using var document = Pdf.IO.PdfReader.Open(Asset(bits), "owner", PdfDocumentOpenMode.Modify);
@@ -51,10 +51,10 @@ public class RC4ShortKeyTests
         document.PageCount.Should().Be(1);
     }
 
-    [Theory]
-    [InlineData(40)]
-    [InlineData(56)]
-    [InlineData(96)]
+    [Test]
+    [Arguments(40)]
+    [Arguments(56)]
+    [Arguments(96)]
     public void TheUserPasswordOpensItWithoutOwnerPermissions(int bits)
     {
         using var document = Pdf.IO.PdfReader.Open(Asset(bits), "user", PdfDocumentOpenMode.ReadOnly);
@@ -63,9 +63,9 @@ public class RC4ShortKeyTests
         document.Info.Title.Should().Be(Title);
     }
 
-    [Theory]
-    [InlineData(40)]
-    [InlineData(96)]
+    [Test]
+    [Arguments(40)]
+    [Arguments(96)]
     public void AWrongPasswordIsRefusedRatherThanThrowingSomethingElse(int bits)
     {
         var open = () => Pdf.IO.PdfReader.Open(Asset(bits), "neither", PdfDocumentOpenMode.ReadOnly);

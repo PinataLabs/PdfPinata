@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
 using PinataLayout.Rendering.Tests.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -48,7 +48,7 @@ public class ChartAreaRenderingTests
         return document;
     }
 
-    [Fact]
+    [Test]
     public void AChartWithNoAreasAtAllStillRenders()
     {
         var page = Rendered.FirstPageOf(ADocumentWithAChart(withAreas: false));
@@ -56,7 +56,7 @@ public class ChartAreaRenderingTests
         page.Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void AChartCarryingAllSixAreasDrawsEveryOneOfThem()
     {
         var page = Rendered.FirstPageOf(ADocumentWithAChart(withAreas: true));
@@ -72,7 +72,7 @@ public class ChartAreaRenderingTests
     ///   of itself left for the columns. The plot is drawn as filled rectangles, so what says so is
     ///   how tall the tallest of them is.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheAreasTakeTheirRoomFromThePlot()
     {
         var bare = Rendered.FirstPageOf(ADocumentWithAChart(withAreas: false));
@@ -82,7 +82,7 @@ public class ChartAreaRenderingTests
             "the six areas are drawn as well as the plot");
     }
 
-    [Fact]
+    [Test]
     public void AChartWithAHeaderAndNoFooterPlacesTheSideAreasBelowTheHeader()
     {
         var document = new Document();
@@ -101,7 +101,7 @@ public class ChartAreaRenderingTests
             runs.Should().ContainEquivalentOf(Glyphs.For(word));
     }
 
-    [Fact]
+    [Test]
     public void AChartWithAFooterAndNoHeaderStillPlacesItsTopArea()
     {
         var document = new Document();
@@ -126,7 +126,7 @@ public class ChartAreaRenderingTests
     ///   row centred on the chart, off both sides of it and off the page (empira/PDFsharp#306).
     ///   A pie with no data labels draws no text but its legend, so every run on the page is one.
     /// </summary>
-    [Fact]
+    [Test]
     public void AFooterLegendTooWideForTheChartStaysInsideIt()
     {
         var document = new Document();
@@ -160,7 +160,7 @@ public class ChartAreaRenderingTests
     ///   labelled from the value given to one above it, where it used to stop the whole document
     ///   with a NaN the content-stream writer refused.
     /// </summary>
-    [Fact]
+    [Test]
     public void AValueAxisGivenOneValueIsWidenedRatherThanStoppingTheDocument()
     {
         var document = new Document();

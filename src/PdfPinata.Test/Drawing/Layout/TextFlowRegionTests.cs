@@ -3,7 +3,7 @@ using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Drawing.Layout;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing.Layout;
 
@@ -44,13 +44,13 @@ public class TextFlowRegionTests
 
     // ----- nothing in the way ---------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnEmptyBlockIsFreeEndToEnd()
     {
         RoomIn(BlockWith()).Should().Equal((0d, 100d));
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleTheBandDoesNotReachTakesNothing()
     {
         // Above the band and below it. The obstacle exists, it is simply somewhere else.
@@ -58,14 +58,14 @@ public class TextFlowRegionTests
         RoomIn(BlockWith(new RectangleObstacle(new XRect(0, 150, 60, 50)))).Should().Equal((0d, 100d));
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleWhoseFootIsLevelWithTheBandTopIsAboveIt()
     {
         // Touching counts for nothing, so obstacles stacked end to end never both claim one band.
         RoomIn(BlockWith(new RectangleObstacle(new XRect(0, 0, 60, 100)))).Should().Equal((0d, 100d));
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleReachingOnePointIntoTheBandTakesItsRoom()
     {
         // The ascender rule: the band is the line's box, so a line whose baseline clears an obstacle
@@ -75,19 +75,19 @@ public class TextFlowRegionTests
 
     // ----- one obstacle, from each direction ------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnObstacleAtTheLeftLeavesTheRoomToItsRight()
     {
         RoomIn(BlockWith(Standing(0, 30))).Should().Equal((30d, 100d));
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleAtTheRightLeavesTheRoomToItsLeft()
     {
         RoomIn(BlockWith(Standing(70, 30))).Should().Equal((0d, 70d));
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleInTheMiddleLeavesARunEitherSide()
     {
         // Two runs, honestly reported. Which one a line goes in is the layout loop's decision and
@@ -95,7 +95,7 @@ public class TextFlowRegionTests
         RoomIn(BlockWith(Standing(30, 30))).Should().Equal((0d, 30d), (60d, 100d));
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleSpanningTheBlockLeavesNothing()
     {
         var room = BlockWith(Standing(0, 100)).GetAvailableIntervals(Band);
@@ -103,7 +103,7 @@ public class TextFlowRegionTests
         room.IsEmpty.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleWiderThanTheBlockLeavesNothing()
     {
         BlockWith(Standing(-50, 400)).Should().Match<TextFlowRegion>(
@@ -112,27 +112,27 @@ public class TextFlowRegionTests
 
     // ----- more than one --------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TwoObstaclesLeaveTheRunsBetweenAndBesideThem()
     {
         RoomIn(BlockWith(Standing(20, 20), Standing(60, 15)))
             .Should().Equal((0d, 20d), (40d, 60d), (75d, 100d));
     }
 
-    [Fact]
+    [Test]
     public void TwoObstaclesThatOverlapCountAsOne()
     {
         RoomIn(BlockWith(Standing(20, 30), Standing(40, 30))).Should().Equal((0d, 20d), (70d, 100d));
     }
 
-    [Fact]
+    [Test]
     public void TwoObstaclesCoveringTheBlockBetweenThemLeaveNothing()
     {
         BlockWith(Standing(0, 60), Standing(55, 45))
             .GetAvailableIntervals(Band).IsEmpty.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ObstaclesMayBeAddedInAnyOrder()
     {
         var oneWay = RoomIn(BlockWith(Standing(20, 20), Standing(60, 15)));
@@ -143,13 +143,13 @@ public class TextFlowRegionTests
 
     // ----- the padding ----------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void PaddingHoldsTheTextOffHorizontally()
     {
         RoomIn(BlockWith(Standing(20, 30, padding: 5))).Should().Equal((0d, 15d), (55d, 100d));
     }
 
-    [Fact]
+    [Test]
     public void PaddingHoldsTheTextOffVerticallyToo()
     {
         // The obstacle's foot is exactly level with the band's top, so without padding the band is
@@ -159,7 +159,7 @@ public class TextFlowRegionTests
         RoomIn(BlockWith(justAbove)).Should().Equal((60d + 4, 100d));
     }
 
-    [Fact]
+    [Test]
     public void PaddingIsPartOfTheRoomReserved()
     {
         var obstacle = new RectangleObstacle(new XRect(20, 90, 30, 40), padding: 5);
@@ -169,7 +169,7 @@ public class TextFlowRegionTests
         obstacle.Reserved.Should().Be(new XRect(15, 85, 40, 50));
     }
 
-    [Fact]
+    [Test]
     public void NegativePaddingIsRefused()
     {
         // It would shrink the obstacle and let text run over the thing it was given to avoid. A
@@ -181,7 +181,7 @@ public class TextFlowRegionTests
 
     // ----- what a line does with the answer -------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TheWiderSideOfAnObstacleIsTheOneOffered()
     {
         var room = BlockWith(Standing(20, 30)).GetAvailableIntervals(Band);
@@ -191,7 +191,7 @@ public class TextFlowRegionTests
         widest.Should().Be(new XInterval(50, 100), "and the roomier one is chosen");
     }
 
-    [Fact]
+    [Test]
     public void ABandWithNothingLeftInItOffersNoRun()
     {
         BlockWith(Standing(0, 100)).GetAvailableIntervals(Band)
@@ -200,7 +200,7 @@ public class TextFlowRegionTests
 
     // ----- the edges ------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ABandBelowTheBlockIsStillAnsweredHorizontally()
     {
         // Deliberate. An empty answer has to mean "something is standing here, move down past it",
@@ -209,13 +209,13 @@ public class TextFlowRegionTests
         RoomIn(BlockWith(), new FlowBand(500, 512)).Should().Equal((0d, 100d));
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleOfNoWidthTakesNothing()
     {
         RoomIn(BlockWith(Standing(40, 0))).Should().Equal((0d, 100d));
     }
 
-    [Fact]
+    [Test]
     public void AddingNothingAsAnObstacleIsRefused()
     {
         var add = () => new TextFlowRegion(Block).With(null);

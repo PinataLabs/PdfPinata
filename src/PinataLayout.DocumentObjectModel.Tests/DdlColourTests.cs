@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -53,7 +53,7 @@ public class DdlColourTests
 
     // ----- RGB ------------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnRgbColourIsItsThreeChannelsAndIsOpaque()
     {
         var colour = ColourOf("RGB(12, 34, 56)");
@@ -65,10 +65,10 @@ public class DdlColourTests
         colour.IsCmyk.Should().BeFalse();
     }
 
-    [Theory]
-    [InlineData("RGB(0, 0, 0)", 0u, 0u, 0u)]
-    [InlineData("RGB(255, 255, 255)", 255u, 255u, 255u)]
-    [InlineData("RGB(0xFF, 0x00, 0x80)", 255u, 0u, 128u)]
+    [Test]
+    [Arguments("RGB(0, 0, 0)", 0u, 0u, 0u)]
+    [Arguments("RGB(255, 255, 255)", 255u, 255u, 255u)]
+    [Arguments("RGB(0xFF, 0x00, 0x80)", 255u, 0u, 128u)]
     public void TheEndsOfEachChannelAndHexDigitsAreAllRead(string ddl, uint r, uint g, uint b)
     {
         var colour = ColourOf(ddl);
@@ -76,22 +76,22 @@ public class DdlColourTests
         (colour.R, colour.G, colour.B).Should().Be((r, g, b));
     }
 
-    [Theory]
-    [InlineData("RGB(256, 0, 0)")]
-    [InlineData("RGB(0, 256, 0)")]
-    [InlineData("RGB(0, 0, 256)")]
-    [InlineData("RGB(1.5, 0, 0)")]
-    [InlineData("RGB(\"red\", 0, 0)")]
-    [InlineData("RGB 1, 2, 3)")]
-    [InlineData("RGB(1, 2, 3")]
-    [InlineData("RGB(1 2, 3)")]
-    [InlineData("RGB(1, 2)")]
+    [Test]
+    [Arguments("RGB(256, 0, 0)")]
+    [Arguments("RGB(0, 256, 0)")]
+    [Arguments("RGB(0, 0, 256)")]
+    [Arguments("RGB(1.5, 0, 0)")]
+    [Arguments("RGB(\"red\", 0, 0)")]
+    [Arguments("RGB 1, 2, 3)")]
+    [Arguments("RGB(1, 2, 3")]
+    [Arguments("RGB(1 2, 3)")]
+    [Arguments("RGB(1, 2)")]
     public void AnRgbColourThatCannotBeReadIsComplainedAbout(string ddl)
     {
         ComplaintsAbout(ddl).Should().NotBeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void AChannelPastTheEndOfItsRangeSaysWhatTheRangeIs()
     {
         ComplaintsAbout("RGB(256, 0, 0)").Should().Contain(complaint => complaint.Contains("0 - 255"));
@@ -99,7 +99,7 @@ public class DdlColourTests
 
     // ----- CMYK -----------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ACmykColourWithFourValuesIsOpaque()
     {
         var colour = ColourOf("CMYK(10, 20, 30, 40)");
@@ -112,7 +112,7 @@ public class DdlColourTests
         colour.Alpha.Should().BeApproximately(100, 1e-4, "four values state no alpha");
     }
 
-    [Fact]
+    [Test]
     public void ACmykColourWithFiveValuesTakesTheFirstAsItsAlpha()
     {
         // The one arm of the method that is not a repetition of the one above it: a fifth value
@@ -126,36 +126,36 @@ public class DdlColourTests
         colour.K.Should().BeApproximately(40, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void ACmykValueCanBeFractional()
     {
         // Unlike RGB, whose channels are whole numbers, these are percentages and real.
         ColourOf("CMYK(12.5, 0, 0, 0)").C.Should().BeApproximately(12.5, 1e-4);
     }
 
-    [Theory]
-    [InlineData("CMYK(0, 0, 0, 0)", 0.0)]
-    [InlineData("CMYK(100, 100, 100, 100)", 100.0)]
+    [Test]
+    [Arguments("CMYK(0, 0, 0, 0)", 0.0)]
+    [Arguments("CMYK(100, 100, 100, 100)", 100.0)]
     public void TheEndsOfTheCmykRangeAreAllowed(string ddl, double expected)
     {
         ColourOf(ddl).C.Should().BeApproximately(expected, 1e-4);
     }
 
-    [Theory]
-    [InlineData("CMYK(101, 0, 0, 0)")]
-    [InlineData("CMYK(0, 101, 0, 0)")]
-    [InlineData("CMYK(0, 0, 101, 0)")]
-    [InlineData("CMYK(0, 0, 0, 101)")]
-    [InlineData("CMYK(101, 0, 0, 0, 0)")]
-    [InlineData("CMYK(0, 0, 0, 0, 101)")]
-    [InlineData("CMYK(0, 0, 0)")]
-    [InlineData("CMYK(\"a\", 0, 0, 0)")]
+    [Test]
+    [Arguments("CMYK(101, 0, 0, 0)")]
+    [Arguments("CMYK(0, 101, 0, 0)")]
+    [Arguments("CMYK(0, 0, 101, 0)")]
+    [Arguments("CMYK(0, 0, 0, 101)")]
+    [Arguments("CMYK(101, 0, 0, 0, 0)")]
+    [Arguments("CMYK(0, 0, 0, 0, 101)")]
+    [Arguments("CMYK(0, 0, 0)")]
+    [Arguments("CMYK(\"a\", 0, 0, 0)")]
     public void ACmykColourThatCannotBeReadIsComplainedAbout(string ddl)
     {
         ComplaintsAbout(ddl).Should().NotBeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void ACmykValuePastTheEndOfItsRangeSaysWhatTheRangeIs()
     {
         ComplaintsAbout("CMYK(101, 0, 0, 0)")
@@ -164,7 +164,7 @@ public class DdlColourTests
 
     // ----- the other two ways ---------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AGrayColourIsTheSameValueInAllThreeChannels()
     {
         var colour = ColourOf("GRAY(100)");
@@ -172,19 +172,19 @@ public class DdlColourTests
         colour.R.Should().Be(colour.G).And.Be(colour.B);
     }
 
-    [Fact]
+    [Test]
     public void AColourCanBeNamed()
     {
         ColourOf("Red").Should().Be(Colors.Red);
     }
 
-    [Fact]
+    [Test]
     public void AColourCanBeWrittenAsOneNumber()
     {
         ColourOf("0xFF804020").Argb.Should().Be(0xFF804020);
     }
 
-    [Fact]
+    [Test]
     public void AColourNameThatIsNotOneIsNamedInTheComplaint()
     {
         ComplaintsAbout("Puce").Should().Contain(complaint => complaint.Contains("Puce"));
@@ -197,9 +197,9 @@ public class DdlColourTests
     ///   and the document reads on without a colour. Pinned so that implementing either is a
     ///   visible change.
     /// </summary>
-    [Theory]
-    [InlineData("HSB(1, 2, 3)")]
-    [InlineData("Lab(1, 2, 3)")]
+    [Test]
+    [Arguments("HSB(1, 2, 3)")]
+    [Arguments("Lab(1, 2, 3)")]
     public void TheTwoColourSpacesThatWereNeverFinishedAreComplainedAboutRatherThanThrown(string ddl)
     {
         ComplaintsAbout(ddl).Should().NotBeEmpty();
@@ -213,7 +213,7 @@ public class DdlColourTests
     ///   returned as if it had been read. A caller that passes no error list - which is what
     ///   <c>DdlReader.DocumentFromString(string)</c> does - has no way to find out.
     /// </summary>
-    [Fact]
+    [Test]
     public void AColourThatCannotBeReadLeavesThePropertyAloneAndTheDocumentReadable()
     {
         var document = DdlReader.DocumentFromString(DocumentWith("Puce"));

@@ -8,7 +8,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -28,7 +28,7 @@ namespace PdfPinata.Test.Fonts;
 /// </remarks>
 public class FontProgramEmbeddingTests
 {
-    [Fact]
+    [Test]
     public void AFontProgramIsEmbeddedAsACompositeFont()
     {
         var document = new PdfDocument();
@@ -47,7 +47,7 @@ public class FontProgramEmbeddingTests
     ///   The program itself reaches the file. Read back rather than asserted on the object in
     ///   memory, so that what is checked is what a reader is given.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheProgramItselfIsWrittenToTheFile()
     {
         var document = new PdfDocument();
@@ -67,7 +67,7 @@ public class FontProgramEmbeddingTests
     ///   The name is what identifies the program, so asking twice embeds it once. This is the half of
     ///   the defect that a null key hid rather than announced: every program shared one entry.
     /// </summary>
-    [Fact]
+    [Test]
     public void AskingTwiceUnderTheSameNameEmbedsItOnce()
     {
         var document = new PdfDocument();
@@ -84,7 +84,7 @@ public class FontProgramEmbeddingTests
     ///   And two names are two fonts. Under the null key the second name was answered with the first
     ///   name's font, so a page naming both drew both in the same face.
     /// </summary>
-    [Fact]
+    [Test]
     public void TwoNamesAreTwoFonts()
     {
         var document = new PdfDocument();
@@ -97,7 +97,7 @@ public class FontProgramEmbeddingTests
         FontResourcesOf(page).Should().HaveCount(2);
     }
 
-    [Fact]
+    [Test]
     public void AProgramNobodyEmbeddedIsNotFound()
     {
         var page = new PdfDocument().AddPage();
@@ -105,7 +105,7 @@ public class FontProgramEmbeddingTests
         page.TryGetFontProgramName("Liberation").Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void AProgramAlreadyEmbeddedIsFoundUnderItsName()
     {
         var document = new PdfDocument();
@@ -120,7 +120,7 @@ public class FontProgramEmbeddingTests
     ///   A second page reaches the same embedded program: the font table belongs to the document, and
     ///   only the resource entry is per page.
     /// </summary>
-    [Fact]
+    [Test]
     public void ASecondPageReachesTheProgramTheFirstEmbedded()
     {
         var document = new PdfDocument();
@@ -138,7 +138,7 @@ public class FontProgramEmbeddingTests
     ///   keys have to stay apart. The name asked for here is the very key the drawn face is held
     ///   under, so were the two key spaces one this would answer with that face.
     /// </summary>
-    [Fact]
+    [Test]
     public void AProgramCannotBeNamedSoAsToAnswerForAFaceThePageDrewWith()
     {
         var document = new PdfDocument();
@@ -151,7 +151,7 @@ public class FontProgramEmbeddingTests
             "the face the page drew with is not a font program anybody supplied");
     }
 
-    [Fact]
+    [Test]
     public void ANameIsRequiredAndSoAreTheBytes()
     {
         var page = new PdfDocument().AddPage();

@@ -4,7 +4,7 @@ using ImageMagick;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -18,7 +18,7 @@ namespace PdfPinata.Test.Drawing;
 ///   trimmed back to the page is exactly the failure this feature exists to prevent, and it is
 ///   invisible to every structural assertion.
 /// </remarks>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public sealed class PageBleedRenderingTests : IDisposable
 {
     private const string OutDir = "Out/PageBleed";
@@ -30,7 +30,7 @@ public sealed class PageBleedRenderingTests : IDisposable
     private static readonly XUnit Bleed = XUnit.FromMillimeter(3);
     private static readonly XUnit Marks = XUnit.FromMillimeter(5);
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void ABandBledOffTheTopReachesTheOutermostRowOfTheBleed()
     {
         var sheet = Rasterize("band_off_the_top", (gfx, page) =>
@@ -47,7 +47,7 @@ public sealed class PageBleedRenderingTests : IDisposable
         InkAt(sheet, 0.5, sheet.Height / 2.0 * 72 / Dpi()).Should().Be("white");
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void ABandBledOffTheLeftReachesTheOutermostColumnOfTheBleed()
     {
         var sheet = Rasterize("band_off_the_left", (gfx, page) =>
@@ -60,7 +60,7 @@ public sealed class PageBleedRenderingTests : IDisposable
         InkDownAt(sheet, sheet.Width / 2.0 * 72 / Dpi(), 0.5).Should().Be("white");
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void TheArtworkStopsAtTheBleedAndLeavesThePressItsMargin()
     {
         var sheet = Rasterize("band_off_the_top", (gfx, page) =>
@@ -73,7 +73,7 @@ public sealed class PageBleedRenderingTests : IDisposable
         InkDownAt(sheet, 2, 0.5).Should().Be("white");
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void TheCropMarksAreDrawnOnThePaperOutsideTheBleed()
     {
         var sheet = Rasterize("crop_marks", (gfx, page) =>
@@ -95,7 +95,7 @@ public sealed class PageBleedRenderingTests : IDisposable
             .Should().BeFalse("the corner of the sheet carries no mark");
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void WithoutABleedTheSameDrawingLeavesTheEdgeOfTheSheetBlank()
     {
         // The same band, on an untrimmed page of the same size, drawn from the same coordinates.

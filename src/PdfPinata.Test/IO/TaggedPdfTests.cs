@@ -10,7 +10,7 @@ using PdfPinata.Pdf.Advanced;  // PdfArray lives here for the tree assertions
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Structure;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
 using Reader = PdfPinata.Pdf.IO.PdfReader;
@@ -32,7 +32,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class TaggedPdfTests
 {
-    [Fact]
+    [Test]
     public void ADocumentThatNeverAsksToBeTaggedIsWrittenExactlyAsBefore()
     {
         var bytes = Save((gfx, _) => gfx.DrawString("Plain", Font, XBrushes.Black, 40, 60));
@@ -45,7 +45,7 @@ public class TaggedPdfTests
             "not one extra byte for a document that wants none of this");
     }
 
-    [Fact]
+    [Test]
     public void TaggedContentIsWrappedInAMarkedContentSequence()
     {
         var bytes = Save((gfx, _) =>
@@ -59,7 +59,7 @@ public class TaggedPdfTests
         content.Should().Contain("EMC");
     }
 
-    [Fact]
+    [Test]
     public void TheCatalogSaysTheDocumentIsTagged()
     {
         var bytes = Save((gfx, _) =>
@@ -76,7 +76,7 @@ public class TaggedPdfTests
         catalog.Elements["/StructTreeRoot"].Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void TheStructureTreeIsReadBackWithTheTypesItWasGiven()
     {
         var bytes = Save((gfx, _) =>
@@ -94,7 +94,7 @@ public class TaggedPdfTests
         TypeOf(kids, 1).Should().Be("/P");
     }
 
-    [Fact]
+    [Test]
     public void AScopeOpenedInsideAnotherBecomesItsChild()
     {
         var bytes = Save((gfx, _) =>
@@ -121,7 +121,7 @@ public class TaggedPdfTests
         inner.Elements[PdfStructureElement.Keys.P].Should().NotBeNull("the tree is linked both ways");
     }
 
-    [Fact]
+    [Test]
     public void AScopeOpenedBeforeAnythingIsDrawnStillNestsInsideThePage()
     {
         // BeginPage writes the opening q and the view matrix, and it runs on the first thing that
@@ -141,7 +141,7 @@ public class TaggedPdfTests
                 "the page's own q has to open before the marked-content sequence does");
     }
 
-    [Fact]
+    [Test]
     public void AnAnnotationIsFiledUnderAKeyOfItsOwn()
     {
         // A page's key resolves to the array of elements its marks belong to; an annotation's has to
@@ -185,7 +185,7 @@ public class TaggedPdfTests
                 "the next key must not be one already handed out");
     }
 
-    [Fact]
+    [Test]
     public void AnArtifactJoinsNoStructureElement()
     {
         // A page number read out between every paragraph is worse than no page number.
@@ -202,7 +202,7 @@ public class TaggedPdfTests
             .Should().Be(1, "the folio is on the page and is not part of what the page says");
     }
 
-    [Fact]
+    [Test]
     public void EveryPageThatCarriesMarksIsIndexedByTheParentTree()
     {
         // The parent tree is what takes a reader from a mark back to its meaning. Without it the
@@ -217,7 +217,7 @@ public class TaggedPdfTests
             .Should().Be(2, "two pages carried marks");
     }
 
-    [Fact]
+    [Test]
     public void EachPageCountsItsOwnMarkedContentFromZero()
     {
         // The identifier is an index into that page's run of the parent tree, so it restarts on
@@ -228,7 +228,7 @@ public class TaggedPdfTests
         Occurrences(ContentOf(bytes, 1), "<</MCID 0>>").Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void APageThatCarriesMarksSaysWhereItsRunOfTheParentTreeIs()
     {
         var bytes = SaveTwoPages();
@@ -240,7 +240,7 @@ public class TaggedPdfTests
         document.Pages[1].Elements.GetInteger("/StructParents").Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AFigureCarriesTheTextThatStandsInForIt()
     {
         var bytes = Save((gfx, _) =>
@@ -255,7 +255,7 @@ public class TaggedPdfTests
             .Should().Be("A bar chart of monthly revenue");
     }
 
-    [Fact]
+    [Test]
     public void TheDocumentCanSayWhatLanguageItIsIn()
     {
         var bytes = Save((gfx, document) =>
@@ -270,7 +270,7 @@ public class TaggedPdfTests
             .Elements.GetString("/Lang").Should().Be("en-GB");
     }
 
-    [Fact]
+    [Test]
     public void ATypeOfTheDocumentsOwnInventionIsExplainedByTheRoleMap()
     {
         // A structure type that is neither standard nor in the role map means nothing to anybody.
@@ -296,7 +296,7 @@ public class TaggedPdfTests
     ///   only the one PinataLayout happens to call would leave the documented manual API doing the very
     ///   thing the other was changed to stop doing.
     /// </remarks>
-    [Fact]
+    [Test]
     public void NestedTagScopesAreNotNestedInTheContentStream()
     {
         var document = new PdfDocument();
@@ -329,7 +329,7 @@ public class TaggedPdfTests
     ///   A tag scope that draws nothing after a nested one still writes no empty pair, and hands its
     ///   identifier back rather than leaving the tree naming a mark that is not in the stream.
     /// </summary>
-    [Fact]
+    [Test]
     public void ATagScopeEndingInANestedOneLeavesNoGapInTheIdentifiers()
     {
         var document = new PdfDocument();
@@ -372,7 +372,7 @@ public class TaggedPdfTests
         return deepest;
     }
 
-    [Fact]
+    [Test]
     public void AMarkedContentSequenceIsClosedEvenWhenTheDrawingThrows()
     {
         // The scope is a using, so an early return or an exception cannot leave a BDC unbalanced —
@@ -402,7 +402,7 @@ public class TaggedPdfTests
         Occurrences(content, "EMC").Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void MarkedContentCannotBeWrittenToSomethingThatIsNotAPdfPage()
     {
         var form = new XForm(new PdfDocument(), XUnit.FromPoint(100), XUnit.FromPoint(100));
@@ -413,7 +413,7 @@ public class TaggedPdfTests
         tagging.Should().Throw<InvalidOperationException>();
     }
 
-    [Fact]
+    [Test]
     public void ATaggedDocumentSurvivesBeingIndexedByACrossReferenceStream()
     {
         // Tagging multiplies the object count, which is the reason the compressed cross-reference

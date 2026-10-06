@@ -1,7 +1,8 @@
 using System;
+using System.Collections.Generic;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -17,12 +18,12 @@ public class IntegerConvertibleTests
 {
     // Each row names the wrapper rather than holding one, so that the rows are serializable and
     // Test Explorer lists them one by one.
-    public static TheoryData<string, TypeCode> TypeCodes => new()
-    {
-        { nameof(Pdf.PdfInteger), TypeCode.Int32 },
-        { nameof(PdfUInteger), TypeCode.UInt32 },
-        { nameof(PdfLong), TypeCode.Int64 }
-    };
+    public static IEnumerable<(string, TypeCode)> TypeCodes =>
+    [
+        (nameof(Pdf.PdfInteger), TypeCode.Int32),
+        (nameof(PdfUInteger), TypeCode.UInt32),
+        (nameof(PdfLong), TypeCode.Int64)
+    ];
 
     private static IConvertible Number(string wrapper) => wrapper switch
     {
@@ -32,8 +33,8 @@ public class IntegerConvertibleTests
         _ => throw new ArgumentOutOfRangeException(nameof(wrapper), wrapper, null)
     };
 
-    [Theory]
-    [MemberData(nameof(TypeCodes))]
+    [Test]
+    [MethodDataSource(nameof(TypeCodes))]
     public void TheTypeCodeNamesThePrimitiveTheNumberIsHeldIn(string wrapper, TypeCode expected)
     {
         var number = Number(wrapper);
@@ -41,8 +42,8 @@ public class IntegerConvertibleTests
         number.GetTypeCode().Should().Be(expected);
     }
 
-    [Theory]
-    [MemberData(nameof(TypeCodes))]
+    [Test]
+    [MethodDataSource(nameof(TypeCodes))]
     public void ConvertingByTheTypeCodeGivesBackTheNumberWithoutOverflowing(string wrapper, TypeCode _)
     {
         var number = Number(wrapper);
@@ -60,8 +61,8 @@ public class IntegerConvertibleTests
         Convert.ToDecimal(value).Should().Be(number.ToDecimal(null));
     }
 
-    [Theory]
-    [MemberData(nameof(TypeCodes))]
+    [Test]
+    [MethodDataSource(nameof(TypeCodes))]
     public void ToTypeConvertsAsTheWrappedPrimitiveWould(string wrapper, TypeCode _)
     {
         var number = Number(wrapper);
@@ -71,8 +72,8 @@ public class IntegerConvertibleTests
         number.ToType(typeof(string), null).Should().Be(number.ToString(null));
     }
 
-    [Theory]
-    [MemberData(nameof(TypeCodes))]
+    [Test]
+    [MethodDataSource(nameof(TypeCodes))]
     public void ToTypeRefusesATypeTheNumberCannotBecomeRatherThanAnsweringNull(string wrapper, TypeCode _)
     {
         var number = Number(wrapper);
@@ -81,7 +82,7 @@ public class IntegerConvertibleTests
         convert.Should().Throw<InvalidCastException>();
     }
 
-    [Fact]
+    [Test]
     public void ToTypeOverflowsRatherThanWrapping()
     {
         IConvertible wide = new PdfLong(5_000_000_000);

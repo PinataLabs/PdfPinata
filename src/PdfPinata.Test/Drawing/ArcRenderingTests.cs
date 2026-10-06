@@ -9,7 +9,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -24,17 +24,17 @@ namespace PdfPinata.Test.Drawing;
 /// </remarks>
 public class ArcRenderingTests
 {
-    [Theory]
+    [Test]
     // Within one quadrant: a single curve.
-    [InlineData(30, 45, "96.029 771.199 m\n88.507 766.509 78.647 763.414 67.937 762.38 c\n")]
+    [Arguments(30, 45, "96.029 771.199 m\n88.507 766.509 78.647 763.414 67.937 762.38 c\n")]
     // Counterclockwise from exactly 0, which is started from 360 instead.
-    [InlineData(0, -90, "110 792 m\n110 808.569 87.614 822 60 822 c\n")]
+    [Arguments(0, -90, "110 792 m\n110 808.569 87.614 822 60 822 c\n")]
     // More than 270 degrees: five curves, the first and last quadrant each visited twice.
-    [InlineData(-45, 300,
+    [Arguments(-45, 300,
         "85.725 817.725 m\n100.785 812.303 110 802.538 110 792 c\n110 775.431 87.614 762 60 762 c\n" +
         "32.386 762 10 775.431 10 792 c\n10 806.73 27.824 819.281 52.063 821.62 c\n")]
     // A start angle more than a turn negative, swept backwards by more than 270 degrees.
-    [InlineData(-450, -271,
+    [Arguments(-450, -271,
         "60 822 m\n32.386 822 10 808.569 10 792 c\n10 775.431 32.386 762 60 762 c\n" +
         "87.614 762 110 775.431 110 792 c\n110 792.291 109.993 792.582 109.979 792.872 c\n")]
     public void DrawArcWritesOneCurvePerQuadrant(double startAngle, double sweepAngle, string expected)
@@ -44,23 +44,23 @@ public class ArcRenderingTests
         PathConstruction(content).Should().Be(expected);
     }
 
-    [Theory]
-    [InlineData(0, 90)]
-    [InlineData(30, 45)]
-    [InlineData(90, 0)]
-    [InlineData(0, -90)]
-    [InlineData(-45, 300)]
-    [InlineData(135, -270)]
-    [InlineData(359, 2)]
-    [InlineData(360, -45)]
-    [InlineData(405, 300)]
-    [InlineData(-450, -271)]
-    [InlineData(720, -350)]
+    [Test]
+    [Arguments(0, 90)]
+    [Arguments(30, 45)]
+    [Arguments(90, 0)]
+    [Arguments(0, -90)]
+    [Arguments(-45, 300)]
+    [Arguments(135, -270)]
+    [Arguments(359, 2)]
+    [Arguments(360, -45)]
+    [Arguments(405, 300)]
+    [Arguments(-450, -271)]
+    [Arguments(720, -350)]
     // No sweep at all, off a quadrant edge.
-    [InlineData(45, 0)]
-    [InlineData(359, 0)]
-    [InlineData(-45, 0)]
-    [InlineData(405, 0)]
+    [Arguments(45, 0)]
+    [Arguments(359, 0)]
+    [Arguments(-45, 0)]
+    [Arguments(405, 0)]
     // Nothing of a whole turn or more: XGraphics.DrawArc draws that as an ellipse instead.
     public void DrawArcAndAddArcCutTheArcTheSameWay(double startAngle, double sweepAngle)
     {
@@ -92,22 +92,22 @@ public class ArcRenderingTests
     ///   that hangs the test host rather than failing a test, so this runs where a <c>Timeout</c>
     ///   can interrupt it.
     /// </remarks>
-    [Theory(Timeout = 30000)]
-    [InlineData(45, 0)]
-    [InlineData(359, 0)]
-    [InlineData(-45, 0)]
-    [InlineData(405, 0)]
-    [InlineData(0, 0)]
-    [InlineData(90, 0)]
-    [InlineData(360, 0)]
-    [InlineData(-360, 0)]
+    [Test, Timeout(30000)]
+    [Arguments(45, 0)]
+    [Arguments(359, 0)]
+    [Arguments(-45, 0)]
+    [Arguments(405, 0)]
+    [Arguments(0, 0)]
+    [Arguments(90, 0)]
+    [Arguments(360, 0)]
+    [Arguments(-360, 0)]
     // Sweeps too small to move the angle they are added to, such as float cancellation leaves
     // behind: 90 + 1e-15 is 90, so these go nowhere just as a sweep of 0 does. The last is the
     // exception, since 0 + 5.55e-17 is not 0: it is an ordinary arc, too short to leave its start.
-    [InlineData(90, 1e-15)]
-    [InlineData(360, -1e-15)]
-    [InlineData(45, 1e-15)]
-    [InlineData(0, 0.1 + 0.2 - 0.3)]
+    [Arguments(90, 1e-15)]
+    [Arguments(360, -1e-15)]
+    [Arguments(45, 1e-15)]
+    [Arguments(0, 0.1 + 0.2 - 0.3)]
     public async Task DrawArcWithNoSweepDrawsOneDegenerateCurveAtTheStart(double startAngle, double sweepAngle)
     {
         var content = await Interruptibly.Run(() =>
@@ -117,13 +117,13 @@ public class ArcRenderingTests
         ShouldBeOneCurveThatStaysAtItsStart(PathConstruction(content));
     }
 
-    [Theory(Timeout = 30000)]
-    [InlineData(-360, 0)]
-    [InlineData(359, 0)]
-    [InlineData(45, 0)]
-    [InlineData(0, 0)]
-    [InlineData(90, 1e-15)]
-    [InlineData(360, -1e-15)]
+    [Test, Timeout(30000)]
+    [Arguments(-360, 0)]
+    [Arguments(359, 0)]
+    [Arguments(45, 0)]
+    [Arguments(0, 0)]
+    [Arguments(90, 1e-15)]
+    [Arguments(360, -1e-15)]
     public async Task AnArcWithNoSweepAddedToAPathIsDrawnAndSaved(double startAngle, double sweepAngle)
     {
         var (content, saved) = await Interruptibly.Run(() =>
@@ -159,14 +159,14 @@ public class ArcRenderingTests
     ///   walks the quadrants for it, so the two are compared by what they draw: a figure that comes
     ///   back to where it started and reaches every side of the box.
     /// </remarks>
-    [Theory(Timeout = 30000)]
-    [InlineData(5, -360)]
-    [InlineData(90, -360)]
-    [InlineData(90, -720)]
-    [InlineData(5, 360)]
-    [InlineData(90, 360)]
-    [InlineData(0, -360)]
-    [InlineData(360, -360)]
+    [Test, Timeout(30000)]
+    [Arguments(5, -360)]
+    [Arguments(90, -360)]
+    [Arguments(90, -720)]
+    [Arguments(5, 360)]
+    [Arguments(90, 360)]
+    [Arguments(0, -360)]
+    [Arguments(360, -360)]
     public async Task AWholeTurnStillDrawsTheWholeEllipse(double startAngle, double sweepAngle)
     {
         var (drawn, added) = await Interruptibly.Run(() => (
@@ -204,7 +204,7 @@ public class ArcRenderingTests
         ends.Max(end => end.Y).Should().BeApproximately(822, 0.001);
     }
 
-    [Fact]
+    [Test]
     public void AnArcSweptFromAWholeTurnIsStillDrawnFromZero()
     {
         // Only a zero sweep from 360 changed: one swept forwards from there was always drawn from 0.

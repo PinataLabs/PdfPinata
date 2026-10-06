@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Internals;
 using PinataLayout.DocumentObjectModel.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -22,7 +22,7 @@ public class EnumMemberSemanticsTests
 
     private static ParagraphFormat AFormat() => new Document().AddSection().AddParagraph().Format;
 
-    [Fact]
+    [Test]
     public void AnUnsetEnumReadsBackAsTheZeroValue()
     {
         var border = ABorder();
@@ -31,7 +31,7 @@ public class EnumMemberSemanticsTests
         border.Style.Should().Be(BorderStyle.None, "NEnum read back 0 when null and TEnum? must too");
     }
 
-    [Fact]
+    [Test]
     public void AnUnsetEnumIsNullOnlyUnderGetNull()
     {
         var border = ABorder();
@@ -40,7 +40,7 @@ public class EnumMemberSemanticsTests
         border.GetValue("Style", GV.ReadWrite).Should().Be(BorderStyle.None);
     }
 
-    [Fact]
+    [Test]
     public void AssigningTheZeroValueIsNotTheSameAsLeavingItUnset()
     {
         var border = ABorder();
@@ -51,7 +51,7 @@ public class EnumMemberSemanticsTests
         border.GetValue("Style", GV.GetNull).Should().Be(BorderStyle.None);
     }
 
-    [Fact]
+    [Test]
     public void SetNullReturnsAnEnumToUnset()
     {
         var border = ABorder();
@@ -63,7 +63,7 @@ public class EnumMemberSemanticsTests
         border.Style.Should().Be(BorderStyle.None);
     }
 
-    [Fact]
+    [Test]
     public void AnUndefinedEnumValueIsStillRejected()
     {
         var border = ABorder();
@@ -80,7 +80,7 @@ public class EnumMemberSemanticsTests
     ///   boxed type exactly - so without the conversion the generated setter makes, this throws
     ///   InvalidCastException on a call that has worked since the port.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnEnumMemberStillTakesAnIntThroughTheModelApi()
     {
         var border = ABorder();
@@ -91,7 +91,7 @@ public class EnumMemberSemanticsTests
         border.GetValue("Style", GV.GetNull).Should().Be(BorderStyle.DashLargeGap);
     }
 
-    [Fact]
+    [Test]
     public void EveryDefinedValueIsAccepted()
     {
         var format = AFormat();
@@ -103,7 +103,7 @@ public class EnumMemberSemanticsTests
         }
     }
 
-    [Fact]
+    [Test]
     public void AnEnumSurvivesTheDdlRoundTrip()
     {
         var document = new Document();
@@ -115,7 +115,7 @@ public class EnumMemberSemanticsTests
         paragraph.Format.Borders.Top.Style.Should().Be(BorderStyle.DashLargeGap);
     }
 
-    [Fact]
+    [Test]
     public void AnUnsetEnumIsNotWrittenToDdl()
     {
         var document = new Document();
@@ -136,7 +136,7 @@ public class EnumMemberSemanticsTests
     ///   read through it is therefore not a defined SymbolName, which is why NEnum carved SymbolName
     ///   out of its own validation and why EnumGuard applies only to a value with the nibble set.
     /// </summary>
-    [Fact]
+    [Test]
     public void CharacterAcceptsRawCharactersThroughTheSymbolNameField()
     {
         var character = new Character { Char = 'A' };
@@ -145,7 +145,7 @@ public class EnumMemberSemanticsTests
         character.SymbolName.Should().Be((SymbolName)'A', "the raw value is what is stored");
     }
 
-    [Fact]
+    [Test]
     public void CharacterStillDistinguishesASymbolFromACharacter()
     {
         var symbol = new Character { SymbolName = SymbolName.Euro };
@@ -156,7 +156,7 @@ public class EnumMemberSemanticsTests
         letter.Char.Should().Be('Z');
     }
 
-    [Fact]
+    [Test]
     public void AnUnsetCharacterReadsBackAsZero()
     {
         var character = new Character();
@@ -170,7 +170,7 @@ public class EnumMemberSemanticsTests
     ///   them by the one name, SymbolName, and answers for a character as it did when they shared a
     ///   field.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheValueModelSeesACharacterUnderSymbolName()
     {
         var character = new Character { Char = 'A' };
@@ -179,7 +179,7 @@ public class EnumMemberSemanticsTests
         character.GetValue("SymbolName", GV.GetNull).Should().Be((SymbolName)'A');
     }
 
-    [Fact]
+    [Test]
     public void SetValueOnSymbolNameReachesWhicheverFieldTheValueBelongsTo()
     {
         var character = new Character();
@@ -192,7 +192,7 @@ public class EnumMemberSemanticsTests
         character.Char.Should().Be('\0');
     }
 
-    [Fact]
+    [Test]
     public void SetNullOnSymbolNameClearsACharacterAndASymbolAlike()
     {
         var letter = new Character { Char = 'A' };

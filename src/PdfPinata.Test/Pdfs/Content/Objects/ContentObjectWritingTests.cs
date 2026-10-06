@@ -4,7 +4,7 @@ using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Content.Objects;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs.Content.Objects;
 
@@ -18,7 +18,7 @@ namespace PdfPinata.Test.Pdfs.Content.Objects;
 /// </summary>
 public class ContentObjectWritingTests
 {
-    [Fact]
+    [Test]
     public void ACommentIsWrittenOnALineOfItsOwn()
     {
         var comment = new CComment { Text = "drawn by hand" };
@@ -32,12 +32,12 @@ public class ContentObjectWritingTests
             .Should().Be("% drawn by hand\nq\n");
     }
 
-    [Theory]
-    [InlineData(0, "0")]
-    [InlineData(42, "42")]
-    [InlineData(-7, "-7")]
-    [InlineData(int.MaxValue, "2147483647")]
-    [InlineData(int.MinValue, "-2147483648")]
+    [Test]
+    [Arguments(0, "0")]
+    [Arguments(42, "42")]
+    [Arguments(-7, "-7")]
+    [Arguments(int.MaxValue, "2147483647")]
+    [Arguments(int.MinValue, "-2147483648")]
     public void AnIntegerIsWrittenInDigitsAndEndedWithABlank(int value, string digits)
     {
         var integer = new CInteger { Value = value };
@@ -47,14 +47,14 @@ public class ContentObjectWritingTests
         Written([integer]).Should().Be(digits + " ");
     }
 
-    [Theory]
-    [InlineData(0.5, "0.5")]
-    [InlineData(-2.25, "-2.25")]
+    [Test]
+    [Arguments(0.5, "0.5")]
+    [Arguments(-2.25, "-2.25")]
     // At least one decimal, so a whole number still reads as a real.
-    [InlineData(3.0, "3.0")]
+    [Arguments(3.0, "3.0")]
     // At most ten, so a third is cut off rather than written to seventeen digits.
-    [InlineData(1.0 / 3, "0.3333333333")]
-    [InlineData(1e-11, "0.0")]
+    [Arguments(1.0 / 3, "0.3333333333")]
+    [Arguments(1e-11, "0.0")]
     public void ARealIsWrittenWithBetweenOneAndTenDecimals(double value, string text)
     {
         var real = new CReal { Value = value };
@@ -64,7 +64,7 @@ public class ContentObjectWritingTests
         Written([real]).Should().Be(text + " ");
     }
 
-    [Fact]
+    [Test]
     public void ARealIsWrittenWithAPointWhateverTheCurrentCulture()
     {
         // A comma is a delimiter nowhere in PDF syntax, so a German decimal separator would turn
@@ -81,16 +81,16 @@ public class ContentObjectWritingTests
         }
     }
 
-    [Theory]
-    [InlineData("plain", "(plain)")]
-    [InlineData("", "()")]
-    [InlineData("a\nb", @"(a\nb)")]
-    [InlineData("a\rb", @"(a\rb)")]
-    [InlineData("a\tb", @"(a\tb)")]
-    [InlineData("a\bb", @"(a\bb)")]
-    [InlineData("a\fb", @"(a\fb)")]
-    [InlineData("(a)", @"(\(a\))")]
-    [InlineData(@"a\b", @"(a\\b)")]
+    [Test]
+    [Arguments("plain", "(plain)")]
+    [Arguments("", "()")]
+    [Arguments("a\nb", @"(a\nb)")]
+    [Arguments("a\rb", @"(a\rb)")]
+    [Arguments("a\tb", @"(a\tb)")]
+    [Arguments("a\bb", @"(a\bb)")]
+    [Arguments("a\fb", @"(a\fb)")]
+    [Arguments("(a)", @"(\(a\))")]
+    [Arguments(@"a\b", @"(a\\b)")]
     public void ALiteralStringEscapesWhatItCannotHoldAsItStands(string value, string written)
     {
         var text = new CString { Value = value };
@@ -102,7 +102,7 @@ public class ContentObjectWritingTests
         Written([text]).Should().Be(written);
     }
 
-    [Fact]
+    [Test]
     public void AStringReadWithEveryControlEscapeIsWrittenBackWithTheSameEscapes()
     {
         const string content = @"(1\r2\t3\b4\f5\n6) Tj";
@@ -115,11 +115,11 @@ public class ContentObjectWritingTests
         Written(sequence).Should().Be(@"(1\r2\t3\b4\f5\n6)Tj" + "\n");
     }
 
-    [Theory]
-    [InlineData("<</MCID 0>>")]
+    [Test]
+    [Arguments("<</MCID 0>>")]
     // The type exists for a dictionary the parser has no object for, so what it holds is written
     // exactly as it stands - including nothing at all.
-    [InlineData("")]
+    [Arguments("")]
     public void ADictionaryStringIsWrittenVerbatim(string value)
     {
         var dictionary = new CString { Value = value, CStringType = CStringType.Dictionary };
@@ -128,10 +128,10 @@ public class ContentObjectWritingTests
         Written([dictionary]).Should().Be(value);
     }
 
-    [Theory]
-    [InlineData("text", "<74657874>")]
-    [InlineData("", "<>")]
-    [InlineData("\0ÿ", "<00FF>")]
+    [Test]
+    [Arguments("text", "<74657874>")]
+    [Arguments("", "<>")]
+    [Arguments("\0ÿ", "<00FF>")]
     public void AHexStringIsWrittenAsTwoDigitsPerByte(string value, string written)
     {
         // One char per byte, as every string in this library holds its bytes.
@@ -141,7 +141,7 @@ public class ContentObjectWritingTests
         Written([text]).Should().Be(written);
     }
 
-    [Fact]
+    [Test]
     public void AHexStringHoldingACharThatIsNotAByteIsRefused()
     {
         // Two digits cannot say U+4E2D, and writing its low byte would write another string.
@@ -151,9 +151,9 @@ public class ContentObjectWritingTests
             .WithMessage("*UnicodeHexString*");
     }
 
-    [Theory]
-    [InlineData("A中", "<FEFF00414E2D>")]
-    [InlineData("", "<FEFF>")]
+    [Test]
+    [Arguments("A中", "<FEFF00414E2D>")]
+    [Arguments("", "<FEFF>")]
     public void AUnicodeHexStringIsWrittenAsBigEndianUtf16AfterItsByteOrderMark(string value, string written)
     {
         var text = new CString { Value = value, CStringType = CStringType.UnicodeHexString };
@@ -161,13 +161,13 @@ public class ContentObjectWritingTests
         text.ToString().Should().Be(written);
     }
 
-    [Theory]
-    [InlineData("A", "(þÿ\0A)")]
-    [InlineData("中", "(þÿN-)")]
+    [Test]
+    [Arguments("A", "(þÿ\0A)")]
+    [Arguments("中", "(þÿN-)")]
     // A byte of the UTF-16 a literal string cannot hold as it stands is escaped as it would be
     // anywhere else: U+0028 is 00 28, and U+0A0D is the two bytes \n and \r.
-    [InlineData("(", "(þÿ\0\\()")]
-    [InlineData("਍", "(þÿ\\n\\r)")]
+    [Arguments("(", "(þÿ\0\\()")]
+    [Arguments("਍", "(þÿ\\n\\r)")]
     public void AUnicodeStringIsWrittenAsBigEndianUtf16AfterItsByteOrderMark(string value, string written)
     {
         var text = new CString { Value = value, CStringType = CStringType.UnicodeString };
@@ -176,11 +176,11 @@ public class ContentObjectWritingTests
         Written([text]).Should().Be(written);
     }
 
-    [Theory]
-    [InlineData(CStringType.String, "a(b)\\c\n")]
-    [InlineData(CStringType.HexString, "a(b)\\c\nÿ")]
-    [InlineData(CStringType.UnicodeString, "a(b)\\c\n中਍")]
-    [InlineData(CStringType.UnicodeHexString, "a(b)\\c\n中਍")]
+    [Test]
+    [Arguments(CStringType.String, "a(b)\\c\n")]
+    [Arguments(CStringType.HexString, "a(b)\\c\nÿ")]
+    [Arguments(CStringType.UnicodeString, "a(b)\\c\n中਍")]
+    [Arguments(CStringType.UnicodeHexString, "a(b)\\c\n中਍")]
     public void EveryKindOfStringReadsBackAsTheValueAndTheKindItWasWrittenWith(CStringType type, string value)
     {
         var show = OpCodes.OperatorFromName("Tj");
@@ -194,7 +194,7 @@ public class ContentObjectWritingTests
         shown.CStringType.Should().Be(type);
     }
 
-    [Fact]
+    [Test]
     public void AStringOfATypeTheEnumDoesNotDefineHasNoWrittenForm()
     {
         var text = new CString { Value = "text", CStringType = (CStringType)99 };
@@ -202,7 +202,7 @@ public class ContentObjectWritingTests
         text.Invoking(t => t.ToString()).Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Fact]
+    [Test]
     public void AnInlineDictionaryIsCarriedOnAPseudoOperatorThatWritesAsABlank()
     {
         // The content parser has no dictionary object. It keeps the dictionary's text in a string
@@ -225,7 +225,7 @@ public class ContentObjectWritingTests
         Written(ContentReader.ReadContent(Encoding.Latin1.GetBytes(written))).Should().Be(written);
     }
 
-    [Fact]
+    [Test]
     public void ANameIsWrittenWithItsSlashAndEndedWithABlank()
     {
         var name = new CName("/F1");
@@ -235,7 +235,7 @@ public class ContentObjectWritingTests
         Written([name, new CInteger { Value = 12 }]).Should().Be("/F1 12 ");
     }
 
-    [Fact]
+    [Test]
     public void ANameReadWithAnEscapeIsWrittenBackWithIt()
     {
         // The lexer turns #20 into the blank it stands for, and the name used to be written out
@@ -247,7 +247,7 @@ public class ContentObjectWritingTests
         Written(sequence).Should().Be("/A#20B#28 Do\n");
     }
 
-    [Fact]
+    [Test]
     public void ANameWrittenInUnicodeIsWrittenAsItsUtf8Bytes()
     {
         // As in the document body: a char past 0xFF means a caller wrote Unicode, which has no
@@ -255,7 +255,7 @@ public class ContentObjectWritingTests
         Written([new CName("/Zh\u4E2D")]).Should().Be("/Zh#E4#B8#AD ");
     }
 
-    [Fact]
+    [Test]
     public void ANameHoldingAnUnpairedSurrogateIsRefused()
     {
         // As in the document body: it has no UTF-8 encoding, and writing U+FFFD in its place
@@ -265,14 +265,14 @@ public class ContentObjectWritingTests
         write.Should().Throw<ArgumentException>().WithMessage("*unpaired surrogate*");
     }
 
-    [Fact]
+    [Test]
     public void ANameMadeWithoutOneIsTheBareSlash()
     {
         // The empty name, which PDF allows: a slash followed by nothing.
         new CName().Name.Should().Be("/");
     }
 
-    [Fact]
+    [Test]
     public void TheConstructorHoldsANameToTheSameRuleAsTheSetterDoes()
     {
         var withoutSlash = () => new CName("F1");
@@ -284,7 +284,7 @@ public class ContentObjectWritingTests
         empty.Should().Throw<ArgumentNullException>();
     }
 
-    [Fact]
+    [Test]
     public void AnArrayIsWrittenInsideItsBrackets()
     {
         var array = new CArray
@@ -301,7 +301,7 @@ public class ContentObjectWritingTests
         Written([show]).Should().Be("[(A)-250(B)]TJ\n");
     }
 
-    [Fact]
+    [Test]
     public void AnArrayAddedWithoutACastKeepsItsBrackets()
     {
         // CArray derives from CSequence, so this binds to Add(CSequence) - which appends a
@@ -320,7 +320,7 @@ public class ContentObjectWritingTests
         Written([show]).Should().Be("[(A)-250(B)]TJ\n");
     }
 
-    [Fact]
+    [Test]
     public void AnArrayAddedToAnArrayIsNestedInIt()
     {
         var inner = new CArray { new CInteger { Value = 1 }, new CInteger { Value = 2 } };
@@ -329,7 +329,7 @@ public class ContentObjectWritingTests
         outer.ToString().Should().Be("[0[1 2]]");
     }
 
-    [Fact]
+    [Test]
     public void ASequenceThatIsNotAnArrayIsStillAddedItemByItem()
     {
         var operands = new CSequence { new CInteger { Value = 10 }, new CInteger { Value = 20 } };
@@ -341,15 +341,15 @@ public class ContentObjectWritingTests
         Written([move]).Should().Be("10 20 m\n");
     }
 
-    [Theory]
+    [Test]
     // A dash pattern: two numbers side by side, which used to be written as the one number 32.
-    [InlineData("[3 2] 0 d", "[3 2]0 d\n")]
-    [InlineData("[0.5 1.5] 0 d", "[0.5 1.5]0 d\n")]
-    [InlineData("[] 0 d", "[]0 d\n")]
+    [Arguments("[3 2] 0 d", "[3 2]0 d\n")]
+    [Arguments("[0.5 1.5] 0 d", "[0.5 1.5]0 d\n")]
+    [Arguments("[] 0 d", "[]0 d\n")]
     // A name ends in a regular character too, so it needs a blank either side of a number.
-    [InlineData("[/A 1 /B 2.5] TJ", "[/A 1 /B 2.5]TJ\n")]
+    [Arguments("[/A 1 /B 2.5] TJ", "[/A 1 /B 2.5]TJ\n")]
     // A string or an array delimits itself, and nothing is put beside one.
-    [InlineData("[(A) -250 (B) 3 4 (C)] TJ", "[(A)-250(B)3 4(C)]TJ\n")]
+    [Arguments("[(A) -250 (B) 3 4 (C)] TJ", "[(A)-250(B)3 4(C)]TJ\n")]
     public void TheItemsOfAnArrayAreSeparatedWhereTheyWouldOtherwiseRunTogether(string content, string expected)
     {
         var written = Written(ContentReader.ReadContent(Encoding.Latin1.GetBytes(content)));
@@ -359,7 +359,7 @@ public class ContentObjectWritingTests
             .Should().Be(written, "what is written reads back as the same items");
     }
 
-    [Fact]
+    [Test]
     public void AnArrayBuiltByHandKeepsItsNumbersApart()
     {
         var array = new CArray
@@ -382,7 +382,7 @@ public class ContentObjectWritingTests
         items[3].Should().BeOfType<CInteger>().Which.Value.Should().Be(-1);
     }
 
-    [Fact]
+    [Test]
     public void AnArrayInsideAnArrayDelimitsItselfLikeAString()
     {
         // Built by hand, because the content parser refuses an array within an array - and each
@@ -397,7 +397,7 @@ public class ContentObjectWritingTests
         array.ToString().Should().Be("[[1 2]3[4]]");
     }
 
-    [Fact]
+    [Test]
     public void AnOperatorIsWrittenAfterItsOperandsAndEndsTheLine()
     {
         var move = OpCodes.OperatorFromName("Td");
@@ -409,7 +409,7 @@ public class ContentObjectWritingTests
         Written([move, OpCodes.OperatorFromName("Q")]).Should().Be("10 20.5 Td\nQ\n");
     }
 
-    [Fact]
+    [Test]
     public void ASequenceReadsAsItsItemsRunTogether()
     {
         // ToString is for reading in a debugger, not for writing - there is no separator and no
@@ -424,7 +424,7 @@ public class ContentObjectWritingTests
         sequence.ToString().Should().Be("/F1(x)Q");
     }
 
-    [Fact]
+    [Test]
     public void AnEmptySequenceWritesNoContentAtAll()
     {
         new CSequence().ToContent().Should().BeEmpty();

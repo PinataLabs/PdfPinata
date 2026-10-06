@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AwesomeAssertions;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Helpers;
 
@@ -17,13 +17,13 @@ namespace PdfPinata.Test.Helpers;
 /// </remarks>
 public class InterruptiblyTests
 {
-    [Fact]
+    [Test]
     public async Task WorkAnswersWithWhatItReturned()
     {
         (await Interruptibly.Run(() => 6 * 7)).Should().Be(42);
     }
 
-    [Fact]
+    [Test]
     public async Task WorkThatThrowsHandsTheExceptionBack()
     {
         var run = async () => await Interruptibly.Run<int>(() => throw new InvalidOperationException("no"));
@@ -33,7 +33,7 @@ public class InterruptiblyTests
         (await run.Should().ThrowAsync<InvalidOperationException>()).WithMessage("no");
     }
 
-    [Fact]
+    [Test]
     public async Task WorkRunsOffTheThreadPool()
     {
         // The whole point of the class. A pool thread is one the runtime may not start for as long
@@ -43,7 +43,7 @@ public class InterruptiblyTests
         pooled.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public async Task WorkRunsWhereItCannotHoldTheProcessOpen()
     {
         // Work that never ends outlives the test that gave up on it, so the thread it is on has to
@@ -53,18 +53,18 @@ public class InterruptiblyTests
         background.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public async Task WorkRunsSomewhereOtherThanTheTest()
     {
         var testThread = Environment.CurrentManagedThreadId;
 
         var workThread = await Interruptibly.Run(() => Environment.CurrentManagedThreadId);
 
-        // xUnit honours a Timeout only against what is not on the test's own thread.
+        // A Timeout is honoured only against what is not on the test's own thread.
         workThread.Should().NotBe(testThread);
     }
 
-    [Fact]
+    [Test]
     public async Task WorkWithNothingToReturnStillRuns()
     {
         var ran = false;
@@ -74,7 +74,7 @@ public class InterruptiblyTests
         ran.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void NoWorkAtAllIsRefused()
     {
         // Typed as Action rather than left to inference: these refuse before there is a task to

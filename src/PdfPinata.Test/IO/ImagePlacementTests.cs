@@ -6,7 +6,7 @@ using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.IO.ImagePlacementFixtures;
 
 namespace PdfPinata.Test.IO;
@@ -20,7 +20,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class ImagePlacementTests
 {
-    [Fact]
+    [Test]
     public void AnImageDrawnUprightIsStoredTheWayItIsShown()
     {
         var placements = PlacementsOf(PageDrawingAnImage("100 0 0 100 10 10"));
@@ -31,7 +31,7 @@ public class ImagePlacementTests
         placements[0].IsMirrored.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AnImageDrawnWithANegativeVerticalScaleIsStoredUpsideDown()
     {
         // What the file on the issue does, and what makes the extracted image come out flipped.
@@ -42,7 +42,7 @@ public class ImagePlacementTests
         placements[0].IsMirrored.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AnImageDrawnWithANegativeHorizontalScaleIsStoredBackToFront()
     {
         var placements = PlacementsOf(PageDrawingAnImage("-100 0 0 100 110 10"));
@@ -51,7 +51,7 @@ public class ImagePlacementTests
         placements[0].IsMirrored.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AnImageDrawnWithBothScalesNegativeIsStoredTurnedHalfWayRound()
     {
         var placements = PlacementsOf(PageDrawingAnImage("-100 0 0 -100 110 110"));
@@ -61,7 +61,7 @@ public class ImagePlacementTests
         placements[0].IsMirrored.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AnImageDrawnTurnedAQuarterIsNeitherWayUp()
     {
         var placements = PlacementsOf(PageDrawingAnImage("0 100 -100 0 110 10"));
@@ -69,7 +69,7 @@ public class ImagePlacementTests
         placements[0].Orientation.Should().Be(PdfImageOrientation.Other);
     }
 
-    [Fact]
+    [Test]
     public void AMatrixOffSquareOnlyByARoundingErrorIsStillSquare()
     {
         // Judging the off-diagonal against the size of the transform rather than against a
@@ -80,7 +80,7 @@ public class ImagePlacementTests
         placements[0].Orientation.Should().Be(PdfImageOrientation.FlipVertical);
     }
 
-    [Fact]
+    [Test]
     public void TheSizeOfTheImageIsTakenFromTheImageAndNotFromTheTransform()
     {
         var placements = PlacementsOf(PageDrawingAnImage("100 0 0 -100 10 110"));
@@ -90,7 +90,7 @@ public class ImagePlacementTests
         placements[0].GetRawStream().Length.Should().Be(1200);
     }
 
-    [Fact]
+    [Test]
     public void TheTransformIsTheOneTheImageWasDrawnUnder()
     {
         var placements = PlacementsOf(PageDrawingAnImage("100 0 0 -100 10 110"));
@@ -102,7 +102,7 @@ public class ImagePlacementTests
         transform.OffsetY.Should().Be(110);
     }
 
-    [Fact]
+    [Test]
     public void AFormStoringAnImageUpsideDownTurnsOverAnImageDrawnUprightWithinIt()
     {
         var placements = PlacementsOf(
@@ -114,7 +114,7 @@ public class ImagePlacementTests
         placements[0].Orientation.Should().Be(PdfImageOrientation.FlipVertical);
     }
 
-    [Fact]
+    [Test]
     public void TwoFlipsOneInTheFormAndOneInTheImageCancelOut()
     {
         var placements = PlacementsOf(
@@ -123,7 +123,7 @@ public class ImagePlacementTests
         placements[0].Orientation.Should().Be(PdfImageOrientation.Normal);
     }
 
-    [Fact]
+    [Test]
     public void TheTransformOfAFormIsCarriedIntoTheSpaceThePageDrawsIn()
     {
         var placements = PlacementsOf(
@@ -134,7 +134,7 @@ public class ImagePlacementTests
         placements[0].Transform.OffsetY.Should().Be(190);
     }
 
-    [Fact]
+    [Test]
     public void RestoringTheStatePutsBackTheTransformThatWasSavedWithIt()
     {
         var placements = PlacementsOf(PageRestoringTheStateBeforeDrawing());
@@ -143,7 +143,7 @@ public class ImagePlacementTests
         placements[0].Orientation.Should().Be(PdfImageOrientation.Normal);
     }
 
-    [Fact]
+    [Test]
     public void ContentSplitAcrossStreamsIsReadAsOne()
     {
         var placements = PlacementsOf(PageWhoseContentIsSplitAcrossStreams());
@@ -153,7 +153,7 @@ public class ImagePlacementTests
         placements[0].Orientation.Should().Be(PdfImageOrientation.FlipVertical);
     }
 
-    [Fact]
+    [Test]
     public void AFormDrawingItselfIsReadOnce()
     {
         var placements = PlacementsOf(PageWithAFormDrawingItself());
@@ -162,7 +162,7 @@ public class ImagePlacementTests
         placements[0].Orientation.Should().Be(PdfImageOrientation.FlipVertical);
     }
 
-    [Fact]
+    [Test]
     public void TheSameImageDrawnTwiceIsReportedOnceForEachDrawing()
     {
         var placements = PlacementsOf(PageDrawingOneImageTwice());
@@ -173,7 +173,7 @@ public class ImagePlacementTests
         placements[0].XObject.Should().BeSameAs(placements[1].XObject);
     }
 
-    [Fact]
+    [Test]
     public void APageHoldingAnInlineImageIsReadNoFurtherThanTheInlineImage()
     {
         var placements = PlacementsOf(PageWithAnInlineImage());
@@ -183,7 +183,7 @@ public class ImagePlacementTests
         placements.Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void APageWhoseContentCannotBeReadDrawsNothingThatCanBeTold()
     {
         var placements = PlacementsOf(PageWhoseContentCannotBeRead());
@@ -191,7 +191,7 @@ public class ImagePlacementTests
         placements.Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void AnOperatorGivenTooFewOperandsDoesNotStopTheReading()
     {
         // Documents in the wild carry these, and a debug build used to assert on one.
@@ -201,7 +201,7 @@ public class ImagePlacementTests
         placements[0].Orientation.Should().Be(PdfImageOrientation.FlipVertical);
     }
 
-    [Fact]
+    [Test]
     public void ANumberWithMoreThanNineDecimalPlacesIsReadToTheEnd()
     {
         // The rotation matrices a writer of PDF puts out carry as many decimal places as a
@@ -215,7 +215,7 @@ public class ImagePlacementTests
         ((CReal)operands[1]).Value.Should().Be(0.573576436351046);
     }
 
-    [Fact]
+    [Test]
     public void ANumberIsReadTheSameWayWhicheverSideOfThePointItFallsOn()
     {
         var content = ContentReader.ReadContent(Encoding.Latin1.GetBytes("-12.5 .25 4. 0 0 0 cm"));

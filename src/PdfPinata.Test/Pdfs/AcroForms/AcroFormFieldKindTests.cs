@@ -5,7 +5,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.AcroForms;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs.AcroForms;
 
@@ -28,7 +28,7 @@ public class AcroFormFieldKindTests
 
     // ----- text ----------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ATextFieldHoldsTheTextItIsGiven()
     {
         var document = FormWith("/Tx", "surname");
@@ -40,13 +40,13 @@ public class AcroFormFieldKindTests
         field.Value.Should().BeOfType<PdfString>().Which.Value.Should().Be("Bosch");
     }
 
-    [Fact]
+    [Test]
     public void ATextFieldStartsEmptyRatherThanNull()
     {
         ((PdfTextField)FormWith("/Tx", "surname").AcroForm.Fields["surname"]).Text.Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void ATextFieldRemembersHowLongItsTextMayBe()
     {
         var field = (PdfTextField)FormWith("/Tx", "surname").AcroForm.Fields["surname"];
@@ -57,7 +57,7 @@ public class AcroFormFieldKindTests
         field.MaxLength.Should().Be(12);
     }
 
-    [Fact]
+    [Test]
     public void ATextFieldsAppearanceIsItsToChoose()
     {
         var field = (PdfTextField)FormWith("/Tx", "surname").AcroForm.Fields["surname"];
@@ -76,9 +76,9 @@ public class AcroFormFieldKindTests
         field.BackColor.Should().Be(XColors.LightGray);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
+    [Test]
+    [Arguments(true)]
+    [Arguments(false)]
     public void ATextFieldCanBeTurnedIntoAMultiLineOneAndBack(bool multiLine)
     {
         var field = (PdfTextField)FormWith("/Tx", "surname").AcroForm.Fields["surname"];
@@ -89,9 +89,9 @@ public class AcroFormFieldKindTests
         ((field.Flags & PdfAcroFieldFlags.Multiline) != 0).Should().Be(multiLine);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
+    [Test]
+    [Arguments(true)]
+    [Arguments(false)]
     public void ATextFieldCanBeTurnedIntoAPasswordFieldAndBack(bool password)
     {
         var field = (PdfTextField)FormWith("/Tx", "surname").AcroForm.Fields["surname"];
@@ -104,7 +104,7 @@ public class AcroFormFieldKindTests
 
     // ----- tick boxes ----------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ATickBoxIsNotTickedUntilItIs()
     {
         var field = (PdfCheckBoxField)FormWith("/Btn", "agree",
@@ -113,7 +113,7 @@ public class AcroFormFieldKindTests
         field.Checked.Should().BeFalse("a box with no value set is not ticked");
     }
 
-    [Fact]
+    [Test]
     public void TickingABoxSetsItToTheStateItsAppearanceCallsOn()
     {
         // The on state is whatever the appearance dictionary names that is not /Off - it is /Yes
@@ -129,7 +129,7 @@ public class AcroFormFieldKindTests
         field.Elements.GetName("/AS").Should().Be("/Ja", "the appearance has to follow the value");
     }
 
-    [Fact]
+    [Test]
     public void UntickingABoxSetsItToOff()
     {
         var field = (PdfCheckBoxField)FormWith("/Btn", "agree",
@@ -150,7 +150,7 @@ public class AcroFormFieldKindTests
     ///   <c>value</c> that they never passed. A form built by hand, or one whose appearances were
     ///   stripped, is exactly this case, so the lookup falls back to the conventional on state.
     /// </summary>
-    [Fact]
+    [Test]
     public void TickingABoxThatHasNoAppearanceFallsBackToTheConventionalOnState()
     {
         var field = (PdfCheckBoxField)FormWith("/Btn", "agree").AcroForm.Fields["agree"];
@@ -168,7 +168,7 @@ public class AcroFormFieldKindTests
 
     // ----- radio groups --------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ARadioGroupNamesItsButtonsInAnOptionArray()
     {
         var field = (PdfRadioButtonField)FormWith("/Btn", "size", f =>
@@ -187,7 +187,7 @@ public class AcroFormFieldKindTests
         field.SelectedIndex.Should().Be(1, "it finds again what it wrote");
     }
 
-    [Fact]
+    [Test]
     public void ARadioGroupRefusesAButtonItDoesNotHave()
     {
         var field = (PdfRadioButtonField)FormWith("/Btn", "size", f =>
@@ -203,7 +203,7 @@ public class AcroFormFieldKindTests
         negative.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Fact]
+    [Test]
     public void ARadioGroupWithNoOptionsAtAllQuietlyIgnoresBeingSet()
     {
         var field = (PdfRadioButtonField)FormWith("/Btn", "size",
@@ -217,7 +217,7 @@ public class AcroFormFieldKindTests
 
     // ----- choice fields -------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AListBoxChoosesByIndexAndRemembersTheTextOfWhatWasChosen()
     {
         var field = (PdfListBoxField)FormWith("/Ch", "county",
@@ -230,7 +230,7 @@ public class AcroFormFieldKindTests
         field.SelectedIndex.Should().Be(2, "it finds again what it wrote");
     }
 
-    [Fact]
+    [Test]
     public void AComboBoxAlsoRecordsTheIndexSeparatelySoTheViewerFollowsIt()
     {
         var field = (PdfComboBoxField)FormWith("/Ch", "county", f =>
@@ -261,7 +261,7 @@ public class AcroFormFieldKindTests
     ///   built by something else and asking what was selected threw.
     ///   </para>
     /// </summary>
-    [Fact]
+    [Test]
     public void AListBoxReadsAValueThatNamesSeveralOptions()
     {
         var field = (PdfListBoxField)FormWith("/Ch", "county", f =>
@@ -279,7 +279,7 @@ public class AcroFormFieldKindTests
         field.SelectedIndex.Should().Be(0, "the first of them, for a caller that wants only one");
     }
 
-    [Fact]
+    [Test]
     public void AListBoxSelectsSeveralOptionsAtOnce()
     {
         var field = (PdfListBoxField)FormWith("/Ch", "county", f =>
@@ -301,7 +301,7 @@ public class AcroFormFieldKindTests
     ///   an entry left over from when the list did allow several is taken away rather than left
     ///   saying something the field no longer does.
     /// </summary>
-    [Fact]
+    [Test]
     public void ASingleChoiceListCarriesNoIndexEntry()
     {
         var field = (PdfListBoxField)FormWith("/Ch", "county",
@@ -313,7 +313,7 @@ public class AcroFormFieldKindTests
         field.SelectedIndex.Should().Be(1, "/V alone is enough to find it again");
     }
 
-    [Fact]
+    [Test]
     public void ASingleChoiceListRefusesToSelectSeveralOptions()
     {
         var field = (PdfListBoxField)FormWith("/Ch", "county",
@@ -326,7 +326,7 @@ public class AcroFormFieldKindTests
         field.SelectedIndices.Should().BeEmpty("nothing was written");
     }
 
-    [Fact]
+    [Test]
     public void AListBoxSelectsNothingWhenGivenNoIndices()
     {
         var field = (PdfListBoxField)FormWith("/Ch", "county", f =>
@@ -347,7 +347,7 @@ public class AcroFormFieldKindTests
     ///   An index the list has no option for leaves the field as it was, rather than writing
     ///   <c>/V</c> and then failing on the way to <c>/I</c>.
     /// </summary>
-    [Fact]
+    [Test]
     public void AListBoxRefusingAnIndexLeavesWhatWasThereAlone()
     {
         var field = (PdfListBoxField)FormWith("/Ch", "county", f =>
@@ -369,7 +369,7 @@ public class AcroFormFieldKindTests
     ///   text in <c>/V</c> finds the first of them and cannot do better. Without reading <c>/I</c>
     ///   the round trip lost the selection - both chosen options collapsed onto the first.
     /// </summary>
-    [Fact]
+    [Test]
     public void TwoOptionsExportingTheSameTextAreToldApartByTheIndexEntry()
     {
         var field = (PdfListBoxField)FormWith("/Ch", "county", f =>
@@ -384,7 +384,7 @@ public class AcroFormFieldKindTests
             "/I says which two, where /V says only that both are Kent");
     }
 
-    [Fact]
+    [Test]
     public void OneOfTwoOptionsExportingTheSameTextIsToldApartByTheIndexEntry()
     {
         var field = (PdfListBoxField)FormWith("/Ch", "county", f =>
@@ -405,7 +405,7 @@ public class AcroFormFieldKindTests
     ///   the choice - <c>/V</c> says only "Kent", and searching <c>/Opt</c> for it finds the first
     ///   Kent whichever one was picked.
     /// </summary>
-    [Fact]
+    [Test]
     public void ASingleChoiceListKeepsTheIndexEntryWhenTwoOptionsExportTheSameText()
     {
         var field = (PdfListBoxField)FormWith("/Ch", "county",
@@ -422,7 +422,7 @@ public class AcroFormFieldKindTests
     ///   And no further than that: an option whose text finds itself is written as <c>/V</c> alone,
     ///   so the entry appears where it earns its place rather than on every single-choice list.
     /// </summary>
-    [Fact]
+    [Test]
     public void ASingleChoiceListNeedsNoIndexEntryForTheFirstOfTwoAlikeOptions()
     {
         var field = (PdfListBoxField)FormWith("/Ch", "county",
@@ -435,7 +435,7 @@ public class AcroFormFieldKindTests
         field.SelectedIndex.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void TheChosenOneOfTwoAlikeOptionsSurvivesARoundTripWithoutMultiSelect()
     {
         var document = FormWith("/Ch", "county",
@@ -458,7 +458,7 @@ public class AcroFormFieldKindTests
     ///   entry takes the first option no earlier entry has taken, so two named Kents are read as
     ///   the two options that are Kent rather than as the first of them twice over.
     /// </summary>
-    [Fact]
+    [Test]
     public void AValueNamingTheSameTextTwiceIsReadAsTwoOptionsWhenThereIsNoIndexEntry()
     {
         var field = (PdfListBoxField)FormWith("/Ch", "county", f =>
@@ -478,7 +478,7 @@ public class AcroFormFieldKindTests
     ///   The limit of that: where only one option exports the text, a <c>/V</c> naming it twice
     ///   still selects the one option, because there is no second to give the second entry.
     /// </summary>
-    [Fact]
+    [Test]
     public void AValueNamingTheOneMatchingOptionTwiceSelectsItOnce()
     {
         var field = (PdfListBoxField)FormWith("/Ch", "county", f =>
@@ -498,7 +498,7 @@ public class AcroFormFieldKindTests
     ///   Where the two entries disagree the specification gives <c>/V</c> precedence, so an
     ///   <c>/I</c> naming options <c>/V</c> does not is passed over rather than believed.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnIndexEntryThatContradictsTheValueIsIgnored()
     {
         var field = (PdfListBoxField)FormWith("/Ch", "county", f =>
@@ -514,7 +514,7 @@ public class AcroFormFieldKindTests
         field.SelectedIndices.Should().Equal([2], "/V names Surrey, whatever /I says");
     }
 
-    [Fact]
+    [Test]
     public void AListWithNoOptionsRefusesToSelectOne()
     {
         var field = (PdfListBoxField)FormWith("/Ch", "county").AcroForm.Fields["county"];
@@ -526,7 +526,7 @@ public class AcroFormFieldKindTests
         field.Elements.ContainsKey(PdfChoiceField.Keys.I).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void SeveralSelectedOptionsSurviveARoundTrip()
     {
         var document = FormWith("/Ch", "county", f =>
@@ -549,7 +549,7 @@ public class AcroFormFieldKindTests
         field.Elements.GetArray("/V").Should().NotBeNull("several chosen options make /V an array");
     }
 
-    [Fact]
+    [Test]
     public void AChoiceFieldRefusesAnIndexItHasNoOptionFor()
     {
         var field = (PdfListBoxField)FormWith("/Ch", "county",
@@ -568,7 +568,7 @@ public class AcroFormFieldKindTests
     ///   <c>KeyType.Array</c>, so the code and the declaration beside it disagreed. A reader that
     ///   takes the key at its word gets an array and finds a number.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheIndexOfTheChosenOptionIsWrittenAsAnArray()
     {
         var field = (PdfComboBoxField)FormWith("/Ch", "county", f =>
@@ -589,7 +589,7 @@ public class AcroFormFieldKindTests
     ///   bytes, so this one goes all the way out to a document and back rather than reading the
     ///   dictionary it was just written into.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheIndexIsStillAnArrayAfterARoundTrip()
     {
         var document = FormWith("/Ch", "county", f =>
@@ -615,7 +615,7 @@ public class AcroFormFieldKindTests
     ///   Choosing twice replaces the entry rather than growing it, so a field cannot end up
     ///   claiming two options are chosen at once.
     /// </summary>
-    [Fact]
+    [Test]
     public void ChoosingASecondOptionReplacesTheIndexRatherThanAddingToIt()
     {
         var field = (PdfComboBoxField)FormWith("/Ch", "county", f =>
@@ -630,7 +630,7 @@ public class AcroFormFieldKindTests
         SelectedIndicesOf(field).Should().Equal(2);
     }
 
-    [Fact]
+    [Test]
     public void AComboBoxIgnoresBeingSetToNothingChosen()
     {
         // Minus one means nothing chosen, and the setter has an explicit arm to leave the field
@@ -662,7 +662,7 @@ public class AcroFormFieldKindTests
     ///   entry <em>was</em> an array the text was appended to that array instead, silently.
     ///   </para>
     /// </summary>
-    [Fact]
+    [Test]
     public void AComboBoxGivenTextItDoesNotOfferAddsItToTheOptions()
     {
         var field = (PdfComboBoxField)FormWith("/Ch", "county", f =>
@@ -679,7 +679,7 @@ public class AcroFormFieldKindTests
             "a viewer reads /I rather than searching /Opt");
     }
 
-    [Fact]
+    [Test]
     public void AComboBoxGivenAValueItAlreadyOffersLeavesTheOptionsAlone()
     {
         var field = (PdfComboBoxField)FormWith("/Ch", "county", f =>
@@ -699,7 +699,7 @@ public class AcroFormFieldKindTests
     ///   <c>/Opt</c> is optional, so a combo box may have none at all. The value still has to land
     ///   somewhere, which means making the array rather than assuming one.
     /// </summary>
-    [Fact]
+    [Test]
     public void AComboBoxWithNoOptionsAtAllIsGivenAnOptionArray()
     {
         var field = (PdfComboBoxField)FormWith("/Ch", "county",
@@ -719,7 +719,7 @@ public class AcroFormFieldKindTests
     ///   slash that makes a name a name is not part of the value. Stored as a name it would be
     ///   invisible to the search through <c>/Opt</c>, so <c>/I</c> would never be pointed at it.
     /// </summary>
-    [Fact]
+    [Test]
     public void AComboBoxGivenANameStoresTheTextItStandsFor()
     {
         var field = (PdfComboBoxField)FormWith("/Ch", "county", f =>
@@ -736,7 +736,7 @@ public class AcroFormFieldKindTests
         SelectedIndicesOf(field).Should().Equal(2);
     }
 
-    [Fact]
+    [Test]
     public void AComboBoxGivenANameForAnOptionItAlreadyOffersChoosesThatOption()
     {
         var field = (PdfComboBoxField)FormWith("/Ch", "county", f =>
@@ -752,7 +752,7 @@ public class AcroFormFieldKindTests
         field.SelectedIndex.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AComboBoxRefusesAValueThatIsNotText()
     {
         var field = (PdfComboBoxField)FormWith("/Ch", "county",
@@ -805,7 +805,7 @@ public class AcroFormFieldKindTests
         return options;
     }
 
-    [Fact]
+    [Test]
     public void AChoiceFieldWithNoOptionsFindsNothing()
     {
         var field = (PdfListBoxField)FormWith("/Ch", "county").AcroForm.Fields["county"];
@@ -824,7 +824,7 @@ public class AcroFormFieldKindTests
     ///   <c>/V</c> became the malformed <c>/(medium)</c>. Setting and then reading in the same
     ///   session agreed with itself, which is why it went unnoticed.
     /// </summary>
-    [Fact]
+    [Test]
     public void ChoosingAnOptionWritesTheOptionTextAndNothingElse()
     {
         var listBox = (PdfListBoxField)FormWith("/Ch", "county",
@@ -842,7 +842,7 @@ public class AcroFormFieldKindTests
         radio.Value.Should().BeOfType<PdfName>().Which.ToString().Should().Be("/medium");
     }
 
-    [Fact]
+    [Test]
     public void AChoiceFieldFindsWhatAnotherProducerChose()
     {
         // The same form as above, except that /V was already set - as every real form that has
@@ -858,7 +858,7 @@ public class AcroFormFieldKindTests
         field.SelectedIndex.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AnOptionGivenAsAnExportAndDisplayPairIsFoundByItsExportValue()
     {
         // /Opt may hold [exportValue displayText] pairs rather than plain strings, and the export
@@ -881,7 +881,7 @@ public class AcroFormFieldKindTests
 
     // ----- the field types that hold nothing of their own ----------------------------------------
 
-    [Fact]
+    [Test]
     public void APushButtonAndASignatureAndAnUnknownFieldAreStillFields()
     {
         // None of the three adds a value of its own - a push button does something rather than
@@ -914,7 +914,7 @@ public class AcroFormFieldKindTests
     ///   <c>SelectedIndex</c> wrote <c>/V</c> directly, so the same field could be filled by one
     ///   name and not by another. Each now asks the same question and gives the same answer.
     /// </summary>
-    [Fact]
+    [Test]
     public void AReadOnlyTextFieldRefusesTextAsItRefusesAValue()
     {
         var field = (PdfTextField)FormWith("/Tx", "surname", f =>
@@ -929,7 +929,7 @@ public class AcroFormFieldKindTests
         field.Text.Should().Be("Bosch", "a refused value leaves the field as it was");
     }
 
-    [Fact]
+    [Test]
     public void AReadOnlyCheckBoxRefusesToBeTicked()
     {
         var field = (PdfCheckBoxField)FormWith("/Btn", "agree", f =>
@@ -944,7 +944,7 @@ public class AcroFormFieldKindTests
         field.Checked.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AReadOnlyRadioGroupRefusesAChoice()
     {
         var field = (PdfRadioButtonField)FormWith("/Btn", "size", f =>
@@ -959,7 +959,7 @@ public class AcroFormFieldKindTests
         field.SelectedIndex.Should().Be(-1);
     }
 
-    [Fact]
+    [Test]
     public void AReadOnlyComboBoxRefusesAChoice()
     {
         var field = (PdfComboBoxField)FormWith("/Ch", "county", f =>
@@ -974,7 +974,7 @@ public class AcroFormFieldKindTests
         field.SelectedIndex.Should().Be(-1);
     }
 
-    [Fact]
+    [Test]
     public void AReadOnlyListBoxRefusesAChoiceByOneIndexOrByMany()
     {
         var field = (PdfListBoxField)FormWith("/Ch", "county", f =>

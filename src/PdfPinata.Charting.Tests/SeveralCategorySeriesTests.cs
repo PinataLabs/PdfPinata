@@ -1,7 +1,7 @@
 using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Charting.Tests.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -19,13 +19,13 @@ namespace PdfPinata.Charting.Tests;
 /// </remarks>
 public class SeveralCategorySeriesTests
 {
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.ColumnStacked2D)]
-    [InlineData(ChartType.Line)]
-    [InlineData(ChartType.Area2D)]
-    [InlineData(ChartType.Bar2D)]
-    [InlineData(ChartType.BarStacked2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.ColumnStacked2D)]
+    [Arguments(ChartType.Line)]
+    [Arguments(ChartType.Area2D)]
+    [Arguments(ChartType.Bar2D)]
+    [Arguments(ChartType.BarStacked2D)]
     public void OnlyTheFirstCategorySeriesLabelsTheAxis(ChartType type)
     {
         var page = Drawn.Page(WithCategorySeries(type, ["A", "B", "C"], ["X", "Y", "Z"]));
@@ -37,13 +37,13 @@ public class SeveralCategorySeriesTests
             "the axis has one slot per category, and the first series has filled them");
     }
 
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.ColumnStacked2D)]
-    [InlineData(ChartType.Line)]
-    [InlineData(ChartType.Area2D)]
-    [InlineData(ChartType.Bar2D)]
-    [InlineData(ChartType.BarStacked2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.ColumnStacked2D)]
+    [Arguments(ChartType.Line)]
+    [Arguments(ChartType.Area2D)]
+    [Arguments(ChartType.Bar2D)]
+    [Arguments(ChartType.BarStacked2D)]
     public void ASecondCategorySeriesLeavesTheChartAsTheFirstAloneDrewIt(ChartType type)
     {
         var alone = ShownText.RunsOn(Drawn.Page(WithCategorySeries(type, ["A", "B", "C"])));

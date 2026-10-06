@@ -5,7 +5,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Metadata;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -15,7 +15,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class MetadataStrategyTests
 {
-    [Fact]
+    [Test]
     public void ByDefaultANewDocumentIsWrittenWithNoPacket()
     {
         var document = new PdfDocument();
@@ -30,7 +30,7 @@ public class MetadataStrategyTests
     ///   would change every existing document that is opened and saved: the packet is left alone,
     ///   and so says what it said before the title changed.
     /// </summary>
-    [Fact]
+    [Test]
     public void ByDefaultAReadDocumentKeepsItsPacketAsItWas()
     {
         var reopened = Saved.Open(WithPacket("Old title"));
@@ -42,7 +42,7 @@ public class MetadataStrategyTests
         Text(bytes).Should().Contain("Old title").And.NotContain(">New title<");
     }
 
-    [Fact]
+    [Test]
     public void AutoGenerateReplacesAReadDocumentsPacketWithOneThatAgreesWithItsInformation()
     {
         var reopened = Saved.Open(WithPacket("Old title"));
@@ -55,7 +55,7 @@ public class MetadataStrategyTests
         Text(bytes).Should().Contain(">New title<").And.NotContain("Old title<");
     }
 
-    [Fact]
+    [Test]
     public void AutoGenerateStillCallsTheCustomisationHooks()
     {
         var document = new PdfDocument();
@@ -69,7 +69,7 @@ public class MetadataStrategyTests
         called.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void NoMetadataRemovesTheReadDocumentsPacket()
     {
         var reopened = Saved.Open(WithPacket("Old title"));
@@ -81,7 +81,7 @@ public class MetadataStrategyTests
         Saved.Open(bytes).Internals.Catalog.Elements.ContainsKey("/Metadata").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AConformanceClaimWithNoMetadataIsRefusedAtSave()
     {
         var document = new PdfDocument();
@@ -95,7 +95,7 @@ public class MetadataStrategyTests
         act.Should().Throw<InvalidOperationException>().WithMessage("*NoMetadata*");
     }
 
-    [Fact]
+    [Test]
     public void AnAccessibilityClaimWithNoMetadataIsRefusedAtSave()
     {
         var document = new PdfDocument();
@@ -109,7 +109,7 @@ public class MetadataStrategyTests
         act.Should().Throw<InvalidOperationException>().WithMessage("*NoMetadata*");
     }
 
-    [Fact]
+    [Test]
     public void ClaimingConformanceWithNoMetadataIsRefusedWhereItIsClaimed()
     {
         var document = new PdfDocument();
@@ -127,7 +127,7 @@ public class MetadataStrategyTests
     ///   A claim writes a fresh packet under the default strategy, as it always has - a read
     ///   document's own packet cannot be trusted to carry the claim or to agree with /Info.
     /// </summary>
-    [Fact]
+    [Test]
     public void AConformanceClaimWritesAFreshPacketUnderTheDefault()
     {
         var reopened = Saved.Open(WithPacket("Old title"));
@@ -140,7 +140,7 @@ public class MetadataStrategyTests
         Text(bytes).Should().Contain(">New title<").And.Contain("pdfaid:part");
     }
 
-    [Fact]
+    [Test]
     public void WriteXmpMetadataIsTheOlderSpellingOfAutoGenerate()
     {
         var options = new PdfDocument().Options;
@@ -157,7 +157,7 @@ public class MetadataStrategyTests
         options.MetadataStrategy.Should().Be(PdfMetadataStrategy.NoMetadata, "false undoes only AutoGenerate");
     }
 
-    [Fact]
+    [Test]
     public void AnUndefinedStrategyIsRefused()
     {
         var options = new PdfDocument().Options;

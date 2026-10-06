@@ -5,7 +5,7 @@ using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -22,7 +22,7 @@ namespace PdfPinata.Test.Pdfs;
 /// </summary>
 public class PdfUIntegerTests
 {
-    [Fact]
+    [Test]
     public void ANewUnsignedIntegerIsZero()
     {
         var value = new PdfUInteger();
@@ -31,16 +31,16 @@ public class PdfUIntegerTests
         value.ToString().Should().Be("0");
     }
 
-    [Theory]
-    [InlineData(0u, "0")]
-    [InlineData(42u, "42")]
-    [InlineData(uint.MaxValue, "4294967295")]
+    [Test]
+    [Arguments(0u, "0")]
+    [Arguments(42u, "42")]
+    [Arguments(uint.MaxValue, "4294967295")]
     public void AnUnsignedIntegerIsSpelledAsTheInvariantCultureSpellsIt(uint number, string expected)
     {
         new PdfUInteger(number).ToString().Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void ConvertingToADateTimeIsRefusedAsItIsForTheUIntItWraps()
     {
         // It used to answer DateTime.MinValue, a date nobody asked for, where UInt32 throws.
@@ -54,13 +54,13 @@ public class PdfUIntegerTests
         ((Func<DateTime>)(() => Convert.ToDateTime(42u))).Should().Throw<InvalidCastException>();
     }
 
-    [Fact]
+    [Test]
     public void ItReportsItselfAsAThirtyTwoBitUnsignedInteger()
     {
         new PdfUInteger(1).GetTypeCode().Should().Be(TypeCode.UInt32);
     }
 
-    [Fact]
+    [Test]
     public void ItConvertsToEveryTypeWideEnoughForItsWholeRange()
     {
         var value = new PdfUInteger(uint.MaxValue);
@@ -73,7 +73,7 @@ public class PdfUIntegerTests
         value.ToDecimal(null).Should().Be(4294967295m);
     }
 
-    [Fact]
+    [Test]
     public void ItConvertsToANarrowerTypeWhenTheValueFits()
     {
         var value = new PdfUInteger(200);
@@ -86,7 +86,7 @@ public class PdfUIntegerTests
         new PdfUInteger('Z').ToChar(null).Should().Be('Z');
     }
 
-    [Fact]
+    [Test]
     public void ANarrowingConversionOfAValueThatDoesNotFitOverflows()
     {
         var large = new PdfUInteger(uint.MaxValue);
@@ -99,16 +99,16 @@ public class PdfUIntegerTests
         FluentActions.Invoking(() => large.ToChar(null)).Should().Throw<OverflowException>();
     }
 
-    [Theory]
-    [InlineData(0u, false)]
-    [InlineData(1u, true)]
-    [InlineData(uint.MaxValue, true)]
+    [Test]
+    [Arguments(0u, false)]
+    [Arguments(1u, true)]
+    [Arguments(uint.MaxValue, true)]
     public void ItConvertsToABooleanTheWayAnIntegerDoes(uint number, bool expected)
     {
         new PdfUInteger(number).ToBoolean(null).Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void ItConvertsToAStringThroughTheInterface()
     {
         IConvertible value = new PdfUInteger(3000000000u);
@@ -117,7 +117,7 @@ public class PdfUIntegerTests
         Convert.ToString(new PdfUInteger(7u), CultureInfo.InvariantCulture).Should().Be("7");
     }
 
-    [Fact]
+    [Test]
     public void ToTypeConvertsAsTheUnsignedIntegerItWrapsWould()
     {
         var value = new PdfUInteger(3000000000u);
@@ -128,7 +128,7 @@ public class PdfUIntegerTests
             .Should().Throw<OverflowException>();
     }
 
-    [Fact]
+    [Test]
     public void AnUnsignedIntegerWithinTheRangeOfAnIntegerIsReadBackAsOne()
     {
         var item = RoundTrip(new PdfUInteger(7u), out var written);
@@ -137,7 +137,7 @@ public class PdfUIntegerTests
         item.Should().BeOfType<PdfPinata.Pdf.PdfInteger>().Which.Value.Should().Be(7);
     }
 
-    [Fact]
+    [Test]
     public void AnUnsignedIntegerBeyondTheRangeOfAnIntegerIsReadBackAsALong()
     {
         var item = RoundTrip(new PdfUInteger(uint.MaxValue), out var written);

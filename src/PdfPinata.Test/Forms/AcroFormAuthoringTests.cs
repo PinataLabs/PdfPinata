@@ -6,7 +6,7 @@ using PdfPinata.Pdf.AcroForms;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Forms;
 
@@ -23,7 +23,7 @@ namespace PdfPinata.Test.Forms;
 /// </remarks>
 public class AcroFormAuthoringTests
 {
-    [Fact]
+    [Test]
     public void ADocumentHasNoFormUntilOneIsAskedFor()
     {
         var document = new PdfDocument();
@@ -36,7 +36,7 @@ public class AcroFormAuthoringTests
         document.AcroForm.Should().BeSameAs(form);
     }
 
-    [Fact]
+    [Test]
     public void AskingTwiceAnswersTheSameFormRatherThanASecondOne()
     {
         var document = new PdfDocument();
@@ -47,7 +47,7 @@ public class AcroFormAuthoringTests
         second.Should().BeSameAs(first);
     }
 
-    [Fact]
+    [Test]
     public void TheFormIsIndirectAndIsNamedByTheCatalogue()
     {
         var document = new PdfDocument();
@@ -58,14 +58,14 @@ public class AcroFormAuthoringTests
         document.Internals.Catalog.Elements["/AcroForm"].Should().BeOfType<Pdf.Advanced.PdfReference>();
     }
 
-    [Theory]
-    [InlineData(typeof(PdfTextField), "/Tx", 0)]
-    [InlineData(typeof(PdfCheckBoxField), "/Btn", 0)]
-    [InlineData(typeof(PdfRadioButtonField), "/Btn", (int)PdfAcroFieldFlags.Radio)]
-    [InlineData(typeof(PdfPushButtonField), "/Btn", (int)PdfAcroFieldFlags.Pushbutton)]
-    [InlineData(typeof(PdfComboBoxField), "/Ch", (int)PdfAcroFieldFlags.Combo)]
-    [InlineData(typeof(PdfListBoxField), "/Ch", 0)]
-    [InlineData(typeof(PdfSignatureField), "/Sig", 0)]
+    [Test]
+    [Arguments(typeof(PdfTextField), "/Tx", 0)]
+    [Arguments(typeof(PdfCheckBoxField), "/Btn", 0)]
+    [Arguments(typeof(PdfRadioButtonField), "/Btn", (int)PdfAcroFieldFlags.Radio)]
+    [Arguments(typeof(PdfPushButtonField), "/Btn", (int)PdfAcroFieldFlags.Pushbutton)]
+    [Arguments(typeof(PdfComboBoxField), "/Ch", (int)PdfAcroFieldFlags.Combo)]
+    [Arguments(typeof(PdfListBoxField), "/Ch", 0)]
+    [Arguments(typeof(PdfSignatureField), "/Sig", 0)]
     public void EveryFieldTypeWritesWhatSaysWhatItIs(Type type, string fieldType, int flags)
     {
         var document = new PdfDocument();
@@ -79,7 +79,7 @@ public class AcroFormAuthoringTests
         ((int)field.Flags).Should().Be(flags);
     }
 
-    [Fact]
+    [Test]
     public void AddingAFieldMakesItIndirectAndPutsAReferenceInFields()
     {
         var document = new PdfDocument();
@@ -96,7 +96,7 @@ public class AcroFormAuthoringTests
         entries.Elements[0].Should().BeOfType<Pdf.Advanced.PdfReference>();
     }
 
-    [Fact]
+    [Test]
     public void AFieldFromAnotherDocumentIsRefused()
     {
         var document = new PdfDocument();
@@ -109,7 +109,7 @@ public class AcroFormAuthoringTests
         act.Should().Throw<InvalidOperationException>();
     }
 
-    [Fact]
+    [Test]
     public void TheNameTheToolTipAndTheFlagsAreWritable()
     {
         var document = new PdfDocument();
@@ -125,7 +125,7 @@ public class AcroFormAuthoringTests
         field.Flags.Should().Be(PdfAcroFieldFlags.Required | PdfAcroFieldFlags.DoNotScroll);
     }
 
-    [Fact]
+    [Test]
     public void APartialNameWithAPeriodInItIsRefused()
     {
         var document = new PdfDocument();
@@ -139,7 +139,7 @@ public class AcroFormAuthoringTests
         act.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void ADottedPathIsSpeltAsFieldsNestedInsideFields()
     {
         var document = new PdfDocument();
@@ -164,7 +164,7 @@ public class AcroFormAuthoringTests
         reopened.AcroForm.Fields.DescendantNames.Should().Contain("name.full");
     }
 
-    [Fact]
+    [Test]
     public void TheCombFlagIsBitTwentyFive()
     {
         var document = new PdfDocument();
@@ -179,7 +179,7 @@ public class AcroFormAuthoringTests
         field.Elements.GetInteger("/Ff").Should().Be(1 << 24);
     }
 
-    [Fact]
+    [Test]
     public void AWidgetGoesOnThePageAndPointsBackAtItsField()
     {
         var document = new PdfDocument();
@@ -200,7 +200,7 @@ public class AcroFormAuthoringTests
         field.Elements.GetArray("/Kids").Elements.Count.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AWidgetIsMarkedAsPrintingBecauseAFormThatVanishesOnPaperIsAlmostNeverMeant()
     {
         var document = new PdfDocument();
@@ -215,7 +215,7 @@ public class AcroFormAuthoringTests
         widget.Flags.Should().Be(PdfAnnotationFlags.Print);
     }
 
-    [Fact]
+    [Test]
     public void AFieldThatIsNotYetOnAFormCannotBePutOnAPage()
     {
         var document = new PdfDocument();
@@ -230,7 +230,7 @@ public class AcroFormAuthoringTests
         act.Should().Throw<InvalidOperationException>();
     }
 
-    [Fact]
+    [Test]
     public void AStandardFontIsRegisteredInTheDefaultResources()
     {
         var document = new PdfDocument();
@@ -246,7 +246,7 @@ public class AcroFormAuthoringTests
         helvetica.Elements.GetName("/Encoding").Should().Be("/WinAnsiEncoding");
     }
 
-    [Fact]
+    [Test]
     public void ASymbolicFontKeepsItsOwnEncodingRatherThanBeingGivenWinAnsi()
     {
         var document = new PdfDocument();
@@ -262,7 +262,7 @@ public class AcroFormAuthoringTests
         dingbats.Elements.ContainsKey("/Encoding").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void TheDefaultResourcesAreMadeOnceAndSharedRatherThanRebuilt()
     {
         var document = new PdfDocument();
@@ -274,7 +274,7 @@ public class AcroFormAuthoringTests
         first.Reference.Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void AChoiceFieldsOptionsRoundTrip()
     {
         var document = new PdfDocument();
@@ -284,7 +284,7 @@ public class AcroFormAuthoringTests
         field.Elements.GetArray("/Opt").Elements.Count.Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void ACheckBoxTogglesBetweenTheAppearancesItsWidgetWasGiven()
     {
         var document = new PdfDocument();
@@ -313,7 +313,7 @@ public class AcroFormAuthoringTests
         box.Checked.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ATextFieldDrawsItsValueIntoTheWidgetRatherThanIntoNothing()
     {
         var document = new PdfDocument();
@@ -333,7 +333,7 @@ public class AcroFormAuthoringTests
         field.Elements.ContainsKey("/AP").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void StylingATextFieldDrawsItRatherThanWaitingForAValue()
     {
         var document = new PdfDocument();
@@ -354,7 +354,7 @@ public class AcroFormAuthoringTests
         widget.Elements.GetDictionary("/AP").Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void AFieldStyledBeforeItIsPlacedIsStillDrawn()
     {
         var document = new PdfDocument();
@@ -374,7 +374,7 @@ public class AcroFormAuthoringTests
         widget.Elements.GetDictionary("/AP").Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void AnUndecoratedTextFieldKeepsNoAppearanceSoThatMkStillDecoratesIt()
     {
         var document = new PdfDocument();
@@ -395,7 +395,7 @@ public class AcroFormAuthoringTests
         widget.Elements.ContainsKey("/AP").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ARadioGroupsExportValuesRoundTrip()
     {
         var document = new PdfDocument();
@@ -411,7 +411,7 @@ public class AcroFormAuthoringTests
         delivery.SelectedIndex.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AFieldMayNameItsOwnDefaultAppearance()
     {
         var document = new PdfDocument();
@@ -429,7 +429,7 @@ public class AcroFormAuthoringTests
         form.Elements.GetString("/DA").Should().Be("/Helv 0 Tf 0 g");
     }
 
-    [Fact]
+    [Test]
     public void TheAppearanceStateSaysWhichOfSeveralAppearancesIsShowing()
     {
         var document = new PdfDocument();
@@ -453,7 +453,7 @@ public class AcroFormAuthoringTests
         button.AppearanceState.Should().Be("/Standard");
     }
 
-    [Fact]
+    [Test]
     public void AFormBuiltThroughTheTypedApiComesBackThroughTheReaderFullyTyped()
     {
         var document = new PdfDocument();
@@ -495,7 +495,7 @@ public class AcroFormAuthoringTests
         read.Fields["delivery"].Elements.GetArray("/Kids").Elements.Count.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void EveryWidgetIsOnThePageItWasPutOn()
     {
         var document = new PdfDocument();
@@ -514,7 +514,7 @@ public class AcroFormAuthoringTests
         field.Elements.GetArray("/Kids").Elements.Count.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void AFieldNestedUnderAnotherPointsBackAtIt()
     {
         var document = new PdfDocument();
@@ -532,7 +532,7 @@ public class AcroFormAuthoringTests
         full.Elements.GetReference(PdfAcroField.Keys.Parent).Value.Should().BeSameAs(group);
     }
 
-    [Fact]
+    [Test]
     public void ARootFieldPointsBackAtNothing()
     {
         var document = new PdfDocument();
@@ -547,7 +547,7 @@ public class AcroFormAuthoringTests
         field.Elements.ContainsKey(PdfAcroField.Keys.Parent).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void TheParentChainSurvivesTheFile()
     {
         var document = new PdfDocument();
@@ -569,10 +569,10 @@ public class AcroFormAuthoringTests
         parent.Elements.GetString(PdfAcroField.Keys.T).Should().Be("name");
     }
 
-    [Theory]
-    [InlineData("combo")]
-    [InlineData("radio")]
-    [InlineData("push")]
+    [Test]
+    [Arguments("combo")]
+    [Arguments("radio")]
+    [Arguments("push")]
     public void AssigningFlagsDoesNotAssignAwayWhatKindOfFieldItIs(string kind)
     {
         var document = new PdfDocument();
@@ -611,7 +611,7 @@ public class AcroFormAuthoringTests
         }
     }
 
-    [Fact]
+    [Test]
     public void AKindOfFieldCannotBeAssignedOntoAnother()
     {
         var document = new PdfDocument();
@@ -628,7 +628,7 @@ public class AcroFormAuthoringTests
         list.Flags.Should().Be(PdfAcroFieldFlags.MultiSelect);
     }
 
-    [Fact]
+    [Test]
     public void AFieldOfNoRoomToDrawInIsLeftUndrawnRatherThanRefused()
     {
         var document = new PdfDocument();

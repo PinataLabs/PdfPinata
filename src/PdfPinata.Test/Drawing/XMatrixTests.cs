@@ -1,8 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -37,7 +38,7 @@ public class XMatrixTests
         return matrix;
     }
 
-    [Fact]
+    [Test]
     public void AFreshMatrixIsTheIdentityAndLeavesAPointWhereItIs()
     {
         var matrix = new XMatrix();
@@ -48,7 +49,7 @@ public class XMatrixTests
         matrix.GetElements().Should().Equal(1, 0, 0, 1, 0, 0);
     }
 
-    [Fact]
+    [Test]
     public void AMatrixThatHappensToBeTheIdentityIsRecognisedAsOne()
     {
         // The struct carries a type flag as a fast path, and a matrix built from its six numbers
@@ -61,7 +62,7 @@ public class XMatrixTests
         (spelledOut != XMatrix.Identity).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void SetIdentityThrowsAwayWhateverTheMatrixWasDoing()
     {
         var matrix = new XMatrix(2, 0, 0, 3, 4, 5);
@@ -76,7 +77,7 @@ public class XMatrixTests
         matrix.OffsetX.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void TheSixNumbersAreWhereTheyWerePut()
     {
         var matrix = new XMatrix(1, 2, 3, 4, 5, 6);
@@ -90,7 +91,7 @@ public class XMatrixTests
         matrix.GetElements().Should().Equal(1, 2, 3, 4, 5, 6);
     }
 
-    [Fact]
+    [Test]
     public void EachOfTheSixNumbersCanBeSetOnItsOwn()
     {
         var matrix = new XMatrix
@@ -101,7 +102,7 @@ public class XMatrixTests
         matrix.GetElements().Should().Equal(1, 2, 3, 4, 5, 6);
     }
 
-    [Fact]
+    [Test]
     public void TransformingAPointAppliesTheScaleAndThenTheOffset()
     {
         var matrix = new XMatrix(2, 0, 0, 3, 10, 20);
@@ -109,7 +110,7 @@ public class XMatrixTests
         matrix.Transform(new XPoint(1, 1)).Should().Be(new XPoint(12, 23));
     }
 
-    [Fact]
+    [Test]
     public void TransformingAVectorLeavesTheOffsetOutOfIt()
     {
         // A vector is a displacement rather than a place, so translating it must do nothing.
@@ -118,21 +119,21 @@ public class XMatrixTests
         matrix.Transform(new XVector(1, 1)).Should().Be(new XVector(2, 3));
     }
 
-    [Fact]
+    [Test]
     public void AppendingMakesTheNewTransformHappenLast()
     {
         // Move ten to the right, then scale everything by two: the offset is scaled too.
         TranslateThenScale().Transform(new XPoint(1, 1)).Should().Be(new XPoint(22, 2));
     }
 
-    [Fact]
+    [Test]
     public void PrependingMakesTheNewTransformHappenFirst()
     {
         // Scale by two, then move ten to the right: the offset is not scaled.
         ScaleThenTranslate().Transform(new XPoint(1, 1)).Should().Be(new XPoint(12, 2));
     }
 
-    [Fact]
+    [Test]
     public void MultiplyingTwoMatricesAppliesTheLeftOneFirst()
     {
         var translate = new XMatrix(1, 0, 0, 1, 10, 0);
@@ -143,7 +144,7 @@ public class XMatrixTests
         XMatrix.Multiply(translate, scale).Should().Be(translate * scale);
     }
 
-    [Fact]
+    [Test]
     public void AppendAndPrependAreTheSameMultiplicationFromEitherSide()
     {
         var translate = new XMatrix(1, 0, 0, 1, 10, 0);
@@ -158,7 +159,7 @@ public class XMatrixTests
         prepended.Should().Be(scale * translate);
     }
 
-    [Fact]
+    [Test]
     public void TheOrderArgumentSaysTheSameThingAsTheMethodNameDoes()
     {
         var scale = new XMatrix(2, 0, 0, 2, 0, 0);
@@ -172,7 +173,7 @@ public class XMatrixTests
         prepended.Transform(new XPoint(1, 1)).Should().Be(new XPoint(12, 2));
     }
 
-    [Fact]
+    [Test]
     public void TranslatingWithAnExplicitOrderAgreesWithTheNamedMethods()
     {
         var appended = new XMatrix(2, 0, 0, 2, 0, 0);
@@ -184,7 +185,7 @@ public class XMatrixTests
         prepended.Transform(new XPoint(1, 1)).Should().Be(new XPoint(22, 2));
     }
 
-    [Fact]
+    [Test]
     public void TranslatePrependMovesThePointBeforeTheRestOfTheMatrixSeesIt()
     {
         var matrix = new XMatrix(2, 0, 0, 2, 0, 0);
@@ -194,7 +195,7 @@ public class XMatrixTests
         matrix.Transform(new XPoint(1, 1)).Should().Be(new XPoint(22, 2));
     }
 
-    [Fact]
+    [Test]
     public void ScalingByOneNumberScalesBothAxesByIt()
     {
         var appended = new XMatrix();
@@ -210,7 +211,7 @@ public class XMatrixTests
         withOrder.Should().Be(appended);
     }
 
-    [Fact]
+    [Test]
     public void ScalingAboutAPointLeavesThatPointWhereItIs()
     {
         var appended = new XMatrix();
@@ -224,7 +225,7 @@ public class XMatrixTests
         prepended.Should().Be(appended, "on the identity there is nothing for the order to matter to");
     }
 
-    [Fact]
+    [Test]
     public void ScalingWithAnExplicitOrderAgreesWithTheNamedMethods()
     {
         var appended = new XMatrix(1, 0, 0, 1, 10, 0);
@@ -236,7 +237,7 @@ public class XMatrixTests
         prepended.Transform(new XPoint(1, 1)).Should().Be(new XPoint(12, 2));
     }
 
-    [Fact]
+    [Test]
     public void APositiveRotationTurnsAnticlockwise()
     {
         var matrix = new XMatrix();
@@ -248,7 +249,7 @@ public class XMatrixTests
         turned.Y.Should().BeApproximately(1, 1e-12);
     }
 
-    [Fact]
+    [Test]
     public void RotatingBySomethingOverAFullTurnIsTheSameAsRotatingByTheRemainder()
     {
         var once = new XMatrix();
@@ -260,7 +261,7 @@ public class XMatrixTests
         again.M12.Should().BeApproximately(once.M12, 1e-12);
     }
 
-    [Fact]
+    [Test]
     public void RotatingAboutAPointLeavesThatPointWhereItIs()
     {
         var matrix = new XMatrix();
@@ -275,7 +276,7 @@ public class XMatrixTests
         moved.Y.Should().BeApproximately(11, 1e-12);
     }
 
-    [Fact]
+    [Test]
     public void RotatingAboutAPointReadsTheSameWhetherTheCentreIsTwoNumbersOrAPoint()
     {
         var byNumbers = new XMatrix(2, 0, 0, 2, 5, 5);
@@ -296,7 +297,7 @@ public class XMatrixTests
         prependedByPoint.Should().NotBe(byPoint, "the scale is in the way, so the order shows");
     }
 
-    [Fact]
+    [Test]
     public void RotatingWithAnExplicitOrderAgreesWithTheNamedMethods()
     {
         var appended = new XMatrix(2, 0, 0, 2, 5, 5);
@@ -308,7 +309,7 @@ public class XMatrixTests
         appended.Should().Be(named);
     }
 
-    [Fact]
+    [Test]
     public void RotatePrependTurnsThePointBeforeTheRestOfTheMatrixSeesIt()
     {
         var prepended = new XMatrix(1, 0, 0, 1, 10, 0);
@@ -319,7 +320,7 @@ public class XMatrixTests
         moved.Y.Should().BeApproximately(1, 1e-12);
     }
 
-    [Fact]
+    [Test]
     public void RotatingWithTheOrderArgumentTurnsTheMatrixTheSameWay()
     {
         var withOrder = new XMatrix(1, 0, 0, 1, 0, 0);
@@ -334,7 +335,7 @@ public class XMatrixTests
         withOrder.M22.Should().BeApproximately(named.M22, 1e-12);
     }
 
-    [Fact]
+    [Test]
     public void ShearingSlantsOneAxisAlongTheOther()
     {
         var matrix = new XMatrix();
@@ -346,7 +347,7 @@ public class XMatrixTests
         matrix.Transform(new XPoint(0, 1)).Should().Be(new XPoint(1, 1));
     }
 
-    [Fact]
+    [Test]
     public void ShearingWithAnExplicitOrderAgreesWithTheNamedMethods()
     {
         // The scale has to be unequal on the two axes, or shearing before and after it come to
@@ -362,7 +363,7 @@ public class XMatrixTests
         prepended.Should().NotBe(named, "the scale is in the way, so the order shows");
     }
 
-    [Fact]
+    [Test]
     public void SkewingIsShearingMeasuredInDegrees()
     {
         // A 45 degree skew slants by exactly one unit per unit, which is a shear of one.
@@ -376,7 +377,7 @@ public class XMatrixTests
         skewed.Transform(new XPoint(0, 1)).X.Should().BeApproximately(1, 1e-12);
     }
 
-    [Fact]
+    [Test]
     public void SkewPrependAndSkewAppendDifferOnceThereIsSomethingToOrderAgainst()
     {
         var appended = new XMatrix(2, 0, 0, 1, 0, 0);
@@ -388,7 +389,7 @@ public class XMatrixTests
         appended.Should().NotBe(prepended);
     }
 
-    [Fact]
+    [Test]
     public void TransformingAnArrayOfPointsChangesThemAllInPlace()
     {
         var matrix = new XMatrix(2, 0, 0, 2, 1, 1);
@@ -399,7 +400,7 @@ public class XMatrixTests
         points.Should().Equal(new XPoint(1, 1), new XPoint(3, 3));
     }
 
-    [Fact]
+    [Test]
     public void TransformingAnArrayOfVectorsChangesThemAllInPlaceAndIgnoresTheOffset()
     {
         var matrix = new XMatrix(2, 0, 0, 2, 1, 1);
@@ -410,7 +411,7 @@ public class XMatrixTests
         vectors.Should().Equal(new XVector(0, 0), new XVector(2, 2));
     }
 
-    [Fact]
+    [Test]
     public void TransformingNothingIsNotAnError()
     {
         var matrix = new XMatrix(2, 0, 0, 2, 1, 1);
@@ -422,7 +423,7 @@ public class XMatrixTests
         vectors.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void TransformPointsIsTheSameTransformButInsistsOnHavingSomeToTransform()
     {
         var matrix = new XMatrix(2, 0, 0, 2, 1, 1);
@@ -436,7 +437,7 @@ public class XMatrixTests
         act.Should().Throw<ArgumentNullException>();
     }
 
-    [Fact]
+    [Test]
     public void TransformPointsByTheIdentityLeavesThemAlone()
     {
         var points = new[] { new XPoint(1, 2) };
@@ -446,7 +447,7 @@ public class XMatrixTests
         points.Should().Equal(new XPoint(1, 2));
     }
 
-    [Fact]
+    [Test]
     public void TheDeterminantIsTheAreaAMatrixMultipliesBy()
     {
         XMatrix.Identity.Determinant.Should().Be(1);
@@ -456,7 +457,7 @@ public class XMatrixTests
         new XMatrix(1, 2, 3, 4, 0, 0).Determinant.Should().Be(-2);
     }
 
-    [Fact]
+    [Test]
     public void AMatrixThatFlattensThePlaneHasNoInverse()
     {
         var flattening = new XMatrix(1, 1, 1, 1, 0, 0);
@@ -481,16 +482,16 @@ public class XMatrixTests
         new(1, 2, 3, 4, 5, 6)
     ];
 
-    public static TheoryData<int> EachInvertibleMatrix()
+    public static IEnumerable<int> EachInvertibleMatrix()
     {
-        var data = new TheoryData<int>();
+        var data = new List<int>();
         for (var index = 0; index < InvertibleMatrices.Length; index++)
             data.Add(index);
         return data;
     }
 
-    [Theory]
-    [MemberData(nameof(EachInvertibleMatrix))]
+    [Test]
+    [MethodDataSource(nameof(EachInvertibleMatrix))]
     public void InvertingAMatrixUndoesIt(int index)
     {
         var matrix = InvertibleMatrices[index];
@@ -510,7 +511,7 @@ public class XMatrixTests
         back.Y.Should().BeApproximately(point.Y, 1e-9);
     }
 
-    [Fact]
+    [Test]
     public void TwoMatricesAreEqualWhenAllSixNumbersAre()
     {
         var matrix = new XMatrix(1, 2, 3, 4, 5, 6);
@@ -529,7 +530,7 @@ public class XMatrixTests
         XMatrix.Identity.GetHashCode().Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void AMatrixIsWrittenAsSixNumbersAndReadBackTheSameWay()
     {
         var matrix = new XMatrix(1, 2, 3, 4, 5, 6);
@@ -540,14 +541,14 @@ public class XMatrixTests
         XMatrix.Parse(text).Should().Be(matrix);
     }
 
-    [Fact]
+    [Test]
     public void TheIdentityIsWrittenByNameAndReadBackByName()
     {
         XMatrix.Identity.ToString(CultureInfo.InvariantCulture).Should().Be("Identity");
         XMatrix.Parse("Identity").Should().Be(XMatrix.Identity);
     }
 
-    [Fact]
+    [Test]
     public void AFormatStringIsAppliedToAllSixNumbers()
     {
         IFormattable matrix = new XMatrix(1.11, 2.22, 3.33, 4.44, 5.17, 6.28);

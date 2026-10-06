@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using AwesomeAssertions;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -14,7 +14,7 @@ namespace PinataLayout.Rendering.Tests;
 /// </summary>
 public class AppResourcesTests
 {
-    [Fact]
+    [Test]
     public void EveryMessageCanBeRead()
     {
         // One lookup name serves all of them, so one of these failing means none of them work.
@@ -23,7 +23,7 @@ public class AppResourcesTests
         read.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void NoMessageIsEmpty()
     {
         Messages().Should().NotBeEmpty();

@@ -7,7 +7,7 @@ using System.Reflection;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Security;
 
@@ -26,16 +26,16 @@ public class Rc4KnownAnswerTests
 {
     private const int StreamLength = 4096 + 16;
 
-    public static TheoryData<string> Keys()
+    public static IEnumerable<string> Keys()
     {
-        var keys = new TheoryData<string>();
+        var keys = new List<string>();
         foreach (var vector in Vectors())
             keys.Add(vector.Key);
         return keys;
     }
 
-    [Theory]
-    [MemberData(nameof(Keys))]
+    [Test]
+    [MethodDataSource(nameof(Keys))]
     public void TheIndependentCopyProducesTheRfcKeystream(string key)
     {
         var keystream = StandardSecurity.Rc4(FromHex(key), new byte[StreamLength]);
@@ -43,8 +43,8 @@ public class Rc4KnownAnswerTests
         ShouldMatch(keystream, Vectors().Single(v => v.Key == key));
     }
 
-    [Theory]
-    [MemberData(nameof(Keys))]
+    [Test]
+    [MethodDataSource(nameof(Keys))]
     public void TheLibrarysRc4ProducesTheRfcKeystream(string key)
     {
         var rc4 = new LibraryRc4();
@@ -55,11 +55,11 @@ public class Rc4KnownAnswerTests
         ShouldMatch(keystream, Vectors().Single(v => v.Key == key));
     }
 
-    [Theory]
-    [InlineData(1)]
-    [InlineData(7)]
-    [InlineData(16)]
-    [InlineData(1000)]
+    [Test]
+    [Arguments(1)]
+    [Arguments(7)]
+    [Arguments(16)]
+    [Arguments(1000)]
     public void TheKeystreamCarriesOnFromOneCallToTheNext(int chunk)
     {
         var vector = Vectors()[4]; // 128 bits, the longest key the standard security handler uses
@@ -72,7 +72,7 @@ public class Rc4KnownAnswerTests
         ShouldMatch(keystream, vector);
     }
 
-    [Fact]
+    [Test]
     public void SettingTheKeyStartsTheKeystreamAgain()
     {
         var vector = Vectors()[0];
@@ -87,7 +87,7 @@ public class Rc4KnownAnswerTests
         ShouldMatch(keystream, vector);
     }
 
-    [Fact]
+    [Test]
     public void AKeyCanBeTakenFromTheMiddleOfAnArray()
     {
         var vector = Vectors()[0];
@@ -102,7 +102,7 @@ public class Rc4KnownAnswerTests
         ShouldMatch(keystream, vector);
     }
 
-    [Fact]
+    [Test]
     public void TheVectorFileHoldsEveryKeyAndOffsetOfTheRfc()
     {
         var vectors = Vectors();

@@ -8,7 +8,7 @@ using PdfPinata.Charting;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Charting;
 
@@ -142,13 +142,13 @@ public class ChartRenderingTests
 
     // ----- an axis nobody asked for -----
 
-    [Theory]
-    [InlineData(ChartType.Line)]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.ColumnStacked2D)]
-    [InlineData(ChartType.Bar2D)]
-    [InlineData(ChartType.BarStacked2D)]
-    [InlineData(ChartType.Area2D)]
+    [Test]
+    [Arguments(ChartType.Line)]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.ColumnStacked2D)]
+    [Arguments(ChartType.Bar2D)]
+    [Arguments(ChartType.BarStacked2D)]
+    [Arguments(ChartType.Area2D)]
     public void AChartWhoseAxesWereNeverTouchedStillPlotsItsData(ChartType type)
     {
         // Chart.XAxis creates the axis the first time it is read, so a chart nothing configured has
@@ -166,10 +166,10 @@ public class ChartRenderingTests
             "a coordinate that is not a number is not a coordinate");
     }
 
-    [Theory]
-    [InlineData(ChartType.Line)]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Bar2D)]
+    [Test]
+    [Arguments(ChartType.Line)]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Bar2D)]
     public void ReadingTheAxisAddsItsLabellingAndNothingElse(ChartType type)
     {
         // The other half of it. Merely *reading* chart.XAxis used to be the difference between a
@@ -197,7 +197,7 @@ public class ChartRenderingTests
 
     // ----- the legend of a combination chart -----
 
-    [Fact]
+    [Test]
     public void ACombinationChartSpacesItsLegendLikeAnyOther()
     {
         // A legend entry for a line series is given three times the marker of one for a column, and
@@ -225,7 +225,7 @@ public class ChartRenderingTests
             XOf(lines, "West") - XOf(lines, "South"), 0.5);
     }
 
-    [Fact]
+    [Test]
     public void ALegendEntryDoesNotStartBeforeTheOneBeforeItHasFinished()
     {
         // The same defect stated without a second chart to compare against: whatever the markers
@@ -274,25 +274,25 @@ public class ChartRenderingTests
         return chart;
     }
 
-    [Theory]
+    [Test]
     // A format carrying '%' is a .NET percent format: it scales and signs the value itself.
-    [InlineData("0%", "19%")]
-    [InlineData("0.0%", "18.8%")]
+    [Arguments("0%", "19%")]
+    [Arguments("0.0%", "18.8%")]
     // Anything else is a plain numeric format over a number out of a hundred, and the renderer
     // appends the sign. This is what the property always meant, and still does.
-    [InlineData("0", "19%")]
-    [InlineData("0.0", "18.8%")]
+    [Arguments("0", "19%")]
+    [Arguments("0.0", "18.8%")]
     // Leaving Format alone is not the same as leaving it empty: DataLabelRenderer substitutes "0"
     // for an unset format, so a share defaults to whole percents rather than to everything it has.
-    [InlineData(null, "19%")]
+    [Arguments(null, "19%")]
     public void APieLabelsItsSharesTheWayTheFormatAsks(string format, string expected)
     {
         // The renderer formats with the ambient culture, as every ToString(format) in the charting
         // package does, so the expectations above are only true under one. Pinned rather than
         // localised because a percent format varies in more than the decimal separator - the
         // symbol moves, and some cultures put a space in front of it - and an expectation rebuilt
-        // from the same rules the renderer uses would assert nothing. CurrentCulture is per thread
-        // and xUnit gives a test method a thread to itself, so this does not reach a test running
+        // from the same rules the renderer uses would assert nothing. CurrentCulture follows the async
+        // flow and every test runs in a flow of its own, so this does not reach a test running
         // beside it.
         var previous = CultureInfo.CurrentCulture;
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
@@ -308,7 +308,7 @@ public class ChartRenderingTests
         }
     }
 
-    [Fact]
+    [Test]
     public void APieNeverSignsItsSharesTwice()
     {
         // The whole of the defect in one assertion. "0%" produced "1875%%": the share was scaled by
@@ -321,7 +321,7 @@ public class ChartRenderingTests
         Shows(page, "2500%%").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void APieShareIsStillAShareOfTheWhole()
     {
         // The guard on the arithmetic that was rewritten to fix the format handling: the shares

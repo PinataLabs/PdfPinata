@@ -7,7 +7,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -27,7 +27,7 @@ namespace PinataLayout.Rendering.Tests;
 /// </remarks>
 public class PdfUaConformanceTests
 {
-    [Fact]
+    [Test]
     public void AClaimingDocumentSaysSoInItsMetadata()
     {
         var saved = Save(Claiming());
@@ -43,7 +43,7 @@ public class PdfUaConformanceTests
         metadata.Should().NotContain("pdfuaid:conformance");
     }
 
-    [Fact]
+    [Test]
     public void AClaimingDocumentAsksThatItsTitleBeShownRatherThanItsFileName()
     {
         var saved = Save(Claiming());
@@ -53,7 +53,7 @@ public class PdfUaConformanceTests
         saved.ViewerPreferences.DisplayDocTitle.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ADocumentWithNoTitleIsRefused()
     {
         var renderer = Claiming();
@@ -63,7 +63,7 @@ public class PdfUaConformanceTests
             .WithMessage("*title*", "the caller is the only one who knows what it is");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentWithNoLanguageIsRefused()
     {
         var renderer = Claiming(language: null);
@@ -72,7 +72,7 @@ public class PdfUaConformanceTests
             .WithMessage("*language*", "a reader that does not know it cannot choose a voice");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentThatWasNotTaggedIsRefused()
     {
         var renderer = Claiming(tagged: false);
@@ -81,7 +81,7 @@ public class PdfUaConformanceTests
             .WithMessage("*tagged*", "a claim over an untagged file is the claim worth refusing");
     }
 
-    [Fact]
+    [Test]
     public void AnUndescribedFigureIsRefused()
     {
         var renderer = Claiming();
@@ -97,7 +97,7 @@ public class PdfUaConformanceTests
             .WithMessage("*alternate text*");
     }
 
-    [Fact]
+    [Test]
     public void TwoElementsUnderOneIdentifierAreRefused()
     {
         // An identifier is what something else points at, so it has to name one element - and the
@@ -126,7 +126,7 @@ public class PdfUaConformanceTests
             .WithMessage("*share the identifier*note1*");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentThatMeetsTheRulesIsWritten()
     {
         var saved = Save(Claiming());
@@ -137,7 +137,7 @@ public class PdfUaConformanceTests
         saved.Pages[0].Elements.GetName("/Tabs").Should().Be("/S");
     }
 
-    [Fact]
+    [Test]
     public void ClaimingPdfUa2WritesPartTwoRatherThanPartOne()
     {
         var renderer = Tagged();
@@ -149,10 +149,10 @@ public class PdfUaConformanceTests
         metadata.Should().NotContain("<pdfuaid:part>1</pdfuaid:part>");
     }
 
-    [Theory]
-    [InlineData(PdfAConformance.PdfA1A, "1")]
-    [InlineData(PdfAConformance.PdfA2A, "2")]
-    [InlineData(PdfAConformance.PdfA3A, "3")]
+    [Test]
+    [Arguments(PdfAConformance.PdfA1A, "1")]
+    [Arguments(PdfAConformance.PdfA2A, "2")]
+    [Arguments(PdfAConformance.PdfA3A, "3")]
     public void EachArchivalALevelCanBeClaimedSavedAndReopened(PdfAConformance conformance, string part)
     {
         var renderer = Tagged();
@@ -173,7 +173,7 @@ public class PdfUaConformanceTests
         metadata.Should().NotContain("pdfuaid");
     }
 
-    [Fact]
+    [Test]
     public void AnALevelClaimOnAnUntaggedDocumentIsRefusedAtTheClaim()
     {
         var renderer = Tagged(tagged: false);
@@ -188,7 +188,7 @@ public class PdfUaConformanceTests
 
     // ── PDF/UA-2's own rules, found by veraPDF against the conformance corpus ─────────────────────
 
-    [Fact]
+    [Test]
     public void ClaimingPdfUa2WritesTheRevisionYear()
     {
         // ISO 14289-2 clause 5: pdfuaid:rev has to be "2024", and PDF/UA-1 carries no such property
@@ -201,7 +201,7 @@ public class PdfUaConformanceTests
         metadata.Should().Contain("<pdfuaid:rev>2024</pdfuaid:rev>");
     }
 
-    [Fact]
+    [Test]
     public void ClaimingPdfUa1WritesNoRevisionYear()
     {
         var metadata = MetadataOf(Save(Claiming()));
@@ -209,7 +209,7 @@ public class PdfUaConformanceTests
         metadata.Should().NotContain("pdfuaid:rev");
     }
 
-    [Fact]
+    [Test]
     public void ClaimingPdfUa2PutsTheDocumentRootInThePdf20Namespace()
     {
         // ISO 14289-2 clause 8.2.5.2: the structure tree root's single child has to be a /Document
@@ -230,7 +230,7 @@ public class PdfUaConformanceTests
         ns.Elements.GetString("/NS").Should().Be("http://iso.org/pdf2/ssn");
     }
 
-    [Fact]
+    [Test]
     public void TheNamespaceTheDocumentRootNamesIsListedInTheStructureTreeRoot()
     {
         // ISO 32000-2 14.7.4.1: an element's /NS points into the root's /Namespaces rather than
@@ -252,7 +252,7 @@ public class PdfUaConformanceTests
         document.Elements["/NS"].Should().BeSameAs(listed);
     }
 
-    [Fact]
+    [Test]
     public void ClaimingPdfUa1WritesNoNamespaceList()
     {
         // /Namespaces is PDF 2.0's, and a PDF/UA-1 document names no namespace to list.
@@ -263,7 +263,7 @@ public class PdfUaConformanceTests
         root.Elements.ContainsKey("/Namespaces").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ClaimingPdfUa1LeavesTheDocumentRootWithNoExplicitNamespace()
     {
         // The rule above is PDF/UA-2's alone — nothing about PDF/UA-1 or a plain tagged document
@@ -277,7 +277,7 @@ public class PdfUaConformanceTests
         document.Elements.ContainsKey("/NS").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ClaimingPdfUa2RetagsAFootnoteAsFENote()
     {
         // ISO 14289-2 clause 8.2.5.14: /Note is PDF 1.7's type, removed from PDF 2.0 in favour of
@@ -290,7 +290,7 @@ public class PdfUaConformanceTests
         StructureTypesOf(saved).Should().Contain("/FENote").And.NotContain("/Note");
     }
 
-    [Fact]
+    [Test]
     public void ClaimingPdfUa1LeavesTheFootnoteTaggedAsNote()
     {
         var renderer = TaggedWithAFootnoteAndAList();
@@ -301,7 +301,7 @@ public class PdfUaConformanceTests
         StructureTypesOf(saved).Should().Contain("/Note").And.NotContain("/FENote");
     }
 
-    [Fact]
+    [Test]
     public void ABulletedListCarriesADiscListNumbering()
     {
         // ISO 14289-2 clause 8.2.5.25 requires this of any list carrying a /Lbl, at any value but

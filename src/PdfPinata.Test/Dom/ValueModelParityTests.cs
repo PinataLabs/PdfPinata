@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Internals;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -28,15 +28,15 @@ public class ValueModelParityTests
 
     private static List<ValueDescriptor> Descriptors(Meta meta) => [..meta.ValueDescriptors];
 
-    public static TheoryData<Type> DomTypes()
+    public static IEnumerable<Type> DomTypes()
     {
-        var data = new TheoryData<Type>();
+        var data = new List<Type>();
         foreach (var type in ReflectionMeta.AllDocumentObjectTypes())
             data.Add(type);
         return data;
     }
 
-    [Fact]
+    [Test]
     public void TheSweepCoversTheWholeDom()
     {
         // A guard on the harness itself. If this ever collapses to a handful of types, every other
@@ -44,8 +44,8 @@ public class ValueModelParityTests
         ReflectionMeta.AllDocumentObjectTypes().Should().HaveCountGreaterThan(60);
     }
 
-    [Theory]
-    [MemberData(nameof(DomTypes))]
+    [Test]
+    [MethodDataSource(nameof(DomTypes))]
     public void TheModelContainsExactlyTheExpectedMembers(Type type)
     {
         var expected = ReflectionMeta.Build(type).Select(m => m.Name).OrderBy(n => n, StringComparer.Ordinal);
@@ -54,8 +54,8 @@ public class ValueModelParityTests
         actual.Should().Equal(expected, $"{type.Name}'s value model must not gain or lose members");
     }
 
-    [Theory]
-    [MemberData(nameof(DomTypes))]
+    [Test]
+    [MethodDataSource(nameof(DomTypes))]
     public void EveryMemberKeepsItsTypesAndFlags(Type type)
     {
         var meta = MetaFor(type);
@@ -72,8 +72,8 @@ public class ValueModelParityTests
         }
     }
 
-    [Theory]
-    [MemberData(nameof(DomTypes))]
+    [Test]
+    [MethodDataSource(nameof(DomTypes))]
     public void NoMemberFallsThroughToAnUnsupportedShape(Type type)
     {
         // Meta answers an unhandled member type with Debug.Assert(false) and a null descriptor,
@@ -84,8 +84,8 @@ public class ValueModelParityTests
             .Should().BeEmpty($"{type.Name} has a [DV] member no descriptor kind handles");
     }
 
-    [Theory]
-    [MemberData(nameof(DomTypes))]
+    [Test]
+    [MethodDataSource(nameof(DomTypes))]
     public void NameLookupIsCaseInsensitive(Type type)
     {
         var meta = MetaFor(type);
@@ -97,8 +97,8 @@ public class ValueModelParityTests
         }
     }
 
-    [Theory]
-    [MemberData(nameof(DomTypes))]
+    [Test]
+    [MethodDataSource(nameof(DomTypes))]
     public void NoTwoMembersCollideUnderCaseInsensitiveLookup(Type type)
     {
         // The name table is case-insensitive and built with Hashtable.Add, which throws on a
@@ -115,7 +115,7 @@ public class ValueModelParityTests
     ///   generator has to walk the base chain to match - so it is asserted directly rather than
     ///   left implicit in the sweep above.
     /// </summary>
-    [Fact]
+    [Test]
     public void InheritedMembersAreIncluded()
     {
         // parent is declared protected internal on DocumentObject and carries [DV(RefOnly = true)].
@@ -136,7 +136,7 @@ public class ValueModelParityTests
     ///   RefOnly is what stops IsNull() and SetNull() walking up the parent chain forever. Exactly
     ///   one member in the whole DOM has it.
     /// </summary>
-    [Fact]
+    [Test]
     public void ParentIsTheOnlyRefOnlyMember()
     {
         foreach (var type in ReflectionMeta.AllDocumentObjectTypes())
@@ -150,7 +150,7 @@ public class ValueModelParityTests
     ///   A worked example, so a change to the model shows up as an obviously wrong list rather than
     ///   as a count.
     /// </summary>
-    [Fact]
+    [Test]
     public void BorderHasExactlyTheMembersItsDeclarationsSay()
     {
         Descriptors(MetaFor(typeof(Border)))

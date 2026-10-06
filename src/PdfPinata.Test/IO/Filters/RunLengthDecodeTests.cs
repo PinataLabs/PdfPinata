@@ -8,7 +8,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Filters;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO.Filters;
 
@@ -22,14 +22,14 @@ public class RunLengthDecodeTests
 {
     private static byte[] Decode(params byte[] data) => Filtering.RunLengthDecode.Decode(data, (FilterParms)null);
 
-    [Fact]
+    [Test]
     public void ALengthBelow128CopiesThatManyPlusOneBytes()
     {
         Decode(2, (byte)'a', (byte)'b', (byte)'c', 128).Should().Equal("abc"u8.ToArray());
         Decode(0, (byte)'x', 128).Should().Equal("x"u8.ToArray());
     }
 
-    [Fact]
+    [Test]
     public void ALengthAbove128RepeatsTheNextByte257MinusThatManyTimes()
     {
         Decode(254, (byte)'z', 128).Should().Equal("zzz"u8.ToArray());
@@ -37,7 +37,7 @@ public class RunLengthDecodeTests
         Decode(129, 7, 128).Should().Equal(Enumerable.Repeat((byte)7, 128));
     }
 
-    [Fact]
+    [Test]
     public void TheLongestLiteralRunCarries128Bytes()
     {
         var literal = Enumerable.Range(0, 128).Select(value => (byte)value).ToArray();
@@ -45,14 +45,14 @@ public class RunLengthDecodeTests
         Decode([..new byte[] { 127 }.Concat(literal).Append((byte)128)]).Should().Equal(literal);
     }
 
-    [Fact]
+    [Test]
     public void RunsOfBothKindsFollowOneAnother()
     {
         Decode(1, (byte)'a', (byte)'b', 253, (byte)'-', 0, (byte)'c', 128)
             .Should().Equal("ab----c"u8.ToArray());
     }
 
-    [Fact]
+    [Test]
     public void NothingAfterTheEndOfDataMarkerIsRead()
     {
         Decode(0, (byte)'a', 128, 0, (byte)'b').Should().Equal("a"u8.ToArray());
@@ -60,26 +60,26 @@ public class RunLengthDecodeTests
         Decode().Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void DataThatEndsWithoutTheMarkerGivesBackWhatItHeld()
     {
         Decode(1, (byte)'a', (byte)'b').Should().Equal("ab"u8.ToArray());
         Decode(254, (byte)'z').Should().Equal("zzz"u8.ToArray());
     }
 
-    [Fact]
+    [Test]
     public void ALiteralRunCutShortKeepsTheBytesThatAreThere()
     {
         Decode(0, (byte)'a', 9, (byte)'b', (byte)'c').Should().Equal("abc"u8.ToArray());
     }
 
-    [Fact]
+    [Test]
     public void ARepeatMissingItsByteAddsNothing()
     {
         Decode(0, (byte)'a', 200).Should().Equal("a"u8.ToArray());
     }
 
-    public static TheoryData<byte[]> Samples => [
+    public static IEnumerable<byte[]> Samples => [
         Array.Empty<byte>(),
         new byte[] { 42 },
         new byte[] { 1, 1 },
@@ -90,8 +90,8 @@ public class RunLengthDecodeTests
         Enumerable.Range(0, 1000).Select(value => (byte)(value / 3)).ToArray()
     ];
 
-    [Theory]
-    [MemberData(nameof(Samples))]
+    [Test]
+    [MethodDataSource(nameof(Samples))]
     public void WhatIsEncodedDecodesBackToItself(byte[] data)
     {
         var encoded = Filtering.RunLengthDecode.Encode(data);
@@ -100,7 +100,7 @@ public class RunLengthDecodeTests
         Filtering.RunLengthDecode.Decode(encoded, (FilterParms)null).Should().Equal(data);
     }
 
-    [Fact]
+    [Test]
     public void ALongRunOfOneByteIsEncodedAsRepeats()
     {
         // Seven repeats of 128 and one of 104, two bytes each, and the marker.
@@ -108,10 +108,10 @@ public class RunLengthDecodeTests
             .Length.Should().Be(17);
     }
 
-    [Theory]
-    [InlineData("RunLengthDecode")]
-    [InlineData("RL")]
-    [InlineData("/RunLengthDecode")]
+    [Test]
+    [Arguments("RunLengthDecode")]
+    [Arguments("RL")]
+    [Arguments("/RunLengthDecode")]
     public void TheFilterIsFoundByItsNameAndItsAbbreviation(string name)
     {
         Filtering.GetFilter(name).Should().BeOfType<RunLengthDecode>()
@@ -132,7 +132,7 @@ public class RunLengthDecodeTests
         .Concat(new byte[] { 255, (byte)'0', 4 }).Concat(Latin1(" l S\n"))
         .Append((byte)128)];
 
-    [Fact]
+    [Test]
     public void AStreamFilteredWithItDecodesThroughTheStreamItself()
     {
         var document = new PdfDocument();
@@ -147,7 +147,7 @@ public class RunLengthDecodeTests
         Encoding.ASCII.GetString(dictionary.Stream.Value).Should().Be(Content);
     }
 
-    [Fact]
+    [Test]
     public void AContentStreamIsDecodedWhenItIsWrappedAndItsLengthFollows()
     {
         // PdfContent decodes through the stream's own TryUnfilter, which leaves /Length to the
@@ -164,7 +164,7 @@ public class RunLengthDecodeTests
         content.Elements.GetInteger("/Length").Should().Be(Content.Length);
     }
 
-    [Fact]
+    [Test]
     public void APageWhoseContentIsRunLengthEncodedIsReadFromAFile()
     {
         using var stream = new MemoryStream(File(EncodedContent(), "/Filter /RunLengthDecode"));

@@ -2,7 +2,7 @@ using System.Linq;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -36,14 +36,14 @@ public class FormattedTextFontRoundTripTests
             .Elements.Cast<DocumentObject>().OfType<FormattedText>().Single();
     }
 
-    [Fact]
+    [Test]
     public void StrikethroughSurvivesOnItsOwn()
     {
         RoundTrip(f => f.Strikethrough = Strikethrough.Single)
             .Font.Strikethrough.Should().Be(Strikethrough.Single);
     }
 
-    [Fact]
+    [Test]
     public void StrikethroughSurvivesAlongsideAPropertyThatHasAShortcut()
     {
         var result = RoundTrip(
@@ -55,7 +55,7 @@ public class FormattedTextFontRoundTripTests
         result.Font.Bold.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void EveryFontPropertyTheWriterEmitsCanBeReadBack()
     {
         var result = RoundTrip(
@@ -82,9 +82,9 @@ public class FormattedTextFontRoundTripTests
     ///   The shortcuts are what keep ordinary DDL readable, so they have to still be taken when a
     ///   single property really is the only one set.
     /// </summary>
-    [Theory]
-    [InlineData("bold")]
-    [InlineData("italic")]
+    [Test]
+    [Arguments("bold")]
+    [Arguments("italic")]
     public void ASinglePropertyStillUsesItsShortcut(string keyword)
     {
         var document = new Document();
@@ -99,7 +99,7 @@ public class FormattedTextFontRoundTripTests
         ddl.Should().Contain((char)92 + keyword + "{", "a lone property keeps its keyword form");
     }
 
-    [Fact]
+    [Test]
     public void AStyledFormattedTextStillRoundTrips()
     {
         var document = new Document();

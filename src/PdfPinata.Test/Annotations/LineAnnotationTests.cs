@@ -8,7 +8,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Annotations;
@@ -23,7 +23,7 @@ namespace PdfPinata.Test.Annotations;
 ///   the outside: that <c>/Rect</c> is derived from <c>/L</c> rather than set, and that it is made
 ///   wide enough for whatever sits at the ends.
 /// </remarks>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public sealed class LineAnnotationTests : IDisposable
 {
     private const string OutDir = "Out/LineAnnotations";
@@ -35,7 +35,7 @@ public sealed class LineAnnotationTests : IDisposable
     private static readonly XPoint From = new(100, 400);
     private static readonly XPoint To = new(300, 400);
 
-    [Fact]
+    [Test]
     public void ALineNamesItsSubtypeAndCarriesADefaultWidth()
     {
         var line = OnAPage();
@@ -45,7 +45,7 @@ public sealed class LineAnnotationTests : IDisposable
         line.Elements.GetDictionary("/BS").Elements.GetReal("/W").Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void TheEndpointsAreWrittenToLInTheOrderTheyWereGiven()
     {
         var line = OnAPage();
@@ -61,7 +61,7 @@ public sealed class LineAnnotationTests : IDisposable
         line.End.Should().Be(To);
     }
 
-    [Fact]
+    [Test]
     public void TheRectangleIsWorkedOutFromTheLineRatherThanSet()
     {
         var line = OnAPage();
@@ -77,7 +77,7 @@ public sealed class LineAnnotationTests : IDisposable
         rect.Y2.Should().Be(404);
     }
 
-    [Fact]
+    [Test]
     public void ARectangleAssignedByHandIsOverwrittenByTheNextChange()
     {
         var line = OnAPage();
@@ -90,7 +90,7 @@ public sealed class LineAnnotationTests : IDisposable
         line.Elements.GetRectangle("/Rect").X1.Should().Be(99);
     }
 
-    [Fact]
+    [Test]
     public void AnEndingMakesRoomForItselfInTheRectangle()
     {
         var line = OnAPage();
@@ -104,7 +104,7 @@ public sealed class LineAnnotationTests : IDisposable
         line.Elements.GetRectangle("/Rect").Y2.Should().BeGreaterThan(withoutHead);
     }
 
-    [Fact]
+    [Test]
     public void BothEndingsAreWrittenAsTwoNames()
     {
         var line = OnAPage();
@@ -121,7 +121,7 @@ public sealed class LineAnnotationTests : IDisposable
         line.EndEnding.Should().Be(PdfLineEnding.OpenArrow);
     }
 
-    [Fact]
+    [Test]
     public void AnEndingNamingSomethingUnknownReadsBackAsNone()
     {
         var line = OnAPage();
@@ -133,7 +133,7 @@ public sealed class LineAnnotationTests : IDisposable
         line.StartEnding.Should().Be(PdfLineEnding.None);
     }
 
-    [Fact]
+    [Test]
     public void AnUnfilledEndingSaysSoWithAnEmptyArray()
     {
         var line = OnAPage();
@@ -145,7 +145,7 @@ public sealed class LineAnnotationTests : IDisposable
         line.Elements.GetArray("/IC").Elements.Count.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void AFilledEndingWritesItsInteriorColour()
     {
         var line = OnAPage();
@@ -160,7 +160,7 @@ public sealed class LineAnnotationTests : IDisposable
         line.Interior.R.Should().Be(65);
     }
 
-    [Fact]
+    [Test]
     public void AnInteriorColourSurvivesTheFile()
     {
         var line = OnAPage();
@@ -182,7 +182,7 @@ public sealed class LineAnnotationTests : IDisposable
         read.Interior.B.Should().Be(127);
     }
 
-    [Fact]
+    [Test]
     public void ALineTooThinToMakeAFormOfIsLeftUndrawnRatherThanRefused()
     {
         var document = new PdfDocument();
@@ -209,7 +209,7 @@ public sealed class LineAnnotationTests : IDisposable
         line.Elements.ContainsKey("/AP").Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void MovingTheLineStampsTheModificationDate()
     {
         var line = OnAPage();
@@ -223,7 +223,7 @@ public sealed class LineAnnotationTests : IDisposable
         line.Elements.GetDateTime("/M", DateTime.MinValue).Should().BeAfter(before);
     }
 
-    [Fact]
+    [Test]
     public void ANegativeWidthIsRefused()
     {
         var line = OnAPage();
@@ -233,7 +233,7 @@ public sealed class LineAnnotationTests : IDisposable
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Fact]
+    [Test]
     public void TheAppearanceIsBuiltWhenTheAnnotationReachesAPage()
     {
         var document = new PdfDocument();
@@ -251,7 +251,7 @@ public sealed class LineAnnotationTests : IDisposable
         line.Elements.GetDictionary("/AP").Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void ChangingWhatItIsDrawnFromRebuildsTheAppearance()
     {
         var line = OnAPage();
@@ -263,7 +263,7 @@ public sealed class LineAnnotationTests : IDisposable
         NormalStream(line).Should().NotEqual(before);
     }
 
-    [Fact]
+    [Test]
     public void ALineOfNoWidthDrawsNothingAndKeepsNoAppearance()
     {
         var line = OnAPage();
@@ -277,7 +277,7 @@ public sealed class LineAnnotationTests : IDisposable
         line.Elements.ContainsKey("/Rect").Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ALineGoingNowhereDrawsNothing()
     {
         var line = OnAPage();
@@ -287,7 +287,7 @@ public sealed class LineAnnotationTests : IDisposable
         line.Elements.ContainsKey("/AP").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ALineSurvivesBeingWrittenAndReadBack()
     {
         var document = new PdfDocument();
@@ -306,7 +306,7 @@ public sealed class LineAnnotationTests : IDisposable
         read.Elements.GetDictionary("/AP").Should().NotBeNull();
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void ALineIsPainted()
     {
         var page = Rasterize("plain", line =>
@@ -318,7 +318,7 @@ public sealed class LineAnnotationTests : IDisposable
         Count(page, IsRed).Should().BeGreaterThan(200);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AnArrowheadPutsMoreInkOnThePageThanThePlainLineDoes()
     {
         var plain = Count(Rasterize("bare", line =>
@@ -340,7 +340,7 @@ public sealed class LineAnnotationTests : IDisposable
         arrowed.Should().BeGreaterThan(plain);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void ALineOfNoWidthRasterizesToNothing()
     {
         var page = Rasterize("empty", line => line.BorderWidth = 0);

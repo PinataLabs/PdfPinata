@@ -1,7 +1,7 @@
 using System;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -22,7 +22,7 @@ public class XUnitConversionTests
     private const double MillimetresPerInch = 25.4;
     private const double PresentationUnitsPerInch = 96;
 
-    [Fact]
+    [Test]
     public void AnInchReadsTheSameLengthInEveryMeasure()
     {
         var inch = XUnit.FromInch(1);
@@ -34,12 +34,12 @@ public class XUnitConversionTests
         inch.Presentation.Should().BeApproximately(PresentationUnitsPerInch, 1e-9);
     }
 
-    [Theory]
-    [InlineData(XGraphicsUnit.Point, PointsPerInch)]
-    [InlineData(XGraphicsUnit.Inch, 1)]
-    [InlineData(XGraphicsUnit.Centimeter, CentimetresPerInch)]
-    [InlineData(XGraphicsUnit.Millimeter, MillimetresPerInch)]
-    [InlineData(XGraphicsUnit.Presentation, PresentationUnitsPerInch)]
+    [Test]
+    [Arguments(XGraphicsUnit.Point, PointsPerInch)]
+    [Arguments(XGraphicsUnit.Inch, 1)]
+    [Arguments(XGraphicsUnit.Centimeter, CentimetresPerInch)]
+    [Arguments(XGraphicsUnit.Millimeter, MillimetresPerInch)]
+    [Arguments(XGraphicsUnit.Presentation, PresentationUnitsPerInch)]
     public void EveryMeasureReadsBackAsTheSameInch(XGraphicsUnit type, double value)
     {
         var unit = new XUnit(value, type);
@@ -50,7 +50,7 @@ public class XUnitConversionTests
 
     // ----- the setters ------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void SettingAMeasureSetsTheValueAndTheMeasureTogether()
     {
         var byPoint = XUnit.FromInch(5);
@@ -81,12 +81,12 @@ public class XUnitConversionTests
 
     // ----- converting the value itself ---------------------------------------------------------------
 
-    [Theory]
-    [InlineData(XGraphicsUnit.Point, PointsPerInch)]
-    [InlineData(XGraphicsUnit.Inch, 1)]
-    [InlineData(XGraphicsUnit.Centimeter, CentimetresPerInch)]
-    [InlineData(XGraphicsUnit.Millimeter, MillimetresPerInch)]
-    [InlineData(XGraphicsUnit.Presentation, PresentationUnitsPerInch)]
+    [Test]
+    [Arguments(XGraphicsUnit.Point, PointsPerInch)]
+    [Arguments(XGraphicsUnit.Inch, 1)]
+    [Arguments(XGraphicsUnit.Centimeter, CentimetresPerInch)]
+    [Arguments(XGraphicsUnit.Millimeter, MillimetresPerInch)]
+    [Arguments(XGraphicsUnit.Presentation, PresentationUnitsPerInch)]
     public void ConvertingAnInchKeepsTheLengthAndChangesTheMeasure(XGraphicsUnit type, double expected)
     {
         var unit = XUnit.FromInch(1);
@@ -98,7 +98,7 @@ public class XUnitConversionTests
         unit.Inch.Should().BeApproximately(1, 1e-9);
     }
 
-    [Fact]
+    [Test]
     public void ConvertingToTheMeasureItAlreadyHasChangesNothing()
     {
         var unit = XUnit.FromCentimeter(3);
@@ -108,7 +108,7 @@ public class XUnitConversionTests
         unit.Value.Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void ConvertingToAMeasureThatDoesNotExistIsRefused()
     {
         var unit = XUnit.FromPoint(1);
@@ -124,7 +124,7 @@ public class XUnitConversionTests
     ///   A unit cannot be built in a measure that does not exist, which is what keeps the five
     ///   switches inside it from ever reaching their default arm.
     /// </summary>
-    [Fact]
+    [Test]
     public void AUnitCannotBeBuiltInAMeasureThatDoesNotExist()
     {
         var building = () => new XUnit(1, (XGraphicsUnit)99);
@@ -134,7 +134,7 @@ public class XUnitConversionTests
 
     // ----- what a unit is worth as a number ------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AUnitComparesByItsValueAndItsMeasureTogether()
     {
         var oneInch = XUnit.FromInch(1);
@@ -150,7 +150,7 @@ public class XUnitConversionTests
         oneInch.Equals("an inch").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AUnitUsedAsANumberIsItsLengthInPoints()
     {
         double asNumber = XUnit.FromInch(1);
@@ -158,7 +158,7 @@ public class XUnitConversionTests
         asNumber.Should().BeApproximately(PointsPerInch, 1e-9);
     }
 
-    [Fact]
+    [Test]
     public void ANumberUsedAsAUnitIsThatManyPoints()
     {
         XUnit fromInteger = 72;

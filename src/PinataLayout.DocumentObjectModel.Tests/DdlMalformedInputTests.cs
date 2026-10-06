@@ -5,7 +5,7 @@ using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -24,7 +24,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 ///   <para>
 ///   Every read runs under a timeout. Some malformed documents are never finished with at all -
 ///   <c>DdlReadingTests</c> pins the ones known - and a test that meets a new one must fail
-///   rather than take the test host with it. xUnit honours <c>Timeout</c> only on an async test,
+///   rather than take the test host with it. <c>Timeout</c> is honoured only on an async test,
 ///   hence the <c>Task.Run</c>.
 ///   </para>
 /// </summary>
@@ -61,7 +61,7 @@ public class DdlMalformedInputTests
 
     // ----- styles -------------------------------------------------------------------------------------
 
-    [Fact(Timeout = Patience)]
+    [Test, Timeout(Patience)]
     public async Task AColonWithNoBaseStyleAfterItIsAnErrorAndTheNextStyleIsStillRead()
     {
         // The definition block after the colon is what is skipped, so the style after it is
@@ -75,7 +75,7 @@ public class DdlMalformedInputTests
         document.Sections.Count.Should().Be(1, "the rest of the document is read");
     }
 
-    [Fact(Timeout = Patience)]
+    [Test, Timeout(Patience)]
     public async Task ABaseStyleNameThatIsNotANameIsAnError()
     {
         var (document, errors) = await ReadDespite(
@@ -87,9 +87,9 @@ public class DdlMalformedInputTests
 
     // ----- headers, text frames and barcodes: a block that does not open --------------------------
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\\header x \\paragraph{t}")]
-    [InlineData("\\textframe x \\paragraph{t}")]
+    [Test, Timeout(Patience)]
+    [Arguments("\\header x \\paragraph{t}")]
+    [Arguments("\\textframe x \\paragraph{t}")]
     public async Task ABlockWithNoBraceIsReportedAndTheNextSectionIsStillRead(string sectionBody)
     {
         var (document, errors) = await ReadDespite(
@@ -100,7 +100,7 @@ public class DdlMalformedInputTests
         TextOf(document.Sections[1].Elements[0] as Paragraph).Should().Be("second");
     }
 
-    [Fact(Timeout = Patience)]
+    [Test, Timeout(Patience)]
     public async Task ABarcodeWithNoOpeningParenthesisIsReported()
     {
         var (document, errors) = await ReadDespite("\\document{\\section{\\barcode \"12345\"}}");
@@ -110,7 +110,7 @@ public class DdlMalformedInputTests
             "the barcode is not created until its code has been read");
     }
 
-    [Fact(Timeout = Patience)]
+    [Test, Timeout(Patience)]
     public async Task ABarcodeWithNoClosingParenthesisIsReportedAndKeepsItsCode()
     {
         var (document, errors) = await ReadDespite("\\document{\\section{\\barcode(\"12345\" x)}}");
@@ -119,7 +119,7 @@ public class DdlMalformedInputTests
         document.LastSection.Elements.OfType<Barcode>().Single().Code.Should().Be("12345");
     }
 
-    [Fact(Timeout = Patience)]
+    [Test, Timeout(Patience)]
     public async Task ABarcodeOfNoKnownTypeIsReportedAndTheNextSectionIsStillRead()
     {
         // Worded as an enum attribute of the wrong value is, "'value' 'attribute'.", because
@@ -133,7 +133,7 @@ public class DdlMalformedInputTests
         TextOf(document.Sections[1].Elements[0] as Paragraph).Should().Be("second");
     }
 
-    [Fact(Timeout = Patience)]
+    [Test, Timeout(Patience)]
     public async Task ABarcodeWhoseCodeIsNotAStringNamesWhatWasThere()
     {
         var (document, errors) = await ReadDespite(
@@ -146,43 +146,43 @@ public class DdlMalformedInputTests
 
     // ----- paragraph content -------------------------------------------------------------------------
 
-    [Theory(Timeout = Patience)]
-    [InlineData("a\\nosuch b", "Unexpected symbol '\\nosuch'.")]
-    [InlineData("a{b}", "Unexpected symbol '{'.")]
-    [InlineData("\\bold{x}{y}", "Unexpected symbol '{'.")]
-    [InlineData("a\\space{b}", "Unexpected symbol '{'.")]
+    [Test, Timeout(Patience)]
+    [Arguments("a\\nosuch b", "Unexpected symbol '\\nosuch'.")]
+    [Arguments("a{b}", "Unexpected symbol '{'.")]
+    [Arguments("\\bold{x}{y}", "Unexpected symbol '{'.")]
+    [Arguments("a\\space{b}", "Unexpected symbol '{'.")]
     public async Task SomethingThatCannotBeInAParagraphIsNamed(string paragraphBody, string complaint)
     {
         (await ComplaintsAboutParagraph(paragraphBody))[0].Should().Be(complaint);
     }
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\\bold x", "'{' expected, found 'x'.")]
-    [InlineData("\\font[Bold = true] x", "'{' expected, found 'x'.")]
-    [InlineData("\\footnote x", "'{' expected, found 'x'.")]
-    [InlineData("\\hyperlink x", "'{' expected, found 'x'.")]
-    [InlineData("\\fontsize 3{x}", "'(' expected, found '3'.")]
-    [InlineData("\\fontsize(3 x", "')' expected, found 'x'.")]
-    [InlineData("\\fontsize(14pt){x}", "')' expected, found 'pt'.")]
-    [InlineData("\\fontsize(3)x", "'{' expected, found 'x'.")]
-    [InlineData("\\fontcolor Red{x}", "'(' expected, found 'Red'.")]
-    [InlineData("\\fontcolor(Red x", "')' expected, found 'x'.")]
-    [InlineData("\\fontcolor(Red)x", "'{' expected, found 'x'.")]
-    [InlineData("\\field Page", "'(' expected, found 'Page'.")]
-    [InlineData("\\field(Page x", "')' expected, found 'x'.")]
-    [InlineData("\\symbol Euro", "'(' expected, found 'Euro'.")]
-    [InlineData("\\chr(65 x)", "')' expected, found 'x'.")]
-    [InlineData("\\space(3 x)", "')' expected, found 'x'.")]
+    [Test, Timeout(Patience)]
+    [Arguments("\\bold x", "'{' expected, found 'x'.")]
+    [Arguments("\\font[Bold = true] x", "'{' expected, found 'x'.")]
+    [Arguments("\\footnote x", "'{' expected, found 'x'.")]
+    [Arguments("\\hyperlink x", "'{' expected, found 'x'.")]
+    [Arguments("\\fontsize 3{x}", "'(' expected, found '3'.")]
+    [Arguments("\\fontsize(3 x", "')' expected, found 'x'.")]
+    [Arguments("\\fontsize(14pt){x}", "')' expected, found 'pt'.")]
+    [Arguments("\\fontsize(3)x", "'{' expected, found 'x'.")]
+    [Arguments("\\fontcolor Red{x}", "'(' expected, found 'Red'.")]
+    [Arguments("\\fontcolor(Red x", "')' expected, found 'x'.")]
+    [Arguments("\\fontcolor(Red)x", "'{' expected, found 'x'.")]
+    [Arguments("\\field Page", "'(' expected, found 'Page'.")]
+    [Arguments("\\field(Page x", "')' expected, found 'x'.")]
+    [Arguments("\\symbol Euro", "'(' expected, found 'Euro'.")]
+    [Arguments("\\chr(65 x)", "')' expected, found 'x'.")]
+    [Arguments("\\space(3 x)", "')' expected, found 'x'.")]
     public async Task AParagraphKeywordMissingPartOfItsSyntaxSaysWhatWasExpected(string paragraphBody, string complaint)
     {
         (await ComplaintsAboutParagraph(paragraphBody))[0].Should().Be(complaint);
     }
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\\field(\"Page\")", "Identifier expected: 'Page'.")]
-    [InlineData("\\field(3)", "Identifier expected: '3'.")]
-    [InlineData("\\space(Em, x)", "Integer expected: 'x'.")]
-    [InlineData("\\space(Em, 1.5)", "Integer expected: '1.5'.")]
+    [Test, Timeout(Patience)]
+    [Arguments("\\field(\"Page\")", "Identifier expected: 'Page'.")]
+    [Arguments("\\field(3)", "Identifier expected: '3'.")]
+    [Arguments("\\space(Em, x)", "Integer expected: 'x'.")]
+    [Arguments("\\space(Em, 1.5)", "Integer expected: '1.5'.")]
     public async Task WhereALiteralRatherThanAKeywordIsExpectedTheKindOfLiteralIsNamed(
         string paragraphBody, string complaint)
     {
@@ -197,12 +197,12 @@ public class DdlMalformedInputTests
     ///   reader as it was: the rest of the document went unread, the error list stayed empty, and
     ///   the message said nothing about where in the source the size was.
     /// </summary>
-    [Theory(Timeout = Patience)]
-    [InlineData("\\fontsize(abc){x}", "String 'abc' is not a valid value for structure 'Unit'.")]
-    [InlineData("\\fontsize(\"abc\"){x}", "String 'abc' is not a valid value for structure 'Unit'.")]
-    [InlineData("\\fontsize(\"\"){x}", "String '' is not a valid value for structure 'Unit'.")]
-    [InlineData("\\fontsize(\"12xy\"){x}", "String '12xy' is not a valid value for structure 'Unit'.")]
-    [InlineData("\\fontsize(Red){x}", "String 'Red' is not a valid value for structure 'Unit'.")]
+    [Test, Timeout(Patience)]
+    [Arguments("\\fontsize(abc){x}", "String 'abc' is not a valid value for structure 'Unit'.")]
+    [Arguments("\\fontsize(\"abc\"){x}", "String 'abc' is not a valid value for structure 'Unit'.")]
+    [Arguments("\\fontsize(\"\"){x}", "String '' is not a valid value for structure 'Unit'.")]
+    [Arguments("\\fontsize(\"12xy\"){x}", "String '12xy' is not a valid value for structure 'Unit'.")]
+    [Arguments("\\fontsize(Red){x}", "String 'Red' is not a valid value for structure 'Unit'.")]
     public async Task AFontSizeThatIsNotAUnitIsAReaderErrorAndTheRestIsStillRead(string paragraphBody, string complaint)
     {
         var (document, errors) = await ReadDespite(
@@ -217,11 +217,11 @@ public class DdlMalformedInputTests
         formatted.Elements.OfType<Text>().Single().Content.Should().Be("x");
     }
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\\fontsize(12){x}", 12)]
-    [InlineData("\\fontsize(12.5){x}", 12.5)]
-    [InlineData("\\fontsize(\"12pt\"){x}", 12)]
-    [InlineData("\\fontsize(\"1in\"){x}", 72)]
+    [Test, Timeout(Patience)]
+    [Arguments("\\fontsize(12){x}", 12)]
+    [Arguments("\\fontsize(12.5){x}", 12.5)]
+    [Arguments("\\fontsize(\"12pt\"){x}", 12)]
+    [Arguments("\\fontsize(\"1in\"){x}", 72)]
     public async Task AFontSizeThatIsAUnitIsReadWithoutComplaint(string paragraphBody, double points)
     {
         var (document, errors) = await ReadDespite("\\document{\\section{\\paragraph{" + paragraphBody + "}}}");
@@ -231,23 +231,23 @@ public class DdlMalformedInputTests
             .Font.Size.Point.Should().BeApproximately(points, 1e-3);
     }
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\\fontcolor(\"Red\"){x}", "Invalid color: 'Red'.")]
-    [InlineData("\\fontcolor(HSB){x}", "Invalid color: 'HSB'.")]
-    [InlineData("\\fontcolor(Lab){x}", "Invalid color: 'Lab'.")]
-    [InlineData("\\fontcolor(NoSuch){x}", "Invalid color: 'NoSuch'.")]
-    [InlineData("\\fontcolor(RGB(1, 2)){x}", "',' expected, found ')'.")]
+    [Test, Timeout(Patience)]
+    [Arguments("\\fontcolor(\"Red\"){x}", "Invalid color: 'Red'.")]
+    [Arguments("\\fontcolor(HSB){x}", "Invalid color: 'HSB'.")]
+    [Arguments("\\fontcolor(Lab){x}", "Invalid color: 'Lab'.")]
+    [Arguments("\\fontcolor(NoSuch){x}", "Invalid color: 'NoSuch'.")]
+    [Arguments("\\fontcolor(RGB(1, 2)){x}", "',' expected, found ')'.")]
     public async Task AFontColorThatIsNotAColourIsReported(string paragraphBody, string complaint)
     {
         (await ComplaintsAboutParagraph(paragraphBody))[0].Should().Be(complaint);
     }
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\\fontcolor(99999999999){x}")]
-    [InlineData("\\fontcolor(0x123456789){x}")]
-    [InlineData("\\fontcolor(-1){x}")]
-    [InlineData("\\fontcolor(RGB(99999999999, 0, 0)){x}")]
-    [InlineData("\\fontcolor(RGB(0, -1, 0)){x}")]
+    [Test, Timeout(Patience)]
+    [Arguments("\\fontcolor(99999999999){x}")]
+    [Arguments("\\fontcolor(0x123456789){x}")]
+    [Arguments("\\fontcolor(-1){x}")]
+    [Arguments("\\fontcolor(RGB(99999999999, 0, 0)){x}")]
+    [Arguments("\\fontcolor(RGB(0, -1, 0)){x}")]
     public async Task AColourNumberThatDoesNotFitAnUnsignedIntegerIsReportedAsOutOfRange(string paragraphBody)
     {
         // The scanner refuses it as it refuses an integer too large for an int, rather than
@@ -256,19 +256,19 @@ public class DdlMalformedInputTests
             .Should().Be("Valid range only within '0 - 4294967295'.");
     }
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\\fontcolor(0x1G){x}")]
-    [InlineData("\\fontcolor(RGB(0x1G, 0, 0)){x}")]
+    [Test, Timeout(Patience)]
+    [Arguments("\\fontcolor(0x1G){x}")]
+    [Arguments("\\fontcolor(RGB(0x1G, 0, 0)){x}")]
     public async Task AColourNumberWithALetterThatIsNotAHexDigitIsReported(string paragraphBody)
     {
         (await ComplaintsAboutParagraph(paragraphBody))[0].Should().Be("Integer expected: '0x1G'.");
     }
 
-    [Theory(Timeout = Patience)]
-    [InlineData("Font{Color = 99999999999}", "Valid range only within '0 - 4294967295'.")]
-    [InlineData("Font{Color = RGB(99999999999, 0, 0)}", "Valid range only within '0 - 4294967295'.")]
-    [InlineData("Font{Color = -1}", "Valid range only within '0 - 4294967295'.")]
-    [InlineData("Font{Color = RGB(0x1G, 0, 0)}", "Integer expected: '0x1G'.")]
+    [Test, Timeout(Patience)]
+    [Arguments("Font{Color = 99999999999}", "Valid range only within '0 - 4294967295'.")]
+    [Arguments("Font{Color = RGB(99999999999, 0, 0)}", "Valid range only within '0 - 4294967295'.")]
+    [Arguments("Font{Color = -1}", "Valid range only within '0 - 4294967295'.")]
+    [Arguments("Font{Color = RGB(0x1G, 0, 0)}", "Integer expected: '0x1G'.")]
     public async Task AColourAttributeNumberThatIsNotAnUnsignedIntegerIsAReaderError(string formatBody, string complaint)
     {
         var complaints = await ComplaintsAboutParagraphFormat(formatBody);
@@ -279,24 +279,24 @@ public class DdlMalformedInputTests
             .And.NotContain(nameof(System.FormatException));
     }
 
-    [Fact(Timeout = Patience)]
+    [Test, Timeout(Patience)]
     public async Task AStyleNamedByFormattedTextHasToBeQuoted()
     {
         (await ComplaintsAboutParagraph("\\font(Heading1){x}"))[0]
             .Should().Be("String expected: 'Heading1'.");
     }
 
-    [Fact(Timeout = Patience)]
+    [Test, Timeout(Patience)]
     public async Task ASymbolNameMustBeAName()
     {
         (await ComplaintsAboutParagraph("\\symbol(123)"))[0].Should().Be("Unexpected symbol '123'.");
     }
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\\symbol(Tab)", "Symbol not valid 'Tab'.", "a tab is a symbol name, but not one \\symbol draws")]
-    [InlineData("\\space(Euro)", "'Euro' '\\space'.", "the euro is a symbol, not a kind of space")]
-    [InlineData("\\space(Nope)", "'Nope' '\\space'.", "and this is not a name at all")]
-    [InlineData("\\space(em)", "'em' '\\space'.", "the names are case sensitive here, where an enum attribute's are not")]
+    [Test, Timeout(Patience)]
+    [Arguments("\\symbol(Tab)", "Symbol not valid 'Tab'.", "a tab is a symbol name, but not one \\symbol draws")]
+    [Arguments("\\space(Euro)", "'Euro' '\\space'.", "the euro is a symbol, not a kind of space")]
+    [Arguments("\\space(Nope)", "'Nope' '\\space'.", "and this is not a name at all")]
+    [Arguments("\\space(em)", "'em' '\\space'.", "the names are case sensitive here, where an enum attribute's are not")]
     public async Task ASymbolOrSpaceOfTheWrongKindIsRefused(string paragraphBody, string complaint, string why)
     {
         (await ComplaintsAboutParagraph(paragraphBody))[0].Should().Be(complaint, why);
@@ -304,23 +304,23 @@ public class DdlMalformedInputTests
 
     // ----- numbers in paragraph content ------------------------------------------------------------------
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\\chr(0x1G)")]
-    [InlineData("\\chr(65, 0x1G)")]
-    [InlineData("\\symbol(Euro, 0x1G)")]
+    [Test, Timeout(Patience)]
+    [Arguments("\\chr(0x1G)")]
+    [Arguments("\\chr(65, 0x1G)")]
+    [Arguments("\\symbol(Euro, 0x1G)")]
     public async Task AHexNumberWithALetterThatIsNotAHexDigitIsReported(string paragraphBody)
     {
         (await ComplaintsAboutParagraph(paragraphBody))[0].Should().Be("Integer expected: '0x1G'.");
     }
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\\chr(99999999999)")]
-    [InlineData("\\chr(65, 99999999999)")]
-    [InlineData("\\chr(0x123456789)")]
-    [InlineData("\\space(99999999999)")]
-    [InlineData("\\space(-99999999999)")]
-    [InlineData("\\space(Em, 99999999999)")]
-    [InlineData("\\symbol(Euro, 99999999999)")]
+    [Test, Timeout(Patience)]
+    [Arguments("\\chr(99999999999)")]
+    [Arguments("\\chr(65, 99999999999)")]
+    [Arguments("\\chr(0x123456789)")]
+    [Arguments("\\space(99999999999)")]
+    [Arguments("\\space(-99999999999)")]
+    [Arguments("\\space(Em, 99999999999)")]
+    [Arguments("\\symbol(Euro, 99999999999)")]
     public async Task ANumberTooLargeForAnIntegerIsReported(string paragraphBody)
     {
         (await ComplaintsAboutParagraph(paragraphBody))[0]
@@ -329,12 +329,12 @@ public class DdlMalformedInputTests
 
     // ----- tables --------------------------------------------------------------------------------------
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\\table{\\rows{\\row{\\cell{x}}}}", "'\\columns' expected, found '\\rows'.")]
-    [InlineData("\\table{\\columns{\\column\\row}\\rows{\\row{\\cell{a}}}}", "'\\column' expected, found '\\row'.")]
-    [InlineData("\\table{\\columns{\\column{x}}\\rows{\\row{\\cell{a}}}}", "'}' expected, found 'x'.")]
-    [InlineData("\\table{\\columns{\\column}\\rows{\\column}}", "'\\row' expected, found '\\column'.")]
-    [InlineData("\\table{\\columns{\\column}\\rows{\\row{\\column}}}", "Unexpected symbol '\\column'.")]
+    [Test, Timeout(Patience)]
+    [Arguments("\\table{\\rows{\\row{\\cell{x}}}}", "'\\columns' expected, found '\\rows'.")]
+    [Arguments("\\table{\\columns{\\column\\row}\\rows{\\row{\\cell{a}}}}", "'\\column' expected, found '\\row'.")]
+    [Arguments("\\table{\\columns{\\column{x}}\\rows{\\row{\\cell{a}}}}", "'}' expected, found 'x'.")]
+    [Arguments("\\table{\\columns{\\column}\\rows{\\column}}", "'\\row' expected, found '\\column'.")]
+    [Arguments("\\table{\\columns{\\column}\\rows{\\row{\\column}}}", "Unexpected symbol '\\column'.")]
     public async Task ATableOutOfOrderSaysWhatItExpected(string table, string complaint)
     {
         (await ComplaintsAbout("\\document{\\section{" + table + "\\paragraph{after}}}"))[0]
@@ -343,7 +343,7 @@ public class DdlMalformedInputTests
 
     // ----- charts ---------------------------------------------------------------------------------------
 
-    [Fact(Timeout = Patience)]
+    [Test, Timeout(Patience)]
     public async Task AChartOfNoKnownTypeIsNotAddedAndTheRestOfTheSectionIsRead()
     {
         var (document, errors) = await ReadDespite(
@@ -353,15 +353,15 @@ public class DdlMalformedInputTests
         document.LastSection.Elements.OfType<Chart>().Should().BeEmpty();
     }
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\\nosuch")]
-    [InlineData("\\toparea{\\nosuch}")]
+    [Test, Timeout(Patience)]
+    [Arguments("\\nosuch")]
+    [Arguments("\\toparea{\\nosuch}")]
     public async Task AKeywordAChartDoesNotKnowIsNamed(string chartBody)
     {
         (await ComplaintsAboutChart(chartBody))[0].Should().Be("Unexpected symbol '\\nosuch'.");
     }
 
-    [Fact(Timeout = Patience)]
+    [Test, Timeout(Patience)]
     public async Task AnAttributeThePlotAreaDoesNotHaveIsNamedAndTheChartIsStillRead()
     {
         var (document, errors) = await ReadDespite(
@@ -371,36 +371,36 @@ public class DdlMalformedInputTests
         document.LastSection.Elements.OfType<Chart>().Single().YAxis.HasMajorGridlines.Should().BeTrue();
     }
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\\plotarea[3]")]
-    [InlineData("\\xaxis[3]")]
-    [InlineData("\\leftarea{\\legend[3]}")]
+    [Test, Timeout(Patience)]
+    [Arguments("\\plotarea[3]")]
+    [Arguments("\\xaxis[3]")]
+    [Arguments("\\leftarea{\\legend[3]}")]
     public async Task AnAttributeBlockInAChartThatHoldsNoAttributeIsReported(string chartBody)
     {
         (await ComplaintsAboutChart(chartBody))[0].Should().Be("']' expected, found '3'.");
     }
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\\series{1 2}")]
-    [InlineData("\\series{1 null}")]
-    [InlineData("\\series{1 \\point{2}}")]
-    [InlineData("\\xvalues{\"a\" \"b\"}")]
-    [InlineData("\\xvalues{\"a\" null}")]
+    [Test, Timeout(Patience)]
+    [Arguments("\\series{1 2}")]
+    [Arguments("\\series{1 null}")]
+    [Arguments("\\series{1 \\point{2}}")]
+    [Arguments("\\xvalues{\"a\" \"b\"}")]
+    [Arguments("\\xvalues{\"a\" null}")]
     public async Task TwoValuesInASeriesWithNoCommaBetweenThemAreReported(string chartBody)
     {
         (await ComplaintsAboutChart(chartBody))[0].Should().Be("Missing comma.");
     }
 
-    [Fact(Timeout = Patience)]
+    [Test, Timeout(Patience)]
     public async Task SomethingThatIsNotAValueInTheXValuesIsNamed()
     {
         (await ComplaintsAboutChart("\\xvalues{\"a\", \\point}"))[0].Should().Be("Unexpected symbol '\\point'.");
     }
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\\series 1, 2", "Missing left brace after '\\series'.")]
-    [InlineData("\\xvalues \"a\"", "Missing left brace after '\\xvalues'.")]
-    [InlineData("\\series{\\point 4}", "Missing left brace after '\\point'.")]
+    [Test, Timeout(Patience)]
+    [Arguments("\\series 1, 2", "Missing left brace after '\\series'.")]
+    [Arguments("\\xvalues \"a\"", "Missing left brace after '\\xvalues'.")]
+    [Arguments("\\series{\\point 4}", "Missing left brace after '\\point'.")]
     public async Task ASeriesOrPointWithNoOpeningBraceIsReportedAndTheSectionIsStillRead(
         string chartBody, string complaint)
     {
@@ -411,14 +411,14 @@ public class DdlMalformedInputTests
         TextOf(document.LastSection.Elements.OfType<Paragraph>().Single()).Should().Be("after");
     }
 
-    [Fact(Timeout = Patience)]
+    [Test, Timeout(Patience)]
     public async Task APointHoldingMoreThanOneNumberIsReported()
     {
         (await ComplaintsAboutChart("\\series{\\point{4 5}}"))[0]
             .Should().Be("Missing right brace after '\\point'.");
     }
 
-    [Fact(Timeout = Patience)]
+    [Test, Timeout(Patience)]
     public async Task AChartWithNoOpeningParenthesisIsReportedAndTheSectionIsStillRead()
     {
         var (document, errors) = await ReadDespite(
@@ -430,7 +430,7 @@ public class DdlMalformedInputTests
 
     // ----- attribute statements ---------------------------------------------------------------------------
 
-    [Fact(Timeout = Patience)]
+    [Test, Timeout(Patience)]
     public async Task AnAttributePathCannotReachAnInternalName()
     {
         var (document, errors) = await ReadDespite(
@@ -442,12 +442,12 @@ public class DdlMalformedInputTests
         document.Sections.Count.Should().Be(2);
     }
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\\paragraph[Format.Alignment.X = 1]{t}", "Symbol 'Alignment' is not an object.")]
-    [InlineData("\\paragraph[Format{Alignment{}}]{t}", "Symbol 'Alignment' is not an object.")]
-    [InlineData("\\paragraph[Format. = 1]{t}", "Invalid value name: '='.")]
-    [InlineData("\\paragraph[Format{Font : 3}]{t}", "Symbol ':' in this context not allowed.")]
-    [InlineData("\\paragraph[Format{TabStops += Center}]{t}", "Unexpected symbol 'Center'.")]
+    [Test, Timeout(Patience)]
+    [Arguments("\\paragraph[Format.Alignment.X = 1]{t}", "Symbol 'Alignment' is not an object.")]
+    [Arguments("\\paragraph[Format{Alignment{}}]{t}", "Symbol 'Alignment' is not an object.")]
+    [Arguments("\\paragraph[Format. = 1]{t}", "Invalid value name: '='.")]
+    [Arguments("\\paragraph[Format{Font : 3}]{t}", "Symbol ':' in this context not allowed.")]
+    [Arguments("\\paragraph[Format{TabStops += Center}]{t}", "Unexpected symbol 'Center'.")]
     public async Task AnAttributeStatementOfTheWrongShapeIsReportedAndTheParagraphIsStillRead(
         string paragraph, string complaint)
     {
@@ -457,7 +457,7 @@ public class DdlMalformedInputTests
         TextOf(document.LastSection.Elements[0] as Paragraph).Should().Be("t");
     }
 
-    [Fact(Timeout = Patience)]
+    [Test, Timeout(Patience)]
     public async Task PlusEqualsAgainstAnythingButAParagraphFormatIsRefused()
     {
         // Its twin in DdlCharacterAndPunctuationTests is the right object and the wrong property;
@@ -469,52 +469,52 @@ public class DdlMalformedInputTests
         TextOf(document.LastSection.Elements[0] as Paragraph).Should().Be("t");
     }
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\\section[\\-]{\\paragraph{t}}", "']' expected, found '\\-'.")]
-    [InlineData("\\section[\\(]{\\paragraph{t}}", "']' expected, found '\\('.")]
-    [InlineData("\\section{\\paragraph[Format{Font{Bold = true}} ; ]{t}}", "']' expected, found ';'.")]
+    [Test, Timeout(Patience)]
+    [Arguments("\\section[\\-]{\\paragraph{t}}", "']' expected, found '\\-'.")]
+    [Arguments("\\section[\\(]{\\paragraph{t}}", "']' expected, found '\\('.")]
+    [Arguments("\\section{\\paragraph[Format{Font{Bold = true}} ; ]{t}}", "']' expected, found ';'.")]
     public async Task SomethingInAnAttributeBlockThatIsNotAnAttributeIsNamed(string section, string complaint)
     {
         (await ComplaintsAbout("\\document{" + section + "}"))[0].Should().Be(complaint);
     }
 
-    [Theory(Timeout = Patience)]
-    [InlineData("Font{Bold = 1}", "Bool expected: '1'.")]
-    [InlineData("Font{Name = 3}", "String expected: '3'.")]
-    [InlineData("Font{Color = ;}", "String expected: ';'.")]
-    [InlineData("Font{Size = \"big\"}", "'big' is not a valid value")]
-    [InlineData("LineSpacing = \"x\"", "'x' is not a valid value")]
-    [InlineData("Alignment = Nowhere", "'Nowhere' 'alignment'.")]
-    [InlineData("Font{Underline = NoSuch}", "'NoSuch' 'underline'.")]
-    [InlineData("Font = null", "Assign 'null' to 'font' not allowed.")]
-    [InlineData("Font = 3", "Invalid assignment to 'font'.")]
-    [InlineData("NoSuch{Size = 3}", "Invalid value name: 'NoSuch'.")]
-    [InlineData("Font{Color = \"Red\"}", "ParseColor(color-name)")]
-    [InlineData("Font{Color = 0x1G}", "Invalid assignment to 'color'.")]
-    [InlineData("Alignment = 3", "Identifier expected: '3'.")]
+    [Test, Timeout(Patience)]
+    [Arguments("Font{Bold = 1}", "Bool expected: '1'.")]
+    [Arguments("Font{Name = 3}", "String expected: '3'.")]
+    [Arguments("Font{Color = ;}", "String expected: ';'.")]
+    [Arguments("Font{Size = \"big\"}", "'big' is not a valid value")]
+    [Arguments("LineSpacing = \"x\"", "'x' is not a valid value")]
+    [Arguments("Alignment = Nowhere", "'Nowhere' 'alignment'.")]
+    [Arguments("Font{Underline = NoSuch}", "'NoSuch' 'underline'.")]
+    [Arguments("Font = null", "Assign 'null' to 'font' not allowed.")]
+    [Arguments("Font = 3", "Invalid assignment to 'font'.")]
+    [Arguments("NoSuch{Size = 3}", "Invalid value name: 'NoSuch'.")]
+    [Arguments("Font{Color = \"Red\"}", "ParseColor(color-name)")]
+    [Arguments("Font{Color = 0x1G}", "Invalid assignment to 'color'.")]
+    [Arguments("Alignment = 3", "Identifier expected: '3'.")]
     public async Task AValueOfTheWrongKindIsNamedInTheFirstComplaint(string formatBody, string complaint)
     {
         (await ComplaintsAboutParagraphFormat(formatBody))[0].Should().Contain(complaint);
     }
 
-    [Theory(Timeout = Patience)]
-    [InlineData("1.5", "Integer expected: '1.5'.")]
-    [InlineData("\"five\"", "'five' was not in a correct format")]
-    [InlineData("= 5", "Integer expected: '='.")]
+    [Test, Timeout(Patience)]
+    [Arguments("1.5", "Integer expected: '1.5'.")]
+    [Arguments("\"five\"", "'five' was not in a correct format")]
+    [Arguments("= 5", "Integer expected: '='.")]
     public async Task AnIntegerAttributeRefusesWhatIsNotAnInteger(string literal, string complaint)
     {
         (await ComplaintsAbout("\\document{\\section[PageSetup{StartingNumber = " + literal + "}]{\\paragraph{t}}}"))
             [0].Should().Contain(complaint);
     }
 
-    [Fact(Timeout = Patience)]
+    [Test, Timeout(Patience)]
     public async Task AShapePositionThatIsNeitherAPlaceNorADistanceIsNamed()
     {
         (await ComplaintsAbout("\\document{\\section{\\textframe[Left = Nowhere]{framed}}}"))
             [0].Should().Contain("'Nowhere'");
     }
 
-    [Fact(Timeout = Patience)]
+    [Test, Timeout(Patience)]
     public async Task ANumberWithTwoPointsIsReadAsTwoNumbers()
     {
         // "1.2" is a number and ".3" is another: a point with a digit after it starts a real
@@ -525,7 +525,7 @@ public class DdlMalformedInputTests
 
     // ----- string literals --------------------------------------------------------------------------------
 
-    [Fact(Timeout = Patience)]
+    [Test, Timeout(Patience)]
     public async Task AStringLiteralCannotRunOverALineEnd()
     {
         (await ComplaintsAbout("\\document[Info{Title = \"a\nb\"}]{\\section{\\paragraph{t}}}"))

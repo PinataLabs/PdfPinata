@@ -6,7 +6,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.AcroForms;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Forms;
@@ -16,7 +16,7 @@ namespace PdfPinata.Test.Forms;
 ///   so the text does not move as the field gains and loses the focus. It used to draw every value
 ///   as one line from the top left, at a fixed 10 points whatever <c>/DA</c> said. Issue #155.
 /// </summary>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public sealed class TextFieldAppearanceTests : IDisposable
 {
     private const string OutDir = "Out/TextFieldAppearances";
@@ -47,7 +47,7 @@ public sealed class TextFieldAppearanceTests : IDisposable
         return field;
     }
 
-    [Fact]
+    [Test]
     public void TheFontSizeAndColourComeFromTheDefaultAppearance()
     {
         var field = OnAPage(Line, f => f.DefaultAppearance = "/Helv 9 Tf 0 0 1 rg");
@@ -57,7 +57,7 @@ public sealed class TextFieldAppearanceTests : IDisposable
         field.ForeColor.R.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void AFontOrColourSetOnTheFieldWinsOverTheDefaultAppearance()
     {
         var field = OnAPage(Line);
@@ -69,7 +69,7 @@ public sealed class TextFieldAppearanceTests : IDisposable
         field.ForeColor.Should().Be(XColors.Red);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void OneLineIsCentredVertically()
     {
         var field = OnAPage(Line);
@@ -83,7 +83,7 @@ public sealed class TextFieldAppearanceTests : IDisposable
         (ink.Left - Line.X).Should().BeInRange(1.5, 4, "two points in from the left, as a viewer draws it");
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AValueIsDrawnAtTheSizeTheDefaultAppearanceNames()
     {
         var small = InkBounds(Rasterize("size-9", OnAPage(Line, f =>
@@ -100,7 +100,7 @@ public sealed class TextFieldAppearanceTests : IDisposable
         (large.Height / small.Height).Should().BeApproximately(2, 0.3);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AMultiLineValueIsWrappedFromTheTop()
     {
         var field = OnAPage(Tall, f => f.MultiLine = true);
@@ -113,7 +113,7 @@ public sealed class TextFieldAppearanceTests : IDisposable
         ink.Right.Should().BeLessThanOrEqualTo(Tall.Right, "and stays inside the box");
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void ACombFieldPutsOneCharacterInEachCell()
     {
         // Five cells across 300 points; "11111" puts a narrow stroke in the middle of each.
@@ -139,10 +139,10 @@ public sealed class TextFieldAppearanceTests : IDisposable
     ///   after it is two code points, and each is one cell. Split by code unit, each half of the
     ///   surrogate pair was drawn alone - a lone surrogate has no glyph - in a cell of its own.
     /// </summary>
-    [Theory]
-    [InlineData("a\U0001F600b", new[] { 0, 1, 2 })]
-    [InlineData("e\u0301x", new[] { 0, 1 })]
-    [InlineData("\U00020000\U00020001\U00020002", new[] { 0, 1, 2 })]
+    [Test]
+    [Arguments("a\U0001F600b", new[] { 0, 1, 2 })]
+    [Arguments("e\u0301x", new[] { 0, 1 })]
+    [Arguments("\U00020000\U00020001\U00020002", new[] { 0, 1, 2 })]
     public void ACombFieldPutsOneCharacterAsTheReaderSeesItInEachCell(string value, int[] cells)
     {
         var field = OnAPage(Line, f =>
@@ -156,9 +156,9 @@ public sealed class TextFieldAppearanceTests : IDisposable
         CellsOf(field).Should().Equal(cells);
     }
 
-    [Theory]
-    [InlineData("\U0001F600")]
-    [InlineData("e\u0301")]
+    [Test]
+    [Arguments("\U0001F600")]
+    [Arguments("e\u0301")]
     public void APasswordDrawsOneMaskCharacterForEachCharacterAsTheReaderSeesIt(string value)
     {
         var masked = OnAPage(Line, f => f.Password = true);
@@ -192,7 +192,7 @@ public sealed class TextFieldAppearanceTests : IDisposable
         return (document, parent, kid);
     }
 
-    [Fact]
+    [Test]
     public void AKidInheritsItsMaximumLength()
     {
         var (_, _, kid) = ACombGroup();
@@ -201,7 +201,7 @@ public sealed class TextFieldAppearanceTests : IDisposable
         kid.MaxLength.Should().Be(6, "/MaxLen is inheritable, ISO 32000-1 Table 229");
     }
 
-    [Fact]
+    [Test]
     public void AKidsOwnMaximumLengthIsWrittenOnTheKid()
     {
         var (_, parent, kid) = ACombGroup();
@@ -213,7 +213,7 @@ public sealed class TextFieldAppearanceTests : IDisposable
         parent.MaxLength.Should().Be(6, "the parent is untouched");
     }
 
-    [Fact]
+    [Test]
     public void ACombKidDrawsTheCellsItsParentDescribes()
     {
         var (_, _, kid) = ACombGroup();
@@ -223,7 +223,7 @@ public sealed class TextFieldAppearanceTests : IDisposable
         CellsOf(kid).Should().Equal([0, 1, 2, 3, 4, 5], "one character in each of the six cells the parent's /MaxLen makes");
     }
 
-    [Fact]
+    [Test]
     public void ACombKidReadFromAFileDrawsTheCellsItsParentDescribes()
     {
         var (document, _, _) = ACombGroup();
@@ -249,7 +249,7 @@ public sealed class TextFieldAppearanceTests : IDisposable
             .Select(shown => (int)Math.Floor((shown.X + 2) / cell))];
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void APasswordIsNotDrawnInTheClear()
     {
         // Two values of the same length draw the same: a mask character for each.
@@ -268,7 +268,7 @@ public sealed class TextFieldAppearanceTests : IDisposable
         Count(first, Line, IsInk).Should().Be(Count(second, Line, IsInk));
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void QuaddingAlignsTheValue()
     {
         var right = InkBounds(Rasterize("right", OnAPage(Line, f =>
@@ -280,9 +280,9 @@ public sealed class TextFieldAppearanceTests : IDisposable
         (Line.Right - right.Right).Should().BeInRange(1.5, 4, "aligned right, two points in");
     }
 
-    [Theory]
-    [InlineData("Ada Lovelace")]
-    [InlineData("")]
+    [Test]
+    [Arguments("Ada Lovelace")]
+    [Arguments("")]
     public void OnlyTheTextIsMarkedAsVariableText(string value)
     {
         // A viewer that edits the field replaces what is between /Tx BMC and EMC with its own
@@ -307,7 +307,7 @@ public sealed class TextFieldAppearanceTests : IDisposable
         inside.Should().NotContain(Fill).And.NotContain(Stroke, "neither is inside the bracket");
     }
 
-    [Fact]
+    [Test]
     public void AChoiceFieldMarksOnlyItsTextToo()
     {
         var document = new PdfDocument();
@@ -323,9 +323,9 @@ public sealed class TextFieldAppearanceTests : IDisposable
         open.Should().BeGreaterThan(content.IndexOf(Fill, StringComparison.Ordinal));
     }
 
-    [Theory]
-    [InlineData(0.5, 20)]
-    [InlineData(200, 0.5)]
+    [Test]
+    [Arguments(0.5, 20)]
+    [Arguments(200, 0.5)]
     public void AWidgetShrunkBelowAPointLosesTheAppearanceItCannotHold(double width, double height)
     {
         // XForm cannot be made under a point, so the field cannot be drawn there - and the
@@ -343,7 +343,7 @@ public sealed class TextFieldAppearanceTests : IDisposable
             "a state name pointing into an appearance dictionary that is gone goes with it");
     }
 
-    [Fact]
+    [Test]
     public void AWidgetWhoseRectangleNamesItsCornersTheOtherWayRoundIsStillDrawn()
     {
         // ISO 32000-1 7.9.5 lets a rectangle name any two opposite corners, so a file may say

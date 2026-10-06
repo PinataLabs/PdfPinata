@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -21,14 +21,14 @@ public class ChartModelTests
 {
     // ----- the chart itself ------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AChartRemembersTheKindOfChartItIs()
     {
         new Chart(ChartType.Line).Type.Should().Be(ChartType.Line);
         new Chart(ChartType.Pie2D).Type.Should().Be(ChartType.Pie2D);
     }
 
-    [Fact]
+    [Test]
     public void AChartMadeWithNoTypeCanBeToldOneAfterwards()
     {
         var chart = new Chart { Type = ChartType.Bar2D };
@@ -36,7 +36,7 @@ public class ChartModelTests
         chart.Type.Should().Be(ChartType.Bar2D);
     }
 
-    [Fact]
+    [Test]
     public void AChartOffersAnAreaOnEverySideAndOneInTheMiddle()
     {
         // Six text areas and a plot area, each created on first mention rather than up front. A
@@ -52,7 +52,7 @@ public class ChartModelTests
         chart.PlotArea.Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void EachAreaIsTheSameOneEveryTimeItIsAskedFor()
     {
         // Lazily created, but created once: an area handed a paragraph and then asked for again
@@ -66,7 +66,7 @@ public class ChartModelTests
         chart.PlotArea.Should().BeSameAs(chart.PlotArea);
     }
 
-    [Fact]
+    [Test]
     public void AChartHasThreeAxesAndTheyAreNotEachOther()
     {
         var chart = new Chart(ChartType.Line)
@@ -85,7 +85,7 @@ public class ChartModelTests
     ///   is a flag of its own, and filling in <c>DataLabel</c> does not raise it. A caller who
     ///   describes the label and never sets the flag has described a label that will not be drawn.
     /// </summary>
-    [Fact]
+    [Test]
     public void ADataLabelIsDescribedInOnePlaceAndSwitchedOnInAnother()
     {
         var chart = new Chart(ChartType.Pie2D);
@@ -102,7 +102,7 @@ public class ChartModelTests
         chart.DataLabel.Position.Should().Be(DataLabelPosition.Center, "and the description stands");
     }
 
-    [Fact]
+    [Test]
     public void AClonedChartCarriesItsContentsAndNotItsIdentity()
     {
         var chart = new Chart(ChartType.Line);
@@ -120,7 +120,7 @@ public class ChartModelTests
 
     // ----- series and the numbers in them ------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ASeriesHoldsTheNumbersItIsGiven()
     {
         var chart = new Chart(ChartType.Column2D);
@@ -137,7 +137,7 @@ public class ChartModelTests
     // can hold and a blank is no point at all.
     private static Point PointAt(Series series, int index) => (Point)series.Elements[index];
 
-    [Fact]
+    [Test]
     public void AddingOneNumberHandsBackThePointItBecame()
     {
         var series = new Chart(ChartType.Line).SeriesCollection.AddSeries();
@@ -149,7 +149,7 @@ public class ChartModelTests
         series.Count.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void ABlankIsAGapInTheSeriesRatherThanAZero()
     {
         // A blank counts towards the length of the series - the points after it keep their
@@ -165,7 +165,7 @@ public class ChartModelTests
         PointAt(series, 2).Value.Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void EverySeriesAddedIsItsOwn()
     {
         var chart = new Chart(ChartType.Column2D);
@@ -180,7 +180,7 @@ public class ChartModelTests
         chart.SeriesCollection[1].Name.Should().Be("Forecast");
     }
 
-    [Fact]
+    [Test]
     public void ASeriesCanBeDrawnDifferentlyFromTheChartAroundIt()
     {
         // Which is what makes a combination chart: a line drawn over columns is one series saying
@@ -198,7 +198,7 @@ public class ChartModelTests
         chart.Type.Should().Be(ChartType.Column2D);
     }
 
-    [Fact]
+    [Test]
     public void ASeriesDataLabelWorksTheSameTwoStepWay()
     {
         var series = new Chart(ChartType.Line).SeriesCollection.AddSeries();
@@ -215,7 +215,7 @@ public class ChartModelTests
 
     // ----- the labels along the bottom -----------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TheNamesAlongTheAxisAreASeriesOfTheirOwn()
     {
         // An XSeries holds its values privately - it is not a collection a caller can index - so
@@ -229,7 +229,7 @@ public class ChartModelTests
         ddl.Should().Contain("Jan").And.Contain("Feb").And.Contain("Mar");
     }
 
-    [Fact]
+    [Test]
     public void AddingOneNameHandsBackTheValueItBecame()
     {
         var names = new Chart(ChartType.Column2D).XValues.AddXSeries();
@@ -240,7 +240,7 @@ public class ChartModelTests
         DdlWriter.WriteToString(value).Should().Contain("Q1");
     }
 
-    [Fact]
+    [Test]
     public void ABlankNameIsAGapAlongTheAxis()
     {
         var chart = new Chart(ChartType.Column2D);
@@ -259,7 +259,7 @@ public class ChartModelTests
 
     // ----- axes ------------------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnAxisRemembersTheScaleAndTheTicksItWasGiven()
     {
         var axis = new Chart(ChartType.Line).YAxis;
@@ -279,7 +279,7 @@ public class ChartModelTests
         axis.MinorTickMark.Should().Be(TickMarkType.None);
     }
 
-    [Fact]
+    [Test]
     public void GridlinesAreDescribedInOnePlaceAndSwitchedOnInAnotherToo()
     {
         var axis = new Chart(ChartType.Line).YAxis;
@@ -295,7 +295,7 @@ public class ChartModelTests
         axis.MajorGridlines.LineFormat.Width.Point.Should().Be(0.5);
     }
 
-    [Fact]
+    [Test]
     public void AnAxisCarriesATitleAndTheLabelsAlongIt()
     {
         var axis = new Chart(ChartType.Line).XAxis;
@@ -309,7 +309,7 @@ public class ChartModelTests
 
     // ----- the areas -------------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ATextAreaTakesTheSameThingsAParagraphContainerDoes()
     {
         var area = new Chart(ChartType.Column2D).HeaderArea;
@@ -321,7 +321,7 @@ public class ChartModelTests
         area.Elements.Count.Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void ATextAreaRemembersItsSizeAndItsPadding()
     {
         var area = new Chart(ChartType.Column2D).FooterArea;
@@ -337,7 +337,7 @@ public class ChartModelTests
         area.RightPadding.Millimeter.Should().BeApproximately(3, 1e-6);
     }
 
-    [Fact]
+    [Test]
     public void ThePlotAreaIsPaddedOnEverySideIndependently()
     {
         var plot = new Chart(ChartType.Column2D).PlotArea;
@@ -353,7 +353,7 @@ public class ChartModelTests
         plot.BottomPadding.Centimeter.Should().BeApproximately(4, 1e-6);
     }
 
-    [Fact]
+    [Test]
     public void APointCarriesItsOwnLineAndFillRatherThanTheSeriesOne()
     {
         // Which is how one column in a bar chart is picked out in a different colour.

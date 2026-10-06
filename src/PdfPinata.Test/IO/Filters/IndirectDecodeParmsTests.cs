@@ -6,7 +6,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf.Filters;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO.Filters;
 
@@ -82,38 +82,38 @@ public class IndirectDecodeParmsTests
         return Encoding.ASCII.GetString(PageContent.Of(page));
     }
 
-    [Fact]
+    [Test]
     public void TheFileDecodesWithItsParametersDirect()
     {
         // The control: the same stream, nothing indirect.
         DecodedContent(File($"/Filter /FlateDecode /DecodeParms {Parms}")).Should().Be(Content);
     }
 
-    [Fact]
+    [Test]
     public void ParametersInAnObjectOfTheirOwnAreFollowed()
     {
         DecodedContent(File("/Filter /FlateDecode /DecodeParms 5 0 R", Parms)).Should().Be(Content);
     }
 
-    [Fact]
+    [Test]
     public void AnArrayOfParametersWhoseElementIsAReferenceIsFollowed()
     {
         DecodedContent(File("/Filter [/FlateDecode] /DecodeParms [5 0 R]", Parms)).Should().Be(Content);
     }
 
-    [Fact]
+    [Test]
     public void AnArrayOfParametersThatIsItselfAReferenceIsFollowed()
     {
         DecodedContent(File("/Filter [/FlateDecode] /DecodeParms 5 0 R", "[6 0 R]", Parms)).Should().Be(Content);
     }
 
-    [Fact]
+    [Test]
     public void AFilterNamedInAnObjectOfItsOwnIsFollowed()
     {
         DecodedContent(File("/Filter 5 0 R /DecodeParms 6 0 R", "[/FlateDecode]", $"[{Parms}]")).Should().Be(Content);
     }
 
-    [Fact]
+    [Test]
     public void ANullInAnArrayOfParametersMeansThatFilterTakesItsDefaults()
     {
         // ISO 32000-1 Table 5: a filter with default parameters has null in its place.

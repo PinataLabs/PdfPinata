@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -17,7 +17,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class DanglingReferenceTests
 {
-    [Fact]
+    [Test]
     public void APageWhoseAnnotationsDangleHasNone()
     {
         var page = FirstPageOf(DocumentWith("/Annots 9 0 R"));
@@ -25,7 +25,7 @@ public class DanglingReferenceTests
         page.HasAnnotations.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void APageWithNoAnnotationsAtAllHasNone()
     {
         // Asking used to throw here too, on a page that is in no way corrupt.
@@ -34,7 +34,7 @@ public class DanglingReferenceTests
         page.HasAnnotations.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AnAnnotationCanBeAddedToAPageWhoseAnnotationsDangle()
     {
         // The reported failure: signing a document whose /Annots refers to an object that is
@@ -48,7 +48,7 @@ public class DanglingReferenceTests
         page.HasAnnotations.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AnAddedAnnotationSurvivesBeingWrittenAndReadBack()
     {
         var document = Read(DocumentWith("/Annots 9 0 R"));
@@ -62,7 +62,7 @@ public class DanglingReferenceTests
         reopened.Pages[0].Annotations.Count.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void APageWhoseBoxDanglesFallsBackToTheDefaultRatherThanThrowing()
     {
         // The same rule reached through a different accessor: a rectangle rather than an array.
@@ -71,10 +71,10 @@ public class DanglingReferenceTests
         page.Elements.GetRectangle("/CropBox").IsEmpty.Should().BeTrue();
     }
 
-    [Theory]
-    [InlineData("/Rotate 9 0 R")]
-    [InlineData("/Group 9 0 R")]
-    [InlineData("/UserUnit 9 0 R")]
+    [Test]
+    [Arguments("/Rotate 9 0 R")]
+    [Arguments("/Group 9 0 R")]
+    [Arguments("/UserUnit 9 0 R")]
     public void ADanglingEntryOfAnyKindReadsAsNoEntry(string entry)
     {
         var page = FirstPageOf(DocumentWith(entry));
@@ -84,7 +84,7 @@ public class DanglingReferenceTests
         page.Elements.GetReal("/UserUnit").Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void AnEntryThatIsWrittenAsTheNullObjectReadsAsNoEntryEither()
     {
         // Not a dangling reference this time but a null spelled out, which the specification
@@ -94,7 +94,7 @@ public class DanglingReferenceTests
         page.HasAnnotations.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AnEntryThatIsThereIsStillRead()
     {
         var page = FirstPageOf(DocumentWith("/Rotate 90"));

@@ -2,7 +2,7 @@ using System.Linq;
 using System.Reflection;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -18,7 +18,7 @@ namespace PdfPinata.Test.Pdfs;
 /// </summary>
 public class KeyInfoVersionTests
 {
-    [Fact]
+    [Test]
     public void EveryKeyDeclaredWithAVersionReportsThatVersion()
     {
         var assembly = typeof(PdfDocument).Assembly;

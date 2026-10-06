@@ -6,7 +6,7 @@ using PdfPinata.Fonts;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
 using PdfPinata.Utils;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -17,7 +17,7 @@ namespace PdfPinata.Test.Drawing;
 ///   of a font means a <c>glyf</c> decoder for TrueType and a charstring interpreter for
 ///   PostScript outlines — and the core package carries no font dependency to do either with.
 /// </summary>
-[Collection(GlyphOutlineCollection.Name)]
+[GlyphOutlineSensitive]
 public class GlyphOutlineTests
 {
     private const double EmSize = 48;
@@ -28,7 +28,7 @@ public class GlyphOutlineTests
 
     // ----- the seam ------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AddStringIsRefusedWhenNoProviderIsRegistered()
     {
         var path = new XGraphicsPath();
@@ -55,7 +55,7 @@ public class GlyphOutlineTests
         }
     }
 
-    [Fact]
+    [Test]
     public void IsGlyphOutlineProviderSetReflectsWhatIsRegisteredRightNow()
     {
         var provider = GlobalFontSettings.GlyphOutlineProvider;
@@ -74,7 +74,7 @@ public class GlyphOutlineTests
         }
     }
 
-    [Fact]
+    [Test]
     public void RegisteringAProviderLeavesTheOtherSeamsAlone()
     {
         var resolver = GlobalFontSettings.FontResolver;
@@ -90,7 +90,7 @@ public class GlyphOutlineTests
 
     // ----- what the path holds -------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnEmptyStringAddsNothingAndThrowsNothing()
     {
         var path = new XGraphicsPath();
@@ -102,7 +102,7 @@ public class GlyphOutlineTests
         PageDrawing(path).Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void APathBuiltFromTrueTypeOutlinesIsNotEmpty()
     {
         var page = PageWithPath(PathOf(Text, TrueTypeFamily));
@@ -111,7 +111,7 @@ public class GlyphOutlineTests
         PathGeometry.FigureCountOf(page).Should().BeGreaterThanOrEqualTo(7);
     }
 
-    [Fact]
+    [Test]
     public void APathBuiltFromPostScriptOutlinesIsNotEmpty()
     {
         // The case that justifies the seam: a CFF font's contours live in Type 2 charstrings,
@@ -121,7 +121,7 @@ public class GlyphOutlineTests
         PathGeometry.FigureCountOf(page).Should().BeGreaterThanOrEqualTo(7);
     }
 
-    [Fact]
+    [Test]
     public void ThePathIsAboutTheSizeMeasureStringReports()
     {
         var measured = Measure(Text, TrueTypeFamily);
@@ -134,7 +134,7 @@ public class GlyphOutlineTests
         bounds.Height.Should().BeInRange(EmSize * 0.4, EmSize * 1.2);
     }
 
-    [Fact]
+    [Test]
     public void AGlyphWithNoOutlineOfItsOwnAddsNothing()
     {
         // A space is a glyph with an advance and no contours, and it is what a font is asked for
@@ -145,7 +145,7 @@ public class GlyphOutlineTests
         withSpace.Should().Be(withoutSpace);
     }
 
-    [Fact]
+    [Test]
     public void ACharacterTheFontHasNoGlyphForIsOutlinedTheWayItIsDrawn()
     {
         // Liberation Sans has no Han characters, so both of these map to glyph zero - .notdef -
@@ -163,7 +163,7 @@ public class GlyphOutlineTests
 
     // ----- where the path lands ------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AlignmentWithinTheRectangleMovesThePathAcross()
     {
         var measured = Measure(Text, TrueTypeFamily);
@@ -175,7 +175,7 @@ public class GlyphOutlineTests
         (right.X - left.X).Should().BeApproximately(Box.Width - measured.Width, 0.5);
     }
 
-    [Fact]
+    [Test]
     public void ThePathLandsWhereDrawStringWouldHaveDrawnIt()
     {
         var format = XStringFormats.TopLeft;
@@ -197,10 +197,10 @@ public class GlyphOutlineTests
         pathBounds.Y.Should().BeApproximately(baseline.Y, 1.0, "nothing of 'Handles' hangs below the baseline");
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(20)]
-    [InlineData(200)]
+    [Test]
+    [Arguments(0)]
+    [Arguments(20)]
+    [Arguments(200)]
     public void ABaseLineFormatPlacesTheBaselineOnTheTopEdgeWhateverTheHeight(double height)
     {
         var rectangle = new XRect(Box.X, Box.Y, Box.Width, height);
@@ -219,11 +219,11 @@ public class GlyphOutlineTests
 
     // ----- both backends -------------------------------------------------------------------------
 
-    [Theory]
-    [InlineData(Text)]
+    [Test]
+    [Arguments(Text)]
     // A capital carrying an accent rises above the font's ascender, which one of the two backends
     // has to allow for by hand. Nothing but a glyph like this says whether it did.
-    [InlineData("ÄÖÜ")]
+    [Arguments("ÄÖÜ")]
     public void TheTwoShippedBackendsAgreeAboutWhereTheGlyphsGo(string text)
     {
         var skia = OutlineBoundsFrom(new SkiaGlyphOutlineProvider(), text);
@@ -256,10 +256,10 @@ public class GlyphOutlineTests
     ///     advance exactly, with the side bearings cancelling out.
     ///   </para>
     /// </remarks>
-    [Theory]
-    [InlineData("HHHH")]
-    [InlineData("llll")]
-    [InlineData("oooo")]
+    [Test]
+    [Arguments("HHHH")]
+    [Arguments("llll")]
+    [Arguments("oooo")]
     public void EachBackendMovesThePenByTheFontsOwnAdvanceWidth(string repeated)
     {
         var one = repeated[..1];

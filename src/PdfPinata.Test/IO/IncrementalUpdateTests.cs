@@ -7,7 +7,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.Revisions;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
@@ -27,7 +27,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class IncrementalUpdateTests
 {
-    [Fact]
+    [Test]
     public void TheOriginalBytesAreLeftExactlyWhereTheyWere()
     {
         // The whole point. Anything the reader did not fully understand survives untouched, and a
@@ -41,7 +41,7 @@ public class IncrementalUpdateTests
             "an incremental update appends and never rewrites");
     }
 
-    [Fact]
+    [Test]
     public void TheChangeIsReadBackFromTheAppendedRevision()
     {
         var updated = AppendChange(OriginalDocument(), document => document.Info.Subject = "Changed");
@@ -49,7 +49,7 @@ public class IncrementalUpdateTests
         Saved.Open(updated).Info.Subject.Should().Be("Changed");
     }
 
-    [Fact]
+    [Test]
     public void WhatWasNotChangedIsStillThere()
     {
         var updated = AppendChange(OriginalDocument(), document => document.Info.Subject = "Changed");
@@ -59,7 +59,7 @@ public class IncrementalUpdateTests
         reread.PageCount.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void TheAppendedSectionNamesTheNewRevisionsPredecessor()
     {
         // Without /Prev a reader sees the handful of objects in this revision and nothing else in
@@ -69,7 +69,7 @@ public class IncrementalUpdateTests
         Appended(updated, OriginalDocument().Length).Should().Contain("/Prev");
     }
 
-    [Fact]
+    [Test]
     public void OnlyWhatChangedIsWrittenAgain()
     {
         var original = OriginalDocument();
@@ -84,7 +84,7 @@ public class IncrementalUpdateTests
         appended.Should().Contain("/Subject", "and the thing that did change is there");
     }
 
-    [Fact]
+    [Test]
     public void AnUnchangedContentStreamIsNotWrittenAgain()
     {
         var original = OriginalDocument();
@@ -96,7 +96,7 @@ public class IncrementalUpdateTests
             "the drawing did not change, so its content stream stays where it was");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentIdentifiesItselfAcrossRevisionsAndIdentifiesEachRevisionApart()
     {
         var original = OriginalDocument();
@@ -111,7 +111,7 @@ public class IncrementalUpdateTests
             "/ID[1] names this revision of it");
     }
 
-    [Fact]
+    [Test]
     public void TwoSuccessiveUpdatesBothResolve()
     {
         // One update is easy to get right by accident. Two is not: the second has to point its
@@ -125,7 +125,7 @@ public class IncrementalUpdateTests
         reread.Info.Title.Should().Be("Original title", "and so is the original");
     }
 
-    [Fact]
+    [Test]
     public void APageAddedByAnUpdateIsThere()
     {
         var updated = AppendChange(OriginalDocument(), document => _ = document.AddPage());
@@ -133,7 +133,7 @@ public class IncrementalUpdateTests
         Saved.Open(updated).PageCount.Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void SomethingDrawnByAnUpdateIsThere()
     {
         var updated = AppendChange(OriginalDocument(), document =>
@@ -148,7 +148,7 @@ public class IncrementalUpdateTests
             "the page's content stream was rewritten into the appended revision");
     }
 
-    [Fact]
+    [Test]
     public void ChangingNothingStillProducesAReadableDocument()
     {
         // The producer string is always rewritten, so "nothing changed" is never literally nothing.
@@ -157,7 +157,7 @@ public class IncrementalUpdateTests
         Saved.Open(updated).Info.Title.Should().Be("Original title");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentOpenedToModifyCannotBeAppendedTo()
     {
         // Modify renumbers every object on the way in, so its numbers no longer mean what the file
@@ -170,7 +170,7 @@ public class IncrementalUpdateTests
         appending.Should().Throw<InvalidOperationException>().WithMessage("*Append*");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentCreatedFromScratchCannotBeAppendedTo()
     {
         var document = new PdfDocument();
@@ -181,7 +181,7 @@ public class IncrementalUpdateTests
         appending.Should().Throw<InvalidOperationException>();
     }
 
-    [Fact]
+    [Test]
     public void AppendingKeepsTheObjectNumbersTheFileWasWrittenWith()
     {
         // The assertion behind the whole design. An appended definition shadows the object its
@@ -205,7 +205,7 @@ public class IncrementalUpdateTests
             "appending must not move an object to a different number");
     }
 
-    [Fact]
+    [Test]
     public void ChangingAnEntryMarksItsObjectAsChanged()
     {
         var document = new PdfDocument();
@@ -216,7 +216,7 @@ public class IncrementalUpdateTests
         page.IsDirty.Should().BeTrue("every path that mutates a dictionary has to record it");
     }
 
-    [Fact]
+    [Test]
     public void RemovingAnEntryMarksItsObjectAsChanged()
     {
         var document = new PdfDocument();
@@ -228,7 +228,7 @@ public class IncrementalUpdateTests
         page.IsDirty.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ChangingAStreamMarksItsObjectAsChanged()
     {
         // The stream's Value setter writes /Length back into the dictionary, so it is caught by the
@@ -244,7 +244,7 @@ public class IncrementalUpdateTests
         dictionary.IsDirty.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ACallerThatReachesPastTheApiCanSayItChangedSomething()
     {
         var document = new PdfDocument();
@@ -255,7 +255,7 @@ public class IncrementalUpdateTests
         page.IsDirty.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AChangeMadeThroughATypedSetterIsAppendedToo()
     {
         // Six setters wrote to the backing dictionary directly and never said the object had
@@ -270,7 +270,7 @@ public class IncrementalUpdateTests
         Saved.Open(updated).Pages[0].Elements.GetRectangle("/CropBox").X1.Should().Be(10);
     }
 
-    [Fact]
+    [Test]
     public void ADateSetThroughSetDateTimeIsAppendedToo()
     {
         var original = OriginalDocument();
@@ -281,7 +281,7 @@ public class IncrementalUpdateTests
         Saved.Open(updated).Info.Elements.ContainsKey("/ModDate").Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ChangingAnArrayHeldInsideAPageRewritesThePage()
     {
         // The array is direct — it lives inside the page dictionary rather than being an object in
@@ -300,7 +300,7 @@ public class IncrementalUpdateTests
         Saved.Open(updated).Pages[0].Elements.GetArray("/Annots").Elements.Count.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AnIncrementalSaveRefusesAStreamThatIsNotEmpty()
     {
         // Handing this the file it was read from is the tempting mistake: the original is rewritten
@@ -316,7 +316,7 @@ public class IncrementalUpdateTests
         saving.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void TheOpenModesKeepTheNumbersTheyAlwaysHad()
     {
         // The compiler inlines an enum constant at the call site, so an assembly compiled against an
@@ -328,7 +328,7 @@ public class IncrementalUpdateTests
         ((int)PdfDocumentOpenMode.Append).Should().Be(4);
     }
 
-    [Fact]
+    [Test]
     public void ThreeStaysVacantWhereInformationOnlyWas()
     {
         // InformationOnly is gone, and the number it had must not be reused: an assembly compiled
@@ -337,7 +337,7 @@ public class IncrementalUpdateTests
         Enum.IsDefined(typeof(PdfDocumentOpenMode), 3).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ADocumentOpenedWithTheVacantNumberIsReadOnly()
     {
         // What an assembly compiled against InformationOnly does now. The value is not one this
@@ -353,7 +353,7 @@ public class IncrementalUpdateTests
         adding.Should().Throw<InvalidOperationException>();
     }
 
-    [Fact]
+    [Test]
     public void AskingAnUnencryptedDocumentAboutItsSecurityDoesNotEncryptTheRevision()
     {
         // SaveIncremental used to hand the writer whatever SecuritySettings.SecurityHandler answered,
@@ -372,7 +372,7 @@ public class IncrementalUpdateTests
         Saved.Open(updated).Info.Subject.Should().Be("Changed");
     }
 
-    [Fact]
+    [Test]
     public void AskingAnUnencryptedDocumentAboutAPermissionDoesNotEncryptTheRevision()
     {
         // The harder case. A permission getter goes through the security handler itself, and on a
@@ -392,7 +392,7 @@ public class IncrementalUpdateTests
         Saved.Open(updated).Info.Subject.Should().Be("Changed");
     }
 
-    [Fact]
+    [Test]
     public void AFilePaddedPastItsEndOfFileMarkerCanBeAppendedTo()
     {
         // Some producers - SAP among them, empira/PDFsharp#390 - write kilobytes or megabytes of

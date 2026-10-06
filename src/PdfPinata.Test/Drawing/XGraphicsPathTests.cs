@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -48,14 +48,14 @@ public class XGraphicsPathTests
 
     // ----- lines ---------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnEmptyPathDrawsNothing()
     {
         PointCount(_ => { }).Should().Be(0);
         FigureCount(_ => { }).Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void ALineIsAMoveAndALineTo()
     {
         var page = PageWith(path => path.AddLine(100, 100, 300, 200));
@@ -67,7 +67,7 @@ public class XGraphicsPathTests
         bounds.Height.Should().BeApproximately(100, 1e-3);
     }
 
-    [Fact]
+    [Test]
     public void ALineBetweenTwoPointsIsTheSameLineAsBetweenFourNumbers()
     {
         var byPoints = Bounds(path => path.AddLine(new XPoint(100, 100), new XPoint(300, 200)));
@@ -76,7 +76,7 @@ public class XGraphicsPathTests
         byPoints.Should().Be(byNumbers);
     }
 
-    [Fact]
+    [Test]
     public void ASecondLineJoinsTheFirstRatherThanStartingAgain()
     {
         // Both lines are one figure, and the second one's start is dropped because it is where
@@ -94,7 +94,7 @@ public class XGraphicsPathTests
         }).Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void ClosingAFigureMakesTheNextSegmentStartANewOne()
     {
         FigureCount(path =>
@@ -105,7 +105,7 @@ public class XGraphicsPathTests
         }).Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void ClosingAnEmptyFigureIsHarmless()
     {
         var act = () => PointCount(path => path.CloseFigure());
@@ -113,7 +113,7 @@ public class XGraphicsPathTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void AMoveOnItsOwnBeginsAFigureWhereverItIsAsked()
     {
         // AddMove exists so a caller can start a contour away from where the last one ended
@@ -126,7 +126,7 @@ public class XGraphicsPathTests
         }).Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void ASeriesOfLinesIsOneFigureWithOnePointEach()
     {
         var points = new[] { new XPoint(100, 100), new XPoint(200, 100), new XPoint(200, 200) };
@@ -135,7 +135,7 @@ public class XGraphicsPathTests
         PointCount(path => path.AddLines(points)).Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void ASeriesOfNoLinesAddsNothingAndASeriesOfNoneAtAllIsRefused()
     {
         PointCount(path => path.AddLines([])).Should().Be(0);
@@ -146,14 +146,14 @@ public class XGraphicsPathTests
 
     // ----- curves --------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ABezierIsAMoveAndThreeControlPoints()
     {
         PointCount(path => path.AddBezier(100, 100, 150, 50, 250, 50, 300, 100)).Should().Be(4);
         FigureCount(path => path.AddBezier(100, 100, 150, 50, 250, 50, 300, 100)).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void ABezierBetweenFourPointsIsTheSameCurveAsBetweenEightNumbers()
     {
         var byPoints = Bounds(path => path.AddBezier(
@@ -163,7 +163,7 @@ public class XGraphicsPathTests
         byPoints.Should().Be(byNumbers);
     }
 
-    [Fact]
+    [Test]
     public void ChainedBeziersShareTheirJoins()
     {
         // 4 + 3n points in, 4 + 3n points out: the first curve carries the move, and each later
@@ -183,11 +183,11 @@ public class XGraphicsPathTests
         FigureCount(path => path.AddBeziers(seven)).Should().Be(1);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(3)]
-    [InlineData(5)]
-    [InlineData(6)]
+    [Test]
+    [Arguments(0)]
+    [Arguments(3)]
+    [Arguments(5)]
+    [Arguments(6)]
     public void ABezierChainOfTheWrongLengthIsRefused(int count)
     {
         var points = new XPoint[count];
@@ -197,7 +197,7 @@ public class XGraphicsPathTests
         act.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void ABezierChainOfNothingAtAllIsRefused()
     {
         var act = () => new XGraphicsPath().AddBeziers(null);
@@ -205,7 +205,7 @@ public class XGraphicsPathTests
         act.Should().Throw<ArgumentNullException>();
     }
 
-    [Fact]
+    [Test]
     public void ASplineThroughTwoPointsIsOneCurve()
     {
         var points = new[] { new XPoint(100, 100), new XPoint(300, 200) };
@@ -214,7 +214,7 @@ public class XGraphicsPathTests
         FigureCount(path => path.AddCurve(points)).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void ASplineThroughFourPointsIsThreeCurves()
     {
         // One segment between each neighbouring pair, and the first and last are given a
@@ -227,7 +227,7 @@ public class XGraphicsPathTests
         PointCount(path => path.AddCurve(points)).Should().Be(10);
     }
 
-    [Fact]
+    [Test]
     public void TensionDecidesHowFarTheSplineBulges()
     {
         var points = new[]
@@ -243,7 +243,7 @@ public class XGraphicsPathTests
         taut.Height.Should().BeGreaterThan(slack.Height);
     }
 
-    [Fact]
+    [Test]
     public void ASplineThroughFewerThanTwoPointsIsRefused()
     {
         var act = () => new XGraphicsPath().AddCurve([new XPoint(1, 1)]);
@@ -251,7 +251,7 @@ public class XGraphicsPathTests
         act.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void TheSegmentedSplineOverloadIsNotImplementedAndSaysSo()
     {
         var points = new[] { new XPoint(100, 100), new XPoint(300, 200) };
@@ -263,14 +263,14 @@ public class XGraphicsPathTests
 
     // ----- arcs ----------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AQuarterArcIsASingleBezier()
     {
         PointCount(path => path.AddArc(100, 100, 200, 200, 0, 90)).Should().Be(4);
         FigureCount(path => path.AddArc(100, 100, 200, 200, 0, 90)).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AnArcInARectangleIsTheSameArcAsInFourNumbers()
     {
         var byRect = Bounds(path => path.AddArc(new XRect(100, 100, 200, 200), 0, 90));
@@ -279,7 +279,7 @@ public class XGraphicsPathTests
         byRect.Should().Be(byNumbers);
     }
 
-    [Fact]
+    [Test]
     public void AQuarterArcSpansAQuarterOfTheBoxItIsDrawnIn()
     {
         var bounds = Bounds(path => path.AddArc(100, 100, 200, 200, 0, 90));
@@ -288,7 +288,7 @@ public class XGraphicsPathTests
         bounds.Height.Should().BeApproximately(100, 0.5);
     }
 
-    [Fact]
+    [Test]
     public void AWholeTurnComesRoundToWhereItStarted()
     {
         var bounds = Bounds(path => path.AddArc(100, 100, 200, 200, 0, 360));
@@ -297,15 +297,15 @@ public class XGraphicsPathTests
         bounds.Height.Should().BeApproximately(200, 0.5);
     }
 
-    [Theory]
-    [InlineData(0, 45)]
-    [InlineData(0, -45)]
-    [InlineData(45, 180)]
-    [InlineData(45, -180)]
-    [InlineData(-90, 270)]
-    [InlineData(370, 30)]
-    [InlineData(0, 400)]
-    [InlineData(0, -400)]
+    [Test]
+    [Arguments(0, 45)]
+    [Arguments(0, -45)]
+    [Arguments(45, 180)]
+    [Arguments(45, -180)]
+    [Arguments(-90, 270)]
+    [Arguments(370, 30)]
+    [Arguments(0, 400)]
+    [Arguments(0, -400)]
     public void AnArcIsDrawnWhicheverQuadrantItStartsInAndWhicheverWayItGoes(
         double startAngle, double sweepAngle)
     {
@@ -318,7 +318,7 @@ public class XGraphicsPathTests
         ((points.Count - 1) % 3).Should().Be(0, "an arc is a move followed by whole Béziers");
     }
 
-    [Fact]
+    [Test]
     public void AnEllipticalArcNeedsItsAnglesCorrectingAndStillFitsItsBox()
     {
         var bounds = Bounds(path => path.AddArc(100, 100, 400, 100, 0, 360));
@@ -327,7 +327,7 @@ public class XGraphicsPathTests
         bounds.Height.Should().BeApproximately(100, 1);
     }
 
-    [Fact]
+    [Test]
     public void AnArcCanBeGivenAsTheTwoPointsItRunsBetween()
     {
         // The WPF spelling: where it starts, where it ends, how big the ellipse is, and which of
@@ -342,7 +342,7 @@ public class XGraphicsPathTests
             "the large arc goes the long way round and so reaches further from the chord");
     }
 
-    [Fact]
+    [Test]
     public void TheTwoSweepDirectionsGiveTheTwoDifferentArcs()
     {
         var clockwise = PathGeometry.PointsOf(PageWith(path => path.AddArc(
@@ -358,7 +358,7 @@ public class XGraphicsPathTests
 
     // ----- closed shapes -------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ARectangleIsFourPointsAndOneClosedFigure()
     {
         var page = PageWith(path => path.AddRectangle(new XRect(100, 100, 200, 50)));
@@ -370,14 +370,14 @@ public class XGraphicsPathTests
         bounds.Height.Should().BeApproximately(50, 1e-3);
     }
 
-    [Fact]
+    [Test]
     public void ARectangleFromFourNumbersIsTheSameRectangle()
     {
         Bounds(path => path.AddRectangle(100, 100, 200, 50))
             .Should().Be(Bounds(path => path.AddRectangle(new XRect(100, 100, 200, 50))));
     }
 
-    [Fact]
+    [Test]
     public void SeveralRectanglesAreSeveralFigures()
     {
         var rects = new[]
@@ -389,7 +389,7 @@ public class XGraphicsPathTests
         PointCount(path => path.AddRectangles(rects)).Should().Be(12);
     }
 
-    [Fact]
+    [Test]
     public void AnEllipseIsFourQuarterBeziersRoundOneMove()
     {
         var page = PageWith(path => path.AddEllipse(100, 100, 200, 100));
@@ -401,14 +401,14 @@ public class XGraphicsPathTests
         bounds.Height.Should().BeApproximately(100, 1e-3);
     }
 
-    [Fact]
+    [Test]
     public void AnEllipseInARectangleIsTheSameEllipse()
     {
         Bounds(path => path.AddEllipse(new XRect(100, 100, 200, 100)))
             .Should().Be(Bounds(path => path.AddEllipse(100, 100, 200, 100)));
     }
 
-    [Fact]
+    [Test]
     public void ARoundedRectangleFillsItsBoxAndCutsItsCorners()
     {
         var page = PageWith(path => path.AddRoundedRectangle(100, 100, 200, 100, 40, 40));
@@ -422,7 +422,7 @@ public class XGraphicsPathTests
         PathGeometry.PointsOf(page).Should().HaveCount(16);
     }
 
-    [Fact]
+    [Test]
     public void APolygonNamesEachCornerOnceAndClosesItself()
     {
         var points = new[] { new XPoint(100, 100), new XPoint(300, 100), new XPoint(200, 250) };
@@ -437,13 +437,13 @@ public class XGraphicsPathTests
         bounds.Height.Should().BeApproximately(150, 1e-3);
     }
 
-    [Fact]
+    [Test]
     public void APolygonOfNoCornersAddsNothing()
     {
         PointCount(path => path.AddPolygon([])).Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void APolygonIsClosedSoWhatFollowsItStartsAgain()
     {
         var points = new[] { new XPoint(100, 100), new XPoint(300, 100), new XPoint(200, 250) };
@@ -463,14 +463,14 @@ public class XGraphicsPathTests
     // read every property back exactly as it was set, and drew a page with the shape missing.
     // The tests below now say what the three do instead.
 
-    [Fact]
+    [Test]
     public void APieAddedToAPathIsDrawn()
     {
         PointCount(path => path.AddPie(100, 100, 200, 200, 0, 90)).Should().BeGreaterThan(0);
         PointCount(path => path.AddPie(new XRect(100, 100, 200, 200), 0, 90)).Should().BeGreaterThan(0);
     }
 
-    [Fact]
+    [Test]
     public void AClosedCurveAddedToAPathIsDrawn()
     {
         var points = new[] { new XPoint(100, 100), new XPoint(300, 100), new XPoint(200, 250) };
@@ -495,7 +495,7 @@ public class XGraphicsPathTests
     // and a pie filled as one region joining the two. Every other closed shape here - rectangle,
     // ellipse, polygon - starts its own figure, and these two now do the same.
 
-    [Fact]
+    [Test]
     public void APieAfterAnOpenFigureIsAFigureOfItsOwn()
     {
         FigureCount(path =>
@@ -505,7 +505,7 @@ public class XGraphicsPathTests
         }).Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void AClosedCurveAfterAnOpenFigureIsAFigureOfItsOwn()
     {
         var points = new[] { new XPoint(100, 100), new XPoint(300, 100), new XPoint(200, 250) };
@@ -517,7 +517,7 @@ public class XGraphicsPathTests
         }).Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void AnArcAfterAnOpenFigureStillContinuesIt()
     {
         // The counterpart of the two above, and the reason they are not simply "always MoveTo":
@@ -529,7 +529,7 @@ public class XGraphicsPathTests
         }).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AddingOnePathToAnotherAddsIt()
     {
         var other = new XGraphicsPath();
@@ -538,7 +538,7 @@ public class XGraphicsPathTests
         PointCount(path => path.AddPath(other, true)).Should().BeGreaterThan(0);
     }
 
-    [Fact]
+    [Test]
     public void FlatteningAndWideningDoNothingAndSayNothing()
     {
         // Both are stubs upstream. They are called by real drawing code, so they have to be
@@ -559,7 +559,7 @@ public class XGraphicsPathTests
         after.Should().Be(before);
     }
 
-    [Fact]
+    [Test]
     public void StartingAFigureExplicitlyBeginsANewContour()
     {
         // Two lines added one after the other are joined into one figure; StartFigure between
@@ -578,7 +578,7 @@ public class XGraphicsPathTests
         }).Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void StartingAFigureKeepsAConnectedPathApartToo()
     {
         var other = new XGraphicsPath();
@@ -592,7 +592,7 @@ public class XGraphicsPathTests
         }).Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void StartingAFigureAsksOnlyOnce()
     {
         // The request is spent by the segment that begins the new figure; the one after it
@@ -608,7 +608,7 @@ public class XGraphicsPathTests
 
     // ----- the path as an object -----------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AClonedPathHoldsTheSameShapeAndGoesItsOwnWayAfterwards()
     {
         var original = new XGraphicsPath();
@@ -621,7 +621,7 @@ public class XGraphicsPathTests
         PathGeometry.FigureCountOf(PageWith(clone)).Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void APathRemembersHowItIsToBeFilled()
     {
         var path = new XGraphicsPath();
@@ -632,7 +632,7 @@ public class XGraphicsPathTests
         path.FillMode.Should().Be(XFillMode.Winding);
     }
 
-    [Fact]
+    [Test]
     public void APathCanBeAskedForItsInternalsEvenThoughThereIsNothingThere()
     {
         // The accessor exists so that the public surface is not cluttered with internals; there
@@ -640,7 +640,7 @@ public class XGraphicsPathTests
         new XGraphicsPath().Internals.Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void DrawingAPathWithNeitherAPenNorABrushIsRefused()
     {
         var path = new XGraphicsPath();
@@ -662,7 +662,7 @@ public class XGraphicsPathTests
     // the shape missing - no exception and no warning. Same shape of defect as AddString, which
     // demonstration-app.md records being found and closed the same way: by drawing it and looking.
 
-    [Fact]
+    [Test]
     public void APieIsOneFigureThatStartsAtItsOwnCentre()
     {
         // The shape of a pie rather than merely the presence of one: a single contour that starts
@@ -678,7 +678,7 @@ public class XGraphicsPathTests
         points[0].Y.Should().BeApproximately(page.Height.Point - 175, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void APieInAPathIsTheSameShapeAsAPieDrawnStraightToThePage()
     {
         // The two must not be allowed to drift apart, because a caller reaches for whichever suits
@@ -703,7 +703,7 @@ public class XGraphicsPathTests
         fromPath.Height.Should().BeApproximately(fromPage.Height, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void AClosedCurveIsOneFigureAndCurvesAllTheWayRound()
     {
         // Where AddCurve leaves the two ends unjoined, a closed curve carries the smoothing across
@@ -717,7 +717,7 @@ public class XGraphicsPathTests
         closed.Count.Should().BeGreaterThan(open.Count);
     }
 
-    [Fact]
+    [Test]
     public void APathAddedToAPathIsDrawn()
     {
         var added = new XGraphicsPath();
@@ -734,7 +734,7 @@ public class XGraphicsPathTests
         }), "an appended path used to be dropped without a word");
     }
 
-    [Fact]
+    [Test]
     public void AnAppendedPathIsItsOwnFigureUnlessAskedToConnect()
     {
         var arch = new XGraphicsPath();
@@ -755,7 +755,7 @@ public class XGraphicsPathTests
         }).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void ConnectingToAClosedFigureStartsANewOneAnyway()
     {
         // A closed figure cannot be reopened, so connect is not merely ignored by accident here -
@@ -771,7 +771,7 @@ public class XGraphicsPathTests
         }).Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void AppendingAPathLeavesTheAppendedOneAlone()
     {
         var added = new XGraphicsPath();
@@ -785,7 +785,7 @@ public class XGraphicsPathTests
         PointCount(path => path.AddPath(added, connect: false)).Should().Be(before);
     }
 
-    [Fact]
+    [Test]
     public void AppendingANullPathIsRefused()
     {
         var act = () => new XGraphicsPath().AddPath(null, connect: false);

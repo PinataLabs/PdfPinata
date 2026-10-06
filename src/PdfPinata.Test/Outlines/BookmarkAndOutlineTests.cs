@@ -8,7 +8,7 @@ using PinataLayout.Rendering;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Outlines;
 
@@ -29,7 +29,7 @@ public class BookmarkAndOutlineTests
     /// </summary>
     private const double TopOfTheTextArea = 771.0;
 
-    [Fact]
+    [Test]
     public void AnOutlineEntryPointsAtTheHeadingRatherThanAtThePage()
     {
         var pdf = Render(document =>
@@ -41,7 +41,7 @@ public class BookmarkAndOutlineTests
         Destination(FirstOutline(pdf)).Top.Should().BeApproximately(TopOfTheTextArea, 2);
     }
 
-    [Fact]
+    [Test]
     public void AnOutlineEntryFurtherDownThePagePointsFurtherDown()
     {
         var pdf = Render(document =>
@@ -58,7 +58,7 @@ public class BookmarkAndOutlineTests
         top.Should().BeGreaterThan(0);
     }
 
-    [Fact]
+    [Test]
     public void ALocalHyperlinkPointsAtTheBookmarkRatherThanAtThePage()
     {
         var pdf = Render(TableOfContentsThenBookmark(BookmarkPlacement.OnTheParagraph));
@@ -73,7 +73,7 @@ public class BookmarkAndOutlineTests
     ///   It used to be dropped, so the link was never made and the page reference rendered as
     ///   "Bookmark 'x' is not defined within the document".
     /// </summary>
-    [Fact]
+    [Test]
     public void ABookmarkPutOnASectionIsNotDropped()
     {
         var pdf = Render(TableOfContentsThenBookmark(BookmarkPlacement.OnTheSection));
@@ -83,7 +83,7 @@ public class BookmarkAndOutlineTests
         dest.Top.Should().BeApproximately(TopOfTheTextArea, 2);
     }
 
-    [Fact]
+    [Test]
     public void ABookmarkAddedThroughAddBookmarkIsNotDropped()
     {
         var pdf = Render(TableOfContentsThenBookmark(BookmarkPlacement.ThroughAddBookmark));
@@ -96,7 +96,7 @@ public class BookmarkAndOutlineTests
     ///   bookmark against is the width of the paper. Getting this the wrong way round puts the
     ///   destination off the page.
     /// </summary>
-    [Fact]
+    [Test]
     public void ABookmarkOnALandscapePageIsMeasuredAgainstTheShorterSide()
     {
         var pdf = Render(document =>
@@ -111,7 +111,7 @@ public class BookmarkAndOutlineTests
         top.Should().BeApproximately(595 - 71, 3);
     }
 
-    [Fact]
+    [Test]
     public void AHyperlinkToABookmarkThatIsNotThereMakesNoLink()
     {
         var pdf = Render(document =>
@@ -128,7 +128,7 @@ public class BookmarkAndOutlineTests
     ///   A destination with no position is still what a link to an unknown place writes, so the
     ///   old shape has to keep working for callers using PdfPinata directly.
     /// </summary>
-    [Fact]
+    [Test]
     public void ADocumentLinkWithoutAPositionStillNamesOnlyThePage()
     {
         var document = new PdfDocument();
@@ -142,7 +142,7 @@ public class BookmarkAndOutlineTests
         double.IsNaN(dest.Top).Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ADocumentLinkGivenAPositionCarriesIt()
     {
         var document = new PdfDocument();

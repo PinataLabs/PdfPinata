@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Filters;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO.Filters;
 
@@ -116,12 +116,12 @@ public class PredictorTests
 
     // ----- the PNG predictors --------------------------------------------------------------------
 
-    [Theory]
-    [InlineData(0)]   // None
-    [InlineData(1)]   // Sub
-    [InlineData(2)]   // Up
-    [InlineData(3)]   // Average
-    [InlineData(4)]   // Paeth
+    [Test]
+    [Arguments(0)]   // None
+    [Arguments(1)]   // Sub
+    [Arguments(2)]   // Up
+    [Arguments(3)]   // Average
+    [Arguments(4)]   // Paeth
     public void EveryPngFilterTypeUndoesToTheDataItWasAppliedTo(byte filterType)
     {
         // One byte per component and one component per column, so a pixel is a byte and the
@@ -131,7 +131,7 @@ public class PredictorTests
         Unpredict(predicted, Parms(12, 1, 8, 6)).Should().Equal(Flat);
     }
 
-    [Fact]
+    [Test]
     public void EveryPngFilterTypeMayBeUsedOnADifferentRowOfTheSameStream()
     {
         // Which is the point of the per-row filter byte: an encoder picks whichever predicts that
@@ -142,7 +142,7 @@ public class PredictorTests
         Unpredict(predicted, Parms(15, 1, 8, Rows[0].Length)).Should().Equal(Flat);
     }
 
-    [Fact]
+    [Test]
     public void ColoursWidenThePixelSoTheLeftNeighbourIsAWholePixelBack()
     {
         // Three colours at eight bits each is three bytes to a pixel, so Sub subtracts the byte
@@ -158,7 +158,7 @@ public class PredictorTests
             .Should().Equal([..rows.SelectMany(row => row)]);
     }
 
-    [Fact]
+    [Test]
     public void APredictedStreamIsAsWideAsItsParametersSay()
     {
         // stride = ceiling(bpc x colours x columns / 8). Four columns of one bit is half a byte,
@@ -175,7 +175,7 @@ public class PredictorTests
     // component's range. There is no filter byte and no row above - each row starts afresh. The
     // predicted bytes below are worked out by hand.
 
-    [Fact]
+    [Test]
     public void TheTiffPredictorSubtractsTheSameComponentOfThePixelToTheLeft()
     {
         // Three colours at eight bits, three columns, two rows.
@@ -192,7 +192,7 @@ public class PredictorTests
             40, 50, 60, 35, 55, 5, 45, 50, 70);
     }
 
-    [Fact]
+    [Test]
     public void TheTiffPredictorReadsSixteenBitSamplesBigEndianAndCarriesBetweenTheirBytes()
     {
         // 0x1234, 0x1300, 0x12FF: the differences are 0x00CC, whose sum with 0x1234 carries out of
@@ -202,7 +202,7 @@ public class PredictorTests
         Unpredict(predicted, Parms(2, 1, 16, 3)).Should().Equal(0x12, 0x34, 0x13, 0x00, 0x12, 0xFF);
     }
 
-    [Fact]
+    [Test]
     public void TheTiffPredictorWorksOnSamplesSmallerThanAByteAndStartsEachRowOnAByte()
     {
         // Two bits, one colour, five columns: ten bits, so each row is two bytes and ends in six
@@ -214,7 +214,7 @@ public class PredictorTests
             0b01_11_00_10, 0b10_000000, 0b11_11_11_11, 0b11_000000);
     }
 
-    [Fact]
+    [Test]
     public void TheTiffPredictorTakesTheComponentsOfASubBytePixelSeparately()
     {
         // One bit, two colours, three columns: pixels (1,0) (1,1) (0,1), written as (1,0) (0,1)
@@ -224,7 +224,7 @@ public class PredictorTests
         Unpredict(predicted, Parms(2, 2, 1, 3)).Should().Equal(0b10_11_01_00);
     }
 
-    [Fact]
+    [Test]
     public void TheTiffPredictorLeavesATrailingPartRowAsItFoundIt()
     {
         // Four columns of one byte, and two bytes over: not a row, so nothing to undo in them.
@@ -233,9 +233,9 @@ public class PredictorTests
         Unpredict(predicted, Parms(2, 1, 8, 4)).Should().Equal(1, 2, 3, 4, 5, 5);
     }
 
-    [Theory]
-    [InlineData(3)]
-    [InlineData(32)]
+    [Test]
+    [Arguments(3)]
+    [Arguments(32)]
     public void TheTiffPredictorRefusesAComponentSizeThatIsNotAPowerOfTwoBits(int bitsPerComponent)
     {
         var act = () => Unpredict([1, 2, 3, 4], Parms(2, 1, bitsPerComponent, 4));
@@ -245,7 +245,7 @@ public class PredictorTests
 
     // ----- the predictors that are neither -------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void APredictorOfOneMeansTheDataWasNotPredictedAtAll()
     {
         var data = new byte[] { 1, 2, 3, 4 };
@@ -253,7 +253,7 @@ public class PredictorTests
         Unpredict(data, Parms(1, 0, 0, 0)).Should().Equal(data);
     }
 
-    [Fact]
+    [Test]
     public void NoParametersAtAllMeansTheDataWasNotPredictedEither()
     {
         var data = new byte[] { 1, 2, 3, 4 };
@@ -262,7 +262,7 @@ public class PredictorTests
             .Should().Equal(data);
     }
 
-    [Fact]
+    [Test]
     public void ParametersThatSayNothingFallBackToTheDefaultsTheReferenceGives()
     {
         // Predictor 1, one colour, eight bits, one column - and predictor 1 is no prediction, so
@@ -272,11 +272,11 @@ public class PredictorTests
         Unpredict(data, Parms(0, 0, 0, 0)).Should().Equal(data);
     }
 
-    [Theory]
-    [InlineData(3)]
-    [InlineData(9)]
-    [InlineData(16)]
-    [InlineData(100)]
+    [Test]
+    [Arguments(3)]
+    [Arguments(9)]
+    [Arguments(16)]
+    [Arguments(100)]
     public void APredictorThatIsNeitherOneNorTiffNorPngIsRefused(int predictor)
     {
         var act = () => Unpredict([1, 2, 3, 4], Parms(predictor, 1, 8, 4));
@@ -284,11 +284,11 @@ public class PredictorTests
         act.Should().Throw<PdfReaderException>().WithMessage("*predictor*");
     }
 
-    [Theory]
-    [InlineData(3)]
-    [InlineData(5)]
-    [InlineData(7)]
-    [InlineData(32)]
+    [Test]
+    [Arguments(3)]
+    [Arguments(5)]
+    [Arguments(7)]
+    [Arguments(32)]
     public void AComponentSizeThatIsNotAPowerOfTwoBitsIsRefused(int bitsPerComponent)
     {
         // One, two, four, eight and sixteen are the only sizes the reference allows.
@@ -297,7 +297,7 @@ public class PredictorTests
         act.Should().Throw<PdfReaderException>().WithMessage("*bits per component*");
     }
 
-    [Fact]
+    [Test]
     public void ARowFilteredBySomethingThatIsNotAPngFilterIsRefused()
     {
         // The filter byte at the head of each row must be 0 to 4. Anything else is a stream that

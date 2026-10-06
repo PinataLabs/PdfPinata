@@ -9,7 +9,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Drawing.BarCodes;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -30,16 +30,16 @@ public class CodeOmrTests
 
     private static CodeOmr Omr(string text = "1") => new(text, Size, CodeDirection.LeftToRight);
 
-    [Theory]
-    [InlineData(MarkDistance.Inch1_6, 1.0 / 6.0)]
-    [InlineData(MarkDistance.Inch2_6, 2.0 / 6.0)]
-    [InlineData(MarkDistance.Inch2_8, 2.0 / 8.0)]
+    [Test]
+    [Arguments(MarkDistance.Inch1_6, 1.0 / 6.0)]
+    [Arguments(MarkDistance.Inch2_6, 2.0 / 6.0)]
+    [Arguments(MarkDistance.Inch2_8, 2.0 / 8.0)]
     public void EachStandardDistanceIsTheFractionOfAnInchItIsNamedFor(MarkDistance distance, double inches)
     {
         CodeOmr.ToUnit(distance).Inch.Should().BeApproximately(inches, 1e-12);
     }
 
-    [Fact]
+    [Test]
     public void AValueThatIsNotInTheEnumIsRefusedAsOne()
     {
         var converting = () => CodeOmr.ToUnit((MarkDistance)99);
@@ -47,7 +47,7 @@ public class CodeOmrTests
         converting.Should().Throw<InvalidEnumArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void ANewCodeReadsAsOneSixthOfAnInch()
     {
         // The default MakerDistance has always been 12 points, so the typed view of it must
@@ -58,10 +58,10 @@ public class CodeOmrTests
         code.StandardMarkDistance.Should().Be(MarkDistance.Inch1_6);
     }
 
-    [Theory]
-    [InlineData(MarkDistance.Inch1_6, 12)]
-    [InlineData(MarkDistance.Inch2_6, 24)]
-    [InlineData(MarkDistance.Inch2_8, 18)]
+    [Test]
+    [Arguments(MarkDistance.Inch1_6, 12)]
+    [Arguments(MarkDistance.Inch2_6, 24)]
+    [Arguments(MarkDistance.Inch2_8, 18)]
     public void AssigningAStandardDistanceSetsTheDistanceInPoints(MarkDistance distance, double points)
     {
         var code = Omr();
@@ -72,7 +72,7 @@ public class CodeOmrTests
         code.StandardMarkDistance.Should().Be(distance);
     }
 
-    [Fact]
+    [Test]
     public void ADistanceInPointsThatIsStandardReadsAsTheOneItIs()
     {
         var code = Omr();
@@ -82,10 +82,10 @@ public class CodeOmrTests
         code.StandardMarkDistance.Should().Be(MarkDistance.Inch2_8);
     }
 
-    [Theory]
-    [InlineData(6, MarkDistance.Inch1_6)]
-    [InlineData(3, MarkDistance.Inch2_6)]
-    [InlineData(4, MarkDistance.Inch2_8)]
+    [Test]
+    [Arguments(6, MarkDistance.Inch1_6)]
+    [Arguments(3, MarkDistance.Inch2_6)]
+    [Arguments(4, MarkDistance.Inch2_8)]
     public void AStandardDistanceGivenInMillimetresReadsAsTheOneItIs(int perInch, MarkDistance expected)
     {
         // 25.4 / 6 mm converts to 12.000000000000002 points and 25.4 / 3 mm to 24.000000000000004:
@@ -98,7 +98,7 @@ public class CodeOmrTests
         code.StandardMarkDistance.Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void ADistanceInPointsThatIsNoStandardOneReadsAsNull()
     {
         var code = Omr();
@@ -108,7 +108,7 @@ public class CodeOmrTests
         code.StandardMarkDistance.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void NullIsRefusedAndLeavesTheDistanceAlone()
     {
         var code = Omr();
@@ -120,10 +120,10 @@ public class CodeOmrTests
         code.MakerDistance.Should().Be(24);
     }
 
-    [Theory]
-    [InlineData(MarkDistance.Inch1_6, 12)]
-    [InlineData(MarkDistance.Inch2_6, 24)]
-    [InlineData(MarkDistance.Inch2_8, 18)]
+    [Test]
+    [Arguments(MarkDistance.Inch1_6, 12)]
+    [Arguments(MarkDistance.Inch2_6, 24)]
+    [Arguments(MarkDistance.Inch2_8, 18)]
     public void TheMarksAreDrawnThatFarApart(MarkDistance distance, double points)
     {
         // "3" sets the two lowest bits, so after the synchronising mark there are two marks side

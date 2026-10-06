@@ -2,7 +2,7 @@ using System;
 using AwesomeAssertions;
 using PdfPinata.Charting.Tests.Helpers;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -22,7 +22,7 @@ public class ChartObjectModelTests
 {
     // ----- each piece can be built on its own -------------------------------------------------
 
-    [Fact]
+    [Test]
     public void EachPieceOfTheModelCanBeBuiltWithNoChartAroundIt()
     {
         new TickLabels().Font.Should().NotBeNull();
@@ -39,13 +39,13 @@ public class ChartObjectModelTests
     ///   A point built from a string is a category rather than a number, and its value is zero -
     ///   a category has a name and no height of its own.
     /// </summary>
-    [Fact]
+    [Test]
     public void APointBuiltFromAWordHasNoValueOfItsOwn()
     {
         new Point("Monday").Value.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void AFontCanBeBuiltFromANameAndASizeTogether()
     {
         var font = new Font("Palatino", XUnit.FromPoint(9));
@@ -62,7 +62,7 @@ public class ChartObjectModelTests
     ///   claim, and it is a claim nothing else in this suite makes: the renderers are driven
     ///   through a drawn chart, which only ever sets what that test varies.
     /// </summary>
-    [Fact]
+    [Test]
     public void AFontReadsBackEverythingItWasTold()
     {
         var font = new Font
@@ -90,7 +90,7 @@ public class ChartObjectModelTests
         font.Subscript.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ADataLabelReadsBackItsPositionAndItsType()
     {
         var label = new DataLabel
@@ -110,7 +110,7 @@ public class ChartObjectModelTests
     ///   A renderer reading one would fall through its switch and draw the label nowhere, which is
     ///   indistinguishable from a chart that was told not to label its points.
     /// </summary>
-    [Fact]
+    [Test]
     public void ADataLabelRefusesAPositionOrATypeThatIsNotOneOfTheNamedOnes()
     {
         var label = new DataLabel();
@@ -129,7 +129,7 @@ public class ChartObjectModelTests
     ///   original alone. The original is changed after the copy is taken, which is the only way a
     ///   shared child shows up at all.
     /// </summary>
-    [Fact]
+    [Test]
     public void ACopiedTickLabelBlockKeepsItsOwnFont()
     {
         var labels = new TickLabels { Format = "0.00", Font = { Name = "Palatino" } };
@@ -143,7 +143,7 @@ public class ChartObjectModelTests
         copy.Format.Should().Be("0.00");
     }
 
-    [Fact]
+    [Test]
     public void ACopiedAxisTitleKeepsItsOwnFont()
     {
         var title = new AxisTitle { Caption = "across", Font = { Name = "Palatino" } };
@@ -156,7 +156,7 @@ public class ChartObjectModelTests
         copy.Font.Name.Should().Be("Palatino");
     }
 
-    [Fact]
+    [Test]
     public void ACopiedDataLabelKeepsItsOwnFont()
     {
         var label = new DataLabel { Format = "0.0", Font = { Name = "Palatino" } };
@@ -169,7 +169,7 @@ public class ChartObjectModelTests
         copy.Font.Name.Should().Be("Palatino");
     }
 
-    [Fact]
+    [Test]
     public void ACopiedGridlineBlockKeepsItsOwnLineFormat()
     {
         var gridlines = new Gridlines { LineFormat = { Width = 3 } };
@@ -181,7 +181,7 @@ public class ChartObjectModelTests
         copy.LineFormat.Width.Point.Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void ACopiedPointKeepsItsOwnLineAndFillFormats()
     {
         var point = new Point(2.5)
@@ -200,7 +200,7 @@ public class ChartObjectModelTests
         copy.FillFormat.Color.Should().Be(XColors.Azure);
     }
 
-    [Fact]
+    [Test]
     public void ACopiedFontIsAFontOfItsOwn()
     {
         var font = new Font("Palatino", XUnit.FromPoint(9)) { Bold = true };
@@ -220,7 +220,7 @@ public class ChartObjectModelTests
     ///   lazily created children are created by the chart and the parent each one is given is the
     ///   chart's rather than none.
     /// </summary>
-    [Fact]
+    [Test]
     public void AChartCreatesEachOfThesePiecesTheFirstTimeItIsAskedForOne()
     {
         var chart = Charts.Empty(ChartType.Column2D);

@@ -50,7 +50,14 @@ public class LzwDecode : Filter
     /// <summary>
     /// Decodes the specified data.
     /// </summary>
-    public override byte[] Decode(byte[] data, FilterParms parms)
+    /// <remarks>
+    /// The string table and the read position are fields, and <see cref="Filtering.LzwDecode"/> is one
+    /// instance for the whole process - so each decode gets an instance of its own, or two documents
+    /// decoded on two threads at once would each read the other's table.
+    /// </remarks>
+    public override byte[] Decode(byte[] data, FilterParms parms) => new LzwDecode().DecodeAlone(data, parms);
+
+    private byte[] DecodeAlone(byte[] data, FilterParms parms)
     {
         if (data[0] == 0x00 && data[1] == 0x01)
             throw new Exception("LZW flavour not supported.");

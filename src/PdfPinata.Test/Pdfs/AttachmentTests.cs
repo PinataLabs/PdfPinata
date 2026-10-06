@@ -9,7 +9,7 @@ using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
 
@@ -39,7 +39,7 @@ public class AttachmentTests
 
     // ── What a document says when nothing is attached ───────────────────────────────────────────
 
-    [Fact]
+    [Test]
     public void ADocumentCarriesNothingUntilSomethingIsAttached()
     {
         var document = new PdfDocument();
@@ -49,7 +49,7 @@ public class AttachmentTests
         document.Attachments.Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void AskingWhatADocumentCarriesDoesNotMakeItCarryAnything()
     {
         // Reading the collection looks at the catalog rather than building anything, so a document
@@ -63,7 +63,7 @@ public class AttachmentTests
 
     // ── Where an attachment goes ────────────────────────────────────────────────────────────────
 
-    [Fact]
+    [Test]
     public void AnAttachedFileIsBothAssociatedWithTheDocumentAndListedForAReader()
     {
         // Both, because either alone is half a job: a file only in /AF is invisible to a reader's
@@ -79,7 +79,7 @@ public class AttachmentTests
         names.Elements.GetDictionary("/EmbeddedFiles").Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void TheSpecificationIsOneObjectRatherThanOneCopyPerPlaceItIsMentioned()
     {
         // Both mentions hold a reference to the same object. Two copies would drift apart the first
@@ -89,7 +89,7 @@ public class AttachmentTests
         reread.Attachments.Count.Should().Be(1, "the one file is listed in two places, not two files");
     }
 
-    [Fact]
+    [Test]
     public void AnAttachmentSurvivesBeingSavedAndReopened()
     {
         var reread = SaveAndReopen(document => Attach(document, PdfAFRelationship.Data));
@@ -102,7 +102,7 @@ public class AttachmentTests
         attachment.EmbeddedFile.MimeType.Should().Be("/text/xml");
     }
 
-    [Fact]
+    [Test]
     public void AnAttachmentNobodyNamedATypeForIsStillTyped()
     {
         // PDF/A-3 requires the media type of every attachment, and the standard names this value for
@@ -115,7 +115,7 @@ public class AttachmentTests
             .Should().Be("/application/octet-stream");
     }
 
-    [Fact]
+    [Test]
     public void PdfA3RefusesAnAttachmentThatWillNotSayWhatKindOfFileItIs()
     {
         var saving = () => Save(document =>
@@ -129,7 +129,7 @@ public class AttachmentTests
             .WithMessage("*what kind of file*factur-x.xml*MimeType*");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentCarryingAnAttachmentSaysItIsNewEnoughToHaveOne()
     {
         // /UF is PDF 1.7 and /AF later still. A document announcing 1.4 while carrying them tells a
@@ -140,7 +140,7 @@ public class AttachmentTests
         Latin1(bytes).Should().StartWith("%PDF-1.7");
     }
 
-    [Fact]
+    [Test]
     public void AnAttachmentRaisesTheVersionRatherThanSettingIt()
     {
         var bytes = Save(document =>
@@ -153,7 +153,7 @@ public class AttachmentTests
             "a cross-reference stream asks for 1.5 and an attachment for 1.7, and the higher wins");
     }
 
-    [Fact]
+    [Test]
     public void AnEmbeddedFileNamedOnlyByTheUnicodeKeyIsStillFound()
     {
         // The /EF dictionary mirrors the keys the specification carries, so a producer may name the
@@ -173,7 +173,7 @@ public class AttachmentTests
         attachment.EmbeddedFile.Stream.UnfilteredValue.Should().Equal(1, 2, 3);
     }
 
-    [Fact]
+    [Test]
     public void PdfA1StillRefusesAFileNamedOnlyByTheUnicodeKey()
     {
         var saving = () => Save(document =>
@@ -191,7 +191,7 @@ public class AttachmentTests
             .WithMessage("*may not carry an embedded file*elsewhere.txt*");
     }
 
-    [Fact]
+    [Test]
     public void ClearingAnEmbeddedFileClearsItUnderEitherKey()
     {
         var document = new PdfDocument();
@@ -206,7 +206,7 @@ public class AttachmentTests
         attachment.EmbeddedFile.Should().BeNull("a specification cleared under one key is not cleared");
     }
 
-    [Fact]
+    [Test]
     public void TheAttachedBytesComeBackOut()
     {
         // The point of the whole exercise for an e-invoice: a system reads the XML back out of the
@@ -218,7 +218,7 @@ public class AttachmentTests
         Encoding.UTF8.GetString(bytes).Should().Be(InvoiceXml);
     }
 
-    [Fact]
+    [Test]
     public void AnAttachmentRecordsWhenItWasLastModified()
     {
         // PDF/A-3 asks for it, and an archive that cannot say how old what it keeps is has lost half
@@ -241,12 +241,12 @@ public class AttachmentTests
 
     // ── The relationship ────────────────────────────────────────────────────────────────────────
 
-    [Theory]
-    [InlineData(PdfAFRelationship.Source, "/Source")]
-    [InlineData(PdfAFRelationship.Data, "/Data")]
-    [InlineData(PdfAFRelationship.Alternative, "/Alternative")]
-    [InlineData(PdfAFRelationship.Supplement, "/Supplement")]
-    [InlineData(PdfAFRelationship.Unspecified, "/Unspecified")]
+    [Test]
+    [Arguments(PdfAFRelationship.Source, "/Source")]
+    [Arguments(PdfAFRelationship.Data, "/Data")]
+    [Arguments(PdfAFRelationship.Alternative, "/Alternative")]
+    [Arguments(PdfAFRelationship.Supplement, "/Supplement")]
+    [Arguments(PdfAFRelationship.Unspecified, "/Unspecified")]
     public void EachRelationshipIsWrittenAsItsOwnName(PdfAFRelationship relationship, string name)
     {
         var bytes = Save(document => Attach(document, relationship));
@@ -254,7 +254,7 @@ public class AttachmentTests
         Latin1(bytes).Should().Contain("/AFRelationship " + name);
     }
 
-    [Fact]
+    [Test]
     public void AnAttachmentWithNothingToSayStillSaysThat()
     {
         // /Unspecified rather than a missing entry. PDF/A-3 wants the entry there, and "I do not
@@ -265,7 +265,7 @@ public class AttachmentTests
         reread.Attachments.Single().Relationship.Should().Be(PdfAFRelationship.Unspecified);
     }
 
-    [Fact]
+    [Test]
     public void ARelationshipFromALaterStandardReadsAsUnspecifiedRatherThanThrowing()
     {
         // ISO 32000-2 has three this enumeration does not, and a document is entitled to use one.
@@ -282,7 +282,7 @@ public class AttachmentTests
 
     // ── The name is what identifies an attachment ───────────────────────────────────────────────
 
-    [Fact]
+    [Test]
     public void TwoAttachmentsMayNotShareAName()
     {
         var document = new PdfDocument();
@@ -294,7 +294,7 @@ public class AttachmentTests
         attaching.Should().Throw<InvalidOperationException>().WithMessage("*already carries*factur-x.xml*");
     }
 
-    [Fact]
+    [Test]
     public void TheListedNamesAreSortedWhateverOrderTheyWereAttachedIn()
     {
         // A reader is entitled to binary-search a name tree, even one that is a single node.
@@ -307,9 +307,9 @@ public class AttachmentTests
         Keys(document).Should().ContainInOrder("alpha.txt", "middle.txt", "zeta.txt");
     }
 
-    [Theory]
-    [InlineData("")]
-    [InlineData(null)]
+    [Test]
+    [Arguments("")]
+    [Arguments(null)]
     public void AnAttachmentHasToBeNamed(string fileName)
     {
         var document = new PdfDocument();
@@ -320,7 +320,7 @@ public class AttachmentTests
         attaching.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AnAttachmentHasToHaveContent()
     {
         var document = new PdfDocument();
@@ -333,7 +333,7 @@ public class AttachmentTests
 
     // ── Taking one back off ─────────────────────────────────────────────────────────────────────
 
-    [Fact]
+    [Test]
     public void AnAttachmentCanBeTakenBackOffAgain()
     {
         var document = new PdfDocument();
@@ -348,7 +348,7 @@ public class AttachmentTests
             .Should().BeNull("an empty association array says less than no array at all");
     }
 
-    [Fact]
+    [Test]
     public void RemovingAFileTheDocumentDoesNotCarrySaysSo()
     {
         var document = new PdfDocument();
@@ -361,7 +361,7 @@ public class AttachmentTests
 
     // ── Reading what another producer wrote ─────────────────────────────────────────────────────
 
-    [Fact]
+    [Test]
     public void AnAttachmentListedOnlyInTheNameTreeIsStillFound()
     {
         // How every attachment written before /AF existed looks, and how a plain Acrobat attachment
@@ -386,11 +386,11 @@ public class AttachmentTests
     ///   entering each node once.
     /// </summary>
     /// <remarks>
-    ///   Wrapped in <see cref="Task.Run(Func{Task})"/> because xUnit honours a timeout only on an async test, and
+    ///   Wrapped in <see cref="Task.Run(Func{Task})"/> because a timeout is honoured only on an async test, and
     ///   a timeout is the whole point here: without one a regression stops the run instead of failing
     ///   it, and a stopped run is the failure mode this repository already has to be careful about.
     /// </remarks>
-    [Fact(Timeout = 30000)]
+    [Test, Timeout(30000)]
     public async Task ANameTreeThatLeadsBackIntoItselfIsGivenUpOnRatherThanWalkedForever()
     {
         await Task.Run(() =>
@@ -415,7 +415,7 @@ public class AttachmentTests
         });
     }
 
-    [Fact(Timeout = 30000)]
+    [Test, Timeout(30000)]
     public async Task ADestinationTreeThatLeadsBackIntoItselfIsGivenUpOnToo()
     {
         // The same shape on the lookup path, which searches rather than enumerates and had the same
@@ -455,9 +455,9 @@ public class AttachmentTests
 
     // ── What the archival profiles make of it ───────────────────────────────────────────────────
 
-    [Theory]
-    [InlineData(PdfAConformance.PdfA1B)]
-    [InlineData(PdfAConformance.PdfA2B)]
+    [Test]
+    [Arguments(PdfAConformance.PdfA1B)]
+    [Arguments(PdfAConformance.PdfA2B)]
     public void OnlyPdfA3MayCarryAnAttachment(PdfAConformance conformance)
     {
         var saving = () => Save(document =>
@@ -470,7 +470,7 @@ public class AttachmentTests
             .WithMessage("*may not carry an embedded file*factur-x.xml*");
     }
 
-    [Fact]
+    [Test]
     public void PdfA3CarriesAnAttachmentAndSaysWhatItIs()
     {
         var bytes = Save(document =>
@@ -485,7 +485,7 @@ public class AttachmentTests
         text.Should().Contain("/AF");
     }
 
-    [Fact]
+    [Test]
     public void AnAttachmentHangingOffAnAnnotationIsSeenByTheCheckToo()
     {
         // The defect the check had while it looked only at the name tree: a file attachment
@@ -501,7 +501,7 @@ public class AttachmentTests
             .WithMessage("*may not carry an embedded file*attached.txt*");
     }
 
-    [Fact]
+    [Test]
     public void PdfA3RefusesAFileThatIsInTheDocumentButNotOfIt()
     {
         var saving = () => Save(document =>
@@ -514,7 +514,7 @@ public class AttachmentTests
             .WithMessage("*attached.txt*associated with nothing*Attachments.Associate*");
     }
 
-    [Fact]
+    [Test]
     public void AssociatingAnAnnotationsFileIsWhatPdfA3WantedAllAlong()
     {
         // Nothing is attached twice: the same specification gains one more mention, which is the
@@ -531,7 +531,7 @@ public class AttachmentTests
         Latin1(bytes).Should().Contain("/AFRelationship /Supplement");
     }
 
-    [Fact]
+    [Test]
     public void PdfA3RefusesAnAttachmentThatWillNotSayWhatItIs()
     {
         // Refused rather than written as /Unspecified. Deciding what an attachment means is the one
@@ -547,7 +547,7 @@ public class AttachmentTests
             .WithMessage("*factur-x.xml*says nothing*Relationship*");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentThatAttachesNothingIsUnaffectedByAnyOfThis()
     {
         var bytes = Save(Conforming(PdfAConformance.PdfA3B));

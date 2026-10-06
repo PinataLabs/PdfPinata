@@ -7,7 +7,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -23,7 +23,7 @@ namespace PdfPinata.Test.Fonts;
 /// </remarks>
 public class CidFontConformanceTests
 {
-    [Fact]
+    [Test]
     public void ADescendantFontSaysItsGlyphMappingIsTheIdentity()
     {
         // ISO 32000-1 Table 117 makes /CIDToGIDMap optional with a default of /Identity, and PDF/A
@@ -36,7 +36,7 @@ public class CidFontConformanceTests
         cidFont.Elements.GetName("/CIDToGIDMap").Should().Be("/Identity");
     }
 
-    [Fact]
+    [Test]
     public void APdfA1DocumentSaysWhichGlyphsItsSubsetHolds()
     {
         // PDF/A-1 clause 6.3.5 wants a /CIDSet on every subset CIDFont, and every CID font this
@@ -53,7 +53,7 @@ public class CidFontConformanceTests
         (set.Stream.Value[0] & 0x80).Should().NotBe(0, "every font program holds .notdef");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentClaimingNothingCarriesNoCidSet()
     {
         // PDF/A-2 dropped the requirement as redundant, so this is bytes that exactly one profile
@@ -64,7 +64,7 @@ public class CidFontConformanceTests
         descriptor.Elements.GetDictionary("/CIDSet").Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void APdfA2DocumentCarriesNoCidSetEither()
     {
         var descriptor = FontDescriptorOf(Saved(document =>

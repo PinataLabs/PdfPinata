@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.Rendering.Tests.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -15,7 +15,7 @@ namespace PinataLayout.Rendering.Tests;
 /// </summary>
 public class NestedFootnoteTests
 {
-    [Fact]
+    [Test]
     public void AFootnoteInsideAFootnoteIsRefusedRatherThanDropped()
     {
         var document = new Document();
@@ -31,7 +31,7 @@ public class NestedFootnoteTests
             .WithMessage("*another footnote*");
     }
 
-    [Fact]
+    [Test]
     public void AnImageInAFootnoteIsDrawn()
     {
         var document = new Document();
@@ -45,7 +45,7 @@ public class NestedFootnoteTests
         Glyphs.On(page).Should().ContainInOrder(Glyphs.For("The support."));
     }
 
-    [Fact]
+    [Test]
     public void ATextFrameInAFootnoteIsDrawn()
     {
         var document = new Document();

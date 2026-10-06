@@ -9,7 +9,7 @@ using PdfPinata.Pdf.AcroForms;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.Security;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -26,34 +26,34 @@ public class UnicodeTextStringTests
     private const string Accented = "Ångström";
     private const string Japanese = "日本語";
 
-    [Theory]
-    [InlineData("Plain text")]
-    [InlineData("")]
-    [InlineData("()\\ escapes and \t tabs")]
+    [Test]
+    [Arguments("Plain text")]
+    [Arguments("")]
+    [Arguments("()\\ escapes and \t tabs")]
     public void AStringAsciiCanSpellKeepsBeingWrittenOneBytePerCharacter(string text)
     {
         new PdfString(text).Encoding.Should().Be(PdfStringEncoding.RawEncoding);
     }
 
-    [Theory]
-    [InlineData(Accented)]
-    [InlineData(Japanese)]
+    [Test]
+    [Arguments(Accented)]
+    [Arguments(Japanese)]
     // Latin-1 fits in a byte, but that byte does not mean the same character in the
     // encodings a reader may assume, so it is text for Unicode too.
-    [InlineData("Grüße")]
+    [Arguments("Grüße")]
     public void AStringAsciiCannotSpellIsWrittenAsUnicode(string text)
     {
         new PdfString(text).Encoding.Should().Be(PdfStringEncoding.Unicode);
     }
 
-    [Fact]
+    [Test]
     public void AStringAskedToBeRawIsStillRaw()
     {
         new PdfString(Accented, PdfStringEncoding.RawEncoding).Encoding
             .Should().Be(PdfStringEncoding.RawEncoding);
     }
 
-    [Fact]
+    [Test]
     public void ATextFieldValueOutsideAsciiIsReadBackAsItWasSet()
     {
         var reread = Saved.Open(SaveDocumentWithTextField(Accented));
@@ -61,7 +61,7 @@ public class UnicodeTextStringTests
         TextFieldOf(reread).Text.Should().Be(Accented);
     }
 
-    [Fact]
+    [Test]
     public void ATextFieldValueOutsideAsciiIsWrittenAsUnicode()
     {
         var written = AsLatin1(SaveDocumentWithTextField(Accented));
@@ -69,7 +69,7 @@ public class UnicodeTextStringTests
         written.Should().Contain("/V " + HexString(Accented));
     }
 
-    [Fact]
+    [Test]
     public void ATextFieldValueWithinAsciiIsWrittenExactlyAsBefore()
     {
         var written = AsLatin1(SaveDocumentWithTextField("Plain text"));
@@ -77,7 +77,7 @@ public class UnicodeTextStringTests
         written.Should().Contain("/V (Plain text)");
     }
 
-    [Fact]
+    [Test]
     public void AnAnnotationOutsideAsciiIsReadBackAsItWasSet()
     {
         var document = new PdfDocument();
@@ -102,9 +102,9 @@ public class UnicodeTextStringTests
     ///   Written as UTF-16BE they would no longer be the key, and the document would not open
     ///   in any reader, including this one.
     /// </summary>
-    [Theory]
-    [InlineData(PdfDocumentSecurityLevel.Encrypted40Bit)]
-    [InlineData(PdfDocumentSecurityLevel.Encrypted128Bit)]
+    [Test]
+    [Arguments(PdfDocumentSecurityLevel.Encrypted40Bit)]
+    [Arguments(PdfDocumentSecurityLevel.Encrypted128Bit)]
     public void TheEncryptionKeysAreStillWrittenAsBytes(PdfDocumentSecurityLevel level)
     {
         const string ownerPassword = "12343";
@@ -128,7 +128,7 @@ public class UnicodeTextStringTests
     ///   A checksum is the bytes of a digest, so the bytes above ASCII in it are not
     ///   characters and must not be spelled out as any.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnEmbeddedFileChecksumIsStillWrittenAsBytes()
     {
         var document = new PdfDocument();
@@ -148,7 +148,7 @@ public class UnicodeTextStringTests
     ///   and is where such a name survives, so it is also the entry to read the name back
     ///   from when a document has one.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnEmbeddedFileNameOutsideAsciiIsKeptInTheUnicodeEntry()
     {
         var specification = FileSpecificationNamed(Accented + ".txt");
@@ -160,7 +160,7 @@ public class UnicodeTextStringTests
         specification.FileName.Should().Be(Accented + ".txt");
     }
 
-    [Fact]
+    [Test]
     public void AnEmbeddedFileNameWithinAsciiIsWrittenExactlyAsBefore()
     {
         var specification = FileSpecificationNamed("plain.txt");
@@ -175,7 +175,7 @@ public class UnicodeTextStringTests
     /// <summary>
     ///   A document written before /UF was set, or by another library, has only /F.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnEmbeddedFileNameIsStillReadFromTheOldEntryAlone()
     {
         var specification = FileSpecificationNamed("plain.txt");

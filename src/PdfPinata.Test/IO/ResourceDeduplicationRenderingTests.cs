@@ -6,8 +6,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
-using Xunit.Abstractions;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -17,8 +16,8 @@ namespace PdfPinata.Test.IO;
 ///   <see cref="PdfDocumentOptions.DeduplicateResources" /> saves on that, and render the merged
 ///   file with and without it to show that it draws the same.
 /// </summary>
-[Collection(RasterizingCollection.Name)]
-public class ResourceDeduplicationRenderingTests(ITestOutputHelper output)
+[Rasterizing]
+public class ResourceDeduplicationRenderingTests
 {
     private const string OutDir = "Out/ResourceDeduplication";
 
@@ -30,7 +29,7 @@ public class ResourceDeduplicationRenderingTests(ITestOutputHelper output)
 
     private const int Copies = 20;
 
-    [Fact]
+    [Test]
     public void MergingOneDocumentManyTimesWeighsLittleMoreThanOneCopy()
     {
         var single = ADocumentWithTextAndAnImage();
@@ -38,7 +37,7 @@ public class ResourceDeduplicationRenderingTests(ITestOutputHelper output)
         var plain = SizeOf(Merged(Enumerable.Repeat(single, Copies), deduplicate: false));
         var deduplicated = SizeOf(Merged(Enumerable.Repeat(single, Copies), deduplicate: true));
 
-        output.WriteLine($"one copy {single.Length:N0} bytes; {Copies} copies merged {plain:N0}; deduplicated {deduplicated:N0}");
+        TestContext.Current!.Output.WriteLine($"one copy {single.Length:N0} bytes; {Copies} copies merged {plain:N0}; deduplicated {deduplicated:N0}");
 
         plain.Should().BeGreaterThan(Copies * single.Length * 9 / 10, "without the option every copy is written out");
 
@@ -46,14 +45,14 @@ public class ResourceDeduplicationRenderingTests(ITestOutputHelper output)
         deduplicated.Should().BeLessThan(single.Length * 2);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AMergedDocumentDrawsTheSameDeduplicated()
     {
         var single = ADocumentWithTextAndAnImage();
         DrawsTheSame([..Enumerable.Repeat(single, 3)], "generated");
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void MergedAssetsDrawTheSameDeduplicated()
     {
         var assets = new[] { "FamilyTree.pdf", "test.pdf", "Pdf20.pdf" }
@@ -63,7 +62,7 @@ public class ResourceDeduplicationRenderingTests(ITestOutputHelper output)
         var documents = assets.Concat(assets).ToList();
         var plain = SizeOf(Merged(documents, deduplicate: false));
         var deduplicated = SizeOf(Merged(documents, deduplicate: true));
-        output.WriteLine($"assets merged twice {plain:N0} bytes; deduplicated {deduplicated:N0}");
+        TestContext.Current!.Output.WriteLine($"assets merged twice {plain:N0} bytes; deduplicated {deduplicated:N0}");
         deduplicated.Should().BeLessThan(plain);
 
         DrawsTheSame(documents, "assets");

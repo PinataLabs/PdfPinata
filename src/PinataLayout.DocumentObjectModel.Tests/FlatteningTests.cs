@@ -2,7 +2,7 @@ using System;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.Tables;
 using PinataLayout.DocumentObjectModel.Visitors;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -27,7 +27,7 @@ public class FlatteningTests
 
     // ----- styles into paragraphs ---------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AParagraphTakesOnWhatItsStyleSaysWithoutLosingWhatItSaysItself()
     {
         var document = new Document();
@@ -49,7 +49,7 @@ public class FlatteningTests
         paragraph.Format.Font.Italic.Should().BeTrue("and this was the paragraph's own");
     }
 
-    [Fact]
+    [Test]
     public void AParagraphKeepsItsOwnAnswerWhereItDisagreesWithItsStyle()
     {
         // The whole point of setting a property on a paragraph that already has a style.
@@ -64,7 +64,7 @@ public class FlatteningTests
         paragraph.Format.Font.Size.Point.Should().BeApproximately(8, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void AStyleBuiltOnAnotherBringsWhatBothOfThemSay()
     {
         var document = new Document();
@@ -81,8 +81,8 @@ public class FlatteningTests
         paragraph.Format.Font.Color.Should().Be(Colors.Purple, "from the style itself");
     }
 
-    [Theory]
-    [MemberData(nameof(FontMemberCases.All), MemberType = typeof(FontMemberCases))]
+    [Test]
+    [MethodDataSource(typeof(FontMemberCases), nameof(FontMemberCases.All))]
     public void AStyleSettingAnyFontMemberPassesItDownToAParagraph(string member, Action<Font> set,
         Func<Font, object> read)
     {
@@ -100,7 +100,7 @@ public class FlatteningTests
             .Be(read(style.Font), $"{member} should have been inherited from the style");
     }
 
-    [Fact]
+    [Test]
     public void AParagraphInsideACellIsFlattenedToo()
     {
         // The visitor has to reach every collection of elements, not only a section's own. A cell,
@@ -123,7 +123,7 @@ public class FlatteningTests
 
     // ----- page setup ------------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ASectionsUnsetPageSetupIsFilledInFromTheDocumentDefault()
     {
         var document = new Document();
@@ -141,7 +141,7 @@ public class FlatteningTests
             "the default format is A4, and flattening turns the name into a size");
     }
 
-    [Fact]
+    [Test]
     public void EachSectionIsFilledInFromWhatItSaysRatherThanFromTheOneBeforeIt()
     {
         var document = new Document();
@@ -158,7 +158,7 @@ public class FlatteningTests
         second.PageWidth.Point.Should().BeApproximately(a6Width.Point, 1);
     }
 
-    [Fact]
+    [Test]
     public void FlatteningTwiceLeavesTheSameDocument()
     {
         // The renderer prepares a document before every render, and a document rendered twice must
@@ -190,7 +190,7 @@ public class FlatteningTests
         return table;
     }
 
-    [Fact]
+    [Test]
     public void AMergedCellCoversTheOnesItSwallowedAndTheyAreNotInTheList()
     {
         var table = ThreeByThree();
@@ -206,7 +206,7 @@ public class FlatteningTests
             "a cell that was not merged covers itself");
     }
 
-    [Fact]
+    [Test]
     public void ACellThatWasMergedAwayHasNoBordersToAskFor()
     {
         // It is not drawn, so asking how to draw it is the caller's mistake rather than a case to
@@ -220,7 +220,7 @@ public class FlatteningTests
         act.Should().Throw<ArgumentException>().WithParameterName("cell");
     }
 
-    [Fact]
+    [Test]
     public void ACellKeepsItsOwnBorderWhereItHasOne()
     {
         var table = ThreeByThree();
@@ -236,7 +236,7 @@ public class FlatteningTests
     ///   rule is that the heavier border wins, so that a table with one emphasised row does not end
     ///   up with the line either side of it drawn differently depending on which cell was asked.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheHeavierOfTwoNeighbouringBordersIsTheOneBothCellsGet()
     {
         var table = ThreeByThree();
@@ -249,7 +249,7 @@ public class FlatteningTests
             "the neighbour's heavier right border is what is drawn between them");
     }
 
-    [Fact]
+    [Test]
     public void TheBorderOfACellMergedRightComesFromTheCellAtTheFarEnd()
     {
         // The right-hand edge of a merged run is the right-hand edge of the last cell in it, which
@@ -263,7 +263,7 @@ public class FlatteningTests
         borders.Right.Width.Point.Should().BeApproximately(6, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void TheBorderOfACellMergedDownComesFromTheCellAtTheBottom()
     {
         var table = ThreeByThree();
@@ -275,7 +275,7 @@ public class FlatteningTests
         borders.Bottom.Width.Point.Should().BeApproximately(7, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void ATableWithNothingMergedListsEveryCellItHas()
     {
         var table = ThreeByThree();
@@ -283,7 +283,7 @@ public class FlatteningTests
         new MergedCellList(table).Count.Should().Be(9);
     }
 
-    [Fact]
+    [Test]
     public void TheCellsAreListedRowByRowFromTheTopLeft()
     {
         // The list is binary-searched by position, so the order is not cosmetic.

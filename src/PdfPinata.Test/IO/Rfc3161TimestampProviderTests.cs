@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Signing;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -32,7 +32,7 @@ public class Rfc3161TimestampProviderTests
     private static readonly Lazy<X509Certificate2> AuthorityCertificate =
         new(() => SigningCertificates.CreateTimestampAuthority("CN=PdfPinata Test TSA"));
 
-    [Fact]
+    [Test]
     public void AGenuineResponseYieldsItsToken()
     {
         using var handler = new FakeAuthority(request => new ByteArrayContent(GenuineResponseTo(request)));
@@ -44,7 +44,7 @@ public class Rfc3161TimestampProviderTests
         Rfc3161TimestampToken.TryDecode(token, out _, out _).Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void TheRequestAsksTheAuthorityForItsCertificate()
     {
         byte[] query = null;
@@ -63,7 +63,7 @@ public class Rfc3161TimestampProviderTests
             "RFC 3161 2.4.1 lets an authority leave its certificate out of the token unless certReq asks for it");
     }
 
-    [Fact]
+    [Test]
     public void ASignatureTimestampedThroughTheProviderCarriesTheAuthoritysCertificate()
     {
         using var handler = new FakeAuthority(request => new ByteArrayContent(GenuineResponseTo(request)));
@@ -89,7 +89,7 @@ public class Rfc3161TimestampProviderTests
     ///   token now carries the certificate to check it with: without <c>certReq</c> the same damaged
     ///   token was accepted and folded into the signature.
     /// </summary>
-    [Fact]
+    [Test]
     public void ATokenWhoseSignatureDoesNotVerifyFailsTheFetch()
     {
         using var handler = new FakeAuthority(request =>
@@ -102,7 +102,7 @@ public class Rfc3161TimestampProviderTests
         fetching.Should().Throw<InvalidOperationException>().WithMessage("*tsa.example.invalid*");
     }
 
-    [Fact]
+    [Test]
     public void AResponseLargerThanTheCapFailsWithoutBeingReadInFull()
     {
         var body = new CountingStream(16 * 1024 * 1024);
@@ -117,7 +117,7 @@ public class Rfc3161TimestampProviderTests
             "the body is read under the cap rather than buffered whole before anything looks at it");
     }
 
-    [Fact]
+    [Test]
     public void AResponseDeclaringALengthOverTheCapIsRefusedBeforeItsBodyIsRead()
     {
         var body = new CountingStream(16 * 1024 * 1024);
@@ -136,7 +136,7 @@ public class Rfc3161TimestampProviderTests
         body.BytesRead.Should().Be(0);
     }
 
-    [Fact(Timeout = 30_000)]
+    [Test, Timeout(30_000)]
     public async Task ABodyThatNeverFinishesArrivingIsBoundedByTheClientsTimeout()
     {
         using var handler = new FakeAuthority(_ => new StreamContent(new StallingStream()));
@@ -149,7 +149,7 @@ public class Rfc3161TimestampProviderTests
         await fetching.Should().ThrowAsync<InvalidOperationException>();
     }
 
-    [Fact(Timeout = 30_000)]
+    [Test, Timeout(30_000)]
     public async Task TheProvidersOwnClientFollowsNoRedirect()
     {
         using var server = new RedirectingServer();

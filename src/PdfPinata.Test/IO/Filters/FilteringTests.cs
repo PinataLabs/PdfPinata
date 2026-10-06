@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Filters;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO.Filters;
 
@@ -16,17 +18,17 @@ namespace PdfPinata.Test.IO.Filters;
 /// </summary>
 public class FilteringTests
 {
-    [Theory]
-    [InlineData("ASCIIHexDecode", typeof(AsciiHexDecode))]
-    [InlineData("AHx", typeof(AsciiHexDecode))]
-    [InlineData("ASCII85Decode", typeof(Ascii85Decode))]
-    [InlineData("A85", typeof(Ascii85Decode))]
-    [InlineData("LZWDecode", typeof(LzwDecode))]
-    [InlineData("LZW", typeof(LzwDecode))]
-    [InlineData("FlateDecode", typeof(FlateDecode))]
-    [InlineData("Fl", typeof(FlateDecode))]
-    [InlineData("RunLengthDecode", typeof(RunLengthDecode))]
-    [InlineData("RL", typeof(RunLengthDecode))]
+    [Test]
+    [Arguments("ASCIIHexDecode", typeof(AsciiHexDecode))]
+    [Arguments("AHx", typeof(AsciiHexDecode))]
+    [Arguments("ASCII85Decode", typeof(Ascii85Decode))]
+    [Arguments("A85", typeof(Ascii85Decode))]
+    [Arguments("LZWDecode", typeof(LzwDecode))]
+    [Arguments("LZW", typeof(LzwDecode))]
+    [Arguments("FlateDecode", typeof(FlateDecode))]
+    [Arguments("Fl", typeof(FlateDecode))]
+    [Arguments("RunLengthDecode", typeof(RunLengthDecode))]
+    [Arguments("RL", typeof(RunLengthDecode))]
     public void EveryFilterNameAndItsAbbreviationReachTheSameFilter(string name, Type expected)
     {
         // The abbreviations are not in the reference. Some tools write them anyway, and a reader
@@ -35,7 +37,7 @@ public class FilteringTests
         Filtering.GetFilter("/" + name).Should().BeOfType(expected, "a name from a dictionary carries its slash");
     }
 
-    [Fact]
+    [Test]
     public void AFilterIsTheSameObjectEveryTimeItIsAskedFor()
     {
         // They hold no per-stream state, so one of each is kept rather than made per call.
@@ -45,12 +47,12 @@ public class FilteringTests
         Filtering.GetFilter("LZWDecode").Should().BeSameAs(Filtering.LzwDecode);
     }
 
-    [Theory]
-    [InlineData("CCITTFaxDecode")]
-    [InlineData("JBIG2Decode")]
-    [InlineData("DCTDecode")]
-    [InlineData("JPXDecode")]
-    [InlineData("Crypt")]
+    [Test]
+    [Arguments("CCITTFaxDecode")]
+    [Arguments("JBIG2Decode")]
+    [Arguments("DCTDecode")]
+    [Arguments("JPXDecode")]
+    [Arguments("Crypt")]
     public void AFilterThatIsRealButUnimplementedComesBackAsNothing(string name)
     {
         // Named in the reference and not written here. The caller gets null rather than an
@@ -66,7 +68,7 @@ public class FilteringTests
         Filtering.Encode("abc", name).Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void AFilterNobodyHasHeardOfIsRefused()
     {
         var act = () => Filtering.GetFilter("MakeItSmallerDecode");
@@ -74,7 +76,7 @@ public class FilteringTests
         act.Should().Throw<NotImplementedException>().WithMessage("*MakeItSmallerDecode*");
     }
 
-    [Fact]
+    [Test]
     public void EncodingAndDecodingByNameAgreeWithTheFilterItself()
     {
         var data = "something to squeeze"u8.ToArray();
@@ -95,7 +97,7 @@ public class FilteringTests
     ///   to supply parameters. So the shortest correct-looking way to read a deflated stream as
     ///   text threw a NullReferenceException every time.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheTwoFiltersThatReadTheirParametersAcceptBeingGivenNoneAtAll()
     {
         const string text = "something to squeeze";
@@ -109,7 +111,7 @@ public class FilteringTests
             .Should().Equal("AB"u8.ToArray());
     }
 
-    [Fact]
+    [Test]
     public void AStringIsEncodedByItsRawBytes()
     {
         Filtering.Encode("abc", "ASCIIHexDecode").Should().Equal("616263"u8.ToArray());
@@ -117,7 +119,7 @@ public class FilteringTests
 
     // ----- a filter named by a dictionary entry --------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ASingleFilterCanBeNamedByAPdfName()
     {
         var data = "abc"u8.ToArray();
@@ -126,7 +128,7 @@ public class FilteringTests
         Filtering.Decode(encoded, new PdfName("/ASCIIHexDecode"), null).Should().Equal(data);
     }
 
-    [Fact]
+    [Test]
     public void AChainOfFiltersIsUndoneInTheOrderItWasApplied()
     {
         // /Filter [/ASCII85Decode /FlateDecode] means the data was deflated and then made
@@ -140,7 +142,7 @@ public class FilteringTests
         Filtering.Decode(encoded, chain, null).Should().Equal(data);
     }
 
-    [Fact]
+    [Test]
     public void AChainWhoseParametersDoNotMatchItIsLeftAlone()
     {
         // One set of decode parameters per filter, or the reader cannot tell which belongs to
@@ -153,7 +155,7 @@ public class FilteringTests
         Filtering.Decode(data, chain, parms).Should().BeSameAs(data);
     }
 
-    [Fact]
+    [Test]
     public void AChainCanCarryOneSetOfParametersPerFilter()
     {
         var document = new PdfDocument();
@@ -165,7 +167,7 @@ public class FilteringTests
         Filtering.Decode(encoded, chain, parms).Should().Equal(data);
     }
 
-    [Fact]
+    [Test]
     public void SomethingThatNamesNoFilterAtAllDecodesToNothing()
     {
         var data = "abc"u8.ToArray();
@@ -177,10 +179,10 @@ public class FilteringTests
 
     // ----- Flate ---------------------------------------------------------------------------------
 
-    [Theory]
-    [InlineData(PdfFlateEncodeMode.Default)]
-    [InlineData(PdfFlateEncodeMode.BestSpeed)]
-    [InlineData(PdfFlateEncodeMode.BestCompression)]
+    [Test]
+    [Arguments(PdfFlateEncodeMode.Default)]
+    [Arguments(PdfFlateEncodeMode.BestSpeed)]
+    [Arguments(PdfFlateEncodeMode.BestCompression)]
     public void EveryCompressionSettingProducesSomethingThatInflatesBackAgain(PdfFlateEncodeMode mode)
     {
         var data = Encoding.ASCII.GetBytes(new string('a', 500) + new string('b', 500));
@@ -191,7 +193,7 @@ public class FilteringTests
         Filtering.FlateDecode.Decode(encoded, new FilterParms(null)).Should().Equal(data);
     }
 
-    [Fact]
+    [Test]
     public void InflatingNothingGivesNothingBack()
     {
         Filtering.FlateDecode.Decode([], (FilterParms)null).Should().BeEmpty();
@@ -230,7 +232,7 @@ public class FilteringTests
     private const int EndOfData = 257;
     private const int FirstFreeCode = 258;
 
-    [Fact]
+    [Test]
     public void LzwReadsLiteralCodesAsThemselves()
     {
         var decoded = Filtering.LzwDecode.Decode(
@@ -239,7 +241,7 @@ public class FilteringTests
         decoded.Should().Equal("ABC"u8.ToArray());
     }
 
-    [Fact]
+    [Test]
     public void LzwDoesNotInsistOnBeingToldToClearTheTableFirst()
     {
         var decoded = Filtering.LzwDecode.Decode(Packed('A', 'B', EndOfData), new FilterParms(null));
@@ -247,14 +249,14 @@ public class FilteringTests
         decoded.Should().Equal("AB"u8.ToArray());
     }
 
-    [Fact]
+    [Test]
     public void LzwReadsAStreamThatSaysNothingAsNothing()
     {
         Filtering.LzwDecode.Decode(Packed(ClearTable, EndOfData), new FilterParms(null))
             .Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void LzwClearingTheTableInTheMiddleStartsTheCodesOverAgain()
     {
         var decoded = Filtering.LzwDecode.Decode(
@@ -273,7 +275,7 @@ public class FilteringTests
     ///   short at each occurrence, silently, and a run of the same byte is exactly what an encoder
     ///   emits this code for.
     /// </summary>
-    [Fact]
+    [Test]
     public void LzwReadsTheCodeForTheEntryItIsStillDefining()
     {
         // Code 258 is the entry being defined by this very code, and stands for "AA", so the
@@ -284,7 +286,7 @@ public class FilteringTests
         decoded.Should().Equal("AAA"u8.ToArray());
     }
 
-    [Fact]
+    [Test]
     public void LzwReadsALongerRunThroughTheSameCase()
     {
         // "ABABABA": after ClearTable the codes are A, B, then 258 ("AB") which is already in the
@@ -296,7 +298,28 @@ public class FilteringTests
         decoded.Should().Equal("ABABABA"u8.ToArray());
     }
 
-    [Fact]
+    /// <summary>
+    ///   <see cref="Filtering.LzwDecode"/> is one instance for the process, and it used to keep its
+    ///   string table and read position in fields - so two decodes at once read each other's table
+    ///   and came back short or empty. The tests above, running alongside one another, were what
+    ///   showed it.
+    /// </summary>
+    [Test]
+    public void LzwDecodesOnSeveralThreadsAtOnce()
+    {
+        var packed = Packed(ClearTable, 'A', 'B', FirstFreeCode, FirstFreeCode + 2, EndOfData);
+        var wrong = 0;
+
+        Parallel.For(0, 2000, _ =>
+        {
+            if (!Filtering.LzwDecode.Decode(packed, new FilterParms(null)).AsSpan().SequenceEqual("ABABABA"u8))
+                Interlocked.Increment(ref wrong);
+        });
+
+        wrong.Should().Be(0);
+    }
+
+    [Test]
     public void LzwTreatsAStreamThatRunsOutAsOneThatEnded()
     {
         // Reading past the end is caught and reported as the end-of-data code, so a truncated
@@ -306,7 +329,7 @@ public class FilteringTests
         decoded.Should().Equal("AB"u8.ToArray());
     }
 
-    [Fact]
+    [Test]
     public void LzwRefusesTheFlavourItCannotRead()
     {
         var act = () => Filtering.LzwDecode.Decode([0x00, 0x01, 0x02], new FilterParms(null));
@@ -314,7 +337,7 @@ public class FilteringTests
         act.Should().Throw<Exception>().WithMessage("*flavour*");
     }
 
-    [Fact]
+    [Test]
     public void LzwEncodingIsNotSupportedAndSaysSo()
     {
         var act = () => Filtering.LzwDecode.Encode([1, 2, 3]);

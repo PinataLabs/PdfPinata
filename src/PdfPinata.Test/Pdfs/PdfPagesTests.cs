@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -35,7 +35,7 @@ public class PdfPagesTests
 
     // ----- Insert: a page with no owner ----------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void InsertingAPageNobodyOwnsPlacesThatVeryPage()
     {
         var document = new PdfDocument();
@@ -49,7 +49,7 @@ public class PdfPagesTests
         document.PageCount.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void AddingAPageNobodyOwnsPutsItLast()
     {
         var document = new PdfDocument();
@@ -62,7 +62,7 @@ public class PdfPagesTests
         document.Pages.IndexOf(second).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void InsertingAtAnIndexCreatesThePageThere()
     {
         var document = new PdfDocument();
@@ -76,7 +76,7 @@ public class PdfPagesTests
 
     // ----- Insert: a page this document already owns ---------------------------------------------
 
-    [Fact]
+    [Test]
     public void InsertingAPageThisDocumentOwnsButHasNotPlacedPlacesThatVeryPage()
     {
         var document = new PdfDocument();
@@ -91,7 +91,7 @@ public class PdfPagesTests
         document.PageCount.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void InsertingAPageThisDocumentHasAlreadyPlacedIsRefused()
     {
         var document = new PdfDocument();
@@ -106,7 +106,7 @@ public class PdfPagesTests
 
     // ----- Insert: a page from another document --------------------------------------------------
 
-    [Fact]
+    [Test]
     public void InsertingAPageFromAnotherDocumentCopiesIt()
     {
         var document = new PdfDocument();
@@ -122,7 +122,7 @@ public class PdfPagesTests
         document.PageCount.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void InsertingAPageFromADocumentNotOpenedForImportIsRefused()
     {
         var document = new PdfDocument();
@@ -135,7 +135,7 @@ public class PdfPagesTests
             .WithMessage("*PdfDocumentOpenMode.Import*");
     }
 
-    [Fact]
+    [Test]
     public void InsertingNothingIsRefused()
     {
         var document = new PdfDocument();
@@ -147,7 +147,7 @@ public class PdfPagesTests
 
     // ----- InsertRange, which has no PdfDocument forwarder at all --------------------------------
 
-    [Fact]
+    [Test]
     public void InsertingARangeBringsEveryPageOfIt()
     {
         var document = new PdfDocument();
@@ -159,7 +159,7 @@ public class PdfPagesTests
         document.Pages.IndexOf(kept).Should().Be(3, "the range went in ahead of it");
     }
 
-    [Fact]
+    [Test]
     public void InsertingAPartOfARangeBringsThatPartAlone()
     {
         var document = new PdfDocument();
@@ -169,7 +169,7 @@ public class PdfPagesTests
         document.PageCount.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void InsertingARangeAtAnIndexOutsideTheDocumentIsRefused()
     {
         var document = new PdfDocument();
@@ -179,7 +179,7 @@ public class PdfPagesTests
         insert.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("index");
     }
 
-    [Fact]
+    [Test]
     public void InsertingARangeOfNoDocumentIsRefused()
     {
         var document = new PdfDocument();

@@ -1,9 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Annotations;
 
@@ -26,16 +27,16 @@ namespace PdfPinata.Test.Annotations;
 /// </remarks>
 public class AnnotationIconTests
 {
-    public static TheoryData<PdfTextAnnotationIcon> TextIcons => Icons<PdfTextAnnotationIcon>();
+    public static IEnumerable<PdfTextAnnotationIcon> TextIcons => Icons<PdfTextAnnotationIcon>();
 
-    public static TheoryData<PdfRubberStampAnnotationIcon> StampIcons =>
+    public static IEnumerable<PdfRubberStampAnnotationIcon> StampIcons =>
         Icons<PdfRubberStampAnnotationIcon>();
 
-    public static TheoryData<PdfFileAttachmentAnnotation.IconType> AttachmentIcons =>
+    public static IEnumerable<PdfFileAttachmentAnnotation.IconType> AttachmentIcons =>
         Icons<PdfFileAttachmentAnnotation.IconType>();
 
-    [Theory]
-    [MemberData(nameof(AttachmentIcons))]
+    [Test]
+    [MethodDataSource(nameof(AttachmentIcons))]
     public void AnAttachmentIconReadsBackAsItWasSet(PdfFileAttachmentAnnotation.IconType icon)
     {
         var attachment = OnAPage(new PdfFileAttachmentAnnotation());
@@ -48,7 +49,7 @@ public class AnnotationIconTests
         attachment.Elements.GetName("/Name").Should().Be("/" + icon);
     }
 
-    [Fact]
+    [Test]
     public void AnAttachmentWithNoIconIsAPushPin()
     {
         var attachment = OnAPage(new PdfFileAttachmentAnnotation());
@@ -59,7 +60,7 @@ public class AnnotationIconTests
         attachment.Icon.Should().Be(PdfFileAttachmentAnnotation.IconType.PushPin);
     }
 
-    [Fact]
+    [Test]
     public void AnAttachmentNamingAnIconThisEnumerationLacksIsAPushPin()
     {
         var attachment = OnAPage(new PdfFileAttachmentAnnotation());
@@ -68,7 +69,7 @@ public class AnnotationIconTests
         attachment.Icon.Should().Be(PdfFileAttachmentAnnotation.IconType.PushPin);
     }
 
-    [Fact]
+    [Test]
     public void AnAttachmentIconOutsideTheEnumerationIsNotWritten()
     {
         var attachment = OnAPage(new PdfFileAttachmentAnnotation());
@@ -82,8 +83,8 @@ public class AnnotationIconTests
         attachment.Icon.Should().Be(PdfFileAttachmentAnnotation.IconType.PushPin);
     }
 
-    [Theory]
-    [MemberData(nameof(TextIcons))]
+    [Test]
+    [MethodDataSource(nameof(TextIcons))]
     public void ANoteIconReadsBackAsItWasSet(PdfTextAnnotationIcon icon)
     {
         var note = OnAPage(new PdfTextAnnotation());
@@ -93,8 +94,8 @@ public class AnnotationIconTests
         note.Icon.Should().Be(icon);
     }
 
-    [Theory]
-    [MemberData(nameof(StampIcons))]
+    [Test]
+    [MethodDataSource(nameof(StampIcons))]
     public void AStampIconReadsBackAsItWasSet(PdfRubberStampAnnotationIcon icon)
     {
         var stamp = OnAPage(new PdfRubberStampAnnotation());
@@ -104,7 +105,7 @@ public class AnnotationIconTests
         stamp.Icon.Should().Be(icon);
     }
 
-    [Fact]
+    [Test]
     public void ANoteOrStampNamingAnIconThatIsNotKnownHasNone()
     {
         var note = OnAPage(new PdfTextAnnotation());
@@ -116,7 +117,7 @@ public class AnnotationIconTests
         stamp.Icon.Should().Be(PdfRubberStampAnnotationIcon.NoIcon);
     }
 
-    [Fact]
+    [Test]
     public void AnIconNamedAsANumberIsNotReadAsTheMemberWithThatValue()
     {
         // Enum.TryParse would accept "1" and hand back whichever member is 1, so a document
@@ -127,7 +128,7 @@ public class AnnotationIconTests
         note.Icon.Should().Be(PdfTextAnnotationIcon.NoIcon);
     }
 
-    [Fact]
+    [Test]
     public void EveryIconNameIsWrittenWithItsSolidus()
     {
         // The thing the broken getter tripped over, pinned from the writing side: what goes into
@@ -145,9 +146,9 @@ public class AnnotationIconTests
         attachment.Elements.GetName("/Name").Should().Be("/Paperclip");
     }
 
-    private static TheoryData<T> Icons<T>() where T : struct, Enum
+    private static IEnumerable<T> Icons<T>() where T : struct, Enum
     {
-        var data = new TheoryData<T>();
+        var data = new List<T>();
 
         // NoIcon is the absence of one - its setter removes the entry rather than writing a name -
         // so it is not a round trip and is covered on its own above.

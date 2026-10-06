@@ -2,7 +2,7 @@ using System.Linq;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.Fields;
 using PinataLayout.DocumentObjectModel.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -31,7 +31,7 @@ public class DdlFieldSerializationTests
         return document;
     }
 
-    [Fact]
+    [Test]
     public void APageReferenceNameWithAQuoteAndABackslashReadsBack()
     {
         var document = WithParagraph(out var paragraph);
@@ -42,7 +42,7 @@ public class DdlFieldSerializationTests
         field.Name.Should().Be(Awkward);
     }
 
-    [Fact]
+    [Test]
     public void ABookmarkNameWithAQuoteAndABackslashReadsBack()
     {
         var document = WithParagraph(out var paragraph);
@@ -53,7 +53,7 @@ public class DdlFieldSerializationTests
         field.Name.Should().Be(Awkward);
     }
 
-    [Fact]
+    [Test]
     public void ADateFormatWithAQuoteAndABackslashReadsBack()
     {
         var document = WithParagraph(out var paragraph);
@@ -64,7 +64,7 @@ public class DdlFieldSerializationTests
         field.Format.Should().Be(Awkward);
     }
 
-    [Fact]
+    [Test]
     public void APageReferenceKeepsBothItsNameAndItsFormat()
     {
         var document = WithParagraph(out var paragraph);
@@ -76,7 +76,7 @@ public class DdlFieldSerializationTests
         field.Format.Should().Be("ROMAN");
     }
 
-    [Fact]
+    [Test]
     public void AFieldIsWrittenAsItWasBeforeItsSerializersWereShared()
     {
         // Byte for byte what the separate serializers wrote, for every value that needs no

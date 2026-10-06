@@ -4,7 +4,7 @@ using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
 using PinataLayout.Rendering.Tests.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -33,7 +33,7 @@ public class UnrenderedElementTests
     // A footnote in a paragraph of a section renders now; see FootnoteTests. What is still refused
     // is a note somewhere that owns no page to put it at the foot of.
 
-    [Fact]
+    [Test]
     public void AFootnoteInATableCellIsRefusedRatherThanDropped()
     {
         var document = new Document();
@@ -47,7 +47,7 @@ public class UnrenderedElementTests
             .WithMessage("*laid out on a page*");
     }
 
-    [Fact]
+    [Test]
     public void AFootnoteInAHeaderIsRefusedRatherThanDropped()
     {
         // A header is formatted once per position and repeated on every page it applies to, so a
@@ -63,7 +63,7 @@ public class UnrenderedElementTests
             .WithMessage("*laid out on a page*");
     }
 
-    [Fact]
+    [Test]
     public void TheRefusalNamesTheThingToDoInstead()
     {
         var document = new Document();
@@ -78,7 +78,7 @@ public class UnrenderedElementTests
             .WithMessage("*Move the footnote*");
     }
 
-    [Fact]
+    [Test]
     public void AParagraphWithNoFootnoteInItStillRenders()
     {
         // The guard on the cases above. FormatElement switches on the element's type name, and a
@@ -91,7 +91,7 @@ public class UnrenderedElementTests
 
     // ----- the bar code -----
 
-    [Fact]
+    [Test]
     public void ABarcodeInASectionIsRefusedRatherThanDropped()
     {
         var document = new Document();
@@ -105,7 +105,7 @@ public class UnrenderedElementTests
             .WithMessage("*no renderer for the Barcode shape*");
     }
 
-    [Fact]
+    [Test]
     public void TheBarcodeRefusalNamesTheRouteThatDraws()
     {
         var document = new Document();
@@ -119,7 +119,7 @@ public class UnrenderedElementTests
             .WithMessage("*XGraphics.DrawBarCode*");
     }
 
-    [Fact]
+    [Test]
     public void AChartInASectionStillRenders()
     {
         // The guard on the case above, and on the duplicated 'is Chart' branch deleted beside it.

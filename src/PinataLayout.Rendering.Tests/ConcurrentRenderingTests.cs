@@ -11,7 +11,7 @@ using PinataLayout.Rendering.Tests.Helpers;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -50,19 +50,19 @@ public class ConcurrentRenderingTests
 
     private const int Conversions = 60_000;
 
-    [Fact(Timeout = 300000)]
+    [Test, Timeout(300000)]
     public async Task TheSameDocumentLaidOutAgainAndAgainDrawsTheSamePage()
     {
         // The control. What the test below compares against is this one answer, so a page that is
         // not reproducible on one thread would make that comparison meaningless. Run through
-        // Task.Run because xUnit honours Timeout on an async test and on no other.
+        // Task.Run because Timeout is honoured on an async test and on no other.
         var pages = await Task.Run(() =>
             Enumerable.Range(0, Renders).Select(_ => PageOf(Built())).Distinct().ToList());
 
         pages.Should().ContainSingle();
     }
 
-    [Fact(Timeout = 300000)]
+    [Test, Timeout(300000)]
     public async Task LayingItOutOnEightThreadsAtOnceDrawsThatSamePageEveryTime()
     {
         var pages = new ConcurrentBag<string>();
@@ -76,7 +76,7 @@ public class ConcurrentRenderingTests
         pages.Distinct().Should().ContainSingle();
     }
 
-    [Fact(Timeout = 300000)]
+    [Test, Timeout(300000)]
     public async Task TheFontAParagraphIsDrawnWithIsTheFontItAsksFor()
     {
         // The report's own probe, one layer down. Two *stable* Font instances are the whole of the

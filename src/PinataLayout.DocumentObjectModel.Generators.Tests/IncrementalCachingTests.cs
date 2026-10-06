@@ -1,5 +1,5 @@
 using AwesomeAssertions;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Generators.Tests;
 
@@ -47,7 +47,7 @@ public class IncrementalCachingTests
         }
         """;
 
-    [Fact]
+    [Test]
     public void RecompilingTheSameSourceIsServedFromTheCacheRatherThanRegenerated()
     {
         var result = IncrementalCachingProbe.RunTwice(Ns + Widget);
@@ -57,7 +57,7 @@ public class IncrementalCachingTests
             + "make the driver reuse the first run's output");
     }
 
-    [Fact]
+    [Test]
     public void RenamingAMemberIsNotServedFromTheCache()
     {
         // The complement of the test above, and the reason it means anything: a pipeline that
@@ -69,7 +69,7 @@ public class IncrementalCachingTests
         IncrementalCachingProbe.OutputReasons(result).Should().Be("SourceOutput=Modified");
     }
 
-    [Fact]
+    [Test]
     public void ChangingAMembersTypeIsNotServedFromTheCache()
     {
         var result = IncrementalCachingProbe.RunTwice(
@@ -79,7 +79,7 @@ public class IncrementalCachingTests
         IncrementalCachingProbe.OutputReasons(result).Should().Be("SourceOutput=Modified");
     }
 
-    [Fact]
+    [Test]
     public void ReorderingMembersIsNotServedFromTheCache()
     {
         // Declaration order reaches the model deliberately, so that the generated table is
@@ -107,7 +107,7 @@ public class IncrementalCachingTests
     // and these three reach its Equals: equal contents, differing contents, differing lengths.
     // -------------------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void RaisingTheSameDiagnosticTwiceIsStillServedFromTheCache()
     {
         // Equal contents: the loop runs to the end and answers true.
@@ -117,7 +117,7 @@ public class IncrementalCachingTests
             "a diagnostic that has not changed is not a reason to regenerate");
     }
 
-    [Fact]
+    [Test]
     public void ADiagnosticNamingSomethingElseIsNotServedFromTheCache()
     {
         // Differing contents: the message argument is the offending type's name, so renaming it
@@ -129,7 +129,7 @@ public class IncrementalCachingTests
         IncrementalCachingProbe.OutputReasons(result).Should().Be("SourceOutput=Modified");
     }
 
-    [Fact]
+    [Test]
     public void ASecondDiagnosticIsNotServedFromTheCache()
     {
         // Differing lengths, at the level of the collected pipeline output.
@@ -140,7 +140,7 @@ public class IncrementalCachingTests
         IncrementalCachingProbe.OutputReasons(result).Should().Be("SourceOutput=Modified");
     }
 
-    [Fact]
+    [Test]
     public void AWhollyUnrelatedTypeStillCountsAsAChange()
     {
         // Worth pinning rather than assuming. The pipeline collects every DocumentObject, so a new
@@ -153,7 +153,7 @@ public class IncrementalCachingTests
         IncrementalCachingProbe.OutputReasons(result).Should().Be("SourceOutput=Modified");
     }
 
-    [Fact]
+    [Test]
     public void AnEditAboveADeclarationIsNotServedFromTheCacheEvenWhenItChangesNothing()
     {
         // Reducing the models to strings and enums keeps trivia out of them, so the natural
@@ -178,7 +178,7 @@ public class IncrementalCachingTests
         IncrementalCachingProbe.OutputReasons(result).Should().Be("SourceOutput=Modified");
     }
 
-    [Fact]
+    [Test]
     public void AnEditBelowEveryDeclarationIsServedFromTheCache()
     {
         // The other side of it, and what makes the test above a statement about position rather

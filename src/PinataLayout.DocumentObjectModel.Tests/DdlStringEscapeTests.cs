@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -25,18 +25,18 @@ public class DdlStringEscapeTests
         return ddl.Replace("\"" + Placeholder + "\"", "\"" + literalBody + "\"");
     }
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\\a", "\a")]
-    [InlineData("\\b", "\b")]
-    [InlineData("\\f", "\f")]
-    [InlineData("\\n", "\n")]
-    [InlineData("\\r", "\r")]
-    [InlineData("\\t", "\t")]
-    [InlineData("\\v", "\v")]
-    [InlineData("\\'", "'")]
-    [InlineData("\\\"", "\"")]
-    [InlineData("\\\\", "\\")]
-    [InlineData("a\\tb\\\\c", "a\tb\\c")]
+    [Test, Timeout(Patience)]
+    [Arguments("\\a", "\a")]
+    [Arguments("\\b", "\b")]
+    [Arguments("\\f", "\f")]
+    [Arguments("\\n", "\n")]
+    [Arguments("\\r", "\r")]
+    [Arguments("\\t", "\t")]
+    [Arguments("\\v", "\v")]
+    [Arguments("\\'", "'")]
+    [Arguments("\\\"", "\"")]
+    [Arguments("\\\\", "\\")]
+    [Arguments("a\\tb\\\\c", "a\tb\\c")]
     public async Task ASimpleEscapeIsTheCharacterItNames(string literalBody, string expected)
     {
         var document = await Task.Run(() => DdlReader.DocumentFromString(DocumentTitled(literalBody)));
@@ -44,10 +44,10 @@ public class DdlStringEscapeTests
         document.Info.Title.Should().Be(expected);
     }
 
-    [Theory(Timeout = Patience)]
-    [InlineData("\\q")]
-    [InlineData("\\0")]
-    [InlineData("a\\Nb")]
+    [Test, Timeout(Patience)]
+    [Arguments("\\q")]
+    [Arguments("\\0")]
+    [Arguments("a\\Nb")]
     public async Task AnyOtherEscapeIsRefused(string literalBody)
     {
         var complaints = await Task.Run(() => ReaderDiagnostics.ComplaintsAbout(DocumentTitled(literalBody)));

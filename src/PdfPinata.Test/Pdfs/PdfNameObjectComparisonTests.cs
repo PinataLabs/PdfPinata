@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -25,7 +25,7 @@ namespace PdfPinata.Test.Pdfs;
 /// </summary>
 public class PdfNameObjectComparisonTests
 {
-    [Fact]
+    [Test]
     public void ANullNameIsNotEqualToAString()
     {
         PdfNameObject name = null;
@@ -36,7 +36,7 @@ public class PdfNameObjectComparisonTests
         (name == null).Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ANullNameComparesUnequalToAnActualString()
     {
         PdfNameObject name = null;
@@ -47,7 +47,7 @@ public class PdfNameObjectComparisonTests
         (name != "/Kent").Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ANameComparesByItsValue()
     {
         var name = new PdfNameObject(new PdfDocument(), "/Kent");
@@ -63,7 +63,7 @@ public class PdfNameObjectComparisonTests
     ///   <see cref="PdfNameObject.Value"/> is settable and may be set to null. That must not make
     ///   the object holding it look like a null object: only the reference answers that.
     /// </summary>
-    [Fact]
+    [Test]
     public void ANameWhoseValueIsNullIsStillNotANullName()
     {
         var name = new PdfNameObject(new PdfDocument(), "/Kent") { Value = null };
@@ -81,7 +81,7 @@ public class PdfNameObjectComparisonTests
     ///   been cleared throws <see cref="NullReferenceException"/> rather than answering, and putting
     ///   that name in any hash-based collection throws on the way in.
     /// </summary>
-    [Fact]
+    [Test]
     public void ANameWhoseValueIsNullStillAnswersEqualityRatherThanThrowing()
     {
         var name = new PdfNameObject(new PdfDocument(), "/Kent") { Value = null };
@@ -92,7 +92,7 @@ public class PdfNameObjectComparisonTests
         name.GetHashCode().Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void ANameWhoseValueIsNullCanBeHeldInAHashSet()
     {
         var name = new PdfNameObject(new PdfDocument(), "/Kent") { Value = null };
@@ -102,7 +102,7 @@ public class PdfNameObjectComparisonTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void ANameEqualsTheStringItHolds()
     {
         var name = new PdfNameObject(new PdfDocument(), "/Kent");
@@ -118,7 +118,7 @@ public class PdfNameObjectComparisonTests
     ///   The behaviour the guard restores at the call sites: a dictionary entry that is neither a
     ///   string nor a name reports itself as one, rather than falling over on the way to saying so.
     /// </summary>
-    [Fact]
+    [Test]
     public void ReadingANonStringEntryAsAStringSaysSoRatherThanThrowingNullReference()
     {
         var document = new PdfDocument();
@@ -132,7 +132,7 @@ public class PdfNameObjectComparisonTests
         act.Should().Throw<InvalidCastException>("that is what the method is written to throw");
     }
 
-    [Fact]
+    [Test]
     public void ReadingANonNameEntryAsANameSaysSoRatherThanThrowingNullReference()
     {
         var document = new PdfDocument();

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf.Filters;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs.Filters;
 
@@ -29,7 +29,7 @@ public class Ascii85DecodeTests
     /// four endings — an exact multiple of four bytes, and one, two or three left over — with
     /// data that is not all the same byte.
     /// </summary>
-    [Fact]
+    [Test]
     public void DataOfAnyLengthComesBackAsItself()
     {
         var wrong = new List<string>();
@@ -53,13 +53,13 @@ public class Ascii85DecodeTests
     /// The high bytes are where the "increase by one" correction in the decoder applies, so a
     /// partial group of large values is worth running separately from random data.
     /// </summary>
-    [Theory]
-    [InlineData(1)]
-    [InlineData(2)]
-    [InlineData(3)]
-    [InlineData(5)]
-    [InlineData(6)]
-    [InlineData(7)]
+    [Test]
+    [Arguments(1)]
+    [Arguments(2)]
+    [Arguments(3)]
+    [Arguments(5)]
+    [Arguments(6)]
+    [Arguments(7)]
     public void APartialGroupOfHighBytesComesBackAsItself(int length)
     {
         var original = Enumerable.Repeat((byte)0xFF, length).ToArray();
@@ -67,12 +67,12 @@ public class Ascii85DecodeTests
         Decode(Filter.Encode(original)).Should().Equal(original);
     }
 
-    [Theory]
-    [InlineData(1)]
-    [InlineData(2)]
-    [InlineData(3)]
-    [InlineData(4)]
-    [InlineData(8)]
+    [Test]
+    [Arguments(1)]
+    [Arguments(2)]
+    [Arguments(3)]
+    [Arguments(4)]
+    [Arguments(8)]
     public void ARunOfZerosComesBackAsItself(int length)
     {
         var original = new byte[length];
@@ -85,7 +85,7 @@ public class Ascii85DecodeTests
     /// decoder has to expand it again. This is the one place where one input character stands for
     /// four output bytes, and the byte count is worked out from a separate count of them.
     /// </summary>
-    [Fact]
+    [Test]
     public void AZeroGroupIsWrittenAsZAndExpandedAgain()
     {
         var fourZeros = new byte[4];
@@ -96,7 +96,7 @@ public class Ascii85DecodeTests
         Decode(encoded).Should().Equal(fourZeros);
     }
 
-    [Fact]
+    [Test]
     public void ZeroGroupsMixedWithDataComeBackInTheRightPlaces()
     {
         byte[] original = [1, 2, 3, 4, 0, 0, 0, 0, 5, 6, 7, 8];
@@ -107,7 +107,7 @@ public class Ascii85DecodeTests
         Decode(encoded).Should().Equal(original);
     }
 
-    [Fact]
+    [Test]
     public void NothingEncodesToTheEndMarkerAloneAndDecodesBackToNothing()
     {
         var encoded = Filter.Encode([]);
@@ -132,12 +132,12 @@ public class Ascii85DecodeTests
         return Encoding.ASCII.GetString(Filter.Encode(Encoding.ASCII.GetBytes(Text)));
     }
 
-    [Theory]
-    [InlineData("\n")]
-    [InlineData("\r\n")]
-    [InlineData(" ")]
-    [InlineData("\t")]
-    [InlineData("\0")]
+    [Test]
+    [Arguments("\n")]
+    [Arguments("\r\n")]
+    [Arguments(" ")]
+    [Arguments("\t")]
+    [Arguments("\0")]
     public void WhiteSpaceInsideTheDataIsSteppedOver(string inserted)
     {
         var encoded = Encoded();
@@ -148,7 +148,7 @@ public class Ascii85DecodeTests
         Encoding.ASCII.GetString(decoded).Should().Be(Text);
     }
 
-    [Fact]
+    [Test]
     public void TheSameTextDecodesWithNoWhiteSpaceAtAll()
     {
         var decoded = Decode(Encoding.ASCII.GetBytes(Encoded()));
@@ -160,7 +160,7 @@ public class Ascii85DecodeTests
     /// The end marker is the only thing that stops the scan, so data without one is rejected
     /// rather than decoded as far as it goes.
     /// </summary>
-    [Fact]
+    [Test]
     public void DataWithNoEndMarkerIsRejected()
     {
         var withoutMarker = Encoded().Replace("~>", "");
@@ -170,7 +170,7 @@ public class Ascii85DecodeTests
         decode.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void ATildeNotFollowedByAngleBracketIsRejected()
     {
         var wrongMarker = Encoded().Replace("~>", "~x");
@@ -186,7 +186,7 @@ public class Ascii85DecodeTests
     /// was read without checking there was one, so a stream truncated here came back as an index
     /// out of range rather than as a complaint about the data.
     /// </summary>
-    [Fact]
+    [Test]
     public void ATildeThatEndsTheDataIsRejected()
     {
         var truncated = Encoded().Replace("~>", "~");
@@ -196,7 +196,7 @@ public class Ascii85DecodeTests
         decode.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void NothingButATildeIsRejected()
     {
         Action decode = () => Decode("~"u8.ToArray());
@@ -208,7 +208,7 @@ public class Ascii85DecodeTests
     /// A single character left over encodes nothing — one character carries under seven bits, and
     /// a group of two is the shortest that can stand for a byte.
     /// </summary>
-    [Fact]
+    [Test]
     public void AGroupOfOneCharacterIsRejected()
     {
         Action decode = () => Decode("87cUR!~>"u8.ToArray());
@@ -220,7 +220,7 @@ public class Ascii85DecodeTests
     /// Five characters can address more than four bytes can hold, and the excess is caught rather
     /// than truncated into a wrong value.
     /// </summary>
-    [Fact]
+    [Test]
     public void AGroupTooLargeForFourBytesIsRejected()
     {
         Action decode = () => Decode("uuuuu~>"u8.ToArray());
@@ -231,7 +231,7 @@ public class Ascii85DecodeTests
     /// <summary>
     /// The largest value four bytes can hold is right at that boundary and has to be accepted.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheLargestGroupThatFitsIsAccepted()
     {
         byte[] original = [0xFF, 0xFF, 0xFF, 0xFF];
@@ -242,7 +242,7 @@ public class Ascii85DecodeTests
         Decode(encoded).Should().Equal(original);
     }
 
-    [Fact]
+    [Test]
     public void EncodingNothingIsNotTheSameAsEncodingNull()
     {
         Action encode = () => Filter.Encode((byte[])null);
@@ -257,7 +257,7 @@ public class Ascii85DecodeTests
     /// back changed and cannot be decoded twice. Callers that keep the encoded bytes for anything
     /// else have to copy them first.
     /// </summary>
-    [Fact]
+    [Test]
     public void DecodingWritesOverTheArrayItWasGiven()
     {
         var withSpace = Encoded().Insert(3, " ");

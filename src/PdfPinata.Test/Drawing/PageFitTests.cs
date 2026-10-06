@@ -1,7 +1,8 @@
 using System;
+using System.Collections.Generic;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -35,7 +36,7 @@ public class PageFitTests
     private static XRect A4 => new(0, 0, A4Width, A4Height);
     private static XRect A5 => new(0, 0, A5Width, A5Height);
 
-    [Fact]
+    [Test]
     public void FitShrinksAnA4PageOntoA5WithoutLosingAnyOfIt()
     {
         var matrix = PageFit.Calculate(A4, A5, PageResizeOptions.Default);
@@ -53,7 +54,7 @@ public class PageFitTests
         topRight.Y.Should().BeApproximately(A5Height - slack, 1e-9);
     }
 
-    [Fact]
+    [Test]
     public void FitGrowsAnA5PageOntoA4WithoutLosingAnyOfIt()
     {
         var matrix = PageFit.Calculate(A5, A4, PageResizeOptions.Default);
@@ -69,7 +70,7 @@ public class PageFitTests
         topRight.Y.Should().BeApproximately(A4Height, 1e-9);
     }
 
-    [Fact]
+    [Test]
     public void FitScalesBothAxesTheSame()
     {
         var matrix = PageFit.Calculate(A4, A5, PageResizeOptions.Default);
@@ -78,7 +79,7 @@ public class PageFitTests
             "a uniform scale is the whole point of Fit - anything else distorts the page");
     }
 
-    [Fact]
+    [Test]
     public void FillCoversTheTargetAndLetsTheRestOverflow()
     {
         var options = PageResizeOptions.Default;
@@ -98,7 +99,7 @@ public class PageFitTests
         overflows.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void StretchPutsTheCornersExactlyOnTheTargetCorners()
     {
         var options = PageResizeOptions.Default;
@@ -116,7 +117,7 @@ public class PageFitTests
             "A4 and A5 are of different proportions, so stretching one onto the other distorts it");
     }
 
-    [Fact]
+    [Test]
     public void NoneDoesNotScaleAtAll()
     {
         var options = PageResizeOptions.Crop;
@@ -133,21 +134,21 @@ public class PageFitTests
     ///   100 of vertical, so every alignment lands on a round number and the nine cases can be
     ///   read at a glance.
     /// </summary>
-    public static TheoryData<PageAlignment, double, double> Alignments => new()
-    {
-        { PageAlignment.BottomLeft, 0d, 0d },
-        { PageAlignment.BottomCenter, 100d, 0d },
-        { PageAlignment.BottomRight, 200d, 0d },
-        { PageAlignment.MiddleLeft, 0d, 50d },
-        { PageAlignment.MiddleCenter, 100d, 50d },
-        { PageAlignment.MiddleRight, 200d, 50d },
-        { PageAlignment.TopLeft, 0d, 100d },
-        { PageAlignment.TopCenter, 100d, 100d },
-        { PageAlignment.TopRight, 200d, 100d }
-    };
+    public static IEnumerable<(PageAlignment, double, double)> Alignments =>
+    [
+        (PageAlignment.BottomLeft, 0d, 0d),
+        (PageAlignment.BottomCenter, 100d, 0d),
+        (PageAlignment.BottomRight, 200d, 0d),
+        (PageAlignment.MiddleLeft, 0d, 50d),
+        (PageAlignment.MiddleCenter, 100d, 50d),
+        (PageAlignment.MiddleRight, 200d, 50d),
+        (PageAlignment.TopLeft, 0d, 100d),
+        (PageAlignment.TopCenter, 100d, 100d),
+        (PageAlignment.TopRight, 200d, 100d)
+    ];
 
-    [Theory]
-    [MemberData(nameof(Alignments))]
+    [Test]
+    [MethodDataSource(nameof(Alignments))]
     public void AlignmentDecidesWhereTheSlackGoes(PageAlignment alignment, double expectedX, double expectedY)
     {
         var source = new XRect(0, 0, 100, 100);
@@ -162,7 +163,7 @@ public class PageFitTests
         bottomLeft.Y.Should().BeApproximately(expectedY, 1e-9);
     }
 
-    [Fact]
+    [Test]
     public void TopMeansTheTopOfThePageAndNotTheSmallerYCoordinate()
     {
         // Worth its own test because XRect calls the side with the smaller y its Top, and PDF
@@ -179,7 +180,7 @@ public class PageFitTests
         topRight.Y.Should().BeApproximately(500, 1e-9);
     }
 
-    [Fact]
+    [Test]
     public void AMarginIsTakenOffTheTargetBeforeTheContentIsFitted()
     {
         var source = new XRect(0, 0, 100, 100);
@@ -195,7 +196,7 @@ public class PageFitTests
         topRight.Y.Should().BeApproximately(190, 1e-9);
     }
 
-    [Fact]
+    [Test]
     public void AutoRotateTurnsThePageWhenTheTargetIsOfTheOppositeShape()
     {
         var options = PageResizeOptions.Default;
@@ -223,7 +224,7 @@ public class PageFitTests
                 .WhenTypeIs<double>());
     }
 
-    [Fact]
+    [Test]
     public void AutoRotateLeavesThePageAloneWhenTheShapesAlreadyAgree()
     {
         var options = PageResizeOptions.Default;
@@ -234,7 +235,7 @@ public class PageFitTests
         turned.Should().BeFalse("both are portrait, so there is nothing to gain by turning one");
     }
 
-    [Fact]
+    [Test]
     public void AutoRotateIsOffUnlessItIsAskedFor()
     {
         var landscapeA4 = new XRect(0, 0, A4Height, A4Width);
@@ -244,7 +245,7 @@ public class PageFitTests
         turned.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ASquareIsOfNeitherShapeSoItIsNeverTurned()
     {
         var options = PageResizeOptions.Default;
@@ -256,7 +257,7 @@ public class PageFitTests
         turned.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ASourceAwayFromTheOriginIsBroughtOntoTheTarget()
     {
         // A media box is allowed an origin other than (0, 0) and real documents have them, so
@@ -275,7 +276,7 @@ public class PageFitTests
         topRight.Y.Should().BeApproximately(A5Height - slack, 1e-9);
     }
 
-    [Fact]
+    [Test]
     public void ASourceAwayFromTheOriginIsBroughtOntoTheTargetWhenTurnedToo()
     {
         var source = new XRect(50, 100, A4Width, A4Height);
@@ -292,7 +293,7 @@ public class PageFitTests
         wasTopLeft.Y.Should().BeApproximately(A4Width, 1e-9);
     }
 
-    [Fact]
+    [Test]
     public void TheTargetRectangleNeedNotBeAtTheOriginEither()
     {
         var source = new XRect(0, 0, 100, 100);
@@ -307,7 +308,7 @@ public class PageFitTests
         bottomLeft.Y.Should().BeApproximately(40, 1e-9);
     }
 
-    [Fact]
+    [Test]
     public void NullOptionsAreTheDefaultOptions()
     {
         var withNull = PageFit.Calculate(A4, A5, null);
@@ -316,7 +317,7 @@ public class PageFitTests
         withNull.Should().Be(withDefault);
     }
 
-    [Fact]
+    [Test]
     public void TheDefaultOptionsAreAFreshInstanceEveryTime()
     {
         // They are handed out as a property rather than held in a field, so that changing one
@@ -327,7 +328,7 @@ public class PageFitTests
         PageResizeOptions.Default.Margin.Point.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void TheCropPresetKeepsTheHeadOfThePage()
     {
         var options = PageResizeOptions.Crop;
@@ -345,7 +346,7 @@ public class PageFitTests
         bottomLeft.Y.Should().BeApproximately(A5Height - A4Height, 1e-9);
     }
 
-    [Fact]
+    [Test]
     public void ASourceWithNoAreaIsRefused()
     {
         var act = () => PageFit.Calculate(new XRect(0, 0, 0, 100), A5, PageResizeOptions.Default);
@@ -353,7 +354,7 @@ public class PageFitTests
         act.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void ATargetWithNoAreaIsRefused()
     {
         var act = () => PageFit.Calculate(A4, new XRect(0, 0, 100, 0), PageResizeOptions.Default);
@@ -361,7 +362,7 @@ public class PageFitTests
         act.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AMarginThatLeavesNoRoomIsRefusedRatherThanScalingTheContentToNothing()
     {
         var options = PageResizeOptions.Default;
@@ -372,7 +373,7 @@ public class PageFitTests
         act.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void ANegativeMarginIsRefused()
     {
         var options = PageResizeOptions.Default;

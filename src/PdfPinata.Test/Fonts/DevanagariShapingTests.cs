@@ -8,7 +8,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Fonts;
 using PdfPinata.HarfBuzz;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -37,7 +37,7 @@ namespace PdfPinata.Test.Fonts;
 ///     would pass silently.
 ///   </para>
 /// </remarks>
-[Collection(TextShapingCollection.Name)]
+[TextShaperSensitive]
 public class DevanagariShapingTests
 {
     // Noto Sans Devanagari's em, which is not Liberation's 2048.
@@ -71,7 +71,7 @@ public class DevanagariShapingTests
 
     // ----- a cluster longer than one character ------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AConjunctIsThreeCharactersDrawnAsOneGlyph()
     {
         var run = Shape(Conjunct);
@@ -81,7 +81,7 @@ public class DevanagariShapingTests
             "the virama joins the consonants either side of it into a single conjunct glyph");
     }
 
-    [Fact]
+    [Test]
     public void TheConjunctIsNotEitherOfTheLettersItIsMadeFrom()
     {
         // Guards against a face or a shaper that quietly dropped the virama and drew the first
@@ -92,7 +92,7 @@ public class DevanagariShapingTests
         conjunct.Should().NotBe(Shape(Ssa).Glyphs.Single().GlyphId);
     }
 
-    [Fact]
+    [Test]
     public void EveryGlyphOfAClusterPointsAtTheStartOfIt()
     {
         // The cluster is the character-to-glyph map and the only place the association exists.
@@ -102,7 +102,7 @@ public class DevanagariShapingTests
 
     // ----- a glyph drawn before the character it follows ---------------------------------------------
 
-    [Fact]
+    [Test]
     public void AVowelSignIsDrawnBeforeTheConsonantItIsWrittenAfter()
     {
         // The reordering case. The vowel sign is the second character and the first glyph.
@@ -114,7 +114,7 @@ public class DevanagariShapingTests
         run.Glyphs[0].GlyphId.Should().NotBe(run.Glyphs[1].GlyphId);
     }
 
-    [Fact]
+    [Test]
     public void TheReorderedPairIsStillOneCluster()
     {
         // Both glyphs stand for the whole two characters, because neither can be attributed to one
@@ -122,7 +122,7 @@ public class DevanagariShapingTests
         Shape(Ka + VowelI).Glyphs.Select(glyph => glyph.Cluster).Should().Equal(0, 0);
     }
 
-    [Fact]
+    [Test]
     public void AConjunctAndAReorderedVowelHappenTogether()
     {
         var run = Shape(Conjunct + VowelI);
@@ -133,7 +133,7 @@ public class DevanagariShapingTests
             "the conjunct is unchanged and the vowel moved in front of it");
     }
 
-    [Fact]
+    [Test]
     public void AWordIsFewerGlyphsThanCharactersAndItsClustersSkip()
     {
         // "namaste": six characters, five glyphs, and the clusters are not 0..5 - a cluster covering
@@ -150,7 +150,7 @@ public class DevanagariShapingTests
 
     // ----- and the same thing through the whole drawing path -------------------------------------
 
-    [Fact]
+    [Test]
     public void TheDrawnGlyphsAreTheShapedOnes()
     {
         using var _ = SeamScope.TextShaper(new HarfBuzzTextShaper());
@@ -160,7 +160,7 @@ public class DevanagariShapingTests
                 "what the renderer writes is what the shaper chose, not a per-character lookup");
     }
 
-    [Fact]
+    [Test]
     public void MeasuringAgreesWithDrawing()
     {
         using var _ = SeamScope.TextShaper(new HarfBuzzTextShaper());
@@ -174,7 +174,7 @@ public class DevanagariShapingTests
         conjunct.Should().BeLessThan(separately);
     }
 
-    [Fact]
+    [Test]
     public void WithNoShaperTheCharactersAreDrawnOneByOne()
     {
         // What a consumer who takes no HarfBuzz dependency gets, written down rather than left to be
@@ -189,7 +189,7 @@ public class DevanagariShapingTests
 
     // ----- what a line breaker still does not know ------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ALineIsBrokenBetweenConjunctsAndNotInsideOne()
     {
         // A conjunct is three characters and one glyph, so a break between its characters would be a

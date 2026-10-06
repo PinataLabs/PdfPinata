@@ -2,7 +2,7 @@ using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Charting.Tests.Helpers;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -20,7 +20,7 @@ namespace PdfPinata.Charting.Tests;
 /// </remarks>
 public class BarPlotAreaTests
 {
-    [Fact]
+    [Test]
     public void ABarIsAsLongAsTheValueItPlots()
     {
         var bars = PaintedRectangles.FilledOn(Drawn.Page(Charts.Of(ChartType.Bar2D, 3.0, 6.0)));
@@ -29,7 +29,7 @@ public class BarPlotAreaTests
         bars[1].Width.Should().BeApproximately(bars[0].Width * 2, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void EveryBarStartsAtTheSameEdge()
     {
         var bars = PaintedRectangles.FilledOn(Drawn.Page(Charts.Of(ChartType.Bar2D, 1.0, 5.0, 3.0)));
@@ -38,7 +38,7 @@ public class BarPlotAreaTests
         bars.Select(bar => bar.Height).Distinct().Should().ContainSingle();
     }
 
-    [Fact]
+    [Test]
     public void TheFirstCategoryIsTheBottomBar()
     {
         var bars = PaintedRectangles.FilledOn(Drawn.Page(Charts.Of(ChartType.Bar2D, 1.0, 5.0, 3.0)));
@@ -46,7 +46,7 @@ public class BarPlotAreaTests
         bars.Should().BeInAscendingOrder(bar => bar.Y);
     }
 
-    [Fact]
+    [Test]
     public void ClusteredSeriesShareACategorysBand()
     {
         var oneSeries = PaintedRectangles.FilledOn(Drawn.Page(Charts.Of(ChartType.Bar2D, 1.0, 5.0)));
@@ -61,7 +61,7 @@ public class BarPlotAreaTests
         clustered[2].Y.Should().BeApproximately(clustered[0].Top, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void StackedBarsContinueFromOneAnother()
     {
         var page = Drawn.Page(Charts.OfSeries(ChartType.BarStacked2D,
@@ -79,7 +79,7 @@ public class BarPlotAreaTests
         bars[2].Width.Should().BeApproximately(bars[0].Width * 3, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void BarBordersAreStrokedAfterEveryBarHasBeenFilled()
     {
         var page = Drawn.Page(Charts.Of(ChartType.Bar2D, 3.0, 6.0));
@@ -93,7 +93,7 @@ public class BarPlotAreaTests
         rectangles.Skip(2).Should().OnlyContain(rectangle => rectangle.Stroked && !rectangle.Filled);
     }
 
-    [Fact]
+    [Test]
     public void AValueOutsideTheGivenScaleIsNotDrawnAtAll()
     {
         var chart = Charts.Of(ChartType.Bar2D, 1.0, 40.0);
@@ -108,7 +108,7 @@ public class BarPlotAreaTests
     ///   The gridlines of a bar chart's category axis run across the plot area, one to a category
     ///   boundary, which is one more than there are categories.
     /// </summary>
-    [Fact]
+    [Test]
     public void CategoryGridlinesRunAcrossTheBarChart()
     {
         var chart = Charts.Of(ChartType.Bar2D, 3.0, 6.0, 1.0);
@@ -124,7 +124,7 @@ public class BarPlotAreaTests
         lines.Should().HaveCount(4, "three categories have four boundaries between and around them");
     }
 
-    [Fact]
+    [Test]
     public void CategoryGridlinesAreEvenlySpaced()
     {
         var chart = Charts.Of(ChartType.Bar2D, 3.0, 6.0, 1.0);
@@ -149,7 +149,7 @@ public class BarPlotAreaTests
     ///   major and minor, running across, and the value axis's major and minor, running up. Asking
     ///   for all four is the only way to reach all four.
     /// </summary>
-    [Fact]
+    [Test]
     public void BothAxesDrawBothTheirGridlines()
     {
         var chart = Charts.Of(ChartType.Bar2D, 3.0, 6.0, 1.0);
@@ -168,7 +168,7 @@ public class BarPlotAreaTests
         lines.Should().Contain(line => line.IsVertical);
     }
 
-    [Fact]
+    [Test]
     public void MinorGridlinesAreDrawnBetweenTheMajorOnes()
     {
         var majorOnly = Charts.Of(ChartType.Bar2D, 3.0, 6.0, 1.0);
@@ -190,7 +190,7 @@ public class BarPlotAreaTests
     ///   The bar chart's own copy of the forced zero line, which runs up the plot area where a
     ///   column chart's runs across it.
     /// </summary>
-    [Fact]
+    [Test]
     public void DataOnBothSidesOfZeroGetsAZeroLineOfItsOwn()
     {
         var straddling = Charts.Of(ChartType.Bar2D, -4.0, 6.0);
@@ -208,7 +208,7 @@ public class BarPlotAreaTests
     ///   instead - the renderer prefers the minor format when it has one, which is the other side
     ///   of the same branch.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheZeroLineIsDrawnEvenWhenOnlyMinorGridlinesWereAskedFor()
     {
         var straddling = Charts.Of(ChartType.Bar2D, -4.0, 6.0);
@@ -221,7 +221,7 @@ public class BarPlotAreaTests
             .Should().Be(StrokedLines.Of(Drawn.Page(oneSided)).Count + 1);
     }
 
-    [Fact]
+    [Test]
     public void ABarBelowZeroReachesBackFromTheZeroLine()
     {
         var bars = PaintedRectangles.FilledOn(Drawn.Page(Charts.Of(ChartType.Bar2D, -4.0, 6.0, 2.0)));
@@ -231,7 +231,7 @@ public class BarPlotAreaTests
         bars[2].X.Should().BeApproximately(bars[1].X, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void ABarChartWithNoGridlinesAsksForNoneOfThem()
     {
         var chart = Charts.Of(ChartType.Bar2D, 3.0, 6.0, 1.0);

@@ -2,7 +2,7 @@ using System;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.AcroForms;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs.AcroForms;
 
@@ -15,13 +15,13 @@ namespace PdfPinata.Test.Pdfs.AcroForms;
 /// </summary>
 public class AcroFormFieldTests
 {
-    [Fact]
+    [Test]
     public void ADocumentWithNoFormHasNoFieldsToOffer()
     {
         new PdfDocument().AcroForm.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void EveryFieldTypeIsRecognisedFromItsDictionary()
     {
         var document = new AcroFormBuilder()
@@ -47,7 +47,7 @@ public class AcroFormFieldTests
         fields["unknown"].Should().BeOfType<PdfGenericField>("a field type PdfPinata does not know still has a name and flags");
     }
 
-    [Fact]
+    [Test]
     public void APushButtonIsAPushButtonEvenWhenItAlsoClaimsToBeARadio()
     {
         // Both flags on one field is a contradiction, and the order the switch tests them in is
@@ -62,7 +62,7 @@ public class AcroFormFieldTests
 
     // ----- what every field has ------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AFieldKnowsItsOwnNameAndFlags()
     {
         var document = new AcroFormBuilder()
@@ -78,7 +78,7 @@ public class AcroFormFieldTests
         field.ReadOnly.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AFieldCanBeMadeReadOnlyAndBackAgainWithoutDisturbingItsOtherFlags()
     {
         var document = new AcroFormBuilder()
@@ -95,7 +95,7 @@ public class AcroFormFieldTests
         field.Flags.Should().HaveFlag(PdfAcroFieldFlags.Required);
     }
 
-    [Fact]
+    [Test]
     public void AFieldsValueCanBeSetToAStringOrAName()
     {
         var document = new AcroFormBuilder().With("/Tx", "surname").Build();
@@ -110,7 +110,7 @@ public class AcroFormFieldTests
         field.Value.Should().BeOfType<PdfName>().Which.ToString().Should().Be("/Yes");
     }
 
-    [Fact]
+    [Test]
     public void AFieldsValueCannotBeSetToAnythingElse()
     {
         var document = new AcroFormBuilder().With("/Tx", "surname").Build();
@@ -121,7 +121,7 @@ public class AcroFormFieldTests
         act.Should().Throw<NotImplementedException>();
     }
 
-    [Fact]
+    [Test]
     public void AReadOnlyFieldRefusesToBeGivenAValue()
     {
         var document = new AcroFormBuilder()
@@ -136,7 +136,7 @@ public class AcroFormFieldTests
 
     // ----- finding a field -----------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TheFieldsOfAFormCanBeReachedByPositionOrByName()
     {
         var document = new AcroFormBuilder().With("/Tx", "first").With("/Tx", "second").Build();
@@ -150,7 +150,7 @@ public class AcroFormFieldTests
         fields.Names.Should().Equal("first", "second");
     }
 
-    [Fact]
+    [Test]
     public void AskingForAFieldThatIsNotThereGivesNothingBack()
     {
         var document = new AcroFormBuilder().With("/Tx", "first").Build();
@@ -160,7 +160,7 @@ public class AcroFormFieldTests
         document.AcroForm.Fields[null].Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void AChildFieldIsReachedThroughItsParentByADottedName()
     {
         // A form names its fields hierarchically: the field called "address" with a child called
@@ -178,7 +178,7 @@ public class AcroFormFieldTests
         document.AcroForm.Fields["address.nosuchchild"].Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void AFieldWithNoChildrenSaysSoAndOffersNoneOfThem()
     {
         var document = new AcroFormBuilder().With("/Tx", "surname").Build();
@@ -190,7 +190,7 @@ public class AcroFormFieldTests
         field[""].Should().BeSameAs(field, "an empty name means the field itself");
     }
 
-    [Fact]
+    [Test]
     public void TheNamesOfEveryFieldInATreeAreListedWithTheirParentsInFront()
     {
         var document = new AcroFormBuilder()
@@ -203,7 +203,7 @@ public class AcroFormFieldTests
         names.Should().BeEquivalentTo("surname", "address.town", "address.postcode");
     }
 
-    [Fact]
+    [Test]
     public void AParentListsTheNamesBelowItWithoutItsOwnInFront()
     {
         var document = new AcroFormBuilder()
@@ -214,7 +214,7 @@ public class AcroFormFieldTests
             .Should().BeEquivalentTo("town", "postcode");
     }
 
-    [Fact]
+    [Test]
     public void AFieldTreeIsWrittenAsAFormAViewerWouldAccept()
     {
         // PDFsharp's tree walking reads /Kids and /T and would be satisfied with less than this,
@@ -247,7 +247,7 @@ public class AcroFormFieldTests
 
     // ----- appearances ---------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AFieldListsTheAppearanceStatesItCanBeDrawnIn()
     {
         var document = new AcroFormBuilder()
@@ -258,7 +258,7 @@ public class AcroFormFieldTests
             .Should().BeEquivalentTo("/Yes", "/Off");
     }
 
-    [Fact]
+    [Test]
     public void AFieldWithNoAppearanceDictionaryListsNoStates()
     {
         var document = new AcroFormBuilder().With("/Tx", "surname").Build();
@@ -268,7 +268,7 @@ public class AcroFormFieldTests
 
     // ----- the form itself -----------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AFormIsTheSameCollectionEveryTimeItIsAskedForItsFields()
     {
         var document = new AcroFormBuilder().With("/Tx", "surname").Build();
@@ -276,7 +276,7 @@ public class AcroFormFieldTests
         document.AcroForm.Fields.Should().BeSameAs(document.AcroForm.Fields);
     }
 
-    [Fact]
+    [Test]
     public void EveryFieldOfADocumentSurvivesBeingSavedAndReadAgain()
     {
         var document = new AcroFormBuilder()

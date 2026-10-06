@@ -7,7 +7,7 @@ using PdfPinata.Drawing.Layout;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Annotations;
@@ -21,7 +21,7 @@ namespace PdfPinata.Test.Annotations;
 ///   it, which is what the first two tests here are about; and, like <c>/Square</c> and
 ///   <c>/Line</c>, drawn from <c>/AP</c> and nothing else, which is what the rasterizing ones are.
 /// </remarks>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public sealed class FreeTextAnnotationTests : IDisposable
 {
     private const string OutDir = "Out/FreeTextAnnotations";
@@ -32,7 +32,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
 
     private static readonly XRect Where = new(60, 60, 220, 90);
 
-    [Fact]
+    [Test]
     public void AFreeTextNamesItsSubtypeAndCarriesTheDefaultAppearanceItIsRequiredTo()
     {
         var caption = OnAPage();
@@ -44,7 +44,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
         caption.Elements.GetString("/DA").Should().Contain("Tf");
     }
 
-    [Fact]
+    [Test]
     public void TheDefaultAppearanceNamesTheSizeAndTheColourTheTextIsDrawnIn()
     {
         var caption = OnAPage();
@@ -57,7 +57,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
         da.Should().Contain("1 0 0 rg");
     }
 
-    [Fact]
+    [Test]
     public void SettingTheContentsRedrawsBecauseForThisSubtypeTheyAreWhatIsDrawn()
     {
         var caption = OnAPage();
@@ -70,7 +70,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
         NormalStream(caption).Should().NotEqual(before);
     }
 
-    [Fact]
+    [Test]
     public void TheAlignmentIsWrittenAsAQuaddingCode()
     {
         var caption = OnAPage();
@@ -83,7 +83,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
         caption.Elements.GetInteger("/Q").Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void JustifiedTextIsWrittenAsLeftBecauseQuaddingCannotSayJustified()
     {
         var caption = OnAPage();
@@ -96,7 +96,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
         caption.Alignment.Should().Be(XParagraphAlignment.Justify);
     }
 
-    [Fact]
+    [Test]
     public void WhatTheTextGivesUpToTheBorderIsRecordedInRd()
     {
         var caption = OnAPage();
@@ -110,7 +110,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
             differences.Elements.GetReal(side).Should().Be(8);
     }
 
-    [Fact]
+    [Test]
     public void ANegativeBorderIsRefused()
     {
         var caption = OnAPage();
@@ -120,7 +120,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Fact]
+    [Test]
     public void TheAppearanceIsBuiltWhenTheAnnotationReachesAPage()
     {
         var document = new PdfDocument();
@@ -138,7 +138,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
         caption.Elements.GetDictionary("/AP").Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void NoTextNoBorderAndNoBackgroundDrawsNothingAndKeepsNoAppearance()
     {
         var caption = OnAPage();
@@ -153,7 +153,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
         caption.Elements.ContainsKey("/RD").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AnnotationWithNoColourEntryHasNoBackgroundRatherThanABlackOne()
     {
         var caption = OnAPage();
@@ -165,7 +165,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
         caption.Color.Should().Be(XColors.Black);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void TheTextIsPainted()
     {
         var page = Rasterize("text", caption =>
@@ -178,7 +178,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
         Count(page, IsRed).Should().BeGreaterThan(200);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void ABackgroundColourFillsTheBox()
     {
         var page = Rasterize("background", caption =>
@@ -191,7 +191,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
         Count(page, IsBlue).Should().BeGreaterThan(1000);
     }
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AnEmptyAnnotationRasterizesToNothing()
     {
         var page = Rasterize("empty", caption =>

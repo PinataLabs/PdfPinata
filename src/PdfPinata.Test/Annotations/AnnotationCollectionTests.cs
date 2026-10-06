@@ -7,7 +7,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Annotations;
 
@@ -36,7 +36,7 @@ public class AnnotationCollectionTests
 
     // ----- what the collection holds ------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void APageStartsWithNoAnnotationsAndSaysSoWithoutMakingAny()
     {
         var page = new PdfDocument().AddPage();
@@ -45,7 +45,7 @@ public class AnnotationCollectionTests
         page.Elements.ContainsKey("/Annots").Should().BeFalse("asking must not write");
     }
 
-    [Fact]
+    [Test]
     public void AnAnnotationAddedToAPageIsCountedAndFoundAgain()
     {
         var note = ANote();
@@ -56,7 +56,7 @@ public class AnnotationCollectionTests
         page.Annotations[0].Should().BeSameAs(note);
     }
 
-    [Fact]
+    [Test]
     public void AnAnnotationCanBeTakenOffThePageAgain()
     {
         var first = ANote("first");
@@ -69,7 +69,7 @@ public class AnnotationCollectionTests
         page.Annotations[0].Elements.GetString("/Contents").Should().Be("second");
     }
 
-    [Fact]
+    [Test]
     public void AnAnnotationFromAnotherDocumentCannotBeRemovedFromThisOne()
     {
         var page = APageWith(ANote());
@@ -82,7 +82,7 @@ public class AnnotationCollectionTests
         removing.Should().Throw<InvalidOperationException>();
     }
 
-    [Fact]
+    [Test]
     public void EveryAnnotationCanBeClearedAtOnce()
     {
         var page = APageWith(ANote("one"), ANote("two"), ANote("three"));
@@ -92,7 +92,7 @@ public class AnnotationCollectionTests
         page.Annotations.Count.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void TheCollectionEnumeratesTheAnnotationsInIt()
     {
         var one = ANote("one");
@@ -113,7 +113,7 @@ public class AnnotationCollectionTests
         untyped.Should().Equal(one, two);
     }
 
-    [Fact]
+    [Test]
     public void EnumeratedAsAnArrayTheCollectionStillYieldsTheAnnotations()
     {
         // The typed enumerator hides PdfArray's rather than overriding it, and a caller holding the
@@ -131,7 +131,7 @@ public class AnnotationCollectionTests
         page.Annotations.Should().Equal(one, two);
     }
 
-    [Fact]
+    [Test]
     public void AnAnnotationReadFromAFileIsEnumeratedAsItsOwnClass()
     {
         var document = new PdfDocument();
@@ -153,7 +153,7 @@ public class AnnotationCollectionTests
     ///   it was written from. It used to be a <see cref="PdfGenericAnnotation"/> whatever the
     ///   subtype said; that is now what a subtype with no class of its own becomes.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnAnnotationReadBackIsHandedOverAsTheClassItsSubtypeNames()
     {
         var document = new PdfDocument();
@@ -171,7 +171,7 @@ public class AnnotationCollectionTests
         annotations[1].Elements.GetName("/Subtype").Should().Be("/Link");
     }
 
-    [Fact]
+    [Test]
     public void AnAnnotationOfASubtypeWithNoClassOfItsOwnIsStillHandedBack()
     {
         var document = new PdfDocument();
@@ -191,7 +191,7 @@ public class AnnotationCollectionTests
         annotation.Elements.GetName("/Subtype").Should().Be("/Wibble");
     }
 
-    [Fact]
+    [Test]
     public void AnAnnotationHeldDirectlyRatherThanByReferenceIsStillHandedBack()
     {
         var document = new PdfDocument();
@@ -213,7 +213,7 @@ public class AnnotationCollectionTests
     ///   An imported annotation's <c>/P</c> points back at the page it was on in the file it came
     ///   from. Placing the page fixes it to point at the page it is on now.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnImportedAnnotationIsPointedAtThePageItEndsUpOn()
     {
         var source = new PdfDocument();

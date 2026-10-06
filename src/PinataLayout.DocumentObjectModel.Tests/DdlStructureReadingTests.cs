@@ -5,7 +5,7 @@ using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
 using PinataLayout.DocumentObjectModel.Tables;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -46,7 +46,7 @@ public class DdlStructureReadingTests
 
     // ----- a piece of a document read on its own ----------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ASectionCanBeReadWithoutADocumentAroundIt()
     {
         var section = ReadOnItsOwn("\\section[PageSetup{PageFormat = A5}]{\\paragraph{alone}}")
@@ -56,7 +56,7 @@ public class DdlStructureReadingTests
         TextOf(section.Elements[0] as Paragraph).Should().Be("alone");
     }
 
-    [Fact]
+    [Test]
     public void AStylesBlockCanBeReadWithoutADocumentAroundIt()
     {
         var styles = ReadOnItsOwn("\\styles{Quiet : Normal{Font{Size = 8}}}")
@@ -66,7 +66,7 @@ public class DdlStructureReadingTests
         styles["Quiet"].Font.Size.Point.Should().BeApproximately(8, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void ATableCanBeReadWithoutADocumentAroundIt()
     {
         var table = ReadOnItsOwn(
@@ -78,7 +78,7 @@ public class DdlStructureReadingTests
         TextOf(table[0, 1].Elements[0] as Paragraph).Should().Be("b");
     }
 
-    [Fact]
+    [Test]
     public void ATextFrameCanBeReadWithoutADocumentAroundIt()
     {
         var frame = ReadOnItsOwn("\\textframe[Width = \"5cm\"]{inside}")
@@ -88,7 +88,7 @@ public class DdlStructureReadingTests
         TextOf(frame.Elements[0] as Paragraph).Should().Be("inside");
     }
 
-    [Fact]
+    [Test]
     public void AParagraphReadOnItsOwnComesBackInTheListItWasAddedTo()
     {
         // Which is the one kind the reader does not hand back as itself: the parser only knows how
@@ -105,7 +105,7 @@ public class DdlStructureReadingTests
     ///   Pinned as the gap it is: the dispatch has an arm for <c>\chart</c> and the arm throws
     ///   rather than parsing, so a chart is readable inside a section and not on its own.
     /// </summary>
-    [Fact]
+    [Test]
     public void AChartCannotBeReadOnItsOwn()
     {
         var act = () => DdlReader.ObjectFromString("\\chart(Line){}", new DdlReaderErrors());
@@ -113,7 +113,7 @@ public class DdlStructureReadingTests
         act.Should().Throw<NotImplementedException>();
     }
 
-    [Fact]
+    [Test]
     public void AKeywordThatCannotStandAloneIsRefusedWhenReadOnItsOwn()
     {
         // A cell only means something inside a row, so it is not one of the things the reader
@@ -125,7 +125,7 @@ public class DdlStructureReadingTests
 
     // ----- styles -------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AStyleThatAlreadyExistsCanBeRedefinedAndRebased()
     {
         var document = Read(
@@ -135,7 +135,7 @@ public class DdlStructureReadingTests
         document.Styles["Heading1"].Font.Size.Point.Should().BeApproximately(30, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void AStyleNameCanBeAQuotedString()
     {
         // Which is how a name with a space in it is written, since an identifier cannot have one.
@@ -146,7 +146,7 @@ public class DdlStructureReadingTests
         document.Styles["Quiet Note"].Font.Size.Point.Should().BeApproximately(8, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void AStyleNeedNotSayAnythingAboutItself()
     {
         var document = Read("\\document{\\styles{Plain : Normal}\\section{\\paragraph{t}}}");
@@ -154,7 +154,7 @@ public class DdlStructureReadingTests
         document.Styles["Plain"].BaseStyle.Should().Be("Normal");
     }
 
-    [Fact]
+    [Test]
     public void AStylesBlockCanBeEmpty()
     {
         var document = Read("\\document{\\styles{}\\section{\\paragraph{t}}}");
@@ -163,7 +163,7 @@ public class DdlStructureReadingTests
         document.Sections.Count.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void ANewStyleWithNoBaseIsWarnedAboutAndStillDefined()
     {
         var errors = new DdlReaderErrors();
@@ -178,7 +178,7 @@ public class DdlStructureReadingTests
         errors.ErrorCount.Should().Be(0, "a warning is not an error");
     }
 
-    [Fact]
+    [Test]
     public void AStyleBasedOnOneThatDoesNotExistIsWarnedAboutAndStillDefined()
     {
         var errors = new DdlReaderErrors();
@@ -198,7 +198,7 @@ public class DdlStructureReadingTests
 
     // ----- headers and footers --------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void EachPageOfAHeaderCanBeGivenItsOwn()
     {
         var section = SectionOf(
@@ -209,7 +209,7 @@ public class DdlStructureReadingTests
         TextOf(section.Headers.Primary.Elements[0] as Paragraph).Should().Be("primary");
     }
 
-    [Fact]
+    [Test]
     public void EachPageOfAFooterCanBeGivenItsOwn()
     {
         var section = SectionOf(
@@ -222,7 +222,7 @@ public class DdlStructureReadingTests
             "a footer keyword says nothing about the header");
     }
 
-    [Fact]
+    [Test]
     public void AHeaderWithoutAPageIsEveryPagesHeaderAndCarriesItsAttributes()
     {
         var section = SectionOf(
@@ -237,7 +237,7 @@ public class DdlStructureReadingTests
 
     // ----- paragraph content ----------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnEmptyLineInsideAParagraphIsAParagraphBreakRatherThanANewParagraph()
     {
         var section = SectionOf("\\paragraph{one\n\ntwo}");
@@ -249,7 +249,7 @@ public class DdlStructureReadingTests
         paragraph.Elements.OfType<Text>().Select(text => text.Content).Should().Equal("one", "two");
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyLineInsideFormattedTextJoinsTheTwoLines()
     {
         // Below the paragraph's own level an empty line ends nothing; it is read as the one space
@@ -259,7 +259,7 @@ public class DdlStructureReadingTests
         string.Concat(formatted.Elements.OfType<Text>().Select(text => text.Content)).Should().Be("one two");
     }
 
-    [Fact]
+    [Test]
     public void EmptyLinesBeforeTheEndOfFormattedTextAreDropped()
     {
         var formatted = FirstParagraphOf("\\bold{one\n\n}").Elements.OfType<FormattedText>().Single();
@@ -267,7 +267,7 @@ public class DdlStructureReadingTests
         string.Concat(formatted.Elements.OfType<Text>().Select(text => text.Content)).Should().Be("one");
     }
 
-    [Fact]
+    [Test]
     public void ALineEndAfterAKeywordContinuesTheParagraph()
     {
         var paragraph = FirstParagraphOf("\\bold{x}\nmore");
@@ -276,7 +276,7 @@ public class DdlStructureReadingTests
         TextOf(paragraph).Should().Be(" more", "the line end is the space between the two");
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyLineAfterAKeywordIsAParagraphBreakToo()
     {
         var paragraph = FirstParagraphOf("\\bold{x}\n\nmore");
@@ -286,7 +286,7 @@ public class DdlStructureReadingTests
         TextOf(paragraph).Should().Be("more");
     }
 
-    [Fact]
+    [Test]
     public void ALineEndAfterATabAddsNoSpaceOfItsOwn()
     {
         // The tab already separates the words, so the line end that follows it is not read as a
@@ -297,7 +297,7 @@ public class DdlStructureReadingTests
         TextOf(paragraph).Should().Be("ab");
     }
 
-    [Fact]
+    [Test]
     public void TheSpaceBeforeATabIsDropped()
     {
         var paragraph = FirstParagraphOf("a \\tab b");
@@ -306,19 +306,19 @@ public class DdlStructureReadingTests
             "the tab is the separator, so a blank written before it is not kept");
     }
 
-    [Fact]
+    [Test]
     public void ACommentInsideAParagraphRunsToTheEndOfItsLine()
     {
         TextOf(FirstParagraphOf("a // not text\nb")).Should().Be("a b");
     }
 
-    [Fact]
+    [Test]
     public void AParagraphCanOpenWithACommentLine()
     {
         TextOf(FirstParagraphOf("// not text\nb")).Should().Be("b");
     }
 
-    [Fact]
+    [Test]
     public void ALineOfCommentBetweenTwoLinesOfTextDoesNotEndTheParagraph()
     {
         // A line holding nothing but a comment is not an empty line, so the paragraph goes on.
@@ -328,25 +328,25 @@ public class DdlStructureReadingTests
         TextOf(section.Elements[0] as Paragraph).Should().Be("one two");
     }
 
-    [Fact]
+    [Test]
     public void ALineThatStartsWithASingleSlashIsText()
     {
         TextOf(FirstParagraphOf("one\n/two")).Should().Be("one /two");
     }
 
-    [Fact]
+    [Test]
     public void ALineEndBeforeTheClosingBraceIsNotText()
     {
         TextOf(FirstParagraphOf("one\n")).Should().Be("one");
     }
 
-    [Fact]
+    [Test]
     public void ACarriageReturnBeforeALineFeedIsOneLineEnd()
     {
         TextOf(FirstParagraphOf("a\r\nb")).Should().Be("a b");
     }
 
-    [Fact]
+    [Test]
     public void ACarriageReturnOnItsOwnIsALineEnd()
     {
         // A lone carriage return - an old Mac OS line end - ends a line as a line feed does, and
@@ -357,25 +357,25 @@ public class DdlStructureReadingTests
         TextOf(FirstParagraphOf("a\rb")).Should().Be("a b");
     }
 
-    [Fact]
+    [Test]
     public void ABackslashAndAHyphenIsASoftHyphen()
     {
         TextOf(FirstParagraphOf("Hyphen\\-ation")).Should().Be("Hyphen\u00ADation");
     }
 
-    [Fact]
+    [Test]
     public void ASoftHyphenCanOpenAParagraph()
     {
         TextOf(FirstParagraphOf("\\-start")).Should().Be("\u00ADstart");
     }
 
-    [Fact]
+    [Test]
     public void AnEscapedBraceCanOpenAParagraph()
     {
         TextOf(FirstParagraphOf("\\{brace")).Should().Be("{brace");
     }
 
-    [Fact]
+    [Test]
     public void BareSectionContentCanOpenWithAFormattingKeyword()
     {
         // The section has to look past the backslash to decide whether this is the start of a
@@ -387,13 +387,13 @@ public class DdlStructureReadingTests
         TextOf(paragraph).Should().Be(" y");
     }
 
-    [Fact]
+    [Test]
     public void BareSectionContentCanOpenWithAComment()
     {
         TextOf(SectionOf("// not text\ntext").Elements[0] as Paragraph).Should().Be("text");
     }
 
-    [Fact]
+    [Test]
     public void APageBreakSitsBetweenTheParagraphsEitherSideOfIt()
     {
         var section = SectionOf("\\paragraph{x}\\pagebreak\\paragraph{y}");
@@ -404,7 +404,7 @@ public class DdlStructureReadingTests
 
     // ----- font size and colour shorthands ---------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void FontSizeIsAShorthandForFormattedTextOfThatSize()
     {
         var formatted = FirstParagraphOf("\\fontsize(14){big}").Elements.OfType<FormattedText>().Single();
@@ -413,7 +413,7 @@ public class DdlStructureReadingTests
         formatted.Elements.OfType<Text>().Single().Content.Should().Be("big");
     }
 
-    [Fact]
+    [Test]
     public void FontSizeTakesAUnitWhenItIsQuoted()
     {
         var formatted = FirstParagraphOf("\\fontsize(\"1cm\"){big}").Elements.OfType<FormattedText>().Single();
@@ -421,10 +421,10 @@ public class DdlStructureReadingTests
         formatted.Font.Size.Centimeter.Should().BeApproximately(1, 1e-4);
     }
 
-    [Theory]
-    [InlineData("Red", 0xFFFF0000u)]
-    [InlineData("RGB(1, 2, 3)", 0xFF010203u)]
-    [InlineData("0xFF00FF00", 0xFF00FF00u)]
+    [Test]
+    [Arguments("Red", 0xFFFF0000u)]
+    [Arguments("RGB(1, 2, 3)", 0xFF010203u)]
+    [Arguments("0xFF00FF00", 0xFF00FF00u)]
     public void FontColourIsAShorthandForFormattedTextOfThatColour(string colour, uint argb)
     {
         var formatted = FirstParagraphOf("\\fontcolor(" + colour + "){c}")
@@ -434,7 +434,7 @@ public class DdlStructureReadingTests
         formatted.Elements.OfType<Text>().Single().Content.Should().Be("c");
     }
 
-    [Fact]
+    [Test]
     public void FormattedTextCanNameAStyleAndSetAFontAtOnce()
     {
         var formatted = FirstParagraphOf("\\font(\"Heading1\")[Size = 3]{x}")
@@ -444,7 +444,7 @@ public class DdlStructureReadingTests
         formatted.Font.Size.Point.Should().BeApproximately(3, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void AHyperlinkCanHoldFormattedText()
     {
         var link = FirstParagraphOf("\\hyperlink[Name = \"n\"]{a\\bold{b}}").Elements.OfType<Hyperlink>().Single();
@@ -455,7 +455,7 @@ public class DdlStructureReadingTests
 
     // ----- symbols, spaces and characters -----------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ASymbolCanSayHowManyTimesItIsRepeated()
     {
         var character = FirstParagraphOf("\\symbol(Euro, 3)").Elements.OfType<Character>().Single();
@@ -464,13 +464,13 @@ public class DdlStructureReadingTests
         character.Count.Should().Be(3);
     }
 
-    [Theory]
-    [InlineData("\\space(Em)", SymbolName.Em, 1)]
-    [InlineData("\\space(Em, 3)", SymbolName.Em, 3)]
-    [InlineData("\\space(En)", SymbolName.En, 1)]
-    [InlineData("\\space(EmQuarter, 2)", SymbolName.EmQuarter, 2)]
-    [InlineData("\\space(4)", SymbolName.Blank, 4)]
-    [InlineData("\\space (3)", SymbolName.Blank, 3)]
+    [Test]
+    [Arguments("\\space(Em)", SymbolName.Em, 1)]
+    [Arguments("\\space(Em, 3)", SymbolName.Em, 3)]
+    [Arguments("\\space(En)", SymbolName.En, 1)]
+    [Arguments("\\space(EmQuarter, 2)", SymbolName.EmQuarter, 2)]
+    [Arguments("\\space(4)", SymbolName.Blank, 4)]
+    [Arguments("\\space (3)", SymbolName.Blank, 3)]
     public void ASpaceCanSayWhatKindAndHowMany(string ddl, SymbolName kind, int count)
     {
         var character = FirstParagraphOf("a" + ddl + "b").Elements.OfType<Character>().Single();
@@ -480,7 +480,7 @@ public class DdlStructureReadingTests
         TextOf(FirstParagraphOf("a" + ddl + "b")).Should().Be("ab");
     }
 
-    [Fact]
+    [Test]
     public void ABackslashAndAParenthesisIsShortForChr()
     {
         var character = FirstParagraphOf("\\(65, 3)").Elements.OfType<Character>().Single();
@@ -489,7 +489,7 @@ public class DdlStructureReadingTests
         character.Count.Should().Be(3);
     }
 
-    [Fact]
+    [Test]
     public void ACharacterNumberCanBeWrittenInHex()
     {
         FirstParagraphOf("\\chr(0x41)").Elements.OfType<Character>().Single().Char.Should().Be('A');
@@ -497,21 +497,21 @@ public class DdlStructureReadingTests
 
     // ----- fields and footnotes -------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ASectionPagesFieldIsReadAsOne()
     {
         FirstParagraphOf("\\field(SectionPages)").Elements.OfType<Fields.SectionPagesField>()
             .Should().ContainSingle();
     }
 
-    [Fact]
+    [Test]
     public void AFieldNameIsNotCaseSensitive()
     {
         FirstParagraphOf("\\field(numpages)").Elements.OfType<Fields.NumPagesField>()
             .Should().ContainSingle();
     }
 
-    [Fact]
+    [Test]
     public void AFootnoteCanHoldParagraphsWrittenOutInFull()
     {
         var footnote = FirstParagraphOf("x\\footnote{\\paragraph{one}\\paragraph{two}}")
@@ -520,7 +520,7 @@ public class DdlStructureReadingTests
         footnote.Elements.OfType<Paragraph>().Select(TextOf).Should().Equal("one", "two");
     }
 
-    [Fact]
+    [Test]
     public void AFootnoteKeepsTheAttributesGivenToIt()
     {
         var footnote = FirstParagraphOf("x\\footnote[Reference = \"*\"]{note}")
@@ -535,7 +535,7 @@ public class DdlStructureReadingTests
     ///   no page of its own to go at the foot of - so the reader warns, and says where, rather
     ///   than leaving the first word of it to a render that fails with no line number.
     /// </summary>
-    [Fact]
+    [Test]
     public void AFootnoteInsideAFootnoteIsReadAndWarnedAbout()
     {
         var errors = new DdlReaderErrors();
@@ -557,7 +557,7 @@ public class DdlStructureReadingTests
         errors.ErrorCount.Should().Be(0, "a warning is not an error");
     }
 
-    [Fact]
+    [Test]
     public void AFootnoteDeeperInsideAFootnoteIsWarnedAboutToo()
     {
         // The inner note is inside formatted text inside a second paragraph of the outer one, so
@@ -572,7 +572,7 @@ public class DdlStructureReadingTests
             .Which.ErrorLevel.Should().Be(DdlErrorLevel.Warning);
     }
 
-    [Fact]
+    [Test]
     public void FootnotesSideBySideAreNotWarnedAbout()
     {
         ReadOnItsOwn("\\document{\\section{\\paragraph{a\\footnote{one} b\\footnote{two}}}}");
@@ -580,7 +580,7 @@ public class DdlStructureReadingTests
 
     // ----- tables ---------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TheColumnsAndRowsOfATableCanCarryAttributesOfTheirOwn()
     {
         var table = SectionOf(
@@ -595,7 +595,7 @@ public class DdlStructureReadingTests
         table.Rows.Count.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void AColumnCanBeWrittenWithAnEmptyBlock()
     {
         var table = SectionOf(
@@ -607,7 +607,7 @@ public class DdlStructureReadingTests
         table.Columns[0].Width.Centimeter.Should().BeApproximately(2, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void ACellCanHoldParagraphsWrittenOutInFullAndCarryItsOwnFormat()
     {
         var table = SectionOf(
@@ -620,10 +620,10 @@ public class DdlStructureReadingTests
         table[0, 0].Elements.OfType<Paragraph>().Select(TextOf).Should().Equal("p", "q");
     }
 
-    [Theory]
-    [InlineData("\\row{\\cell{}}")]
-    [InlineData("\\row{\\cell}")]
-    [InlineData("\\row")]
+    [Test]
+    [Arguments("\\row{\\cell{}}")]
+    [Arguments("\\row{\\cell}")]
+    [Arguments("\\row")]
     public void ARowAndItsCellsCanBeEmpty(string row)
     {
         var table = SectionOf("\\table{\\columns{\\column}\\rows{" + row + "}}").Elements[0] as Table;
@@ -633,7 +633,7 @@ public class DdlStructureReadingTests
         table[0, 0].Elements.Count.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void ACellCanHoldATable()
     {
         var table = SectionOf(
@@ -648,7 +648,7 @@ public class DdlStructureReadingTests
 
     // ----- text frames and barcodes -------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ATextFrameCanHoldParagraphsWrittenOutInFull()
     {
         var frame = SectionOf("\\textframe{\\paragraph{a}\\paragraph{b}}").Elements[0] as TextFrame;
@@ -657,7 +657,7 @@ public class DdlStructureReadingTests
         frame.Elements.OfType<Paragraph>().Select(TextOf).Should().Equal("a", "b");
     }
 
-    [Fact]
+    [Test]
     public void AShapePositionCanBeANamedPlaceOrADistance()
     {
         // Left and Top are structures rather than numbers or enums, and are read by handing the
@@ -673,7 +673,7 @@ public class DdlStructureReadingTests
         measured.Top.ShapePosition.Should().Be(ShapePosition.Bottom);
     }
 
-    [Fact]
+    [Test]
     public void ABarcodeCanNameItsTypeAndCarryAttributes()
     {
         var barcode = SectionOf("\\barcode(\"12345\", Barcode39)[Width = \"4cm\"]").Elements[0] as Barcode;
@@ -686,7 +686,7 @@ public class DdlStructureReadingTests
 
     // ----- charts ---------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AChartCarriesTheAttributesGivenToIt()
     {
         var chart = SectionOf("\\chart(Line)[Width = \"8cm\"]{}").Elements[0] as Chart;
@@ -695,7 +695,7 @@ public class DdlStructureReadingTests
         chart.Width.Centimeter.Should().BeApproximately(8, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void EachOfTheThreeAxesIsReadOntoItself()
     {
         var chart = ChartFrom(
@@ -706,7 +706,7 @@ public class DdlStructureReadingTests
         chart.ZAxis.MajorTickMark.Should().Be(TickMarkType.Cross);
     }
 
-    [Fact]
+    [Test]
     public void WhatIsBetweenTheBracesOfAnAxisIsSkipped()
     {
         var chart = ChartFrom("\\xaxis[Title{Caption = \"x\"}]{ ignored 1 2 3 }\\yaxis[HasMajorGridlines = true]");
@@ -715,7 +715,7 @@ public class DdlStructureReadingTests
         chart.YAxis.HasMajorGridlines.Should().BeTrue("the axis after the skipped block is still read");
     }
 
-    [Fact]
+    [Test]
     public void ThePlotAreaCanBeNamedWithNothingAfterIt()
     {
         var chart = ChartFrom("\\plotarea\\yaxis[HasMajorGridlines = true]");
@@ -723,7 +723,7 @@ public class DdlStructureReadingTests
         chart.YAxis.HasMajorGridlines.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void WhatIsBetweenTheBracesOfThePlotAreaIsSkipped()
     {
         var chart = ChartFrom("\\plotarea[TopPadding = \"1cm\"]{ anything 1 2 3 }\\yaxis[HasMajorGridlines = true]");
@@ -732,7 +732,7 @@ public class DdlStructureReadingTests
         chart.YAxis.HasMajorGridlines.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ASeriesIsItsNumbersInOrderWithItsGaps()
     {
         var series = ChartFrom("\\series[Name = \"s\"]{1, null, 3.5}").SeriesCollection[0];
@@ -744,7 +744,7 @@ public class DdlStructureReadingTests
         ((Point)series.Elements[2]).Value.Should().Be(3.5);
     }
 
-    [Fact]
+    [Test]
     public void APointInASeriesCanBeWrittenOutWithAttributesOfItsOwn()
     {
         var series = ChartFrom("\\series{\\point{4}, \\point[FillFormat{Color = Red}]{5}}").SeriesCollection[0];
@@ -756,7 +756,7 @@ public class DdlStructureReadingTests
         second.FillFormat.Color.Should().Be(Colors.Red);
     }
 
-    [Fact]
+    [Test]
     public void XValuesCanBeStringsNumbersAndGaps()
     {
         var chart = ChartFrom("\\xvalues{\"a\", \"b\", null, 3, 4.5, 0x10}");
@@ -766,7 +766,7 @@ public class DdlStructureReadingTests
             .Should().Contain("\"a\", \"b\", null, \"3\", \"4.5\", \"0x10\",");
     }
 
-    [Fact]
+    [Test]
     public void ALegendCanCarryAttributesAndWhatIsInItsBracesIsSkipped()
     {
         var chart = ChartFrom("\\leftarea{\\legend[Format{Font{Size = 7}}]{ignored}}");
@@ -777,7 +777,7 @@ public class DdlStructureReadingTests
 
     // ----- attribute statements -------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnAttributeCanBeReachedByADottedPath()
     {
         var paragraph = SectionOf("\\paragraph[Format.Font.Size = 10 Format.Font.Bold = true]{t}")
@@ -788,7 +788,7 @@ public class DdlStructureReadingTests
         paragraph.Format.Font.Bold.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ATabStopCanBeAddedWithAttributesOfItsOwn()
     {
         // ReSharper disable once PossibleNullReferenceException
@@ -801,9 +801,9 @@ public class DdlStructureReadingTests
         stops[0].Alignment.Should().Be(TabAlignment.Right);
     }
 
-    [Theory]
-    [InlineData("2", 2.0)]
-    [InlineData("2.5", 2.5)]
+    [Test]
+    [Arguments("2", 2.0)]
+    [Arguments("2.5", 2.5)]
     public void ATabStopCanBeAddedAsABareNumberOfPoints(string position, double points)
     {
         // ReSharper disable once PossibleNullReferenceException
@@ -813,7 +813,7 @@ public class DdlStructureReadingTests
         stops[0].Position.Point.Should().BeApproximately(points, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void NullClearsBordersShadingAndTabStops()
     {
         // A cleared value is not the same as one never set: it is written back out as null, which
@@ -829,7 +829,7 @@ public class DdlStructureReadingTests
             .Contain("Borders = null").And.Contain("Shading = null").And.Contain("TabStops = null");
     }
 
-    [Fact]
+    [Test]
     public void NullClearsASingleBorder()
     {
         var paragraph = SectionOf("\\paragraph[Format{Borders{Top = null}}]{t}").Elements[0] as Paragraph;
@@ -837,11 +837,11 @@ public class DdlStructureReadingTests
         DdlWriter.WriteToString(paragraph).Should().Contain("Top = null");
     }
 
-    [Theory]
-    [InlineData(".5", 0.5)]
-    [InlineData("1.", 1.0)]
-    [InlineData("-3", -3.0)]
-    [InlineData("+3", 3.0)]
+    [Test]
+    [Arguments(".5", 0.5)]
+    [Arguments("1.", 1.0)]
+    [Arguments("-3", -3.0)]
+    [Arguments("+3", 3.0)]
     public void ANumberCanBeWrittenWithASignOrWithoutADigitOnOneSideOfThePoint(string literal, double points)
     {
         var paragraph = SectionOf("\\paragraph[Format{Font{Size = " + literal + "}}]{t}").Elements[0] as Paragraph;
@@ -850,14 +850,14 @@ public class DdlStructureReadingTests
         paragraph.Format.Font.Size.Point.Should().BeApproximately(points, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void AnIntegerAttributeCanBeWrittenAsAQuotedString()
     {
         Read("\\document{\\section[PageSetup{StartingNumber = \"5\"}]{\\paragraph{t}}}")
             .LastSection.PageSetup.StartingNumber.Should().Be(5);
     }
 
-    [Fact]
+    [Test]
     public void AColourCanBeWrittenAsADecimalNumber()
     {
         var paragraph = SectionOf("\\paragraph[Format{Font{Color = 16711680}}]{t}").Elements[0] as Paragraph;
@@ -869,14 +869,14 @@ public class DdlStructureReadingTests
         DdlWriter.WriteToString(paragraph).Should().Contain("Color = 0xFF0000");
     }
 
-    [Fact]
+    [Test]
     public void AVerbatimStringWritesAQuoteByDoublingIt()
     {
         Read("\\document[Info{Title = @\"say \"\"hi\"\"\"}]{\\section{\\paragraph{t}}}")
             .Info.Title.Should().Be("say \"hi\"");
     }
 
-    [Fact]
+    [Test]
     public void ACarriageReturnBetweenTokensIsWhiteSpace()
     {
         Read("\\document\r{\\section{\\paragraph{t}}}").Sections.Count.Should().Be(1);

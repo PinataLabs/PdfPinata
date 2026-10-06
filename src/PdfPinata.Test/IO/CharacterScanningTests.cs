@@ -2,7 +2,7 @@ using System;
 using System.Reflection;
 using AwesomeAssertions;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -23,7 +23,7 @@ public class CharacterScanningTests
 
     // ----- Advance: the current-and-next character pair, with the CR/LF fold --------------------
 
-    [Fact]
+    [Test]
     public void Advance_shiftsNextCharIntoCurrCharAndReadsAFreshNextChar()
     {
         var (curr, next) = InvokeAdvance('a', handleCrlf: false, queue: "b");
@@ -32,7 +32,7 @@ public class CharacterScanningTests
         next.Should().Be('b');
     }
 
-    [Fact]
+    [Test]
     public void Advance_foldsALoneCarriageReturnIntoALineFeedWhenAsked()
     {
         var (curr, next) = InvokeAdvance('\r', handleCrlf: true, queue: "b");
@@ -41,7 +41,7 @@ public class CharacterScanningTests
         next.Should().Be('b');
     }
 
-    [Fact]
+    [Test]
     public void Advance_foldsACarriageReturnLineFeedPairIntoOneLineFeedWhenAsked()
     {
         // Both bytes of the pair are consumed - the fold does not leave the LF behind for the
@@ -52,7 +52,7 @@ public class CharacterScanningTests
         next.Should().Be('b');
     }
 
-    [Fact]
+    [Test]
     public void Advance_keepsARawCarriageReturnWhenFoldingIsOff()
     {
         // A grammar decoding raw bytes character by character - a literal string's escape
@@ -63,7 +63,7 @@ public class CharacterScanningTests
         next.Should().Be('b');
     }
 
-    [Fact]
+    [Test]
     public void Advance_readsTheEndOfSourceAsEOF()
     {
         var (curr, next) = InvokeAdvance('z', handleCrlf: true, queue: "");
@@ -74,15 +74,15 @@ public class CharacterScanningTests
 
     // ----- SkipWhiteSpace -------------------------------------------------------------------------
 
-    [Theory]
-    [InlineData('\0')] // NUL
-    [InlineData('\t')] // HT
-    [InlineData('\n')] // LF
-    [InlineData('\f')] // FF
-    [InlineData('\r')] // CR
-    [InlineData(' ')]  // SP
-    [InlineData((char)11)]  // vertical tab
-    [InlineData((char)173)] // soft hyphen
+    [Test]
+    [Arguments('\0')] // NUL
+    [Arguments('\t')] // HT
+    [Arguments('\n')] // LF
+    [Arguments('\f')] // FF
+    [Arguments('\r')] // CR
+    [Arguments(' ')]  // SP
+    [Arguments((char)11)]  // vertical tab
+    [Arguments((char)173)] // soft hyphen
     public void SkipWhiteSpace_skipsEveryWhiteSpaceCharacterUntilAnOrdinaryOneIsReached(char whiteSpace)
     {
         var queue = new string(whiteSpace, 3) + "x";
@@ -94,7 +94,7 @@ public class CharacterScanningTests
         result.Should().Be('x');
     }
 
-    [Fact]
+    [Test]
     public void SkipWhiteSpace_stopsAtTheEndOfSourceWhenEverythingWasWhiteSpace()
     {
         var queue = "   ";
@@ -106,7 +106,7 @@ public class CharacterScanningTests
         result.Should().Be(Eof);
     }
 
-    [Fact]
+    [Test]
     public void SkipWhiteSpace_returnsAnOrdinaryCharacterUnchanged()
     {
         var result = InvokeSkipWhiteSpace('x', () => 'y');
@@ -116,61 +116,61 @@ public class CharacterScanningTests
 
     // ----- character-class predicates ---------------------------------------------------------
 
-    [Theory]
-    [InlineData('\0', true)]
-    [InlineData('\t', true)]
-    [InlineData('\n', true)]
-    [InlineData('\f', true)]
-    [InlineData('\r', true)]
-    [InlineData(' ', true)]
+    [Test]
+    [Arguments('\0', true)]
+    [Arguments('\t', true)]
+    [Arguments('\n', true)]
+    [Arguments('\f', true)]
+    [Arguments('\r', true)]
+    [Arguments(' ', true)]
     // Narrower than SkipWhiteSpace: a vertical tab and a soft hyphen are not white space by this
     // predicate, only by the wider skip built on top of it - the same asymmetry Lexer's own
     // IsWhiteSpace and MoveToNonWhiteSpace have always had.
-    [InlineData((char)11, false)]
-    [InlineData((char)173, false)]
-    [InlineData('a', false)]
+    [Arguments((char)11, false)]
+    [Arguments((char)173, false)]
+    [Arguments('a', false)]
     public void IsWhiteSpace_matchesPdfsNarrowerWhiteSpaceList(char ch, bool expected)
     {
         InvokeStatic<bool>("IsWhiteSpace", ch).Should().Be(expected);
     }
 
-    [Theory]
-    [InlineData('(', true)]
-    [InlineData(')', true)]
-    [InlineData('<', true)]
-    [InlineData('>', true)]
-    [InlineData('[', true)]
-    [InlineData(']', true)]
-    [InlineData('{', true)]
-    [InlineData('}', true)]
-    [InlineData('/', true)]
-    [InlineData('%', true)]
-    [InlineData('a', false)]
+    [Test]
+    [Arguments('(', true)]
+    [Arguments(')', true)]
+    [Arguments('<', true)]
+    [Arguments('>', true)]
+    [Arguments('[', true)]
+    [Arguments(']', true)]
+    [Arguments('{', true)]
+    [Arguments('}', true)]
+    [Arguments('/', true)]
+    [Arguments('%', true)]
+    [Arguments('a', false)]
     public void IsDelimiter_matchesTheNineDelimiterCharacters(char ch, bool expected)
     {
         InvokeStatic<bool>("IsDelimiter", ch).Should().Be(expected);
     }
 
-    [Theory]
-    [InlineData('0', true)]
-    [InlineData('9', true)]
-    [InlineData('a', true)]
-    [InlineData('f', true)]
-    [InlineData('A', true)]
-    [InlineData('F', true)]
-    [InlineData('g', false)]
-    [InlineData('G', false)]
+    [Test]
+    [Arguments('0', true)]
+    [Arguments('9', true)]
+    [Arguments('a', true)]
+    [Arguments('f', true)]
+    [Arguments('A', true)]
+    [Arguments('F', true)]
+    [Arguments('g', false)]
+    [Arguments('G', false)]
     public void IsHexChar_acceptsBothCasesOfAThroughF(char ch, bool expected)
     {
         InvokeStatic<bool>("IsHexChar", ch).Should().Be(expected);
     }
 
-    [Theory]
-    [InlineData('0', true)]
-    [InlineData('7', true)]
-    [InlineData('8', false)]
-    [InlineData('9', false)]
-    [InlineData('a', false)]
+    [Test]
+    [Arguments('0', true)]
+    [Arguments('7', true)]
+    [Arguments('8', false)]
+    [Arguments('9', false)]
+    [Arguments('a', false)]
     public void IsOctalDigit_stopsAtSevenRatherThanNine(char ch, bool expected)
     {
         InvokeStatic<bool>("IsOctalDigit", ch).Should().Be(expected);

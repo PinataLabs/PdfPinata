@@ -3,22 +3,14 @@ using PdfPinata.Drawing.Layout;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
 using PdfPinata.Test.IO;
-using Xunit;
-using Xunit.Abstractions;
+using TUnit.Core;
 
 namespace PdfPinata.Test;
 
 public class LargePDFReadWrite : IoBaseTest
 {
-    private readonly ITestOutputHelper output;
-
-    public LargePDFReadWrite(ITestOutputHelper output)
-    {
-        this.output = output;
-    }
-
-    #pragma warning disable xUnit1004 // Writing 70,000 pages to reach 2 GB takes minutes; it is run by hand, never by the suite.
-    [Fact(Skip = "Too slow for Unit test runner")]
+    // Writing 70,000 pages to reach 2 GB takes minutes; it is run by hand, never by the suite.
+    [Test, Skip("Too slow for Unit test runner")]
     public void CanCreatePdfOver2Gb()
     {
         const string outName = "CreateLargePdf.pdf";
@@ -38,11 +30,10 @@ public class LargePDFReadWrite : IoBaseTest
         watch.Stop();
 
         SaveDocument(document, outName);
-        output.WriteLine($"CreatePDF took {watch.Elapsed.TotalSeconds} sec");
+        TestContext.Current!.Output.WriteLine($"CreatePDF took {watch.Elapsed.TotalSeconds} sec");
         ValidateFileIsPdf(outName);
         CanReadPdf(outName);
     }
-    #pragma warning restore xUnit1004
 
     private static void AddAPage(PdfDocument document, XFont font)
     {

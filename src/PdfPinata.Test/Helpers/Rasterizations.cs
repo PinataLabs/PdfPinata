@@ -15,10 +15,10 @@ namespace PdfPinata.Test.Helpers;
 ///   the moment they are drawn - but nor can they be left to a finalizer, because the bitmaps are in
 ///   unmanaged memory the collector cannot see the size of, and enough of them end the test host
 ///   with no failing test at all (see <see cref="RasterizeOutput"/>). One instance per test class,
-///   created as a field: xUnit builds the class afresh for every test and disposes it after, so
+///   created as a field: TUnit builds the class afresh for every test and disposes it after, so
 ///   what one test drew is freed before the next begins.
 ///
-///   A user of this belongs to <see cref="RasterizingCollection"/>, like anything that rasterizes.
+///   A user of this is marked <see cref="RasterizingAttribute"/>, like anything that rasterizes.
 /// </remarks>
 internal sealed class Rasterizations(string outDir) : IDisposable
 {

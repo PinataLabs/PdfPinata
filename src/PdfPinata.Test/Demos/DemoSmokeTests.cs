@@ -6,7 +6,7 @@ using PdfPinata.Fonts;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using SampleApp.Infrastructure;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Demos;
 
@@ -31,19 +31,19 @@ namespace PdfPinata.Test.Demos;
 /// </remarks>
 public class DemoSmokeTests
 {
-    public static TheoryData<string> EveryDemo
+    public static IEnumerable<string> EveryDemo
     {
         get
         {
-            var data = new TheoryData<string>();
+            var data = new List<string>();
             foreach (var name in DemoRegistry.Names)
                 data.Add(name);
             return data;
         }
     }
 
-    [Theory]
-    [MemberData(nameof(EveryDemo))]
+    [Test]
+    [MethodDataSource(nameof(EveryDemo))]
     public void A_demo_writes_the_pdf_it_says_it_does(string name)
     {
         DemoRegistry.TryGet(name, out var demo).Should().BeTrue();
@@ -69,8 +69,8 @@ public class DemoSmokeTests
         result.PageCount.Should().Be(demo.PageCount);
     }
 
-    [Theory]
-    [MemberData(nameof(EveryDemo))]
+    [Test]
+    [MethodDataSource(nameof(EveryDemo))]
     public void A_demo_can_show_the_source_it_was_written_in(string name)
     {
         DemoRegistry.TryGet(name, out var demo).Should().BeTrue();
@@ -93,7 +93,7 @@ public class DemoSmokeTests
         example.Should().NotContain(DemoSource.SnippetMarkerPrefix);
     }
 
-    [Fact]
+    [Test]
     public void The_printed_example_leaves_out_the_documentation_excerpt_markers()
     {
         const string source = """
@@ -116,8 +116,8 @@ public class DemoSmokeTests
         example.Should().Be("int a = 1;" + Environment.NewLine + "int b = 2;");
     }
 
-    [Theory]
-    [MemberData(nameof(EveryDemo))]
+    [Test]
+    [MethodDataSource(nameof(EveryDemo))]
     public void Every_documentation_excerpt_a_demo_marks_is_closed_once_and_in_order(string name)
     {
         DemoRegistry.TryGet(name, out var demo).Should().BeTrue();
@@ -155,7 +155,7 @@ public class DemoSmokeTests
         open.Should().BeEmpty("every excerpt begun is ended");
     }
 
-    [Fact]
+    [Test]
     public void Running_a_demo_leaves_the_font_resolver_the_tests_installed()
     {
         DemoRegistry.TryGet("HelloWorld", out var demo).Should().BeTrue();
@@ -168,7 +168,7 @@ public class DemoSmokeTests
         GlobalFontSettings.FontResolver.Should().BeOfType<PinnedFontResolver>();
     }
 
-    [Fact]
+    [Test]
     public void Every_demo_has_a_name_that_is_usable_as_a_file_name()
     {
         foreach (var demo in DemoRegistry.All)

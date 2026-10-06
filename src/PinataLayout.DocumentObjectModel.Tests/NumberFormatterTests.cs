@@ -1,6 +1,6 @@
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.Fields;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -12,19 +12,19 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class NumberFormatterTests
 {
-    [Theory]
-    [InlineData(1, "I")]
-    [InlineData(4, "IV")]
-    [InlineData(9, "IX")]
-    [InlineData(27, "XXVII")]
-    [InlineData(1990, "MCMXC")]
-    [InlineData(3888, "MMMDCCCLXXXVIII")]
+    [Test]
+    [Arguments(1, "I")]
+    [Arguments(4, "IV")]
+    [Arguments(9, "IX")]
+    [Arguments(27, "XXVII")]
+    [Arguments(1990, "MCMXC")]
+    [Arguments(3888, "MMMDCCCLXXXVIII")]
     public void ANumberIsWrittenAsARomanNumeral(int number, string expected)
     {
         NumberFormatter.Format(number, "ROMAN").Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void ALowercaseRomanNumeralIsTheSameNumeralInLowercase()
     {
         NumberFormatter.Format(1990, "roman").Should().Be("mcmxc");
@@ -34,9 +34,9 @@ public class NumberFormatterTests
     ///   Roman numerals have no zero and no sign, so both are written the way arabic writes them
     ///   and the numeral carries the magnitude.
     /// </summary>
-    [Theory]
-    [InlineData(0, "0")]
-    [InlineData(-4, "-IV")]
+    [Test]
+    [Arguments(0, "0")]
+    [Arguments(-4, "-IV")]
     public void ZeroAndANegativeStillReadAsSomething(int number, string expected)
     {
         NumberFormatter.Format(number, "ROMAN").Should().Be(expected);
@@ -47,11 +47,11 @@ public class NumberFormatterTests
     ///   number is written plainly instead. The same ceiling applies to letters, where the run of
     ///   repeated characters would be longer still.
     /// </summary>
-    [Theory]
-    [InlineData("ROMAN", 32769, "32769")]
-    [InlineData("roman", -32769, "-32769")]
-    [InlineData("ALPHABETIC", 32769, "32769")]
-    [InlineData("alphabetic", -32769, "-32769")]
+    [Test]
+    [Arguments("ROMAN", 32769, "32769")]
+    [Arguments("roman", -32769, "-32769")]
+    [Arguments("ALPHABETIC", 32769, "32769")]
+    [Arguments("alphabetic", -32769, "-32769")]
     public void ANumberTooLargeToWriteThatWayIsWrittenInDigits(string format, int number, string expected)
     {
         NumberFormatter.Format(number, format).Should().Be(expected);
@@ -62,28 +62,28 @@ public class NumberFormatterTests
     ///   magnitude of <c>int.MinValue</c> overflows, because it has no positive counterpart, so the
     ///   guard threw where it was supposed to hand the number on to be written in digits.
     /// </summary>
-    [Theory]
-    [InlineData("ROMAN")]
-    [InlineData("roman")]
-    [InlineData("ALPHABETIC")]
-    [InlineData("alphabetic")]
+    [Test]
+    [Arguments("ROMAN")]
+    [Arguments("roman")]
+    [Arguments("ALPHABETIC")]
+    [Arguments("alphabetic")]
     public void TheMostNegativeNumberFallsBackToDigitsLikeAnyOtherPastTheCeiling(string format)
     {
         NumberFormatter.Format(int.MinValue, format).Should().Be("-2147483648");
     }
 
-    [Theory]
-    [InlineData(1, "A")]
-    [InlineData(26, "Z")]
-    [InlineData(27, "AA")]
-    [InlineData(52, "ZZ")]
-    [InlineData(53, "AAA")]
+    [Test]
+    [Arguments(1, "A")]
+    [Arguments(26, "Z")]
+    [Arguments(27, "AA")]
+    [Arguments(52, "ZZ")]
+    [Arguments(53, "AAA")]
     public void ANumberPastZIsWrittenAsTheLetterRepeated(int number, string expected)
     {
         NumberFormatter.Format(number, "ALPHABETIC").Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void ALowercaseLetterSequenceIsTheSameSequenceInLowercase()
     {
         NumberFormatter.Format(27, "alphabetic").Should().Be("aa");
@@ -93,10 +93,10 @@ public class NumberFormatterTests
     ///   The empty string is what a numeric field's <c>Format</c> reads as when nothing set it, and
     ///   an unrecognised one is treated no differently: both mean ordinary digits.
     /// </summary>
-    [Theory]
-    [InlineData("")]
-    [InlineData("Roman")]
-    [InlineData("not a format")]
+    [Test]
+    [Arguments("")]
+    [Arguments("Roman")]
+    [Arguments("not a format")]
     public void AFormatThatNamesNothingLeavesTheNumberInDigits(string format)
     {
         NumberFormatter.Format(42, format).Should().Be("42");

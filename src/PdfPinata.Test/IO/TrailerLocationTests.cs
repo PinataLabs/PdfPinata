@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -27,7 +27,7 @@ public class TrailerLocationTests
 {
     // ----- What the scan costs ---------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void NoSingleReadIsLargerThanTheScanBuffer_whenStartxrefIsNotNearTheEndOfTheFile()
     {
         const int commentLength = 2 * 1024 * 1024;
@@ -45,7 +45,7 @@ public class TrailerLocationTests
 
     // ----- The documents the old scan could not open ------------------------------------------
 
-    [Fact]
+    [Test]
     public void AFileLongerThanAStringCanBeIsStillOpened()
     {
         // 1.1 GiB: past the 1,073,741,791 characters a string holds, so reading the file into one
@@ -59,7 +59,7 @@ public class TrailerLocationTests
         document.PageCount.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AFileLongerThanTwoGigabytesIsStillOpened()
     {
         // 2.5 GiB: past int.MaxValue, which the scan used to refuse outright.
@@ -74,7 +74,7 @@ public class TrailerLocationTests
 
     // ----- A file with no cross-reference table at all -----------------------------------------
 
-    [Fact]
+    [Test]
     public void AFileWithNoStartxrefInItIsRefusedRatherThanRead()
     {
         var bytes = Encoding.Latin1.GetBytes("%PDF-1.7\nnothing to see here\n%%EOF\n");

@@ -5,7 +5,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -20,7 +20,7 @@ public class ModificationDateTests
 {
     private static readonly DateTime ADateInTheFile = new(2001, 2, 3, 4, 5, 6);
 
-    [Fact]
+    [Test]
     public void OpeningADocumentForModificationReportsTheDateTheFileCarries()
     {
         var pdf = ADocumentModifiedOn(ADateInTheFile);
@@ -34,7 +34,7 @@ public class ModificationDateTests
         opened.Info.ModificationDate.Should().Be(readOnly.Info.ModificationDate);
     }
 
-    [Fact]
+    [Test]
     public void OpeningADocumentWithNoModificationDateForModificationDoesNotGiveItOne()
     {
         var pdf = ADocumentModifiedOn(null);
@@ -44,7 +44,7 @@ public class ModificationDateTests
         opened.Info.ModificationDate.Should().Be(DateTime.MinValue);
     }
 
-    [Fact]
+    [Test]
     public void WritingADocumentOpenedForModificationStampsItWithTheTimeItWasWritten()
     {
         var pdf = ADocumentModifiedOn(ADateInTheFile);
@@ -62,7 +62,7 @@ public class ModificationDateTests
     ///   The date is stamped by setting the element rather than the property, so that the stamp of
     ///   one save is not mistaken for a date the caller chose when the next save comes around.
     /// </summary>
-    [Fact]
+    [Test]
     public void WritingADocumentTwiceStampsItTwice()
     {
         var pdf = ADocumentModifiedOn(ADateInTheFile);
@@ -80,7 +80,7 @@ public class ModificationDateTests
         afterTheFirstSave.Should().BeOnOrBefore(between);
     }
 
-    [Fact]
+    [Test]
     public void WritingADocumentDoesNotStampOverAModificationDateTheCallerChose()
     {
         var pdf = ADocumentModifiedOn(ADateInTheFile);
@@ -98,7 +98,7 @@ public class ModificationDateTests
     ///   A document that was never read from a file is dated by its creation date alone, as it
     ///   always has been. Nothing about it has been modified, so there is no modification to date.
     /// </summary>
-    [Fact]
+    [Test]
     public void WritingANewlyAuthoredDocumentDoesNotStampIt()
     {
         var document = new PdfDocument();

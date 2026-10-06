@@ -4,7 +4,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -37,7 +37,7 @@ public class ShownPositionTests
     /// </summary>
     private static XFont UnicodeFont => new("Arial", 12, XFontStyle.Regular, XPdfFontOptions.UnicodeDefault);
 
-    [Fact]
+    [Test]
     public void ATJArrayIsOneRunAtOnePositionHoweverManyStringsItHolds()
     {
         var spaced = XStringFormats.Default;
@@ -64,7 +64,7 @@ public class ShownPositionTests
             "the strings of the array are joined, and each glyph is two bytes");
     }
 
-    [Fact]
+    [Test]
     public void APageThatMovesThePenByShowingTextIsRefusedRatherThanGuessedAt()
     {
         // Two show-text operators with nothing repositioning the pen between them: the second one
@@ -88,7 +88,7 @@ public class ShownPositionTests
             .WithMessage("*cannot be worked out from the content stream alone*");
     }
 
-    [Fact]
+    [Test]
     public void TheOrderIsStillAnswerableForAPageThatCannotBePlaced()
     {
         // The refusal is on positions alone. Reading order survives, because two runs the pen ran

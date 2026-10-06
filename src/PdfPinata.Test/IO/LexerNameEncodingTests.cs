@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -27,7 +27,7 @@ public class LexerNameEncodingTests
 
     private const char ReplacementCharacter = (char)0xFFFD;
 
-    [Fact]
+    [Test]
     public void ScanName_keepsAShiftJisLeadByteInTheRange0x80To0xBF()
     {
         // 0x83 is a Shift-JIS lead byte, and (0x83 & 0xC0) == 0x80 rather than 0xC0, so a
@@ -40,7 +40,7 @@ public class LexerNameEncodingTests
         RawBytesOf(lexer.Token).Skip(1).Should().Equal(ShiftJisTe);
     }
 
-    [Fact]
+    [Test]
     public void ScanName_doesNotReplaceShiftJisBytesWithTheReplacementCharacter()
     {
         // 0x93 and 0x96 do satisfy (b & 0xC0) == 0xC0, so a UTF-8 re-decode would fire here
@@ -53,7 +53,7 @@ public class LexerNameEncodingTests
         RawBytesOf(lexer.Token).Skip(1).Should().Equal(ShiftJisNihongo);
     }
 
-    [Fact]
+    [Test]
     public void ScanName_leavesUtf8NamesAsRawBytesToo()
     {
         // The lexer does not decode the names it *could* decode either - a UTF-8 name stays
@@ -66,7 +66,7 @@ public class LexerNameEncodingTests
         RawBytesOf(lexer.Token).Skip(1).Should().Equal(Utf8Nihongo);
     }
 
-    [Fact]
+    [Test]
     public void ScanName_stillDecodesHashEscapes()
     {
         // #xx is the spec's way of writing these bytes, and that path is unaffected.
@@ -77,7 +77,7 @@ public class LexerNameEncodingTests
         RawBytesOf(lexer.Token).Skip(1).Should().Equal(ShiftJisNihongo);
     }
 
-    [Fact]
+    [Test]
     public void Save_writesAScannedShiftJisNameBackByteForByte()
     {
         var lexer = CreateLexer(Name(ShiftJisNihongo));
@@ -98,7 +98,7 @@ public class LexerNameEncodingTests
         RawBytesOf(reread.Pages[0].Elements.GetName("/PdfPinataTestName")).Skip(1).Should().Equal(ShiftJisNihongo);
     }
 
-    [Fact]
+    [Test]
     public void CLexer_ScanName_preservesShiftJisBytesInContentStreams()
     {
         var lexer = new CLexer(Name(ShiftJisNihongo));

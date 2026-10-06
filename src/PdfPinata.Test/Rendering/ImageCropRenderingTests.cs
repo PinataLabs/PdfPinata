@@ -7,7 +7,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PinataLayout.DocumentObjectModel.Shapes.ImageSource;
 
 namespace PdfPinata.Test.Rendering;
@@ -19,7 +19,7 @@ namespace PdfPinata.Test.Rendering;
 /// </summary>
 public class ImageCropRenderingTests
 {
-    [Fact]
+    [Test]
     public void AnUncroppedImageIsDrawnWholeAndUnclipped()
     {
         var page = Rendered(cropLeftPoints: null);
@@ -29,7 +29,7 @@ public class ImageCropRenderingTests
         placed.Should().ContainSingle(op => op.Name == OpCodeName.Do);
     }
 
-    [Fact]
+    [Test]
     public void CroppingTheLeftHalfKeepsTheImageAtItsOwnScaleAndClipsItToTheRightHalf()
     {
         var whole = ImageBox(Rendered(cropLeftPoints: null));

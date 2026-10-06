@@ -9,7 +9,7 @@ using PinataLayout.Rendering;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Rendering;
 
@@ -22,10 +22,10 @@ namespace PdfPinata.Test.Rendering;
 /// </summary>
 public class TableKeepWithTests
 {
-    [Theory]
-    [InlineData(1)]
-    [InlineData(3)]
-    [InlineData(100)]
+    [Test]
+    [Arguments(1)]
+    [Arguments(3)]
+    [Arguments(100)]
     public void ARowMayAskToBeKeptWithMoreRowsThanFollowIt(int keepWith)
     {
         // The reported document: two rows, each asking to be kept with one more than there is.
@@ -43,7 +43,7 @@ public class TableKeepWithTests
         RowsOn(pages[0]).Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void ARowKeptWithTheRowsThatDoFollowItStillHoldsThemTogether()
     {
         // Three rows, only two of which fit on a page, with the second asking to be kept with
@@ -65,9 +65,9 @@ public class TableKeepWithTests
         RowsOn(pages[1]).Should().Be(2);
     }
 
-    [Theory]
-    [InlineData(4)]
-    [InlineData(int.MaxValue)]
+    [Test]
+    [Arguments(4)]
+    [Arguments(int.MaxValue)]
     public void ARowKeptWithMoreRowsThanFollowItStillHoldsOnToTheOnesThatDo(int keepWith)
     {
         // The same three rows, but the second asks for more than follow it. Clamping the request
@@ -90,9 +90,9 @@ public class TableKeepWithTests
         RowsOn(pages[1]).Should().Be(2);
     }
 
-    [Theory]
-    [InlineData(5)]
-    [InlineData(int.MaxValue)]
+    [Test]
+    [Arguments(5)]
+    [Arguments(int.MaxValue)]
     public void AColumnMayAskToBeKeptWithMoreColumnsThanStandToTheRightOfIt(int keepWith)
     {
         var pages = Render(table =>
@@ -106,7 +106,7 @@ public class TableKeepWithTests
         RowsOn(pages[0]).Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AHeadingRowMayAskToBeKeptWithMoreRowsThanFollowIt()
     {
         // A heading is grown to the last row connected to it, which is the other route to the

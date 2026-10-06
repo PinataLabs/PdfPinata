@@ -4,7 +4,7 @@ using System.IO;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -17,7 +17,7 @@ public class PdfLongTests
 {
     private const long WiderThanAnInt = 5_000_000_000;
 
-    [Fact]
+    [Test]
     public void AnIntegerWiderThan32BitsIsReadBackAsAPdfLong()
     {
         var document = new PdfDocument();
@@ -32,19 +32,19 @@ public class PdfLongTests
             .Which.Value.Should().Be(WiderThanAnInt);
     }
 
-    [Fact]
+    [Test]
     public void ItReadsAsItsDigits()
     {
         new PdfLong(WiderThanAnInt).ToString().Should().Be("5000000000");
     }
 
-    [Fact]
+    [Test]
     public void ANewPdfLongIsZero()
     {
         new PdfLong().Value.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void ConvertingItGivesBackTheNumber()
     {
         var wide = new PdfLong(WiderThanAnInt);
@@ -68,7 +68,7 @@ public class PdfLongTests
         Convert.ToString(wide, CultureInfo.InvariantCulture).Should().Be("5000000000");
     }
 
-    [Fact]
+    [Test]
     public void ConvertingToADateTimeIsRefusedAsItIsForTheLongItWraps()
     {
         // It used to read the number as ticks, so a number too wide for an int converted and one
@@ -83,7 +83,7 @@ public class PdfLongTests
         ((Func<DateTime>)(() => Convert.ToDateTime(WiderThanAnInt))).Should().Throw<InvalidCastException>();
     }
 
-    [Fact]
+    [Test]
     public void ANumberTooWideForTheTargetOverflowsRatherThanWrapping()
     {
         var wide = new PdfLong(WiderThanAnInt);

@@ -8,7 +8,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.AcroForms;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Forms;
 
@@ -58,7 +58,7 @@ public class AcroFieldCollectionEnumerationTests
         fields.Cast<PdfAcroField>().Should().Equal(byIndex);
     }
 
-    [Fact]
+    [Test]
     public void AFormCountsItsFields()
     {
         var fields = AFormWithThreeFields();
@@ -67,7 +67,7 @@ public class AcroFieldCollectionEnumerationTests
         fields.Should().HaveCount(3);
     }
 
-    [Fact]
+    [Test]
     public void AFormsFieldsEnumerateAsTheIndexerGivesThem()
     {
         var fields = AFormWithThreeFields();
@@ -76,7 +76,7 @@ public class AcroFieldCollectionEnumerationTests
         fields.OfType<PdfAcroField>().Select(field => field.Name).Should().Equal("text", "check", "combo");
     }
 
-    [Fact]
+    [Test]
     public void AFieldsKidsEnumerateAsTheIndexerGivesThem()
     {
         var document = new PdfDocument();
@@ -93,7 +93,7 @@ public class AcroFieldCollectionEnumerationTests
         EveryEnumerationYieldsWhatTheIndexerDoes(group.Fields);
     }
 
-    [Fact]
+    [Test]
     public void FieldsReadFromAFileEnumerateAsTheIndexerGivesThem()
     {
         var document = new PdfDocument();
@@ -125,7 +125,7 @@ public class AcroFieldCollectionEnumerationTests
         EveryEnumerationYieldsWhatTheIndexerDoes(reopenedGroup.Fields);
     }
 
-    [Fact]
+    [Test]
     public void LinqOverTheFieldsIsTyped()
     {
         var fields = AFormWithThreeFields();
@@ -141,7 +141,7 @@ public class AcroFieldCollectionEnumerationTests
         names.Should().Equal("text", "check", "combo");
     }
 
-    [Fact]
+    [Test]
     public void ReadingAFieldsKidsWritesNoKids()
     {
         // /Kids used to be made - empty, and indirect - by asking for it, so a terminal field
@@ -163,7 +163,7 @@ public class AcroFieldCollectionEnumerationTests
         text.Fields.Count.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void MakingTheFormReadOnlyReachesEveryRootField()
     {
         var fields = AFormWithThreeFields();

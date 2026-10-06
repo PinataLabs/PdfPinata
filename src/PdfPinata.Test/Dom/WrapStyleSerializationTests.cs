@@ -1,10 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -20,19 +21,19 @@ namespace PdfPinata.Test.Dom;
 /// </remarks>
 public class WrapStyleSerializationTests
 {
-    public static TheoryData<WrapStyle> EveryStyle
+    public static IEnumerable<WrapStyle> EveryStyle
     {
         get
         {
-            var data = new TheoryData<WrapStyle>();
+            var data = new List<WrapStyle>();
             foreach (var style in Enum.GetValues<WrapStyle>())
                 data.Add(style);
             return data;
         }
     }
 
-    [Theory]
-    [MemberData(nameof(EveryStyle))]
+    [Test]
+    [MethodDataSource(nameof(EveryStyle))]
     public void AWrapStyleOnATextFrameRoundTrips(WrapStyle style)
     {
         var read = RoundTrip(document =>
@@ -47,8 +48,8 @@ public class WrapStyleSerializationTests
         FrameIn(read).WrapFormat.Style.Should().Be(style);
     }
 
-    [Theory]
-    [MemberData(nameof(EveryStyle))]
+    [Test]
+    [MethodDataSource(nameof(EveryStyle))]
     public void AWrapStyleIsWrittenByNameRatherThanByNumber(WrapStyle style)
     {
         var written = Written(document =>
@@ -63,7 +64,7 @@ public class WrapStyleSerializationTests
         written.Should().NotContain("Style = " + (int)style);
     }
 
-    [Fact]
+    [Test]
     public void TheFourDistancesRoundTripAlongsideTheStyle()
     {
         var read = RoundTrip(document =>
@@ -84,7 +85,7 @@ public class WrapStyleSerializationTests
         wrap.DistanceBottom.Centimeter.Should().BeApproximately(4, 0.001);
     }
 
-    [Fact]
+    [Test]
     public void TheStylesThatCameBeforeKeepTheNumbersTheyHad()
     {
         // The new values are appended, not inserted. A document written by an older version holds
@@ -95,7 +96,7 @@ public class WrapStyleSerializationTests
         ((int)WrapStyle.Through).Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void TheNewStylesAreDistinctFromEachOtherAndFromTheOldOnes()
     {
         var values = Enum.GetValues<WrapStyle>().ToList();
@@ -107,7 +108,7 @@ public class WrapStyleSerializationTests
         ]);
     }
 
-    [Fact]
+    [Test]
     public void AnUnknownWrapStyleIsRefusedRatherThanTakenForTheDefault()
     {
         var mdddl = Written(document =>

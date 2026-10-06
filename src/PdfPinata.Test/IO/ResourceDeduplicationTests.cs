@@ -8,7 +8,7 @@ using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Security;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -23,7 +23,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class ResourceDeduplicationTests
 {
-    [Fact]
+    [Test]
     public void IdenticalImagesOnTwoPagesAreWrittenOnce()
     {
         var document = Saved(TwoPagesDrawing(Image("same bytes"), Image("same bytes")), deduplicate: true);
@@ -32,7 +32,7 @@ public class ResourceDeduplicationTests
             .Be(ResourceOf(document.Pages[1], "/XObject", "/Im0"));
     }
 
-    [Fact]
+    [Test]
     public void WithoutTheOptionNothingIsMerged()
     {
         // The state of affairs the issue reports, and what makes the test above worth having.
@@ -42,7 +42,7 @@ public class ResourceDeduplicationTests
             .NotBe(ResourceOf(document.Pages[1], "/XObject", "/Im0"));
     }
 
-    [Fact]
+    [Test]
     public void ImagesDifferingByOneByteAreKeptApart()
     {
         var document = Saved(TwoPagesDrawing(Image("bytes A"), Image("bytes B")), deduplicate: true);
@@ -51,7 +51,7 @@ public class ResourceDeduplicationTests
             .NotBe(ResourceOf(document.Pages[1], "/XObject", "/Im0"));
     }
 
-    [Fact]
+    [Test]
     public void ImagesDifferingOnlyInTheirDictionaryAreKeptApart()
     {
         var document = Saved(TwoPagesDrawing(Image("same bytes"), Image("same bytes", "/Interpolate true")),
@@ -61,7 +61,7 @@ public class ResourceDeduplicationTests
             .NotBe(ResourceOf(document.Pages[1], "/XObject", "/Im0"));
     }
 
-    [Fact]
+    [Test]
     public void AFontCollapsesTogetherWithEverythingItRefersTo()
     {
         var document = Saved(TwoPagesWithFonts(widthsOfSecond: "[500 600]"), deduplicate: true);
@@ -75,7 +75,7 @@ public class ResourceDeduplicationTests
             .Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void FontsDifferingInTheirWidthsShareTheirProgramAndNothingAbove()
     {
         var document = Saved(TwoPagesWithFonts(widthsOfSecond: "[500 700]"), deduplicate: true);
@@ -88,7 +88,7 @@ public class ResourceDeduplicationTests
             "the programs are the same bytes, and only what refers to them differs");
     }
 
-    [Fact]
+    [Test]
     public void FormsThatDrawThemselvesAreMergedWhenEqual()
     {
         // A reference cycle: each form names itself in its own resources. Deciding the two are
@@ -107,7 +107,7 @@ public class ResourceDeduplicationTests
             .Be(ResourceOf(document.Pages[1], "/XObject", "/Fm0"));
     }
 
-    [Fact]
+    [Test]
     public void OptionalContentGroupsAreNotMergedAndNeitherIsWhatNamesThem()
     {
         // Two layers called the same thing are still two layers, each shown or hidden on its own,
@@ -130,7 +130,7 @@ public class ResourceDeduplicationTests
         first.Elements["/OC"].Should().NotBeSameAs(second.Elements["/OC"]);
     }
 
-    [Fact]
+    [Test]
     public void PagesAndAnnotationsStayApartWhileWhatTheyDrawIsMerged()
     {
         // Two pages alike in every byte, each with an annotation alike in every byte. The pages
@@ -170,7 +170,7 @@ public class ResourceDeduplicationTests
         ResourceOf(pageOne, "/Font", "/F1").Should().Be(ResourceOf(pageTwo, "/Font", "/F1"));
     }
 
-    [Fact]
+    [Test]
     public void ADictionaryWithAParentIsNotMerged()
     {
         // Nothing a resource names should have a parent, but if something does, it is a node of a
@@ -188,7 +188,7 @@ public class ResourceDeduplicationTests
             .NotBe(ResourceOf(document.Pages[1], "/ExtGState", "/GS0"));
     }
 
-    [Fact]
+    [Test]
     public void AnAppendedRevisionRefusesTheOption()
     {
         using var source = new MemoryStream(TwoPagesDrawing(Image("same bytes"), Image("same bytes")));
@@ -202,7 +202,7 @@ public class ResourceDeduplicationTests
         whole.Should().Throw<InvalidOperationException>().WithMessage("*DeduplicateResources*Append*");
     }
 
-    [Fact]
+    [Test]
     public void ARefusedSaveLeavesACrossReferenceStreamTrailerAlone()
     {
         // Save replaces a cross-reference stream trailer with a classic one before it prepares
@@ -231,7 +231,7 @@ public class ResourceDeduplicationTests
         revision.Should().Contain("/XRef");
     }
 
-    [Fact]
+    [Test]
     public void AnEncryptedDocumentIsDeduplicatedAndReadsBack()
     {
         const string password = "owner";
@@ -252,7 +252,7 @@ public class ResourceDeduplicationTests
         System.Text.Encoding.ASCII.GetString(first.Stream.Value).Should().Be("same bytes");
     }
 
-    [Fact]
+    [Test]
     public void SavingTwiceWritesWhatSavingOnceDoes()
     {
         using var source = new MemoryStream(TwoPagesWithFonts(widthsOfSecond: "[500 600]"));
@@ -267,7 +267,7 @@ public class ResourceDeduplicationTests
         twice.Length.Should().Be(once.Length);
     }
 
-    [Fact]
+    [Test]
     public void APageImportedAfterSavingGetsTheCopyThatWasKept()
     {
         // Importing remembers which copy each object of the source became. The copies dropped by

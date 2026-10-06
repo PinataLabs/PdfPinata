@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Internal;
 
@@ -57,7 +57,7 @@ public class InternalHelperTests
 
     // ----- DoubleUtil ----------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TwoNumbersAreCloseWhenNothingBetweenThemMatters()
     {
         // The tolerance scales with the numbers being compared rather than being a fixed epsilon,
@@ -69,7 +69,7 @@ public class InternalHelperTests
         Bool("DoubleUtil", "AreClose", 1e-6, 1e-5).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void TheOrderingComparisonsTreatCloseNumbersAsEqual()
     {
         Bool("DoubleUtil", "GreaterThanOrClose", 1.0, 1.0).Should().BeTrue();
@@ -78,7 +78,7 @@ public class InternalHelperTests
         Bool("DoubleUtil", "LessThanOrClose", 1.5, 1.0).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ZeroIsRecognisedToWithinTheTolerance()
     {
         Bool("DoubleUtil", "IsZero", 0.0).Should().BeTrue();
@@ -86,7 +86,7 @@ public class InternalHelperTests
         Bool("DoubleUtil", "IsZero", 0.1).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void NotANumberIsRecognisedWithoutComparingItToItself()
     {
         // Written by reading the bit pattern rather than with the == that never holds for NaN,
@@ -97,12 +97,12 @@ public class InternalHelperTests
         Bool("DoubleUtil", "IsNaN", double.NegativeInfinity).Should().BeFalse();
     }
 
-    [Theory]
-    [InlineData(1.9, 2)]
-    [InlineData(1.4, 1)]
-    [InlineData(-1.9, -2)]
-    [InlineData(-1.4, -1)]
-    [InlineData(0.0, 0)]
+    [Test]
+    [Arguments(1.9, 2)]
+    [Arguments(1.4, 1)]
+    [Arguments(-1.9, -2)]
+    [Arguments(-1.4, -1)]
+    [Arguments(0.0, 0)]
     public void ADoubleBecomesAnIntByRoundingAwayFromZero(double value, int expected)
     {
         // Not a cast, which would truncate towards zero and lose half a unit on the way to a
@@ -112,7 +112,7 @@ public class InternalHelperTests
 
     // ----- Calc ----------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void DegreesConvertToRadiansByTheFactorEverythingElseUses()
     {
         // ReSharper disable PossibleNullReferenceException
@@ -123,7 +123,7 @@ public class InternalHelperTests
         (180 * deg2Rad).Should().BeApproximately(Math.PI, 1e-12);
     }
 
-    [Fact]
+    [Test]
     public void TheDegreeToRadianFactorIsDeclaredInOnePlaceOnly()
     {
         // It used to be declared identically on both Internal.Calc and Const, so which one a
@@ -138,7 +138,7 @@ public class InternalHelperTests
 
     // ----- StreamHelper --------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ABufferIsFilledEvenWhenTheStreamHandsOverItsBytesALittleAtATime()
     {
         // A single Read is allowed to return fewer bytes than asked for, and buffered, compressed
@@ -152,7 +152,7 @@ public class InternalHelperTests
         buffer.Should().Equal(1, 2, 3, 4, 5, 6, 7, 8);
     }
 
-    [Fact]
+    [Test]
     public void AStreamThatEndsEarlyGivesBackWhatThereWasAndSaysHowMuch()
     {
         var stream = new DribblingStream([1, 2, 3], mostPerRead: 2);
@@ -164,7 +164,7 @@ public class InternalHelperTests
         buffer.Should().Equal([1, 2, 3, 0, 0, 0, 0, 0], "the rest of the buffer is left alone");
     }
 
-    [Fact]
+    [Test]
     public void ABufferCanBeFilledFromPartWayAlong()
     {
         var stream = new DribblingStream([9, 9], mostPerRead: 1);

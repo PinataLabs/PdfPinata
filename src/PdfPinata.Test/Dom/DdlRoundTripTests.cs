@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -40,7 +40,7 @@ public class DdlRoundTripTests
 
     private static string Ddl(Document document) => DdlWriter.WriteToString(document);
 
-    [Fact]
+    [Test]
     public void ADocumentSurvivesAWriteAndAReadUnchanged()
     {
         var written = Ddl(ADocumentWithSomeValuesSetAndSomeLeftUnset());
@@ -50,7 +50,7 @@ public class DdlRoundTripTests
         rewritten.Should().Be(written);
     }
 
-    [Fact]
+    [Test]
     public void ValuesThatWereSetAreWritten()
     {
         var ddl = Ddl(ADocumentWithSomeValuesSetAndSomeLeftUnset());
@@ -63,7 +63,7 @@ public class DdlRoundTripTests
         ddl.Should().Contain("Name = \"Arial\"");
     }
 
-    [Fact]
+    [Test]
     public void ValuesThatWereNeverSetAreLeftOut()
     {
         var ddl = Ddl(ADocumentWithSomeValuesSetAndSomeLeftUnset());
@@ -73,7 +73,7 @@ public class DdlRoundTripTests
         ddl.Should().NotContain("OddAndEvenPagesHeaderFooter");
     }
 
-    [Fact]
+    [Test]
     public void AValueSetToItsDefaultIsStillWritten()
     {
         var document = new Document();
@@ -93,7 +93,7 @@ public class DdlRoundTripTests
     ///   an explicitly assigned "" was written the same way an unassigned one was - not at all -
     ///   and a round trip lost the difference. It now asks about nullness like the rest of the DOM.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnExplicitlyEmptyStringIsWrittenBecauseItWasSet()
     {
         var document = new Document();
@@ -105,7 +105,7 @@ public class DdlRoundTripTests
         Ddl(document).Should().Contain("Title = \"\"");
     }
 
-    [Fact]
+    [Test]
     public void AnUnassignedInfoStringIsStillNotWritten()
     {
         var document = new Document();
@@ -118,7 +118,7 @@ public class DdlRoundTripTests
         ddl.Should().NotContain("Subject").And.NotContain("Author").And.NotContain("Keywords");
     }
 
-    [Fact]
+    [Test]
     public void AnExplicitlyEmptyInfoStringSurvivesTheRoundTrip()
     {
         var document = new Document();
@@ -133,7 +133,7 @@ public class DdlRoundTripTests
         Ddl(reread).Should().Be(written);
     }
 
-    [Fact]
+    [Test]
     public void AValueSetToItsDefaultSurvivesTheRoundTripAsSetRatherThanUnset()
     {
         var document = new Document();
@@ -146,7 +146,7 @@ public class DdlRoundTripTests
         font.Bold.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyDocumentSurvivesTheRoundTrip()
     {
         var document = new Document();
@@ -157,7 +157,7 @@ public class DdlRoundTripTests
         Ddl(DdlReader.DocumentFromString(written)).Should().Be(written);
     }
 
-    [Fact]
+    [Test]
     public void ValuesReadBackFromDdlMatchWhatWasWritten()
     {
         var reread = DdlReader.DocumentFromString(Ddl(ADocumentWithSomeValuesSetAndSomeLeftUnset()));

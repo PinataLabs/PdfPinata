@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -24,10 +24,10 @@ public class DictionaryEntryWithoutKeyTests
         "<</Creator (LaTeX with hyperref)/CreationDate (D:20260101120000Z) (PTEX.FullBanner)" +
         "(This is pdfTeX, Version 3.141592653-2.6-1.40.29 \\(TeX Live 2026\\))>>";
 
-    [Theory(Timeout = 5000)]
-    [InlineData(PdfDocumentOpenMode.Import)]
-    [InlineData(PdfDocumentOpenMode.Modify)]
-    [InlineData(PdfDocumentOpenMode.ReadOnly)]
+    [Test, Timeout(5000)]
+    [Arguments(PdfDocumentOpenMode.Import)]
+    [Arguments(PdfDocumentOpenMode.Modify)]
+    [Arguments(PdfDocumentOpenMode.ReadOnly)]
     public async Task ADocumentWhoseInformationDictionaryHoldsBareStringsCanBeRead(PdfDocumentOpenMode openMode)
     {
         var document = await Read(PdfTeXInfoDictionary, openMode);
@@ -35,7 +35,7 @@ public class DictionaryEntryWithoutKeyTests
         document.PageCount.Should().Be(1);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task TheEntriesThatDoHaveAKeyAreStillRead()
     {
         var document = await Read(PdfTeXInfoDictionary, PdfDocumentOpenMode.Modify);
@@ -43,7 +43,7 @@ public class DictionaryEntryWithoutKeyTests
         document.Info.Creator.Should().Be("LaTeX with hyperref");
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task TheValuesWithNoKeyAreDropped()
     {
         var document = await Read(PdfTeXInfoDictionary, PdfDocumentOpenMode.Modify);
@@ -53,7 +53,7 @@ public class DictionaryEntryWithoutKeyTests
         document.Info.Elements.Count.Should().Be(2);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task AValueWithNoKeyDoesNotPairTheEntriesAfterItUpWrongly()
     {
         // A single stray value leaves an odd number of items, so a reader that walks the
@@ -69,7 +69,7 @@ public class DictionaryEntryWithoutKeyTests
         document.Info.Elements.Count.Should().Be(3);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task ADictionaryThatIsNothingButValuesIsReadAsAnEmptyOne()
     {
         var document = await Read("<<(one)(two)(three)>>", PdfDocumentOpenMode.Modify);
@@ -77,7 +77,7 @@ public class DictionaryEntryWithoutKeyTests
         document.Info.Elements.Count.Should().Be(0);
     }
 
-    [Fact(Timeout = 5000)]
+    [Test, Timeout(5000)]
     public async Task ADocumentWhoseInformationDictionaryHoldsBareStringsCanBeSaved()
     {
         var creator = await Interruptibly.Run(() =>

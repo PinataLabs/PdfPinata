@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using AwesomeAssertions;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -27,7 +27,7 @@ public class UnitTests
 
     // ----- what a unit is worth in every measure -------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ALengthGivenInPointsIsThatManyPoints()
     {
         var unit = Unit.FromPoint(72);
@@ -39,17 +39,17 @@ public class UnitTests
         unit.Pica.Should().BeApproximately(6, 1e-6);
     }
 
-    public static TheoryData<UnitType, double, double> EveryMeasureOfAnInch => new()
-    {
-        { UnitType.Point, PointsPerInch, PointsPerInch },
-        { UnitType.Inch, 1, PointsPerInch },
-        { UnitType.Centimeter, CentimetresPerInch, PointsPerInch },
-        { UnitType.Millimeter, CentimetresPerInch * 10, PointsPerInch },
-        { UnitType.Pica, 6, PointsPerInch }
-    };
+    public static IEnumerable<(UnitType, double, double)> EveryMeasureOfAnInch =>
+    [
+        (UnitType.Point, PointsPerInch, PointsPerInch),
+        (UnitType.Inch, 1, PointsPerInch),
+        (UnitType.Centimeter, CentimetresPerInch, PointsPerInch),
+        (UnitType.Millimeter, CentimetresPerInch * 10, PointsPerInch),
+        (UnitType.Pica, 6, PointsPerInch)
+    ];
 
-    [Theory]
-    [MemberData(nameof(EveryMeasureOfAnInch))]
+    [Test]
+    [MethodDataSource(nameof(EveryMeasureOfAnInch))]
     public void OneInchIsOneInchWhicheverMeasureItIsGivenIn(
         UnitType type, double value, double expectedPoints)
     {
@@ -60,8 +60,8 @@ public class UnitTests
         unit.Point.Should().BeApproximately(expectedPoints, 1e-4);
     }
 
-    [Theory]
-    [MemberData(nameof(EveryMeasureOfAnInch))]
+    [Test]
+    [MethodDataSource(nameof(EveryMeasureOfAnInch))]
     public void TheNamedConstructorsAgreeWithTheOneThatTakesAType(
         UnitType type, double value, double expectedPoints)
     {
@@ -79,7 +79,7 @@ public class UnitTests
         named.Point.Should().BeApproximately(expectedPoints, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void ALengthWithNoMeasureNamedIsInPoints()
     {
         // The single-argument constructor is the one every implicit numeric conversion goes
@@ -90,12 +90,12 @@ public class UnitTests
 
     // ----- changing which measure it is kept in ---------------------------------------------------
 
-    [Theory]
-    [InlineData(UnitType.Point)]
-    [InlineData(UnitType.Inch)]
-    [InlineData(UnitType.Centimeter)]
-    [InlineData(UnitType.Millimeter)]
-    [InlineData(UnitType.Pica)]
+    [Test]
+    [Arguments(UnitType.Point)]
+    [Arguments(UnitType.Inch)]
+    [Arguments(UnitType.Centimeter)]
+    [Arguments(UnitType.Millimeter)]
+    [Arguments(UnitType.Pica)]
     public void ConvertingToAnotherMeasureKeepsTheLength(UnitType type)
     {
         var unit = Unit.FromCentimeter(5);
@@ -107,7 +107,7 @@ public class UnitTests
         unit.Point.Should().BeApproximately(lengthInPoints, 1e-3, "the length is not");
     }
 
-    [Fact]
+    [Test]
     public void ConvertingToTheMeasureItIsAlreadyInChangesNothing()
     {
         var unit = Unit.FromInch(3);
@@ -118,7 +118,7 @@ public class UnitTests
         unit.Type.Should().Be(UnitType.Inch);
     }
 
-    [Fact]
+    [Test]
     public void ConvertingToAMeasureThatIsNotOneIsRefused()
     {
         var unit = Unit.FromPoint(10);
@@ -130,13 +130,13 @@ public class UnitTests
 
     // ----- reading a length out of a string --------------------------------------------------------
 
-    [Theory]
-    [InlineData("3cm", UnitType.Centimeter, 3)]
-    [InlineData("3mm", UnitType.Millimeter, 3)]
-    [InlineData("3in", UnitType.Inch, 3)]
-    [InlineData("3pc", UnitType.Pica, 3)]
-    [InlineData("3pt", UnitType.Point, 3)]
-    [InlineData("3", UnitType.Point, 3)]
+    [Test]
+    [Arguments("3cm", UnitType.Centimeter, 3)]
+    [Arguments("3mm", UnitType.Millimeter, 3)]
+    [Arguments("3in", UnitType.Inch, 3)]
+    [Arguments("3pc", UnitType.Pica, 3)]
+    [Arguments("3pt", UnitType.Point, 3)]
+    [Arguments("3", UnitType.Point, 3)]
     public void EverySuffixNamesTheMeasureItStandsFor(string text, UnitType type, double value)
     {
         Unit unit = text;
@@ -145,27 +145,27 @@ public class UnitTests
         unit.Value.Should().BeApproximately(value, 1e-6);
     }
 
-    [Theory]
-    [InlineData("2CM", UnitType.Centimeter)]
-    [InlineData("2In", UnitType.Inch)]
-    [InlineData("2PT", UnitType.Point)]
+    [Test]
+    [Arguments("2CM", UnitType.Centimeter)]
+    [Arguments("2In", UnitType.Inch)]
+    [Arguments("2PT", UnitType.Point)]
     public void TheSuffixIsReadWhateverCaseItIsWrittenIn(string text, UnitType type)
     {
         ((Unit)text).Type.Should().Be(type);
     }
 
-    [Theory]
-    [InlineData("  4cm  ", 4)]
-    [InlineData("4 cm", 4)]
-    [InlineData("-4cm", -4)]
-    [InlineData("+4cm", 4)]
-    [InlineData("4.5cm", 4.5)]
+    [Test]
+    [Arguments("  4cm  ", 4)]
+    [Arguments("4 cm", 4)]
+    [Arguments("-4cm", -4)]
+    [Arguments("+4cm", 4)]
+    [Arguments("4.5cm", 4.5)]
     public void SpaceAndSignAndPointAreAllAllowedAroundTheNumber(string text, double value)
     {
         ((Unit)text).Value.Should().BeApproximately(value, 1e-6);
     }
 
-    [Fact]
+    [Test]
     public void ACommaIsReadAsADecimalPointWhereverTheMachineIs()
     {
         // Written for the German keyboard, and load-bearing for everyone: the DOM's own serializer
@@ -174,7 +174,7 @@ public class UnitTests
         ((Unit)"4,5cm").Value.Should().BeApproximately(4.5, 1e-6);
     }
 
-    [Fact]
+    [Test]
     public void ASuffixThatNamesNoMeasureIsRefused()
     {
         var act = () => { _ = (Unit)"5furlongs"; };
@@ -182,7 +182,7 @@ public class UnitTests
         act.Should().Throw<ArgumentException>().WithMessage("*furlongs*");
     }
 
-    [Fact]
+    [Test]
     public void SomethingThatIsNotANumberAtAllIsRefused()
     {
         var act = () => { _ = (Unit)"wide"; };
@@ -197,7 +197,7 @@ public class UnitTests
     ///   cannot warn about it. The guard is what turns a NullReferenceException with nothing to say
     ///   into a sentence naming the mistake.
     /// </summary>
-    [Fact]
+    [Test]
     public void ANullStringSaysWhatWentWrongRatherThanFailingBlankly()
     {
         var act = () => { _ = (Unit)(string)null; };
@@ -205,7 +205,7 @@ public class UnitTests
         act.Should().Throw<ArgumentNullException>().WithMessage("*IsEmpty*");
     }
 
-    [Fact]
+    [Test]
     public void ParseReadsWhatTheConversionReads()
     {
         Unit.Parse("2.5in").Should().Be((Unit)"2.5in");
@@ -213,19 +213,19 @@ public class UnitTests
 
     // ----- writing a length back out ---------------------------------------------------------------
 
-    [Theory]
-    [InlineData(UnitType.Point, "3")]
-    [InlineData(UnitType.Centimeter, "3cm")]
-    [InlineData(UnitType.Millimeter, "3mm")]
-    [InlineData(UnitType.Inch, "3in")]
-    [InlineData(UnitType.Pica, "3pc")]
+    [Test]
+    [Arguments(UnitType.Point, "3")]
+    [Arguments(UnitType.Centimeter, "3cm")]
+    [Arguments(UnitType.Millimeter, "3mm")]
+    [Arguments(UnitType.Inch, "3in")]
+    [Arguments(UnitType.Pica, "3pc")]
     public void ALengthIsWrittenWithTheSuffixOfItsOwnMeasure(UnitType type, string expected)
     {
         // Points carry no suffix, which is why a bare number reads back as points.
         new Unit(3, type).ToString().Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void ALengthIsWrittenInvariantlySoItCanBeReadAnywhere()
     {
         // The serializer writes this text into a DDL file, and a file written on a machine whose
@@ -233,12 +233,12 @@ public class UnitTests
         Unit.FromCentimeter(4.5).ToString().Should().Be("4.5cm");
     }
 
-    [Theory]
-    [InlineData("3cm")]
-    [InlineData("3mm")]
-    [InlineData("2.5in")]
-    [InlineData("6pc")]
-    [InlineData("18")]
+    [Test]
+    [Arguments("3cm")]
+    [Arguments("3mm")]
+    [Arguments("2.5in")]
+    [Arguments("6pc")]
+    [Arguments("18")]
     public void ALengthSurvivesBeingWrittenAndReadAgain(string text)
     {
         Unit original = text;
@@ -249,21 +249,21 @@ public class UnitTests
         again.Value.Should().BeApproximately(original.Value, 1e-5);
     }
 
-    [Fact]
+    [Test]
     public void AFormatIsAppliedToTheNumberAndTheSuffixStillFollows()
     {
         Unit.FromCentimeter(4.567).ToString("0.0").Should().Be("4.6cm");
         Unit.FromCentimeter(4.5).ToString(CultureInfo.InvariantCulture).Should().Be("4.5cm");
     }
 
-    [Fact]
+    [Test]
     public void AnUnsetLengthIsWrittenAsZeroWithNoSuffixAtAll()
     {
         Unit.Empty.ToString().Should().Be("0");
         Unit.Empty.ToString("0.00").Should().Be("0.00");
     }
 
-    [Fact]
+    [Test]
     public void AnUnsetLengthIsAZeroInTheFormatAndCultureAskedFor()
     {
         // Not always "0": the zero is formatted like any number would be, only without a suffix.
@@ -287,7 +287,7 @@ public class UnitTests
 
     // ----- nothing, and zero, which are not the same thing ------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnUnsetLengthIsEmptyAndALengthOfZeroIsNot()
     {
         // The distinction is what lets the value model tell "no margin was given" from "a margin of
@@ -297,14 +297,14 @@ public class UnitTests
         Unit.FromPoint(0).IsEmpty.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AnUnsetLengthMeasuresNothing()
     {
         Unit.Empty.Point.Should().Be(0);
         Unit.Empty.Value.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void ADefaultUnitIsTheEmptyOne()
     {
         default(Unit).IsEmpty.Should().BeTrue();
@@ -313,7 +313,7 @@ public class UnitTests
 
     // ----- comparing and converting ------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TwoLengthsAreEqualWhenTheyAreWrittenTheSameWay()
     {
         // Equality is by the number and the measure, not by the length: this is a value type
@@ -324,13 +324,13 @@ public class UnitTests
         (Unit.FromInch(1) != Unit.FromPoint(72)).Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void EqualLengthsAgreeOnTheirHashCode()
     {
         Unit.FromCentimeter(3).GetHashCode().Should().Be(Unit.FromCentimeter(3).GetHashCode());
     }
 
-    [Fact]
+    [Test]
     public void EqualLengthsAreEqualThroughEveryWayOfAsking()
     {
         IEquatable<Unit> inch = Unit.FromInch(1);
@@ -340,14 +340,14 @@ public class UnitTests
         Unit.FromInch(1).Equals((object)Unit.FromInch(1)).Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyUnitIsNotEqualToZeroPoints()
     {
         Unit.Empty.Equals(Unit.FromPoint(0)).Should().BeFalse();
         (Unit.Empty == Unit.FromPoint(0)).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AUnitCanBeFoundAgainInAHashSet()
     {
         var units = new HashSet<Unit> { Unit.FromCentimeter(3), Unit.FromInch(1), Unit.Empty };
@@ -357,7 +357,7 @@ public class UnitTests
         units.Should().NotContain(Unit.FromPoint(72));
     }
 
-    [Fact]
+    [Test]
     public void SomethingThatIsNotAUnitIsNotEqualToOne()
     {
         // Cast to object, because a string or a null handed to Equals directly binds to Equals(Unit)
@@ -367,14 +367,14 @@ public class UnitTests
         Unit.FromPoint(3).Equals((object)null).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AStringHandedToEqualsIsParsedAsAUnit()
     {
         Unit.FromPoint(3).Equals("3").Should().BeTrue();
         Unit.FromPoint(3).Equals("3cm").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ANullHandedToEqualsIsRefusedAsAUnitWouldBe()
     {
         var act = () => Unit.FromPoint(3).Equals(null);
@@ -382,10 +382,10 @@ public class UnitTests
         act.Should().Throw<ArgumentNullException>();
     }
 
-    [Theory]
-    [InlineData(12)]
-    [InlineData(-12)]
-    [InlineData(0)]
+    [Test]
+    [Arguments(12)]
+    [Arguments(-12)]
+    [Arguments(0)]
     public void AnIntBecomesThatManyPoints(int value)
     {
         Unit unit = value;
@@ -394,7 +394,7 @@ public class UnitTests
         unit.Point.Should().Be(value);
     }
 
-    [Fact]
+    [Test]
     public void ADoubleAndAFloatBothBecomePointsToo()
     {
         Unit fromDouble = 12.5;
@@ -405,7 +405,7 @@ public class UnitTests
         fromDouble.Type.Should().Be(UnitType.Point);
     }
 
-    [Fact]
+    [Test]
     public void ALengthUsedAsANumberIsItsLengthInPoints()
     {
         // Which is the conversion that makes arithmetic on margins work, and the reason a length in
@@ -417,7 +417,7 @@ public class UnitTests
         asFloat.Should().BeApproximately(72, 1e-3f);
     }
 
-    [Fact]
+    [Test]
     public void SettingTheValueLeavesTheMeasureAlone()
     {
         var unit = Unit.FromCentimeter(1);
@@ -430,7 +430,7 @@ public class UnitTests
 
     // ----- setting a length in one measure and reading it in another ---------------------------------
 
-    [Fact]
+    [Test]
     public void ALengthCanBeSetThroughAnyOfItsMeasures()
     {
         // Each of these setters converts and re-labels, so the object ends up in the measure it was

@@ -1,7 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using AwesomeAssertions;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -19,11 +20,11 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class PageSetupTests
 {
-    public static TheoryData<PageFormat> EveryPageFormat
+    public static IEnumerable<PageFormat> EveryPageFormat
     {
         get
         {
-            var data = new TheoryData<PageFormat>();
+            var data = new List<PageFormat>();
             foreach (var format in Enum.GetValues<PageFormat>())
                 data.Add(format);
             return data;
@@ -36,8 +37,8 @@ public class PageSetupTests
     ///   names - and the traditional Crown is 20 by 15. Naming them here rather than loosening the
     ///   rule keeps the rule useful: a third landscape size would be a mistake, and would fail.
     /// </summary>
-    [Theory]
-    [MemberData(nameof(EveryPageFormat))]
+    [Test]
+    [MethodDataSource(nameof(EveryPageFormat))]
     public void EveryNamedFormatHasASizeAndAlmostAllOfThemArePortrait(PageFormat format)
     {
         PageSetup.GetPageSize(format, out var width, out var height);
@@ -51,8 +52,8 @@ public class PageSetupTests
             height.Point.Should().BeGreaterThan(width.Point);
     }
 
-    [Theory]
-    [MemberData(nameof(EveryPageFormat))]
+    [Test]
+    [MethodDataSource(nameof(EveryPageFormat))]
     public void EveryNamedFormatIsAPlausibleSizeOfPaper(PageFormat format)
     {
         // Between a postage stamp and a poster. Loose on purpose: the point is to catch an arm of
@@ -70,17 +71,17 @@ public class PageSetupTests
     ///   is half the height of the next. Millimetre sizes are rounded to whole millimetres, which is
     ///   why this allows a millimetre either way rather than asking for exactness.
     /// </summary>
-    [Theory]
-    [InlineData(PageFormat.A0, PageFormat.A1)]
-    [InlineData(PageFormat.A1, PageFormat.A2)]
-    [InlineData(PageFormat.A2, PageFormat.A3)]
-    [InlineData(PageFormat.A3, PageFormat.A4)]
-    [InlineData(PageFormat.A4, PageFormat.A5)]
-    [InlineData(PageFormat.A5, PageFormat.A6)]
-    [InlineData(PageFormat.A6, PageFormat.A7)]
-    [InlineData(PageFormat.A7, PageFormat.A8)]
-    [InlineData(PageFormat.A8, PageFormat.A9)]
-    [InlineData(PageFormat.A9, PageFormat.A10)]
+    [Test]
+    [Arguments(PageFormat.A0, PageFormat.A1)]
+    [Arguments(PageFormat.A1, PageFormat.A2)]
+    [Arguments(PageFormat.A2, PageFormat.A3)]
+    [Arguments(PageFormat.A3, PageFormat.A4)]
+    [Arguments(PageFormat.A4, PageFormat.A5)]
+    [Arguments(PageFormat.A5, PageFormat.A6)]
+    [Arguments(PageFormat.A6, PageFormat.A7)]
+    [Arguments(PageFormat.A7, PageFormat.A8)]
+    [Arguments(PageFormat.A8, PageFormat.A9)]
+    [Arguments(PageFormat.A9, PageFormat.A10)]
     public void EachASizeIsTheOneAboveItHalved(PageFormat larger, PageFormat smaller)
     {
         PageSetup.GetPageSize(larger, out var largeWidth, out var largeHeight);
@@ -90,7 +91,7 @@ public class PageSetupTests
         smallHeight.Millimeter.Should().BeApproximately(largeWidth.Millimeter, 1);
     }
 
-    [Fact]
+    [Test]
     public void A4IsTheSizeEverybodyKnows()
     {
         // One size stated outright, so that a sweep which only checks relationships cannot pass on
@@ -101,7 +102,7 @@ public class PageSetupTests
         height.Millimeter.Should().BeApproximately(297, 0.5);
     }
 
-    [Fact]
+    [Test]
     public void LetterIsTheSizeTheOtherHalfOfTheWorldKnows()
     {
         PageSetup.GetPageSize(PageFormat.Letter, out var width, out var height);
@@ -116,7 +117,7 @@ public class PageSetupTests
     ///   is its own, which is the property worth holding - a table of sixty entries written by hand
     ///   invites the copied-and-not-edited arm, and that is what an unexpected duplicate would be.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheOnlyFormatsThatShareASizeAreTheOnesThatShareAName()
     {
         var byName = Enum.GetValues<PageFormat>().ToDictionary(
@@ -142,7 +143,7 @@ public class PageSetupTests
     ///   throwing. It is not a hole: <c>PageSetup.PageFormat</c> refuses a value the enumeration
     ///   does not define, so the only way here is to cast an integer and call this directly.
     /// </summary>
-    [Fact]
+    [Test]
     public void AFormatThatIsNotOneHasNoSize()
     {
         PageSetup.GetPageSize((PageFormat)9999, out var width, out var height);
@@ -151,7 +152,7 @@ public class PageSetupTests
         height.Point.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void AFormatThatIsNotOneIsRefusedWhereItWouldReachADocument()
     {
         var setup = new Document().AddSection().PageSetup;
@@ -170,7 +171,7 @@ public class PageSetupTests
     ///   Worth pinning because the opposite is the natural guess, and a caller who reads PageWidth
     ///   back expecting 148mm gets nothing and no complaint.
     /// </summary>
-    [Fact]
+    [Test]
     public void NamingAFormatRecordsTheNameRatherThanTheSize()
     {
         var setup = new Document().AddSection().PageSetup;
@@ -185,7 +186,7 @@ public class PageSetupTests
         width.Millimeter.Should().BeApproximately(148, 0.5, "it is looked up from the name");
     }
 
-    [Fact]
+    [Test]
     public void AWidthGivenOutrightIsKeptAsGiven()
     {
         // The other way round: a setup told a size explicitly holds that size, and the format it
@@ -201,7 +202,7 @@ public class PageSetupTests
         setup.PageFormat.Should().Be(PageFormat.A4, "both are recorded, and the renderer decides");
     }
 
-    [Fact]
+    [Test]
     public void TheOrientationIsRecordedBesideTheFormatRatherThanAppliedToIt()
     {
         var setup = new Document().AddSection().PageSetup;
@@ -216,7 +217,7 @@ public class PageSetupTests
         height.Point.Should().BeGreaterThan(width.Point);
     }
 
-    [Fact]
+    [Test]
     public void ASectionWithNoSetupOfItsOwnFallsBackToTheDocumentDefault()
     {
         var document = new Document();
@@ -233,76 +234,76 @@ public class PageSetupTests
     ///   rather than millimetres serializes differently even where it measures the same, so this
     ///   pins the lookup exactly: the value and the unit of both sides of every format.
     /// </summary>
-    [Theory]
-    [InlineData(PageFormat.A0, "mm", 841, 1189)]
-    [InlineData(PageFormat.A1, "mm", 594, 841)]
-    [InlineData(PageFormat.A2, "mm", 420, 594)]
-    [InlineData(PageFormat.A3, "mm", 297, 420)]
-    [InlineData(PageFormat.A4, "mm", 210, 297)]
-    [InlineData(PageFormat.A5, "mm", 148, 210)]
-    [InlineData(PageFormat.A6, "mm", 105, 148)]
-    [InlineData(PageFormat.A7, "mm", 74, 105)]
-    [InlineData(PageFormat.A8, "mm", 52, 74)]
-    [InlineData(PageFormat.A9, "mm", 37, 52)]
-    [InlineData(PageFormat.A10, "mm", 26, 37)]
-    [InlineData(PageFormat.TwoA0, "mm", 1189, 1682)]
-    [InlineData(PageFormat.FourA0, "mm", 1682, 2378)]
-    [InlineData(PageFormat.B0, "mm", 1000, 1414)]
-    [InlineData(PageFormat.B1, "mm", 707, 1000)]
-    [InlineData(PageFormat.B2, "mm", 500, 707)]
-    [InlineData(PageFormat.B3, "mm", 353, 500)]
-    [InlineData(PageFormat.B4, "mm", 250, 353)]
-    [InlineData(PageFormat.B5, "mm", 176, 250)]
-    [InlineData(PageFormat.B6, "mm", 125, 176)]
-    [InlineData(PageFormat.B7, "mm", 88, 125)]
-    [InlineData(PageFormat.B8, "mm", 62, 88)]
-    [InlineData(PageFormat.B9, "mm", 44, 62)]
-    [InlineData(PageFormat.B10, "mm", 31, 44)]
-    [InlineData(PageFormat.JISB5, "mm", 182, 257)]
-    [InlineData(PageFormat.C0, "mm", 917, 1297)]
-    [InlineData(PageFormat.C1, "mm", 648, 917)]
-    [InlineData(PageFormat.C2, "mm", 458, 648)]
-    [InlineData(PageFormat.C3, "mm", 324, 458)]
-    [InlineData(PageFormat.C4, "mm", 229, 324)]
-    [InlineData(PageFormat.C5, "mm", 162, 229)]
-    [InlineData(PageFormat.C6, "mm", 114, 162)]
-    [InlineData(PageFormat.C7, "mm", 81, 114)]
-    [InlineData(PageFormat.C8, "mm", 57, 81)]
-    [InlineData(PageFormat.C9, "mm", 40, 57)]
-    [InlineData(PageFormat.C10, "mm", 28, 40)]
-    [InlineData(PageFormat.RA0, "mm", 860, 1220)]
-    [InlineData(PageFormat.RA1, "mm", 610, 860)]
-    [InlineData(PageFormat.RA2, "mm", 430, 610)]
-    [InlineData(PageFormat.RA3, "mm", 305, 430)]
-    [InlineData(PageFormat.RA4, "mm", 215, 305)]
-    [InlineData(PageFormat.RA5, "mm", 153, 215)]
-    [InlineData(PageFormat.SRA0, "mm", 900, 1280)]
-    [InlineData(PageFormat.SRA1, "mm", 640, 900)]
-    [InlineData(PageFormat.SRA2, "mm", 450, 640)]
-    [InlineData(PageFormat.SRA3, "mm", 320, 450)]
-    [InlineData(PageFormat.SRA4, "mm", 225, 320)]
-    [InlineData(PageFormat.Letter, "in", 8.5, 11)]
-    [InlineData(PageFormat.Legal, "in", 8.5, 14)]
-    [InlineData(PageFormat.Ledger, "in", 17, 11)]
-    [InlineData(PageFormat.Tabloid, "in", 11, 17)]
-    [InlineData(PageFormat.P11x17, "in", 11, 17)]
-    [InlineData(PageFormat.Executive, "in", 7.25, 10.5)]
-    [InlineData(PageFormat.GovernmentLetter, "in", 8, 10.5)]
-    [InlineData(PageFormat.Statement, "in", 5.5, 8.5)]
-    [InlineData(PageFormat.STMT, "in", 5.5, 8.5)]
-    [InlineData(PageFormat.Folio, "in", 8.5, 13)]
-    [InlineData(PageFormat.Size10x14, "in", 10, 14)]
-    [InlineData(PageFormat.Quarto, "in", 8, 10)]
-    [InlineData(PageFormat.Foolscap, "in", 8, 13)]
-    [InlineData(PageFormat.Post, "in", 15.5, 19.25)]
-    [InlineData(PageFormat.Crown, "in", 20, 15)]
-    [InlineData(PageFormat.LargePost, "in", 16.5, 21)]
-    [InlineData(PageFormat.Demy, "in", 17.5, 22)]
-    [InlineData(PageFormat.Medium, "in", 18, 23)]
-    [InlineData(PageFormat.Royal, "in", 20, 25)]
-    [InlineData(PageFormat.Elephant, "in", 23, 28)]
-    [InlineData(PageFormat.DoubleDemy, "in", 23.5, 35)]
-    [InlineData(PageFormat.QuadDemy, "in", 35, 45)]
+    [Test]
+    [Arguments(PageFormat.A0, "mm", 841, 1189)]
+    [Arguments(PageFormat.A1, "mm", 594, 841)]
+    [Arguments(PageFormat.A2, "mm", 420, 594)]
+    [Arguments(PageFormat.A3, "mm", 297, 420)]
+    [Arguments(PageFormat.A4, "mm", 210, 297)]
+    [Arguments(PageFormat.A5, "mm", 148, 210)]
+    [Arguments(PageFormat.A6, "mm", 105, 148)]
+    [Arguments(PageFormat.A7, "mm", 74, 105)]
+    [Arguments(PageFormat.A8, "mm", 52, 74)]
+    [Arguments(PageFormat.A9, "mm", 37, 52)]
+    [Arguments(PageFormat.A10, "mm", 26, 37)]
+    [Arguments(PageFormat.TwoA0, "mm", 1189, 1682)]
+    [Arguments(PageFormat.FourA0, "mm", 1682, 2378)]
+    [Arguments(PageFormat.B0, "mm", 1000, 1414)]
+    [Arguments(PageFormat.B1, "mm", 707, 1000)]
+    [Arguments(PageFormat.B2, "mm", 500, 707)]
+    [Arguments(PageFormat.B3, "mm", 353, 500)]
+    [Arguments(PageFormat.B4, "mm", 250, 353)]
+    [Arguments(PageFormat.B5, "mm", 176, 250)]
+    [Arguments(PageFormat.B6, "mm", 125, 176)]
+    [Arguments(PageFormat.B7, "mm", 88, 125)]
+    [Arguments(PageFormat.B8, "mm", 62, 88)]
+    [Arguments(PageFormat.B9, "mm", 44, 62)]
+    [Arguments(PageFormat.B10, "mm", 31, 44)]
+    [Arguments(PageFormat.JISB5, "mm", 182, 257)]
+    [Arguments(PageFormat.C0, "mm", 917, 1297)]
+    [Arguments(PageFormat.C1, "mm", 648, 917)]
+    [Arguments(PageFormat.C2, "mm", 458, 648)]
+    [Arguments(PageFormat.C3, "mm", 324, 458)]
+    [Arguments(PageFormat.C4, "mm", 229, 324)]
+    [Arguments(PageFormat.C5, "mm", 162, 229)]
+    [Arguments(PageFormat.C6, "mm", 114, 162)]
+    [Arguments(PageFormat.C7, "mm", 81, 114)]
+    [Arguments(PageFormat.C8, "mm", 57, 81)]
+    [Arguments(PageFormat.C9, "mm", 40, 57)]
+    [Arguments(PageFormat.C10, "mm", 28, 40)]
+    [Arguments(PageFormat.RA0, "mm", 860, 1220)]
+    [Arguments(PageFormat.RA1, "mm", 610, 860)]
+    [Arguments(PageFormat.RA2, "mm", 430, 610)]
+    [Arguments(PageFormat.RA3, "mm", 305, 430)]
+    [Arguments(PageFormat.RA4, "mm", 215, 305)]
+    [Arguments(PageFormat.RA5, "mm", 153, 215)]
+    [Arguments(PageFormat.SRA0, "mm", 900, 1280)]
+    [Arguments(PageFormat.SRA1, "mm", 640, 900)]
+    [Arguments(PageFormat.SRA2, "mm", 450, 640)]
+    [Arguments(PageFormat.SRA3, "mm", 320, 450)]
+    [Arguments(PageFormat.SRA4, "mm", 225, 320)]
+    [Arguments(PageFormat.Letter, "in", 8.5, 11)]
+    [Arguments(PageFormat.Legal, "in", 8.5, 14)]
+    [Arguments(PageFormat.Ledger, "in", 17, 11)]
+    [Arguments(PageFormat.Tabloid, "in", 11, 17)]
+    [Arguments(PageFormat.P11x17, "in", 11, 17)]
+    [Arguments(PageFormat.Executive, "in", 7.25, 10.5)]
+    [Arguments(PageFormat.GovernmentLetter, "in", 8, 10.5)]
+    [Arguments(PageFormat.Statement, "in", 5.5, 8.5)]
+    [Arguments(PageFormat.STMT, "in", 5.5, 8.5)]
+    [Arguments(PageFormat.Folio, "in", 8.5, 13)]
+    [Arguments(PageFormat.Size10x14, "in", 10, 14)]
+    [Arguments(PageFormat.Quarto, "in", 8, 10)]
+    [Arguments(PageFormat.Foolscap, "in", 8, 13)]
+    [Arguments(PageFormat.Post, "in", 15.5, 19.25)]
+    [Arguments(PageFormat.Crown, "in", 20, 15)]
+    [Arguments(PageFormat.LargePost, "in", 16.5, 21)]
+    [Arguments(PageFormat.Demy, "in", 17.5, 22)]
+    [Arguments(PageFormat.Medium, "in", 18, 23)]
+    [Arguments(PageFormat.Royal, "in", 20, 25)]
+    [Arguments(PageFormat.Elephant, "in", 23, 28)]
+    [Arguments(PageFormat.DoubleDemy, "in", 23.5, 35)]
+    [Arguments(PageFormat.QuadDemy, "in", 35, 45)]
     public void EveryNamedFormatIsExactlyTheSizeItHasAlwaysBeen(PageFormat format, string unit, double width, double height)
     {
         PageSetup.GetPageSize(format, out var pageWidth, out var pageHeight);
@@ -324,13 +325,13 @@ public class PageSetupTests
         }
     }
 
-    [Fact]
+    [Test]
     public void TheExactTableNamesEveryFormat()
     {
         var method = typeof(PageSetupTests).GetMethod(nameof(EveryNamedFormatIsExactlyTheSizeItHasAlwaysBeen))!;
-        var pinned = method.GetCustomAttributes(typeof(InlineDataAttribute), false)
-            .Cast<InlineDataAttribute>()
-            .Select(data => (PageFormat)data.GetData(method).Single()[0]);
+        var pinned = method.GetCustomAttributes(typeof(ArgumentsAttribute), false)
+            .Cast<ArgumentsAttribute>()
+            .Select(data => (PageFormat)data.Values[0]);
 
         pinned.Should().BeEquivalentTo(Enum.GetValues<PageFormat>());
     }

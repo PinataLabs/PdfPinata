@@ -2,7 +2,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -21,7 +21,7 @@ public class BaselineAlignmentTests
 
     private static XFont Plain => new("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
 
-    [Fact]
+    [Test]
     public void ARectangleWithHeightNoLongerThrows()
     {
         var draw = () => PageShowing(new XRect(Left, Top, Width, 20), XStringFormats.BaseLineLeft);
@@ -29,10 +29,10 @@ public class BaselineAlignmentTests
         draw.Should().NotThrow();
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(20)]
-    [InlineData(200)]
+    [Test]
+    [Arguments(0)]
+    [Arguments(20)]
+    [Arguments(200)]
     public void TheBaselineSitsOnTheTopEdgeWhateverTheHeight(double height)
     {
         var page = PageShowing(new XRect(Left, Top, Width, height), XStringFormats.BaseLineLeft);
@@ -42,9 +42,9 @@ public class BaselineAlignmentTests
         BaselineOf(page).Y.Should().BeApproximately(page.Height.Point - Top, 0.001);
     }
 
-    [Theory]
-    [InlineData(20)]
-    [InlineData(200)]
+    [Test]
+    [Arguments(20)]
+    [Arguments(200)]
     public void HeightDoesNotMoveTheText(double height)
     {
         // The requirement, and what catches a height leaking into the arithmetic: the same
@@ -56,7 +56,7 @@ public class BaselineAlignmentTests
         tall.Y.Should().BeApproximately(flat.Y, 0.001);
     }
 
-    [Fact]
+    [Test]
     public void AZeroHeightRectangleIsDrawnWhereItAlwaysWas()
     {
         // Unchanged by the removal of the guard: the case that always worked still works, and
@@ -67,7 +67,7 @@ public class BaselineAlignmentTests
         BaselineOf(page).Y.Should().BeApproximately(page.Height.Point - Top, 0.001);
     }
 
-    [Fact]
+    [Test]
     public void TheDefaultFormatWorksWithAnOrdinaryRectangle()
     {
         // The trap this change exists to remove: the format a caller reaches for when they are
@@ -80,7 +80,7 @@ public class BaselineAlignmentTests
         BaselineOf(page).Y.Should().BeApproximately(page.Height.Point - Top, 0.001);
     }
 
-    [Fact]
+    [Test]
     public void HorizontalAlignmentStillAppliesWhenTheRectangleHasAHeight()
     {
         // Only the vertical dimension is being ignored. The width still places the text.
@@ -101,7 +101,7 @@ public class BaselineAlignmentTests
         centre.Y.Should().BeApproximately(centrePage.Height.Point - Top, 0.001);
     }
 
-    [Fact]
+    [Test]
     public void HorizontalAlignmentIsUnaffectedByTheHeight()
     {
         var flat = BaselineOf(PageShowing(new XRect(Left, Top, Width, 0), XStringFormats.BaseLineRight));

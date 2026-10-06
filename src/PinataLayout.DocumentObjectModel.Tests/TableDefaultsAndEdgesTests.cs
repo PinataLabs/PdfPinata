@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Tables;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -26,7 +26,7 @@ public class TableDefaultsAndEdgesTests
         return table;
     }
 
-    [Fact]
+    [Test]
     public void ATableIsEmptyUntilItHasBothColumnsAndRows()
     {
         var table = new Document().AddSection().AddTable();
@@ -42,7 +42,7 @@ public class TableDefaultsAndEdgesTests
 
     // ----- the defaults ---------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void EachDefaultReadsBackAsItWasSet()
     {
         var table = ATable();
@@ -68,7 +68,7 @@ public class TableDefaultsAndEdgesTests
         table.RightPadding.Millimeter.Should().BeApproximately(4, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void EveryDefaultThatWasSetIsWrittenOutAndTheRestAreNot()
     {
         var document = new Document();
@@ -101,7 +101,7 @@ public class TableDefaultsAndEdgesTests
         ddl.Should().Contain("Shading");
     }
 
-    [Fact]
+    [Test]
     public void ATableWithNoDefaultsSetWritesNoneOfThem()
     {
         var document = new Document();
@@ -116,7 +116,7 @@ public class TableDefaultsAndEdgesTests
         ddl.Should().NotContain("Style =");
     }
 
-    [Fact]
+    [Test]
     public void EachCompositePartOfATableCanBeAssignedWholesale()
     {
         var table = ATable();
@@ -138,7 +138,7 @@ public class TableDefaultsAndEdgesTests
         table.Rows.Count.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void ATableClonesItselfWithItsRowsAndColumns()
     {
         var table = ATable();
@@ -155,7 +155,7 @@ public class TableDefaultsAndEdgesTests
 
     // ----- the edges ------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void SettingTheBoxEdgeDrawsOnlyTheOutsideOfTheRange()
     {
         var table = ATable(3, 3);
@@ -169,7 +169,7 @@ public class TableDefaultsAndEdgesTests
         table[2, 2].Borders.Top.Width.Should().Be(Unit.Empty, "the range stopped short of this cell");
     }
 
-    [Fact]
+    [Test]
     public void SettingTheInteriorEdgesDrawsBetweenTheCellsAndNotAround()
     {
         var table = ATable();
@@ -183,7 +183,7 @@ public class TableDefaultsAndEdgesTests
         table[0, 0].Borders.Top.Width.Should().Be(Unit.Empty);
     }
 
-    [Fact]
+    [Test]
     public void BothDiagonalsCanBeDrawnAcrossARange()
     {
         var table = ATable();
@@ -195,7 +195,7 @@ public class TableDefaultsAndEdgesTests
         table[1, 1].Borders.DiagonalDown.Width.Point.Should().BeApproximately(1, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void AnEdgeSetWithNoColourLeavesTheColourAlone()
     {
         var table = ATable();

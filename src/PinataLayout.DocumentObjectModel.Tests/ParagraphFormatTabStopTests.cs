@@ -1,6 +1,6 @@
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -18,7 +18,7 @@ public class ParagraphFormatTabStopTests
 {
     private static ParagraphFormat AFormat() => new Document().AddSection().AddParagraph("x").Format;
 
-    [Fact]
+    [Test]
     public void AFormatHasNoTabStopsUntilOneIsAskedFor()
     {
         var format = AFormat();
@@ -30,7 +30,7 @@ public class ParagraphFormatTabStopTests
         format.HasTabStops.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ATabStopIsAddedAtAPositionAlone()
     {
         var format = AFormat();
@@ -41,7 +41,7 @@ public class ParagraphFormatTabStopTests
         format.TabStops.Count.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void ATabStopIsAddedWithAnAlignment()
     {
         var format = AFormat();
@@ -51,7 +51,7 @@ public class ParagraphFormatTabStopTests
         stop.Alignment.Should().Be(TabAlignment.Right);
     }
 
-    [Fact]
+    [Test]
     public void ATabStopIsAddedWithALeader()
     {
         var format = AFormat();
@@ -61,7 +61,7 @@ public class ParagraphFormatTabStopTests
         stop.Leader.Should().Be(TabLeader.Dots);
     }
 
-    [Fact]
+    [Test]
     public void ATabStopIsAddedWithBothAnAlignmentAndALeader()
     {
         var format = AFormat();
@@ -72,7 +72,7 @@ public class ParagraphFormatTabStopTests
         stop.Leader.Should().Be(TabLeader.Lines);
     }
 
-    [Fact]
+    [Test]
     public void ATabStopBuiltElsewhereCanBeHandedOver()
     {
         var format = AFormat();
@@ -91,7 +91,7 @@ public class ParagraphFormatTabStopTests
     ///   serialized DDL is where the difference shows: the removed position is written as a
     ///   <c>TabStops -=</c> line rather than dropped.
     /// </summary>
-    [Fact]
+    [Test]
     public void ARemovedTabStopStaysInTheCollectionAndIsWrittenOutAsRemoved()
     {
         var document = new Document();
@@ -105,7 +105,7 @@ public class ParagraphFormatTabStopTests
         DdlWriter.WriteToString(document).Should().Contain("TabStops -= \"2cm\"");
     }
 
-    [Fact]
+    [Test]
     public void ClearAllLeavesAMarkerRatherThanNoTabStopsAtAll()
     {
         var format = AFormat();
@@ -121,7 +121,7 @@ public class ParagraphFormatTabStopTests
 
     // ----- the composite properties a caller may assign outright ----------------------------------
 
-    [Fact]
+    [Test]
     public void EachCompositePartOfAFormatCanBeAssignedWholesale()
     {
         var format = AFormat();
@@ -142,7 +142,7 @@ public class ParagraphFormatTabStopTests
         format.TabStops.Count.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void TabStopsAreWrittenOutWithTheFormatTheyBelongTo()
     {
         var document = new Document();

@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.IO.NamedDestinationFixtures;
 
 namespace PdfPinata.Test.IO;
@@ -23,7 +23,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class NamedDestinationTests
 {
-    [Fact]
+    [Test]
     public void MergingResolvesADestinationNamedByStringInTheNameTree()
     {
         using var output = Merge(InNameTree(LinkToName()));
@@ -31,7 +31,7 @@ public class NamedDestinationTests
         GoesToTheSecondPage(output);
     }
 
-    [Fact]
+    [Test]
     public void MergingResolvesADestinationHeldInADictionaryOfItsOwn()
     {
         using var output = Merge(InNameTreeUnderD(LinkToName()));
@@ -39,7 +39,7 @@ public class NamedDestinationTests
         GoesToTheSecondPage(output);
     }
 
-    [Fact]
+    [Test]
     public void MergingResolvesADestinationHeldDownTheNameTree()
     {
         using var output = Merge(InNameTreeWithKids(LinkToName()));
@@ -47,7 +47,7 @@ public class NamedDestinationTests
         GoesToTheSecondPage(output);
     }
 
-    [Fact]
+    [Test]
     public void MergingResolvesADestinationNamedByNameInTheDestsDictionary()
     {
         using var output = Merge(InDestsDictionary(LinkToNameObject()));
@@ -55,7 +55,7 @@ public class NamedDestinationTests
         GoesToTheSecondPage(output);
     }
 
-    [Fact]
+    [Test]
     public void MergingResolvesTheNamedDestinationOfAGoToAction()
     {
         using var output = Merge(InNameTree(LinkWithAction("/S/GoTo/D(" + Name + ")")));
@@ -67,7 +67,7 @@ public class NamedDestinationTests
     ///   Where on the page to go is what the destination says beyond which page, and it has to
     ///   arrive along with it or the link lands somewhere else on the right page.
     /// </summary>
-    [Fact]
+    [Test]
     public void ResolvingADestinationKeepsWhereOnThePageItGoes()
     {
         using var output = Merge(InNameTree(LinkToName()));
@@ -83,7 +83,7 @@ public class NamedDestinationTests
     ///   is left behind, so the link is left without an aim rather than with one that stands for
     ///   nothing.
     /// </summary>
-    [Fact]
+    [Test]
     public void ImportingOnlyTheLinkingPageDropsTheDestination()
     {
         using var output = Import(InNameTree(LinkToName()), 1);
@@ -95,7 +95,7 @@ public class NamedDestinationTests
         output.Length.Should().BeLessThan(2 * ImageLength);
     }
 
-    [Fact]
+    [Test]
     public void ImportingOnlyTheLinkingPageDropsTheActionThatHasNowhereToGo()
     {
         using var output = Import(InNameTree(LinkWithAction("/S/GoTo/D(" + Name + ")")), 1);
@@ -108,7 +108,7 @@ public class NamedDestinationTests
     ///   A destination going into another file is for that file to resolve. Reading it as one of
     ///   this document would point the link at whatever this document happens to call that.
     /// </summary>
-    [Fact]
+    [Test]
     public void ARemoteGoToKeepsTheNameItWasWrittenWith()
     {
         using var output = Merge(InNameTree(
@@ -123,7 +123,7 @@ public class NamedDestinationTests
     ///   A name the catalog does not hold cannot be resolved and cannot be shown to be wrong
     ///   either, so it is left as it was written.
     /// </summary>
-    [Fact]
+    [Test]
     public void ANameThatStandsForNothingIsLeftAlone()
     {
         using var output = Merge(WithNothingHeld(LinkToName()));
@@ -136,7 +136,7 @@ public class NamedDestinationTests
     ///   Nothing about a link that says where it goes changes, which is the behaviour the
     ///   destination tests of SplitTests and InsertRangeTests are about.
     /// </summary>
-    [Fact]
+    [Test]
     public void MergingStillResolvesADestinationThatSaysWhereItGoes()
     {
         using var output = Merge(WithNothingHeld(Link("/Dest[4 0 R/Fit]")));
@@ -144,7 +144,7 @@ public class NamedDestinationTests
         GoesToTheSecondPage(output);
     }
 
-    [Fact]
+    [Test]
     public void MergingResolvesEveryNamedDestinationOfThePage()
     {
         using var output = Merge(InNameTree(

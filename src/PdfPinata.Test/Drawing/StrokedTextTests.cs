@@ -4,7 +4,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -38,7 +38,7 @@ public class StrokedTextTests
 
     // ----- which mode the pen and brush ask for -------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ABrushAloneFillsTheText()
     {
         // Mode 0 is where a content stream starts, so filling is what costs nothing to say.
@@ -46,21 +46,21 @@ public class StrokedTextTests
             .Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void APenAloneStrokesTheText()
     {
         TextOperators.NumbersGivenTo(PageShowing(PlainFont, new XPen(XColors.Red, 1), null), OpCodeName.Tr)
             .Should().Equal(1);
     }
 
-    [Fact]
+    [Test]
     public void APenAndABrushFillTheTextAndStrokeIt()
     {
         TextOperators.NumbersGivenTo(PageShowing(PlainFont, new XPen(XColors.Red, 1), XBrushes.Black), OpCodeName.Tr)
             .Should().Equal(2);
     }
 
-    [Fact]
+    [Test]
     public void TheOldOverloadStillFillsAndNothingElse()
     {
         // Every existing caller goes through here, and has to come out where it always did.
@@ -70,7 +70,7 @@ public class StrokedTextTests
         TextOperators.NumbersGivenTo(page, OpCodeName.Tc).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void NeitherAPenNorABrushIsRejected()
     {
         var document = new PdfDocument();
@@ -81,7 +81,7 @@ public class StrokedTextTests
             .Should().Throw<ArgumentNullException>();
     }
 
-    [Fact]
+    [Test]
     public void ABrushIsStillRequiredByTheOverloadThatOnlyTakesOne()
     {
         var document = new PdfDocument();
@@ -93,7 +93,7 @@ public class StrokedTextTests
 
     // ----- the pen is the caller's ---------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TheStrokeIsAsWideAsThePenAsksFor()
     {
         var page = PageShowing(PlainFont, new XPen(XColors.Red, 2.5), XBrushes.Black);
@@ -101,7 +101,7 @@ public class StrokedTextTests
         TextOperators.NumbersGivenTo(page, OpCodeName.w).Should().Contain(2.5);
     }
 
-    [Fact]
+    [Test]
     public void TheStrokeIsTheColourThePenAsksFor()
     {
         var page = PageShowing(PlainFont, new XPen(XColors.Red, 1), XBrushes.Black);
@@ -110,7 +110,7 @@ public class StrokedTextTests
         TextOperators.OperandsGivenTo(page, OpCodeName.RG).Should().ContainEquivalentOf(new[] { 1d, 0d, 0d });
     }
 
-    [Fact]
+    [Test]
     public void TheCallersPenReplacesTheOneBoldSimulationWouldHaveStrokedWith()
     {
         // What bold simulation strokes with when left to itself: a hairline worked out from the
@@ -128,7 +128,7 @@ public class StrokedTextTests
         withPen.Should().NotContain(simulated[0]);
     }
 
-    [Fact]
+    [Test]
     public void BoldSimulationStillStrokesWhenNoPenIsGiven()
     {
         var page = PageShowing(BoldSimulatedFont, null, XBrushes.Black);
@@ -138,7 +138,7 @@ public class StrokedTextTests
 
     // ----- what the widening is keyed on, B3 ----------------------------------------------------
 
-    [Fact]
+    [Test]
     public void StrokingTextDoesNotWidenItTheWayBoldSimulationDoes()
     {
         var page = PageShowing(PlainFont, new XPen(XColors.Red, 1), XBrushes.Black);
@@ -150,7 +150,7 @@ public class StrokedTextTests
         TextOperators.NumbersGivenTo(page, OpCodeName.Tc).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void BoldSimulationStillWidensWhenTheCallerStrokesAsWell()
     {
         var simulatedOnly = TextOperators.NumbersGivenTo(
@@ -164,7 +164,7 @@ public class StrokedTextTests
         withPen.Should().Equal(simulatedOnly[0]);
     }
 
-    [Fact]
+    [Test]
     public void ACharacterSpacingSurvivesStrokedText()
     {
         var format = XStringFormats.Default;
@@ -178,7 +178,7 @@ public class StrokedTextTests
 
     // ----- the mode is state ---------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void GoingBackToPlainFilledTextSaysSo()
     {
         var page = DrawnText.PageShowing(gfx =>
@@ -191,7 +191,7 @@ public class StrokedTextTests
         TextOperators.NumbersGivenTo(page, OpCodeName.Tr).Should().Equal(1, 0);
     }
 
-    [Fact]
+    [Test]
     public void TheModeIsSetOnceForTwoStringsThatShareIt()
     {
         var page = DrawnText.PageShowing(gfx =>

@@ -6,7 +6,7 @@ using System.Reflection;
 using AwesomeAssertions;
 using PdfPinata.Fonts;
 using PdfPinata.Text;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Text;
 
@@ -42,7 +42,7 @@ public class ItemizationTests
 
     // ----- script itemisation ----------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TextOfOneScriptIsOneRun()
     {
         var runs = ItemizeScripts("Hello");
@@ -53,7 +53,7 @@ public class ItemizationTests
         runs[0].Length.Should().Be(5);
     }
 
-    [Fact]
+    [Test]
     public void AChangeOfScriptStartsANewRun()
     {
         var runs = ItemizeScripts("Hi" + Arabic);
@@ -63,7 +63,7 @@ public class ItemizationTests
         runs[1].Length.Should().Be(4);
     }
 
-    [Fact]
+    [Test]
     public void PunctuationAndSpacesGoWithWhateverTheyAreNextTo()
     {
         // A space and a full stop are script Common and say nothing about which script they are
@@ -75,7 +75,7 @@ public class ItemizationTests
         runs[1].Script.Should().Be(UnicodeScript.Arabic);
     }
 
-    [Fact]
+    [Test]
     public void LeadingPunctuationBelongsToTheScriptThatFollowsIt()
     {
         // Nothing has said what script the text is in yet, so the opening bracket waits for the
@@ -87,7 +87,7 @@ public class ItemizationTests
         runs[0].Length.Should().Be(7);
     }
 
-    [Fact]
+    [Test]
     public void ACombiningMarkTakesTheScriptOfTheLetterItSitsOn()
     {
         // A combining acute is script Inherited, which is Common's counterpart for marks.
@@ -97,7 +97,7 @@ public class ItemizationTests
         runs[0].Script.Should().Be(UnicodeScript.Latin);
     }
 
-    [Fact]
+    [Test]
     public void TextWithNoLettersInItIsOneCommonRun()
     {
         var runs = ItemizeScripts("12 + 34!");
@@ -107,13 +107,13 @@ public class ItemizationTests
         runs[0].ScriptCode.Should().Be("zyyy");
     }
 
-    [Fact]
+    [Test]
     public void NothingIsNoRuns()
     {
         ItemizeScripts(string.Empty).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void AnAstralCharacterIsOneCharacterAndNotTwo()
     {
         // U+1D400 MATHEMATICAL BOLD CAPITAL A is Common, and its two UTF-16 units must not be
@@ -127,7 +127,7 @@ public class ItemizationTests
 
     // ----- the window the itemiser is really asked about ----------------------------------------
 
-    [Fact]
+    [Test]
     public void TheWholeStringIsJustTheWidestWindow()
     {
         // The whole-string form is the range form with nothing left out, so generalising the loop
@@ -137,7 +137,7 @@ public class ItemizationTests
         ItemizeScripts(mixed, 0, mixed.Length).Should().Equal(ItemizeScripts(mixed));
     }
 
-    [Fact]
+    [Test]
     public void AWindowIsItemisedOnItsOwnAndIndexedIntoTheWholeString()
     {
         // What TextItemizer asks once per bidirectional run. The Hebrew is outside the window and
@@ -153,7 +153,7 @@ public class ItemizationTests
         runs[0].Length.Should().Be(4);
     }
 
-    [Fact]
+    [Test]
     public void AWindowSweepsPunctuationIntoItselfAndNotIntoWhatSurroundsIt()
     {
         // The space is Common and goes with whatever it is beside - and inside this window the only
@@ -171,7 +171,7 @@ public class ItemizationTests
 
     // ----- the join with the bidirectional algorithm --------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ARunIsBothOneDirectionAndOneScript()
     {
         var runs = TextItemizer.Itemize("Hi " + Arabic);
@@ -183,7 +183,7 @@ public class ItemizationTests
         runs[1].ScriptCode.Should().Be("arab");
     }
 
-    [Fact]
+    [Test]
     public void TheRunsComeBackInTheOrderTheyAreDrawn()
     {
         // A right-to-left paragraph with Latin inside it: the Latin sits to the left of the Arabic
@@ -198,7 +198,7 @@ public class ItemizationTests
             "even though it was written last");
     }
 
-    [Fact]
+    [Test]
     public void TwoRightToLeftScriptsSideBySideAreTwoRuns()
     {
         // Same direction, different scripts, so the bidirectional algorithm sees one run and
@@ -214,7 +214,7 @@ public class ItemizationTests
         runs.Should().OnlyContain(run => run.Direction == XTextDirection.RightToLeft);
     }
 
-    [Fact]
+    [Test]
     public void TwoRightToLeftScriptsComeBackInTheOrderTheyAreDrawn()
     {
         // Not just cut into two runs - cut and then turned round. A right-to-left run whose script
@@ -226,7 +226,7 @@ public class ItemizationTests
         runs.Select(run => run.ScriptCode).Should().Equal("arab", "hebr");
     }
 
-    [Fact]
+    [Test]
     public void ASpaceInsideARightToLeftRunDoesNotCutIt()
     {
         // The space is script Common and takes the script of what it is beside - but "beside" is
@@ -242,7 +242,7 @@ public class ItemizationTests
         runs[1].ScriptCode.Should().Be("latn");
     }
 
-    [Fact]
+    [Test]
     public void AJoiningControlStaysInsideTheRunItSitsIn()
     {
         // U+200D ZERO WIDTH JOINER is bidirectional class BN, so rule X9 takes it out before
@@ -257,7 +257,7 @@ public class ItemizationTests
         runs[0].Length.Should().Be(3, "two letters and the joiner between them");
     }
 
-    [Fact]
+    [Test]
     public void AJoiningControlIsStillNotDrawn()
     {
         // Kept in the run and kept out of the order: the run reaches over it, and nothing puts a
@@ -269,7 +269,7 @@ public class ItemizationTests
         result.VisualOrder.Should().Equal(2, 0);
     }
 
-    [Fact]
+    [Test]
     public void AnyOtherRemovedCharacterStillEndsTheRun()
     {
         // U+FEFF is class BN and removed as well, and unlike a joiner it says nothing a shaper
@@ -282,7 +282,7 @@ public class ItemizationTests
         runs.Select(run => run.Length).Should().Equal(2, 2);
     }
 
-    [Fact]
+    [Test]
     public void EveryCharacterEndsUpInExactlyOneRun()
     {
         const string mixed = "Hi " + Arabic + " 12 " + Hebrew + "!";
@@ -296,7 +296,7 @@ public class ItemizationTests
                 "nothing is dropped and nothing is covered twice");
     }
 
-    [Fact]
+    [Test]
     public void ALeftToRightParagraphOfPlainTextIsOneRun()
     {
         // The overwhelmingly common case, and the one that must not have been made expensive:
@@ -309,7 +309,7 @@ public class ItemizationTests
         runs[0].Direction.Should().Be(XTextDirection.LeftToRight);
     }
 
-    [Fact]
+    [Test]
     public void NothingIsNoTextRuns()
     {
         TextItemizer.Itemize(string.Empty).Should().BeEmpty();
@@ -317,7 +317,7 @@ public class ItemizationTests
 
     // ----- what the bidirectional algorithm answers for a caller who only wants the direction -----
 
-    [Fact]
+    [Test]
     public void AParagraphReadsItsOwnDirectionOffItsFirstStrongCharacter()
     {
         BidiAlgorithm.Resolve("Hello " + Arabic).IsRightToLeft.Should().BeFalse();
@@ -326,7 +326,7 @@ public class ItemizationTests
             "a number is not a strong character, so the Arabic is the first thing that counts");
     }
 
-    [Fact]
+    [Test]
     public void ACallerCanOverrideWhatTheTextSaysAboutItself()
     {
         BidiAlgorithm.Resolve(Arabic, BidiParagraphDirection.LeftToRight)
@@ -335,7 +335,7 @@ public class ItemizationTests
             .IsRightToLeft.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void RightToLeftTextComesBackReversed()
     {
         // The documented complaint this whole gap exists for: "salam" drawn as "m a l s".

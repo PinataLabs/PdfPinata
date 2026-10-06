@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PdfPinata;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.Rendering.Tests.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -38,7 +38,7 @@ public class FormattedDocumentPageTests
 
     // ----- how many pages there are ------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ADocumentIsLaidOutIntoAsManyPagesAsItNeeds()
     {
         var document = new Document();
@@ -49,7 +49,7 @@ public class FormattedDocumentPageTests
         formatted.PageCount.Should().BeGreaterThan(1);
     }
 
-    [Fact]
+    [Test]
     public void APageTheDocumentDoesNotHaveIsRefusedRatherThanAnsweredWithNothing()
     {
         var document = new Document();
@@ -61,7 +61,7 @@ public class FormattedDocumentPageTests
             .Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Fact]
+    [Test]
     public void EachPageKnowsTheSizeAndOrientationItWasLaidOutAt()
     {
         var document = new Document();
@@ -79,7 +79,7 @@ public class FormattedDocumentPageTests
         info.Height.Point.Should().BeGreaterThan(0);
     }
 
-    [Fact]
+    [Test]
     public void TheCurrentPositionIsTheBottomOfWhatWasLaidOutLast()
     {
         var document = new Document();
@@ -98,7 +98,7 @@ public class FormattedDocumentPageTests
     ///   content starts at a different x on odd and even pages, which nothing else in the layout
     ///   does.
     /// </summary>
-    [Fact]
+    [Test]
     public void MirroredMarginsPutTheWideMarginOnTheInsideOfEachPage()
     {
         var document = new Document();
@@ -122,7 +122,7 @@ public class FormattedDocumentPageTests
 
     // ----- a section that must start on a particular page ----------------------------------------------
 
-    [Fact]
+    [Test]
     public void ASectionThatMustBeginOnAnEvenPageIsGivenAnEmptyOneBeforeIt()
     {
         var document = new Document();
@@ -136,7 +136,7 @@ public class FormattedDocumentPageTests
         formatted.PageCount.Should().Be(2, "the first section's one page is odd, so the second starts on two");
     }
 
-    [Fact]
+    [Test]
     public void ASectionThatMustBeginOnAnOddPageIsGivenAnEmptyOneWhenItWouldNot()
     {
         var document = new Document();
@@ -153,7 +153,7 @@ public class FormattedDocumentPageTests
 
     // ----- headers and footers that differ ---------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ASectionWithADifferentFirstPageDrawsThreeDifferentHeaders()
     {
         var document = new Document();
@@ -179,7 +179,7 @@ public class FormattedDocumentPageTests
         Glyphs.RunsOn(pages.Pages[2]).Should().ContainEquivalentOf(Glyphs.For("Echo"));
     }
 
-    [Fact]
+    [Test]
     public void AHeaderAndFooterAreDrawnOnALandscapePageToo()
     {
         var document = new Document();
@@ -201,7 +201,7 @@ public class FormattedDocumentPageTests
     ///   A renderer with a progress handler counts the elements of every section up front so that
     ///   it has a maximum to report against. Attaching a handler is what turns that counting on.
     /// </summary>
-    [Fact]
+    [Test]
     public void ARendererWithAProgressHandlerReportsItsWayThroughTheDocument()
     {
         var document = new Document();

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AwesomeAssertions;
-using Xunit;
+using TUnit.Core;
 using Charting = PdfPinata.Charting;
 using Dom = PinataLayout.DocumentObjectModel;
 using DomCharts = PinataLayout.DocumentObjectModel.Shapes.Charts;
@@ -22,30 +22,30 @@ namespace PinataLayout.Rendering.Tests;
 /// </remarks>
 public class ChartEnumParityTests
 {
-    public static TheoryData<Type, Type> CastAcross => new()
-    {
+    public static IEnumerable<(Type, Type)> CastAcross =>
+    [
         // ChartMapper.MapFrom; SeriesCollectionMapper's chart type, of a series and of its chart.
-        { typeof(DomCharts.ChartType), typeof(Charting.ChartType) },
+        (typeof(DomCharts.ChartType), typeof(Charting.ChartType)),
         // ChartMapper.MapFrom, DisplayBlanksAs.
-        { typeof(DomCharts.BlankType), typeof(Charting.BlankType) },
+        (typeof(DomCharts.BlankType), typeof(Charting.BlankType)),
         // AxisMapper, the major and the minor tick mark.
-        { typeof(DomCharts.TickMarkType), typeof(Charting.TickMarkType) },
+        (typeof(DomCharts.TickMarkType), typeof(Charting.TickMarkType)),
         // AxisMapper, the axis title's alignment.
-        { typeof(DomCharts.HorizontalAlignment), typeof(Charting.HorizontalAlignment) },
+        (typeof(DomCharts.HorizontalAlignment), typeof(Charting.HorizontalAlignment)),
         // AxisMapper, the axis title's vertical alignment - the DOM's is the table one.
-        { typeof(Dom.Tables.VerticalAlignment), typeof(Charting.VerticalAlignment) },
+        (typeof(Dom.Tables.VerticalAlignment), typeof(Charting.VerticalAlignment)),
         // DataLabelMapper, the position and the type.
-        { typeof(DomCharts.DataLabelPosition), typeof(Charting.DataLabelPosition) },
-        { typeof(DomCharts.DataLabelType), typeof(Charting.DataLabelType) },
+        (typeof(DomCharts.DataLabelPosition), typeof(Charting.DataLabelPosition)),
+        (typeof(DomCharts.DataLabelType), typeof(Charting.DataLabelType)),
         // SeriesCollectionMapper, the marker style.
-        { typeof(DomCharts.MarkerStyle), typeof(Charting.MarkerStyle) },
+        (typeof(DomCharts.MarkerStyle), typeof(Charting.MarkerStyle)),
         // FontMapper, a chart font's strikethrough and underline.
-        { typeof(Dom.Strikethrough), typeof(Charting.Strikethrough) },
-        { typeof(Dom.Underline), typeof(Charting.Underline) }
-    };
+        (typeof(Dom.Strikethrough), typeof(Charting.Strikethrough)),
+        (typeof(Dom.Underline), typeof(Charting.Underline))
+    ];
 
-    [Theory]
-    [MemberData(nameof(CastAcross))]
+    [Test]
+    [MethodDataSource(nameof(CastAcross))]
     public void BothSidesHaveTheSameMembersAtTheSameValues(Type dom, Type charting)
     {
         // Compared as name and value together, both ways: the same names at different values is

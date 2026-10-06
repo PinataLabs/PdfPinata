@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -14,7 +14,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class CharacterSymbolAndCharTests
 {
-    [Fact]
+    [Test]
     public void ACharacterReplacesASymbolAndReadsBackThroughBothProperties()
     {
         var character = new Character { SymbolName = SymbolName.Euro };
@@ -25,7 +25,7 @@ public class CharacterSymbolAndCharTests
         character.SymbolName.Should().Be((SymbolName)'x', "a character reads back as its own code");
     }
 
-    [Fact]
+    [Test]
     public void ASymbolReplacesACharacter()
     {
         var character = new Character { Char = 'x' };
@@ -36,7 +36,7 @@ public class CharacterSymbolAndCharTests
         character.Char.Should().Be('\0', "a symbol is not a character");
     }
 
-    [Fact]
+    [Test]
     public void AssigningACharacterCodeToSymbolNameIsAssigningChar()
     {
         var character = new Character { SymbolName = (SymbolName)'q' };
@@ -45,7 +45,7 @@ public class CharacterSymbolAndCharTests
         character.SymbolName.Should().Be((SymbolName)'q');
     }
 
-    [Fact]
+    [Test]
     public void AddCharacterWithACharIsAddCharacterWithItsCode()
     {
         var paragraph = new Document().AddSection().AddParagraph();
@@ -58,10 +58,10 @@ public class CharacterSymbolAndCharTests
         byChar.Count.Should().Be(2);
     }
 
-    [Theory]
-    [InlineData(0xF0000000u)]
-    [InlineData(0xF1000005u)]
-    [InlineData(0x10000041u)]
+    [Test]
+    [Arguments(0xF0000000u)]
+    [Arguments(0xF1000005u)]
+    [Arguments(0x10000041u)]
     public void AnUndefinedSymbolIsRefused(uint value)
     {
         var character = new Character();
@@ -73,7 +73,7 @@ public class CharacterSymbolAndCharTests
         character.SymbolName.Should().Be(default(SymbolName), "a refused value is not kept");
     }
 
-    [Fact]
+    [Test]
     public void ACodeAboveTheBasicPlaneIsKeptWholeAndCharReadsItsLowSixteenBits()
     {
         var character = new Character { SymbolName = (SymbolName)0x2200A };
@@ -82,7 +82,7 @@ public class CharacterSymbolAndCharTests
         character.Char.Should().Be('\u200A');
     }
 
-    [Fact]
+    [Test]
     public void ACloneKeepsWhicheverOfTheTwoWasAssigned()
     {
         var symbol = new Character { SymbolName = SymbolName.EmDash };
@@ -97,7 +97,7 @@ public class CharacterSymbolAndCharTests
         letterClone.SymbolName.Should().Be((SymbolName)'k');
     }
 
-    [Fact]
+    [Test]
     public void EveryKindOfCharacterIsWrittenExactlyAsItWasBeforeTheSplit()
     {
         var document = new Document();
@@ -129,7 +129,7 @@ public class CharacterSymbolAndCharTests
             "}\n");
     }
 
-    [Fact]
+    [Test]
     public void EveryReadableKindRoundTripsThroughMdddl()
     {
         var document = new Document();

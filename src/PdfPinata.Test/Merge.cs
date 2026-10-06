@@ -1,18 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Drawing.Layout;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test;
 
 public class Merge
 {
-    [Fact]
+    [Test]
     public void CanMerge2Documents()
     {
         var pdf1Path =  PathHelper.GetInstance().GetAssetPath("FamilyTree.pdf");
@@ -24,7 +25,7 @@ public class Merge
         outputDocument.Save(outFilePath);
 
         using var merged = Pdf.IO.PdfReader.Open(outFilePath, PdfDocumentOpenMode.Import);
-        Assert.Equal(PageCountOf(pdf1Path) + PageCountOf(pdf2Path), merged.PageCount);
+        merged.PageCount.Should().Be(PageCountOf(pdf1Path) + PageCountOf(pdf2Path));
     }
 
     private static int PageCountOf(string pdfPath)
@@ -33,7 +34,7 @@ public class Merge
         return document.PageCount;
     }
 
-    [Fact]
+    [Test]
     public void CanConsolidateImageDataInDocument()
     {
         var doc1 = CreateTestDocumentWithImage("lenna.png");
@@ -57,7 +58,7 @@ public class Merge
 
         var mergedLength = new FileInfo(mergedFilePath).Length;
         var consolidatedLength = new FileInfo(consolidatedFilePath).Length;
-        Assert.True(consolidatedLength < mergedLength / 4);
+        consolidatedLength.Should().BeLessThan(mergedLength / 4);
     }
 
     private static PdfDocument MergeDocuments(IEnumerable<string> pdfPaths)

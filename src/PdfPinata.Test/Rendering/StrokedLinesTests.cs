@@ -5,7 +5,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Rendering;
 
@@ -18,7 +18,7 @@ public class StrokedLinesTests
 {
     private const string Triangle = "10 10 m 50 10 l 50 50 l ";
 
-    [Fact]
+    [Test]
     public void APathThatIsStrokedIsReported()
     {
         var lines = StrokedLines.Of(PageShowing("1 w 10 10 m 50 10 l S"));
@@ -29,11 +29,11 @@ public class StrokedLinesTests
         lines[0].Width.Should().Be(1);
     }
 
-    [Theory]
-    [InlineData("f")]   // filled
-    [InlineData("F")]   // filled, the older spelling
-    [InlineData("f*")]  // filled, even-odd
-    [InlineData("n")]   // painted no way at all, as a clipping path is
+    [Test]
+    [Arguments("f")]   // filled
+    [Arguments("F")]   // filled, the older spelling
+    [Arguments("f*")]  // filled, even-odd
+    [Arguments("n")]   // painted no way at all, as a clipping path is
     public void APathThatIsNeverStrokedIsNotReported(string paint)
     {
         // The shading behind a table cell is filled, not stroked, and used to be counted as
@@ -43,9 +43,9 @@ public class StrokedLinesTests
         lines.Should().BeEmpty();
     }
 
-    [Theory]
-    [InlineData("B")]   // filled and stroked
-    [InlineData("B*")]  // filled even-odd and stroked
+    [Test]
+    [Arguments("B")]   // filled and stroked
+    [Arguments("B*")]  // filled even-odd and stroked
     public void APathThatIsFilledAndStrokedIsReported(string paint)
     {
         var lines = StrokedLines.Of(PageShowing(Triangle + paint));
@@ -53,11 +53,11 @@ public class StrokedLinesTests
         lines.Should().HaveCount(2);
     }
 
-    [Theory]
-    [InlineData("h S")] // closed, then stroked
-    [InlineData("s")]   // closed and stroked in one
-    [InlineData("b")]   // closed, filled and stroked
-    [InlineData("b*")]
+    [Test]
+    [Arguments("h S")] // closed, then stroked
+    [Arguments("s")]   // closed and stroked in one
+    [Arguments("b")]   // closed, filled and stroked
+    [Arguments("b*")]
     public void ClosingAPathDrawsTheSegmentBackToWhereItBegan(string paint)
     {
         var lines = StrokedLines.Of(PageShowing(Triangle + paint));
@@ -70,7 +70,7 @@ public class StrokedLinesTests
         lines[2].Y2.Should().Be(10);
     }
 
-    [Fact]
+    [Test]
     public void ClosingAPathThatNeverLeftItsStartDrawsNothingExtra()
     {
         var lines = StrokedLines.Of(PageShowing("10 10 m h S"));
@@ -78,7 +78,7 @@ public class StrokedLinesTests
         lines.Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void OneFilledPathDoesNotCarryIntoTheStrokedPathAfterIt()
     {
         var lines = StrokedLines.Of(PageShowing(Triangle + "f 60 60 m 90 60 l S"));
@@ -88,7 +88,7 @@ public class StrokedLinesTests
         lines[0].X2.Should().Be(90);
     }
 
-    [Fact]
+    [Test]
     public void EachPathIsReportedInTheOrderItIsDrawn()
     {
         var lines = StrokedLines.Of(PageShowing("10 10 m 20 10 l S 30 30 m 40 30 l S"));
@@ -96,7 +96,7 @@ public class StrokedLinesTests
         lines.Select(line => line.X1).Should().Equal(10, 30);
     }
 
-    [Fact]
+    [Test]
     public void APageThatNamesNoColourStrokesInBlack()
     {
         var lines = StrokedLines.Of(PageShowing("10 10 m 20 10 l S"));
@@ -104,9 +104,9 @@ public class StrokedLinesTests
         lines[0].Colour.Should().Be(StrokedLines.Black);
     }
 
-    [Theory]
-    [InlineData("0 1 0 RG")]        // green, in RGB
-    [InlineData("1 0 1 0 K")]       // green, in CMYK
+    [Test]
+    [Arguments("0 1 0 RG")]        // green, in RGB
+    [Arguments("1 0 1 0 K")]       // green, in CMYK
     public void TheColourASegmentIsStrokedInIsReportedWhicheverSpaceNamesIt(string colour)
     {
         var lines = StrokedLines.Of(PageShowing(colour + " 10 10 m 20 10 l S"));
@@ -114,7 +114,7 @@ public class StrokedLinesTests
         lines[0].Colour.Should().Be("0,1,0");
     }
 
-    [Fact]
+    [Test]
     public void AGreyStrokeIsReportedAsTheGreyInEachOfTheThreeComponents()
     {
         var lines = StrokedLines.Of(PageShowing("0.5 G 10 10 m 20 10 l S"));
@@ -122,7 +122,7 @@ public class StrokedLinesTests
         lines[0].Colour.Should().Be("0.5,0.5,0.5");
     }
 
-    [Fact]
+    [Test]
     public void AColourNamedInsideASavedStateStopsApplyingAtTheEndOfIt()
     {
         // The renderer wraps a good deal of its drawing in q/Q, and a segment drawn after one of
@@ -133,7 +133,7 @@ public class StrokedLinesTests
         lines.Select(line => line.Colour).Should().Equal("1,0,0", "0,1,0");
     }
 
-    [Fact]
+    [Test]
     public void AWidthNamedInsideASavedStateStopsApplyingAtTheEndOfIt()
     {
         var lines = StrokedLines.Of(PageShowing(
@@ -142,7 +142,7 @@ public class StrokedLinesTests
         lines.Select(line => line.Width).Should().Equal(7, 2);
     }
 
-    [Fact]
+    [Test]
     public void RestoringAStateThatWasNeverSavedIsReadPastRatherThanThrown()
     {
         var lines = StrokedLines.Of(PageShowing("Q 3 w 10 10 m 20 10 l S"));

@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -31,7 +31,7 @@ public class TypedElementAccessorTests
 
     // ----- PdfArray.ArrayElements.GetBoolean -------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ABooleanInAnArrayIsReadAsItself()
     {
         var array = new PdfArray(ADocument());
@@ -42,7 +42,7 @@ public class TypedElementAccessorTests
         array.Elements.GetBoolean(1).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ANullInAnArrayIsNotTrue()
     {
         var array = new PdfArray(ADocument());
@@ -51,7 +51,7 @@ public class TypedElementAccessorTests
         array.Elements.GetBoolean(0).Should().BeFalse("a missing answer is not a yes");
     }
 
-    [Fact]
+    [Test]
     public void AnIndirectBooleanInAnArrayIsFollowedToItsValue()
     {
         var document = ADocument();
@@ -61,7 +61,7 @@ public class TypedElementAccessorTests
         array.Elements.GetBoolean(0).Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void SomethingThatIsNotABooleanIsRefusedRatherThanGuessedAt()
     {
         var array = new PdfArray(ADocument());
@@ -74,9 +74,9 @@ public class TypedElementAccessorTests
         read.Should().Throw<InvalidCastException>("1 is not true, whatever C would say");
     }
 
-    [Theory]
-    [InlineData(-1)]
-    [InlineData(1)]
+    [Test]
+    [Arguments(-1)]
+    [Arguments(1)]
     public void AnIndexOutsideTheArrayIsRefused(int index)
     {
         var array = new PdfArray(ADocument());
@@ -89,7 +89,7 @@ public class TypedElementAccessorTests
 
     // ----- PdfArray.ArrayElements.GetString --------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AStringInAnArrayIsReadAsItself()
     {
         var array = new PdfArray(ADocument());
@@ -98,7 +98,7 @@ public class TypedElementAccessorTests
         array.Elements.GetString(0).Should().Be("the value");
     }
 
-    [Fact]
+    [Test]
     public void ANullWhereAStringWasExpectedIsTheEmptyString()
     {
         var array = new PdfArray(ADocument());
@@ -107,7 +107,7 @@ public class TypedElementAccessorTests
         array.Elements.GetString(0).Should().BeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void AnIndirectStringInAnArrayIsFollowedToItsValue()
     {
         var document = ADocument();
@@ -117,7 +117,7 @@ public class TypedElementAccessorTests
         array.Elements.GetString(0).Should().Be("indirect");
     }
 
-    [Fact]
+    [Test]
     public void SomethingThatIsNotAStringIsRefusedRatherThanFormatted()
     {
         var array = new PdfArray(ADocument());
@@ -128,7 +128,7 @@ public class TypedElementAccessorTests
         read.Should().Throw<InvalidCastException>();
     }
 
-    [Fact]
+    [Test]
     public void ANameIsNotAString()
     {
         // They are different types in the file and the accessors keep them apart, which is worth
@@ -145,7 +145,7 @@ public class TypedElementAccessorTests
     ///   scalar accessor on an array follows an indirect reference, the way the ones on a
     ///   dictionary always did.
     /// </summary>
-    [Fact]
+    [Test]
     public void EveryScalarAccessorOnAnArrayFollowsAnIndirectReference()
     {
         var document = ADocument();
@@ -173,7 +173,7 @@ public class TypedElementAccessorTests
         return array;
     }
 
-    [Fact]
+    [Test]
     public void AMatrixIsReadFromTheSixNumbersThatMakeIt()
     {
         var document = ADocument();
@@ -192,7 +192,7 @@ public class TypedElementAccessorTests
         matrix.OffsetY.Should().BeApproximately(6, 1e-9);
     }
 
-    [Fact]
+    [Test]
     public void AnIndirectMatrixIsFollowedToItsValue()
     {
         var document = ADocument();
@@ -206,7 +206,7 @@ public class TypedElementAccessorTests
         matrix.OffsetY.Should().BeApproximately(20, 1e-9);
     }
 
-    [Fact]
+    [Test]
     public void AMatrixThatIsNotThereIsTheIdentityAndNothingIsWritten()
     {
         var dictionary = new PdfDictionary(ADocument());
@@ -217,7 +217,7 @@ public class TypedElementAccessorTests
         dictionary.Elements.ContainsKey("/M").Should().BeFalse("create was not asked for");
     }
 
-    [Fact]
+    [Test]
     public void AskingForAMatrixToBeCreatedWritesTheIdentityIntoTheDictionary()
     {
         // The create overload behaves differently from the plain one, which is the distinction
@@ -230,7 +230,7 @@ public class TypedElementAccessorTests
         dictionary.Elements.ContainsKey("/M").Should().BeTrue("but now there is one to find");
     }
 
-    [Fact]
+    [Test]
     public void AnArrayOfTheWrongLengthIsNotAMatrix()
     {
         var document = ADocument();
@@ -241,7 +241,7 @@ public class TypedElementAccessorTests
         read.Should().Throw<InvalidCastException>("a matrix is six numbers or it is not one");
     }
 
-    [Fact]
+    [Test]
     public void SomethingThatIsNotAnArrayIsNotAMatrixEither()
     {
         var dictionary = new PdfDictionary(ADocument());
@@ -258,7 +258,7 @@ public class TypedElementAccessorTests
     ///   NotImplementedException, which meant a matrix the method wrote could not be read back by
     ///   the method that wrote it. See the backlog spec's finding F19.
     /// </summary>
-    [Fact]
+    [Test]
     public void AMatrixTheCreateOverloadWroteIsReadBackAsTheIdentity()
     {
         var dictionary = new PdfDictionary(ADocument());
@@ -267,7 +267,7 @@ public class TypedElementAccessorTests
         dictionary.Elements.GetMatrix("/M", false).Should().Be(new XMatrix());
     }
 
-    [Fact]
+    [Test]
     public void AMatrixSetAsALiteralComesBackWithTheNumbersItWasGiven()
     {
         var dictionary = new PdfDictionary(ADocument());
@@ -282,7 +282,7 @@ public class TypedElementAccessorTests
         read.OffsetY.Should().BeApproximately(29, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void ALiteralThatIsNotSixNumbersIsNotAMatrix()
     {
         var dictionary = new PdfDictionary(ADocument()) { Elements = { ["/M"] = new PdfLiteral("[1 0 0 1]") } };

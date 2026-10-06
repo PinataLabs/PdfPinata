@@ -8,7 +8,7 @@ using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using PdfPinata.Utils;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -19,10 +19,10 @@ namespace PdfPinata.Test.Fonts;
 /// descendant, which describes a TrueType program and is therefore a lie about what is in the
 /// stream. Such a font is now embedded whole, as '/FontFile3' with a subtype of '/OpenType'.
 /// </summary>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public class PostscriptOutlineEmbeddingTest
 {
-    [Fact]
+    [Test]
     public void AFontWithPostscriptOutlinesIsEmbeddedAsAnOpenTypeProgram()
     {
         var saved = DrawAndReopen(PdfFontEncoding.Unicode);
@@ -46,7 +46,7 @@ public class PostscriptOutlineEmbeddingTest
     /// the subroutine sets - so the stream has to be the font, whole and unaltered. Checking
     /// the bytes is what says so; the dictionary keys only say what was intended.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheEmbeddedProgramIsTheFontFileItself()
     {
         var saved = DrawAndReopen(PdfFontEncoding.Unicode);
@@ -58,7 +58,7 @@ public class PostscriptOutlineEmbeddingTest
         program.Stream.UnfilteredValue.Should().Equal(expected);
     }
 
-    [Fact]
+    [Test]
     public void TheDescendantOfAPostscriptFontIsACidFontType0()
     {
         var saved = DrawAndReopen(PdfFontEncoding.Unicode);
@@ -68,14 +68,14 @@ public class PostscriptOutlineEmbeddingTest
                 "CIDFontType2 means glyf outlines, which this font does not have");
     }
 
-    [Fact]
+    [Test]
     public void EmbeddingAnOpenTypeProgramRaisesTheDocumentVersion()
     {
         // '/Subtype /OpenType' in a font program stream arrives in PDF 1.6.
         DrawAndReopen(PdfFontEncoding.Unicode).Version.Should().BeGreaterThanOrEqualTo(16);
     }
 
-    [Fact]
+    [Test]
     public void ASimpleFontWithPostscriptOutlinesEmbedsRatherThanThrowing()
     {
         // The path that used to raise NullReferenceException on a missing 'loca' table.
@@ -96,7 +96,7 @@ public class PostscriptOutlineEmbeddingTest
     /// unnoticed; a tool merging two documents is nonetheless entitled to believe two
     /// differently-tagged programs differ, and to keep both.
     /// </remarks>
-    [Fact]
+    [Test]
     public void AFontEmbeddedWholeIsNotNamedAsASubset()
     {
         var saved = DrawAndReopen(PdfFontEncoding.Unicode);
@@ -113,7 +113,7 @@ public class PostscriptOutlineEmbeddingTest
     /// <summary>
     /// TrueType fonts must be unaffected: still subsetted, still tagged, still '/FontFile2'.
     /// </summary>
-    [Fact]
+    [Test]
     public void ASubsettedFontIsStillNamedAsOne()
     {
         var saved = DrawAndReopen(PdfFontEncoding.Unicode, "Arial");
@@ -123,7 +123,7 @@ public class PostscriptOutlineEmbeddingTest
             .Should().MatchRegex(@"^/[A-Z]{6}\+");
     }
 
-    [Fact]
+    [Test]
     public void ATrueTypeFontIsStillSubsettedIntoAFontFile2()
     {
         var saved = DrawAndReopen(PdfFontEncoding.Unicode, "Arial");
@@ -157,7 +157,7 @@ public class PostscriptOutlineEmbeddingTest
     /// dictionaries accepts this one and renders the page - which is what the old output failed
     /// to do. The identity of the program is settled above, against its bytes.
     /// </remarks>
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void GhostscriptRendersAPageCarryingAnEmbeddedOpenTypeProgram()
     {
         using var rendered = PdfHelper.Rasterize(Draw(PdfFontEncoding.Unicode)).ImageCollection;
@@ -177,7 +177,7 @@ public class PostscriptOutlineEmbeddingTest
     /// is pinned here and put in front of the strict reader, rather than argued about from the
     /// specification alone. The CID path is covered above; this is the other half.
     /// </summary>
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void GhostscriptRendersASimpleFontCarryingPostscriptOutlines()
     {
         var saved = DrawAndReopen(PdfFontEncoding.WinAnsi);
@@ -201,7 +201,7 @@ public class PostscriptOutlineEmbeddingTest
     /// Discovery globbed '*.ttf' alone, so an .otf was invisible to the shipped resolver no
     /// matter what the embedding code could do with one.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnOtfIsDiscoveredAndResolvedByTheShippedResolver()
     {
         var resolver = new Probe();

@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using PdfPinata.Charting.Tests.Helpers;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -25,15 +25,15 @@ public class PlotAreaCreationTests
     /// <summary>
     ///   One chart of every shape the factory can pick, none of them asked for a plot area.
     /// </summary>
-    [Theory]
-    [InlineData(ChartType.Line)]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.ColumnStacked2D)]
-    [InlineData(ChartType.Bar2D)]
-    [InlineData(ChartType.BarStacked2D)]
-    [InlineData(ChartType.Area2D)]
-    [InlineData(ChartType.Pie2D)]
-    [InlineData(ChartType.PieExploded2D)]
+    [Test]
+    [Arguments(ChartType.Line)]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.ColumnStacked2D)]
+    [Arguments(ChartType.Bar2D)]
+    [Arguments(ChartType.BarStacked2D)]
+    [Arguments(ChartType.Area2D)]
+    [Arguments(ChartType.Pie2D)]
+    [Arguments(ChartType.PieExploded2D)]
     public void AChartWhosePlotAreaWasNeverAskedForIsStillDrawn(ChartType type)
     {
         var chart = Charts.Of(type, 1.0, 5.0, 3.0);
@@ -47,7 +47,7 @@ public class PlotAreaCreationTests
     ///   A series plotting as something other than the chart does is what picks the combination
     ///   renderer, which has an <c>Init</c> of its own and so needed the same line.
     /// </summary>
-    [Fact]
+    [Test]
     public void ACombinationChartWhosePlotAreaWasNeverAskedForIsStillDrawn()
     {
         var chart = Charts.OfSeries(ChartType.Column2D, [1.0, 5.0, 3.0], [2.0, 4.0, 1.0]);
@@ -62,7 +62,7 @@ public class PlotAreaCreationTests
     ///   Reading the property rather than the field must still answer the plot area the caller
     ///   configured, not a fresh one - so the background it was given is the background drawn.
     /// </summary>
-    [Fact]
+    [Test]
     public void ThePlotAreaTheCallerConfiguredIsTheOneDrawn()
     {
         var chart = Charts.Of(ChartType.Column2D, 1.0, 5.0, 3.0);
@@ -78,7 +78,7 @@ public class PlotAreaCreationTests
     ///   And the border it was given is the border drawn. <c>PlotAreaBorderRenderer</c> strokes it
     ///   rather than filling it, so it is the stroked rectangle on the page.
     /// </summary>
-    [Fact]
+    [Test]
     public void ThePlotAreaBorderTheCallerConfiguredIsTheOneDrawn()
     {
         var chart = Charts.Of(ChartType.Column2D, 1.0, 5.0, 3.0);
@@ -98,10 +98,10 @@ public class PlotAreaCreationTests
     ///   draw either. <c>WallRenderer</c> already stopped there; the border renderer beside it did
     ///   not, and stroked a rectangle of no size - or of negative size - where the plot area was not.
     /// </summary>
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Bar2D)]
-    [InlineData(ChartType.Line)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Bar2D)]
+    [Arguments(ChartType.Line)]
     public void APlotAreaWithNoRoomHasNoBorder(ChartType type)
     {
         var chart = Charts.Of(type, 1.0, 5.0, 3.0);

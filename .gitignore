@@ -112,15 +112,13 @@ _TeamCity*
 *.dotCover
 *.dcvr
 
-# Coverlet writes its report beside the test project it measured. CI hands these to Codecov and
-# nothing keeps them, but a local "dotnet test /p:CollectCoverage=true" leaves one behind in every
-# test project, which is otherwise three untracked files to step over.
+# Coverlet writes its reports into TestResults, which is ignored above; these catch one written
+# anywhere else, by a run given a results directory of its own or by coverlet's own tool.
 coverage.*.xml
 coverage.json
 
 # The rendered report, from "reportgenerator -targetdir:coverage". Hundreds of generated HTML
 # files, one per class. Regenerated from TestResults in seconds; never worth carrying.
-# The sibling coverage.runsettings is checked in and does not match the pattern above.
 /coverage/
 
 # NCrunch

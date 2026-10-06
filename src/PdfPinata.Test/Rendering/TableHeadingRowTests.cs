@@ -9,7 +9,7 @@ using PinataLayout.Rendering;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Rendering;
 
@@ -21,7 +21,7 @@ namespace PdfPinata.Test.Rendering;
 /// </summary>
 public class TableHeadingRowTests
 {
-    [Fact]
+    [Test]
     public void ATitleBandAboveTheColumnNamesIsRefused()
     {
         // The natural mistake: a title spanning the table, and the column names below it marked
@@ -37,7 +37,7 @@ public class TableHeadingRowTests
             .WithMessage("*first row*");
     }
 
-    [Fact]
+    [Test]
     public void AGapInTheRunIsRefused()
     {
         var render = () => Render(table =>
@@ -50,7 +50,7 @@ public class TableHeadingRowTests
         render.Should().Throw<InvalidOperationException>().WithMessage("*row 2*");
     }
 
-    [Fact]
+    [Test]
     public void AHeadingMarkedInTheBodyIsRefused()
     {
         var render = () => Render(table =>
@@ -62,7 +62,7 @@ public class TableHeadingRowTests
         render.Should().Throw<InvalidOperationException>().WithMessage("*row 7*");
     }
 
-    [Fact]
+    [Test]
     public void NothingIsWrittenToTheStreamBeforeTheThrow()
     {
         var document = new Document();
@@ -85,7 +85,7 @@ public class TableHeadingRowTests
         stream.Length.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void AHeadingRunFromTheFirstRowIsAccepted()
     {
         var render = () => Render(table =>
@@ -98,7 +98,7 @@ public class TableHeadingRowTests
         render.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void OneHeadingRowIsRepeatedOnEachLaterPage()
     {
         var pages = Render(table =>
@@ -111,7 +111,7 @@ public class TableHeadingRowTests
         RowsDrawnOn(pages).Should().Be(12 + (pages.Count - 1));
     }
 
-    [Fact]
+    [Test]
     public void TwoHeadingRowsAreRepeatedTogether()
     {
         var pages = Render(table =>
@@ -125,7 +125,7 @@ public class TableHeadingRowTests
         RowsDrawnOn(pages).Should().Be(12 + 2 * (pages.Count - 1));
     }
 
-    [Fact]
+    [Test]
     public void ATableWithNoHeadingRowsRepeatsNothing()
     {
         var pages = Render(table => AddRows(table, 12));
@@ -134,7 +134,7 @@ public class TableHeadingRowTests
         RowsDrawnOn(pages).Should().Be(12);
     }
 
-    [Fact]
+    [Test]
     public void ATableThatIsEntirelyHeadingRepeatsNothing()
     {
         // A heading that is the whole table has nothing to head, so the existing rule discards

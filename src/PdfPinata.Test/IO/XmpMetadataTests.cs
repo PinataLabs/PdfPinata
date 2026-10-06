@@ -9,7 +9,7 @@ using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Metadata;
 using PdfPinata.Pdf.Security;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 // This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
 using Reader = PdfPinata.Pdf.IO.PdfReader;
@@ -33,7 +33,7 @@ public class XmpMetadataTests
     private static readonly XNamespace PdfaSchema = "http://www.aiim.org/pdfa/ns/schema#";
     private static readonly XNamespace PdfaProperty = "http://www.aiim.org/pdfa/ns/property#";
 
-    [Fact]
+    [Test]
     public void ADocumentGetsNoMetadataPacketUnlessItAsksForOne()
     {
         var bytes = Save(_ => { });
@@ -42,7 +42,7 @@ public class XmpMetadataTests
             "the packet is several hundred bytes and most documents have no use for it");
     }
 
-    [Fact]
+    [Test]
     public void AskingForMetadataWritesAPacketThatSaysWhatTheDocumentSays()
     {
         var bytes = Save(document =>
@@ -57,7 +57,7 @@ public class XmpMetadataTests
         text.Should().Contain("<rdf:li>Ada Lovelace</rdf:li>");
     }
 
-    [Fact]
+    [Test]
     public void ThePacketIsLeftUncompressedSoThatAScannerCanFindIt()
     {
         // The xpacket markers exist so a tool can find the metadata by reading the bytes without
@@ -71,7 +71,7 @@ public class XmpMetadataTests
         Latin1(bytes).Should().Contain("<x:xmpmeta");
     }
 
-    [Fact]
+    [Test]
     public void AConformanceClaimSaysWhichPartAndWhichLevel()
     {
         var bytes = Save(Conforming(PdfAConformance.PdfA3B));
@@ -81,10 +81,10 @@ public class XmpMetadataTests
         text.Should().Contain("<pdfaid:conformance>B</pdfaid:conformance>");
     }
 
-    [Theory]
-    [InlineData(PdfAConformance.PdfA1B, "1")]
-    [InlineData(PdfAConformance.PdfA2B, "2")]
-    [InlineData(PdfAConformance.PdfA3B, "3")]
+    [Test]
+    [Arguments(PdfAConformance.PdfA1B, "1")]
+    [Arguments(PdfAConformance.PdfA2B, "2")]
+    [Arguments(PdfAConformance.PdfA3B, "3")]
     public void EachProfileNamesItsOwnPartOfTheStandard(PdfAConformance conformance, string part)
     {
         var bytes = Save(Conforming(conformance));
@@ -92,7 +92,7 @@ public class XmpMetadataTests
         Latin1(bytes).Should().Contain("<pdfaid:part>" + part + "</pdfaid:part>");
     }
 
-    [Fact]
+    [Test]
     public void AConformingDocumentEmbedsItsOutputIntentProfile()
     {
         var bytes = Save(Conforming(PdfAConformance.PdfA3B));
@@ -104,7 +104,7 @@ public class XmpMetadataTests
         text.Should().Contain("NOT-AN-ICC-PROFILE", "the profile is embedded rather than referenced by name");
     }
 
-    [Fact]
+    [Test]
     public void AnEncryptedDocumentMayNotClaimConformance()
     {
         var saving = () => Save(document =>
@@ -117,7 +117,7 @@ public class XmpMetadataTests
         saving.Should().Throw<InvalidOperationException>().WithMessage("*may not be encrypted*");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentWithNoTitleMayNotClaimConformance()
     {
         var saving = () => Save(document =>
@@ -129,7 +129,7 @@ public class XmpMetadataTests
         saving.Should().Throw<InvalidOperationException>().WithMessage("*has to have a title*");
     }
 
-    [Fact]
+    [Test]
     public void AnRgbDocumentThatNamesNoProfileIsGivenTheOneThatDescribesIt()
     {
         // Colours written as RGB by a library nobody told otherwise are sRGB, so supplying it is a
@@ -143,7 +143,7 @@ public class XmpMetadataTests
         text.Should().Contain("acsp", "the profile itself is embedded, not merely referred to");
     }
 
-    [Fact]
+    [Test]
     public void WhatTheCallerSuppliedIsWhatGoesIn()
     {
         var bytes = Save(document =>
@@ -158,7 +158,7 @@ public class XmpMetadataTests
         text.Should().NotContain("sRGB IEC61966-2.1");
     }
 
-    [Fact]
+    [Test]
     public void ACallerWhoNamedAConditionKeepsTheirName()
     {
         // Said something specific, so this is not the place to argue with it — only the placeholder
@@ -172,7 +172,7 @@ public class XmpMetadataTests
         Latin1(bytes).Should().Contain("(Coated FOGRA39)").And.NotContain("(sRGB IEC61966-2.1)");
     }
 
-    [Fact]
+    [Test]
     public void ACmykDocumentWithNoProfileMayNotClaimConformance()
     {
         // The same four numbers are a different colour on every press, so there is nothing true to
@@ -186,7 +186,7 @@ public class XmpMetadataTests
         saving.Should().Throw<InvalidOperationException>().WithMessage("*OutputIntentIccProfile*");
     }
 
-    [Fact]
+    [Test]
     public void AnUndefinedColourModeWithNoProfileMayNotClaimConformanceEither()
     {
         // Undefined writes every colour as the XColor gave it, so the document may hold RGB and
@@ -200,7 +200,7 @@ public class XmpMetadataTests
         saving.Should().Throw<InvalidOperationException>().WithMessage("*Undefined*");
     }
 
-    [Fact]
+    [Test]
     public void TheComponentCountComesFromTheProfileRatherThanFromTheColourMode()
     {
         // /N has to agree with the profile's own colour space, and the colour mode does not decide
@@ -217,7 +217,7 @@ public class XmpMetadataTests
         Latin1(bytes).Should().Contain("/N 4");
     }
 
-    [Fact]
+    [Test]
     public void AGreyProfileSaysOneComponent()
     {
         var bytes = Save(document =>
@@ -229,16 +229,16 @@ public class XmpMetadataTests
         Latin1(bytes).Should().Contain("/N 1");
     }
 
-    [Theory]
-    [InlineData("CMY ", 3)]
-    [InlineData("Luv ", 3)]
+    [Test]
+    [Arguments("CMY ", 3)]
+    [Arguments("Luv ", 3)]
     // ICC.1:2010 Table 19's nCLR family for multi-channel devices: the leading character spells
     // the component count in hex, from '2CLR' (2) up through '9CLR' (9) and 'ACLR' (10) up through
     // 'FCLR' (15).
-    [InlineData("2CLR", 2)]
-    [InlineData("9CLR", 9)]
-    [InlineData("ACLR", 10)]
-    [InlineData("FCLR", 15)]
+    [Arguments("2CLR", 2)]
+    [Arguments("9CLR", 9)]
+    [Arguments("ACLR", 10)]
+    [Arguments("FCLR", 15)]
     public void AMultiChannelOrFixedThreeComponentProfileSaysItsOwnComponentCount(
         string space, int components)
     {
@@ -251,7 +251,7 @@ public class XmpMetadataTests
         Latin1(bytes).Should().Contain("/N " + components);
     }
 
-    [Fact]
+    [Test]
     public void AProfileTooShortToReadFallsBackToWhatTheColourModeImplies()
     {
         // Nothing in this library parses a profile, and these tests hand it legible stand-ins
@@ -266,7 +266,7 @@ public class XmpMetadataTests
         Latin1(bytes).Should().Contain("/N 4");
     }
 
-    [Fact]
+    [Test]
     public void TheBuiltInProfileSaysThreeComponents()
     {
         var bytes = Save(document => document.Options.Conformance = PdfAConformance.PdfA2B);
@@ -287,7 +287,7 @@ public class XmpMetadataTests
         return profile;
     }
 
-    [Fact]
+    [Test]
     public void TheProfileHandedOutIsACopy()
     {
         // An array is mutable, and a caller who edited a shared one would change what every later
@@ -299,14 +299,14 @@ public class XmpMetadataTests
         PdfOutputIntents.SrgbProfile[36..40].Should().Equal("acsp"u8.ToArray());
     }
 
-    [Fact]
+    [Test]
     public void TheVersionIsRaisedToWhatTheClaimedProfileIsDefinedAgainst()
     {
         Latin1(Save(Conforming(PdfAConformance.PdfA1B))).Should().StartWith("%PDF-1.4");
         Latin1(Save(Conforming(PdfAConformance.PdfA2B))).Should().StartWith("%PDF-1.7");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentAlreadyPastPdfOnePointFourMayNotClaimPdfA1()
     {
         // Raising a low version is not enough on its own: a document that has already asked for
@@ -324,7 +324,7 @@ public class XmpMetadataTests
 
     // ── ClaimConformance: refused at the claim, where the checks can be settled that early ───────
 
-    [Fact]
+    [Test]
     public void ClaimingConformanceChecksTheTitleImmediately()
     {
         var document = new PdfDocument();
@@ -336,7 +336,7 @@ public class XmpMetadataTests
             "a refused claim must not half-set what it refused to make");
     }
 
-    [Fact]
+    [Test]
     public void ClaimingConformanceChecksEncryptionImmediately()
     {
         var document = new PdfDocument();
@@ -349,7 +349,7 @@ public class XmpMetadataTests
         claiming.Should().Throw<InvalidOperationException>().WithMessage("*may not be encrypted*");
     }
 
-    [Fact]
+    [Test]
     public void ClaimingConformanceChecksACmykColourModeImmediately()
     {
         var document = new PdfDocument();
@@ -361,7 +361,7 @@ public class XmpMetadataTests
         claiming.Should().Throw<InvalidOperationException>().WithMessage("*OutputIntentIccProfile*");
     }
 
-    [Fact]
+    [Test]
     public void ClaimingConformanceChecksAnUndefinedColourModeImmediately()
     {
         var document = new PdfDocument();
@@ -373,7 +373,7 @@ public class XmpMetadataTests
         claiming.Should().Throw<InvalidOperationException>().WithMessage("*Undefined*");
     }
 
-    [Fact]
+    [Test]
     public void ClaimingPdfA1OverACrossReferenceStreamIsRefusedImmediately()
     {
         // The version a cross-reference stream implies is not raised until the document is
@@ -388,7 +388,7 @@ public class XmpMetadataTests
         claiming.Should().Throw<InvalidOperationException>().WithMessage("*PDF/A-1*");
     }
 
-    [Fact]
+    [Test]
     public void ClaimingConformanceSucceedsWhenEverythingItCanCheckIsAlreadyTrue()
     {
         var document = new PdfDocument();
@@ -400,7 +400,7 @@ public class XmpMetadataTests
         document.Options.Conformance.Should().Be(PdfAConformance.PdfA2B);
     }
 
-    [Fact]
+    [Test]
     public void ARefusedClaimLeavesWhateverWasClaimedBeforeInPlace()
     {
         var document = new PdfDocument();
@@ -417,7 +417,7 @@ public class XmpMetadataTests
             "a refused reclaim should not half-change what the document already claims");
     }
 
-    [Fact]
+    [Test]
     public void ClaimingConformanceDoesNotCheckForAnAttachmentAddedAfterwards()
     {
         // Attachments cannot be checked at the claim: a caller may legitimately claim PDF/A-3 and
@@ -440,7 +440,7 @@ public class XmpMetadataTests
         saving.Should().Throw<InvalidOperationException>().WithMessage("*embedded file*");
     }
 
-    [Fact]
+    [Test]
     public void TheHookCannotWithdrawTheConformanceClaim()
     {
         // The claim is what a validator reads to decide which rules to hold the file to, and
@@ -456,7 +456,7 @@ public class XmpMetadataTests
         Latin1(bytes).Should().Contain("pdfaid:part");
     }
 
-    [Fact]
+    [Test]
     public void TheHookCanAddASchemaTheLibraryKnowsNothingAbout()
     {
         // What a PDF/UA identifier or a ZUGFeRD extension schema would go in through.
@@ -473,7 +473,7 @@ public class XmpMetadataTests
 
     // ── Declaring an extension schema ──────────────────────────────────────────────────────────
 
-    [Fact]
+    [Test]
     public void EveryDeclaredPropertyIsWrittenAndEveryWrittenPropertyIsDeclared()
     {
         XNamespace sample = "http://example.invalid/sample/1.0/";
@@ -497,7 +497,7 @@ public class XmpMetadataTests
         used.Should().BeEquivalentTo(declared);
     }
 
-    [Fact]
+    [Test]
     public void AQuotationMarkAndAnAmpersandInTheNamespaceDoNotBreakThePacket()
     {
         // The namespace URI lands in an attribute value, where a quotation mark ends the attribute
@@ -516,7 +516,7 @@ public class XmpMetadataTests
         packet.Descendants(oddNamespace + "Note").Single().Value.Should().Be("value");
     }
 
-    [Fact]
+    [Test]
     public void APrefixThatIsNotAnXmlNameIsRefusedNamingTheValue()
     {
         // There is no escaping this one: the prefix becomes part of an element name and of a
@@ -529,11 +529,11 @@ public class XmpMetadataTests
             .WithMessage("*Prefix*").WithMessage("*not a name*");
     }
 
-    [Theory]
-    [InlineData("xml")]
-    [InlineData("xmlns")]
-    [InlineData("rdf")]
-    [InlineData("RDF")]
+    [Test]
+    [Arguments("xml")]
+    [Arguments("xmlns")]
+    [Arguments("rdf")]
+    [Arguments("RDF")]
     public void AReservedPrefixIsRefusedEvenThoughItIsAnXmlName(string prefix)
     {
         // Each of these is a valid NCName on its own, but XML Namespaces reserves 'xml' and 'xmlns',
@@ -546,7 +546,7 @@ public class XmpMetadataTests
             .WithMessage("*Prefix*").WithMessage("*reserved*");
     }
 
-    [Fact]
+    [Test]
     public void APropertyNameThatIsNotAnXmlNameIsRefused()
     {
         // The name becomes part of an element name too, the same as the prefix — see
@@ -558,7 +558,7 @@ public class XmpMetadataTests
             .WithMessage("*Name*").WithMessage("*not a name*");
     }
 
-    [Fact]
+    [Test]
     public void TwoSchemasCanBeDeclaredInOnePacketAndBothAppear()
     {
         XNamespace first = "http://example.invalid/first/1.0/";
@@ -579,7 +579,7 @@ public class XmpMetadataTests
             .Should().BeEquivalentTo("first", "second");
     }
 
-    [Fact]
+    [Test]
     public void ASchemaWithNoPropertiesIsRefused()
     {
         Action declaring = () => _ = new XmpExtensionSchema(
@@ -589,7 +589,7 @@ public class XmpMetadataTests
         declaring.Should().Throw<InvalidOperationException>().WithMessage("*no properties*");
     }
 
-    [Fact]
+    [Test]
     public void TwoSchemasSharingAPrefixAreRefused()
     {
         var metadata = new XmpMetadata();
@@ -604,7 +604,7 @@ public class XmpMetadataTests
         declaringAgain.Should().Throw<InvalidOperationException>().WithMessage("*dup*");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentUsingOnlyAdditionalDescriptionsWritesNoExtensionSchemaBlock()
     {
         // No schema was declared, so AppendExtensionSchemas has nothing to write — the same path
@@ -639,7 +639,7 @@ public class XmpMetadataTests
         return XDocument.Parse(text.Substring(start, end + closing.Length - start));
     }
 
-    [Fact]
+    [Test]
     public void EveryRegisteredContributorSurvivesAlongsideTheOthers()
     {
         // CustomizeMetadata is a single assignable delegate — the wrong shape for something several
@@ -666,7 +666,7 @@ public class XmpMetadataTests
         text.Should().Contain("<c:Three>third</c:Three>");
     }
 
-    [Fact]
+    [Test]
     public void ThePacketAndTheInformationDictionaryAgreeAboutTheTitle()
     {
         // A validator compares the two and complains when they differ, which is why the packet is
@@ -680,7 +680,7 @@ public class XmpMetadataTests
         Latin1(bytes).Should().Contain(">" + Title + "</rdf:li>");
     }
 
-    [Fact]
+    [Test]
     public void MarkupInAValueIsEscapedRatherThanWritten()
     {
         var bytes = Save(document =>
@@ -694,7 +694,7 @@ public class XmpMetadataTests
         text.Should().NotContain("Bolts & Nuts <Ltd>", "unescaped markup would make the packet unparseable");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentThatClaimsNothingIsUnchanged()
     {
         var bytes = Save(_ => { });
@@ -702,7 +702,7 @@ public class XmpMetadataTests
         Latin1(bytes).Should().NotContain("/OutputIntent").And.NotContain("pdfaid");
     }
 
-    [Fact]
+    [Test]
     public void APacketCanBeBuiltWithoutADocumentToBuildItFrom()
     {
         var metadata = new XmpMetadata

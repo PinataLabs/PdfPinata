@@ -8,7 +8,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -46,7 +46,7 @@ public class TransparentFirstColorTests
         return alphas;
     }
 
-    [Fact]
+    [Test]
     public void AFullyTransparentFirstFillSelectsAFillAlphaOfZero()
     {
         var document = new PdfDocument();
@@ -57,7 +57,7 @@ public class TransparentFirstColorTests
             "without it the rectangle is filled at the default alpha of 1, in plain red");
     }
 
-    [Fact]
+    [Test]
     public void AFullyTransparentFirstStrokeSelectsAStrokeAlphaOfZero()
     {
         var document = new PdfDocument();
@@ -68,7 +68,7 @@ public class TransparentFirstColorTests
             "without it the line is stroked at the default alpha of 1, in plain red");
     }
 
-    [Fact]
+    [Test]
     public void AFullyTransparentFillAfterAGradientSelectsAFillAlphaOfZero()
     {
         var document = new PdfDocument();
@@ -86,7 +86,7 @@ public class TransparentFirstColorTests
             "the fill alpha in force is otherwise still the 1 the blue rectangle selected");
     }
 
-    [Fact]
+    [Test]
     public void AnOpaqueFillSelectsItsAlphaOnceAndNoMore()
     {
         var document = new PdfDocument();

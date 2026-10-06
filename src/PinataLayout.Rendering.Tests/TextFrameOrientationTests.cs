@@ -8,7 +8,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -23,10 +23,10 @@ namespace PinataLayout.Rendering.Tests;
 /// </remarks>
 public class TextFrameOrientationTests
 {
-    [Theory]
-    [InlineData(TextOrientation.Horizontal)]
-    [InlineData(TextOrientation.Upward)]
-    [InlineData(TextOrientation.Downward)]
+    [Test]
+    [Arguments(TextOrientation.Horizontal)]
+    [Arguments(TextOrientation.Upward)]
+    [Arguments(TextOrientation.Downward)]
     public void TheFrameRestoresEveryGraphicsStateItSaves(TextOrientation orientation)
     {
         var page = Rendered.FirstPageOf(Framed(orientation));

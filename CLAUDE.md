@@ -6,10 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```powershell
 dotnet build src/PdfPinata.slnx                     # SDK is pinned to 10.0.100 by global.json
-dotnet test src/PdfPinata.slnx                      # whole suite, both test target frameworks
-dotnet test src/PdfPinata.slnx -f net10.0           # one framework; the test project targets net8.0;net10.0
-dotnet test src/PdfPinata.slnx --filter "FullyQualifiedName~CLexerTests"                  # one class
-dotnet test src/PdfPinata.slnx --filter "FullyQualifiedName~CLexerTests.ScanNextToken"    # one test
+dotnet test --solution src/PdfPinata.slnx           # whole suite, both test target frameworks
+dotnet test --solution src/PdfPinata.slnx -f net10.0  # one framework; the test projects target net8.0;net10.0
+dotnet test --project src/PdfPinata.Test --treenode-filter "/*/*/CLexerTests/*"                 # one class
+dotnet test --project src/PdfPinata.Test --treenode-filter "/*/*/CLexerTests/ScanNextToken*"    # one test
+dotnet test --solution src/PdfPinata.slnx --coverlet                                            # with coverage
 ./verapdf-check.ps1                                 # conformance corpus + veraPDF; needs Docker. Gates.
 ./verapdf-check.ps1 -NoGate                         # the same, but always succeeds — for reading a failure
 ```
@@ -18,8 +19,16 @@ Every project, and the solution, lives under `src/`; the build props and targets
 `tools/` and `docs/` stay at the root. Name the solution explicitly — a bare
 `dotnet test` at the root finds nothing to run.
 
+**The tests are TUnit, on Microsoft.Testing.Platform rather than VSTest.** `global.json` selects
+that runner for `dotnet test`, which is why the solution is passed as `--solution` and a filter is a
+`--treenode-filter` path — `/assembly/namespace/class/test`, `*` for any segment — rather than
+`--filter`. Each test project is an executable, and `dotnet run --project` runs it with the same
+options. Coverage is `--coverlet` (the `coverlet.MTP` extension), configured in `testconfig.json` at
+the root, which every test project copies next to its assembly; reports land in `TestResults/`,
+named for the moment they were written.
+
 CI (`.github/workflows/build-and-test.yml`) runs on Linux only, builds `src/PdfPinata.slnx` in Release,
-installs Ghostscript, then runs `dotnet test` with coverlet/opencover coverage, which goes to Codecov
+installs Ghostscript, then runs `dotnet test --coverlet` for OpenCover coverage, which goes to Codecov
 and, with the Debug build it ran against, to SonarCloud (`PinataLabs_PdfPinata`).
 
 **Versions come from git tags, not from the project files.** MinVer (referenced for packable
@@ -64,19 +73,32 @@ There is no lint or format step in the build or in CI.
 
 **Judge a test run by its exit code, not by the word `Passed`.** Every rasterization on Windows
 runs Ghostscript *inside* the test host, and its way of giving up is to end the process — so a
-document it will not draw reads as `Test host process crashed`, exit 1, no failing test, and a
-`Passed!` line printed anyway with a total short of what was discovered. Reading the tail of
-`dotnet test` reports such a run as green. A run whose total is below what `dotnet test
---list-tests` finds did not pass; it stopped. `--blame-crash` then names the test that never
-finished, and **whether that name repeats is the diagnosis**: the same one twice is a document to go
+document it will not draw ends that test application with no failing test, and a total short of
+what was discovered. A run whose total is below what `--list-tests` finds did not pass; it stopped.
+Under VSTest such a run still printed `Passed!`; Microsoft.Testing.Platform says the application
+"didn't exit gracefully" and exits non-zero, but the exit code is still the thing to read.
+`--crashdump` then names the test that never finished — the run lists the tests still running when
+the host died and leaves a `*_crash.sequence.log` in `TestResults/`, which is what `--blame-crash`
+did under VSTest — and **whether that name repeats is the diagnosis**: the same one twice is a document to go
 and look at, and it settled this twice. A different name every run is the machine rather than the
 suite — the third episode crashed five runs in eight at a tenth of the memory of the first two, was
 reproduced on a commit predating everything suspected, and then stopped for good with nothing
 changed. Re-run before believing it. See `docs/specs/test-host-crash-investigation.md`.
 
 A lexer or parser change can hang the test host rather than fail it. Tests that scan malformed
-input carry `[Fact(Timeout = …)]`, which xUnit honours only on `async` tests — hence the
-`Task.Run` wrappers in `CLexerTests`.
+input carry `[Test, Timeout(…)]` and hand the scan to `Interruptibly.Run`. **TUnit's timeout does
+not interrupt a synchronous test**: one that spins past it runs on and then *passes*, which was
+checked rather than assumed. The test has to be `async` and the work has to be on a thread of its
+own; `Interruptibly` explains why that thread is not the pool's. TUnit0015, which asks for a
+`CancellationToken` on every such test, is turned off in `Directory.Build.props`, because a scan
+that never ends never reads one.
+
+**Tests in one class run at the same time.** xUnit ran a class's tests one after another and TUnit
+does not, so a class sharing anything mutable between its tests — a static `XGraphics`, a cached
+instance with state in its fields — is a race now where it was not before. That is how
+`Filtering.LzwDecode`, one instance for the process with its string table in fields, was found to
+corrupt two decodes running at once. Shared static state is fixed or given a `[NotInParallel]` key,
+not waited out.
 
 ## Layout and dependency direction
 
@@ -307,7 +329,7 @@ asserted in `UnicodePropertyTests`. Bumping one without the others tests one Uni
 another's expectations.
 
 `BidiConformanceTests` runs `BidiTest.txt` and `BidiCharacterTest.txt` in full — 861,948 cases, about
-two seconds — as one `[Fact]` per suite rather than a theory per case, because half a million xUnit
+two seconds — as one `[Test]` per suite rather than a test per case, because half a million test
 cases is a denial of service on the runner rather than a test run. If a change to the algorithm
 breaks something, that is what says so, and it reports the failing case in UAX #9's own rule terms.
 
@@ -576,10 +598,17 @@ machine's fonts, because glyph widths decide where a line wraps and therefore wh
 assertion sees. A test needing its own font calls `PinnedFontResolver.Register` rather than
 swapping the resolver out from under everything else running beside it.
 
-`[GoldenImageFact]` marks tests comparing against checked-in reference images; it self-skips with a
-reason when Ghostscript cannot rasterize on the current machine. Anything that rasterizes belongs
-to `[Collection(RasterizingCollection.Name)]` — ImageMagick drives one in-process Ghostscript, so a
-second concurrent rasterization silently falls back to an executable that may not be installed.
+`[Test, GoldenImage]` marks tests comparing against checked-in reference images; `GoldenImage` is a
+`SkipAttribute` that skips with a reason when Ghostscript cannot rasterize on the current machine.
+Anything that rasterizes is marked `[Rasterizing]` — ImageMagick drives one in-process Ghostscript,
+so a second concurrent rasterization silently falls back to an executable that may not be installed.
+
+TUnit runs everything in parallel unless told otherwise, and the four static seams a test may
+change are each guarded by an attribute in `Helpers/` deriving from `NotInParallelAttribute`:
+`[Rasterizing]`, `[ClockSensitive]` and `[GlyphOutlineSensitive]` carry no key, so each of their
+tests runs alone, as the xUnit collections with parallelization disabled did; `[TextShaperSensitive]`
+carries one, so its tests keep out of each other's way and nobody else's. Put a new test touching
+one of those seams under the matching attribute.
 
 Ghostscript comes from `Ghostscript.NativeAssets` on Windows. Linux and macOS shell out to the
 system `gs`, so those tests need `apt-get install ghostscript` / `brew install ghostscript` locally.

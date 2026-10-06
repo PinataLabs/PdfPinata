@@ -7,7 +7,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.ContentOperands;
 
 namespace PdfPinata.Test.Drawing;
@@ -21,7 +21,7 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class AppendedTransformTests
 {
-    [Fact]
+    [Test]
     public void AScaleAppendedAfterATranslationScalesTheTranslationToo()
     {
         var (page, gfx) = OnAPage();
@@ -41,7 +41,7 @@ public class AppendedTransformTests
         end.Y.Should().BeApproximately(page.Height.Point - 100, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void ARotationAppendedAfterATranslationTurnsAboutThePageOrigin()
     {
         var (page, gfx) = OnAPage();
@@ -61,9 +61,9 @@ public class AppendedTransformTests
         end.Y.Should().BeApproximately(page.Height.Point - 110, 0.01);
     }
 
-    [Theory]
-    [InlineData(XMatrixOrder.Prepend)]
-    [InlineData(XMatrixOrder.Append)]
+    [Test]
+    [Arguments(XMatrixOrder.Prepend)]
+    [Arguments(XMatrixOrder.Append)]
     public void ThePageAgreesWithTheTransformTheSurfaceReports(XMatrixOrder order)
     {
         var (page, gfx) = OnAPage();
@@ -87,7 +87,7 @@ public class AppendedTransformTests
         end.Y.Should().BeApproximately(page.Height.Point - expectedEnd.Y, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void AppendingToAMatrixWithNoInverseIsRefusedAndChangesNothing()
     {
         var (_, gfx) = OnAPage();

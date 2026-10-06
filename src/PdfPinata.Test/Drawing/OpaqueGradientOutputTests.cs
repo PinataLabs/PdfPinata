@@ -1,6 +1,6 @@
 using AwesomeAssertions;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -17,7 +17,7 @@ namespace PdfPinata.Test.Drawing;
 /// </remarks>
 public class OpaqueGradientOutputTests
 {
-    [Fact]
+    [Test]
     public void AnOpaqueGradientIsWrittenAsItWasBesidesItsRamp()
     {
         WithoutCarriageReturns(GradientOutput.Of(GradientOutput.OpaqueGradients()))
@@ -37,7 +37,7 @@ public class OpaqueGradientOutputTests
     /// </remarks>
     private static string WithoutCarriageReturns(string text) => text.Replace("\r\n", "\n");
 
-    [Fact]
+    [Test]
     public void AnRgbRampCarriesOneValuePerColourComponent()
     {
         var written = GradientOutput.Of(GradientOutput.OpaqueGradients());
@@ -48,7 +48,7 @@ public class OpaqueGradientOutputTests
         written.Should().Contain("/C0 [ 1 0 0 ]");
     }
 
-    [Fact]
+    [Test]
     public void NoTransparencyMachineryIsAddedForAnOpaqueGradient()
     {
         var written = GradientOutput.Of(GradientOutput.OpaqueGradients());

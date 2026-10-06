@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -105,27 +105,27 @@ public class DdlByteComparisonHarnessTests
         return document;
     }
 
-    [Fact]
+    [Test]
     public void NullableValuesSetAndUnsetSerializesToTheDdlItAlwaysHas() =>
         Ddl(NullableValuesSetAndUnset()).Should().Be(Golden.NullableValuesSetAndUnset);
 
-    [Fact]
+    [Test]
     public void FormattedTextFontSerializesToTheDdlItAlwaysHas() =>
         Ddl(FormattedTextFont()).Should().Be(Golden.FormattedTextFont);
 
-    [Fact]
+    [Test]
     public void ClearedBordersAndShadingSerializeToTheDdlTheyAlwaysHave() =>
         Ddl(ClearedBordersAndShading()).Should().Be(Golden.ClearedBordersAndShading);
 
-    [Fact]
+    [Test]
     public void ATableSerializesToTheDdlItAlwaysHas() =>
         Ddl(ATable()).Should().Be(Golden.Table);
 
-    [Fact]
+    [Test]
     public void AChartSerializesToTheDdlItAlwaysHas() =>
         Ddl(AChart()).Should().Be(Golden.Chart);
 
-    [Fact]
+    [Test]
     public void AStyledParagraphSerializesToTheDdlItAlwaysHas() =>
         Ddl(AStyledParagraph()).Should().Be(Golden.StyledParagraph);
 }

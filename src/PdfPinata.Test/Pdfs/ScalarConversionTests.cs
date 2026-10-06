@@ -7,7 +7,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Test.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -27,27 +27,27 @@ public class ScalarConversionTests
     /// <summary>What every accessor answers for an entry that is not there.</summary>
     private const string Absent = "false 0 0 '' ''";
 
-    [Theory]
-    [InlineData("a boolean", "true ! ! ! !", "true ! ! ! !")]
-    [InlineData("an indirect boolean", "true ! ! ! !", "true ! ! ! !")]
-    [InlineData("an integer", "! 3 3 ! !", "! 3 3 ! !")]
-    [InlineData("an indirect integer", "! 3 3 ! !", "! 3 3 ! !")]
-    [InlineData("a real", "! ! 2.5 ! !", "! ! 2.5 ! !")]
-    [InlineData("an indirect real", "! ! 2.5 ! !", "! ! 2.5 ! !")]
-    [InlineData("a string", "! ! ! 's' !", "! ! ! 's' !")]
-    [InlineData("an indirect string", "! ! ! 's' !", "! ! ! 's' !")]
-    [InlineData("a name", "! ! ! '/N' '/N'", "! ! ! ! '/N'")]
-    [InlineData("an indirect name", "! ! ! '/N' '/N'", "! ! ! ! '/N'")]
-    [InlineData("the null object", Absent, Absent)]
-    [InlineData("a null object written out", Absent, Absent)]
-    [InlineData("an indirect null object", Absent, Absent)]
-    [InlineData("a reference with nothing behind it", Absent, Absent)]
-    [InlineData("an unsigned integer", "! 7 7 ! !", "! 7 7 ! !")]
-    [InlineData("an indirect unsigned integer", "! 7 7 ! !", "! 7 7 ! !")]
-    [InlineData("an unsigned integer too large for an int", "! ! 3000000000 ! !", "! ! 3000000000 ! !")]
-    [InlineData("a long", "! ! 5000000000 ! !", "! ! 5000000000 ! !")]
-    [InlineData("a long that fits in an int", "! 12 12 ! !", "! 12 12 ! !")]
-    [InlineData("an indirect long", "! ! 5000000000 ! !", "! ! 5000000000 ! !")]
+    [Test]
+    [Arguments("a boolean", "true ! ! ! !", "true ! ! ! !")]
+    [Arguments("an indirect boolean", "true ! ! ! !", "true ! ! ! !")]
+    [Arguments("an integer", "! 3 3 ! !", "! 3 3 ! !")]
+    [Arguments("an indirect integer", "! 3 3 ! !", "! 3 3 ! !")]
+    [Arguments("a real", "! ! 2.5 ! !", "! ! 2.5 ! !")]
+    [Arguments("an indirect real", "! ! 2.5 ! !", "! ! 2.5 ! !")]
+    [Arguments("a string", "! ! ! 's' !", "! ! ! 's' !")]
+    [Arguments("an indirect string", "! ! ! 's' !", "! ! ! 's' !")]
+    [Arguments("a name", "! ! ! '/N' '/N'", "! ! ! ! '/N'")]
+    [Arguments("an indirect name", "! ! ! '/N' '/N'", "! ! ! ! '/N'")]
+    [Arguments("the null object", Absent, Absent)]
+    [Arguments("a null object written out", Absent, Absent)]
+    [Arguments("an indirect null object", Absent, Absent)]
+    [Arguments("a reference with nothing behind it", Absent, Absent)]
+    [Arguments("an unsigned integer", "! 7 7 ! !", "! 7 7 ! !")]
+    [Arguments("an indirect unsigned integer", "! 7 7 ! !", "! 7 7 ! !")]
+    [Arguments("an unsigned integer too large for an int", "! ! 3000000000 ! !", "! ! 3000000000 ! !")]
+    [Arguments("a long", "! ! 5000000000 ! !", "! ! 5000000000 ! !")]
+    [Arguments("a long that fits in an int", "! 12 12 ! !", "! 12 12 ! !")]
+    [Arguments("an indirect long", "! ! 5000000000 ! !", "! ! 5000000000 ! !")]
     public void EveryAccessorAnswersForEveryShapeOfValue(string shape, string fromADictionary,
         string fromAnArray)
     {
@@ -62,18 +62,18 @@ public class ScalarConversionTests
         OutcomesOf(array).Should().Be(fromAnArray, "an array holding {0}", shape);
     }
 
-    [Fact]
+    [Test]
     public void AnEntryThatIsNotThereIsTheDefaultOfEveryAccessor()
     {
         OutcomesOf(new PdfDictionary(new PdfDocument())).Should().Be(Absent);
     }
 
-    [Theory]
-    [InlineData("a string", true, "s")]
-    [InlineData("an indirect name", true, "/N")]
-    [InlineData("an integer", false, null)]
-    [InlineData("the null object", false, null)]
-    [InlineData("a reference with nothing behind it", false, null)]
+    [Test]
+    [Arguments("a string", true, "s")]
+    [Arguments("an indirect name", true, "/N")]
+    [Arguments("an integer", false, null)]
+    [Arguments("the null object", false, null)]
+    [Arguments("a reference with nothing behind it", false, null)]
     public void TryGetStringAnswersWhereGetStringWould(string shape, bool found, string value)
     {
         var document = new PdfDocument();
@@ -89,7 +89,7 @@ public class ScalarConversionTests
     ///   file never writes, which the reader has already turned into the null object; a
     ///   reference to an object that is the null object; and the null object spelled out.
     /// </summary>
-    [Fact]
+    [Test]
     public void TheNullsAFileCanHoldAreReadAsNoValue()
     {
         var document = Pdf.IO.PdfReader.Open(new MemoryStream(RawPdf.Build([
@@ -116,7 +116,7 @@ public class ScalarConversionTests
     ///   indirect. The page draws the image upright inside a form that turns it over, so the
     ///   image is shown upside down only if the form's matrix is read.
     /// </summary>
-    [Fact]
+    [Test]
     public void AFormMatrixHoldingAnIndirectNumberIsRead()
     {
         var file = RawPdf.Build([
@@ -139,7 +139,7 @@ public class ScalarConversionTests
     /// <summary>
     ///   A key in a name tree is a string, and any object in a file is allowed to be indirect.
     /// </summary>
-    [Fact]
+    [Test]
     public void ANamedDestinationWhoseNameIsIndirectIsListed()
     {
         var document = Pdf.IO.PdfReader.Open(new MemoryStream(RawPdf.Build([

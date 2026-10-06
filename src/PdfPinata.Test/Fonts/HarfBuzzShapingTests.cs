@@ -9,7 +9,7 @@ using PdfPinata.Fonts;
 using PdfPinata.HarfBuzz;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -34,7 +34,7 @@ namespace PdfPinata.Test.Fonts;
 ///     <c>docs/specs/text-shaping-and-bidi.md</c>.
 ///   </para>
 /// </remarks>
-[Collection(TextShapingCollection.Name)]
+[TextShaperSensitive]
 public class HarfBuzzShapingTests
 {
     private const int LiberationUnitsPerEm = 2048;
@@ -60,9 +60,9 @@ public class HarfBuzzShapingTests
 
     // ----- GPOS really ran -----------------------------------------------------------------------
 
-    [Theory]
-    [InlineData("AV")]
-    [InlineData("To")]
+    [Test]
+    [Arguments("AV")]
+    [Arguments("To")]
     public void APairThatKernsIsNarrowerTogetherThanApart(string pair)
     {
         var together = Shape(pair);
@@ -76,7 +76,7 @@ public class HarfBuzzShapingTests
 
     // ----- GSUB really ran -----------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TwoCharactersCanComeBackAsOneGlyph()
     {
         // "e" and a combining acute accent, written as escapes rather than as a literal so that
@@ -91,7 +91,7 @@ public class HarfBuzzShapingTests
             + "/ToUnicode and /ActualText read to say the glyph stands for both");
     }
 
-    [Fact]
+    [Test]
     public void ASurrogatePairIsOneCharacterAndSoOneCluster()
     {
         // The unshaped path looks up each UTF-16 code unit on its own and draws two .notdef; a
@@ -105,7 +105,7 @@ public class HarfBuzzShapingTests
 
     // ----- order ---------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ALeftToRightRunComesBackInTheOrderItWasWritten()
     {
         var run = Shape("abc");
@@ -114,7 +114,7 @@ public class HarfBuzzShapingTests
         run.Direction.Should().Be(XTextDirection.LeftToRight);
     }
 
-    [Fact]
+    [Test]
     public void ARightToLeftRunComesBackAlreadyReversed()
     {
         var ltr = Shape("abc");
@@ -130,7 +130,7 @@ public class HarfBuzzShapingTests
 
     // ----- units ---------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AdvancesComeBackInDesignUnitsSoOneShapingServesEverySize()
     {
         // Shaped at 20 points and at 200, the run is the same - which is what lets a shaped run be
@@ -168,7 +168,7 @@ public class HarfBuzzShapingTests
     // right-to-left text with left-to-right code cannot be misread.
     private const string Meem = "\u0645";
 
-    [Fact]
+    [Test]
     public void OneLetterHasFourFormsAndTheShaperPicksBetweenThem()
     {
         // This is the defect the gap exists for, in one test. Arabic letters have initial, medial,
@@ -193,7 +193,7 @@ public class HarfBuzzShapingTests
         two.Glyphs.Select(glyph => glyph.GlyphId).Should().OnlyHaveUniqueItems();
     }
 
-    [Fact]
+    [Test]
     public void JoiningIsSomethingTheCmapCannotDoOnItsOwn()
     {
         const string salam = "\u0633\u0644\u0627\u0645";
@@ -210,7 +210,7 @@ public class HarfBuzzShapingTests
         joined.Should().NotEqual(separately, "letters in a word are not the letters on their own");
     }
 
-    [Fact]
+    [Test]
     public void AnAttachedMarkIsAGlyphOfItsOwnThatTakesNoRoomAndSitsOffThePen()
     {
         // The dots of these letters are separate glyphs that GPOS places against the letter they
@@ -228,7 +228,7 @@ public class HarfBuzzShapingTests
             "including vertically, which no TJ array can express");
     }
 
-    [Fact]
+    [Test]
     public void AMarkAndItsLetterShareOneCluster()
     {
         var run = Arabic("\u0639\u0631\u0628\u064A");
@@ -241,7 +241,7 @@ public class HarfBuzzShapingTests
 
     // ----- what it will not do -------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AFaceWithNoGlyphForACharacterDrawsNotdefAndSaysNothingAboutIt()
     {
         // Liberation Sans has no Arabic. Shaping is not fallback: the run comes back as .notdef,
@@ -254,7 +254,7 @@ public class HarfBuzzShapingTests
         Clusters(run).Should().Equal(3, 2, 1, 0);
     }
 
-    [Fact]
+    [Test]
     public void ShapingNothingIsAnEmptyRunAndNotANull()
     {
         var run = Shape(string.Empty);
@@ -265,7 +265,7 @@ public class HarfBuzzShapingTests
         run.UnitsPerEm.Should().Be(LiberationUnitsPerEm);
     }
 
-    [Fact]
+    [Test]
     public void RubbishWhereAFontShouldBeIsNotAllowedToBringAPageDown()
     {
         var rubbish = new ShapingFont("Nonsense", "Nonsense", "HarfBuzzShapingTests/nonsense",
@@ -280,7 +280,7 @@ public class HarfBuzzShapingTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void AShaperThatHasBeenDisposedSaysSoRatherThanCrashingTheProcess()
     {
         var shaper = new HarfBuzzTextShaper();
@@ -294,7 +294,7 @@ public class HarfBuzzShapingTests
             + "of mistake that takes the process rather than the test");
     }
 
-    [Fact]
+    [Test]
     public void OneShaperServesSeveralThreadsAtOnce()
     {
         // A shaper is registered once for the application domain, so it is shared by whatever is
@@ -343,7 +343,7 @@ public class HarfBuzzShapingTests
     // the face kerns.
     private const string Sentinel = "HarfBuzz AVails To kern this";
 
-    [Fact]
+    [Test]
     public void RegisteringTheShaperNarrowsTextTheFaceKerns()
     {
         var document = new PdfDocument();

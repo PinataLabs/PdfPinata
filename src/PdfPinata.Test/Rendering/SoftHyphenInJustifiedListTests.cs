@@ -8,7 +8,7 @@ using PinataLayout.DocumentObjectModel;
 using PinataLayout.Rendering;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Rendering;
 
@@ -33,7 +33,7 @@ public class SoftHyphenInJustifiedListTests
     private static readonly double LeftEdge = Unit.FromCentimeter(2.5).Point;
     private static readonly double RightEdge = Unit.FromMillimeter(210).Point - Unit.FromCentimeter(2.5).Point;
 
-    [Fact(Timeout = 60000)]
+    [Test, Timeout(60000)]
     public async Task AListItemWhoseFirstLineHoldsASoftHyphenCanBeDrawn()
     {
         // Measuring the line again asks whether the soft hyphen is the first thing on it. The
@@ -44,11 +44,11 @@ public class SoftHyphenInJustifiedListTests
         await render.Should().NotThrowAsync();
     }
 
-    [Theory(Timeout = 60000)]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(2)]
-    [InlineData(5)]
+    [Test, Timeout(60000)]
+    [Arguments(0)]
+    [Arguments(1)]
+    [Arguments(2)]
+    [Arguments(5)]
     public async Task AJustifiedListItemIsDrawnWhateverTheRightIndent(int rightIndentMillimeters)
     {
         // At a narrow right indent the second measuring pass finds the line no longer fits, and
@@ -60,11 +60,11 @@ public class SoftHyphenInJustifiedListTests
         TextBaselines.LinesOf(document.Pages[0]).Should().HaveCount(3);
     }
 
-    [Theory(Timeout = 60000)]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(2)]
-    [InlineData(5)]
+    [Test, Timeout(60000)]
+    [Arguments(0)]
+    [Arguments(1)]
+    [Arguments(2)]
+    [Arguments(5)]
     public async Task NothingIsDrawnOutsideTheContentArea(int rightIndentMillimeters)
     {
         var document = await Render(rightIndentMillimeters);
@@ -81,11 +81,11 @@ public class SoftHyphenInJustifiedListTests
         }
     }
 
-    [Theory(Timeout = 60000)]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(2)]
-    [InlineData(5)]
+    [Test, Timeout(60000)]
+    [Arguments(0)]
+    [Arguments(1)]
+    [Arguments(2)]
+    [Arguments(5)]
     public async Task TheWordsOfALineAreDrawnLeftToRight(int rightIndentMillimeters)
     {
         // A line measured against the wrong starting point puts its words back to front or on
@@ -96,10 +96,10 @@ public class SoftHyphenInJustifiedListTests
             line.Should().BeInAscendingOrder();
     }
 
-    [Theory(Timeout = 60000)]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(2)]
+    [Test, Timeout(60000)]
+    [Arguments(0)]
+    [Arguments(1)]
+    [Arguments(2)]
     public async Task EveryLineButTheLastIsStretchedOutToTheRightEdge(int rightIndentMillimeters)
     {
         // Every line of a justified paragraph but the last is stretched to fill its width. The
@@ -115,7 +115,7 @@ public class SoftHyphenInJustifiedListTests
             line[^1].Should().BeGreaterThan(right - 40);
     }
 
-    [Fact(Timeout = 60000)]
+    [Test, Timeout(60000)]
     public async Task TheBulletIsStillDrawnInFrontOfTheFirstLine()
     {
         var lines = LinesOf(await Render(rightIndentMillimeters: 2));
@@ -126,7 +126,7 @@ public class SoftHyphenInJustifiedListTests
         lines[1][0].Should().BeApproximately(LeftEdge + Unit.FromMillimeter(10).Point, 0.1);
     }
 
-    [Fact(Timeout = 60000)]
+    [Test, Timeout(60000)]
     public async Task AnElementThatMeasuresAsNothingDoesNotCutTheLineShort()
     {
         // A bookmark takes no room and asks to be ignored rather than counted. Stopping the
@@ -140,7 +140,7 @@ public class SoftHyphenInJustifiedListTests
             withBookmark[0][idx].Should().BeApproximately(withoutBookmark[0][idx], 0.01);
     }
 
-    [Fact(Timeout = 60000)]
+    [Test, Timeout(60000)]
     public async Task AJustifiedParagraphThatIsNotAListIsDrawnAsItAlwaysWas()
     {
         // No list means no automatic tab stop, so no second measuring pass. This is the control:

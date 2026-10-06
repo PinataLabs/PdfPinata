@@ -3,7 +3,7 @@ using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Internals;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -22,7 +22,7 @@ public class SentinelCollisionTests
 
     private static Image AnImage() => new();
 
-    [Fact]
+    [Test]
     public void AnIntegerSetToTheFormerSentinelIsKept()
     {
         var pageSetup = APageSetup();
@@ -34,7 +34,7 @@ public class SentinelCollisionTests
         pageSetup.GetValue("StartingNumber", GV.GetNull).Should().Be(int.MinValue);
     }
 
-    [Fact]
+    [Test]
     public void AnIntegerSetToTheFormerSentinelSurvivesTheDdlRoundTrip()
     {
         var document = new Document();
@@ -45,7 +45,7 @@ public class SentinelCollisionTests
         reread.LastSection.PageSetup.StartingNumber.Should().Be(int.MinValue);
     }
 
-    [Fact]
+    [Test]
     public void ADoubleSetToTheFormerSentinelIsKept()
     {
         var image = AnImage();
@@ -57,7 +57,7 @@ public class SentinelCollisionTests
         image.GetValue("ScaleWidth", GV.GetNull).Should().Be(double.NaN);
     }
 
-    [Fact]
+    [Test]
     public void EveryOtherExtremeOfTheRangeSurvives()
     {
         var pageSetup = APageSetup();

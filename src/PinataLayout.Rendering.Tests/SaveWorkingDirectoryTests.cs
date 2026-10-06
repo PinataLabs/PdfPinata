@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -19,7 +19,7 @@ namespace PinataLayout.Rendering.Tests;
 /// </remarks>pdf
 public class SaveWorkingDirectoryTests
 {
-    [Fact]
+    [Test]
     public void ARelativePathIsWrittenUnderTheWorkingDirectory()
     {
         using var directory = new TemporaryDirectory();
@@ -47,7 +47,7 @@ public class SaveWorkingDirectoryTests
     ///   A path with directories of its own is still relative to the working directory rather than to
     ///   the current one.
     /// </summary>
-    [Fact]
+    [Test]
     public void ARelativePathMayNameDirectoriesOfItsOwn()
     {
         using var directory = new TemporaryDirectory();
@@ -68,7 +68,7 @@ public class SaveWorkingDirectoryTests
     ///   for a caller who already passes one: <see cref="Path.Combine(string, string)"/> answers an
     ///   absolute second argument with itself.
     /// </summary>
-    [Fact]
+    [Test]
     public void AnAbsolutePathIsWrittenWhereItSays()
     {
         using var working = new TemporaryDirectory();
@@ -87,7 +87,7 @@ public class SaveWorkingDirectoryTests
     ///   With no working directory named, a relative path is resolved against the current directory,
     ///   exactly as before.
     /// </summary>
-    [Fact]
+    [Test]
     public void WithNoWorkingDirectoryARelativePathIsStillTheCurrentDirectorys()
     {
         var name = Unique();
@@ -105,7 +105,7 @@ public class SaveWorkingDirectoryTests
         }
     }
 
-    [Fact]
+    [Test]
     public void APathIsStillRequired()
     {
         var renderer = Rendered();

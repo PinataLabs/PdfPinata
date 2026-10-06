@@ -7,7 +7,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -100,7 +100,7 @@ public class XGraphicsSurfaceTests
 
     // ----- the surface itself --------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ASurfaceOnAPageIsInPointAndTheSizeOfThatPage()
     {
         var document = new PdfDocument();
@@ -119,7 +119,7 @@ public class XGraphicsSurfaceTests
         gfx.GraphicsStateLevel.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void TheOnlyPageDirectionAndOriginThereAreCanBeSetAndNothingElseCan()
     {
         using var gfx = OnAPage();
@@ -142,7 +142,7 @@ public class XGraphicsSurfaceTests
         moveOrigin.Should().Throw<NotImplementedException>();
     }
 
-    [Fact]
+    [Test]
     public void ASurfaceCanBeMadeJustToMeasureWithAndDrawsNowhere()
     {
         // PinataLayout measures text long before it knows what page it will land on, so it needs a
@@ -159,7 +159,7 @@ public class XGraphicsSurfaceTests
         draw.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void DisposingASurfaceTwiceIsHarmless()
     {
         var gfx = OnAPage();
@@ -170,7 +170,7 @@ public class XGraphicsSurfaceTests
         again.Should().NotThrow();
     }
 
-    [Fact]
+    [Test]
     public void TheSmoothingModeAndThePinataLayoutEncodingHackAreRememberedAsGiven()
     {
         using var gfx = OnAPage();
@@ -182,7 +182,7 @@ public class XGraphicsSurfaceTests
         gfx.MUH.Should().Be(PdfFontEncoding.Unicode);
     }
 
-    [Fact]
+    [Test]
     public void ACommentGoesIntoTheContentStreamWithoutDrawingAnything()
     {
         var page = DrawnText.PageShowing(gfx =>
@@ -195,10 +195,10 @@ public class XGraphicsSurfaceTests
         PathGeometry.PointsOf(page).Should().HaveCount(2, "the comment is not ink");
     }
 
-    [Theory]
-    [InlineData("\r")]
-    [InlineData("\r\n")]
-    [InlineData("\n")]
+    [Test]
+    [Arguments("\r")]
+    [Arguments("\r\n")]
+    [Arguments("\n")]
     public void EveryLineOfACommentStaysAComment(string lineBreak)
     {
         // A carriage return ends a line in PDF as surely as a line feed does, so the second line
@@ -213,7 +213,7 @@ public class XGraphicsSurfaceTests
         PathGeometry.PointsOf(page).Should().HaveCount(2, "no line of the comment is ink");
     }
 
-    [Fact]
+    [Test]
     public void ACommentOfNothingIsRefused()
     {
         using var gfx = OnAPage();
@@ -226,21 +226,21 @@ public class XGraphicsSurfaceTests
 
     // ----- lines and curves ----------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ALineIsTheSameLineWhicheverWayItIsAskedFor()
     {
         ShapeOf(gfx => gfx.DrawLine(XPens.Black, new XPoint(100, 100), new XPoint(300, 200)))
             .Should().Be(ShapeOf(gfx => gfx.DrawLine(XPens.Black, 100, 100, 300, 200)));
     }
 
-    [Fact]
+    [Test]
     public void ASeriesOfLinesIsTheSameWhetherItIsPointsOrLooseNumbers()
     {
         ShapeOf(gfx => gfx.DrawLines(XPens.Black, ThreePoints))
             .Should().Be(ShapeOf(gfx => gfx.DrawLines(XPens.Black, 100, 100, 200, 150, 300, 100)));
     }
 
-    [Fact]
+    [Test]
     public void ASeriesOfLinesNeedsTwoPointsToBeALine()
     {
         using var gfx = OnAPage();
@@ -261,7 +261,7 @@ public class XGraphicsSurfaceTests
         noNumbers.Should().Throw<ArgumentNullException>();
     }
 
-    [Fact]
+    [Test]
     public void ABezierIsTheSameCurveWhicheverWayItIsAskedFor()
     {
         ShapeOf(gfx => gfx.DrawBezier(XPens.Black,
@@ -269,14 +269,14 @@ public class XGraphicsSurfaceTests
             .Should().Be(ShapeOf(gfx => gfx.DrawBezier(XPens.Black, 100, 100, 150, 50, 250, 50, 300, 100)));
     }
 
-    [Fact]
+    [Test]
     public void ASingleBezierIsTheSameAsAChainOfOne()
     {
         ShapeOf(gfx => gfx.DrawBeziers(XPens.Black, FourBezierPoints))
             .Should().Be(ShapeOf(gfx => gfx.DrawBezier(XPens.Black, 100, 100, 150, 50, 250, 50, 300, 100)));
     }
 
-    [Fact]
+    [Test]
     public void AChainOfNoBeziersDrawsNothingAndAChainOfTheWrongLengthIsRefused()
     {
         using var gfx = OnAPage();
@@ -292,14 +292,14 @@ public class XGraphicsSurfaceTests
         wrongLength.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void ASplineIsDrawnAtHalfTensionUnlessAskedOtherwise()
     {
         ShapeOf(gfx => gfx.DrawCurve(XPens.Black, ThreePoints))
             .Should().Be(ShapeOf(gfx => gfx.DrawCurve(XPens.Black, ThreePoints, 0.5)));
     }
 
-    [Fact]
+    [Test]
     public void ASplineCanBeDrawnThroughPartOfAnArrayOfPoints()
     {
         var many = new[]
@@ -312,7 +312,7 @@ public class XGraphicsSurfaceTests
             .Should().Be(ShapeOf(gfx => gfx.DrawCurve(XPens.Black, ThreePoints, 0.5)));
     }
 
-    [Fact]
+    [Test]
     public void ASplineNeedsTwoPointsAndAPen()
     {
         using var gfx = OnAPage();
@@ -331,14 +331,14 @@ public class XGraphicsSurfaceTests
 
     // ----- arcs ----------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnArcIsTheSameArcWhetherItIsGivenARectangleOrFourNumbers()
     {
         ShapeOf(gfx => gfx.DrawArc(XPens.Black, new XRect(100, 100, 200, 200), 0, 90))
             .Should().Be(ShapeOf(gfx => gfx.DrawArc(XPens.Black, 100, 100, 200, 200, 0, 90)));
     }
 
-    [Fact]
+    [Test]
     public void AnArcThatGoesAllTheWayRoundIsDrawnAsAnEllipse()
     {
         // Which matters: an arc of exactly 360 degrees drawn as an arc would start and end at the
@@ -350,7 +350,7 @@ public class XGraphicsSurfaceTests
             .Should().Be(ShapeOf(gfx => gfx.DrawEllipse(XPens.Black, 100, 100, 200, 200)));
     }
 
-    [Fact]
+    [Test]
     public void AnArcNeedsAPen()
     {
         using var gfx = OnAPage();
@@ -363,7 +363,7 @@ public class XGraphicsSurfaceTests
 
     // ----- rectangles ----------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ARectangleIsTheSameRectangleWhicheverWayItIsAskedFor()
     {
         var rect = new XRect(100, 100, 200, 50);
@@ -376,7 +376,7 @@ public class XGraphicsSurfaceTests
             .Should().Be(ShapeOf(gfx => gfx.DrawRectangle(XPens.Black, XBrushes.Black, 100, 100, 200, 50)));
     }
 
-    [Fact]
+    [Test]
     public void StrokingAndFillingARectanglePutTheSameFourCornersOnThePage()
     {
         var stroked = ShapeOf(gfx => gfx.DrawRectangle(XPens.Black, 100, 100, 200, 50));
@@ -386,7 +386,7 @@ public class XGraphicsSurfaceTests
             .Should().Be(stroked);
     }
 
-    [Fact]
+    [Test]
     public void ARectangleNeedsAPenOrABrush()
     {
         using var gfx = OnAPage();
@@ -398,7 +398,7 @@ public class XGraphicsSurfaceTests
             .Which.ParamName.Should().Be("pen", "a parameter name names one parameter, the pen coming first");
     }
 
-    [Fact]
+    [Test]
     public void SeveralRectanglesAreSeveralRectangles()
     {
         var rects = new[]
@@ -417,7 +417,7 @@ public class XGraphicsSurfaceTests
         ShapeOf(gfx => gfx.DrawRectangles(XPens.Black, XBrushes.Black, rects)).Should().Be(stroked);
     }
 
-    [Fact]
+    [Test]
     public void ARoundedRectangleIsTheSameShapeWhicheverWayItIsAskedFor()
     {
         var rect = new XRect(100, 100, 200, 100);
@@ -432,7 +432,7 @@ public class XGraphicsSurfaceTests
                 XPens.Black, XBrushes.Black, 100, 100, 200, 100, 40, 40)));
     }
 
-    [Fact]
+    [Test]
     public void ARoundedRectangleFillsTheBoxItIsGiven()
     {
         // A rounded rectangle is built as a path rather than written as a rectangle operator, so
@@ -445,7 +445,7 @@ public class XGraphicsSurfaceTests
 
     // ----- ellipses ------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnEllipseIsTheSameEllipseWhicheverWayItIsAskedFor()
     {
         var rect = new XRect(100, 100, 200, 100);
@@ -458,7 +458,7 @@ public class XGraphicsSurfaceTests
             .Should().Be(ShapeOf(gfx => gfx.DrawEllipse(XPens.Black, XBrushes.Black, 100, 100, 200, 100)));
     }
 
-    [Fact]
+    [Test]
     public void AnEllipseFillsTheBoxItIsGiven()
     {
         var bounds = Bounds(gfx => gfx.DrawEllipse(XPens.Black, 100, 100, 200, 100));
@@ -467,7 +467,7 @@ public class XGraphicsSurfaceTests
         bounds.Height.Should().BeApproximately(100, 1e-3);
     }
 
-    [Fact]
+    [Test]
     public void AnEllipseNeedsAPenOrABrush()
     {
         using var gfx = OnAPage();
@@ -480,7 +480,7 @@ public class XGraphicsSurfaceTests
 
     // ----- polygons ------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void APolygonIsTheSameShapeStrokedOrFilled()
     {
         var stroked = ShapeOf(gfx => gfx.DrawPolygon(XPens.Black, ThreePoints));
@@ -491,7 +491,7 @@ public class XGraphicsSurfaceTests
             .Should().Be(stroked);
     }
 
-    [Fact]
+    [Test]
     public void APolygonNeedsTwoPointsAndSomethingToDrawWith()
     {
         using var gfx = OnAPage();
@@ -516,7 +516,7 @@ public class XGraphicsSurfaceTests
 
     // ----- pies ----------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void APieIsTheSameShapeWhicheverWayItIsAskedFor()
     {
         var rect = new XRect(100, 100, 200, 200);
@@ -529,7 +529,7 @@ public class XGraphicsSurfaceTests
             .Should().Be(ShapeOf(gfx => gfx.DrawPie(XPens.Black, XBrushes.Black, 100, 100, 200, 200, 0, 90)));
     }
 
-    [Fact]
+    [Test]
     public void APieNeedsAPenOrABrush()
     {
         using var gfx = OnAPage();
@@ -548,7 +548,7 @@ public class XGraphicsSurfaceTests
 
     // ----- closed curves -------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AClosedCurveIsTheSameShapeStrokedOrFilledOrBoth()
     {
         var stroked = ShapeOf(gfx => gfx.DrawClosedCurve(XPens.Black, ThreePoints));
@@ -564,7 +564,7 @@ public class XGraphicsSurfaceTests
             .Should().Be(stroked);
     }
 
-    [Fact]
+    [Test]
     public void AClosedCurveOfNoPointsDrawsNothingAndOneOfOnePointIsRefused()
     {
         using var gfx = OnAPage();
@@ -582,7 +582,7 @@ public class XGraphicsSurfaceTests
 
     // ----- paths ---------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void APathIsTheSameShapeStrokedOrFilledOrBoth()
     {
         var stroked = ShapeOf(gfx => gfx.DrawPath(XPens.Black, Rectangle()));
@@ -598,7 +598,7 @@ public class XGraphicsSurfaceTests
         }
     }
 
-    [Fact]
+    [Test]
     public void APathNeedsToExistAndNeedsAPenOrABrush()
     {
         using var gfx = OnAPage();
@@ -627,7 +627,7 @@ public class XGraphicsSurfaceTests
 
     // ----- the transform -------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ASurfaceStartsWithNoTransformOfItsOwn()
     {
         using var gfx = OnAPage();
@@ -635,7 +635,7 @@ public class XGraphicsSurfaceTests
         gfx.Transform.IsIdentity.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ATransformIsWrittenIntoThePageRatherThanBakedIntoTheCoordinates()
     {
         // The shape reaches the page in the coordinates the caller named, and the transform goes
@@ -653,7 +653,7 @@ public class XGraphicsSurfaceTests
         CountOf(ContentOf(moved), "cm").Should().Be(CountOf(ContentOf(unmoved), "cm") + 1);
     }
 
-    [Fact]
+    [Test]
     public void EachKindOfTransformReachesThePageAsItsOwnMatrix()
     {
         var plain = TransformsIn(_ => { });
@@ -679,7 +679,7 @@ public class XGraphicsSurfaceTests
         }
     }
 
-    [Fact]
+    [Test]
     public void EveryWayOfNamingATransformReachesTheSameMatrix()
     {
         // The overloads that take an order and the ones that do not are meant to agree when the
@@ -713,7 +713,7 @@ public class XGraphicsSurfaceTests
         }
     }
 
-    [Fact]
+    [Test]
     public void ScalingAboutAPointLeavesThatPointWhereItIs()
     {
         using var gfx = OnAPage();
@@ -726,7 +726,7 @@ public class XGraphicsSurfaceTests
 
     // ----- saving and restoring ------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void RestoringPutsTheTransformBackAsItWas()
     {
         using var gfx = OnAPage();
@@ -742,7 +742,7 @@ public class XGraphicsSurfaceTests
         gfx.Transform.IsIdentity.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void RestoringWithNoArgumentUndoesTheMostRecentSave()
     {
         using var gfx = OnAPage();
@@ -762,7 +762,7 @@ public class XGraphicsSurfaceTests
         gfx.Transform.IsIdentity.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void RestoringWithNothingSavedIsRefused()
     {
         using var gfx = OnAPage();
@@ -776,7 +776,7 @@ public class XGraphicsSurfaceTests
         noState.Should().Throw<ArgumentNullException>();
     }
 
-    [Fact]
+    [Test]
     public void AContainerSavesTheStateTheSameWayASaveDoes()
     {
         using var gfx = OnAPage();
@@ -791,7 +791,7 @@ public class XGraphicsSurfaceTests
         gfx.Transform.IsIdentity.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void AContainerCanMapOneRectangleOntoAnother()
     {
         using var gfx = OnAPage();
@@ -805,12 +805,12 @@ public class XGraphicsSurfaceTests
         gfx.Transform.Transform(new XPoint(100, 100)).Should().Be(new XPoint(300, 300));
     }
 
-    [Theory]
-    [InlineData(XGraphicsUnit.Inch, 1, 72)]
-    [InlineData(XGraphicsUnit.Millimeter, 25.4, 72)]
-    [InlineData(XGraphicsUnit.Centimeter, 2.54, 72)]
-    [InlineData(XGraphicsUnit.Presentation, 96, 72)]
-    [InlineData(XGraphicsUnit.Point, 72, 72)]
+    [Test]
+    [Arguments(XGraphicsUnit.Inch, 1, 72)]
+    [Arguments(XGraphicsUnit.Millimeter, 25.4, 72)]
+    [Arguments(XGraphicsUnit.Centimeter, 2.54, 72)]
+    [Arguments(XGraphicsUnit.Presentation, 96, 72)]
+    [Arguments(XGraphicsUnit.Point, 72, 72)]
     public void AContainerMeasuresItsSourceRectangleInTheUnitItIsGiven(XGraphicsUnit unit, double side,
         double sideInPoints)
     {
@@ -826,7 +826,7 @@ public class XGraphicsSurfaceTests
             .Should().BeApproximately(100 + 2 * sideInPoints, 1e-9);
     }
 
-    [Fact]
+    [Test]
     public void AContainerInNoUnitAtAllIsRefusedAndEndingNothingIsToo()
     {
         using var gfx = OnAPage();
@@ -841,7 +841,7 @@ public class XGraphicsSurfaceTests
         endNothing.Should().Throw<ArgumentNullException>();
     }
 
-    [Fact]
+    [Test]
     public void SavingAndRestoringWriteTheLiteralQAndQOperators()
     {
         // Two of them are the page's own: the renderer opens page space and then world space before
@@ -870,7 +870,7 @@ public class XGraphicsSurfaceTests
         void Box(XGraphics gfx) => gfx.DrawRectangle(XPens.Black, 10, 10, 20, 20);
     }
 
-    [Fact]
+    [Test]
     public void ASaveNeverRestoredIsClosedWhenThePageEnds()
     {
         StateOf(gfx =>
@@ -883,7 +883,7 @@ public class XGraphicsSurfaceTests
         }).Should().Be("qqqqQQQQ");
     }
 
-    [Fact]
+    [Test]
     public void RestoringAnOuterStateClosesEveryStateSavedInsideIt()
     {
         // Handing back the inner state closes one level, and the last shape is drawn one deep.
@@ -908,7 +908,7 @@ public class XGraphicsSurfaceTests
 
     // ----- clipping ------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ClippingToARectangleIsClippingToTheRectangleAsAPath()
     {
         var toRect = ContentOf(DrawnText.PageShowing(gfx =>
@@ -929,7 +929,7 @@ public class XGraphicsSurfaceTests
         toRect.Should().Contain("W");
     }
 
-    [Fact]
+    [Test]
     public void ClippingToNothingIsRefused()
     {
         using var gfx = OnAPage();

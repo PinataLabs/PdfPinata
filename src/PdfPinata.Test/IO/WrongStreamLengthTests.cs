@@ -7,7 +7,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Filters;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.IO.enums;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -21,15 +21,15 @@ public class WrongStreamLengthTests
 {
     private const string Content = "0 0 1 RG 10 10 100 100 re S";
 
-    [Theory]
-    [InlineData(-27, PdfReadAccuracy.Strict)]
-    [InlineData(-5, PdfReadAccuracy.Strict)]
+    [Test]
+    [Arguments(-27, PdfReadAccuracy.Strict)]
+    [Arguments(-5, PdfReadAccuracy.Strict)]
     // One byte short leaves nothing between the data and the keyword but the byte itself, which
     // is the shape a reader is most likely to take for the end of the stream.
-    [InlineData(-1, PdfReadAccuracy.Strict)]
-    [InlineData(-1, PdfReadAccuracy.Moderate)]
-    [InlineData(5, PdfReadAccuracy.Strict)]
-    [InlineData(27, PdfReadAccuracy.Strict)]
+    [Arguments(-1, PdfReadAccuracy.Strict)]
+    [Arguments(-1, PdfReadAccuracy.Moderate)]
+    [Arguments(5, PdfReadAccuracy.Strict)]
+    [Arguments(27, PdfReadAccuracy.Strict)]
     public void AStreamDeclaredTheWrongLengthIsReadAsTheStreamItIs(int difference, PdfReadAccuracy accuracy)
     {
         var document = Read(DocumentWhoseContentDeclares(Content.Length + difference), accuracy);
@@ -37,15 +37,15 @@ public class WrongStreamLengthTests
         ContentOf(document).Should().Be(Content);
     }
 
-    [Theory]
+    [Test]
     // The end-of-line before the keyword is not required by anything that gets the length wrong,
     // and it is the end-of-line that belongs to the file rather than to the stream. A blank does
     // not, so a stream recovered from one keeps it.
-    [InlineData("\n", "")]
-    [InlineData("\r\n", "")]
-    [InlineData("\r", "")]
-    [InlineData("", "")]
-    [InlineData(" ", " ")]
+    [Arguments("\n", "")]
+    [Arguments("\r\n", "")]
+    [Arguments("\r", "")]
+    [Arguments("", "")]
+    [Arguments(" ", " ")]
     public void AStreamEndingWithoutTheUsualLineBreakIsStillReadAsTheStreamItIs(string separator, string kept)
     {
         var content = "<</Length " + (Content.Length - 5) + ">>stream\n" + Content + separator + "endstream";
@@ -55,7 +55,7 @@ public class WrongStreamLengthTests
         ContentOf(document).Should().Be(Content + kept);
     }
 
-    [Fact]
+    [Test]
     public void ACompressedStreamDeclaredTooShortIsReadAsTheStreamItIs()
     {
         var data = Encoding.Latin1.GetString(new FlateDecode().Encode(Encoding.Latin1.GetBytes(Content)));
@@ -66,7 +66,7 @@ public class WrongStreamLengthTests
         ContentOf(document).Should().Be(Content);
     }
 
-    [Fact]
+    [Test]
     public void TheLengthRecoveredFromAStreamIsRecorded()
     {
         // The dictionary is written out again when the document is saved, and has to describe
@@ -76,7 +76,7 @@ public class WrongStreamLengthTests
         ContentDictionaryOf(document).Elements.GetInteger("/Length").Should().Be(Content.Length);
     }
 
-    [Fact]
+    [Test]
     public void AWrongLengthGivenIndirectlyIsRecoveredFromJustTheSame()
     {
         var document = Read(RawPdf.Build(new List<string>
@@ -91,7 +91,7 @@ public class WrongStreamLengthTests
         ContentOf(document).Should().Be(Content);
     }
 
-    [Fact]
+    [Test]
     public void AStreamDeclaredLongerThanTheFileIsReadAsTheStreamItIs()
     {
         // A length reaching past the end of the file describes nothing that is there, so it is
@@ -101,7 +101,7 @@ public class WrongStreamLengthTests
         ContentOf(document).Should().Be(Content);
     }
 
-    [Fact]
+    [Test]
     public void AStreamDeclaredToReachTheVeryEndOfTheFileIsReadAsTheStreamItIs()
     {
         // The end-of-line behind "stream" is where the reader stands when it notes the start of
@@ -114,7 +114,7 @@ public class WrongStreamLengthTests
         ContentOf(document).Should().Be(Content);
     }
 
-    [Fact]
+    [Test]
     public void AStreamThatNeverEndsIsStillReportedAsUnreadable()
     {
         // Nothing can be recovered from a document that does not hold the keyword at all, and

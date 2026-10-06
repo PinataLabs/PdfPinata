@@ -6,7 +6,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Fonts;
 using PdfPinata.Test.Helpers;
 using PdfPinata.Utils;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -77,7 +77,7 @@ public class FontResolverBaseTests
 
     // ----- what it makes of the files it is given ---------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AFamilyResolvesToTheFaceOfTheStyleAskedFor()
     {
         var resolver = AResolverOver(TheLiberationFamily());
@@ -92,7 +92,7 @@ public class FontResolverBaseTests
             .Should().Be("LiberationSans-BoldItalic.ttf");
     }
 
-    [Fact]
+    [Test]
     public void AFamilyNameIsMatchedWhateverItsCase()
     {
         var resolver = AResolverOver(TheLiberationFamily());
@@ -106,7 +106,7 @@ public class FontResolverBaseTests
     ///   file and an instruction to the renderer to stroke it — which is what keeps a document
     ///   renderable rather than silently unstyled.
     /// </summary>
-    [Fact]
+    [Test]
     public void AMissingWeightIsAnsweredWithTheFaceThereIsAndASimulation()
     {
         var resolver = AResolverOver(Asset("LiberationSans-Regular.ttf"));
@@ -123,7 +123,7 @@ public class FontResolverBaseTests
         both!.StyleSimulations.Should().Be(XStyleSimulations.BoldItalicSimulation);
     }
 
-    [Fact]
+    [Test]
     public void AFamilyWithOnlyABoldFaceAnswersRegularWithIt()
     {
         var resolver = AResolverOver(Asset("LiberationSans-Bold.ttf"));
@@ -137,7 +137,7 @@ public class FontResolverBaseTests
 
     // ----- what it does with a family it has never heard of -------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnUnknownFamilyFallsBackToWhateverIsInstalled()
     {
         var resolver = AResolverOver(TheLiberationFamily());
@@ -145,7 +145,7 @@ public class FontResolverBaseTests
         resolver.ResolveTypeface("NoSuchFamily", false, false).Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void AnUnknownFamilyAnswersNothingWhenTheResolverWasToldTo()
     {
         var resolver = AResolverOver(TheLiberationFamily());
@@ -154,7 +154,7 @@ public class FontResolverBaseTests
         resolver.ResolveTypeface("NoSuchFamily", false, false).Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void AResolverOverNoFilesAtAllSaysSoRatherThanAnsweringNothing()
     {
         var resolver = AResolverOver();
@@ -164,7 +164,7 @@ public class FontResolverBaseTests
         resolving.Should().Throw<FileNotFoundException>();
     }
 
-    [Fact]
+    [Test]
     public void TheDefaultFamilyIsArialUnlessABackendSaysOtherwise()
     {
         new NameBasedResolver().DefaultFontName.Should().Be("Arial");
@@ -172,7 +172,7 @@ public class FontResolverBaseTests
 
     // ----- the font bytes -----------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AFaceNameReadsBackTheBytesOfTheFileItWasDiscoveredIn()
     {
         var resolver = AResolverOver(TheLiberationFamily());
@@ -183,7 +183,7 @@ public class FontResolverBaseTests
         bytes.LongLength.Should().Be(new FileInfo(Asset("LiberationSans-Regular.ttf")).Length);
     }
 
-    [Fact]
+    [Test]
     public void AFaceNameThatWasNeverDiscoveredSaysSo()
     {
         var resolver = AResolverOver(TheLiberationFamily());
@@ -195,7 +195,7 @@ public class FontResolverBaseTests
 
     // ----- the files it cannot use --------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AFileThatIsNotThereIsLoggedAndSkippedRatherThanFatal()
     {
         var resolver = new NameBasedResolver();
@@ -207,7 +207,7 @@ public class FontResolverBaseTests
         resolver.ResolveTypeface("NotThere", false, false).Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void AFileWhoseMetadataCannotBeReadIsLoggedAndSkipped()
     {
         var resolver = new NameBasedResolver { Unreadable = "LiberationSans-Bold" };
@@ -218,7 +218,7 @@ public class FontResolverBaseTests
             .Should().NotBe("LiberationSans-Bold.ttf", "the face that could not be read is not there to answer");
     }
 
-    [Fact]
+    [Test]
     public void TheSameFileNameFoundTwiceIsReadOnce()
     {
         var resolver = new NameBasedResolver();
@@ -228,7 +228,7 @@ public class FontResolverBaseTests
         resolver.Read.Should().HaveCount(1, "the first font directory a name is found in wins");
     }
 
-    [Fact]
+    [Test]
     public void SettingUpAgainReplacesWhatWasDiscoveredBefore()
     {
         var resolver = AResolverOver(TheLiberationFamily());
@@ -245,7 +245,7 @@ public class FontResolverBaseTests
     ///   collection. That is the base class's own answer, which a backend able to read a collection
     ///   overrides.
     /// </summary>
-    [Fact]
+    [Test]
     public void AResolverThatReadsSingleFontFilesRefusesToDescribeAFaceOfACollection()
     {
         var resolver = new DescribesOneFaceAtATime();
@@ -255,7 +255,7 @@ public class FontResolverBaseTests
         describing.Should().Throw<NotSupportedException>().WithMessage("*face 2*");
     }
 
-    [Fact]
+    [Test]
     public void ACollectionIsDescribedFaceByFaceWhenNothingOverridesIt()
     {
         var resolver = new DescribesOneFaceAtATime();
@@ -266,7 +266,7 @@ public class FontResolverBaseTests
             "the default reads a collection one face at a time, and the first face is already refused");
     }
 
-    [Fact]
+    [Test]
     public void ACollectionOfOneIsDescribedAsThatOneFace()
     {
         var resolver = new DescribesOneFaceAtATime();
@@ -280,10 +280,10 @@ public class FontResolverBaseTests
     ///   A resolver that reads nothing itself describes a single font with the core's own parser,
     ///   which used to be abstract and so had to be written by every resolver.
     /// </summary>
-    [Theory]
-    [InlineData("LiberationSans-Regular.ttf", XFontStyle.Regular)]
-    [InlineData("LiberationSans-Bold.ttf", XFontStyle.Bold)]
-    [InlineData("LiberationSans-BoldItalic.ttf", XFontStyle.BoldItalic)]
+    [Test]
+    [Arguments("LiberationSans-Regular.ttf", XFontStyle.Regular)]
+    [Arguments("LiberationSans-Bold.ttf", XFontStyle.Bold)]
+    [Arguments("LiberationSans-BoldItalic.ttf", XFontStyle.BoldItalic)]
     public void AResolverThatReadsNothingItselfDescribesAFontWithTheCoreParser(string file, XFontStyle style)
     {
         var metadata = new ReadsNothingItself().Describe(Asset(file));
@@ -292,7 +292,7 @@ public class FontResolverBaseTests
         metadata.Style.Should().Be(style);
     }
 
-    [Fact]
+    [Test]
     public void AResolverThatReadsNothingItselfResolvesAFamilyFromWhatTheParserRead()
     {
         var resolver = new ReadsNothingItself();
@@ -306,7 +306,7 @@ public class FontResolverBaseTests
     ///   base class's own answer, so a resolver describing fonts its own way never has a collection
     ///   described for it by a different rule.
     /// </summary>
-    [Fact]
+    [Test]
     public void AResolverThatReadsNothingItselfStillRefusesToDescribeAFaceOfACollection()
     {
         var describing = () => new ReadsNothingItself().DescribeFace(Asset("LiberationSans-Regular.ttf"), 0);
@@ -314,7 +314,7 @@ public class FontResolverBaseTests
         describing.Should().Throw<NotSupportedException>();
     }
 
-    [Fact]
+    [Test]
     public void TheCoreParserReadsTheSameFaceWhicheverWayItIsAskedFor()
     {
         var path = Asset("LiberationSans-Italic.ttf");
@@ -328,7 +328,7 @@ public class FontResolverBaseTests
         first.Style.Should().Be(XFontStyle.Italic);
     }
 
-    [Fact]
+    [Test]
     public void TheCoreParserRefusesAFaceASingleFontDoesNotHold()
     {
         var reading = () => OpenTypeFontMetadata.Read(Asset("LiberationSans-Regular.ttf"), 1);
@@ -336,9 +336,9 @@ public class FontResolverBaseTests
         reading.Should().Throw<ArgumentOutOfRangeException>().WithMessage("*face 1*");
     }
 
-    [Theory]
-    [InlineData(-2)]
-    [InlineData(-5)]
+    [Test]
+    [Arguments(-2)]
+    [Arguments(-5)]
     public void TheCoreParserRefusesAFaceIndexBelowMinusOne(int faceIndex)
     {
         var reading = () => OpenTypeFontMetadata.Read(Asset("LiberationSans-Regular.ttf"), faceIndex);
@@ -346,7 +346,7 @@ public class FontResolverBaseTests
         reading.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Fact]
+    [Test]
     public void TheCoreParserRefusesToReadANegativeNumberOfFaces()
     {
         var reading = () => OpenTypeFontMetadata.ReadAll(Asset("LiberationSans-Regular.ttf"), -1);
@@ -354,9 +354,9 @@ public class FontResolverBaseTests
         reading.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Theory]
-    [InlineData(2)]
-    [InlineData(int.MaxValue)]
+    [Test]
+    [Arguments(2)]
+    [Arguments(int.MaxValue)]
     public void TheCoreParserRefusesToReadMoreFacesThanTheFileHoldsBeforeMakingRoomForThem(int faceCount)
     {
         var reading = () => OpenTypeFontMetadata.ReadAll(Asset("LiberationSans-Regular.ttf"), faceCount);
@@ -369,9 +369,9 @@ public class FontResolverBaseTests
     ///   refused as such rather than by indexing off the end of the array - including an offset
     ///   so close to int.MaxValue that adding the table's header length to it would overflow.
     /// </summary>
-    [Theory]
-    [InlineData(100u)]
-    [InlineData(0x7FFFFFFCu)]
+    [Test]
+    [Arguments(100u)]
+    [Arguments(0x7FFFFFFCu)]
     public void TheCoreParserRefusesANameTableOutsideTheFile(uint beyond)
     {
         var font = File.ReadAllBytes(Asset("LiberationSans-Regular.ttf"));

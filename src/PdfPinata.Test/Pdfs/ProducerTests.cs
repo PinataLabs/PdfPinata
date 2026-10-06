@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Metadata;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs;
 
@@ -19,7 +19,7 @@ public class ProducerTests
     private static readonly string ExpectedProducer =
         "PdfPinata " + BuiltVersion() + " (https://github.com/PinataLabs/PdfPinata)";
 
-    [Fact]
+    [Test]
     public void ANewDocumentNamesTheVersionTheLibraryWasBuiltAs()
     {
         var reopened = Reopen(Saved.Bytes(NewDocument()));
@@ -28,7 +28,7 @@ public class ProducerTests
         reopened.Info.Creator.Should().Be(ExpectedProducer, "a document that names no creator is given the producer");
     }
 
-    [Fact]
+    [Test]
     public void TheVersionIsTheOneMinVerComputedWithoutTheCommitHash()
     {
         var version = ProductVersionInfo.InformationalVersion;
@@ -37,7 +37,7 @@ public class ProducerTests
         version.Should().NotContain("+").And.NotStartWith("1.50.4000");
     }
 
-    [Fact]
+    [Test]
     public void TheXmpPacketNamesTheSameProducer()
     {
         var document = NewDocument();
@@ -47,7 +47,7 @@ public class ProducerTests
             .Should().Contain("<pdf:Producer>" + ExpectedProducer + "</pdf:Producer>");
     }
 
-    [Fact]
+    [Test]
     public void ADocumentFromAnotherProducerKeepsItsNameBehindOurs()
     {
         var document = NewDocument();

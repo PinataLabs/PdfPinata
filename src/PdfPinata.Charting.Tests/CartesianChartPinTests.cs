@@ -4,7 +4,7 @@ using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Charting.Tests.Helpers;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -29,15 +29,15 @@ namespace PdfPinata.Charting.Tests;
 /// </remarks>
 public class CartesianChartPinTests
 {
-    [Theory]
-    [InlineData("column")]
-    [InlineData("column-stacked")]
-    [InlineData("bar")]
-    [InlineData("bar-stacked")]
-    [InlineData("line")]
-    [InlineData("area")]
-    [InlineData("combination")]
-    [InlineData("combination-stacked")]
+    [Test]
+    [Arguments("column")]
+    [Arguments("column-stacked")]
+    [Arguments("bar")]
+    [Arguments("bar-stacked")]
+    [Arguments("line")]
+    [Arguments("area")]
+    [Arguments("combination")]
+    [Arguments("combination-stacked")]
     public void EveryCartesianChartIsDrawnExactlyAsItWas(string arrangement)
     {
         var written = Normalized(Encoding.Latin1.GetString(PageContent.Of(Drawn.Page(Arranged(arrangement)))));

@@ -4,7 +4,7 @@ using PdfPinata.Charting.Tests.Helpers;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -46,28 +46,28 @@ public class HiddenAxisLineTests
 
     private static int StrokedInRed(PdfPage page) => StrokedLines.Of(page).Count(line => line.Colour == Red);
 
-    [Theory]
-    [InlineData(ChartType.Column2D, Which.XAxis)]
-    [InlineData(ChartType.Column2D, Which.YAxis)]
-    [InlineData(ChartType.Line, Which.XAxis)]
-    [InlineData(ChartType.Line, Which.YAxis)]
-    [InlineData(ChartType.Bar2D, Which.XAxis)]
-    [InlineData(ChartType.Bar2D, Which.YAxis)]
-    [InlineData(ChartType.BarStacked2D, Which.YAxis)]
+    [Test]
+    [Arguments(ChartType.Column2D, Which.XAxis)]
+    [Arguments(ChartType.Column2D, Which.YAxis)]
+    [Arguments(ChartType.Line, Which.XAxis)]
+    [Arguments(ChartType.Line, Which.YAxis)]
+    [Arguments(ChartType.Bar2D, Which.XAxis)]
+    [Arguments(ChartType.Bar2D, Which.YAxis)]
+    [Arguments(ChartType.BarStacked2D, Which.YAxis)]
     public void AVisibleAxisLineIsStroked(ChartType type, Which which)
     {
         // The other half, so the test below is not passing on an axis that is never drawn in red.
         StrokedInRed(Drawn.Page(WithARedAxis(type, which, visible: true))).Should().BeGreaterThan(0);
     }
 
-    [Theory]
-    [InlineData(ChartType.Column2D, Which.XAxis)]
-    [InlineData(ChartType.Column2D, Which.YAxis)]
-    [InlineData(ChartType.Line, Which.XAxis)]
-    [InlineData(ChartType.Line, Which.YAxis)]
-    [InlineData(ChartType.Bar2D, Which.XAxis)]
-    [InlineData(ChartType.Bar2D, Which.YAxis)]
-    [InlineData(ChartType.BarStacked2D, Which.YAxis)]
+    [Test]
+    [Arguments(ChartType.Column2D, Which.XAxis)]
+    [Arguments(ChartType.Column2D, Which.YAxis)]
+    [Arguments(ChartType.Line, Which.XAxis)]
+    [Arguments(ChartType.Line, Which.YAxis)]
+    [Arguments(ChartType.Bar2D, Which.XAxis)]
+    [Arguments(ChartType.Bar2D, Which.YAxis)]
+    [Arguments(ChartType.BarStacked2D, Which.YAxis)]
     public void AnAxisLineThatIsNotVisibleIsNotStrokedOnAnyAxis(ChartType type, Which which)
     {
         // Its tick marks are drawn from the same format, and are hidden with it.
@@ -75,9 +75,9 @@ public class HiddenAxisLineTests
             "a line format that is not visible is no line on every axis, not a hairline on some");
     }
 
-    [Theory]
-    [InlineData(ChartType.Column2D)]
-    [InlineData(ChartType.Bar2D)]
+    [Test]
+    [Arguments(ChartType.Column2D)]
+    [Arguments(ChartType.Bar2D)]
     public void GridlinesThatAreNotVisibleAreNotStroked(ChartType type)
     {
         // A negative value puts zero inside the scale, so the zero baseline is drawn from the
@@ -93,7 +93,7 @@ public class HiddenAxisLineTests
         StrokedInRed(Drawn.Page(chart)).Should().BeGreaterThan(0);
     }
 
-    [Fact]
+    [Test]
     public void ALegendBorderThatIsNotVisibleIsNotStroked()
     {
         var chart = Charts.Of(ChartType.Column2D, 1.0, 3.0, 2.0);

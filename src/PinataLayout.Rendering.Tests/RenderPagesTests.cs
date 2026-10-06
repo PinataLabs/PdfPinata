@@ -1,7 +1,7 @@
 using System;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.Rendering.Tests;
 
@@ -23,7 +23,7 @@ public class RenderPagesTests
         return document;
     }
 
-    [Fact]
+    [Test]
     public void RenderPagesPreparesARendererNobodyPrepared()
     {
         var renderer = new PdfDocumentRenderer(true) { Document = TwoPages() };
@@ -33,7 +33,7 @@ public class RenderPagesTests
         renderer.PdfDocument.PageCount.Should().Be(2);
     }
 
-    [Fact]
+    [Test]
     public void RenderPagesStillRefusesAPageTheDocumentDoesNotHave()
     {
         var renderer = new PdfDocumentRenderer(true) { Document = TwoPages() };

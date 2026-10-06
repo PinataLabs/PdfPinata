@@ -6,7 +6,7 @@ using PdfPinata.Charting.Tests.Helpers;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Charting.Tests;
 
@@ -41,14 +41,14 @@ public class MarkerTests
     ///   dash is a third as tall as it is wide; a star's outer points lie on a circle of the
     ///   marker's size, so it falls a little short of it both ways.
     /// </summary>
-    [Theory]
-    [InlineData(MarkerStyle.Square, 4, 1.0, 1.0)]
-    [InlineData(MarkerStyle.Diamond, 4, 1.0, 1.0)]
-    [InlineData(MarkerStyle.Triangle, 3, 1.1547, 1.0)]
-    [InlineData(MarkerStyle.Plus, 12, 1.0, 1.0)]
-    [InlineData(MarkerStyle.X, 12, 1.0, 1.0)]
-    [InlineData(MarkerStyle.Dash, 4, 1.0, 1.0 / 3)]
-    [InlineData(MarkerStyle.Star, 10, 0.9511, 0.9045)]
+    [Test]
+    [Arguments(MarkerStyle.Square, 4, 1.0, 1.0)]
+    [Arguments(MarkerStyle.Diamond, 4, 1.0, 1.0)]
+    [Arguments(MarkerStyle.Triangle, 3, 1.1547, 1.0)]
+    [Arguments(MarkerStyle.Plus, 12, 1.0, 1.0)]
+    [Arguments(MarkerStyle.X, 12, 1.0, 1.0)]
+    [Arguments(MarkerStyle.Dash, 4, 1.0, 1.0 / 3)]
+    [Arguments(MarkerStyle.Star, 10, 0.9511, 0.9045)]
     public void EachMarkerStyleIsAPolygonOfItsOwnShape(MarkerStyle style, int corners, double widthPerSize,
         double heightPerSize)
     {
@@ -65,7 +65,7 @@ public class MarkerTests
         }
     }
 
-    [Fact]
+    [Test]
     public void ACircleMarkerIsDrawnWithCurvesAsWideAndTallAsItsSize()
     {
         var page = Drawn.Page(LineWith(MarkerStyle.Circle, 1.0, 3.0, 2.0));
@@ -84,7 +84,7 @@ public class MarkerTests
     ///   A diamond is a square turned on its corner: its corners are at the middle of each side of
     ///   the square it fits in, not at that square's corners.
     /// </summary>
-    [Fact]
+    [Test]
     public void ADiamondHasItsCornersAtTheMiddleOfEachSide()
     {
         var marker = PaintedPaths.FilledIn(Drawn.Page(LineWith(MarkerStyle.Diamond, 1.0, 3.0)), Background)[0];
@@ -99,7 +99,7 @@ public class MarkerTests
     /// <summary>
     ///   A triangle points up: one corner at the top, over the point, and two at the bottom.
     /// </summary>
-    [Fact]
+    [Test]
     public void ATrianglePointsUp()
     {
         var marker = PaintedPaths.FilledIn(Drawn.Page(LineWith(MarkerStyle.Triangle, 1.0, 3.0)), Background)[0];
@@ -115,15 +115,15 @@ public class MarkerTests
     ///   and down it too. The star is drawn from its top point, which sits half the marker's size
     ///   above the data point, and its lower points reach less far below.
     /// </summary>
-    [Theory]
-    [InlineData(MarkerStyle.Square, 0.5)]
-    [InlineData(MarkerStyle.Diamond, 0.5)]
-    [InlineData(MarkerStyle.Triangle, 0.5)]
-    [InlineData(MarkerStyle.Plus, 0.5)]
-    [InlineData(MarkerStyle.X, 0.5)]
-    [InlineData(MarkerStyle.Circle, 0.5)]
-    [InlineData(MarkerStyle.Dash, 1.0 / 6)]
-    [InlineData(MarkerStyle.Star, 0.5)]
+    [Test]
+    [Arguments(MarkerStyle.Square, 0.5)]
+    [Arguments(MarkerStyle.Diamond, 0.5)]
+    [Arguments(MarkerStyle.Triangle, 0.5)]
+    [Arguments(MarkerStyle.Plus, 0.5)]
+    [Arguments(MarkerStyle.X, 0.5)]
+    [Arguments(MarkerStyle.Circle, 0.5)]
+    [Arguments(MarkerStyle.Dash, 1.0 / 6)]
+    [Arguments(MarkerStyle.Star, 0.5)]
     public void AMarkerSitsOnItsDataPoint(MarkerStyle style, double topAbovePointPerSize)
     {
         var page = Drawn.Page(LineWith(style, 1.0, 3.0, 2.0));
@@ -138,7 +138,7 @@ public class MarkerTests
         }
     }
 
-    [Fact]
+    [Test]
     public void AMarkerStyledNoneDrawsNoMarkerButStillTheLine()
     {
         var page = Drawn.Page(LineWith(MarkerStyle.None, 1.0, 3.0, 2.0));
@@ -154,7 +154,7 @@ public class MarkerTests
     ///   Each marker is filled in its background colour and then outlined, half a point wide, in
     ///   its foreground colour along exactly the same path.
     /// </summary>
-    [Fact]
+    [Test]
     public void AMarkerIsFilledInItsBackgroundAndOutlinedInItsForeground()
     {
         var page = Drawn.Page(LineWith(MarkerStyle.Square, 1.0, 3.0, 2.0));
@@ -179,7 +179,7 @@ public class MarkerTests
     ///   Left to itself a marker is outlined in black and filled in the colour of the line it is
     ///   on, which comes from the chart's own palette.
     /// </summary>
-    [Fact]
+    [Test]
     public void AMarkerGivenNoColoursIsOutlinedInBlackAndFilledInTheLinesColour()
     {
         var chart = Charts.Of(ChartType.Line, 1.0, 3.0, 2.0);
@@ -200,7 +200,7 @@ public class MarkerTests
     ///   A marker's background colour is also the line's: a series that names one is drawn in it
     ///   end to end, rather than in the palette colour its place in the chart would have given it.
     /// </summary>
-    [Fact]
+    [Test]
     public void AMarkerBackgroundColourColoursTheLineToo()
     {
         var page = Drawn.Page(LineWith(MarkerStyle.Square, 1.0, 3.0, 2.0));
@@ -208,7 +208,7 @@ public class MarkerTests
         SeriesLines(page).Should().HaveCount(2).And.OnlyContain(line => line.Colour == Background);
     }
 
-    [Fact]
+    [Test]
     public void AMarkerGivenNoSizeIsSevenPointsAcross()
     {
         var chart = Charts.Of(ChartType.Line, 1.0, 3.0);
@@ -224,7 +224,7 @@ public class MarkerTests
     ///   The size is an <see cref="XUnit"/>, and a marker is drawn at its length in points, so the
     ///   same marker given in millimetres comes out at the same size as in points.
     /// </summary>
-    [Fact]
+    [Test]
     public void AMarkerSizeGivenInMillimetresIsDrawnAtItsLengthInPoints()
     {
         var chart = LineWith(MarkerStyle.Square, 1.0, 3.0);
@@ -241,7 +241,7 @@ public class MarkerTests
     ///   A series that names no style takes one from its place in the chart - circle, then dash,
     ///   then diamond - so that series drawn in similar colours can still be told apart.
     /// </summary>
-    [Fact]
+    [Test]
     public void SeriesThatNameNoStyleTakeTheStylesInTurn()
     {
         var colours = new[] { XColors.Blue, XColors.Green, XColors.Purple };

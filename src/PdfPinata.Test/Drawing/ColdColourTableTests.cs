@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Runtime.Loader;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -54,7 +54,7 @@ public class ColdColourTableTests
         }
     }
 
-    [Fact]
+    [Test]
     public void AskingWhetherAColourIsKnownWorksBeforeAnyColourHasBeenNamed()
     {
         // The table is built by the lookup that turns a known colour into an ARGB, and by nothing
@@ -74,7 +74,7 @@ public class ColdColourTableTests
         known.Should().Be(false, "1, 2, 3 is not one of the 141");
     }
 
-    [Fact]
+    [Test]
     public void LookingUpAKnownColourByItsArgbWorksBeforeAnyColourHasBeenNamed()
     {
         var name = InvokeThrough(assembly =>
@@ -90,7 +90,7 @@ public class ColdColourTableTests
         name.Should().Be("Red");
     }
 
-    [Fact]
+    [Test]
     public void TheTableIsBuiltOnceAndCannotBeReplacedAfterwards()
     {
         // Which is what makes the two tests above hold rather than happening to hold: a field the

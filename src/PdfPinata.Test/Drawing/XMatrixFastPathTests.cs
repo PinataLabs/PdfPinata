@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -20,7 +20,7 @@ public class XMatrixFastPathTests
 {
     private const double Tolerance = 1e-12;
 
-    [Fact]
+    [Test]
     public void AppendingATranslationToAGeneralMatrixMovesWhatItAlreadyDid()
     {
         // A quarter turn, which is none of the special kinds, so the offsets are added to as
@@ -34,9 +34,9 @@ public class XMatrixFastPathTests
         matrix.Transform(new XPoint(1, 0)).Should().Be(new XPoint(10, 21));
     }
 
-    [Theory]
-    [InlineData(XMatrixOrder.Append)]
-    [InlineData(XMatrixOrder.Prepend)]
+    [Test]
+    [Arguments(XMatrixOrder.Append)]
+    [Arguments(XMatrixOrder.Prepend)]
     public void TranslatingTheIdentityWithEitherOrderIsAPlainTranslation(XMatrixOrder order)
     {
         var matrix = new XMatrix();
@@ -47,7 +47,7 @@ public class XMatrixFastPathTests
         matrix.Transform(new XPoint(1, 1)).Should().Be(new XPoint(11, 21));
     }
 
-    [Fact]
+    [Test]
     public void RotatingWithThePrependOrderTurnsThePointBeforeTheRestOfTheMatrixSeesIt()
     {
         var matrix = new XMatrix(1, 0, 0, 1, 10, 0);
@@ -72,7 +72,7 @@ public class XMatrixFastPathTests
         byName.Y.Should().BeApproximately(moved.Y, Tolerance);
     }
 
-    [Fact]
+    [Test]
     public void SettingTheScaleOfATranslationMakesItAScaleAndATranslation()
     {
         var matrix = new XMatrix(1, 0, 0, 1, 5, 0) { M11 = 2 };
@@ -81,7 +81,7 @@ public class XMatrixFastPathTests
         matrix.Transform(new XPoint(1, 1)).Should().Be(new XPoint(7, 1));
     }
 
-    [Fact]
+    [Test]
     public void SettingTheScaleOfAGeneralMatrixLeavesItGeneral()
     {
         var matrix = new XMatrix(1, 2, 3, 4, 0, 0) { M11 = 5 };
@@ -90,7 +90,7 @@ public class XMatrixFastPathTests
         matrix.Transform(new XPoint(1, 1)).Should().Be(new XPoint(8, 6));
     }
 
-    [Fact]
+    [Test]
     public void SettingAShearTermOfTheIdentityMakesItAShear()
     {
         var matrix = new XMatrix { M21 = 1 };
@@ -100,7 +100,7 @@ public class XMatrixFastPathTests
         matrix.Transform(new XPoint(1, 0)).Should().Be(new XPoint(1, 0));
     }
 
-    [Fact]
+    [Test]
     public void SettingTheVerticalScaleOfTheIdentityAndThenOfTheScaleItBecame()
     {
         var matrix = new XMatrix { M22 = 3 };
@@ -111,7 +111,7 @@ public class XMatrixFastPathTests
         matrix.Transform(new XPoint(1, 1)).Should().Be(new XPoint(1, 4));
     }
 
-    [Fact]
+    [Test]
     public void SettingTheOffsetsOfTheIdentityOneAtATime()
     {
         var horizontal = new XMatrix { OffsetX = 5 };
@@ -123,7 +123,7 @@ public class XMatrixFastPathTests
         vertical.Transform(new XPoint(1, 1)).Should().Be(new XPoint(1, 6));
     }
 
-    [Fact]
+    [Test]
     public void SettingTheOffsetsOfAScaleMakesItAScaleAndATranslation()
     {
         var matrix = new XMatrix(2, 0, 0, 3, 0, 0) { OffsetX = 10 };
@@ -134,7 +134,7 @@ public class XMatrixFastPathTests
         matrix.Transform(new XPoint(1, 1)).Should().Be(new XPoint(12, 23));
     }
 
-    [Fact]
+    [Test]
     public void ATranslationDoesNotMoveAVector()
     {
         var translation = new XMatrix(1, 0, 0, 1, 10, 20);
@@ -142,7 +142,7 @@ public class XMatrixFastPathTests
         translation.Transform(new XVector(3, 4)).Should().Be(new XVector(3, 4));
     }
 
-    [Fact]
+    [Test]
     public void AGeneralMatrixTransformsAVectorByItsFourTermsAlone()
     {
         var matrix = new XMatrix(1, 2, 3, 4, 10, 20);
@@ -155,7 +155,7 @@ public class XMatrixFastPathTests
         vectors.Should().Equal(new XVector(1, 2), new XVector(3, 4));
     }
 
-    [Fact]
+    [Test]
     public void TheIdentityLeavesAnArrayOfPointsWhereItWas()
     {
         var points = new[] { new XPoint(1, 2), new XPoint(-3, 4) };
@@ -165,7 +165,7 @@ public class XMatrixFastPathTests
         points.Should().Equal(new XPoint(1, 2), new XPoint(-3, 4));
     }
 
-    [Fact]
+    [Test]
     public void ATranslationMovesARectangleWithoutResizingIt()
     {
         var translation = new XMatrix(1, 0, 0, 1, 10, 20);
@@ -173,7 +173,7 @@ public class XMatrixFastPathTests
         XRect.Transform(new XRect(1, 2, 3, 4), translation).Should().Be(new XRect(11, 22, 3, 4));
     }
 
-    [Fact]
+    [Test]
     public void AScaleResizesARectangleAndMovesItsCorner()
     {
         var scale = new XMatrix(2, 0, 0, 3, 0, 0);
@@ -181,7 +181,7 @@ public class XMatrixFastPathTests
         XRect.Transform(new XRect(1, 2, 3, 4), scale).Should().Be(new XRect(2, 6, 6, 12));
     }
 
-    [Fact]
+    [Test]
     public void AScaleAndATranslationScalesTheRectangleFirst()
     {
         var both = new XMatrix(2, 0, 0, 3, 10, 20);
@@ -189,7 +189,7 @@ public class XMatrixFastPathTests
         XRect.Transform(new XRect(1, 2, 3, 4), both).Should().Be(new XRect(12, 26, 6, 12));
     }
 
-    [Fact]
+    [Test]
     public void AMirroringScaleFlipsARectangleAndKeepsItsSizePositive()
     {
         // A y-flip is what every page transform with its origin at the bottom left is made of.
@@ -200,7 +200,7 @@ public class XMatrixFastPathTests
         XRect.Transform(new XRect(1, 2, 3, 4), mirror).Should().Be(new XRect(-4, -12, 3, 8));
     }
 
-    [Fact]
+    [Test]
     public void AFlipAndATranslationTransformARectangleInPlace()
     {
         var flip = new XMatrix(1, 0, 0, -1, 0, 100);
@@ -211,14 +211,14 @@ public class XMatrixFastPathTests
         rect.Should().Be(new XRect(10, 40, 30, 40));
     }
 
-    [Fact]
+    [Test]
     public void TheIdentityLeavesARectangleAndNothingMovesTheEmptyOne()
     {
         XRect.Transform(new XRect(1, 2, 3, 4), XMatrix.Identity).Should().Be(new XRect(1, 2, 3, 4));
         XRect.Transform(XRect.Empty, new XMatrix(2, 0, 0, 2, 5, 5)).IsEmpty.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ToStringWithoutAFormatProviderWritesTheSixNumbers()
     {
         // The list separator comes from the current culture, so it is pinned here; the change is
@@ -239,7 +239,7 @@ public class XMatrixFastPathTests
         }
     }
 
-    [Fact]
+    [Test]
     public void ACultureWithADecimalCommaSeparatesTheNumbersWithSemicolons()
     {
         var german = CultureInfo.GetCultureInfo("de-DE");
@@ -253,15 +253,15 @@ public class XMatrixFastPathTests
     ///   assembly compiled before they were marked still binds to them, and what it gets is a
     ///   refusal rather than a guess at the order.
     /// </summary>
-    [Theory]
-    [InlineData("Translate(Double,Double)")]
-    [InlineData("Scale(Double)")]
-    [InlineData("ScaleAt(Double,Double,Double,Double)")]
-    [InlineData("Rotate(Double)")]
-    [InlineData("RotateAt(Double,Double,Double)")]
-    [InlineData("RotateAt(Double,XPoint)")]
-    [InlineData("Shear(Double,Double)")]
-    [InlineData("Skew(Double,Double)")]
+    [Test]
+    [Arguments("Translate(Double,Double)")]
+    [Arguments("Scale(Double)")]
+    [Arguments("ScaleAt(Double,Double,Double,Double)")]
+    [Arguments("Rotate(Double)")]
+    [Arguments("RotateAt(Double,Double,Double)")]
+    [Arguments("RotateAt(Double,XPoint)")]
+    [Arguments("Shear(Double,Double)")]
+    [Arguments("Skew(Double,Double)")]
     public void AnObsoleteMemberThatNamesNoOrderRefusesAndLeavesTheMatrixAlone(string signature)
     {
         var method = ObsoleteMember(signature);
@@ -273,7 +273,7 @@ public class XMatrixFastPathTests
         ((XMatrix)boxed).GetElements().Should().Equal(2, 0, 0, 3, 4, 5);
     }
 
-    [Fact]
+    [Test]
     public void TheOneObsoleteMemberThatStillWorksScalesBeforeTheRestOfTheMatrix()
     {
         // Scale(x, y) was left working, and it prepends, which is what GDI+ means by the bare

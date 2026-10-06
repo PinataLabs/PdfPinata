@@ -5,7 +5,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Drawing.Layout;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing.Layout;
 
@@ -51,7 +51,7 @@ public class XTextSegmentFormatterLineBreakTests
 
     // ----- the single-string overloads ------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AStringCanBeDrawnWithoutBuildingASegmentForIt()
     {
         var page = PageShowing(f => f.DrawString("Hello world", Plain, XBrushes.Black, Layout));
@@ -59,7 +59,7 @@ public class XTextSegmentFormatterLineBreakTests
         TextBaselines.PositionsOf(page).Should().NotBeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void TheSingleStringOverloadTakingAFormatLaysOutTheSameWay()
     {
         var withFormat = PageShowing(f =>
@@ -71,7 +71,7 @@ public class XTextSegmentFormatterLineBreakTests
 
     // ----- what the formatter refuses -------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ASegmentWithoutAFontIsRefused()
     {
         var drawing = () => PageShowing(f =>
@@ -80,7 +80,7 @@ public class XTextSegmentFormatterLineBreakTests
         drawing.Should().Throw<ArgumentNullException>();
     }
 
-    [Fact]
+    [Test]
     public void ASegmentWithoutABrushIsRefused()
     {
         var drawing = () => PageShowing(f =>
@@ -89,10 +89,10 @@ public class XTextSegmentFormatterLineBreakTests
         drawing.Should().Throw<ArgumentNullException>();
     }
 
-    [Theory]
-    [InlineData("TopCenter")]
-    [InlineData("BottomRight")]
-    [InlineData("Center")]
+    [Test]
+    [Arguments("TopCenter")]
+    [Arguments("BottomRight")]
+    [Arguments("Center")]
     public void OnlyTopLeftAlignmentIsImplemented(string which)
     {
         var format = which switch
@@ -107,7 +107,7 @@ public class XTextSegmentFormatterLineBreakTests
         drawing.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void MeasuringAlsoRefusesAnAlignmentItCannotHonour()
     {
         var measuring = () => PageShowing(f =>
@@ -118,10 +118,10 @@ public class XTextSegmentFormatterLineBreakTests
 
     // ----- the line break -------------------------------------------------------------------------
 
-    [Theory]
-    [InlineData("first\nsecond")]
-    [InlineData("first\rsecond")]
-    [InlineData("first\r\nsecond")]
+    [Test]
+    [Arguments("first\nsecond")]
+    [Arguments("first\rsecond")]
+    [Arguments("first\r\nsecond")]
     public void EverySpellingOfALineBreakStartsANewLine(string text)
     {
         var page = PageShowing(f => f.DrawString([Segment(text)], Layout));
@@ -129,7 +129,7 @@ public class XTextSegmentFormatterLineBreakTests
         BaselinesOf(page).Should().HaveCount(2, "the break ends the first line wherever it came from");
     }
 
-    [Fact]
+    [Test]
     public void ABreakAtTheEndOfTheTextStillEndsTheLine()
     {
         var page = PageShowing(f => f.DrawString([Segment("first\n")], Layout));
@@ -137,7 +137,7 @@ public class XTextSegmentFormatterLineBreakTests
         BaselinesOf(page).Should().HaveCount(1);
     }
 
-    [Fact]
+    [Test]
     public void ABlankLineBetweenTwoParagraphsIsKept()
     {
         var page = PageShowing(f => f.DrawString([Segment("first\n\nsecond")], Layout));
@@ -150,7 +150,7 @@ public class XTextSegmentFormatterLineBreakTests
         (oneLine[0] - oneLine[1]).Should().BeLessThan(gap, "the blank line takes a line's height of its own");
     }
 
-    [Fact]
+    [Test]
     public void ABreakInOneSegmentEndsTheLineForTheSegmentsAfterIt()
     {
         var page = PageShowing(f => f.DrawString([Segment("first\n"), Segment("second")], Layout));
@@ -158,7 +158,7 @@ public class XTextSegmentFormatterLineBreakTests
         BaselinesOf(page).Should().HaveCount(2);
     }
 
-    [Fact]
+    [Test]
     public void MeasuringCountsTheHeightOfEveryLineABreakMade()
     {
         XSize oneLine = default;
@@ -174,7 +174,7 @@ public class XTextSegmentFormatterLineBreakTests
 
     // ----- lines of differing height ---------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ALineWhoseTallestRunIsNotItsFirstPushesTheLinesBelowItDown()
     {
         var mixed = PageShowing(f => f.DrawString(
@@ -197,7 +197,7 @@ public class XTextSegmentFormatterLineBreakTests
     ///   Wrapped text stops at the bottom of the rectangle it was given. The block that would sit
     ///   below it is marked <c>Stop</c> and nothing after it is drawn.
     /// </summary>
-    [Fact]
+    [Test]
     public void WrappedTextStopsAtTheBottomOfTheRectangle()
     {
         var text = string.Join(" ", Enumerable.Repeat("The quick brown fox jumps over the lazy dog", 20));
@@ -218,7 +218,7 @@ public class XTextSegmentFormatterLineBreakTests
     ///   so every later paragraph is laid out and drawn below the rectangle. Wrapped text is all
     ///   one unit, which is why <see cref="WrappedTextStopsAtTheBottomOfTheRectangle"/> holds.
     /// </summary>
-    [Fact]
+    [Test]
     public void TextBrokenByTheCallerRunsOnPastTheBottomOfTheRectangle()
     {
         var text = string.Join("\n", Enumerable.Range(0, 40).Select(index => "line " + index));
@@ -231,7 +231,7 @@ public class XTextSegmentFormatterLineBreakTests
 
     // ----- the per-segment layout properties --------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ASegmentCanIndentTheLineItStarts()
     {
         var plain = PageShowing(f =>
@@ -258,7 +258,7 @@ public class XTextSegmentFormatterLineBreakTests
     ///   alone is skipped over before the spreading starts — so a leading label keeps its place
     ///   while the words after it move.
     /// </summary>
-    [Fact]
+    [Test]
     public void AJustifiedLineLeavesASegmentThatAsksToBeSkippedWhereItIs()
     {
         var label = new TextSegment

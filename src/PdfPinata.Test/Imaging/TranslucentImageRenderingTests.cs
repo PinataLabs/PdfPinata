@@ -8,7 +8,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Skia;
 using PdfPinata.Test.Helpers;
 using SkiaSharp;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Imaging;
@@ -27,7 +27,7 @@ namespace PdfPinata.Test.Imaging;
 ///   palette PNG as empira/PDFsharp#392; the palette had nothing to do with it, and this fork
 ///   never had a palette path to begin with, both backends handing back BGRA whatever went in.
 /// </remarks>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public sealed class TranslucentImageRenderingTests : IDisposable
 {
     private const string OutDir = "Out/TranslucentImage";
@@ -44,7 +44,7 @@ public sealed class TranslucentImageRenderingTests : IDisposable
     ///   39% of black over white is a light grey, and it used to be nothing at all: every pixel
     ///   sat below the stencil's threshold, so the stencil declared the whole image transparent.
     /// </summary>
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void AUniformlyTranslucentImageIsDrawnRatherThanErased()
     {
         var page = Rasterize("uniform_alpha_100", Translucent(100));
@@ -57,7 +57,7 @@ public sealed class TranslucentImageRenderingTests : IDisposable
     ///   The stencil rounded alpha to one of two values at 128, so the two sides of it came out
     ///   as opposites - one invisible and one nearly solid - where they should be a shade apart.
     /// </summary>
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void TheTwoSidesOfTheOldStencilThresholdAreOnlyOneShadeApart()
     {
         var below = Luminance(Sample(Rasterize("alpha_127", Translucent(127))));
@@ -74,7 +74,7 @@ public sealed class TranslucentImageRenderingTests : IDisposable
     ///   are the antialiasing - so the stencil left the shape with hard edges and fewer shades
     ///   than it was drawn with.
     /// </summary>
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void EveryShadeOfAPartlyTransparentImageSurvives()
     {
         var image = XImage.FromFile(Path.Combine("Assets", "Drawing", "indexed-trns.png"));

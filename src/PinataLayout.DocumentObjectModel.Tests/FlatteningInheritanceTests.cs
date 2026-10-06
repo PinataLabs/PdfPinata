@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
 using PinataLayout.DocumentObjectModel.Visitors;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -23,7 +23,7 @@ public class FlatteningInheritanceTests
 
     // ----- shading ----------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AParagraphWithNoShadingTakesTheOneItsStyleHas()
     {
         var document = new Document();
@@ -36,7 +36,7 @@ public class FlatteningInheritanceTests
         paragraph.Format.Shading.Color.Should().Be(Colors.LightGray);
     }
 
-    [Fact]
+    [Test]
     public void AParagraphWithAShadingOfItsOwnKeepsItAndFillsInTheRest()
     {
         var document = new Document();
@@ -55,7 +55,7 @@ public class FlatteningInheritanceTests
 
     // ----- borders ----------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void EachEdgeOfABorderIsMergedWithTheSameEdgeOfTheStyle()
     {
         var document = new Document();
@@ -86,7 +86,7 @@ public class FlatteningInheritanceTests
     ///   has not answered for itself. That fill-in runs per edge, after the style's own edge has
     ///   been merged in.
     /// </summary>
-    [Fact]
+    [Test]
     public void AValueSetOnTheCollectionReachesTheEdgesThatSaidNothing()
     {
         var document = new Document();
@@ -117,7 +117,7 @@ public class FlatteningInheritanceTests
     ///   length the caller did set was the one thrown away and the other was left unset — a page of
     ///   no width at all.
     /// </summary>
-    [Fact]
+    [Test]
     public void ASectionThatNamesAPageFormatAndOneLengthKeepsTheLengthAndTakesTheOther()
     {
         var byWidth = new Document();
@@ -142,7 +142,7 @@ public class FlatteningInheritanceTests
         tall.PageSetup.PageWidth.Point.Should().BeApproximately(a5Width.Point, 1e-3);
     }
 
-    [Fact]
+    [Test]
     public void ASectionThatNamesOnlyAPageFormatTakesBothLengthsFromIt()
     {
         var document = new Document();
@@ -163,7 +163,7 @@ public class FlatteningInheritanceTests
     ///   name <c>InvalidStyleName</c>, which is a built-in style, so the document still renders and
     ///   the mistake is visible in the output rather than fatal at render time.
     /// </summary>
-    [Fact]
+    [Test]
     public void AParagraphNamingAStyleThatDoesNotExistIsGivenTheInvalidOne()
     {
         var document = new Document();
@@ -175,7 +175,7 @@ public class FlatteningInheritanceTests
         paragraph.Style.Should().Be("InvalidStyleName");
     }
 
-    [Fact]
+    [Test]
     public void AParagraphNamingNoStyleAtAllIsGivenNormal()
     {
         var document = new Document();
@@ -188,7 +188,7 @@ public class FlatteningInheritanceTests
 
     // ----- footnotes ----------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AFootnoteNamingAStyleTakesThatStylesFormat()
     {
         var document = new Document();
@@ -201,7 +201,7 @@ public class FlatteningInheritanceTests
         footnote.Format.SpaceBefore.Millimeter.Should().BeApproximately(7, 1e-3);
     }
 
-    [Fact]
+    [Test]
     public void AFootnoteWithAFormatOfItsOwnKeepsItAndFillsInTheRest()
     {
         var document = new Document();
@@ -216,7 +216,7 @@ public class FlatteningInheritanceTests
         footnote.Format.SpaceBefore.Millimeter.Should().BeApproximately(7, 1e-3);
     }
 
-    [Fact]
+    [Test]
     public void AFootnoteNamingNoStyleIsGivenTheFootnoteOne()
     {
         var document = new Document();
@@ -234,7 +234,7 @@ public class FlatteningInheritanceTests
     ///   of 0.15 for gridlines and 0.4 for the axis itself. The axis's own line format is only
     ///   flattened if it exists, so asking for it is what brings it into being.
     /// </summary>
-    [Fact]
+    [Test]
     public void EachAxisOfAChartIsGivenTheDefaultLineWidths()
     {
         var document = new Document();
@@ -257,7 +257,7 @@ public class FlatteningInheritanceTests
         chart.XAxis.LineFormat.Width.Point.Should().BeApproximately(0.4, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void AnAxisThatSetsItsOwnLineWidthKeepsIt()
     {
         var document = new Document();
@@ -269,7 +269,7 @@ public class FlatteningInheritanceTests
         chart.XAxis.LineFormat.Width.Point.Should().BeApproximately(3, 1e-4);
     }
 
-    [Fact]
+    [Test]
     public void AChartWithAFormatOfItsOwnKeepsItAndFillsInTheRestFromItsStyle()
     {
         var document = new Document();

@@ -1,7 +1,8 @@
 using System;
+using System.Collections.Generic;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Dom;
 
@@ -19,7 +20,7 @@ public class ColorValueTests
 {
     // ----- the two spellings --------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnRgbColourKnowsItsPartsAndIsNotCmyk()
     {
         var color = new Color(0x80, 0x10, 0x20, 0x30);
@@ -33,7 +34,7 @@ public class ColorValueTests
         color.RGB.Should().Be(0x80102030u);
     }
 
-    [Fact]
+    [Test]
     public void ACmykColourClampsEveryPartIntoItsRange()
     {
         var color = new Color(200, -5, 50, 120, -1);
@@ -46,14 +47,14 @@ public class ColorValueTests
         color.K.Should().Be(0);
     }
 
-    [Fact]
+    [Test]
     public void ACmykColourWithNoAlphaGivenIsOpaque()
     {
         Color.FromCmyk(10, 20, 30, 40).Alpha.Should().Be(100);
         Color.FromCmyk(50, 10, 20, 30, 40).Alpha.Should().Be(50);
     }
 
-    [Fact]
+    [Test]
     public void AColourCanBeBuiltFromAnotherWithANewTransparency()
     {
         var opaque = new Color(0x10, 0x20, 0x30);
@@ -74,17 +75,17 @@ public class ColorValueTests
         fainter.K.Should().Be(cmyk.K);
     }
 
-    public static TheoryData<double, double, double> ProcessInks()
+    public static IEnumerable<(double, double, double)> ProcessInks()
     {
-        var inks = new TheoryData<double, double, double>();
+        var inks = new List<(double, double, double)>();
         foreach (var (c, m, y) in new[] { (0.0, 0.0, 0.0), (100.0, 0.0, 0.0), (0.0, 100.0, 0.0),
                      (0.0, 0.0, 100.0), (10.0, 20.0, 30.0), (33.3, 66.6, 12.5), (100.0, 100.0, 100.0) })
-            inks.Add(c, m, y);
+            inks.Add((c, m, y));
         return inks;
     }
 
-    [Theory]
-    [MemberData(nameof(ProcessInks))]
+    [Test]
+    [MethodDataSource(nameof(ProcessInks))]
     public void ACmykColourHasTheRgbThatXColorGivesTheSameInks(double c, double m, double y)
     {
         // The DOM worked out a CMYK colour's RGB with its own copy of XColor's formula, which added
@@ -104,7 +105,7 @@ public class ColorValueTests
 
     // ----- what may be changed afterwards -------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnRgbColourCanBeGivenANewValueEitherWayRound()
     {
         var byArgb = new Color(0x010203) { Argb = 0xFF445566 };
@@ -115,7 +116,7 @@ public class ColorValueTests
         byArgb.Should().Be(byRgb);
     }
 
-    [Fact]
+    [Test]
     public void ACmykColourRefusesToBeGivenAnRgbValue()
     {
         var cmyk = Color.FromCmyk(10, 20, 30, 40);
@@ -137,7 +138,7 @@ public class ColorValueTests
 
     // ----- equality -----------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TwoColoursOfDifferentKindsAreNeverEqualEvenWhenTheyLookTheSame()
     {
         var cmyk = Color.FromCmyk(0, 0, 0, 100);
@@ -149,7 +150,7 @@ public class ColorValueTests
         cmyk.Equals((object)rgb).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void TwoCmykColoursAreEqualWhenEveryPartAgrees()
     {
         var one = Color.FromCmyk(50, 10, 20, 30, 40);
@@ -163,7 +164,7 @@ public class ColorValueTests
         one.GetHashCode().Should().Be(same.GetHashCode());
     }
 
-    [Fact]
+    [Test]
     public void TwoRgbColoursAreEqualWhenTheirArgbAgrees()
     {
         var one = new Color(0xFF102030);
@@ -173,14 +174,14 @@ public class ColorValueTests
         one.GetHashCode().Should().Be(same.GetHashCode());
     }
 
-    [Fact]
+    [Test]
     public void AColourIsNotEqualToSomethingThatIsNotAColour()
     {
         Colors.Black.Equals("black").Should().BeFalse();
         Colors.Black.Equals(null).Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void TheEmptyColourIsTheOnlyEmptyOne()
     {
         Color.Empty.IsEmpty.Should().BeTrue();
@@ -189,14 +190,14 @@ public class ColorValueTests
 
     // ----- parsing ------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AColourIsParsedFromItsNameCaseInsensitively()
     {
         Color.Parse("Red").Should().Be(Colors.Red);
         Color.Parse("red").Should().Be(Colors.Red);
     }
 
-    [Fact]
+    [Test]
     public void AColourIsParsedFromAHexadecimalOrADecimalNumber()
     {
         Color.Parse("0xFF102030").Argb.Should().Be(0xFF102030u);
@@ -204,7 +205,7 @@ public class ColorValueTests
         Color.Parse("255").Argb.Should().Be(255u);
     }
 
-    [Fact]
+    [Test]
     public void AColourThatIsNeitherANameNorANumberIsRefused()
     {
         var parsing = () => Color.Parse("chartreusish");
@@ -212,7 +213,7 @@ public class ColorValueTests
         parsing.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void AColourMustNotBeNullOrEmptyToBeParsed()
     {
         ((Action)(() => Color.Parse(null!))).Should().Throw<ArgumentNullException>();
@@ -221,7 +222,7 @@ public class ColorValueTests
 
     // ----- the value model ----------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AColourSetOnADomObjectCanBeEmptiedAgain()
     {
         var font = new Document().AddSection().AddParagraph("x").Format.Font;
@@ -237,7 +238,7 @@ public class ColorValueTests
 
     // ----- transparency mixed down ---------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnOpaqueColourIsAlreadyItsOwnMixedTransparencyColour()
     {
         var opaque = new Color(0xFF, 0x10, 0x20, 0x30);
@@ -245,7 +246,7 @@ public class ColorValueTests
         opaque.GetMixedTransparencyColor().Should().Be(opaque);
     }
 
-    [Fact]
+    [Test]
     public void ATranslucentColourIsMixedTowardsWhiteAndComesBackOpaque()
     {
         var half = new Color(0x80, 0x00, 0x00, 0x00);
@@ -257,7 +258,7 @@ public class ColorValueTests
         mixed.R.Should().Be(mixed.G).And.Be(mixed.B);
     }
 
-    [Fact]
+    [Test]
     public void AFullyTransparentColourMixesDownToWhite()
     {
         var invisible = new Color(0x00, 0x00, 0x00, 0x00);
@@ -267,7 +268,7 @@ public class ColorValueTests
 
     // ----- printing -----------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ACmykColourPrintsItsAlphaOnlyWhenItHasOne()
     {
         Color.FromCmyk(10, 20, 30, 40).ToString().Should().Be("CMYK(10,20,30,40)");

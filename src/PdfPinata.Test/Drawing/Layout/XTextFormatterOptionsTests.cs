@@ -6,7 +6,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Drawing.Layout;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing.Layout;
 
@@ -61,13 +61,13 @@ public class XTextFormatterOptionsTests
 
     // ----- C1, line breaking ---------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TextTooWideForTheRectangleIsWrappedByDefault()
     {
         LinesOf(PageShowing(ThreeLinesish, Narrow)).Count.Should().BeGreaterThan(1);
     }
 
-    [Fact]
+    [Test]
     public void TurningLineBreakingOffKeepsItAllOnOneLine()
     {
         var page = PageShowing(ThreeLinesish, Narrow, f => f.LineBreak = false);
@@ -75,7 +75,7 @@ public class XTextFormatterOptionsTests
         LinesOf(page).Should().ContainSingle();
     }
 
-    [Fact]
+    [Test]
     public void ALineBreakWrittenIntoTheTextIsObeyedEvenWithWrappingOff()
     {
         // Wrapping and breaking are different things. Turning off the first must not silently
@@ -87,7 +87,7 @@ public class XTextFormatterOptionsTests
 
     // ----- C2, indents ---------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TheFirstLineOfAParagraphIsIndented()
     {
         var plain = RunsOf(PageShowing(ThreeLinesish, Narrow));
@@ -96,7 +96,7 @@ public class XTextFormatterOptionsTests
         indented[0].X.Should().BeApproximately(plain[0].X + 20, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void AnIndentIsOffTheFirstLineOnly()
     {
         var indented = RunsOf(PageShowing(ThreeLinesish, Narrow, f => f.Indent = 20));
@@ -105,7 +105,7 @@ public class XTextFormatterOptionsTests
         indented[1].X.Should().BeApproximately(indented[0].X - 20, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void IndentAllLinesIndentsEveryLineTheSame()
     {
         var indented = RunsOf(PageShowing(ThreeLinesish, Narrow, f =>
@@ -118,7 +118,7 @@ public class XTextFormatterOptionsTests
         indented.Select(run => run.X).Distinct().Should().ContainSingle();
     }
 
-    [Fact]
+    [Test]
     public void EachParagraphGetsItsFirstLineIndentAgain()
     {
         var page = PageShowing("alpha beta\ngamma delta", Narrow, f => f.Indent = 20);
@@ -130,7 +130,7 @@ public class XTextFormatterOptionsTests
         runs[1].X.Should().BeApproximately(runs[0].X, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void AnIndentedLineWrapsSooner()
     {
         // The indent takes its room off the line, so the same rectangle holds less of the text.
@@ -146,7 +146,7 @@ public class XTextFormatterOptionsTests
 
     // ----- C3 and C4, the gaps -------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ALineGapAddsRoomBetweenEveryLine()
     {
         var tight = LinesOf(PageShowing(ThreeLinesish, Narrow));
@@ -160,7 +160,7 @@ public class XTextFormatterOptionsTests
         (loose[0] - loose[1]).Should().BeApproximately(LineHeight + 6, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void AParagraphGapAddsRoomOnlyWhereAParagraphEnds()
     {
         // Two paragraphs, the first of which wraps: one step is a wrap and one is a paragraph.
@@ -176,7 +176,7 @@ public class XTextFormatterOptionsTests
         acrossParagraphs.Should().BeApproximately(LineHeight + 10, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void TheTwoGapsAddUpWhereAParagraphEnds()
     {
         var page = PageShowing("alpha\nbeta", Narrow, f =>
@@ -195,7 +195,7 @@ public class XTextFormatterOptionsTests
     /// <summary>Two lines of room for text that needs more than two.</summary>
     private static XRect TwoLinesDeep => new(20, 20, 120, 2 * LineHeight);
 
-    [Fact]
+    [Test]
     public void TextThatDoesNotFitEndsWithTheEllipsis()
     {
         var page = PageShowing(ThreeLinesish, TwoLinesDeep, f => f.Ellipsis = "...");
@@ -205,7 +205,7 @@ public class XTextFormatterOptionsTests
         shown[^1].Should().EndWith("...");
     }
 
-    [Fact]
+    [Test]
     public void NothingIsMarkedWhenItAllFits()
     {
         var page = PageShowing("short", Narrow, f => f.Ellipsis = "...");
@@ -213,7 +213,7 @@ public class XTextFormatterOptionsTests
         TextOperators.ShownStrings(page).Should().NotContain(text => text.EndsWith("..."));
     }
 
-    [Fact]
+    [Test]
     public void TheEllipsisIsLeftOffWhenTheTextIsAllowedToOverflow()
     {
         var page = PageShowing(ThreeLinesish, TwoLinesDeep, f =>
@@ -226,7 +226,7 @@ public class XTextFormatterOptionsTests
         TextOperators.ShownStrings(page).Should().NotContain(text => text.EndsWith("..."));
     }
 
-    [Fact]
+    [Test]
     public void TheEllipsisStaysInsideTheRectangle()
     {
         var page = PageShowing(ThreeLinesish, TwoLinesDeep, f => f.Ellipsis = "...");
@@ -240,7 +240,7 @@ public class XTextFormatterOptionsTests
         gfx.MeasureString(lastLine, Font).Width.Should().BeLessThanOrEqualTo(TwoLinesDeep.Width + 0.5);
     }
 
-    [Fact]
+    [Test]
     public void CuttingTextOffWithoutAnEllipsisStillWorks()
     {
         var marked = LinesOf(PageShowing(ThreeLinesish, TwoLinesDeep, f => f.Ellipsis = "..."));
@@ -255,7 +255,7 @@ public class XTextFormatterOptionsTests
     /// <summary>Wide enough for two columns, deep enough for two lines in each.</summary>
     private static XRect TwoColumnsDeep => new(20, 20, 260, 2 * LineHeight);
 
-    [Fact]
+    [Test]
     public void TextFlowsDownOneColumnAndOnIntoTheNext()
     {
         var page = PageShowing(ThreeLinesish, TwoColumnsDeep, f =>
@@ -273,7 +273,7 @@ public class XTextFormatterOptionsTests
         (left[1] - left[0]).Should().BeApproximately(140, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void ALineInTheSecondColumnSitsLevelWithOneInTheFirst()
     {
         var page = PageShowing(ThreeLinesish, TwoColumnsDeep, f =>
@@ -290,7 +290,7 @@ public class XTextFormatterOptionsTests
         heights.Distinct().Count().Should().BeLessThan(heights.Count);
     }
 
-    [Fact]
+    [Test]
     public void ANarrowerColumnWrapsSoonerThanTheWholeRectangleWould()
     {
         var oneColumn = LinesOf(PageShowing(ThreeLinesish, new XRect(20, 20, 260, 400))).Count;
@@ -303,7 +303,7 @@ public class XTextFormatterOptionsTests
         twoColumns.Should().BeGreaterThan(oneColumn);
     }
 
-    [Fact]
+    [Test]
     public void TheColumnGapIsRoomTakenOffTheColumns()
     {
         var page = PageShowing(ThreeLinesish, TwoColumnsDeep, f =>
@@ -318,7 +318,7 @@ public class XTextFormatterOptionsTests
         (left[1] - left[0]).Should().BeApproximately(160, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void TextRunsOutOfRoomOnlyWhenTheLastColumnIsFull()
     {
         var oneColumn = RunsOf(PageShowing(ThreeLinesish, TwoColumnsDeep)).Count;
@@ -332,7 +332,7 @@ public class XTextFormatterOptionsTests
         threeColumns.Should().BeGreaterThan(oneColumn);
     }
 
-    [Fact]
+    [Test]
     public void OneColumnIsWhatItAlwaysWas()
     {
         var implicitly1 = RunsOf(PageShowing(ThreeLinesish, Narrow));
@@ -341,7 +341,7 @@ public class XTextFormatterOptionsTests
         explicitly1.Should().Equal(implicitly1);
     }
 
-    [Fact]
+    [Test]
     public void FewerThanOneColumnIsRejected()
     {
         var document = new PdfDocument();
@@ -352,7 +352,7 @@ public class XTextFormatterOptionsTests
         formatter.Invoking(f => f.Columns = -2).Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Fact]
+    [Test]
     public void TheEllipsisLandsInTheLastColumn()
     {
         // Long enough to fill both columns and still have text left over: two columns two lines
@@ -380,7 +380,7 @@ public class XTextFormatterOptionsTests
 
     // ----- the options leave the ordinary case alone ---------------------------------------------
 
-    [Fact]
+    [Test]
     public void NoneOfTheDefaultsChangeWhereALineSits()
     {
         var bare = RunsOf(PageShowing(ThreeLinesish, Narrow));
@@ -398,7 +398,7 @@ public class XTextFormatterOptionsTests
         withDefaults.Should().Equal(bare);
     }
 
-    [Fact]
+    [Test]
     public void AlignmentStillWorksWithAnIndent()
     {
         var left = RunsOf(PageShowing(ThreeLinesish, Narrow, f => f.Indent = 20));
@@ -413,7 +413,7 @@ public class XTextFormatterOptionsTests
         right[0].X.Should().NotBe(left[0].X);
     }
 
-    [Fact]
+    [Test]
     public void ANullFontIsRefusedInTheNameOfTheSettersValue()
     {
         var document = new PdfDocument();

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using AwesomeAssertions;
 using PdfPinata.Drawing.Layout;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing.Layout;
 
@@ -34,25 +34,25 @@ public class LineSpansTests
 
     // ----- one obstacle, from each direction ------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnUnobstructedLineIsFreeEndToEnd()
     {
         WidestFree().Should().Be((true, 0d, 100d));
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleAtTheLeftLeavesTheRoomToItsRight()
     {
         WidestFree((0, 30)).Should().Be((true, 30d, 70d));
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleAtTheRightLeavesTheRoomToItsLeft()
     {
         WidestFree((70, 100)).Should().Be((true, 0d, 70d));
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleInTheMiddleLeavesTheWiderSide()
     {
         // Free runs of 30 and 40. The wider wins and the other is left empty, which is the decision
@@ -60,7 +60,7 @@ public class LineSpansTests
         WidestFree((30, 60)).Should().Be((true, 60d, 40d));
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleSpanningTheWholeLineLeavesNothing()
     {
         WidestFree((0, 100)).Found.Should().BeFalse();
@@ -68,19 +68,19 @@ public class LineSpansTests
 
     // ----- obstacles the line does not contain ----------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnObstacleHangingOffTheLeftIsCountedOnlyWhereItOverlaps()
     {
         WidestFree((-40, 25)).Should().Be((true, 25d, 75d));
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleHangingOffTheRightIsCountedOnlyWhereItOverlaps()
     {
         WidestFree((80, 250)).Should().Be((true, 0d, 80d));
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleEntirelyClearOfTheLineTakesNothingFromIt()
     {
         WidestFree((150, 200)).Should().Be((true, 0d, 100d));
@@ -88,14 +88,14 @@ public class LineSpansTests
 
     // ----- more than one --------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void TwoObstaclesLeaveTheWidestOfTheThreeRuns()
     {
         // Runs of 20, 25 and 30.
         WidestFree((20, 45), (70, 100)).Should().Be((true, 45d, 25d));
     }
 
-    [Fact]
+    [Test]
     public void ObstaclesAreConsideredWhateverOrderTheyArriveIn()
     {
         var inOrder = WidestFree((10, 20), (40, 50), (80, 90));
@@ -104,13 +104,13 @@ public class LineSpansTests
         jumbled.Should().Be(inOrder);
     }
 
-    [Fact]
+    [Test]
     public void OverlappingObstaclesCountAsOne()
     {
         WidestFree((20, 60), (40, 70)).Should().Be((true, 70d, 30d));
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleSwallowedByAWiderOneTakesNothingExtra()
     {
         // Sorted by where they start, so the wide one comes first and the narrow one sits inside it.
@@ -118,7 +118,7 @@ public class LineSpansTests
         WidestFree((10, 80), (20, 30)).Should().Be((true, 80d, 20d));
     }
 
-    [Fact]
+    [Test]
     public void ObstaclesCoveringTheLineBetweenThemLeaveNothing()
     {
         WidestFree((0, 60), (55, 100)).Found.Should().BeFalse();
@@ -126,13 +126,13 @@ public class LineSpansTests
 
     // ----- the tolerance --------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ARunNarrowerThanTheToleranceIsNoRoomAtAll()
     {
         WidestFree((0, 50), (50.0005, 100)).Found.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ARunWiderThanTheToleranceIsRoom()
     {
         var free = WidestFree((0, 50), (50.01, 100));
@@ -141,7 +141,7 @@ public class LineSpansTests
         free.Width.Should().BeApproximately(0.01, 1e-9);
     }
 
-    [Fact]
+    [Test]
     public void ALineOfNoWidthHasNoRoom()
     {
         LineSpans.TryWidestFree(50, 50, [(0, 10)], Tolerance,
@@ -151,7 +151,7 @@ public class LineSpansTests
 
     // ----- the edges ------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ATieGoesToTheRunFurthestLeft()
     {
         // Two free runs of exactly 40. The comparison is strictly greater than, so the first found
@@ -159,13 +159,13 @@ public class LineSpansTests
         WidestFree((40, 60)).Should().Be((true, 0d, 40d));
     }
 
-    [Fact]
+    [Test]
     public void AnObstacleTouchingAnotherEndToEndLeavesNoRunBetweenThem()
     {
         WidestFree((10, 40), (40, 70)).Should().Be((true, 70d, 30d));
     }
 
-    [Fact]
+    [Test]
     public void TheSpansGivenAreLeftAsTheyWere()
     {
         // This used to sort the caller's list in place, which was worth an allocation when the scan
@@ -178,7 +178,7 @@ public class LineSpansTests
         blocked.Should().Equal((80, 90), (10, 20));
     }
 
-    [Fact]
+    [Test]
     public void ASpanGivenEndFirstIsReadTheWayRoundItWasMeant()
     {
         WidestFree((30, 0)).Should().Be((true, 30d, 70d));
@@ -186,7 +186,7 @@ public class LineSpansTests
 
     // ----- what the arguments have to be ----------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AMissingListOfSpansIsRefused()
     {
         // No list at all, which is a caller mistake. An *empty* list is not: it says the line has
@@ -196,7 +196,7 @@ public class LineSpansTests
         scan.Should().Throw<ArgumentNullException>();
     }
 
-    [Fact]
+    [Test]
     public void ALineEndingLeftOfWhereItStartsIsRefused()
     {
         var scan = () => LineSpans.TryWidestFree(Right, Left, [],
@@ -207,14 +207,14 @@ public class LineSpansTests
         scan.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    public static TheoryData<double> NotRealNumbers => [
+    public static IEnumerable<double> NotRealNumbers => [
         double.NaN,
         double.PositiveInfinity,
         double.NegativeInfinity
     ];
 
-    [Theory]
-    [MemberData(nameof(NotRealNumbers))]
+    [Test]
+    [MethodDataSource(nameof(NotRealNumbers))]
     public void ALineThatDoesNotRunBetweenRealCoordinatesIsRefused(double value)
     {
         // Named here rather than left to the interval the line becomes, so the message points at
@@ -229,8 +229,8 @@ public class LineSpansTests
         fromRight.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Theory]
-    [MemberData(nameof(NotRealNumbers))]
+    [Test]
+    [MethodDataSource(nameof(NotRealNumbers))]
     public void AToleranceThatIsNotARealWidthIsRefused(double value)
     {
         var scan = () => LineSpans.TryWidestFree(Left, Right, [],
@@ -239,7 +239,7 @@ public class LineSpansTests
         scan.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Fact]
+    [Test]
     public void ANegativeToleranceIsRefused()
     {
         var scan = () => LineSpans.TryWidestFree(Left, Right, [],
@@ -250,7 +250,7 @@ public class LineSpansTests
         scan.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Fact]
+    [Test]
     public void AToleranceOfNothingAllowsAnyWidthAtAll()
     {
         var found = LineSpans.TryWidestFree(Left, Right, [],

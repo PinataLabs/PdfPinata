@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AwesomeAssertions;
@@ -10,7 +11,7 @@ using PdfPinata.Pdf.AcroForms;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.PageInk;
 
 namespace PdfPinata.Test.Annotations;
@@ -25,7 +26,7 @@ namespace PdfPinata.Test.Annotations;
 ///   from a file - the way a new one is constructed - would replace the appearance the file carries
 ///   with one this library made up. Wrapping takes the dictionary over and writes nothing.
 /// </remarks>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public sealed class TypedAnnotationReadingTests : IDisposable
 {
     private const string OutDir = "Out/TypedAnnotationReading";
@@ -36,32 +37,32 @@ public sealed class TypedAnnotationReadingTests : IDisposable
 
     private static readonly PdfRectangle Somewhere = new(new XPoint(100, 500), new XPoint(300, 600));
 
-    public static TheoryData<string, Type> Subtypes => new()
-    {
-        { "/Text", typeof(PdfTextAnnotation) },
-        { "/Link", typeof(PdfLinkAnnotation) },
-        { "/FreeText", typeof(PdfFreeTextAnnotation) },
-        { "/Line", typeof(PdfLineAnnotation) },
-        { "/Square", typeof(PdfSquareAnnotation) },
-        { "/Circle", typeof(PdfCircleAnnotation) },
-        { "/Highlight", typeof(PdfHighlightAnnotation) },
-        { "/Underline", typeof(PdfUnderlineAnnotation) },
-        { "/StrikeOut", typeof(PdfStrikeOutAnnotation) },
-        { "/Squiggly", typeof(PdfSquigglyAnnotation) },
-        { "/Stamp", typeof(PdfRubberStampAnnotation) },
-        { "/FileAttachment", typeof(PdfFileAttachmentAnnotation) },
-        { "/Widget", typeof(PdfWidgetAnnotation) },
-        { "/Ink", typeof(PdfInkAnnotation) },
-        { "/Polygon", typeof(PdfPolygonAnnotation) },
-        { "/PolyLine", typeof(PdfPolyLineAnnotation) },
-        { "/Popup", typeof(PdfPopupAnnotation) },
-        { "/Caret", typeof(PdfCaretAnnotation) },
-        { "/Redact", typeof(PdfRedactAnnotation) },
-        { "/Wibble", typeof(PdfGenericAnnotation) }
-    };
+    public static IEnumerable<(string, Type)> Subtypes =>
+    [
+        ("/Text", typeof(PdfTextAnnotation)),
+        ("/Link", typeof(PdfLinkAnnotation)),
+        ("/FreeText", typeof(PdfFreeTextAnnotation)),
+        ("/Line", typeof(PdfLineAnnotation)),
+        ("/Square", typeof(PdfSquareAnnotation)),
+        ("/Circle", typeof(PdfCircleAnnotation)),
+        ("/Highlight", typeof(PdfHighlightAnnotation)),
+        ("/Underline", typeof(PdfUnderlineAnnotation)),
+        ("/StrikeOut", typeof(PdfStrikeOutAnnotation)),
+        ("/Squiggly", typeof(PdfSquigglyAnnotation)),
+        ("/Stamp", typeof(PdfRubberStampAnnotation)),
+        ("/FileAttachment", typeof(PdfFileAttachmentAnnotation)),
+        ("/Widget", typeof(PdfWidgetAnnotation)),
+        ("/Ink", typeof(PdfInkAnnotation)),
+        ("/Polygon", typeof(PdfPolygonAnnotation)),
+        ("/PolyLine", typeof(PdfPolyLineAnnotation)),
+        ("/Popup", typeof(PdfPopupAnnotation)),
+        ("/Caret", typeof(PdfCaretAnnotation)),
+        ("/Redact", typeof(PdfRedactAnnotation)),
+        ("/Wibble", typeof(PdfGenericAnnotation))
+    ];
 
-    [Theory]
-    [MemberData(nameof(Subtypes))]
+    [Test]
+    [MethodDataSource(nameof(Subtypes))]
     public void AnAnnotationIsReadBackAsTheClassItsSubtypeNames(string subtype, Type expected)
     {
         var document = new PdfDocument();
@@ -74,7 +75,7 @@ public sealed class TypedAnnotationReadingTests : IDisposable
         read.Elements.GetName("/Subtype").Should().Be(subtype);
     }
 
-    [Fact]
+    [Test]
     public void TheSameObjectIsHandedBackEveryTimeItIsAskedFor()
     {
         var document = new PdfDocument();
@@ -85,7 +86,7 @@ public sealed class TypedAnnotationReadingTests : IDisposable
         annotations[0].Should().BeSameAs(annotations[0]);
     }
 
-    [Fact]
+    [Test]
     public void ASquareReportsTheInteriorAndBorderItWasWrittenWith()
     {
         var document = new PdfDocument();
@@ -103,7 +104,7 @@ public sealed class TypedAnnotationReadingTests : IDisposable
         read.BorderWidth.Should().Be(3.5);
     }
 
-    [Fact]
+    [Test]
     public void ACircleWithNoInteriorReportsNone()
     {
         var document = new PdfDocument();
@@ -117,7 +118,7 @@ public sealed class TypedAnnotationReadingTests : IDisposable
         read.BorderWidth.Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void ALineReportsItsEndpointsAndEndings()
     {
         var document = new PdfDocument();
@@ -133,7 +134,7 @@ public sealed class TypedAnnotationReadingTests : IDisposable
         read.EndEnding.Should().Be(PdfLineEnding.ClosedArrow);
     }
 
-    [Fact]
+    [Test]
     public void AFreeTextReportsTheColourAndSizeItsDefaultAppearanceNames()
     {
         GlobalFontSettings.FontResolver ??= new PinnedFontResolver();
@@ -154,7 +155,7 @@ public sealed class TypedAnnotationReadingTests : IDisposable
         read.Contents.Should().Be("read me");
     }
 
-    [Fact]
+    [Test]
     public void AMarkupAnnotationReportsItsQuads()
     {
         var document = new PdfDocument();
@@ -172,17 +173,17 @@ public sealed class TypedAnnotationReadingTests : IDisposable
     ///   The appearance is left exactly where the file put it: the same object, the same bytes.
     ///   Reading one is not a change to it.
     /// </summary>
-    [Theory]
-    [InlineData("/Square")]
-    [InlineData("/Circle")]
-    [InlineData("/Line")]
-    [InlineData("/FreeText")]
-    [InlineData("/Highlight")]
-    [InlineData("/Ink")]
-    [InlineData("/Polygon")]
-    [InlineData("/PolyLine")]
-    [InlineData("/Caret")]
-    [InlineData("/Redact")]
+    [Test]
+    [Arguments("/Square")]
+    [Arguments("/Circle")]
+    [Arguments("/Line")]
+    [Arguments("/FreeText")]
+    [Arguments("/Highlight")]
+    [Arguments("/Ink")]
+    [Arguments("/Polygon")]
+    [Arguments("/PolyLine")]
+    [Arguments("/Caret")]
+    [Arguments("/Redact")]
     public void ReadingAnAnnotationThatDrawsItselfLeavesItsAppearanceAlone(string subtype)
     {
         var original = WithForeignAppearance(subtype);
@@ -202,7 +203,7 @@ public sealed class TypedAnnotationReadingTests : IDisposable
     ///   And a reader still paints what the file said, rather than what this library would have
     ///   drawn for the same entries: a green cross where a square would be a black frame.
     /// </summary>
-    [Fact]
+    [Test]
     public void ASquareReadFromAFileStillPaintsTheAppearanceTheFileCarried()
     {
         var reopened = ReadBack(WithForeignAppearance("/Square"));
@@ -213,7 +214,7 @@ public sealed class TypedAnnotationReadingTests : IDisposable
         Count(images[0], IsGreen).Should().BeGreaterThan(200);
     }
 
-    [Fact]
+    [Test]
     public void ChangingWhatAReadSquareIsDrawnFromRedrawsIt()
     {
         var reopened = ReadBack(WithForeignAppearance("/Square"));
@@ -232,7 +233,7 @@ public sealed class TypedAnnotationReadingTests : IDisposable
     ///   one-point one otherwise. A link read from a file has whatever the file says, and saying
     ///   nothing is a one-point border by ISO 32000-1 - so the default is not added on the way out.
     /// </summary>
-    [Fact]
+    [Test]
     public void ALinkReadFromAFileIsNotGivenABorderItDidNotHave()
     {
         var document = new PdfDocument();
@@ -249,7 +250,7 @@ public sealed class TypedAnnotationReadingTests : IDisposable
         saved.Elements.ContainsKey("/Border").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void AMergedFieldAndWidgetCanStillBeFilledInAfterItsWidgetIsRead()
     {
         var document = new PdfDocument();
@@ -280,7 +281,7 @@ public sealed class TypedAnnotationReadingTests : IDisposable
     ///   Wrapping is not a change. A document opened for appending and saved incrementally with
     ///   nothing touched appends no annotation.
     /// </summary>
-    [Fact]
+    [Test]
     public void ReadingAnAnnotationDoesNotMarkItChanged()
     {
         var document = new PdfDocument();

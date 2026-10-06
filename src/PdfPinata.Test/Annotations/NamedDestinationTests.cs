@@ -6,7 +6,7 @@ using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Annotations;
 using PdfIO = PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Annotations;
 
@@ -44,7 +44,7 @@ public class NamedDestinationTests
 
     // ----- E2, naming a destination --------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ANameSurvivesBeingWrittenAndReadBack()
     {
         var document = TwoPageDocument();
@@ -53,7 +53,7 @@ public class NamedDestinationTests
         LookupOn(RoundTrip(document), "chapter-2").Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void ANameStandsForThePageItWasGiven()
     {
         var document = TwoPageDocument();
@@ -70,7 +70,7 @@ public class NamedDestinationTests
         first.Elements[0].Should().NotBe(second.Elements[0]);
     }
 
-    [Fact]
+    [Test]
     public void APlaceOnAPageIsKeptAlongWithThePage()
     {
         var document = TwoPageDocument();
@@ -83,7 +83,7 @@ public class NamedDestinationTests
         destination.Elements.GetReal(3).Should().BeApproximately(400, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void ANameWithNoPlaceLeavesTheReaderWhereItIs()
     {
         var document = TwoPageDocument();
@@ -95,7 +95,7 @@ public class NamedDestinationTests
         destination.Elements[3].Should().BeOfType<PdfNull>();
     }
 
-    [Fact]
+    [Test]
     public void NamesAreWrittenInTheOrderANameTreeHasToBeIn()
     {
         var document = TwoPageDocument();
@@ -110,7 +110,7 @@ public class NamedDestinationTests
             LookupOn(reopened, name).Should().NotBeNull(name + " should be findable");
     }
 
-    [Fact]
+    [Test]
     public void NamingTheSamePlaceTwiceReplacesTheFirst()
     {
         var document = TwoPageDocument();
@@ -121,7 +121,7 @@ public class NamedDestinationTests
         LookupOn(RoundTrip(document), "here").Elements.GetReal(3).Should().BeApproximately(100, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void ANameCanBeTakenBack()
     {
         var document = TwoPageDocument();
@@ -132,7 +132,7 @@ public class NamedDestinationTests
         document.NamedDestinations.Contains("here").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ADocumentThatNamesNothingWritesNoNameTree()
     {
         var reopened = RoundTrip(TwoPageDocument());
@@ -142,7 +142,7 @@ public class NamedDestinationTests
         (names == null || names.Elements.GetDictionary("/Dests") == null).Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void ADestinationMustBeNamedSomething()
     {
         var document = TwoPageDocument();
@@ -155,7 +155,7 @@ public class NamedDestinationTests
 
     // ----- what a second save must not lose ------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void NamingOneMoreDestinationKeepsTheOnesTheDocumentCameWith()
     {
         var first = TwoPageDocument();
@@ -174,7 +174,7 @@ public class NamedDestinationTests
         LookupOn(third, "chapter-3").Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void ADestinationTheDocumentCameWithKeepsItsPlace()
     {
         var first = TwoPageDocument();
@@ -187,7 +187,7 @@ public class NamedDestinationTests
         LookupOn(RoundTrip(second), "chapter-2").Elements.GetReal(3).Should().BeApproximately(300, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void ANameTakenBackIsGoneFromTheDocumentToo()
     {
         var first = TwoPageDocument();
@@ -202,7 +202,7 @@ public class NamedDestinationTests
         LookupOn(third, "permanent").Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void TakingBackEveryNameLeavesNoTreeBehind()
     {
         var first = TwoPageDocument();
@@ -214,7 +214,7 @@ public class NamedDestinationTests
         LookupOn(RoundTrip(second), "only").Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void ContainsAnswersForTheNamesTheDocumentCameWith()
     {
         var first = TwoPageDocument();
@@ -223,7 +223,7 @@ public class NamedDestinationTests
         RoundTrip(first).NamedDestinations.Contains("chapter-1").Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void APageOfAnotherDocumentIsRejected()
     {
         var document = TwoPageDocument();
@@ -237,7 +237,7 @@ public class NamedDestinationTests
 
     // ----- E3, linking to a name -----------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ALinkToANameIsWrittenAsAStringDestination()
     {
         var document = TwoPageDocument();
@@ -253,7 +253,7 @@ public class NamedDestinationTests
         ((PdfString)annotation.Elements["/Dest"]).Value.Should().Be("chapter-2");
     }
 
-    [Fact]
+    [Test]
     public void ALinkFindsTheDestinationItNames()
     {
         var document = TwoPageDocument();
@@ -267,7 +267,7 @@ public class NamedDestinationTests
         LookupOn(reopened, name).Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void ANameOutsideWinAnsiSurvivesBothHalves()
     {
         const string name = "kapitel-über-2";
@@ -286,7 +286,7 @@ public class NamedDestinationTests
         LookupOn(reopened, linked).Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void ALinkMustNameSomething()
     {
         var rect = new PdfRectangle(new XRect(20, 20, 100, 20));
@@ -299,7 +299,7 @@ public class NamedDestinationTests
 
     // ----- E1, linking what was drawn ------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AnAreaOfTheDrawingCanBeLinkedToTheWeb()
     {
         var document = new PdfDocument();
@@ -323,7 +323,7 @@ public class NamedDestinationTests
         annotation.Elements.GetDictionary("/A").Elements["/URI"].ToString().Should().Contain("anthropic.com");
     }
 
-    [Fact]
+    [Test]
     public void ALinkedAreaIsPlacedFromTheBottomOfThePage()
     {
         var document = new PdfDocument();
@@ -338,7 +338,7 @@ public class NamedDestinationTests
         rect.X1.Should().BeApproximately(20, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void APlaceInTheDrawingCanBeNamedAndLinkedTo()
     {
         var document = new PdfDocument();
@@ -359,7 +359,7 @@ public class NamedDestinationTests
         destination.Elements.GetReal(3).Should().BeApproximately(second.Height.Point - 200, 0.01);
     }
 
-    [Fact]
+    [Test]
     public void LinkingNeedsAPageToLinkOn()
     {
         // An XGraphics that draws somewhere other than a PDF page has nowhere to put an annotation.

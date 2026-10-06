@@ -7,7 +7,7 @@ using PdfPinata.Fonts;
 using PdfPinata.HarfBuzz;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -29,7 +29,7 @@ namespace PdfPinata.Test.Fonts;
 ///     drawing beside it produces.
 ///   </para>
 /// </remarks>
-[Collection(TextShapingCollection.Name)]
+[TextShaperSensitive]
 public class LigatureActualTextTests
 {
     /// <summary>
@@ -49,7 +49,7 @@ public class LigatureActualTextTests
     /// <summary>Distinctive enough that nothing else in the suite draws it.</summary>
     private static readonly string Sentinel = "ActualText " + Composed + " here";
 
-    [Fact]
+    [Test]
     public void AGlyphStandingForTwoCharactersSaysWhichTwo()
     {
         var content = Latin1(Draw(Sentinel));
@@ -60,7 +60,7 @@ public class LigatureActualTextTests
         content.Should().Contain("EMC", "a sequence that is opened has to be closed");
     }
 
-    [Fact]
+    [Test]
     public void TheSpanNamesTheCharactersTheGlyphSwallowed()
     {
         var content = Latin1(Draw(Sentinel));
@@ -70,7 +70,7 @@ public class LigatureActualTextTests
         ActualTextIn(content).Should().Be(Composed);
     }
 
-    [Fact]
+    [Test]
     public void TheSequenceStaysInsideTheTextObject()
     {
         // The opposite of what a structural BDC does, and deliberately. This one claims something
@@ -87,7 +87,7 @@ public class LigatureActualTextTests
         ended.Should().BeGreaterThan(bdc, "and the sequence is inside it rather than around it");
     }
 
-    [Fact]
+    [Test]
     public void TheGlyphsEitherSideOfTheLigatureAreStillDrawn()
     {
         // The run is cut into three to wrap the middle, and losing either end would be the kind of
@@ -100,7 +100,7 @@ public class LigatureActualTextTests
             "what precedes the ligature, the ligature itself, and what follows it");
     }
 
-    [Fact]
+    [Test]
     public void AStringWithNoLigatureInItIsWrittenExactlyAsBefore()
     {
         // The guard that keeps every existing document byte-identical. A run where every glyph
@@ -114,7 +114,7 @@ public class LigatureActualTextTests
         TextOperators.ShowTextOperators(Page(plain, plain)).Should().HaveCount(1, "one Tj, as always");
     }
 
-    [Fact]
+    [Test]
     public void OnlyTheLigatureInTheSentinelIsWrapped()
     {
         // The composed glyph is the only thing in the sentinel that swallowed a character, so
@@ -124,7 +124,7 @@ public class LigatureActualTextTests
         Occurrences(content, "/ActualText").Should().Be(1);
     }
 
-    [Fact]
+    [Test]
     public void AMarkAttachedToALetterIsNotALigature()
     {
         // A base and the mark riding on it: two characters in one cluster, drawn with two glyphs.
@@ -144,7 +144,7 @@ public class LigatureActualTextTests
             "and so the run is shown in one operator, as it was before there was a shaper");
     }
 
-    [Fact]
+    [Test]
     public void FewerGlyphsThanCharactersInTheSameClusterStillIs()
     {
         // The other side of the same fixture, so that neither test passes because the assertion was

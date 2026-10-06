@@ -7,7 +7,7 @@ using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.ContentOperands;
 
 namespace PdfPinata.Test.Drawing;
@@ -26,16 +26,16 @@ public class RotatedPageTests
     ///   The corner of the media box that the viewer shows at the top left of a page turned by
     ///   the given number of degrees. Drawing at the origin has to end up there.
     /// </summary>
-    public static TheoryData<int, double, double> TopLeftCorners => new()
-    {
-        { 0, 0, MediaBoxHeight },                    // stored top left
-        { 90, 0, 0 },                                // stored bottom left
-        { 180, MediaBoxWidth, 0 },                   // stored bottom right
-        { 270, MediaBoxWidth, MediaBoxHeight } // stored top right
-    };
+    public static IEnumerable<(int, double, double)> TopLeftCorners =>
+    [
+        (0, 0, MediaBoxHeight),                    // stored top left
+        (90, 0, 0),                                // stored bottom left
+        (180, MediaBoxWidth, 0),                   // stored bottom right
+        (270, MediaBoxWidth, MediaBoxHeight) // stored top right
+    ];
 
-    [Theory]
-    [MemberData(nameof(TopLeftCorners))]
+    [Test]
+    [MethodDataSource(nameof(TopLeftCorners))]
     public void DrawingAtTheOriginLandsWhereTheViewerShowsTheTopLeftCorner(int rotate, double x, double y)
     {
         var page = ImportedPageWith(rotate);
@@ -49,11 +49,11 @@ public class RotatedPageTests
         drawnAt.Y.Should().BeApproximately(y, 0.001);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(90)]
-    [InlineData(180)]
-    [InlineData(270)]
+    [Test]
+    [Arguments(0)]
+    [Arguments(90)]
+    [Arguments(180)]
+    [Arguments(270)]
     public void TheVisiblePageIsAsWideAndAsHighAsTheCallerIsTold(int rotate)
     {
         var page = ImportedPageWith(rotate);
@@ -72,8 +72,8 @@ public class RotatedPageTests
         drawnAt.Y.Should().BeInRange(-0.001, MediaBoxHeight + 0.001);
     }
 
-    [Theory]
-    [MemberData(nameof(TopLeftCorners))]
+    [Test]
+    [MethodDataSource(nameof(TopLeftCorners))]
     public void APageTurnedAfterItWasCreatedBehavesLikeAnImportedOne(int rotate, double x, double y)
     {
         // /Rotate is read when a page is imported, but it can also be set on a page in hand.
@@ -91,11 +91,11 @@ public class RotatedPageTests
         drawnAt.Y.Should().BeApproximately(y, 0.001);
     }
 
-    [Theory]
-    [InlineData(0, MediaBoxWidth, MediaBoxHeight)]
-    [InlineData(90, MediaBoxHeight, MediaBoxWidth)]
-    [InlineData(180, MediaBoxWidth, MediaBoxHeight)]
-    [InlineData(270, MediaBoxHeight, MediaBoxWidth)]
+    [Test]
+    [Arguments(0, MediaBoxWidth, MediaBoxHeight)]
+    [Arguments(90, MediaBoxHeight, MediaBoxWidth)]
+    [Arguments(180, MediaBoxWidth, MediaBoxHeight)]
+    [Arguments(270, MediaBoxHeight, MediaBoxWidth)]
     public void APageReportsTheSizeTheViewerShows(int rotate, double width, double height)
     {
         var document = new PdfDocument();
@@ -110,7 +110,7 @@ public class RotatedPageTests
         page.StoredSizeOfMediaBox().Should().Be(new XSize(MediaBoxWidth, MediaBoxHeight));
     }
 
-    [Fact]
+    [Test]
     public void SettingTheSizeOfATurnedPageSetsTheSizeTheViewerShows()
     {
         var document = new PdfDocument();
@@ -126,7 +126,7 @@ public class RotatedPageTests
         page.StoredSizeOfMediaBox().Should().Be(new XSize(500, 1000));
     }
 
-    [Fact]
+    [Test]
     public void AnUnrotatedPageIsDrawnOnExactlyAsBefore()
     {
         var page = ImportedPageWith(0);
@@ -142,7 +142,7 @@ public class RotatedPageTests
         drawnAt.Y.Should().BeApproximately(MediaBoxHeight - 150, 0.001);
     }
 
-    [Fact]
+    [Test]
     public void ANewLandscapePageIsDrawnOnExactlyAsBefore()
     {
         var document = new PdfDocument();

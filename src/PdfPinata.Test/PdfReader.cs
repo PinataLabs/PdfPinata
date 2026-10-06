@@ -1,13 +1,14 @@
 ﻿using System.IO;
 using System.Reflection;
+using AwesomeAssertions;
 using PdfPinata.Pdf.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test;
 
 public class PdfReader
 {
-    [Fact]
+    [Test]
     public void Should_beAbleToReadExistingPdf_When_inputIsStream()
     {
         var root = Path.GetDirectoryName(GetType().GetTypeInfo().Assembly.Location);
@@ -18,6 +19,6 @@ public class PdfReader
         Pdf.IO.PdfReader.Open(fs, PdfDocumentOpenMode.Import);
         fs.Dispose();
 
-        Assert.True(true);
+        true.Should().BeTrue();
     }
 }

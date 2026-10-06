@@ -6,7 +6,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Fonts;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -21,15 +21,15 @@ namespace PdfPinata.Test.Fonts;
 ///     <see cref="GlobalFontSettings.TextShaper"/> is per application domain, and unlike the other
 ///     seams it is read by every path that measures or draws a character. A test that installed a
 ///     shaper answering every run would therefore corrupt whichever other test happened to be
-///     drawing text beside it, xUnit running collections in parallel.
+///     drawing text beside it, tests running in parallel.
 ///   </para>
 ///   <para>
 ///     So every shaper here is <see cref="SelectiveShaper"/>: it answers for one sentinel string of
 ///     its own and returns null - "not mine" - for everything else, and a null answer is exactly
 ///     the path that falls back to the unshaped run. Concurrent tests measuring their own text get
-///     the behaviour they would have got with no shaper at all. The tests are kept in one class so
-///     that they do not install shapers over one another, xUnit running a class's tests in
-///     sequence.
+///     the behaviour they would have got with no shaper at all. The tests are kept from installing
+///     shapers over one another by <see cref="TextShaperSensitiveAttribute"/>, which runs no two of
+///     them at once.
 ///   </para>
 ///   <para>
 ///     Hence the <c>seam-</c> on the front of every sentinel: it is what makes the string one no
@@ -41,7 +41,7 @@ namespace PdfPinata.Test.Fonts;
 ///     matched nothing. A test fixture you cannot see is a test fixture you cannot debug.
 ///   </para>
 /// </remarks>
-[Collection(TextShapingCollection.Name)]
+[TextShaperSensitive]
 public class TextShapingSeamTests
 {
     // ----- the stubs -----------------------------------------------------------------------------
@@ -113,7 +113,7 @@ public class TextShapingSeamTests
 
     // ----- the unset seam ------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void NoShaperIsRegisteredUntilSomebodyRegistersOne()
     {
         // Unlike the other three seams, reading this one unset is not an error: there is a working
@@ -121,7 +121,7 @@ public class TextShapingSeamTests
         GlobalFontSettings.TextShaper.Should().BeNull();
     }
 
-    [Fact]
+    [Test]
     public void AShaperCanBeTakenAwayAgain()
     {
         var shaper = new SelectiveShaper("seam-away", _ => []);
@@ -138,7 +138,7 @@ public class TextShapingSeamTests
         }
     }
 
-    [Fact]
+    [Test]
     public void IsTextShaperSetAnswersWhetherOneIsInstalledRightNow()
     {
         var shaper = new SelectiveShaper("seam-is-set", _ => []);
@@ -156,7 +156,7 @@ public class TextShapingSeamTests
         }
     }
 
-    [Fact]
+    [Test]
     public void TextShaperLifecycleSaysItMayBeSetAtAnyTime()
     {
         GlobalFontSettings.TextShaperLifecycle.Should().Be(SeamLifecycle.SetAnytime,
@@ -165,7 +165,7 @@ public class TextShapingSeamTests
 
     // ----- what a shaper gets to decide ----------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void AShaperDecidesWhichGlyphsAreDrawn()
     {
         const string text = "seam-glyphs";
@@ -182,7 +182,7 @@ public class TextShapingSeamTests
         shaped.Should().NotEqual(unshaped, "and it said something different from the cmap");
     }
 
-    [Fact]
+    [Test]
     public void AShaperDecidesHowWideTheTextMeasures()
     {
         const string text = "seam-width";
@@ -196,7 +196,7 @@ public class TextShapingSeamTests
             "the width is the sum of the shaped advances, scaled to the em size");
     }
 
-    [Fact]
+    [Test]
     public void MeasuringAndDrawingAskTheSameSeamAndSoAgreeWithOneAnother()
     {
         const string text = "seam-agree";
@@ -213,7 +213,7 @@ public class TextShapingSeamTests
         MeasuredWidth(text).Should().BeApproximately(Font().Size, 1e-9);
     }
 
-    [Fact]
+    [Test]
     public void ALigatureIsOneGlyphForMoreThanOneCharacter()
     {
         const string text = "seam-fi";
@@ -225,7 +225,7 @@ public class TextShapingSeamTests
             "a whole string became one glyph, and nothing in the write path assumes otherwise");
     }
 
-    [Fact]
+    [Test]
     public void AShaperThatDeclinesARunLeavesItExactlyAsItWas()
     {
         const string text = "seam-declined";
@@ -240,7 +240,7 @@ public class TextShapingSeamTests
         MeasuredWidth(text).Should().Be(width);
     }
 
-    [Fact]
+    [Test]
     public void TheShaperIsHandedTheFontWhoseBytesItMustReadFrom()
     {
         const string text = "seam-bytes";
@@ -261,7 +261,7 @@ public class TextShapingSeamTests
             "a shaper keeps its own parsed face between calls and needs something to key it on");
     }
 
-    [Fact]
+    [Test]
     public void TheSameFontIsTheSameFaceEveryTimeTheShaperSeesIt()
     {
         const string text = "stable";
@@ -276,7 +276,7 @@ public class TextShapingSeamTests
         shaper.LastFont.FaceName.Should().Be(first.FaceName);
     }
 
-    [Fact]
+    [Test]
     public void ARunWithNothingSaidAboutItIsLeftToTheShaperToDecide()
     {
         const string text = "seam-defaults";
@@ -296,7 +296,7 @@ public class TextShapingSeamTests
 
     // ----- the places that assumed one glyph per character ---------------------------------------
 
-    [Fact]
+    [Test]
     public void WordSpacingIsPaidOutWhereTheSpaceReallyFellAndNotWhereItsCharacterIs()
     {
         // "ab cd" with "ab" ligated is four glyphs for five characters, so the space is glyph 1
@@ -324,7 +324,7 @@ public class TextShapingSeamTests
         runs[2].Should().Equal([70, 71], "and the rest after the room the space paid for");
     }
 
-    [Fact]
+    [Test]
     public void WordSpacingGoesAfterTheLastGlyphOfTheSpacesCluster()
     {
         const string text = "a b";
@@ -350,7 +350,7 @@ public class TextShapingSeamTests
     /// <summary>The whole content stream of a page, as the renderer wrote it.</summary>
     private static string Content(PdfPage page) => DrawnText.ContentOf(page);
 
-    [Fact]
+    [Test]
     public void AGlyphAShaperWantsMovedSidewaysIsMovedAndPutBack()
     {
         const string text = "sideways";
@@ -375,7 +375,7 @@ public class TextShapingSeamTests
             + "is taken off again after the glyph, so that what follows is not carried with it");
     }
 
-    [Fact]
+    [Test]
     public void AGlyphAShaperWantsRaisedIsRaisedAndTheRiseIsPutBack()
     {
         const string text = "raised";
@@ -395,7 +395,7 @@ public class TextShapingSeamTests
             + "would otherwise carry into everything drawn after it");
     }
 
-    [Fact]
+    [Test]
     public void AGlyphIsRaisedFromWhateverRiseTheTextIsAlreadyAt()
     {
         const string text = "seam-superscript";
@@ -420,7 +420,7 @@ public class TextShapingSeamTests
             "which is what the graphics state still thinks it is");
     }
 
-    [Fact]
+    [Test]
     public void ARunWithNothingToDisplaceIsStillTheSamePlainTj()
     {
         const string text = "plain";
@@ -440,7 +440,7 @@ public class TextShapingSeamTests
 
     // ----- the shaped run itself -----------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ARunIsAsWideAsItsAdvancesAddUpTo()
     {
         var run = new ShapedRun([
@@ -452,7 +452,7 @@ public class TextShapingSeamTests
         run.WidthAt(12).Should().BeApproximately(9, 1e-9, "750/1000 of a 12 point em");
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyRunIsARunAndNotANull()
     {
         var run = ShapedRun.Empty(2048);
@@ -463,7 +463,7 @@ public class TextShapingSeamTests
         run.Direction.Should().Be(XTextDirection.LeftToRight);
     }
 
-    [Fact]
+    [Test]
     public void ARunOfNoGlyphsAtAllIsRefused()
     {
         var act = () => new ShapedRun(null, 1000);
@@ -471,9 +471,9 @@ public class TextShapingSeamTests
         act.Should().Throw<ArgumentNullException>();
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1000)]
+    [Test]
+    [Arguments(0)]
+    [Arguments(-1000)]
     public void ARunMustSayWhatItsAdvancesAreMeasuredAgainst(int unitsPerEm)
     {
         // Advances are in design units, so a face of no em has no scale to read them at.
@@ -482,7 +482,7 @@ public class TextShapingSeamTests
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [Fact]
+    [Test]
     public void AGlyphOnItsPenPositionSaysSo()
     {
         new ShapedGlyph(1, 0, 500).IsOnBaselineOrigin.Should().BeTrue();
@@ -490,7 +490,7 @@ public class TextShapingSeamTests
         new ShapedGlyph(1, 0, 500, offsetY: -10).IsOnBaselineOrigin.Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ARunRemembersWhichWayItWasWritten()
     {
         var run = new ShapedRun([new ShapedGlyph(1, 1, 500), new ShapedGlyph(2, 0, 500)],
@@ -501,10 +501,10 @@ public class TextShapingSeamTests
             "a right-to-left run is handed over already reversed, so its clusters descend");
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
+    [Test]
+    [Arguments(null)]
+    [Arguments("")]
+    [Arguments("   ")]
     public void AFaceWithoutAKeyIsRefused(string key)
     {
         // The key is what a shaper caches its parsed face under, and the type's own documentation

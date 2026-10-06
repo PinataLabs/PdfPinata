@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Annotations;
 
@@ -13,7 +13,7 @@ namespace PdfPinata.Test.Annotations;
 /// </summary>
 public sealed class FreeTextDefaultAppearanceReadingTests
 {
-    [Fact]
+    [Test]
     public void AGreyAndASizeAreTakenBack()
     {
         var read = ReadWith("/Helv 12 Tf 0.2 g");
@@ -23,7 +23,7 @@ public sealed class FreeTextDefaultAppearanceReadingTests
         (read.TextColor.R, read.TextColor.G, read.TextColor.B).Should().Be(((byte)51, (byte)51, (byte)51));
     }
 
-    [Fact]
+    [Test]
     public void TheLastColourAndTheLastSizeWin()
     {
         var read = ReadWith("0 0 1 rg /Helv 9 Tf 1 0 0 rg /Helv 14 Tf");
@@ -32,7 +32,7 @@ public sealed class FreeTextDefaultAppearanceReadingTests
         (read.TextColor.R, read.TextColor.G, read.TextColor.B).Should().Be(((byte)255, (byte)0, (byte)0));
     }
 
-    [Fact]
+    [Test]
     public void AFourComponentColourIsReadAsCmyk()
     {
         var read = ReadWith("/Helv 8 Tf 0.1 0.2 0.3 0.4 k");
@@ -45,7 +45,7 @@ public sealed class FreeTextDefaultAppearanceReadingTests
         read.TextColor.K.Should().BeApproximately(0.4, 1e-6);
     }
 
-    [Fact]
+    [Test]
     public void ComponentsOutOfRangeAreClampedAndAZeroSizeIsIgnored()
     {
         var read = ReadWith("/Helv 0 Tf 2 -1 0.5 rg");
@@ -54,11 +54,11 @@ public sealed class FreeTextDefaultAppearanceReadingTests
         (read.TextColor.R, read.TextColor.G, read.TextColor.B).Should().Be(((byte)255, (byte)0, (byte)128));
     }
 
-    [Theory]
-    [InlineData("rg")]
-    [InlineData("1 k")]
-    [InlineData("a b c rg /Helv x Tf")]
-    [InlineData("Tf g")]
+    [Test]
+    [Arguments("rg")]
+    [Arguments("1 k")]
+    [Arguments("a b c rg /Helv x Tf")]
+    [Arguments("Tf g")]
     public void WhatCannotBeReadLeavesTheDefaults(string appearance)
     {
         var read = ReadWith(appearance);

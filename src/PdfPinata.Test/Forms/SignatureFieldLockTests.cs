@@ -9,7 +9,7 @@ using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Signatures;
 using PdfPinata.Signing;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 using static PdfPinata.Test.Helpers.SigningCertificates;
 using Reader = PdfPinata.Pdf.IO.PdfReader;
 
@@ -23,7 +23,7 @@ public class SignatureFieldLockTests
 {
     // ----- the lock dictionary --------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ALockSurvivesTheFileAsAnIndirectObject()
     {
         var document = FormWithSignatureField(out var field);
@@ -38,12 +38,12 @@ public class SignatureFieldLockTests
         read.Lock.Elements.GetName("/Type").Should().Be("/SigFieldLock");
     }
 
-    [Theory]
-    [InlineData(PdfFieldLockAction.All, "anything", true)]
-    [InlineData(PdfFieldLockAction.Include, "name", true)]
-    [InlineData(PdfFieldLockAction.Include, "other", false)]
-    [InlineData(PdfFieldLockAction.Exclude, "name", false)]
-    [InlineData(PdfFieldLockAction.Exclude, "other", true)]
+    [Test]
+    [Arguments(PdfFieldLockAction.All, "anything", true)]
+    [Arguments(PdfFieldLockAction.Include, "name", true)]
+    [Arguments(PdfFieldLockAction.Include, "other", false)]
+    [Arguments(PdfFieldLockAction.Exclude, "name", false)]
+    [Arguments(PdfFieldLockAction.Exclude, "other", true)]
     public void ALockCoversTheFieldsItsActionSays(PdfFieldLockAction action, string field, bool covered)
     {
         var document = new PdfDocument();
@@ -51,18 +51,18 @@ public class SignatureFieldLockTests
         new PdfSignatureFieldLock(document, action, "name").Covers(field).Should().Be(covered);
     }
 
-    [Theory]
-    [InlineData(PdfFieldLockAction.Include, "address.street", true)]
-    [InlineData(PdfFieldLockAction.Include, "address", true)]
-    [InlineData(PdfFieldLockAction.Include, "addressee", false)]
-    [InlineData(PdfFieldLockAction.Exclude, "address.city", false)]
-    [InlineData(PdfFieldLockAction.Exclude, "addressee", true)]
+    [Test]
+    [Arguments(PdfFieldLockAction.Include, "address.street", true)]
+    [Arguments(PdfFieldLockAction.Include, "address", true)]
+    [Arguments(PdfFieldLockAction.Include, "addressee", false)]
+    [Arguments(PdfFieldLockAction.Exclude, "address.city", false)]
+    [Arguments(PdfFieldLockAction.Exclude, "addressee", true)]
     public void NamingAParentFieldCoversItsChildren(PdfFieldLockAction action, string field, bool covered)
     {
         new PdfSignatureFieldLock(new PdfDocument(), action, "address").Covers(field).Should().Be(covered);
     }
 
-    [Fact]
+    [Test]
     public void AnEmptyNameInASeedValueListIsRefused()
     {
         var seed = new PdfSignatureSeedValue(new PdfDocument());
@@ -73,7 +73,7 @@ public class SignatureFieldLockTests
         seed.SubFilters.Should().BeEmpty("nothing is written when a value is refused");
     }
 
-    [Fact]
+    [Test]
     public void AnAllLockWritesNoFieldList()
     {
         var @lock = new PdfSignatureFieldLock(new PdfDocument());
@@ -82,7 +82,7 @@ public class SignatureFieldLockTests
         @lock.Elements.ContainsKey("/Fields").Should().BeFalse();
     }
 
-    [Fact]
+    [Test]
     public void ALockFromAnotherDocumentIsRefused()
     {
         FormWithSignatureField(out var field);
@@ -92,7 +92,7 @@ public class SignatureFieldLockTests
         act.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [Test]
     public void RemovingTheLockRemovesTheEntry()
     {
         var document = FormWithSignatureField(out var field);
@@ -105,7 +105,7 @@ public class SignatureFieldLockTests
 
     // ----- the seed value dictionary --------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ASeedValueSurvivesTheFile()
     {
         var document = FormWithSignatureField(out var field);
@@ -155,7 +155,7 @@ public class SignatureFieldLockTests
         cert.Url.Should().Be("https://ca.example.invalid/");
     }
 
-    [Fact]
+    [Test]
     public void AnEmptySeedValueSaysNothing()
     {
         var document = FormWithSignatureField(out var field);
@@ -173,7 +173,7 @@ public class SignatureFieldLockTests
 
     // ----- honoured by the signer -----------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void SigningWithALockMakesTheFieldsItCoversReadOnly()
     {
         var signed = Sign(TwoFieldForm(), new PdfSignatureOptions
@@ -197,7 +197,7 @@ public class SignatureFieldLockTests
         fill.Should().Throw<InvalidOperationException>();
     }
 
-    [Fact]
+    [Test]
     public void AnAllLockCoversEveryOtherField()
     {
         var signed = Sign(TwoFieldForm(), new PdfSignatureOptions { LockAction = PdfFieldLockAction.All });
@@ -208,7 +208,7 @@ public class SignatureFieldLockTests
         form.Fields["comment"].ReadOnly.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void TheSignatureCarriesAFieldMdpReferenceBesideItsCertification()
     {
         var signed = Sign(TwoFieldForm(), new PdfSignatureOptions
@@ -235,7 +235,7 @@ public class SignatureFieldLockTests
             .Should().Be((int)PdfCertificationLevel.FormFillingAllowed, "the DocMDP reference is still found");
     }
 
-    [Fact]
+    [Test]
     public void ALockedSignatureStillVerifies()
     {
         var signed = Sign(TwoFieldForm(), new PdfSignatureOptions { LockAction = PdfFieldLockAction.All });
@@ -246,7 +246,7 @@ public class SignatureFieldLockTests
         verification.CoversWholeDocument.Should().BeTrue();
     }
 
-    [Fact]
+    [Test]
     public void SigningWithoutALockLocksNothing()
     {
         var signed = Sign(TwoFieldForm(), new PdfSignatureOptions());

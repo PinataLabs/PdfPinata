@@ -8,7 +8,7 @@ using PinataLayout.Rendering;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Rendering;
 
@@ -23,7 +23,7 @@ public class ParagraphFormatInheritanceTests
 {
     private const int Columns = 3;
 
-    [Fact]
+    [Test]
     public void AParagraphBorderSetOnOneColumnIsDrawnInThatColumnAlone()
     {
         var page = Render(ARuleDownTheFirstColumnAndABandAcrossTheRow);
@@ -37,7 +37,7 @@ public class ParagraphFormatInheritanceTests
         verticals[0].Should().BeLessThan(bands.Skip(1).First());
     }
 
-    [Fact]
+    [Test]
     public void AParagraphBorderSetOnTheRowIsStillDrawnInEveryCell()
     {
         var page = Render(ARuleDownTheFirstColumnAndABandAcrossTheRow);
@@ -47,7 +47,7 @@ public class ParagraphFormatInheritanceTests
         bands.Should().HaveCount(Columns);
     }
 
-    [Fact]
+    [Test]
     public void ACellDoesNotShareItsParagraphBordersWithItsRow()
     {
         var document = new Document();

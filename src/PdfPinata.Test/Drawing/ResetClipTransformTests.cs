@@ -5,7 +5,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content.Objects;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.Drawing;
 
@@ -22,7 +22,7 @@ namespace PdfPinata.Test.Drawing;
 /// </remarks>
 public class ResetClipTransformTests
 {
-    [Fact]
+    [Test]
     public void ATransformDrawnWithInsideAClipOutlivesTheReset()
     {
         var page = new PdfDocument().AddPage();
@@ -49,7 +49,7 @@ public class ResetClipTransformTests
         }
     }
 
-    [Fact]
+    [Test]
     public void ATransformNotYetDrawnWithInsideAClipOutlivesTheReset()
     {
         var page = new PdfDocument().AddPage();

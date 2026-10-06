@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -32,7 +32,7 @@ public class DdlCharacterAndPunctuationTests
 
     // ----- \chr ---------------------------------------------------------------------------------
 
-    [Fact]
+    [Test]
     public void ACharacterCanBeWrittenByItsNumber()
     {
         var character = FirstParagraphOf("\\chr(65)").Elements.OfType<Character>().Single();
@@ -41,7 +41,7 @@ public class DdlCharacterAndPunctuationTests
         character.Count.Should().Be(1, "one is the default");
     }
 
-    [Fact]
+    [Test]
     public void ACharacterCanSayHowManyTimesItIsRepeated()
     {
         var character = FirstParagraphOf("\\chr(45, 20)").Elements.OfType<Character>().Single();
@@ -50,35 +50,35 @@ public class DdlCharacterAndPunctuationTests
         character.Count.Should().Be(20);
     }
 
-    [Theory]
-    [InlineData(1)]
-    [InlineData(255)]
+    [Test]
+    [Arguments(1)]
+    [Arguments(255)]
     public void TheEndsOfTheCharacterRangeAreAllowed(int number)
     {
         FirstParagraphOf("\\chr(" + number + ")")
             .Elements.OfType<Character>().Single().Char.Should().Be((char)number);
     }
 
-    [Theory]
-    [InlineData("\\chr(0)", "zero is not a character")]
-    [InlineData("\\chr(256)", "and the range stops at a byte")]
+    [Test]
+    [Arguments("\\chr(0)", "zero is not a character")]
+    [Arguments("\\chr(256)", "and the range stops at a byte")]
     public void ANumberOutsideTheCharacterRangeIsRefused(string ddl, string why)
     {
         ComplaintsAbout("\\document{\\section{\\paragraph{" + ddl + "}}}")
             .Should().NotBeEmpty(why);
     }
 
-    [Theory]
-    [InlineData("\\chr(\"A\")")]
-    [InlineData("\\chr(A)")]
-    [InlineData("\\chr 65)")]
+    [Test]
+    [Arguments("\\chr(\"A\")")]
+    [Arguments("\\chr(A)")]
+    [Arguments("\\chr 65)")]
     public void SomethingThatIsNotANumberIsNotACharacterNumber(string ddl)
     {
         ComplaintsAbout("\\document{\\section{\\paragraph{" + ddl + "}}}")
             .Should().NotBeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void ACharacterByNumberSitsBetweenTheTextEitherSideOfIt()
     {
         var paragraph = FirstParagraphOf("before\\chr(38)after");
@@ -90,7 +90,7 @@ public class DdlCharacterAndPunctuationTests
 
     // ----- punctuators the grammar is made of -----------------------------------------------------
 
-    [Fact]
+    [Test]
     public void EveryBracketingPairIsReadAsItself()
     {
         // Braces nest blocks, brackets carry attributes and parens carry arguments. One document
@@ -105,7 +105,7 @@ public class DdlCharacterAndPunctuationTests
         // ReSharper restore PossibleNullReferenceException
     }
 
-    [Fact]
+    [Test]
     public void AColonSeparatesAStyleFromTheOneItIsBasedOn()
     {
         var document = Read(
@@ -114,7 +114,7 @@ public class DdlCharacterAndPunctuationTests
         document.Styles["Quiet"].BaseStyle.Should().Be("Normal");
     }
 
-    [Fact]
+    [Test]
     public void ADotIsThePointOfARealNumber()
     {
         var document = Read(
@@ -126,14 +126,14 @@ public class DdlCharacterAndPunctuationTests
         // ReSharper restore PossibleNullReferenceException
     }
 
-    [Fact]
+    [Test]
     public void AnAtSignMakesAStringTakeItsBackslashesLiterally()
     {
         Read("\\document[Info{Title = @\"C:\\temp\\new\"}]{\\section{\\paragraph{t}}}")
             .Info.Title.Should().Be("C:\\temp\\new");
     }
 
-    [Fact]
+    [Test]
     public void TwoSlashesBeginAComment()
     {
         Read("\\document{ // and the rest of this line is not read\n\\section{\\paragraph{t}}}")
@@ -144,7 +144,7 @@ public class DdlCharacterAndPunctuationTests
     ///   The only place <c>+=</c> and <c>-=</c> mean anything. The parser's own comment calls them
     ///   "hard-coded for TabStops only", and using either anywhere else is refused.
     /// </summary>
-    [Fact]
+    [Test]
     public void PlusEqualsAddsATabStopToAParagraph()
     {
         var paragraph = Read(
@@ -162,7 +162,7 @@ public class DdlCharacterAndPunctuationTests
     ///   recording that it is cancelled, and there would be nothing to delete in any case. The
     ///   flattening visitor is what finally drops the marked ones.
     /// </summary>
-    [Fact]
+    [Test]
     public void MinusEqualsMarksATabStopAsNotToBeAdded()
     {
         var document = Read(
@@ -180,14 +180,14 @@ public class DdlCharacterAndPunctuationTests
         DdlWriter.WriteToString(document).Should().Contain("TabStops -= \"3cm\"");
     }
 
-    [Fact]
+    [Test]
     public void PlusEqualsAgainstAnythingButTabStopsIsRefused()
     {
         ComplaintsAbout("\\document{\\section{\\paragraph[Format{SpaceBefore += \"1cm\"}]{t}}}")
             .Should().NotBeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void PunctuationInsideAParagraphIsJustTheTextOfIt()
     {
         // Every character the punctuator scanner has an arm for, in a paragraph, where none of
@@ -220,11 +220,11 @@ public class DdlCharacterAndPunctuationTests
     ///   the buffer is not.
     ///   </para>
     /// </remarks>
-    [Theory]
-    [InlineData("\\document{\\section{\\paragraph{a\\space+")]
-    [InlineData("\\document{\\section{\\paragraph{a\\space-")]
-    [InlineData("\\document{\\section{\\paragraph{a\\field(Page)+")]
-    [InlineData("\\document{\\section{\\paragraph{a\\field(Page)-")]
+    [Test]
+    [Arguments("\\document{\\section{\\paragraph{a\\space+")]
+    [Arguments("\\document{\\section{\\paragraph{a\\space-")]
+    [Arguments("\\document{\\section{\\paragraph{a\\field(Page)+")]
+    [Arguments("\\document{\\section{\\paragraph{a\\field(Page)-")]
     public async Task ASignAtTheVeryEndOfTheDocumentIsNotReadPastTheEndOfIt(string ddl)
     {
         var fault = await ReaderDiagnostics.FaultReading(ddl, TimeSpan.FromSeconds(2));
@@ -242,27 +242,27 @@ public class DdlCharacterAndPunctuationTests
     ///   complaint as the token the scanner made of it - one character, or two for the compound
     ///   assignments, and never the start of something longer.
     /// </summary>
-    [Theory(Timeout = 5000)]
-    [InlineData(";")]
-    [InlineData("%")]
-    [InlineData("$")]
-    [InlineData("#")]
-    [InlineData("¤")]
-    [InlineData("/")]
-    [InlineData("+")]
-    [InlineData("-")]
-    [InlineData("+=")]
-    [InlineData("-=")]
-    [InlineData("@")]
-    [InlineData("=")]
-    [InlineData(":")]
-    [InlineData(".")]
-    [InlineData("[")]
-    [InlineData("]")]
-    [InlineData("(")]
-    [InlineData("{")]
-    [InlineData("}")]
-    [InlineData("?")]
+    [Test, Timeout(5000)]
+    [Arguments(";")]
+    [Arguments("%")]
+    [Arguments("$")]
+    [Arguments("#")]
+    [Arguments("¤")]
+    [Arguments("/")]
+    [Arguments("+")]
+    [Arguments("-")]
+    [Arguments("+=")]
+    [Arguments("-=")]
+    [Arguments("@")]
+    [Arguments("=")]
+    [Arguments(":")]
+    [Arguments(".")]
+    [Arguments("[")]
+    [Arguments("]")]
+    [Arguments("(")]
+    [Arguments("{")]
+    [Arguments("}")]
+    [Arguments("?")]
     public async Task EveryPunctuatorInCodeIsATokenOfItsOwn(string punctuator)
     {
         var complaints = await Task.Run(() =>
@@ -277,26 +277,26 @@ public class DdlCharacterAndPunctuationTests
     ///   is left where it is to be read as text. Every character the lookahead has an arm for is
     ///   put there, and every one of them has to come back as the text it is.
     /// </summary>
-    [Theory]
-    [InlineData(";")]
-    [InlineData("[")]
-    [InlineData("]")]
-    [InlineData(")")]
-    [InlineData(":")]
-    [InlineData(".")]
-    [InlineData(",")]
-    [InlineData("%")]
-    [InlineData("$")]
-    [InlineData("@")]
-    [InlineData("#")]
-    [InlineData("¤")]
-    [InlineData("=")]
-    [InlineData("/")]
-    [InlineData("+")]
-    [InlineData("+=")]
-    [InlineData("-")]
-    [InlineData("-=")]
-    [InlineData("?")]
+    [Test]
+    [Arguments(";")]
+    [Arguments("[")]
+    [Arguments("]")]
+    [Arguments(")")]
+    [Arguments(":")]
+    [Arguments(".")]
+    [Arguments(",")]
+    [Arguments("%")]
+    [Arguments("$")]
+    [Arguments("@")]
+    [Arguments("#")]
+    [Arguments("¤")]
+    [Arguments("=")]
+    [Arguments("/")]
+    [Arguments("+")]
+    [Arguments("+=")]
+    [Arguments("-")]
+    [Arguments("-=")]
+    [Arguments("?")]
     public void WhatFollowsASpaceWithoutACountIsText(string punctuator)
     {
         var paragraph = FirstParagraphOf("a\\space" + punctuator + "b");
@@ -308,11 +308,11 @@ public class DdlCharacterAndPunctuationTests
             .Should().Be("a" + punctuator + "b");
     }
 
-    [Theory]
-    [InlineData("\\{", "{")]
-    [InlineData("\\}", "}")]
-    [InlineData("\\\\", "\\")]
-    [InlineData("\\-", "­")]
+    [Test]
+    [Arguments("\\{", "{")]
+    [Arguments("\\}", "}")]
+    [Arguments("\\\\", "\\")]
+    [Arguments("\\-", "­")]
     public void AnEscapeAfterASpaceIsTextRatherThanAKeyword(string escape, string text)
     {
         // The lookahead has to recognise these as escapes rather than try to read a keyword name
@@ -323,7 +323,7 @@ public class DdlCharacterAndPunctuationTests
         string.Concat(paragraph.Elements.OfType<Text>().Select(t => t.Content)).Should().Be("a" + text + "b");
     }
 
-    [Fact]
+    [Test]
     public void AKeywordAfterASpaceIsReadAsThatKeyword()
     {
         var paragraph = FirstParagraphOf("a\\space\\bold{b}\\space\\(66)");
@@ -332,7 +332,7 @@ public class DdlCharacterAndPunctuationTests
         paragraph.Elements.OfType<Character>().Select(c => c.Char).Should().Contain('B');
     }
 
-    [Fact]
+    [Test]
     public void WhatFollowsAFieldWithNoAttributesIsText()
     {
         var paragraph = FirstParagraphOf("\\field(Page);x");

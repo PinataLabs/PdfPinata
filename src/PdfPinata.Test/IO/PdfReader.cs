@@ -4,13 +4,13 @@ using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using System;
 using System.IO;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
 public class PdfReader
 {
-    [Fact]
+    [Test]
     public void Should_beAbleToReadExistingPdf_When_inputIsStream()
     {
         using var fs = File.OpenRead(PathHelper.GetInstance().GetAssetPath("FamilyTree.pdf"));
@@ -18,7 +18,7 @@ public class PdfReader
         AssertIsAValidPdfDocumentWithProperties(inputDocument, 38148);
     }
 
-    [Fact]
+    [Test]
     public void ADocumentReadFromAPathKnowsItsFullPathAndSize()
     {
         var path = PathHelper.GetInstance().GetAssetPath("FamilyTree.pdf");
@@ -29,7 +29,7 @@ public class PdfReader
         AssertIsAValidPdfDocumentWithProperties(inputDocument, 38148);
     }
 
-    [Fact]
+    [Test]
     public void WillThrowExceptionWhenReadingInvalidPdf()
     {
         using var fs = File.OpenRead(PathHelper.GetInstance().GetAssetPath("NotAValid.pdf"));

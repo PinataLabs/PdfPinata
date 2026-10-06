@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
-using Xunit;
+using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
 
@@ -12,7 +12,7 @@ namespace PdfPinata.Test.IO;
 ///   the only way to tell the two apart is to look at the page. These render the documents that
 ///   come with the tests before and after pruning and compare what comes out.
 /// </summary>
-[Collection(RasterizingCollection.Name)]
+[Rasterizing]
 public class PruneUnusedResourcesRenderingTests
 {
     private const string OutDir = "Out/PruneUnusedResources";
@@ -23,13 +23,13 @@ public class PruneUnusedResourcesRenderingTests
     /// </summary>
     private const double MaxDifference = 0.001;
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void FamilyTreeRendersTheSameAfterPruning() => PruningDoesNotChangeTheDrawing("FamilyTree.pdf");
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void TestDocumentRendersTheSameAfterPruning() => PruningDoesNotChangeTheDrawing("test.pdf");
 
-    [GoldenImageFact]
+    [Test, GoldenImage]
     public void Pdf20RendersTheSameAfterPruning() => PruningDoesNotChangeTheDrawing("Pdf20.pdf");
 
     private static void PruningDoesNotChangeTheDrawing(string asset)
