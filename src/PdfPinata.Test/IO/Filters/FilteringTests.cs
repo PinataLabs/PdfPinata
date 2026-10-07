@@ -142,17 +142,109 @@ public class FilteringTests
         Filtering.Decode(encoded, chain, null).Should().Equal(data);
     }
 
-    [Test]
-    public void AChainWhoseParametersDoNotMatchItIsLeftAlone()
-    {
-        // One set of decode parameters per filter, or the reader cannot tell which belongs to
-        // which. Rather than guess, the data comes back untouched.
-        var document = new PdfDocument();
-        var data = "untouched"u8.ToArray();
-        var chain = new PdfArray(document, new PdfName("/ASCII85Decode"), new PdfName("/FlateDecode"));
-        var parms = new PdfArray(document, PdfNull.Value);
+    // ----- parameters in a shape other than the one the filter entry asks for -----------------------
 
-        Filtering.Decode(data, chain, parms).Should().BeSameAs(data);
+    // ISO 32000-1 Table 5 wants /DecodeParms in the shape of /Filter: a dictionary for a name, an
+    // array of the same length for an array. Where the shape differs but there is still only one
+    // way to read it, it is read that way. Where a dictionary could belong to more than one filter,
+    // nothing is guessed - the decode comes back as nothing, as an unknown filter does, rather than
+    // as the data it was given: TryUnfilter takes any answer as the decoded bytes and drops the
+    // /Filter entry, so handing back the encoded data saved a page's content still deflated with
+    // nothing left to say so.
+
+    private const string Predicted = "0 0 m 100 100 l S\n";
+
+    /// <summary>
+    ///   <see cref="Predicted"/> run through PNG prediction (one row, filter type None) and
+    ///   deflated, so it decodes only when the /Predictor in its parameters is actually read.
+    /// </summary>
+    private static byte[] DeflatedWithPrediction() =>
+        Filtering.FlateDecode.Encode([0, ..Encoding.ASCII.GetBytes(Predicted)]);
+
+    private static PdfDictionary Prediction(PdfDocument document)
+    {
+        var parms = new PdfDictionary(document);
+        parms.Elements.SetInteger("/Predictor", 12);
+        parms.Elements.SetInteger("/Columns", Predicted.Length);
+        return parms;
+    }
+
+    [Test]
+    public void ASingleFilterFindsItsParametersInAnArrayOfOne()
+    {
+        var document = new PdfDocument();
+        var parms = new PdfArray(document, Prediction(document));
+
+        var decoded = Filtering.Decode(DeflatedWithPrediction(), new PdfName("/FlateDecode"), parms);
+
+        Encoding.ASCII.GetString(decoded).Should().Be(Predicted);
+    }
+
+    [Test]
+    public void AChainOfOneFindsItsParametersInADictionaryOnItsOwn()
+    {
+        var document = new PdfDocument();
+        var chain = new PdfArray(document, new PdfName("/FlateDecode"));
+
+        var decoded = Filtering.Decode(DeflatedWithPrediction(), chain, Prediction(document));
+
+        Encoding.ASCII.GetString(decoded).Should().Be(Predicted);
+    }
+
+    [Test]
+    public void ParametersThatSayNothingLeaveEveryFilterToItsDefaultsWhateverTheirCount()
+    {
+        var document = new PdfDocument();
+        var data = "a stream worth compressing, compressing, compressing"u8.ToArray();
+        var encoded = Filtering.ASCII85Decode.Encode(Filtering.FlateDecode.Encode(data));
+        var chain = new PdfArray(document, new PdfName("/ASCII85Decode"), new PdfName("/FlateDecode"));
+
+        Filtering.Decode(encoded, chain, new PdfArray(document, PdfNull.Value)).Should().Equal(data);
+        Filtering.Decode(encoded, chain, new PdfArray(document)).Should().Equal(data);
+        Filtering.Decode(Filtering.FlateDecode.Encode(data), new PdfName("/FlateDecode"), new PdfArray(document))
+            .Should().Equal(data);
+    }
+
+    [Test]
+    public void AChainWhoseParametersCannotBeMatchedToItsFiltersDecodesToNothing()
+    {
+        // Is the predictor ASCII85's or Flate's? Only one of them reads it, but a reader that
+        // guessed by that would be guessing about a file that is already wrong.
+        var document = new PdfDocument();
+        var data = Filtering.ASCII85Decode.Encode(DeflatedWithPrediction());
+        var chain = new PdfArray(document, new PdfName("/ASCII85Decode"), new PdfName("/FlateDecode"));
+
+        Filtering.Decode(data, chain, Prediction(document)).Should().BeNull();
+        Filtering.Decode(data, chain, new PdfArray(document, Prediction(document))).Should().BeNull();
+        Filtering.Decode(data, chain, new PdfArray(document, PdfNull.Value, PdfNull.Value, Prediction(document)))
+            .Should().BeNull();
+    }
+
+    [Test]
+    public void ASingleFilterGivenSeveralSetsOfParametersDecodesToNothing()
+    {
+        var document = new PdfDocument();
+        var parms = new PdfArray(document, Prediction(document), Prediction(document));
+
+        Filtering.Decode(DeflatedWithPrediction(), new PdfName("/FlateDecode"), parms).Should().BeNull();
+    }
+
+    [Test]
+    public void AStreamWhoseParametersCannotBeMatchedKeepsItsFilter()
+    {
+        // The consequence that matters: the stream is left as it was found, still saying how it
+        // is encoded, rather than stripped of /Filter with its bytes still deflated.
+        var document = new PdfDocument();
+        var dictionary = new PdfDictionary(document);
+        var encoded = Filtering.ASCII85Decode.Encode(DeflatedWithPrediction());
+        dictionary.CreateStream(encoded);
+        dictionary.Elements["/Filter"] = new PdfArray(document, new PdfName("/ASCII85Decode"), new PdfName("/FlateDecode"));
+        dictionary.Elements["/DecodeParms"] = new PdfArray(document, Prediction(document));
+
+        dictionary.Stream.TryUnfilter().Should().BeFalse();
+
+        dictionary.Elements.ContainsKey("/Filter").Should().BeTrue();
+        dictionary.Stream.Value.Should().Equal(encoded);
     }
 
     [Test]
