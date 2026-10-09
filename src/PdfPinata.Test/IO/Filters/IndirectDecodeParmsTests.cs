@@ -37,9 +37,14 @@ public class IndirectDecodeParmsTests
     ///   A one-page file whose content stream, object 4, carries the entries given, with the
     ///   extra objects given numbered from 5.
     /// </summary>
-    private static byte[] File(string streamEntries, params string[] extraObjects)
+    private static byte[] File(string streamEntries, params string[] extraObjects) =>
+        File(Encoded(), streamEntries, extraObjects);
+
+    /// <summary>
+    ///   The same file with <paramref name="data"/> as the content stream's data.
+    /// </summary>
+    private static byte[] File(byte[] data, string streamEntries, params string[] extraObjects)
     {
-        var data = Encoded();
         var objects = new List<byte[]>
         {
             Latin1("<< /Type /Catalog /Pages 2 0 R >>"),
@@ -127,6 +132,37 @@ public class IndirectDecodeParmsTests
         text = text.Replace($"/Length {data.Length} ", $"/Length {hexed.Length} ").Replace(raw, hexed);
 
         DecodedContent(Latin1(Reindexed(text))).Should().Be(Content);
+    }
+
+    /// <summary>
+    ///   The content deflated and nothing else, for a filter that is to take its defaults: with no
+    ///   /Predictor read, a predicted stream would come back with its row's filter-type byte on it.
+    /// </summary>
+    private static byte[] Deflated() => Filtering.FlateDecode.Encode(Encoding.ASCII.GetBytes(Content));
+
+    [Test]
+    public void ANullForTheOnlyFilterOfAnArrayMeansItTakesItsDefaults()
+    {
+        // The shape DocuSign writes, which upstream could not decode (empira/PDFsharp#399).
+        DecodedContent(File(Deflated(), "/Filter [/FlateDecode] /DecodeParms [null]")).Should().Be(Content);
+    }
+
+    [Test]
+    public void ANullInPlaceOfTheParametersMeansTheFilterTakesItsDefaults()
+    {
+        DecodedContent(File(Deflated(), "/Filter /FlateDecode /DecodeParms null")).Should().Be(Content);
+    }
+
+    [Test]
+    public void AReferenceToANullObjectInAnArrayOfParametersIsANullToo()
+    {
+        DecodedContent(File(Deflated(), "/Filter [/FlateDecode] /DecodeParms [5 0 R]", "null")).Should().Be(Content);
+    }
+
+    [Test]
+    public void AReferenceToANullObjectInPlaceOfTheParametersIsANullToo()
+    {
+        DecodedContent(File(Deflated(), "/Filter /FlateDecode /DecodeParms 5 0 R", "null")).Should().Be(Content);
     }
 
     /// <summary>

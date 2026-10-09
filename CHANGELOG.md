@@ -13,6 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 #### Fixed
 
 - **Two LZW streams decoded on two threads at once no longer corrupt each other.** `Filtering.LzwDecode` is one instance for the process, and it kept its string table and read position in fields, so two documents read concurrently could each decode with the other's table and come back short or empty. Each decode now has an instance of its own.
+- **A stream whose `/DecodeParms` is not in the shape of its `/Filter` is decoded where there is only one way to read it.** A single filter given its parameters in an array of one, a chain of one given a bare dictionary, and parameters that are all null whatever their count — `/Filter [/FlateDecode] /DecodeParms [null]`, as DocuSign writes it (empira/PDFsharp#399) — now decode. Parameters that could belong to more than one filter of a chain are not guessed at: the stream is left encoded and keeps its `/Filter`, where it used to be handed back undecoded with `/Filter` removed, so a page could be saved still deflated with nothing saying so.
+- **The filter singletons on `Filtering` are made once.** They were created on first use with `??=`, which two threads asking at once could each run.
 
 ## [0.4.0] - 2026-10-06
 
