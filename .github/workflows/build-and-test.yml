@@ -70,11 +70,28 @@ jobs:
         run: dotnet build src/PdfPinata.slnx --configuration Release
       # A package with a published vulnerability anywhere in the dependency graph fails the build,
       # so it cannot reach a release without somebody deciding that it should.
+      #
+      # ACCEPTED is that decision, written down: advisories against SixLabors.ImageSharp, which
+      # PdfPinata.ImageSharp pins to 2.1.x because later releases are under the Six Labors Split
+      # License rather than Apache-2.0. Each is accepted by its advisory URL rather than the package
+      # by name, so an advisory published after these still fails the build until someone reads it.
       - name: Check vulnerable packages
+        env:
+          ACCEPTED: |
+            SixLabors.ImageSharp https://github.com/advisories/GHSA-gwg2-r3hj-4w44
+            SixLabors.ImageSharp https://github.com/advisories/GHSA-j3p4-wp97-rph4
+            SixLabors.ImageSharp https://github.com/advisories/GHSA-j9gm-c75j-xc9q
+            SixLabors.ImageSharp https://github.com/advisories/GHSA-wmxv-xphr-5c9g
+            SixLabors.ImageSharp https://github.com/advisories/GHSA-jjfr-hcj7-qf5w
         run: |
           OUTPUT=$(dotnet list src/PdfPinata.slnx package --vulnerable --include-transitive --format json)
           echo "$OUTPUT"
-          if echo "$OUTPUT" | jq -e '.projects[] | select(.frameworks)' > /dev/null 2>&1; then
+          FOUND=$(echo "$OUTPUT" | jq -r '
+            [.projects[].frameworks[]? | (.topLevelPackages // []) + (.transitivePackages // []) | .[]
+             | .id as $id | .vulnerabilities[] | "\($id) \(.advisoryurl)"] | unique[]')
+          UNACCEPTED=$(comm -23 <(echo "$FOUND" | sed '/^$/d' | sort) <(echo "$ACCEPTED" | sed '/^$/d' | sort))
+          if [ -n "$UNACCEPTED" ]; then
+            echo "$UNACCEPTED" | while read -r id url; do echo "::error::$id: $url"; done
             echo "::error::Vulnerable packages detected"
             exit 1
           fi
