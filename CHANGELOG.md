@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### PinataLayout & DDL
+
+#### Fixed
+
+- **A no-break space typed as U+00A0 at the edge of a run keeps the words either side of it on one line.** A line was kept from breaking at a non-breakable blank only when it was the `SymbolName.NonBreakableBlank` symbol. Text is not split at U+00A0, so one ending a run of formatting (`AddFormattedText("online:\u00A0")` before a hyperlink), starting one, or written as a text of its own sat on a leaf boundary, and the line was broken there like at any other. It now joins the leaves as the symbol does, as do the narrow no-break space (U+202F), the figure space (U+2007) and the non-breaking hyphen (U+2011), and the run is moved down whole when it does not fit. Reported against PDFsharp by @gaspardpetit (empira/PDFsharp#402).
+- **An underline or strikethrough over a blank set in another size is drawn as one rule.** A rule is a sixteenth of the font size thick and was ended wherever that changed, so a smaller space between two underlined words was drawn as three strokes with a thinner one in the middle. A blank or a tab now carries on the rule in progress when only the width would differ; a word in another size still gets a rule of its own thickness. Also from empira/PDFsharp#402.
+
 ## [0.4.1] - 2026-10-10
 
 ### PDF Reader & Writer
