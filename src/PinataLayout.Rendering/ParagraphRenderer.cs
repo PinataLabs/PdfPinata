@@ -2201,12 +2201,40 @@ internal class ParagraphRenderer : Renderer
         docObj is Character { SymbolName: SymbolName.NonBreakableBlank };
 
     /// <summary>
-    /// Whether no line may be broken between two adjacent leaves: one of them is a non-breakable
-    /// blank and the other is something a word is made of.
+    /// Whether no line may be broken between two adjacent leaves: a non-breakable blank stands
+    /// between them, and both are something a word is made of.
     /// </summary>
+    /// <remarks>
+    /// The blank is either the symbol or a no-break character typed in the text. The text is not
+    /// split at the latter, so it reaches here as the last character of the leaf before or the
+    /// first of the leaf after - as it does whenever a run of formatting ends or begins with one,
+    /// which is how a label is kept on the line of the link after it.
+    /// </remarks>
     private static bool IsJoinedTo(DocumentObject left, DocumentObject right) =>
-        (IsNonBreakableBlank(left) || IsNonBreakableBlank(right))
+        (EndsInNonBreakableBlank(left) || BeginsWithNonBreakableBlank(right))
         && IsWordLikeElement(left) && IsWordLikeElement(right);
+
+    private static bool EndsInNonBreakableBlank(DocumentObject docObj) =>
+        IsNonBreakableBlank(docObj) || docObj is Text { Content: { Length: > 0 } content } && ForbidsABreak(content[^1]);
+
+    private static bool BeginsWithNonBreakableBlank(DocumentObject docObj) =>
+        IsNonBreakableBlank(docObj) || docObj is Text { Content: { Length: > 0 } content } && ForbidsABreak(content[0]);
+
+    /// <summary>
+    /// Whether a line may not be broken either side of <paramref name="ch"/>: the no-break space,
+    /// the narrow one French sets before a colon, the figure space and the non-breaking hyphen.
+    /// </summary>
+    /// <remarks>
+    /// The visible members of UAX #14's class GL. The invisible ones - the word joiner, the
+    /// zero-width no-break space - are left out: nothing keeps them from being drawn, so a face
+    /// without a glyph for them shows <c>.notdef</c> where the join is.
+    /// </remarks>
+    private static bool ForbidsABreak(char ch) =>
+        ch is Chars.NonBreakableSpace or NarrowNoBreakSpace or FigureSpace or NonBreakingHyphen;
+
+    private const char NarrowNoBreakSpace = (char)0x202F;
+    private const char FigureSpace = (char)0x2007;
+    private const char NonBreakingHyphen = (char)0x2011;
 
     private bool probingJoinedRun;
 
@@ -3105,10 +3133,10 @@ internal class ParagraphRenderer : Renderer
     }
 
     private void RenderUnderline(XUnit width, bool isWord) =>
-        RenderRule(underlineRule, GetUnderlinePen(isWord), width);
+        RenderRule(underlineRule, GetUnderlinePen(isWord), width, isWord);
 
     private void RenderStrikethrough(XUnit width, bool isWord) =>
-        RenderRule(strikethroughRule, GetStrikethroughPen(isWord), width);
+        RenderRule(strikethroughRule, GetStrikethroughPen(isWord), width, isWord);
 
     /// <summary>
     /// Carries <paramref name="rule"/> across the run just drawn, <paramref name="width"/> wide, whose
@@ -3118,9 +3146,20 @@ internal class ParagraphRenderer : Renderer
     /// <remarks>
     /// While the line is being reordered every leaf is somewhere else, so no rule may run on from
     /// one leaf into the next and each is ended where it is drawn.
+    /// <para>
+    /// A run that is not a word - a blank, a tab - carries on the rule in progress, whatever its
+    /// own size, when its pen would differ from the rule's in width alone: a space set in a smaller
+    /// size than the words either side of it would otherwise end the rule, draw a thinner one under
+    /// itself and start a third. Where the words themselves change size, the rule changes with the
+    /// word that does. A blank with no rule in progress to carry on - one that opens the rule, or
+    /// any on a line being reordered - is still ruled in its own size.
+    /// </para>
     /// </remarks>
-    private void RenderRule(TextRule rule, XPen pen, XUnit width)
+    private void RenderRule(TextRule rule, XPen pen, XUnit width, bool isWord)
     {
+        if (!isWord && pen != null && rule.Pen != null && AlikeButForWidth(pen, rule.Pen))
+            pen = rule.Pen;
+
         if (RulePenChanged(pen, rule.Pen))
         {
             if (rule.Pen != null)
@@ -3187,7 +3226,7 @@ internal class ParagraphRenderer : Renderer
         if (pen == null || current == null)
             return pen != current;
 
-        if (pen.Color != current.Color || pen.DashStyle != current.DashStyle)
+        if (!AlikeButForWidth(pen, current))
             return true;
 
         #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
@@ -3195,6 +3234,12 @@ internal class ParagraphRenderer : Renderer
         return pen.Width != current.Width;
         #pragma warning restore S1244
     }
+
+    /// <summary>
+    /// Whether two rule pens are the same in everything <see cref="RulePen"/> sets but the width.
+    /// </summary>
+    private static bool AlikeButForWidth(XPen pen, XPen current) =>
+        pen.Color == current.Color && pen.DashStyle == current.DashStyle;
 
     private RenderInfo CurrentImageRenderInfo
     {

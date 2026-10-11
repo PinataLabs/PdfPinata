@@ -243,6 +243,79 @@ public class SymbolAndDecimalTabTests
         placed[0].Y.Should().BeGreaterThan(placed[^1].Y);
     }
 
+    /// <summary>
+    ///   The paragraph of <see cref="ThreeWordsJoinedBy"/>, with "aaaa " written first and the
+    ///   last two words joined by <paramref name="join"/> typed as text, in one of the shapes it
+    ///   can take at the edge of a leaf.
+    /// </summary>
+    private static PdfPinata.Pdf.PdfPage ThreeWordsJoinedByTextIn(string shape, int join)
+    {
+        var joining = ((char)join).ToString();
+        var document = new Document();
+        var section = document.AddSection();
+        section.PageSetup.LeftMargin = Unit.FromPoint(10);
+        section.PageSetup.RightMargin = Unit.FromPoint(10);
+        section.PageSetup.PageWidth = Unit.FromPoint(80);
+        var paragraph = section.AddParagraph();
+        paragraph.AddText("aaaa ");
+        switch (shape)
+        {
+            case "a text of its own":
+                paragraph.AddText("bbbb");
+                paragraph.AddText(joining);
+                paragraph.AddText("cccc");
+                break;
+
+            case "the end of a run before a link":
+                paragraph.AddFormattedText("bbbb" + joining).Font.Italic = true;
+                paragraph.AddHyperlink("https://example.com", HyperlinkType.Url).AddText("cccc");
+                break;
+
+            case "the start of a run":
+                paragraph.AddText("bbbb");
+                paragraph.AddFormattedText(joining + "cccc").Font.Bold = true;
+                break;
+
+            default:
+                throw new System.ArgumentOutOfRangeException(nameof(shape), shape, "No such shape.");
+        }
+        return Rendered.FirstPageOf(document);
+    }
+
+    [Test]
+    [Arguments("a text of its own", 0x00A0)]
+    [Arguments("the end of a run before a link", 0x00A0)]
+    [Arguments("the start of a run", 0x00A0)]
+    [Arguments("the end of a run before a link", 0x202F)]
+    [Arguments("the end of a run before a link", 0x2007)]
+    [Arguments("the end of a run before a link", 0x2011)]
+    public void ALineIsNotBrokenAtANoBreakCharacterTypedAsText(string shape, int join)
+    {
+        // A no-break space in the text is not split into a leaf of its own, so it reaches the
+        // renderer at the edge of a word rather than as the symbol - and a line used to be broken
+        // there like at any other leaf boundary, splitting "label:" and its no-break space from
+        // the link after it. The narrow no-break space, the figure space and the non-breaking
+        // hyphen forbid a break just as much.
+        var placed = Glyphs.PlacedOn(ThreeWordsJoinedByTextIn(shape, join));
+
+        placed[1].Y.Should().BeLessThan(placed[0].Y, "\"bbbb\" goes down to the line \"cccc\" is on");
+        placed[1].Y.Should().Be(placed[^1].Y);
+    }
+
+    [Test]
+    [Arguments("a text of its own")]
+    [Arguments("the end of a run before a link")]
+    [Arguments("the start of a run")]
+    public void ALineIsBrokenAtASpaceTypedInTheSameShapes(string shape)
+    {
+        // The control: the same paragraph with an ordinary space in the same place breaks between
+        // "bbbb" and "cccc", so "bbbb" moving down above is the join and not the measure.
+        var placed = Glyphs.PlacedOn(ThreeWordsJoinedByTextIn(shape, ' '));
+
+        placed[1].Y.Should().Be(placed[0].Y, "\"aaaa bbbb\" fits on the first line");
+        placed[^1].Y.Should().BeLessThan(placed[0].Y);
+    }
+
     // ----- the decimal-aligned tab ------------------------------------------------------------
 
     /// <summary>
