@@ -2197,54 +2197,132 @@ internal class ParagraphRenderer : Renderer
         return JoinedRunBreaksBeforeCurrentLeaf() ? FormatResult.NewLine : FormatLeaf(docObj);
     }
 
-    private static bool IsNonBreakableBlank(DocumentObject docObj) =>
-        docObj is Character { SymbolName: SymbolName.NonBreakableBlank };
-
     /// <summary>
-    /// Whether no line may be broken between two adjacent leaves: a non-breakable blank stands
-    /// between them, and both are something a word is made of.
+    /// Whether no line may be broken between two adjacent leaves: both are part of a word, and the
+    /// first does not end somewhere a line may be broken.
     /// </summary>
     /// <remarks>
-    /// The blank is either the symbol or a no-break character typed in the text. The text is not
-    /// split at the latter, so it reaches here as the last character of the leaf before or the
-    /// first of the leaf after - as it does whenever a run of formatting ends or begins with one,
-    /// which is how a label is kept on the line of the link after it.
+    /// <para>
+    /// The text is split into leaves at every blank and after every hyphen and zero-width space,
+    /// so within one run of formatting a boundary between two word-like leaves is always a break
+    /// opportunity. Where one run of formatting ends and another begins it is not: "H", a
+    /// subscript "2" and "O" are one word, and so are "bold" and an emboldened "er". Those are
+    /// joined, and so is a non-breakable blank to the words either side of it - the symbol is
+    /// word-like, and U+00A0 and the other no-break characters typed as text are never a break
+    /// opportunity, so they join without being listed.
+    /// </para>
+    /// <para>
+    /// A footnote's reference mark belongs to the word it is set against, so it joins as a word
+    /// does, and a bookmark takes no room and joins whatever it sits between. A blank, a tab, a
+    /// line break, a soft hyphen and an image are none of these and still separate what is either
+    /// side of them.
+    /// </para>
+    /// <para>
+    /// Two exceptions keep what a seam used to allow. Chinese, Japanese and the scripts of South
+    /// East Asia are written without spaces, so a seam beside one of their letters stays a place a
+    /// line may be broken - joining there would make a paragraph with any formatting in it one
+    /// run. And a seam before a no-break character follows UAX #14's rule LB12a: joined, unless
+    /// what comes before it is a hyphen or a dash a line may be broken after, which an em dash is
+    /// not - so the em dash and no-break space of French dialogue stay together.
+    /// </para>
     /// </remarks>
-    private static bool IsJoinedTo(DocumentObject left, DocumentObject right) =>
-        (EndsInNonBreakableBlank(left) || BeginsWithNonBreakableBlank(right))
-        && IsWordLikeElement(left) && IsWordLikeElement(right);
+    private static bool IsJoinedTo(DocumentObject left, DocumentObject right)
+    {
+        if (!IsJoinable(left) || !IsJoinable(right))
+            return false;
 
-    private static bool EndsInNonBreakableBlank(DocumentObject docObj) =>
-        IsNonBreakableBlank(docObj) || docObj is Text { Content: { Length: > 0 } content } && ForbidsABreak(content[^1]);
+        if (IsWrittenWithoutSpaces(LastCodePointOf(left)) || IsWrittenWithoutSpaces(FirstCodePointOf(right)))
+            return false;
 
-    private static bool BeginsWithNonBreakableBlank(DocumentObject docObj) =>
-        IsNonBreakableBlank(docObj) || docObj is Text { Content: { Length: > 0 } content } && ForbidsABreak(content[0]);
+        return BeginsWithNoBreak(right)
+            ? !EndsInBreakOpportunity(left, beforeANoBreak: true)
+            : !EndsInBreakOpportunity(left, beforeANoBreak: false);
+    }
+
+    private static bool IsJoinable(DocumentObject docObj) =>
+        IsWordLikeElement(docObj) || docObj is Footnote or BookmarkField;
 
     /// <summary>
-    /// Whether a line may not be broken either side of <paramref name="ch"/>: the no-break space,
-    /// the narrow one French sets before a colon, the figure space and the non-breaking hyphen.
+    /// Whether a line may be broken after <paramref name="docObj"/>: it ends in a hyphen, a
+    /// zero-width space - where <c>PdfFlattenVisitor</c> ends a word - or a dash, typed as text or
+    /// as the symbol. Before a no-break character only a hyphen and a dash of UAX #14's class BA
+    /// allow it: an em dash, class B2, does not.
     /// </summary>
-    /// <remarks>
-    /// The visible members of UAX #14's class GL. The invisible ones - the word joiner, the
-    /// zero-width no-break space - are left out: nothing keeps them from being drawn, so a face
-    /// without a glyph for them shows <c>.notdef</c> where the join is.
-    /// </remarks>
-    private static bool ForbidsABreak(char ch) =>
-        ch is Chars.NonBreakableSpace or NarrowNoBreakSpace or FigureSpace or NonBreakingHyphen;
+    private static bool EndsInBreakOpportunity(DocumentObject docObj, bool beforeANoBreak)
+    {
+        var last = docObj switch
+        {
+            Character { SymbolName: SymbolName.EnDash } => EnDash,
+            Character { SymbolName: SymbolName.EmDash } => EmDash,
+            _ => LastCodePointOf(docObj)
+        };
 
-    private const char NarrowNoBreakSpace = (char)0x202F;
-    private const char FigureSpace = (char)0x2007;
+        return last switch
+        {
+            '-' or Hyphen or FigureDash or EnDash or Chars.ZeroWidthSpace => true,
+            EmDash => !beforeANoBreak,
+            _ => false
+        };
+    }
+
+    /// <summary>
+    /// Whether <paramref name="docObj"/> begins with a character UAX #14 forbids a break before:
+    /// the non-breakable blank, or the no-break space, narrow no-break space, figure space or
+    /// non-breaking hyphen typed as text.
+    /// </summary>
+    private static bool BeginsWithNoBreak(DocumentObject docObj) =>
+        docObj is Character { SymbolName: SymbolName.NonBreakableBlank }
+        || FirstCodePointOf(docObj) is Chars.NonBreakableSpace or NarrowNoBreakSpace or FigureSpace or NonBreakingHyphen;
+
+    /// <summary>
+    /// Whether <paramref name="codePoint"/> belongs to a script written without spaces between
+    /// words, in which a line may be broken between letters.
+    /// </summary>
+    private static bool IsWrittenWithoutSpaces(int codePoint) =>
+        codePoint >= 0 && UnicodeProperties.ScriptOf(codePoint) is UnicodeScript.Han or UnicodeScript.Hiragana
+            or UnicodeScript.Katakana or UnicodeScript.Bopomofo or UnicodeScript.Yi or UnicodeScript.Thai
+            or UnicodeScript.Lao or UnicodeScript.Khmer or UnicodeScript.Myanmar;
+
+    /// <summary>The last code point of a text leaf, or -1 for anything else.</summary>
+    private static int LastCodePointOf(DocumentObject docObj)
+    {
+        if (docObj is not Text { Content: { Length: > 0 } content })
+            return -1;
+
+        var last = content.Length - 1;
+        return last > 0 && char.IsSurrogatePair(content[last - 1], content[last])
+            ? char.ConvertToUtf32(content[last - 1], content[last])
+            : content[last];
+    }
+
+    /// <summary>The first code point of a text leaf, or -1 for anything else.</summary>
+    private static int FirstCodePointOf(DocumentObject docObj)
+    {
+        if (docObj is not Text { Content: { Length: > 0 } content })
+            return -1;
+
+        return content.Length > 1 && char.IsSurrogatePair(content[0], content[1])
+            ? char.ConvertToUtf32(content[0], content[1])
+            : content[0];
+    }
+
+    private const char Hyphen = (char)0x2010;
     private const char NonBreakingHyphen = (char)0x2011;
+    private const char FigureDash = (char)0x2012;
+    private const char EnDash = (char)0x2013;
+    private const char EmDash = (char)0x2014;
+    private const char FigureSpace = (char)0x2007;
+    private const char NarrowNoBreakSpace = (char)0x202F;
 
     private bool probingJoinedRun;
 
     /// <summary>
-    /// Whether the line has to be broken before the current leaf because it begins a run of leaves
-    /// joined by non-breakable blanks and the run does not fit on what is left of the line.
+    /// Whether the line has to be broken before the current leaf because it begins a run of joined
+    /// leaves and the run does not fit on what is left of the line.
     /// </summary>
     /// <remarks>
-    /// A line is broken before whichever leaf does not fit, so without this a non-breakable blank
-    /// would be broken at like any other leaf boundary - before it, or before the word after it.
+    /// A line is broken before whichever leaf does not fit, so without this a run of joined leaves
+    /// would be broken at like any other leaf boundary - in the middle of a word.
     /// The whole run is measured instead, as the soft hyphen measures the word after it, and moved
     /// down together. A run that starts a line is let through and broken where it has to be, as a
     /// word longer than the measure is. Only while formatting: the rendering pass measures lines
@@ -2260,7 +2338,7 @@ internal class ParagraphRenderer : Renderer
 
     /// <summary>
     /// Whether the current leaf, while formatting and not first on the line, is the first of a run
-    /// of leaves joined by non-breakable blanks.
+    /// of joined leaves.
     /// </summary>
     private bool JoinedRunStartsAtCurrentLeaf()
     {
@@ -2284,6 +2362,7 @@ internal class ParagraphRenderer : Renderer
         SaveBeforeProbing(out var iter, out var blankCount, out var wordsWidth, out var xPosition, out var lineWidth, out var blankWidth);
         var wordWidth = savedWordWidth;
         var verticalInfo = currentVerticalInfo;
+        var measureAgain = reMeasureLine;
         FormatResult result;
         ParagraphIterator next;
         probingJoinedRun = true;
@@ -2307,6 +2386,7 @@ internal class ParagraphRenderer : Renderer
             RestoreAfterProbing(iter, blankCount, wordsWidth, xPosition, lineWidth, blankWidth);
             savedWordWidth = wordWidth;
             currentVerticalInfo = verticalInfo;
+            reMeasureLine = measureAgain;
         }
         return result;
     }
