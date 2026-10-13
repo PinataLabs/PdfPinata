@@ -76,6 +76,13 @@ public class FormattingSeamTests
                 paragraph.AddBookmark("inside");
                 break;
 
+            case "a paragraph break inside a run of formatting":
+                // A paragraph break is split out of a paragraph only at its top level; one inside
+                // a run of formatting - an empty line in the run, in MDDDL - reaches the renderer,
+                // which draws nothing for it and never breaks the line there.
+                paragraph.AddFormattedText().AddCharacter(SymbolName.ParaBreak);
+                break;
+
             default:
                 throw new System.ArgumentOutOfRangeException(nameof(seam), seam, "No such seam.");
         }
@@ -156,6 +163,47 @@ public class FormattingSeamTests
                 paragraph.AddFormattedText(ThaiKhoKhai + "cccc").Font.Bold = true;
                 return document;
 
+            // A bookmark and a footnote's reference mark are read through: the seam after them is
+            // decided by the character before them, as though they were not there. "!" before a
+            // word is a place a line may be broken (LB31), and so is a dash, a "?" or a "}".
+            case "an exclamation mark and a bookmark":
+                paragraph.AddText("aaaa bbbb!");
+                paragraph.AddBookmark("inside");
+                break;
+
+            case "an exclamation mark, a bookmark and a footnote mark":
+                paragraph.AddText("aaaa bbbb!");
+                paragraph.AddBookmark("inside");
+                paragraph.AddFootnote("The note.");
+                break;
+
+            case "a question mark and two bookmarks":
+                paragraph.AddText("aaaa bbbb?");
+                paragraph.AddBookmark("inside");
+                paragraph.AddBookmark("also inside");
+                break;
+
+            case "an em dash typed as text and two bookmarks":
+                paragraph.AddText("aaaa bbbb" + (char)0x2014);
+                paragraph.AddBookmark("inside");
+                paragraph.AddBookmark("also inside");
+                break;
+
+            case "a closing brace, a footnote mark and a bookmark":
+                paragraph.AddText("aaaa bbbb}");
+                paragraph.AddFootnote("The note.");
+                paragraph.AddBookmark("inside");
+                break;
+
+            case "an en dash and a bookmark":
+                // Read through the bookmark, the dash follows "bbbb" and is no word-initial dash
+                // (LB20a), so the seam after it is a place a line may be broken - which needs the
+                // character before the dash as well as the dash.
+                paragraph.AddText("aaaa bbbb");
+                paragraph.AddCharacter(SymbolName.EnDash);
+                paragraph.AddBookmark("inside");
+                break;
+
             default:
                 throw new System.ArgumentOutOfRangeException(nameof(seam), seam, "No such seam.");
         }
@@ -184,6 +232,7 @@ public class FormattingSeamTests
     [Arguments("a page field")]
     [Arguments("a symbol")]
     [Arguments("a bookmark")]
+    [Arguments("a paragraph break inside a run of formatting")]
     public void ALineIsNotBrokenWhereOneRunOfFormattingMeetsAnother(string seam)
     {
         var placed = BodyRunsOf(BbbbAndCcccMeetingAt(seam));
@@ -206,6 +255,12 @@ public class FormattingSeamTests
     [Arguments("a Thai letter")]
     [Arguments("a Thai letter after it")]
     [Arguments("two Thai letters")]
+    [Arguments("an exclamation mark and a bookmark")]
+    [Arguments("an exclamation mark, a bookmark and a footnote mark")]
+    [Arguments("a question mark and two bookmarks")]
+    [Arguments("an em dash typed as text and two bookmarks")]
+    [Arguments("a closing brace, a footnote mark and a bookmark")]
+    [Arguments("an en dash and a bookmark")]
     public void ALineIsStillBrokenWhereTheFirstRunEndsInABreakOpportunity(string seam)
     {
         var placed = BodyRunsOf(BbbbAndCcccBreakableAt(seam));
