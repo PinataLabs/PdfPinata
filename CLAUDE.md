@@ -344,8 +344,11 @@ the measurement paths, and the DOM property.
 `ParagraphRenderer.IsJoinedTo` asks `LineBreakAlgorithm.IsBreakAllowedBetween` about the seam,
 reading up to 32 code units of each leaf and, for a leaf of one character, the character beyond it
 — which is what tells a word-initial hyphen (LB20a) from one inside a word. A symbol is read as its
-character, an image as U+FFFC, a field as a letter, and a footnote reference, a bookmark or an
-empty text as U+034F, a CM: never broken before, and read through by the seam after it. Three
+character, an image as U+FFFC, a field as a letter. A footnote reference, a bookmark, an empty
+text and a symbol that draws nothing (a paragraph break inside a run) are *read through*: U+034F, a
+CM, so never broken before, and the seam after them is decided by the nearest leaf before them that
+has text — **walk past them, never read one as the context of another**, or two in a row become a
+letter by LB10 and the character before them is lost. Three
 things are deliberately not the default algorithm, and all are load-bearing. **A Thai, Lao, Khmer or
 Myanmar letter is asked about as an ideograph** (`LineBreakTailoring.SouthEastAsianAsIdeographs`),
 because LB1 makes it AL without a dictionary and would join every seam in a Thai paragraph. **A

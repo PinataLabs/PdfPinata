@@ -109,6 +109,14 @@ run as one `[Test]`, `LineBreakConformanceTests.TheLineBreakTestSuitePasses`, fo
 A failure is reported with the position, what was expected, and the rule the suite's own comment
 names for it, so "should be × by LB28 ([28.0]), and is ÷" says where to look.
 
+**Every entry point is checked, not just one.** `BreakOpportunities` resolves the whole text in
+one pass; `BreakBefore` and `IsBreakAllowedBetween`, which is what the seam calls, resolve two
+pieces one after the other and work in a buffer on the stack up to 128 code units. So every
+position of every case is asked through all three, and through the last two again after a
+140-letter word and a hard line break, which takes them past the stack buffer. `BreakBefore` is held
+to `BreakOpportunities`' exact answer, mandatory or allowed. It is still one `[Test]`, and still
+takes under two seconds.
+
 ## Item 5 — the seam · **built**
 
 `IsJoinedTo(left, right)` now takes the two leaves' iterators and:
@@ -118,7 +126,7 @@ names for it, so "should be × by LB28 ([28.0]), and is ÷" says where to look.
 2. returns false for a boundary inside one run of text split after a hyphen-minus (see the
    tailorings below);
 3. reads up to 32 code units either side of the seam, and for a leaf of one character, the
-   character beyond it in the next leaf out;
+   character beyond it in the next leaf out, walking past any leaf the seam reads through;
 4. asks `IsBreakAllowedBetween` with the `SouthEastAsianAsIdeographs` and `HangulAsAlphabetic`
    tailorings, and joins when the answer is no.
 
@@ -126,20 +134,36 @@ names for it, so "should be × by LB28 ([28.0]), and is ÷" says where to look.
 `EndsInBreakOpportunity` and `IsWrittenWithoutSpaces` are gone.
 
 **A leaf that is not text is read as the text it stands for.** A symbol is its character, the same
-one `GetSymbol` draws: an em dash is B2, an en dash HH, a non-breakable blank GL, a trademark sign
-AL. An image is U+FFFC, which is CB. A field is read as a letter, and joins as a word does, which
-is what it did before; its value is not known until it is evaluated, and a letter is the class most
-values have.
+one `GetSymbol` draws - both ask `SymbolCodePoint` - written into a buffer on the stack rather than
+spelt as a string: an em dash is B2, an en dash HH, a non-breakable blank GL, a trademark sign AL.
+A symbol drawn more than once is written twice, which is as far back as any rule reads through a
+row of one character. An image is U+FFFC, which is CB. A field is read as a letter, and joins as a
+word does, which is what it did before; its value is not known until it is evaluated, and a letter
+is the class most values have. A line break symbol is "\n", because it really does end the line.
 
-**A footnote's reference mark, a bookmark and an empty text are a combining mark**, U+034F COMBINING
-GRAPHEME JOINER. That has the right behaviour on both sides for something that takes no room or
-belongs to what precedes it: LB9 never breaks before a CM, and through the one-character widening
-the seam after it is read as though it followed the character before it. So a reference mark set
-after "!", "?" or an ideographic full stop is not left to start a line, and a bookmark between an
-ideograph and an iteration mark leaves the two joined. Read as a letter, both did the wrong thing:
-a break is allowed between "!" and a letter, and between an ideograph and a letter. The one thing
-it moves is where a bookmark sits when a line is broken just before it - after a hyphen, say - which
-is now at the end of the line rather than the start of the next.
+**A footnote's reference mark, a bookmark, an empty text and a symbol that draws nothing are read
+through** (`IsReadThrough`). After the seam such a leaf is U+034F COMBINING GRAPHEME JOINER, a CM,
+which LB9 never breaks before whatever follows it. Before the seam it is the joiner after the text of
+the nearest leaf before it that is not read through - that leaf's window, and the character before
+it if it is a single one - so LB9 absorbs the joiner and the seam is read as though it followed that
+text. However many stand together, the character before them is what is read: a footnote mark after
+a bookmark after "!" is decided as "!" before the next word, which may be broken, where reading each
+leaf as a joiner made the two of them a letter by LB10 and joined. So a reference mark set after "!",
+"?" or an ideographic full stop is not left to start a line, and a bookmark between an ideograph and
+an iteration mark leaves the two joined. Read as a letter, both did the wrong thing: a break is
+allowed between "!" and a letter, and between an ideograph and a letter. The one thing it moves is
+where a bookmark sits when a line is broken just before it - after a hyphen, say - which is now at
+the end of the line rather than the start of the next.
+
+**A paragraph break inside a run of formatting is one of them.** `PdfFlattenVisitor` splits a
+paragraph at a paragraph break only among its own elements, so one inside a run - an empty line in
+the run, in MDDDL - reaches the renderer, which draws it as U+0000, a character text normalisation
+drops, and never breaks the line there. Read as "\n" it made the seam after it a mandatory break
+(LB5); before this work both of its seams joined, and read through they still do, unless what is
+either side of it is a break.
+
+An empty text cannot reach a seam through the public API - `AddText("")` adds nothing and
+`PdfFlattenVisitor` removes an empty text - but is read through all the same.
 
 **Why the character beyond a one-character leaf.** A seam between a lone en dash symbol and the
 word after it is a break in "bbbb–cccc" and is not in "–cccc" at the start of a word (LB20a). Read
@@ -151,12 +175,20 @@ walk of the tree that fetching a neighbour costs.
 number, a row of spaces or a row of regional indicators, and a leaf has no spaces in it. The bound
 is there so that a long run of CJK text, which is one leaf, is not resolved whole at every seam.
 What is outside the window counts as the start or the end of the text, which for a leaf longer
-than the window can change the answer of a rule that counts - the parity of a run of more than 16
-regional indicators (LB30a) - and nothing else a real document contains.
+than the window could change the answer of the one rule that counts: LB30a, which pairs regional
+indicators into flags from the start of their row. After 17 indicators the window held 16, and a
+break was allowed between the two halves of the 9th flag. So where the window begins on a regional
+indicator, `Tail` walks back over the row it cut into and, when it left out an odd number, leaves
+out one more; the window keeps its bound and the row its pairing. **The limit that remains** is a
+row of indicators that began in an earlier run of formatting than the leaf before the seam: it is
+counted from the start of that leaf.
 
-**A seam is asked about once.** The seam a leaf is asked about as the one after it is asked again,
-straight away, as the one before the next leaf, so `IsJoinedTo` keeps the last answer and the pair
-of leaves it was for.
+**A seam is decided once per pass.** The same seam is asked about again and again - as the one after
+a leaf, straight away as the one before the next, and for every leaf of a joined run each time the
+run is measured - so the renderer keeps every answer in a dictionary keyed by the leaf before the
+seam, the leaf after it being always the one that follows. A renderer is made for one paragraph and
+one pass, so no answer outlives its document. Only seams between two joinable leaves are kept, and
+a paragraph that has none never makes the dictionary.
 
 ### The tailorings
 
@@ -197,8 +229,10 @@ Beyond what #283 did, a seam between two runs of formatting now:
   (LB23a);
 - **may break** after `/` (SY), `!` or `?` (EX), `}` or a CJK closing mark (CL) or an ellipsis (IN)
   before a letter, where it used to join (LB31);
-- **may break** before an em dash (B2 allows a break either side);
-- **keeps** a footnote's reference mark with whatever it follows, and reads a bookmark through.
+- **may break** before an em dash (B2 allows a break either side), and between two whole flags
+  (LB30a), where it used to join;
+- **keeps** a footnote's reference mark with whatever it follows, and reads it, a bookmark and a
+  paragraph break inside a run through, however many stand together.
 
 No golden image moved.
 
