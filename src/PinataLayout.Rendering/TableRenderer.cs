@@ -94,18 +94,33 @@ internal class TableRenderer : Renderer
   }
 
   /// <summary>
-  ///
+  /// The cells drawn in this area, in the order they are drawn: the heading rows, which every area
+  /// the table reaches repeats, and then the rows that fell to this one.
   /// </summary>
-  private void RenderHeaderRows()
+  private List<Cell> CellsToRender()
   {
-    if (_lastHeaderRow < 0)
-      return;
-
+    var cells = new List<Cell>();
     foreach (var cell in _mergedCells)
     {
       if (cell.Row.Index <= _lastHeaderRow)
-        RenderCell(cell);
+        cells.Add(cell);
     }
+
+    if (_startRow >= _table.Rows.Count)
+      return cells;
+
+    var cellIdx = _mergedCells.BinarySearch(_table[_startRow, 0], new CellComparer());
+    while (cellIdx < _mergedCells.Count)
+    {
+      var cell = _mergedCells[cellIdx];
+      if (cell.Row.Index > _endRow)
+        break;
+
+      cells.Add(cell);
+      ++cellIdx;
+    }
+
+    return cells;
   }
 
   private void RenderCell(Cell cell)
@@ -237,37 +252,93 @@ internal class TableRenderer : Renderer
     shadeRenderer.Render(innerRect.X, innerRect.Y, innerRect.Width, innerRect.Height, cell.RoundedCorner);
   }
 
+  /// <summary>
+  /// Draws a cell's borders, leaving out a right or bottom edge that a cell drawn after it strokes
+  /// identically as its left or top.
+  /// </summary>
+  /// <remarks>
+  /// Every cell describes all four of its edges, so the edge between two cells is described twice,
+  /// and stroking it twice is not harmless: a viewer blends the partly covered pixels along each
+  /// side of a stroke, and blending them twice draws every edge inside a table heavier than the
+  /// edges round it. It is the later cell that keeps the edge, because its shading is painted after
+  /// the earlier cell's borders and runs right up to the edge - a stroke drawn before it would be
+  /// left with its inner side painted over.
+  /// </remarks>
   private void RenderBorders(Cell cell, Rectangle innerRect)
+  {
+    var mergedBorders = _mergedCells.GetEffectiveBorders(cell);
+    var bordersRenderer = new BordersRenderer(mergedBorders, Gfx);
+
+    RenderRoundedCorner(bordersRenderer, cell.RoundedCorner, innerRect,
+      bordersRenderer.GetWidth(BorderType.Left), bordersRenderer.GetWidth(BorderType.Top),
+      bordersRenderer.GetWidth(BorderType.Right), bordersRenderer.GetWidth(BorderType.Bottom));
+
+    foreach (var (type, left, top, length) in StraightEdgesOf(cell, innerRect, bordersRenderer))
+    {
+      if (type is BorderType.Right or BorderType.Bottom
+          && bordersRenderer.StrokeOf(type, left, top, length) is { } stroke
+          && _leadingEdges.Contains(stroke))
+        continue;
+
+      if (type is BorderType.Left or BorderType.Right)
+        bordersRenderer.RenderVertically(type, left, top, length);
+      else
+        bordersRenderer.RenderHorizontally(type, left, top, length);
+    }
+
+    RenderDiagonalBorders(mergedBorders, innerRect);
+  }
+
+  /// <summary>
+  /// The straight edges of a cell, in the order they are drawn, each with where it starts and how
+  /// far it runs. An edge meeting a rounded corner is left out: the arc stands in for it.
+  /// </summary>
+  private static IEnumerable<(BorderType Type, XUnit Left, XUnit Top, XUnit Length)> StraightEdgesOf(
+    Cell cell, Rectangle innerRect, BordersRenderer bordersRenderer)
   {
     var leftPos = innerRect.X;
     XUnit rightPos = leftPos + innerRect.Width;
     var topPos = innerRect.Y;
     XUnit bottomPos = innerRect.Y + innerRect.Height;
-    var mergedBorders = _mergedCells.GetEffectiveBorders(cell);
-
-    var bordersRenderer = new BordersRenderer(mergedBorders, Gfx);
     var bottomWidth = bordersRenderer.GetWidth(BorderType.Bottom);
     var leftWidth = bordersRenderer.GetWidth(BorderType.Left);
     var topWidth = bordersRenderer.GetWidth(BorderType.Top);
     var rightWidth = bordersRenderer.GetWidth(BorderType.Right);
     var corner = cell.RoundedCorner;
 
-    RenderRoundedCorner(bordersRenderer, corner, innerRect, leftWidth, topWidth, rightWidth, bottomWidth);
-
-    // Render horizontal and vertical borders only if touching no rounded corner.
     if (corner is not (RoundedCorner.TopRight or RoundedCorner.BottomRight))
-      bordersRenderer.RenderVertically(BorderType.Right, rightPos, topPos, bottomPos + bottomWidth - topPos);
+      yield return (BorderType.Right, rightPos, topPos, bottomPos + bottomWidth - topPos);
 
     if (corner is not (RoundedCorner.TopLeft or RoundedCorner.BottomLeft))
-      bordersRenderer.RenderVertically(BorderType.Left, leftPos - leftWidth, topPos, bottomPos + bottomWidth - topPos);
+      yield return (BorderType.Left, leftPos - leftWidth, topPos, bottomPos + bottomWidth - topPos);
 
     if (corner is not (RoundedCorner.BottomLeft or RoundedCorner.BottomRight))
-      bordersRenderer.RenderHorizontally(BorderType.Bottom, leftPos - leftWidth, bottomPos, rightPos + rightWidth + leftWidth - leftPos);
+      yield return (BorderType.Bottom, leftPos - leftWidth, bottomPos, rightPos + rightWidth + leftWidth - leftPos);
 
     if (corner is not (RoundedCorner.TopLeft or RoundedCorner.TopRight))
-      bordersRenderer.RenderHorizontally(BorderType.Top, leftPos - leftWidth, topPos - topWidth, rightPos + rightWidth + leftWidth - leftPos);
+      yield return (BorderType.Top, leftPos - leftWidth, topPos - topWidth, rightPos + rightWidth + leftWidth - leftPos);
+  }
 
-    RenderDiagonalBorders(mergedBorders, innerRect);
+  /// <summary>
+  /// The stroke of every top and left edge <paramref name="cells"/> will draw - the edges a right or
+  /// bottom edge drawn before them gives way to.
+  /// </summary>
+  private HashSet<BorderStroke> LeadingEdgesOf(List<Cell> cells)
+  {
+    var edges = new HashSet<BorderStroke>();
+    foreach (var cell in cells)
+    {
+      var bordersRenderer = new BordersRenderer(_mergedCells.GetEffectiveBorders(cell), Gfx);
+      var innerRect = GetInnerRect(CalcStartingHeight(), cell);
+
+      foreach (var (type, left, top, length) in StraightEdgesOf(cell, innerRect, bordersRenderer))
+      {
+        if (type is BorderType.Left or BorderType.Top && bordersRenderer.StrokeOf(type, left, top, length) is { } stroke)
+          edges.Add(stroke);
+      }
+    }
+
+    return edges;
   }
 
   private static void RenderRoundedCorner(BordersRenderer bordersRenderer, RoundedCorner corner, Rectangle innerRect,
@@ -371,25 +442,16 @@ internal class TableRenderer : Renderer
   {
     InitRendering();
 
+    var cells = CellsToRender();
+    _leadingEdges = LeadingEdgesOf(cells);
+
     Tagger.EndList();
     using (Tagger.Container(Gfx, _table, PdfTag.Table, out var element))
     {
       DescribeTable(element);
-      RenderHeaderRows();
 
-      if (_startRow >= _table.Rows.Count)
-        return;
-
-      var cellIdx = _mergedCells.BinarySearch(_table[_startRow, 0], new CellComparer());
-      while (cellIdx < _mergedCells.Count)
-      {
-        var cell = _mergedCells[cellIdx];
-        if (cell.Row.Index > _endRow)
-          break;
-
+      foreach (var cell in cells)
         RenderCell(cell);
-        ++cellIdx;
-      }
     }
   }
 
@@ -927,5 +989,11 @@ internal class TableRenderer : Renderer
   private bool _doHorizontalBreak;
   private XUnit _startX;
   private XUnit _startY;
+
+  /// <summary>
+  /// The top and left edges of every cell drawn in this area, which the cell above or to the left
+  /// of each one leaves to it. See <see cref="RenderBorders"/>.
+  /// </summary>
+  private HashSet<BorderStroke> _leadingEdges = [];
 
 }

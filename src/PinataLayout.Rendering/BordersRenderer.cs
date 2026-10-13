@@ -28,6 +28,7 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System;
 using System.Diagnostics;
 using PinataLayout.DocumentObjectModel;
 using PdfPinata.Drawing;
@@ -179,6 +180,25 @@ internal class BordersRenderer
   }
 
 
+  /// <summary>
+  /// The stroke <see cref="RenderVertically"/> or <see cref="RenderHorizontally"/> would draw for
+  /// the border of <paramref name="type"/> given the same position, or null where it draws none.
+  /// Two borders answering equal strokes look the same on the page, so one of them can be left out.
+  /// </summary>
+  internal BorderStroke? StrokeOf(BorderType type, XUnit left, XUnit top, XUnit length)
+  {
+    var borderWidth = GetWidth(type);
+    if (borderWidth == 0)
+      return null;
+
+    var vertical = type is BorderType.Left or BorderType.Right;
+    return new BorderStroke(vertical,
+      BorderStroke.Snap(vertical ? left + borderWidth / 2 : left),
+      BorderStroke.Snap(vertical ? top : top + borderWidth / 2),
+      BorderStroke.Snap(length),
+      borderWidth.Point, GetColor(type), GetStyle(type));
+  }
+
   internal void RenderDiagonally(BorderType type, XUnit left, XUnit top, XUnit width, XUnit height)
   {
     var borderWidth = GetWidth(type);
@@ -276,4 +296,19 @@ internal class BordersRenderer
 
   private readonly XGraphics gfx;
   private readonly Borders borders;
+}
+
+/// <summary>
+/// A straight border as it is stroked: which way it runs, where it starts, how long it is and the
+/// pen it is drawn with.
+/// </summary>
+/// <remarks>
+/// The position is snapped to a thousandth of a point, because two cells reach the edge between
+/// them by different arithmetic and the two answers differ in the last bits. Snapping cannot make
+/// two strokes equal that look any different, and the rare pair it splits across a boundary is
+/// only drawn twice, as every shared edge used to be.
+/// </remarks>
+internal readonly record struct BorderStroke(bool Vertical, double X, double Y, double Length, double Width, XColor Color, BorderStyle Style)
+{
+  internal static double Snap(XUnit value) => Math.Round(value.Point, 3);
 }
