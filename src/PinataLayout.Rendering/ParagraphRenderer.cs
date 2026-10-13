@@ -368,7 +368,7 @@ internal class ParagraphRenderer : Renderer
         var nextTabStop = GetNextTabStop();
         savedWordWidth = 0;
         if (nextTabStop == null)
-            return FormatResult.NewLine;
+            return EndLineAtTab();
 
         var notFitting = false;
         var xPositionBeforeTab = currentXPosition;
@@ -391,7 +391,7 @@ internal class ParagraphRenderer : Renderer
                 break;
         }
         if (notFitting)
-            return FormatResult.NewLine;
+            return nextTabStop.Alignment == TabAlignment.Left ? EndLineAtTab() : FormatResult.NewLine;
 
         // For correct right paragraph alignment with tabs
         if (!IgnoreHorizontalGrowth)
@@ -402,6 +402,31 @@ internal class ParagraphRenderer : Renderer
             lastTab = currentLeaf.Current;
 
         return FormatResult.Continue;
+    }
+
+    /// <summary>
+    /// Breaks the line at a tab that cannot be set on it - one with no stop left before the
+    /// margin, or a left aligned one whose word does not fit beside its stop - and ends the line
+    /// with it, at no width, as a line break ends its line.
+    /// </summary>
+    /// <remarks>
+    /// Left where it was, the tab began the next line and was set there against the first stop,
+    /// indenting that line alone. A tab is a blank in this respect: the line breaks at it and the
+    /// next one starts at the indent. Ending the line with it rather than dropping it from both is
+    /// what makes a paragraph carried onto a new page, which starts after the last leaf of the
+    /// line before, start after the tab. A tab alone on its line is left to
+    /// <see cref="HandleNonFittingLine"/>; and a right, center or decimal aligned tab is not
+    /// handled here at all, because its stop holds the text after it in place on whichever line
+    /// that text lands - the page number in a table of contents, pushed onto a line of its own.
+    /// </remarks>
+    private FormatResult EndLineAtTab()
+    {
+        if (phase != Phase.Rendering && currentLeaf != null && currentLeaf != startLeaf && IsTab(currentLeaf.Current))
+        {
+            tabOffsets.Add(new TabOffset(0, 0));
+            currentLeaf = currentLeaf.GetNextLeaf();
+        }
+        return FormatResult.NewLine;
     }
 
     private static bool IsLineBreak(DocumentObject docObj)
