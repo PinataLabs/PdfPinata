@@ -138,16 +138,19 @@ takes under two seconds.
 one `GetSymbol` draws - both ask `SymbolCodePoint` - written into a buffer on the stack rather than
 spelt as a string: an em dash is B2, an en dash HH, a non-breakable blank GL, a trademark sign AL.
 A symbol drawn more than once is written twice, which is as far back as any rule reads through a
-row of one character. An image is U+FFFC, which is CB. A field is read as a letter, and joins as a
+row of one character but LB30a - and three times when it is drawn an odd number of times more than
+that, which keeps the parity LB30a counts for a regional indicator. An image is U+FFFC, which is CB. A field is read as a letter, and joins as a
 word does, which is what it did before; its value is not known until it is evaluated, and a letter
 is the class most values have. A line break symbol is "\n", because it really does end the line.
 
 **A footnote's reference mark, a bookmark, an empty text and a symbol that draws nothing are read
-through** (`IsReadThrough`). After the seam such a leaf is U+034F COMBINING GRAPHEME JOINER, a CM,
-which LB9 never breaks before whatever follows it. Before the seam it is the joiner after the text of
-the nearest leaf before it that is not read through - that leaf's window, and the window of the one
-before that if it is a single character - so LB9 absorbs the joiner and the seam is read as though it followed that
-text. However many stand together, the character before them is what is read: a footnote mark after
+through** (`IsReadThrough`). The seam before such a leaf is always joined, without asking: the
+leaf belongs to what precedes it. Asked as U+034F COMBINING GRAPHEME JOINER, a CM, it was joined by
+LB9 everywhere but after a zero-width space, where LB8 comes first and allows a break before
+anything - which left a footnote mark free to start the next line. The seam after such a leaf
+reads it as the joiner after the text of the nearest leaf before it that is not read through - that
+leaf's window, and the window of the one before that if it is a single character - so LB9 absorbs
+the joiner and the seam is read as though it followed that text. However many stand together, the character before them is what is read: a footnote mark after
 a bookmark after "!" is decided as "!" before the next word, which may be broken, where reading each
 leaf as a joiner made the two of them a letter by LB10 and joined. So a reference mark set after "!",
 "?" or an ideographic full stop is not left to start a line, and a bookmark between an ideograph and
