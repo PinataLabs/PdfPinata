@@ -714,13 +714,17 @@ internal class ParagraphRenderer : Renderer
     private TabStop DefaultTabStopAfter(XUnit lastPosition)
     {
         // The loop below steps along the line one interval at a time, so an interval that is not
-        // positive never reaches the end of it. Such a value is treated as no value at all, as
-        // ImageRenderer treats a size that is not positive: "> 0" rather than "<= 0", so that a
-        // NaN falls back too.
+        // positive never reaches the end of it, and one far below a point takes so many steps
+        // that it might as well not. An interval finer than Tolerance - which is how close a stop
+        // may be to the pen and still count as behind it - or one that is not finite, is treated
+        // as no value at all, as ImageRenderer.IsUsableSize treats a size it cannot draw at.
+        // ">=" rather than "<", so that a NaN falls back too.
         XUnit defaultTabStop = FallbackDefaultTabStop;
-        if (!paragraph.Document.IsNull(nameof(paragraph.Document.DefaultTabStop))
-            && paragraph.Document.DefaultTabStop.Point > 0)
-            defaultTabStop = paragraph.Document.DefaultTabStop.Point;
+        var interval = paragraph.Document.IsNull(nameof(paragraph.Document.DefaultTabStop))
+            ? double.NaN
+            : paragraph.Document.DefaultTabStop.Point;
+        if (interval >= Tolerance && !double.IsInfinity(interval))
+            defaultTabStop = interval;
 
         var currTabPos = defaultTabStop;
         while (currTabPos + formattingArea.X <= formattingArea.Width - RightIndent)

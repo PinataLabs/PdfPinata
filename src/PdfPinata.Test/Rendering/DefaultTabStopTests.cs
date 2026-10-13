@@ -19,17 +19,23 @@ public class DefaultTabStopTests
 {
     [Test, Timeout(60000)]
     [Arguments(0.0)]
-    [Arguments(-1.0)]
-    public async Task ADefaultTabStopThatIsNotPositiveIsTreatedAsUnset(double centimeters)
+    [Arguments(-28.35)]
+    [Arguments(1e-9)]
+    [Arguments(double.PositiveInfinity)]
+    [Arguments(double.NaN)]
+    public async Task ADefaultTabStopThatCannotBeSteppedByIsTreatedAsUnset(double points)
     {
         // Unset, the renderer steps 1.25cm at a time. A value that cannot be stepped by is no
         // more an interval than no value at all, so the tab lands where an unset one would.
+        // Zero and a negative never reach the end of the line, a billionth of a point takes
+        // hundreds of billions of steps to, and infinity used to reach no stop at all and break
+        // the line at the tab.
         var unset = await PositionsAfterATab(defaultTabStop: null);
-        var notPositive = await PositionsAfterATab(Unit.FromCentimeter(centimeters));
+        var unusable = await PositionsAfterATab(Unit.FromPoint(points));
 
-        notPositive.Should().HaveCount(unset.Count);
+        unusable.Should().HaveCount(unset.Count);
         for (var idx = 0; idx < unset.Count; idx++)
-            notPositive[idx].Should().BeApproximately(unset[idx], 0.001);
+            unusable[idx].Should().BeApproximately(unset[idx], 0.001);
     }
 
     [Test, Timeout(60000)]
