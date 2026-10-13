@@ -100,10 +100,13 @@ internal class TableRenderer : Renderer
   private List<Cell> CellsToRender()
   {
     var cells = new List<Cell>();
-    foreach (var cell in _mergedCells)
+    if (_lastHeaderRow >= 0)
     {
-      if (cell.Row.Index <= _lastHeaderRow)
-        cells.Add(cell);
+      foreach (var cell in _mergedCells)
+      {
+        if (cell.Row.Index <= _lastHeaderRow)
+          cells.Add(cell);
+      }
     }
 
     if (_startRow >= _table.Rows.Count)
@@ -275,10 +278,15 @@ internal class TableRenderer : Renderer
 
     foreach (var (type, left, top, length) in StraightEdgesOf(cell, innerRect, bordersRenderer))
     {
-      if (type is BorderType.Right or BorderType.Bottom
-          && bordersRenderer.StrokeOf(type, left, top, length) is { } stroke
-          && _leadingEdges.Contains(stroke))
-        continue;
+      if (bordersRenderer.StrokeOf(type, left, top, length) is { } stroke)
+      {
+        // A leading edge is struck off as its own cell draws it, so only a cell still to come
+        // can take an edge away from this one.
+        if (type is BorderType.Left or BorderType.Top)
+          _leadingEdges.Remove(stroke);
+        else if (_leadingEdges.Contains(stroke))
+          continue;
+      }
 
       if (type is BorderType.Left or BorderType.Right)
         bordersRenderer.RenderVertically(type, left, top, length);
@@ -326,10 +334,11 @@ internal class TableRenderer : Renderer
   private HashSet<BorderStroke> LeadingEdgesOf(List<Cell> cells)
   {
     var edges = new HashSet<BorderStroke>();
+    var startingHeight = CalcStartingHeight();
     foreach (var cell in cells)
     {
       var bordersRenderer = new BordersRenderer(_mergedCells.GetEffectiveBorders(cell), Gfx);
-      var innerRect = GetInnerRect(CalcStartingHeight(), cell);
+      var innerRect = GetInnerRect(startingHeight, cell);
 
       foreach (var (type, left, top, length) in StraightEdgesOf(cell, innerRect, bordersRenderer))
       {

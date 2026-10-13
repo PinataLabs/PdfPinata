@@ -23,7 +23,8 @@ namespace PdfPinata.Test.Rendering;
 ///   heavier than the rules round it. See empira/PDFsharp#408.
 ///
 ///   The grid below is laid out so that every rule falls at the same fraction of a pixel - the
-///   columns are 60 points apart and the rows 30, both whole numbers of pixels at 300 dpi - which
+///   columns are 60 points apart and the rows 30, a 29 point row and its 1 point border, both
+///   whole numbers of pixels at 300 dpi - which
 ///   leaves nothing but the number of strokes to make one rule weigh more than another. The cells
 ///   are shaded, as in the report, because the shading of the second cell is painted between the
 ///   two strokes.

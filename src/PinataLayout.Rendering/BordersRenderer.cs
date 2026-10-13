@@ -158,8 +158,8 @@ internal class BordersRenderer
     if (borderWidth == 0)
       return;
 
-    left += borderWidth / 2;
-    gfx.DrawLine(GetPen(type), left, top + height, left, top);
+    var (x, y) = StartOf(vertical: true, left, top, borderWidth);
+    gfx.DrawLine(GetPen(type), x, y + height, x, y);
   }
 
   /// <summary>
@@ -175,9 +175,17 @@ internal class BordersRenderer
     if (borderWidth == 0)
       return;
 
-    top += borderWidth / 2;
-    gfx.DrawLine(GetPen(type), left + width, top, left, top);
+    var (x, y) = StartOf(vertical: false, left, top, borderWidth);
+    gfx.DrawLine(GetPen(type), x + width, y, x, y);
   }
+
+  /// <summary>
+  /// Where the centre line of a straight border starts: half its width in from the edge given,
+  /// across the way it runs. <see cref="StrokeOf"/> reads it from here too, so that what it
+  /// compares is what is drawn.
+  /// </summary>
+  private static (XUnit X, XUnit Y) StartOf(bool vertical, XUnit left, XUnit top, XUnit borderWidth) =>
+    vertical ? (left + borderWidth / 2, top) : (left, top + borderWidth / 2);
 
 
   /// <summary>
@@ -192,10 +200,8 @@ internal class BordersRenderer
       return null;
 
     var vertical = type is BorderType.Left or BorderType.Right;
-    return new BorderStroke(vertical,
-      BorderStroke.Snap(vertical ? left + borderWidth / 2 : left),
-      BorderStroke.Snap(vertical ? top : top + borderWidth / 2),
-      BorderStroke.Snap(length),
+    var (x, y) = StartOf(vertical, left, top, borderWidth);
+    return new BorderStroke(vertical, BorderStroke.Snap(x), BorderStroke.Snap(y), BorderStroke.Snap(length),
       borderWidth.Point, GetColor(type), GetStyle(type));
   }
 
