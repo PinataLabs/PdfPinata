@@ -6,7 +6,6 @@ using ImageMagick;
 using PdfPinata.Drawing;
 using PdfPinata.Fonts;
 using PdfPinata.Pdf;
-using PdfPinata.Pdf.Advanced;
 using PdfPinata.Test.Helpers;
 using TUnit.Core;
 using static PdfPinata.Test.Helpers.PageInk;
@@ -112,17 +111,8 @@ public class BlankGlyphSubsetTests
         new("Arial", 24, style, new XPdfFontOptions(encoding));
 
     /// <summary>The font program embedded for the italic face.</summary>
-    private static byte[] ItalicFontProgram(PdfDocument document)
-    {
-        var descriptor = document.Internals.GetAllObjects()
-            .OfType<PdfDictionary>()
-            .Where(d => d.Elements.GetName("/Type") == "/FontDescriptor")
-            .Single(d => d.Elements.GetName("/FontName").EndsWith("Italic", StringComparison.Ordinal));
-
-        var program = descriptor.Elements["/FontFile2"];
-        return ((PdfDictionary)(program is PdfReference reference ? reference.Value : program))
-            .Stream.UnfilteredValue;
-    }
+    private static byte[] ItalicFontProgram(PdfDocument document) =>
+        TrueTypeGlyphs.EmbeddedIn(document, name => name.EndsWith("Italic", StringComparison.Ordinal));
 }
 
 /// <summary>

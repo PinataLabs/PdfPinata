@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using PdfPinata.Pdf;
+using PdfPinata.Pdf.Advanced;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -48,15 +50,32 @@ internal sealed class TrueTypeGlyphs
     public int NumGlyphs { get; }
 
     /// <summary>
+    ///   The TrueType program a document embeds, as <c>/FontFile2</c>, for the one face whose
+    ///   <c>/FontName</c> <paramref name="isFace"/> accepts.
+    /// </summary>
+    public static byte[] EmbeddedIn(PdfDocument document, Func<string, bool> isFace)
+    {
+        var descriptor = document.Internals.GetAllObjects()
+            .OfType<PdfDictionary>()
+            .Where(d => d.Elements.GetName("/Type") == "/FontDescriptor")
+            .Single(d => isFace(d.Elements.GetName("/FontName")));
+
+        var program = descriptor.Elements["/FontFile2"];
+        return ((PdfDictionary)(program is PdfReference reference ? reference.Value : program))
+            .Stream.UnfilteredValue;
+    }
+
+    /// <summary>
     ///   The table directory as the file states it, in the order it lists the tables.
     /// </summary>
     public IReadOnlyList<(string Tag, uint Checksum, int Offset, int Length)> TableRecords => _records;
 
     /// <summary>
     ///   Every way in which the table directory fails to describe the file, in words; empty when
-    ///   it describes it. The search fields have to follow from the table count, and every table
-    ///   has to have bytes, begin on a four-byte boundary, lie inside the file, overlap no other
-    ///   table, and carry its own checksum.
+    ///   it describes it. The search fields have to follow from the table count, the records have
+    ///   to be in tag order, every table has to have bytes, begin on a four-byte boundary, lie
+    ///   inside the file, overlap no other table and carry its own checksum, and <c>loca</c> may
+    ///   not reach past the end of <c>glyf</c>.
     /// </summary>
     public List<string> DirectoryProblems()
     {
@@ -90,6 +109,16 @@ internal sealed class TrueTypeGlyphs
             if (current.Offset < previous.Offset + previous.Length || current.Offset == previous.Offset)
                 problems.Add($"'{current.Tag}' at {current.Offset} overlaps '{previous.Tag}' at {previous.Offset}");
         }
+
+        for (var idx = 1; idx < _records.Count; idx++)
+        {
+            if (string.CompareOrdinal(_records[idx - 1].Tag, _records[idx].Tag) >= 0)
+                problems.Add($"'{_records[idx].Tag}' is listed after '{_records[idx - 1].Tag}', out of tag order");
+        }
+
+        var glyfLength = _records.Single(record => record.Tag == "glyf").Length;
+        if (_loca[NumGlyphs] > glyfLength)
+            problems.Add($"loca reaches byte {_loca[NumGlyphs]} of a glyf table {glyfLength} bytes long");
 
         return problems;
     }

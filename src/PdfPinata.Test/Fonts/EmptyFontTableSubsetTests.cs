@@ -1,9 +1,7 @@
 using System.IO;
-using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
-using PdfPinata.Pdf.Advanced;
 using PdfPinata.Test.Helpers;
 using TUnit.Core;
 
@@ -50,12 +48,6 @@ public class EmptyFontTableSubsetTests
             gfx.DrawString("Ink", font, XBrushes.Black, new XPoint(20, 40));
         }
 
-        var descriptor = document.Reopened().Internals.GetAllObjects()
-            .OfType<PdfDictionary>()
-            .Single(d => d.Elements.GetName("/Type") == "/FontDescriptor");
-
-        var program = descriptor.Elements["/FontFile2"];
-        return ((PdfDictionary)(program is PdfReference reference ? reference.Value : program))
-            .Stream.UnfilteredValue;
+        return TrueTypeGlyphs.EmbeddedIn(document.Reopened(), _ => true);
     }
 }
