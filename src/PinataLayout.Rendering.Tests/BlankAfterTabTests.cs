@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
@@ -9,14 +10,19 @@ using TUnit.Core;
 namespace PinataLayout.Rendering.Tests;
 
 /// <summary>
-///   Text after a tab that begins with something the line sets no width for.
+///   Text after a tab with something in it the line sets no width for.
 /// </summary>
 /// <remarks>
-///   A tab decides whether it breaks the line by measuring what follows it up to the next tab or
-///   line break, and it broke the line whenever that measuring stopped before a word was found. A
-///   blank straight after a tab is dropped rather than measured, and so is a bookmark, and the
-///   measuring took either for the end of what would fit - so "before", a tab and " after" were set
-///   on two lines on a page with room for a hundred such words. Ported from empira/PDFsharp#405.
+///   A tab decides whether it breaks the line, and where a right or center aligned stop sets the
+///   text after it, by measuring that text up to the next tab or line break. The measuring stopped
+///   at anything the line ignores - a blank straight after the tab, or a bookmark - and took that
+///   for the end of what would fit. Stopping before any word was reached broke the line, so
+///   "before", a tab and " after" were set on two lines on a page with room for a hundred such
+///   words; stopping part way through measured only the first part, so a right aligned stop set
+///   the rest past itself. Ported from empira/PDFsharp#405.
+///
+///   Each arrangement is checked against the same paragraph without the ignored element, which
+///   is where it should have put the text: on the first line, and starting at the same place.
 /// </remarks>
 public class BlankAfterTabTests
 {
@@ -24,34 +30,71 @@ public class BlankAfterTabTests
     [Arguments(TabAlignment.Left)]
     [Arguments(TabAlignment.Right)]
     [Arguments(TabAlignment.Center)]
-    public void ABlankAfterATabDoesNotPushTheTextAfterItOntoTheNextLine(TabAlignment alignment)
+    public void ABlankAfterATabIsSetAsIfItWereNotThere(TabAlignment alignment)
     {
-        var document = new Document();
-        var paragraph = document.AddSection().AddParagraph();
-        paragraph.Format.TabStops.AddTabStop(Unit.FromCentimeter(8), alignment);
-        paragraph.AddText("before");
-        paragraph.AddTab();
-        paragraph.AddText(" after");
+        var withBlank = TextAfterTab(alignment, paragraph => paragraph.AddText(" after"));
+        var without = TextAfterTab(alignment, paragraph => paragraph.AddText("after"));
 
-        BaselinesOf(document).Should().ContainSingle("both words fit on the one line");
+        withBlank.Should().BeEquivalentTo(without, options => options.WithStrictOrdering()
+            .Using<double>(ctx => ctx.Subject.Should().BeApproximately(ctx.Expectation, 0.01)).WhenTypeIs<double>());
     }
 
     [Test]
-    public void ABookmarkAfterATabDoesNotPushTheTextAfterItOntoTheNextLine()
+    [Arguments(TabAlignment.Left)]
+    [Arguments(TabAlignment.Right)]
+    [Arguments(TabAlignment.Center)]
+    public void ABookmarkAfterATabIsSetAsIfItWereNotThere(TabAlignment alignment)
     {
-        var document = new Document();
-        var paragraph = document.AddSection().AddParagraph();
-        paragraph.Format.TabStops.AddTabStop(Unit.FromCentimeter(8));
-        paragraph.AddText("before");
-        paragraph.AddTab();
-        paragraph.AddBookmark("mark");
-        paragraph.AddText("after");
+        var withBookmark = TextAfterTab(alignment, paragraph =>
+        {
+            paragraph.AddBookmark("mark");
+            paragraph.AddText("after");
+        });
+        var without = TextAfterTab(alignment, paragraph => paragraph.AddText("after"));
 
-        BaselinesOf(document).Should().ContainSingle("both words fit on the one line");
+        withBookmark.Should().BeEquivalentTo(without, options => options.WithStrictOrdering()
+            .Using<double>(ctx => ctx.Subject.Should().BeApproximately(ctx.Expectation, 0.01)).WhenTypeIs<double>());
     }
 
-    private static double[] BaselinesOf(Document document)
+    [Test]
+    [Arguments(TabAlignment.Right)]
+    [Arguments(TabAlignment.Center)]
+    public void ABookmarkInsideTheTextAfterATabDoesNotCutShortWhatTheStopMeasures(TabAlignment alignment)
     {
-        return [.. TextBaselines.Of(Rendered.FirstPageOf(document)).Select(y => Math.Round(y, 2)).Distinct()];
+        // "af" and "ter" are drawn as two runs, so it is where the first of them begins that says
+        // whether the stop measured the whole of "after" or only the part before the bookmark.
+        var split = TextAfterTab(alignment, paragraph =>
+        {
+            paragraph.AddText("af");
+            paragraph.AddBookmark("mark");
+            paragraph.AddText("ter");
+        });
+        var whole = TextAfterTab(alignment, paragraph => paragraph.AddText("after"));
+
+        split[0].Y.Should().BeApproximately(whole[0].Y, 0.01, "the text stays on the first line");
+        split[0].X.Should().BeApproximately(whole[0].X, 0.01, "the stop sets the whole word against itself");
+    }
+
+    /// <summary>
+    ///   Where the runs drawn after a tab begin, with the text before the tab and the tab stop at
+    ///   8cm fixed and what follows the tab added by the caller.
+    /// </summary>
+    private static IReadOnlyList<(double X, double Y)> TextAfterTab(TabAlignment alignment, Action<Paragraph> after)
+    {
+        var document = new Document();
+        var section = document.AddSection();
+        section.PageSetup.LeftMargin = 0;
+        section.PageSetup.RightMargin = 0;
+
+        var paragraph = section.AddParagraph();
+        paragraph.Format.TabStops.AddTabStop(Unit.FromCentimeter(8), alignment);
+        paragraph.AddText("before");
+        paragraph.AddTab();
+        after(paragraph);
+
+        var runs = TextBaselines.PositionsOf(Rendered.FirstPageOf(document));
+        runs[0].Y.Should().BeApproximately(runs[^1].Y, 0.01, "every word fits on the first line");
+
+        return [.. runs.Skip(1)];
     }
 }
