@@ -2319,6 +2319,12 @@ internal class ParagraphRenderer : Renderer
 
     private static bool DecideJoin(ParagraphIterator left, ParagraphIterator right)
     {
+        // A footnote's reference mark belongs to what it is set against, and a leaf that takes no
+        // room has nothing to part from it. Asked of the algorithm, the joiner standing for one
+        // would be parted after a zero-width space (LB8), which allows a break before anything.
+        if (IsReadThrough(right.Current))
+            return true;
+
         if (IsWordSplitAtAHyphen(left.Current, right.Current))
             return false;
 
@@ -2374,14 +2380,10 @@ internal class ParagraphRenderer : Renderer
     /// forbidden only when a number follows, perhaps after a stop (LB25, PR × OP IS NU).
     /// </summary>
     /// <remarks>
-    /// A leaf the seam reads through is U+034F COMBINING GRAPHEME JOINER and nothing more. LB9
-    /// never breaks before it, whatever follows it, so that is the whole of the answer.
+    /// Never asked of a leaf the seam reads through: the seam before one is always joined.
     /// </remarks>
     private static ReadOnlySpan<char> TextAfter(ParagraphIterator right, Span<char> buffer)
     {
-        if (IsReadThrough(right.Current))
-            return CombiningGraphemeJoiner;
-
         Span<char> symbol = stackalloc char[SymbolLength];
         var text = Head(SeamTextOf(right.Current, symbol));
         var length = Append(text, buffer, 0);
@@ -2465,17 +2467,19 @@ internal class ParagraphRenderer : Renderer
     };
 
     /// <summary>
-    /// The text a character stands for at a seam. A symbol is the character it draws, written
-    /// once, or twice where it is drawn more than once: no rule reads further back through a row
-    /// of one character than the one before the seam's neighbour, and spelling out the whole row
-    /// would mean allocating a string at every seam beside it.
+    /// The text a character stands for at a seam. A symbol is the character it draws, written as
+    /// many times as it is drawn up to two, and three where it is drawn an odd number of times
+    /// more than that: a rule reads back through a row of one character no further than the one
+    /// before the seam's neighbour, but for LB30a, which counts a row of regional indicators and
+    /// needs only to know whether the count is odd. Spelling out the whole row would mean
+    /// allocating a string at every seam beside it.
     /// </summary>
     private static ReadOnlySpan<char> SeamTextOf(Character character, Span<char> buffer) => character.SymbolName switch
     {
         _ when IsSpaceCharacter(character) => " ",
         SymbolName.Tab => "\t",
         SymbolName.LineBreak => "\n",
-        _ => Spelled(SymbolCodePoint(character), character.Count > 1 ? 2 : 1, buffer)
+        _ => Spelled(SymbolCodePoint(character), character.Count switch { <= 1 => 1, 2 => 2, var count => 2 + count % 2 }, buffer)
     };
 
     /// <summary>
@@ -2494,8 +2498,8 @@ internal class ParagraphRenderer : Renderer
     /// </summary>
     private const int ContextLength = SeamWindow + 4;
 
-    /// <summary>The longest a symbol is spelt at a seam: one code point, twice.</summary>
-    private const int SymbolLength = 4;
+    /// <summary>The longest a symbol is spelt at a seam: one code point, three times.</summary>
+    private const int SymbolLength = 6;
 
     /// <summary>How a seam departs from UAX #14's defaults; see <see cref="IsJoinedTo"/>.</summary>
     private const LineBreakTailoring SeamTailoring =
@@ -2544,12 +2548,10 @@ internal class ParagraphRenderer : Renderer
         return text[..end];
     }
 
-    /// <summary>
-    /// Whether a regional indicator, U+1F1E6 to U+1F1FF, is spelt at <paramref name="idx"/>. All
-    /// twenty-six share the high surrogate U+D83C.
-    /// </summary>
+    /// <summary>Whether a regional indicator, which is astral, is spelt at <paramref name="idx"/>.</summary>
     private static bool IsRegionalIndicatorAt(ReadOnlySpan<char> text, int idx) =>
-        idx >= 0 && idx + 1 < text.Length && text[idx] == '\uD83C' && text[idx + 1] is >= '\uDDE6' and <= '\uDDFF';
+        idx >= 0 && idx + 1 < text.Length && char.IsSurrogatePair(text[idx], text[idx + 1])
+        && UnicodeProperties.LineBreakClassOf(char.ConvertToUtf32(text[idx], text[idx + 1])) == LineBreakClass.RI;
 
     private static bool IsOneCodePoint(ReadOnlySpan<char> text) =>
         text.Length == 1 || (text.Length == 2 && char.IsSurrogatePair(text[0], text[1]));

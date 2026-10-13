@@ -493,6 +493,7 @@ public class FormattingSeamTests
     [Arguments("!")]
     [Arguments("?")]
     [Arguments("\u3002")] // ideographic full stop
+    [Arguments("\u200B")] // zero-width space, after which LB8 allows a break before anything
     public void AFootnoteMarkIsNotLeftToStartALineAfterTheMarkBeforeIt(string stop)
     {
         // A footnote's reference mark belongs to what it is set against, whatever that ends in. A
@@ -638,6 +639,34 @@ public class FormattingSeamTests
 
         placed[1].Y.Should().Be(placed[0].Y, "the first flag fits on the first line and may stay there");
         placed[^2].Y.Should().BeLessThan(placed[0].Y, "the first half of the second flag goes down with its second half");
+        placed[^1].Y.Should().Be(placed[^2].Y);
+    }
+
+    [Test]
+    public void AFlagIsNotBrokenBetweenItsHalvesAfterASymbolDrawnThreeTimes()
+    {
+        // A regional indicator given as a symbol drawn three times, then one more in bold: the
+        // bold one is the second half of the second flag, which only the count of all three tells.
+        var document = new Document();
+        document.Styles.Normal.Font.Name = "Arial";
+        document.Styles.Normal.Font.Size = 9;
+
+        using var measure = XGraphics.CreateMeasureContext(new XSize(1000, 100), XGraphicsUnit.Point, XPageDirection.Downwards);
+        var width = measure.MeasureString(
+            "aaaa " + RegionalIndicatorA + RegionalIndicatorA + RegionalIndicatorA, new XFont("Arial", 9)).Width + 0.5;
+
+        var section = document.AddSection();
+        section.PageSetup.LeftMargin = Unit.FromPoint(10);
+        section.PageSetup.RightMargin = Unit.FromPoint(10);
+        section.PageSetup.PageWidth = Unit.FromPoint(width + 20);
+        var paragraph = section.AddParagraph();
+        paragraph.AddText("aaaa ");
+        paragraph.AddCharacter((SymbolName)0x1F1E6, 3);
+        paragraph.AddFormattedText(RegionalIndicatorA).Font.Bold = true;
+
+        var placed = BodyRunsOf(document);
+
+        placed[^2].Y.Should().BeLessThan(placed[0].Y, "the symbol goes down with the half of the flag after it");
         placed[^1].Y.Should().Be(placed[^2].Y);
     }
 

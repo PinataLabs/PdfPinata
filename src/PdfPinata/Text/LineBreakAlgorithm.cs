@@ -58,6 +58,11 @@ public static class LineBreakAlgorithm
     /// unit at <paramref name="index"/>. <paramref name="index"/> may be <c>text.Length</c>, the
     /// end of the text, where a break is mandatory unless the text is empty (rule LB2 comes first).
     /// </summary>
+    /// <remarks>
+    /// The whole of <paramref name="text"/> is read, because some rules reach back to the start of
+    /// a number or a row of spaces, so asking this at every position of a long text reads it again
+    /// each time. <see cref="BreakOpportunities"/> answers every position in one reading.
+    /// </remarks>
     public static LineBreakOpportunity BreakBefore(
         ReadOnlySpan<char> text, int index, LineBreakTailoring tailoring = LineBreakTailoring.None)
     {
