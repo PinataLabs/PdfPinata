@@ -189,6 +189,33 @@ public class ParagraphRenderingTests
     }
 
     [Test]
+    public void ADefaultTabStopInsideTheRightIndentIsStillTurnedAway()
+    {
+        // The same arrangement with the paragraph indented 20 points from the right: the fourth
+        // stop, at 144, is now past the 140 points the paragraph has, so the last tab breaks the
+        // line. The width the stops are measured against is the paragraph's, indent and all.
+        var document = new Document();
+        document.DefaultTabStop = Unit.FromPoint(36);
+        var section = document.AddSection();
+        section.PageSetup.PageWidth = Unit.FromPoint(200);
+        section.PageSetup.LeftMargin = Unit.FromPoint(20);
+        section.PageSetup.RightMargin = Unit.FromPoint(20);
+
+        var paragraph = section.AddParagraph();
+        paragraph.Format.RightIndent = Unit.FromPoint(20);
+        paragraph.AddTab();
+        paragraph.AddTab();
+        paragraph.AddTab();
+        paragraph.AddText("A");
+        paragraph.AddTab();
+        paragraph.AddText("B");
+
+        var runs = TextBaselines.PositionsOf(Rendered.FirstPageOf(document));
+
+        runs[^1].Y.Should().BeLessThan(runs[0].Y, "the stop past the right indent does not fit");
+    }
+
+    [Test]
     public void AParagraphsBordersStandOffItsTextByTheDistancesItNames()
     {
         var page = Rendered.FirstPageOf(Bordered());
