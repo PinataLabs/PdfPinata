@@ -71,7 +71,7 @@ generated beside the table, so the bit each flag stands for is written in one pl
 
 `LineBreakAlgorithm` is public and has four entry points:
 
-- `BreakOpportunities(string)` — one `LineBreakOpportunity` per UTF-16 position, `None`, `Allowed`
+- `BreakOpportunities(ReadOnlySpan<char>)` — one `LineBreakOpportunity` per UTF-16 position, `None`, `Allowed`
   or `Mandatory`;
 - `BreakBefore(ReadOnlySpan<char>, int)` and `IsBreakAllowed` — one position;
 - `IsBreakAllowedBetween(ReadOnlySpan<char> before, ReadOnlySpan<char> after)` — the position where
@@ -92,8 +92,9 @@ How it is built, in the order UAX #14 states it:
   rule after that reads through an absorbed mark to its base.
 - **LB25** is the set of regular expressions it has been since Unicode 15.1, which is the form
   `LineBreakTest.txt` tests.
-- **LB28a** names U+25CC DOTTED CIRCLE by code point; **LB30a** counts the regional indicators back
-  to the start of their run.
+- **LB28a** names U+25CC DOTTED CIRCLE by code point; **LB30a** reads how long the row of regional
+  indicators before the position is, which is counted once, as the text is resolved, rather than
+  again at every position in the row.
 - **LB12a** in 17.0.0 is `[^SP BA HY HH] × GL`. Unicode 18 drops BA from it; this is 17.
 
 **HH is new in 17.0.0, and it is the en dash's class.** U+2010 HYPHEN, U+2012 FIGURE DASH and
@@ -125,8 +126,8 @@ takes under two seconds.
    and an image still separate what is either side of them;
 2. returns false for a boundary inside one run of text split after a hyphen-minus (see the
    tailorings below);
-3. reads up to 32 code units either side of the seam, and for a leaf of one character, the
-   character beyond it in the next leaf out, walking past any leaf the seam reads through;
+3. reads up to 32 code units either side of the seam, and for a leaf of one character, up to 32
+   of the next leaf out as well, walking past any leaf the seam reads through;
 4. asks `IsBreakAllowedBetween` with the `SouthEastAsianAsIdeographs` and `HangulAsAlphabetic`
    tailorings, and joins when the answer is no.
 
@@ -144,8 +145,8 @@ is the class most values have. A line break symbol is "\n", because it really do
 **A footnote's reference mark, a bookmark, an empty text and a symbol that draws nothing are read
 through** (`IsReadThrough`). After the seam such a leaf is U+034F COMBINING GRAPHEME JOINER, a CM,
 which LB9 never breaks before whatever follows it. Before the seam it is the joiner after the text of
-the nearest leaf before it that is not read through - that leaf's window, and the character before
-it if it is a single one - so LB9 absorbs the joiner and the seam is read as though it followed that
+the nearest leaf before it that is not read through - that leaf's window, and the window of the one
+before that if it is a single character - so LB9 absorbs the joiner and the seam is read as though it followed that
 text. However many stand together, the character before them is what is read: a footnote mark after
 a bookmark after "!" is decided as "!" before the next word, which may be broken, where reading each
 leaf as a joiner made the two of them a letter by LB10 and joined. So a reference mark set after "!",
@@ -165,10 +166,14 @@ either side of it is a break.
 An empty text cannot reach a seam through the public API - `AddText("")` adds nothing and
 `PdfFlattenVisitor` removes an empty text - but is read through all the same.
 
-**Why the character beyond a one-character leaf.** A seam between a lone en dash symbol and the
+**Why the leaf beyond a one-character leaf.** A seam between a lone en dash symbol and the
 word after it is a break in "bbbb–cccc" and is not in "–cccc" at the start of a word (LB20a). Read
 on its own, the dash is at the start of the text, which LB20a counts as the start of a word, and the
-seam would join. Leaves longer than one character carry their own context and do not pay for the
+seam would join. One character beyond is not always enough, so the whole window of the neighbour is
+read: a flag whose halves are in two runs after a run holding the first flag is told from the
+start of a flag only by counting the indicators before it (LB30a), and "$" before a "(" in a run of
+its own is kept from the line after it only when a number follows, perhaps after a stop (LB25,
+PR × OP IS NU). Leaves longer than one character carry their own context and do not pay for the
 walk of the tree that fetching a neighbour costs.
 
 **Why 32 code units.** Every rule that reaches further than a character or two does so over a
@@ -180,8 +185,9 @@ indicators into flags from the start of their row. After 17 indicators the windo
 break was allowed between the two halves of the 9th flag. So where the window begins on a regional
 indicator, `Tail` walks back over the row it cut into and, when it left out an odd number, leaves
 out one more; the window keeps its bound and the row its pairing. **The limit that remains** is a
-row of indicators that began in an earlier run of formatting than the leaf before the seam: it is
-counted from the start of that leaf.
+row of indicators that runs through more runs of formatting than the seam reads - the leaf before
+it, and the one before that when the leaf is a single indicator: it is counted from the start of
+what was read.
 
 **A seam is decided once per pass.** The same seam is asked about again and again - as the one after
 a leaf, straight away as the one before the next, and for every leaf of a joined run each time the

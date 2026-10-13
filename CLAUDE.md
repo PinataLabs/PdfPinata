@@ -342,8 +342,8 @@ the measurement paths, and the DOM property.
 
 **PinataLayout decides a line break between two runs of formatting by UAX #14.**
 `ParagraphRenderer.IsJoinedTo` asks `LineBreakAlgorithm.IsBreakAllowedBetween` about the seam,
-reading up to 32 code units of each leaf and, for a leaf of one character, the character beyond it
-— which is what tells a word-initial hyphen (LB20a) from one inside a word. A symbol is read as its
+reading up to 32 code units of each leaf and, for a leaf of one character, as much of the leaf
+beyond it — which is what tells a word-initial hyphen (LB20a) from one inside a word. A symbol is read as its
 character, an image as U+FFFC, a field as a letter. A footnote reference, a bookmark, an empty
 text and a symbol that draws nothing (a paragraph break inside a run) are *read through*: U+034F, a
 CM, so never broken before, and the seam after them is decided by the nearest leaf before them that
