@@ -10,11 +10,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fonts & Text
 
+#### Added
+
+- **`LineBreakAlgorithm` is the Unicode Line Breaking Algorithm, UAX #14, for Unicode 17.0.0.** It answers where a line may be broken in a text: at every position (`BreakOpportunities`), at one position (`BreakBefore`, `IsBreakAllowed`), or where two pieces of text meet (`IsBreakAllowedBetween`), without copying them into one string. It passes all 19,338 cases of the Unicode `LineBreakTest.txt`. `LineBreakTailoring.SouthEastAsianAsIdeographs` lets a line break between any two Thai, Lao, Khmer or Myanmar letters, as between two ideographs, because the default rules keep a whole sentence of those scripts together when there is no dictionary. `LineBreakTailoring.HangulAsAlphabetic` keeps the syllables of a Korean word together, so that Korean breaks only at its spaces. Like the bidi algorithm, it is in the core package and needs no font or backend. (#284)
+- **`UnicodeProperties.LineBreakClassOf` gives the Line_Break class of a code point**, as the `LineBreakClass` enum. The table is generated from the Unicode 17.0.0 database, like the Bidi_Class and Script tables, so every target framework gives the same answer. (#284)
+
 #### Fixed
 
 - **A font subset whose glyphs are all blank no longer has a `glyf` table of zero bytes.** A subset that keeps only glyphs with no outline has no glyph data, and its `glyf` table was written with a length of zero, at the same offset as the `head` table after it. Liberation Sans Italic and Bold Italic draw `.notdef` as a blank, so italic text made only of spaces, or only of characters the face has no glyph for with no `FontFallback` set, was enough. On a Debug build this failed an assertion. On a Release build the PDF rendered, but FreeType, which most renderers read embedded fonts with, takes a zero-length table for a missing one; Windows refuses a font whose `glyf` has no bytes; and the OpenType Sanitizer in Chrome and Firefox rejects any zero-length table. The table now holds one zero byte that no `loca` entry reaches, as fontTools writes it, so every glyph is still blank. For the same reason, a `cvt `, `fpgm` or `prep` table that has no bytes in the face is now left out of the subset, where it was copied with a length of zero. (#291)
 
 ### PinataLayout & DDL
+
+#### Changed
+
+- **Where one run of formatting meets another, the line breaks only where UAX #14 allows a break.** The renderer used short rules of its own there: join two words unless the first ended in a hyphen or a dash, break beside a CJK or South East Asian letter, and, since #283, keep some opening and closing marks off the ends of a line. It now asks `LineBreakAlgorithm`. So an iteration mark (`々`, `ゝ`), the prolonged sound mark (`ー`), a small kana (`ぁ`, `ッ`) or the middle dot (`・`) in a run of its own no longer starts a line. A dash is no longer broken from a closing mark, `!`, `?`, `,` or `.` after it in another run. A footnote's reference mark stays with what it follows, even after `!`, `?` or `。`. Bookmarks and footnote marks between two runs do not change where the line may break, however many of them there are. A line can now break between two runs after `/`, `!`, `?`, `}` or an ellipsis, between two flags, and before an em dash, where it could not before. A seam beside a Thai, Lao, Khmer or Myanmar letter can still break, and a seam between two Hangul syllables still cannot. Inside one run nothing changes: the line still breaks only at blanks, after a hyphen-minus or a zero-width space, and at a soft hyphen. So `44-1` in one run still breaks after the hyphen, although UAX #14 would keep it together. Moving the breaks inside a run to UAX #14 is a separate change. (#284)
 
 #### Fixed
 

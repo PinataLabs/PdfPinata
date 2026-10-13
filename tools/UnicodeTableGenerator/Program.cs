@@ -53,6 +53,91 @@ Write(Path.Combine(output, "UnicodeScript.g.cs"), Emit(
     "The Script property of a character, as UAX #24 names it.",
     scriptNames, script, scriptToShort, scriptCodes: true));
 
+// ----- Line_Break ---------------------------------------------------------------------------------
+
+var (lineBreakToLong, lineBreakToShort) = aliases["lb"];
+var lineBreakText = await Fetch("ucd/LineBreak.txt");
+
+// The same care as Bidi_Class. Unassigned code points do not all default to XX: those in the CJK
+// ideograph blocks, in planes 2 and 3 and in two ranges of plane 1 default to ID, and those in the
+// currency symbols block to PR, so that a character assigned there later breaks as its neighbours
+// do. 17.0.0 lists those defaults as explicit ranges of reserved code points and keeps a single
+// "@missing: 0000..10FFFF; XX" line for the rest; the defaults are read from @missing lines as
+// well, so a version that states them there instead is materialised the same way.
+var lineBreakValues = Materialize(
+    Canonical(Defaults(lineBreakText), lineBreakToLong),
+    Canonical(Ranges(lineBreakText), lineBreakToLong),
+    fallback: "Unknown");
+var lineBreak = Compress(lineBreakValues);
+
+var lineBreakNames = OrderedValues(lineBreak, lineBreakToShort);
+Write(Path.Combine(output, "LineBreakClass.g.cs"), Emit(
+    version, "LineBreakClass", "byte",
+    "The Line_Break property of a character, as UAX #14 names it.",
+    lineBreakNames, lineBreak, lineBreakToShort, scriptCodes: false));
+
+// ----- what else UAX #14's rules read -------------------------------------------------------------
+
+// The line breaking rules are written mostly in Line_Break classes, but six of them also read
+// another property of a character, and those properties are carried here rather than asked of the
+// runtime so that every target framework answers the same, from the same Unicode:
+//
+//   East_Asian_Width   LB19a and LB30 treat a quotation mark or a parenthesis differently
+//                      beside a Fullwidth, Wide or Halfwidth character.
+//   General_Category   LB15a, LB15b and LB19 tell an initial quotation mark (Pi) from a final one
+//                      (Pf); LB1 resolves an SA mark (Mn or Mc) to CM and any other SA to AL; and
+//                      LB30b needs to know which code points are unassigned (Cn).
+//   Extended_Pictographic  LB30b, with Cn: an emoji modifier is not broken from an unassigned
+//                      pictographic code point, because a future emoji base may be assigned there.
+//
+// Only the combinations a rule reads are recorded - a final quotation mark is Pf *and* QU, an SA
+// mark is SA *and* Mn or Mc - which keeps the table to the few hundred runs those rules need rather
+// than a General_Category partition of several thousand.
+var (eaToLong, _) = aliases["ea"];
+var (gcToLong, _) = aliases["gc"];
+
+var eastAsianText = await Fetch("ucd/EastAsianWidth.txt");
+var eastAsianWidth = Materialize(
+    Canonical(Defaults(eastAsianText), eaToLong),
+    Canonical(Ranges(eastAsianText), eaToLong),
+    fallback: "Neutral");
+
+var categoryText = await Fetch("ucd/extracted/DerivedGeneralCategory.txt");
+var category = Materialize(
+    Canonical(Defaults(categoryText), gcToLong),
+    Canonical(Ranges(categoryText), gcToLong),
+    fallback: "Unassigned");
+
+var pictographic = new bool[Ucd.MaxCodePoint + 1];
+foreach (var (first, last, property) in Ranges(await Fetch("ucd/emoji/emoji-data.txt")))
+{
+    if (property != "Extended_Pictographic")
+        continue;
+
+    for (var cp = first; cp <= last; cp++)
+        pictographic[cp] = true;
+}
+
+var lineBreakFlags = new string[Ucd.MaxCodePoint + 1];
+for (var cp = 0; cp <= Ucd.MaxCodePoint; cp++)
+{
+    var flags = 0;
+    if (eastAsianWidth[cp] is "Fullwidth" or "Wide" or "Halfwidth")
+        flags |= 1;
+    if (lineBreakValues[cp] == "Quotation" && category[cp] == "Initial_Punctuation")
+        flags |= 2;
+    if (lineBreakValues[cp] == "Quotation" && category[cp] == "Final_Punctuation")
+        flags |= 4;
+    if (lineBreakValues[cp] == "Complex_Context" && category[cp] is "Nonspacing_Mark" or "Spacing_Mark")
+        flags |= 8;
+    if (pictographic[cp] && category[cp] == "Unassigned")
+        flags |= 16;
+
+    lineBreakFlags[cp] = flags.ToString(CultureInfo.InvariantCulture);
+}
+
+Write(Path.Combine(output, "LineBreakFlags.g.cs"), EmitLineBreakFlags(version, Compress(lineBreakFlags)));
+
 // ----- paired brackets, for rule N0 ---------------------------------------------------------------
 
 // "code; paired code; type", one line per bracket, with the type in a third column that the
@@ -237,6 +322,16 @@ static List<(int First, string Value)> Partition(
     List<(int First, int Last, string Value)> defaults,
     List<(int First, int Last, string Value)> explicitly,
     string fallback)
+    => Compress(Materialize(defaults, explicitly, fallback));
+
+/// <summary>
+/// The value of every code point from 0 to 10FFFF, one entry each: the property's defaults, then
+/// its explicit ranges painted over them.
+/// </summary>
+static string[] Materialize(
+    List<(int First, int Last, string Value)> defaults,
+    List<(int First, int Last, string Value)> explicitly,
+    string fallback)
 {
     var values = new string[Ucd.MaxCodePoint + 1];
     Array.Fill(values, fallback);
@@ -252,6 +347,12 @@ static List<(int First, string Value)> Partition(
     foreach (var (first, last, value) in explicitly)
         Paint(values, first, last, value);
 
+    return values;
+}
+
+/// <summary>Every code point's value as runs of equal value, each given by where it starts.</summary>
+static List<(int First, string Value)> Compress(string[] values)
+{
     var partition = new List<(int, string)> { (0, values[0]) };
     for (var cp = 1; cp <= Ucd.MaxCodePoint; cp++)
     {
@@ -358,6 +459,73 @@ public enum {enumName} : {storage}
     }
 
     sb.Append("}\r\n");
+    return sb.ToString();
+}
+
+/// <summary>
+/// The properties besides Line_Break that UAX #14's rules read, as one partition of flags. The
+/// enum is emitted here, beside the table, so that the bit each flag stands for is written down in
+/// exactly one place: the loop above that sets them.
+/// </summary>
+static string EmitLineBreakFlags(string version, List<(int First, string Value)> partition)
+{
+    var sb = new StringBuilder();
+    sb.Append($@"// <auto-generated>
+//   Generated from the Unicode Character Database {version} by tools/UnicodeTableGenerator.
+//   Do not edit by hand. See BidiClass.g.cs for how to regenerate.
+// </auto-generated>
+
+using System;
+
+namespace PdfPinata.Text;
+
+/// <summary>
+/// What UAX #14's rules read of a character besides its Line_Break class. Each flag is recorded
+/// only where a rule reads it, so a final quotation mark is <see cref=""FinalQuote""/> only if it is
+/// also <see cref=""LineBreakClass.QU""/>.
+/// </summary>
+[Flags]
+internal enum LineBreakFlags : byte
+{{
+    /// <summary>Nothing a rule reads.</summary>
+    None = 0,
+
+    /// <summary>
+    /// East_Asian_Width Fullwidth, Wide or Halfwidth - the $EastAsian of rules LB19a and LB30.
+    /// </summary>
+    EastAsian = 1,
+
+    /// <summary>A QU that is General_Category Pi, for rules LB15a and LB19.</summary>
+    InitialQuote = 2,
+
+    /// <summary>A QU that is General_Category Pf, for rules LB15b and LB19.</summary>
+    FinalQuote = 4,
+
+    /// <summary>An SA that is General_Category Mn or Mc, which rule LB1 resolves to CM.</summary>
+    SouthEastAsianMark = 8,
+
+    /// <summary>Extended_Pictographic and General_Category Cn, for rule LB30b.</summary>
+    UnassignedPictographic = 16,
+}}
+
+static partial class UnicodeTables
+{{
+    /// <summary>
+    /// The first code point of each run of equal <see cref=""LineBreakFlags""/>, ascending. A
+    /// complete partition of U+0000..U+10FFFF.
+    /// </summary>
+    internal static readonly int[] LineBreakFlagsRangeStart =
+    {{
+");
+    sb.Append(Wrap(partition.Select(entry => "0x" + entry.First.ToString("X", CultureInfo.InvariantCulture))));
+    sb.Append(@"    };
+
+    /// <summary>The value of each run of <see cref=""LineBreakFlagsRangeStart""/>.</summary>
+    internal static readonly byte[] LineBreakFlagsRangeValue =
+    {
+");
+    sb.Append(Wrap(partition.Select(entry => entry.Value)));
+    sb.Append("    };\r\n}\r\n");
     return sb.ToString();
 }
 

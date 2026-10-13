@@ -57,19 +57,9 @@ public static partial class BidiAlgorithm
         var unitsPer = new List<int>(text.Length);
         for (var idx = 0; idx < text.Length;)
         {
-            if (char.IsHighSurrogate(text[idx]) && idx + 1 < text.Length
-                && char.IsLowSurrogate(text[idx + 1]))
-            {
-                codePoints.Add(char.ConvertToUtf32(text[idx], text[idx + 1]));
-                unitsPer.Add(2);
-                idx += 2;
-            }
-            else
-            {
-                codePoints.Add(text[idx]);
-                unitsPer.Add(1);
-                idx++;
-            }
+            codePoints.Add(CodePoints.At(text, idx, out var width));
+            unitsPer.Add(width);
+            idx += width;
         }
 
         var resolved = Resolve(codePoints, direction);

@@ -273,8 +273,8 @@ document byte-identical.
 
 ## Bidi and script itemisation
 
-`src/PdfPinata/Text/` holds the Unicode Bidirectional Algorithm (UAX #9) and script itemisation
-(UAX #24). Pure text processing, no font and no backend, which is why it is in the core rather than
+`src/PdfPinata/Text/` holds the Unicode Bidirectional Algorithm (UAX #9), script itemisation
+(UAX #24) and the Unicode Line Breaking Algorithm (UAX #14). Pure text processing, no font and no backend, which is why it is in the core rather than
 behind the shaping seam. `TextItemizer.Itemize` is the entry point worth knowing: it hands back runs
 that are each one direction **and** one script, in the order they are drawn — which is exactly what
 `ITextShaper.Shape` takes. `TextShaping.ShapeText` is its one caller inside the library, and through
@@ -323,10 +323,14 @@ bump. Read its README before touching them; the short version is that `DerivedBi
 `@missing` lines live inside comments, are not all `Left_To_Right`, and are what make unassigned code
 points in the Hebrew and Arabic blocks default to `R` and `AL`.
 
-Everything is pinned to **Unicode 17.0.0**, and three things move together on a bump: the generated
-tables, the gzipped conformance suites in `src/PdfPinata.Test/Assets/Unicode/`, and the version
-asserted in `UnicodePropertyTests`. Bumping one without the others tests one Unicode against
-another's expectations.
+Everything is pinned to **Unicode 17.0.0**, and four things move together on a bump: the generated
+bidi and script tables, the generated line-break tables (`LineBreakClass.g.cs` and
+`LineBreakFlags.g.cs`), the gzipped conformance suites in `src/PdfPinata.Test/Assets/Unicode/` —
+`BidiTest.txt.gz`, `BidiCharacterTest.txt.gz` and `LineBreakTest.txt.gz` — and the version asserted
+in `UnicodePropertyTests`, which covers all of them. Bumping one without the others tests one
+Unicode against another's expectations. The generator writes every table in one run; the line-break
+rules themselves are code, so read the new UAX #14 against `LineBreakAlgorithm` as well — 17.0.0
+added the class HH (the en dash is one), and Unicode 18 changes LB12a.
 
 `BidiConformanceTests` runs `BidiTest.txt` and `BidiCharacterTest.txt` in full — 861,948 cases, about
 two seconds — as one `[Test]` per suite rather than a test per case, because half a million test
@@ -335,6 +339,28 @@ breaks something, that is what says so, and it reports the failing case in UAX #
 
 `docs/specs/text-shaping-and-bidi.md` has the rest, including what is still missing: font fallback,
 the measurement paths, and the DOM property.
+
+**PinataLayout decides a line break between two runs of formatting by UAX #14.**
+`ParagraphRenderer.IsJoinedTo` asks `LineBreakAlgorithm.IsBreakAllowedBetween` about the seam,
+reading up to 32 code units of each leaf and, for a leaf of one character, as much of the leaf
+beyond it — which is what tells a word-initial hyphen (LB20a) from one inside a word. A symbol is read as its
+character, an image as U+FFFC, a field as a letter. A footnote reference, a bookmark, an empty
+text and a symbol that draws nothing (a paragraph break inside a run) are *read through*: U+034F, a
+CM, so never broken before, and the seam after them is decided by the nearest leaf before them that
+has text — **walk past them, never read one as the context of another**, or two in a row become a
+letter by LB10 and the character before them is lost. Three
+things are deliberately not the default algorithm, and all are load-bearing. **A Thai, Lao, Khmer or
+Myanmar letter is asked about as an ideograph** (`LineBreakTailoring.SouthEastAsianAsIdeographs`),
+because LB1 makes it AL without a dictionary and would join every seam in a Thai paragraph. **A
+Hangul syllable is asked about as a letter** (`HangulAsAlphabetic`), because Korean breaks at its
+spaces and the default rules would break a word between two runs. And
+**a boundary inside one run after a hyphen-minus is not a seam** and still breaks, though UAX #14
+would join "44-1": breaking *inside* a run — at blanks, hyphens and zero-width spaces, never
+between ideographs — is untouched, and moving it is the follow-up, because it moves where existing
+documents break (`NoBreakSpaceAcrossRunsTests`' five-line citation is the pin).
+`LineBreakConformanceTests` runs `LineBreakTest.txt`'s 19,338 cases as one `[Test]` with no
+tailoring and nothing skipped, and reports a failure by the rule the suite names.
+`docs/specs/line-breaking.md` has the rest.
 
 `PdfPinata.Signing` is the one package that does **not** multi-target `netstandard2.1`, and the
 one that carries a dependency the core deliberately refuses: `System.Security.Cryptography.Pkcs`,
