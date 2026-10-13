@@ -36,8 +36,9 @@ public class EmptyFontTableSubsetTests
 
         program.TableRecords.Should().NotContain(record => record.Tag == tag,
             "the face's '{0}' is empty, and an empty optional table is no table", tag);
-        program.TableRecords.Should().OnlyContain(record => record.Length > 0,
-            "Windows, FreeType and the OpenType Sanitizer all refuse or ignore a table of no bytes");
+        // One table fewer changes the count the search fields follow from, and every offset after
+        // the table that went; and none of what is left may have no bytes.
+        program.DirectoryProblems().Should().BeEmpty();
     }
 
     private static byte[] EmbeddedSubsetOfPageDrawing(string family)

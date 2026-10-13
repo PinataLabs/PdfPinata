@@ -51,11 +51,12 @@ public class BlankGlyphSubsetTests
     }
 
     [Test]
-    [Arguments(true)]
-    [Arguments(false)]
-    public void ASubsetOfBlankGlyphsStillHasGlyphDataOfItsOwn(bool missingGlyph)
+    [Arguments(true, PdfFontEncoding.Unicode)]
+    [Arguments(false, PdfFontEncoding.Unicode)]
+    [Arguments(false, PdfFontEncoding.WinAnsi)]
+    public void ASubsetOfBlankGlyphsStillHasGlyphDataOfItsOwn(bool missingGlyph, PdfFontEncoding encoding)
     {
-        var program = new TrueTypeGlyphs(ItalicFontProgram(Drawn(TextFor(missingGlyph))));
+        var program = new TrueTypeGlyphs(ItalicFontProgram(Drawn(TextFor(missingGlyph), encoding)));
 
         for (var glyph = 0; glyph < program.NumGlyphs; glyph++)
             program.LengthOf(glyph).Should().Be(0, "every glyph the subset keeps is blank, glyph {0} too", glyph);
@@ -66,48 +67,32 @@ public class BlankGlyphSubsetTests
     }
 
     [Test]
-    [Arguments(true)]
-    [Arguments(false)]
-    public void TheTableDirectoryOfThatSubsetDescribesTheFile(bool missingGlyph)
+    [Arguments(true, PdfFontEncoding.Unicode)]
+    [Arguments(false, PdfFontEncoding.Unicode)]
+    [Arguments(false, PdfFontEncoding.WinAnsi)]
+    public void TheTableDirectoryOfThatSubsetDescribesTheFile(bool missingGlyph, PdfFontEncoding encoding)
     {
-        var program = new TrueTypeGlyphs(ItalicFontProgram(Drawn(TextFor(missingGlyph))));
-        var records = program.TableRecords.OrderBy(record => record.Offset).ToList();
+        var program = new TrueTypeGlyphs(ItalicFontProgram(Drawn(TextFor(missingGlyph), encoding)));
 
-        foreach (var record in records)
-        {
-            (record.Offset % 4).Should().Be(0, "table '{0}' has to begin on a four-byte boundary", record.Tag);
-            (record.Offset + record.Length).Should().BeLessThanOrEqualTo(program.FileLength,
-                "table '{0}' has to lie inside the file", record.Tag);
-
-            // 'head' is the exception the specification makes: its checksum is taken with the
-            // checksumAdjustment field zeroed, so it cannot be recomputed from the bytes as written.
-            if (record.Tag != "head")
-            {
-                record.Checksum.Should().Be(program.ChecksumOf(record.Offset, record.Length),
-                    "the directory's checksum for '{0}' has to be the table's", record.Tag);
-            }
-        }
-
-        for (var idx = 1; idx < records.Count; idx++)
-        {
-            var previous = records[idx - 1];
-            records[idx].Offset.Should().BeGreaterThan(previous.Offset,
-                "'{0}' and '{1}' are two tables and cannot begin at the same byte", records[idx].Tag, previous.Tag);
-            records[idx].Offset.Should().BeGreaterThanOrEqualTo(previous.Offset + previous.Length,
-                "'{0}' must not overlap '{1}'", records[idx].Tag, previous.Tag);
-        }
+        // The empty table used to begin at the same byte as 'head', the next one.
+        program.DirectoryProblems().Should().BeEmpty();
     }
 
     // ── Arranging ───────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>A character the italic face has no glyph for, or a run of spaces.</summary>
+    /// <summary>
+    ///   A character the italic face has no glyph for, or a run of spaces. Only the spaces are
+    ///   drawn through WinAnsi too, as WinAnsi has no code for the character.
+    /// </summary>
     private static string TextFor(bool missingGlyph) => missingGlyph ? NotInTheFace : "   ";
 
     /// <summary>
     ///   A page with <paramref name="text"/> set in Liberation Sans Italic and a word in Regular
-    ///   below it, through Unicode fonts so that each subset is a CIDFont's, saved and read back.
+    ///   below it, saved and read back. Through <see cref="PdfFontEncoding.Unicode"/> each subset is
+    ///   a CIDFont's and has no <c>cmap</c>; through <see cref="PdfFontEncoding.WinAnsi"/> it is a
+    ///   simple TrueType font's and keeps one, so the table directory is not the same.
     /// </summary>
-    internal static PdfDocument Drawn(string text)
+    internal static PdfDocument Drawn(string text, PdfFontEncoding encoding = PdfFontEncoding.Unicode)
     {
         // With a fallback, the missing character would be drawn from another face and the italic
         // subset would no longer be what these tests are about.
@@ -116,15 +101,15 @@ public class BlankGlyphSubsetTests
         var document = new PdfDocument();
         using (var gfx = XGraphics.FromPdfPage(document.AddPage()))
         {
-            gfx.DrawString(text, Font(XFontStyle.Italic), XBrushes.Black, new XPoint(40, 80));
-            gfx.DrawString("Ink", Font(XFontStyle.Regular), XBrushes.Black, new XPoint(40, 160));
+            gfx.DrawString(text, Font(XFontStyle.Italic, encoding), XBrushes.Black, new XPoint(40, 80));
+            gfx.DrawString("Ink", Font(XFontStyle.Regular, encoding), XBrushes.Black, new XPoint(40, 160));
         }
 
         return document.Reopened();
     }
 
-    private static XFont Font(XFontStyle style) =>
-        new("Arial", 24, style, new XPdfFontOptions(PdfFontEncoding.Unicode));
+    private static XFont Font(XFontStyle style, PdfFontEncoding encoding) =>
+        new("Arial", 24, style, new XPdfFontOptions(encoding));
 
     /// <summary>The font program embedded for the italic face.</summary>
     private static byte[] ItalicFontProgram(PdfDocument document)

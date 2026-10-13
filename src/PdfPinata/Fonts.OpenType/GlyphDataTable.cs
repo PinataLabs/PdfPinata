@@ -187,14 +187,10 @@ internal class GlyphDataTable : OpenTypeFontTable
     {
         base.PrepareForCompilation();
 
-        if (DirectoryEntry.Length == 0)
-            DirectoryEntry.Length = GlyphTable.Length;
-        if (DirectoryEntry.Length < MinimumLength)
-        {
-            DirectoryEntry.Length = MinimumLength;
-            if (GlyphTable.Length < DirectoryEntry.PaddedLength)
-                Array.Resize(ref GlyphTable, DirectoryEntry.PaddedLength);
-        }
+        var length = DirectoryEntry.Length == 0 ? GlyphTable.Length : DirectoryEntry.Length;
+        DirectoryEntry.Length = Math.Max(length, MinimumLength);
+        if (GlyphTable.Length < DirectoryEntry.PaddedLength)
+            Array.Resize(ref GlyphTable, DirectoryEntry.PaddedLength);
         DirectoryEntry.CheckSum = CalcChecksum(GlyphTable);
     }
 
