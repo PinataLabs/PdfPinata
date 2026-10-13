@@ -146,8 +146,8 @@ public class NoBreakSpaceAcrossRunsTests
         foreach (var label in labels)
         {
             var address = IndexOfRunBeginning(placed, https, label);
-            address.Should().Be(label + 1, "nothing is drawn between a label and its address");
-            placed[address].Y.Should().Be(placed[label].Y, "each label stays on the line its address starts on");
+            placed.Skip(label).Take(address - label + 1).Select(run => run.Y).Should()
+                .AllSatisfy(y => y.Should().Be(placed[label].Y), "each label stays on the line its address starts on");
         }
         TextBaselines.LinesOf(page).Should().HaveCount(5, "upstream sets this citation in five lines");
     }

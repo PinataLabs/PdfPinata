@@ -23,9 +23,10 @@ namespace PinataLayout.Rendering.Tests;
 ///     whole when it does not fit.
 ///   </para>
 ///   <para>
-///     Every paragraph here is sixty points wide, which holds "aaaa bbbb" but not "aaaa bbbbcccc",
+///     Most paragraphs here are sixty points wide, which holds "aaaa bbbb" but not "aaaa bbbbcccc",
 ///     so the question each test asks is whether "bbbb" stays on the first line or goes down with
-///     "cccc".
+///     "cccc". The word of three runs is the exception: its column is measured to hold
+///     "Reference number" and the word's first two runs but not its third.
 ///   </para>
 /// </remarks>
 public class FormattingSeamTests
@@ -240,6 +241,21 @@ public class FormattingSeamTests
         placed[2].Y.Should().BeLessThan(placed[1].Y, "the word goes down from the line \"number\" is on");
         placed[3].Y.Should().Be(placed[2].Y);
         placed[4].Y.Should().Be(placed[2].Y);
+    }
+
+    [Test]
+    public void TheFirstTwoRunsStayOnTheFirstLineWhereTheThirdStartsWithASpace()
+    {
+        // The control: with a space before the third run, a line may be broken there, and the
+        // first two runs fit after "number" and stay - so the word going down whole above is the
+        // join and not the measure.
+        var placed = BodyRunsOf(AWordOfThreeRuns(
+            "1", "5", new RunFont("Arial", 9, XFontStyle.Bold), " 0", new RunFont("Arial", 9, XFontStyle.Italic)));
+
+        placed.Should().HaveCount(6, "\"Reference\", \"number\", the three runs and \"February\" are drawn");
+        placed[2].Y.Should().Be(placed[1].Y, "\"15\" fits on the line \"number\" is on");
+        placed[3].Y.Should().Be(placed[1].Y);
+        placed[4].Y.Should().BeLessThan(placed[1].Y, "\"0\" goes down on its own");
     }
 
     [Test]
