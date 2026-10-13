@@ -2333,10 +2333,12 @@ internal class ParagraphRenderer : Renderer
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Up to <see cref="SeamWindow"/> code units of the leaf, and for a leaf of one character the
-    /// character before it as well: whether a line may be broken after a hyphen depends on whether
-    /// the hyphen begins a word (LB20a), which is a question about what is before it. Longer
-    /// leaves carry their own context, and do not pay for a walk of the tree.
+    /// Up to <see cref="SeamWindow"/> code units of the leaf, and for a leaf of one character as
+    /// much of the leaf before it as well: whether a line may be broken after a hyphen depends on
+    /// whether the hyphen begins a word (LB20a), and whether one may be broken before the second
+    /// half of a flag on how many regional indicators precede it (LB30a), which are questions about
+    /// what is before the character. Longer leaves carry their own context, and do not pay for a
+    /// walk of the tree.
     /// </para>
     /// <para>
     /// A leaf the seam reads through (<see cref="IsReadThrough"/>) is U+034F COMBINING GRAPHEME
@@ -2361,14 +2363,15 @@ internal class ParagraphRenderer : Renderer
         var text = Tail(SeamTextOf(leaf.Current, symbol));
         start = Prepend(text, buffer, start);
         if (IsOneCodePoint(text) && PreviousReadLeaf(leaf) is { } previous)
-            start = Prepend(LastCodePointOf(SeamTextOf(previous.Current, symbol)), buffer, start);
+            start = Prepend(Tail(SeamTextOf(previous.Current, symbol)), buffer, start);
         return buffer[start..];
     }
 
     /// <summary>
     /// The text after a seam, as much of it as the seam is decided by, written into the start of
     /// <paramref name="buffer"/>: up to <see cref="SeamWindow"/> code units of the leaf, and for a
-    /// leaf of one character the character after it as well.
+    /// leaf of one character as much of the leaf after it as well - after "$(" a break is
+    /// forbidden only when a number follows, perhaps after a stop (LB25, PR × OP IS NU).
     /// </summary>
     /// <remarks>
     /// A leaf the seam reads through is U+034F COMBINING GRAPHEME JOINER and nothing more. LB9
@@ -2383,7 +2386,7 @@ internal class ParagraphRenderer : Renderer
         var text = Head(SeamTextOf(right.Current, symbol));
         var length = Append(text, buffer, 0);
         if (IsOneCodePoint(text) && NextReadLeaf(right) is { } next)
-            length = Append(FirstCodePointOf(SeamTextOf(next.Current, symbol)), buffer, length);
+            length = Append(Head(SeamTextOf(next.Current, symbol)), buffer, length);
         return buffer[..length];
     }
 
@@ -2485,8 +2488,9 @@ internal class ParagraphRenderer : Renderer
     private const int SeamWindow = 32;
 
     /// <summary>
-    /// The longest text read either side of a seam: a window, the code unit it may take to keep a
-    /// surrogate pair whole, the character beyond a leaf of one, and a combining grapheme joiner.
+    /// The longest text read either side of a seam: a leaf of one character, which may be a
+    /// surrogate pair, the window of the leaf beyond it with the code unit it may take to keep a
+    /// pair whole, and a combining grapheme joiner. A longer leaf is read alone, and in less.
     /// </summary>
     private const int ContextLength = SeamWindow + 4;
 
@@ -2549,24 +2553,6 @@ internal class ParagraphRenderer : Renderer
 
     private static bool IsOneCodePoint(ReadOnlySpan<char> text) =>
         text.Length == 1 || (text.Length == 2 && char.IsSurrogatePair(text[0], text[1]));
-
-    /// <summary>The last code point of a text, as the one or two code units that spell it.</summary>
-    private static ReadOnlySpan<char> LastCodePointOf(ReadOnlySpan<char> text)
-    {
-        if (text.Length == 0)
-            return text;
-
-        return text.Length > 1 && char.IsSurrogatePair(text[^2], text[^1]) ? text[^2..] : text[^1..];
-    }
-
-    /// <summary>The first code point of a text, as the one or two code units that spell it.</summary>
-    private static ReadOnlySpan<char> FirstCodePointOf(ReadOnlySpan<char> text)
-    {
-        if (text.Length == 0)
-            return text;
-
-        return text.Length > 1 && char.IsSurrogatePair(text[0], text[1]) ? text[..2] : text[..1];
-    }
 
     /// <summary>
     /// Copies <paramref name="text"/> into <paramref name="buffer"/> to end just before

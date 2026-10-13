@@ -611,6 +611,54 @@ public class FormattingSeamTests
     }
 
     [Test]
+    public void AFlagIsNotBrokenBetweenItsHalvesWhereItsRowRunsThroughThreeRuns()
+    {
+        // Two indicators, then one in bold, then one underlined: the bold one is the first half of
+        // the second flag. The seam after a run of one character reads the run before it, and
+        // has to read all of it to know that.
+        var document = new Document();
+        document.Styles.Normal.Font.Name = "Arial";
+        document.Styles.Normal.Font.Size = 9;
+
+        using var measure = XGraphics.CreateMeasureContext(new XSize(1000, 100), XGraphicsUnit.Point, XPageDirection.Downwards);
+        var width = measure.MeasureString(
+            "aaaa " + RegionalIndicatorA + RegionalIndicatorA + RegionalIndicatorA, new XFont("Arial", 9)).Width + 0.5;
+
+        var section = document.AddSection();
+        section.PageSetup.LeftMargin = Unit.FromPoint(10);
+        section.PageSetup.RightMargin = Unit.FromPoint(10);
+        section.PageSetup.PageWidth = Unit.FromPoint(width + 20);
+        var paragraph = section.AddParagraph();
+        paragraph.AddText("aaaa ");
+        paragraph.AddText(RegionalIndicatorA + RegionalIndicatorA);
+        paragraph.AddFormattedText(RegionalIndicatorA).Font.Bold = true;
+        paragraph.AddFormattedText(RegionalIndicatorA).Font.Underline = Underline.Single;
+
+        var placed = BodyRunsOf(document);
+
+        placed[1].Y.Should().Be(placed[0].Y, "the first flag fits on the first line and may stay there");
+        placed[^2].Y.Should().BeLessThan(placed[0].Y, "the first half of the second flag goes down with its second half");
+        placed[^1].Y.Should().Be(placed[^2].Y);
+    }
+
+    [Test]
+    public void ACurrencySignIsNotLeftBeforeABracketedNumberInAnotherRun()
+    {
+        // "$(.5": no break after a prefix before an opening bracket and a number (LB25,
+        // PR × OP IS NU). The bracket is a run of one character, and the seam before it has to
+        // read two characters past it to find the number.
+        var paragraph = AParagraphSixtyPointsWide(out var document);
+        paragraph.AddText("aaaa bbbb$");
+        paragraph.AddFormattedText("(").Font.Bold = true;
+        paragraph.AddText(".5cc");
+
+        var placed = BodyRunsOf(document);
+
+        placed[1].Y.Should().BeLessThan(placed[0].Y, "the sign goes down with the number after it");
+        placed[^1].Y.Should().Be(placed[1].Y);
+    }
+
+    [Test]
     public void AJoinedRunTooLongForAnyLineIsSetFromTheStartOfOneAndBrokenAtItsSeams()
     {
         // The last resort, as for a word longer than the measure: a run of joined leaves no line
