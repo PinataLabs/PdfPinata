@@ -16,9 +16,9 @@ namespace PdfPinata.Test.Fonts;
 ///   A subset whose glyphs all have no outline. Its <c>glyf</c> table has no glyph data to hold,
 ///   and it used to be written with no bytes at all: a table of length zero, at the same offset as
 ///   the <c>head</c> table after it. On a Debug build that failed an assertion in the table
-///   directory; on a Release build it wrote a font that Windows refuses to load, that FreeType
-///   reads as having no <c>glyf</c> at all, and that the OpenType Sanitizer in Chrome and Firefox
-///   rejects. PDF renderers draw it either way, which is why nothing noticed.
+///   directory; on a Release build it wrote a <c>glyf</c> that FreeType reads as missing, and
+///   that by itself makes Windows and the OpenType Sanitizer in Chrome and Firefox refuse a font
+///   they otherwise load. PDF renderers draw it either way, which is why nothing noticed.
 /// </summary>
 /// <remarks>
 ///   Liberation Sans Italic and Bold Italic draw <c>.notdef</c> as a blank, where Regular and Bold

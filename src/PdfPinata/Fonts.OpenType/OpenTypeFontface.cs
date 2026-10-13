@@ -396,7 +396,7 @@ internal sealed class OpenTypeFontface
         var size = 0;
         for (var idx = 0; idx < glyphCount; idx++)
             size += glyf.GetGlyphSize(glyphArray[idx]);
-        glyfNew.DirectoryEntry.Length = size;
+        glyfNew.DirectoryEntry.Length = Math.Max(size, GlyphDataTable.MinimumLength);
 
         // Create new loca table
         int numGlyphs = maxp.numGlyphs;
@@ -452,9 +452,9 @@ internal sealed class OpenTypeFontface
 
     /// <summary>
     /// Adds an optional table the face has, unless it has no bytes. Copied as it is, an empty table
-    /// would be written with a length of zero, which Windows, FreeType and the OpenType Sanitizer
-    /// refuse or ignore just as they do an empty <c>glyf</c>. An empty <c>cvt </c>, <c>fpgm</c> or
-    /// <c>prep</c> holds nothing, so leaving it out changes nothing.
+    /// would be written with a length of zero, which FreeType reads as a missing table and the
+    /// OpenType Sanitizer rejects, as they do an empty <c>glyf</c>. An empty <c>cvt </c>,
+    /// <c>fpgm</c> or <c>prep</c> holds nothing, so leaving it out changes nothing.
     /// </summary>
     private static void AddOptionalTable(OpenTypeFontface fontData, OpenTypeFontTable table)
     {

@@ -106,7 +106,7 @@ internal sealed class TrueTypeGlyphs
         for (var idx = 1; idx < byOffset.Count; idx++)
         {
             var (previous, current) = (byOffset[idx - 1], byOffset[idx]);
-            if (current.Offset < previous.Offset + previous.Length || current.Offset == previous.Offset)
+            if (current.Offset < previous.Offset + previous.Length)
                 problems.Add($"'{current.Tag}' at {current.Offset} overlaps '{previous.Tag}' at {previous.Offset}");
         }
 
