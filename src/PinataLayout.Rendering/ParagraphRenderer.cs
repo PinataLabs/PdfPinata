@@ -717,7 +717,7 @@ internal class ParagraphRenderer : Renderer
             defaultTabStop = paragraph.Document.DefaultTabStop.Point;
 
         var currTabPos = defaultTabStop;
-        while (currTabPos + formattingArea.X <= formattingArea.Width - RightIndent)
+        while (currTabPos <= formattingArea.Width - RightIndent + Tolerance)
         {
             if (currTabPos > lastPosition && currTabPos + formattingArea.X > currentXPosition + Tolerance)
                 return new TabStop(currTabPos.Point);

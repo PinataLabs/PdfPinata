@@ -156,6 +156,65 @@ public class ParagraphRenderingTests
         (tabbed.Stop - tabbed.Runs[1]).Should().BeApproximately(WidthOf("after") / 2, 0.01);
     }
 
+    /// <summary>
+    ///   A default tab stop is measured from the paragraph's left edge, so whether it fits is a
+    ///   question about the width of the paragraph and not about where the paragraph is on the
+    ///   page. The search used to add the left margin to the stop and compare that with the width,
+    ///   which turned away every default stop within a margin's breadth of the right edge - here
+    ///   the fourth, at 144 of a 160 point measure, so the last tab broke the line instead.
+    ///   empira/PDFsharp#404.
+    /// </summary>
+    [Test]
+    public void ADefaultTabStopNearTheRightEdgeIsUsedWhenTheMarginIsNotNil()
+    {
+        var document = new Document();
+        document.DefaultTabStop = Unit.FromPoint(36);
+        var section = document.AddSection();
+        section.PageSetup.PageWidth = Unit.FromPoint(200);
+        section.PageSetup.LeftMargin = Unit.FromPoint(20);
+        section.PageSetup.RightMargin = Unit.FromPoint(20);
+
+        var paragraph = section.AddParagraph();
+        paragraph.AddTab();
+        paragraph.AddTab();
+        paragraph.AddTab();
+        paragraph.AddText("A");
+        paragraph.AddTab();
+        paragraph.AddText("B");
+
+        var runs = TextBaselines.PositionsOf(Rendered.FirstPageOf(document));
+
+        runs.Should().AllSatisfy(run => run.Y.Should().Be(runs[0].Y), "every stop fits on the line");
+        runs[^1].X.Should().BeApproximately(20 + 4 * 36, 0.01);
+    }
+
+    [Test]
+    public void ADefaultTabStopInsideTheRightIndentIsStillTurnedAway()
+    {
+        // The same arrangement with the paragraph indented 20 points from the right: the fourth
+        // stop, at 144, is now past the 140 points the paragraph has, so the last tab breaks the
+        // line. The width the stops are measured against is the paragraph's, indent and all.
+        var document = new Document();
+        document.DefaultTabStop = Unit.FromPoint(36);
+        var section = document.AddSection();
+        section.PageSetup.PageWidth = Unit.FromPoint(200);
+        section.PageSetup.LeftMargin = Unit.FromPoint(20);
+        section.PageSetup.RightMargin = Unit.FromPoint(20);
+
+        var paragraph = section.AddParagraph();
+        paragraph.Format.RightIndent = Unit.FromPoint(20);
+        paragraph.AddTab();
+        paragraph.AddTab();
+        paragraph.AddTab();
+        paragraph.AddText("A");
+        paragraph.AddTab();
+        paragraph.AddText("B");
+
+        var runs = TextBaselines.PositionsOf(Rendered.FirstPageOf(document));
+
+        runs[^1].Y.Should().BeLessThan(runs[0].Y, "the stop past the right indent does not fit");
+    }
+
     [Test]
     public void AParagraphsBordersStandOffItsTextByTheDistancesItNames()
     {
