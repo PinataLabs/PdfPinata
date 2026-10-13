@@ -31,6 +31,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using PinataLayout.DocumentObjectModel;
 using PdfPinata.Pdf;
@@ -2225,9 +2226,12 @@ internal class ParagraphRenderer : Renderer
     /// Two exceptions keep what a seam used to allow. Chinese, Japanese and the scripts of South
     /// East Asia are written without spaces, so a seam beside one of their letters stays a place a
     /// line may be broken - joining there would make a paragraph with any formatting in it one
-    /// run. And a seam before a no-break character follows UAX #14's rule LB12a: joined, unless
-    /// what comes before it is a hyphen or a dash a line may be broken after, which an em dash is
-    /// not - so the em dash and no-break space of French dialogue stay together.
+    /// run - though not after a mark that opens what comes next or before one that closes what
+    /// went before, which those scripts never set at the end or the start of a line either. And a
+    /// seam before a no-break character follows UAX #14's
+    /// rule LB12a: joined, unless what comes before it is a hyphen or a dash a line may be broken
+    /// after, which an em dash is not - so the em dash and no-break space of French dialogue stay
+    /// together.
     /// </para>
     /// </remarks>
     private static bool IsJoinedTo(DocumentObject left, DocumentObject right)
@@ -2235,7 +2239,8 @@ internal class ParagraphRenderer : Renderer
         if (!IsJoinable(left) || !IsJoinable(right))
             return false;
 
-        if (IsWrittenWithoutSpaces(LastCodePointOf(left)) || IsWrittenWithoutSpaces(FirstCodePointOf(right)))
+        if ((IsWrittenWithoutSpaces(LastCodePointOf(left)) || IsWrittenWithoutSpaces(FirstCodePointOf(right)))
+            && !EndsInOpeningMark(left) && !BeginsWithClosingMark(right))
             return false;
 
         return BeginsWithNoBreak(right)
@@ -2277,6 +2282,33 @@ internal class ParagraphRenderer : Renderer
     private static bool BeginsWithNoBreak(DocumentObject docObj) =>
         docObj is Character { SymbolName: SymbolName.NonBreakableBlank }
         || FirstCodePointOf(docObj) is Chars.NonBreakableSpace or NarrowNoBreakSpace or FigureSpace or NonBreakingHyphen;
+
+    /// <summary>
+    /// Whether <paramref name="docObj"/> ends in a mark UAX #14 forbids a break after because it
+    /// opens what comes next: an opening bracket or quotation mark (classes OP and QU).
+    /// </summary>
+    private static bool EndsInOpeningMark(DocumentObject docObj) =>
+        LastCodePointOf(docObj) is >= 0 and <= char.MaxValue and var last
+        && char.GetUnicodeCategory((char)last) is UnicodeCategory.OpenPunctuation or UnicodeCategory.InitialQuotePunctuation;
+
+    /// <summary>
+    /// Whether <paramref name="docObj"/> begins with a mark UAX #14 forbids a break before because
+    /// it closes what went before it: a closing bracket or quotation mark (classes CL, CP and QU),
+    /// or one of the stops Chinese and Japanese set in a width of their own (CL, EX and NS).
+    /// </summary>
+    private static bool BeginsWithClosingMark(DocumentObject docObj)
+    {
+        var first = FirstCodePointOf(docObj);
+        return first is >= 0 and <= char.MaxValue
+            && (ClosingStops.IndexOf((char)first) >= 0
+                || char.GetUnicodeCategory((char)first) is UnicodeCategory.ClosePunctuation or UnicodeCategory.FinalQuotePunctuation);
+    }
+
+    /// <summary>
+    /// The ideographic comma and full stop, their halfwidth forms, and the fullwidth comma, full
+    /// stop, exclamation mark, question mark, colon and semicolon.
+    /// </summary>
+    private const string ClosingStops = "\u3001\u3002\uFF64\uFF61\uFF0C\uFF0E\uFF01\uFF1F\uFF1A\uFF1B";
 
     /// <summary>
     /// Whether <paramref name="codePoint"/> belongs to a script written without spaces between
