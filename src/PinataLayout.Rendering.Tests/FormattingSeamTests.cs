@@ -435,6 +435,71 @@ public class FormattingSeamTests
     }
 
     [Test]
+    [Arguments("!")]
+    [Arguments("?")]
+    [Arguments("\u3002")] // ideographic full stop
+    public void AFootnoteMarkIsNotLeftToStartALineAfterTheMarkBeforeIt(string stop)
+    {
+        // A footnote's reference mark belongs to what it is set against, whatever that ends in. A
+        // line may be broken after "!" or "?" before a word, but the mark is not a word: it stays
+        // with the stop, and the two go down together when the mark does not fit.
+        var document = new Document();
+        document.Styles.Normal.Font.Name = "Arial";
+        document.Styles.Normal.Font.Size = 9;
+
+        using var measure = XGraphics.CreateMeasureContext(new XSize(200, 200), XGraphicsUnit.Point, XPageDirection.Downwards);
+        var width = measure.MeasureString("aaaa bbbb" + stop, new XFont("Arial", 9)).Width + 0.5;
+
+        var section = document.AddSection();
+        section.PageSetup.LeftMargin = Unit.FromPoint(10);
+        section.PageSetup.RightMargin = Unit.FromPoint(10);
+        section.PageSetup.PageWidth = Unit.FromPoint(width + 20);
+        var paragraph = section.AddParagraph();
+        paragraph.AddText("aaaa bbbb" + stop);
+        paragraph.AddFootnote("The note.");
+        paragraph.AddText(" cccc");
+
+        var placed = BodyRunsOf(document);
+
+        placed.Should().HaveCount(4, "\"aaaa\", \"bbbb\" and its stop, the mark and \"cccc\" are drawn");
+        placed[1].Y.Should().BeLessThan(placed[0].Y, "\"bbbb\" goes down with the mark after it");
+        placed[2].Y.Should().BeInRange(placed[1].Y, placed[1].Y + 4, "the mark is raised above the line \"bbbb\" is on");
+    }
+
+    [Test]
+    public void ABookmarkBetweenAnIdeographAndANonstarterLeavesThemJoined()
+    {
+        // A bookmark takes no room and is read through: what is either side of it decides the
+        // seam, as though it were not there.
+        var paragraph = AParagraphSixtyPointsWide(out var document);
+        paragraph.AddText("aaaa ");
+        paragraph.AddFormattedText("bbbb" + Ideograph).Font.Bold = true;
+        paragraph.AddBookmark("here");
+        paragraph.AddText((char)0x3005 + "cccc");
+
+        var placed = BodyRunsOf(document);
+
+        placed[1].Y.Should().BeLessThan(placed[0].Y, "the ideograph goes down with the mark after it");
+        placed[^1].Y.Should().Be(placed[1].Y);
+    }
+
+    [Test]
+    public void AKoreanWordInTwoRunsIsNotBrokenBetweenThem()
+    {
+        // Korean is written with spaces between words, and inside a run a line is broken only at
+        // them. UAX #14 by default allows a break after any Hangul syllable, which would let a
+        // word be broken where its formatting changes; a seam between two syllables is joined.
+        var paragraph = AParagraphSixtyPointsWide(out var document);
+        paragraph.AddText("aaaa \uAC00\uB098");
+        paragraph.AddFormattedText("\uB2E4cccc").Font.Bold = true;
+
+        var placed = BodyRunsOf(document);
+
+        placed[1].Y.Should().BeLessThan(placed[0].Y, "the word's first syllables go down with its last");
+        placed[^1].Y.Should().Be(placed[1].Y);
+    }
+
+    [Test]
     public void AJoinedRunTooLongForAnyLineIsSetFromTheStartOfOneAndBrokenAtItsSeams()
     {
         // The last resort, as for a word longer than the measure: a run of joined leaves no line

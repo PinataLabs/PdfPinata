@@ -344,10 +344,13 @@ the measurement paths, and the DOM property.
 `ParagraphRenderer.IsJoinedTo` asks `LineBreakAlgorithm.IsBreakAllowedBetween` about the seam,
 reading up to 32 code units of each leaf and, for a leaf of one character, the character beyond it
 — which is what tells a word-initial hyphen (LB20a) from one inside a word. A symbol is read as its
-character, an image as U+FFFC, and a field, footnote reference or bookmark as a letter. Two things
-are deliberately not the default algorithm, and both are load-bearing. **A Thai, Lao, Khmer or
+character, an image as U+FFFC, a field as a letter, and a footnote reference, a bookmark or an
+empty text as U+034F, a CM: never broken before, and read through by the seam after it. Three
+things are deliberately not the default algorithm, and all are load-bearing. **A Thai, Lao, Khmer or
 Myanmar letter is asked about as an ideograph** (`LineBreakTailoring.SouthEastAsianAsIdeographs`),
-because LB1 makes it AL without a dictionary and would join every seam in a Thai paragraph. And
+because LB1 makes it AL without a dictionary and would join every seam in a Thai paragraph. **A
+Hangul syllable is asked about as a letter** (`HangulAsAlphabetic`), because Korean breaks at its
+spaces and the default rules would break a word between two runs. And
 **a boundary inside one run after a hyphen-minus is not a seam** and still breaks, though UAX #14
 would join "44-1": breaking *inside* a run — at blanks, hyphens and zero-width spaces, never
 between ideographs — is untouched, and moving it is the follow-up, because it moves where existing

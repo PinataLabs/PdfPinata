@@ -2273,21 +2273,44 @@ internal class ParagraphRenderer : Renderer
     /// </para>
     /// <para>
     /// A leaf that is not text is asked about as the text it stands for. A symbol is its
-    /// character: an em dash is B2, an en dash HH, a non-breakable blank GL. A field, a footnote's
-    /// reference mark and a bookmark are a letter, and join as a word does, as they always have. A
-    /// blank, a tab, a line break, a soft hyphen and an image are not joinable at all and still
-    /// separate what is either side of them; they are read as text only as the context of a leaf
-    /// of one character.
+    /// character: an em dash is B2, an en dash HH, a non-breakable blank GL. A field is a letter,
+    /// and joins as a word does. A footnote's reference mark and a bookmark are a combining mark:
+    /// never parted from what is before them, and read through by whatever is after them, so a
+    /// mark set after "!" or an ideographic full stop does not start a line, and a bookmark
+    /// between two characters leaves the decision between them as it was. A blank, a tab, a line
+    /// break, a soft hyphen and an image are not joinable at all and still separate what is either
+    /// side of them; they are read as text only as the context of a leaf of one character.
     /// </para>
     /// <para>
-    /// One tailoring. Thai, Lao, Khmer, Myanmar and the other scripts UAX #14 gives the class SA
-    /// are written without spaces between words, and finding the words needs a dictionary. Rule
-    /// LB1 makes such a letter AL in the absence of one, which would join every seam in a Thai
-    /// paragraph; it is asked about as an ideograph instead, so a seam beside one stays a place a
-    /// line may be broken, as it was. See <see cref="LineBreakTailoring.SouthEastAsianAsIdeographs"/>.
+    /// Two tailorings, both keeping what a seam did before. Thai, Lao, Khmer, Myanmar and the
+    /// other scripts UAX #14 gives the class SA are written without spaces between words, and
+    /// finding the words needs a dictionary. Rule LB1 makes such a letter AL in the absence of
+    /// one, which would join every seam in a Thai paragraph; it is asked about as an ideograph
+    /// instead, so a seam beside one stays a place a line may be broken
+    /// (<see cref="LineBreakTailoring.SouthEastAsianAsIdeographs"/>). Korean is the other way
+    /// round: written with spaces, and broken only there inside a run, so a Hangul syllable is
+    /// asked about as a letter and a word whose syllables are in two runs is not broken between
+    /// them (<see cref="LineBreakTailoring.HangulAsAlphabetic"/>).
     /// </para>
     /// </remarks>
-    private static bool IsJoinedTo(ParagraphIterator left, ParagraphIterator right)
+    private bool IsJoinedTo(ParagraphIterator left, ParagraphIterator right)
+    {
+        // The seam a leaf is asked about as the one after it is asked about again, straight away,
+        // as the one before the next leaf; the answer depends on nothing but the document.
+        if (ReferenceEquals(left.Current, lastSeamLeft) && ReferenceEquals(right.Current, lastSeamRight))
+            return lastSeamJoined;
+
+        lastSeamJoined = DecideJoin(left, right);
+        lastSeamLeft = left.Current;
+        lastSeamRight = right.Current;
+        return lastSeamJoined;
+    }
+
+    private DocumentObject lastSeamLeft;
+    private DocumentObject lastSeamRight;
+    private bool lastSeamJoined;
+
+    private static bool DecideJoin(ParagraphIterator left, ParagraphIterator right)
     {
         if (!IsJoinable(left.Current) || !IsJoinable(right.Current) || IsWordSplitAtAHyphen(left.Current, right.Current))
             return false;
@@ -2307,7 +2330,7 @@ internal class ParagraphRenderer : Renderer
         if (IsOneCodePoint(after) && right.GetNextLeaf() is { } next)
             after = Joined(after, FirstCodePointOf(SeamTextOf(next.Current)), widenedAfter);
 
-        return !LineBreakAlgorithm.IsBreakAllowedBetween(before, after, LineBreakTailoring.SouthEastAsianAsIdeographs);
+        return !LineBreakAlgorithm.IsBreakAllowedBetween(before, after, SeamTailoring);
     }
 
     private static bool IsJoinable(DocumentObject docObj) =>
@@ -2341,7 +2364,12 @@ internal class ParagraphRenderer : Renderer
         // U+FFFC OBJECT REPLACEMENT CHARACTER, which is CB: a line may be broken either side.
         Image => "\uFFFC",
 
-        // A field, a footnote's reference mark, a bookmark and an empty text: a letter.
+        // A footnote's reference mark, a bookmark and an empty text belong to what is before them
+        // and take nothing from what is after: U+034F COMBINING GRAPHEME JOINER, a CM, which
+        // LB9 never breaks before and reads through to the character it follows.
+        Footnote or BookmarkField or Text => CombiningGraphemeJoiner,
+
+        // A field is a word: a letter.
         _ => "a"
     };
 
@@ -2360,6 +2388,13 @@ internal class ParagraphRenderer : Renderer
     /// is one leaf, is not read whole at every seam.
     /// </summary>
     private const int SeamWindow = 32;
+
+    /// <summary>How a seam departs from UAX #14's defaults; see <see cref="IsJoinedTo"/>.</summary>
+    private const LineBreakTailoring SeamTailoring =
+        LineBreakTailoring.SouthEastAsianAsIdeographs | LineBreakTailoring.HangulAsAlphabetic;
+
+    /// <summary>U+034F COMBINING GRAPHEME JOINER, class CM, standing for a leaf that takes no room.</summary>
+    private const string CombiningGraphemeJoiner = "\u034F";
 
     /// <summary>The last <see cref="SeamWindow"/> code units of a text, not splitting a surrogate pair.</summary>
     private static ReadOnlySpan<char> Tail(ReadOnlySpan<char> text)

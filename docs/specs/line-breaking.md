@@ -119,18 +119,27 @@ names for it, so "should be × by LB28 ([28.0]), and is ÷" says where to look.
    tailorings below);
 3. reads up to 32 code units either side of the seam, and for a leaf of one character, the
    character beyond it in the next leaf out;
-4. asks `IsBreakAllowedBetween` with the `SouthEastAsianAsIdeographs` tailoring, and joins when the
-   answer is no.
+4. asks `IsBreakAllowedBetween` with the `SouthEastAsianAsIdeographs` and `HangulAsAlphabetic`
+   tailorings, and joins when the answer is no.
 
 `EndsInOpeningMark`, `BeginsWithClosingMark`, `ClosingStops`, `BeginsWithNoBreak`,
 `EndsInBreakOpportunity` and `IsWrittenWithoutSpaces` are gone.
 
 **A leaf that is not text is read as the text it stands for.** A symbol is its character, the same
 one `GetSymbol` draws: an em dash is B2, an en dash HH, a non-breakable blank GL, a trademark sign
-AL. An image is U+FFFC, which is CB. A field, a footnote's reference mark, a bookmark and an empty
-text are read as a letter, so they join as a word does, which is what they did before. None of
-these has an obvious UAX #14 class of its own. A bookmark would ideally be transparent, read through
-to the leaves either side, but that would mean walking past it and was left as it was.
+AL. An image is U+FFFC, which is CB. A field is read as a letter, and joins as a word does, which
+is what it did before; its value is not known until it is evaluated, and a letter is the class most
+values have.
+
+**A footnote's reference mark, a bookmark and an empty text are a combining mark**, U+034F COMBINING
+GRAPHEME JOINER. That has the right behaviour on both sides for something that takes no room or
+belongs to what precedes it: LB9 never breaks before a CM, and through the one-character widening
+the seam after it is read as though it followed the character before it. So a reference mark set
+after "!", "?" or an ideographic full stop is not left to start a line, and a bookmark between an
+ideograph and an iteration mark leaves the two joined. Read as a letter, both did the wrong thing:
+a break is allowed between "!" and a letter, and between an ideograph and a letter. The one thing
+it moves is where a bookmark sits when a line is broken just before it - after a hyphen, say - which
+is now at the end of the line rather than the start of the next.
 
 **Why the character beyond a one-character leaf.** A seam between a lone en dash symbol and the
 word after it is a break in "bbbb–cccc" and is not in "–cccc" at the start of a word (LB20a). Read
@@ -141,7 +150,13 @@ walk of the tree that fetching a neighbour costs.
 **Why 32 code units.** Every rule that reaches further than a character or two does so over a
 number, a row of spaces or a row of regional indicators, and a leaf has no spaces in it. The bound
 is there so that a long run of CJK text, which is one leaf, is not resolved whole at every seam.
-What is outside the window counts as the start or the end of the text.
+What is outside the window counts as the start or the end of the text, which for a leaf longer
+than the window can change the answer of a rule that counts - the parity of a run of more than 16
+regional indicators (LB30a) - and nothing else a real document contains.
+
+**A seam is asked about once.** The seam a leaf is asked about as the one after it is asked again,
+straight away, as the one before the next leaf, so `IsJoinedTo` keeps the last answer and the pair
+of leaves it was for.
 
 ### The tailorings
 
@@ -151,6 +166,13 @@ A seam beside such a letter used to be breakable, and still is: the seam asks wi
 `LineBreakTailoring.SouthEastAsianAsIdeographs`, which resolves the letter to ID. A mark of the class
 still resolves to CM and stays with its letter, and the ID still refuses a break before a closing
 mark (LB13). The tailoring is public and off by default; the conformance suite runs without it.
+
+**Hangul syllables are letters.** The default rules treat a Hangul syllable as an ideograph and allow
+a break after any of them (LB31), so a Korean word whose syllables were in two runs could be broken
+between them, though inside a run Korean is broken only at its spaces and the seam used to join.
+The seam asks with `LineBreakTailoring.HangulAsAlphabetic` as well, which resolves JL, JV, JT, H2
+and H3 to AL: the tailoring UAX #14's section 8 describes for Korean set with breaks at spaces.
+Hanja, which are ID, are not changed.
 
 **A hyphen-minus inside one run still breaks.** `PdfFlattenVisitor` splits a run of text into
 leaves at blanks, after a hyphen-minus or a zero-width space, and at a soft hyphen, and the leaves
@@ -175,9 +197,8 @@ Beyond what #283 did, a seam between two runs of formatting now:
   (LB23a);
 - **may break** after `/` (SY), `!` or `?` (EX), `}` or a CJK closing mark (CL) or an ellipsis (IN)
   before a letter, where it used to join (LB31);
-- **may break** before an em dash (B2 allows a break either side) and between two Hangul syllables
-  (LB31; Korean set with breaks only at spaces is a tailoring UAX #14 describes and this does not
-  apply).
+- **may break** before an em dash (B2 allows a break either side);
+- **keeps** a footnote's reference mark with whatever it follows, and reads a bookmark through.
 
 No golden image moved.
 
