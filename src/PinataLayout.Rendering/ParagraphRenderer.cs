@@ -743,11 +743,25 @@ internal class ParagraphRenderer : Renderer
         return null;
     }
 
+    /// <summary>
+    /// The interval between default tab stops when the document does not give a usable one.
+    /// </summary>
+    private static readonly XUnit FallbackDefaultTabStop = XUnit.FromCentimeter(1.25);
+
     private TabStop DefaultTabStopAfter(XUnit lastPosition)
     {
-        XUnit defaultTabStop = "1.25cm";
-        if (!paragraph.Document.IsNull(nameof(paragraph.Document.DefaultTabStop)))
-            defaultTabStop = paragraph.Document.DefaultTabStop.Point;
+        // The loop below steps along the line one interval at a time, so an interval that is not
+        // positive never reaches the end of it, and one far below a point takes so many steps
+        // that it might as well not. An interval finer than Tolerance - which is how close a stop
+        // may be to the pen and still count as behind it - or one that is not finite, is treated
+        // as no value at all, as ImageRenderer.IsUsableSize treats a size it cannot draw at.
+        // ">=" rather than "<", so that a NaN falls back too.
+        XUnit defaultTabStop = FallbackDefaultTabStop;
+        var interval = paragraph.Document.IsNull(nameof(paragraph.Document.DefaultTabStop))
+            ? double.NaN
+            : paragraph.Document.DefaultTabStop.Point;
+        if (interval >= Tolerance && !double.IsInfinity(interval))
+            defaultTabStop = interval;
 
         var currTabPos = defaultTabStop;
         while (currTabPos <= formattingArea.Width - RightIndent + Tolerance)
