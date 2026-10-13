@@ -73,7 +73,9 @@ internal static class ScriptItemizer
 
         for (var idx = start; idx < end;)
         {
-            var here = UnicodeProperties.ScriptOf(CodePointAt(text, idx, end, out var width));
+            // Read inside the window, so one ending between the halves of a surrogate pair does
+            // not reach past its own end.
+            var here = UnicodeProperties.ScriptOf(CodePoints.At(text.AsSpan(0, end), idx, out var width));
 
             // Inherited and Common are carried by whatever they are next to. If the run has no
             // script yet, such a character does not give it one either - it waits for the first
@@ -108,21 +110,6 @@ internal static class ScriptItemizer
             throw new ArgumentOutOfRangeException(nameof(start));
         if (length < 0 || length > text.Length - start)
             throw new ArgumentOutOfRangeException(nameof(length));
-    }
-
-    /// <summary>
-    /// The code point at <paramref name="idx"/>, and in <paramref name="width"/> how many chars it
-    /// takes: two for a surrogate pair, one for anything else.
-    /// </summary>
-    private static int CodePointAt(string text, int idx, int end, out int width)
-    {
-        // The pair is looked for inside the window, so a window ending between the halves of a
-        // surrogate pair reads what is left of it as itself rather than reaching past its own
-        // end. char.ConvertToUtf32 throws on a lone surrogate, which is not an answer a layout
-        // path can use.
-        var isPair = char.IsHighSurrogate(text[idx]) && idx + 1 < end && char.IsLowSurrogate(text[idx + 1]);
-        width = isPair ? 2 : 1;
-        return isPair ? char.ConvertToUtf32(text[idx], text[idx + 1]) : text[idx];
     }
 }
 

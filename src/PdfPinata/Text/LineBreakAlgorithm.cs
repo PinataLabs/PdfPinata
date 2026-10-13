@@ -205,27 +205,16 @@ public static class LineBreakAlgorithm
     {
         for (var idx = 0; idx < text.Length; count++)
         {
-            int codePoint;
-            var start = idx;
-            if (char.IsHighSurrogate(text[idx]) && idx + 1 < text.Length && char.IsLowSurrogate(text[idx + 1]))
-            {
-                codePoint = char.ConvertToUtf32(text[idx], text[idx + 1]);
-                idx += 2;
-            }
-            else
-            {
-                codePoint = text[idx];
-                idx++;
-            }
-
+            var codePoint = CodePoints.At(text, idx, out var width);
             var flags = UnicodeProperties.LineBreakFlagsOf(codePoint);
             units[count] = new Unit
             {
                 Original = ResolvedClass(UnicodeProperties.LineBreakClassOf(codePoint), flags, tailoring),
                 Flags = flags,
                 CodePoint = codePoint,
-                Index = offset + start
+                Index = offset + idx
             };
+            idx += width;
         }
 
         return count;
