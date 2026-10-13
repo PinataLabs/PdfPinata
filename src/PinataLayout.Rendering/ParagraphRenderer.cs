@@ -648,8 +648,11 @@ internal class ParagraphRenderer : Renderer
         var wordAppeared = false;
         while (currentLeaf != null && !IsLineBreak(currentLeaf.Current) && !IsTab(currentLeaf.Current))
         {
+            // A blank straight after the tab, and a bookmark, are ignored rather than measured.
+            // Neither is the end of what fits, and stopping at one before any word was reached
+            // read as the tab breaking the line.
             var result = FormatElement(currentLeaf.Current);
-            if (result != FormatResult.Continue)
+            if (result != FormatResult.Continue && result != FormatResult.Ignore)
                 break;
 
             wordAppeared = wordAppeared || IsWordLikeElement(currentLeaf.Current);
