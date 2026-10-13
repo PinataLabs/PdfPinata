@@ -19,6 +19,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **A `Document.DefaultTabStop` of zero, a negative value, NaN or infinity no longer hangs rendering or breaks the line.** The next default stop is found by adding the interval to a position until it passes the pen. Zero never moved, a negative value moved backwards, and a value far below a point took billions of steps, so rendering any paragraph with a tab never finished. Infinity found no stop, and the tab broke the line instead. An interval below 0.001pt, or one that is not a finite number, is now treated as unset, and the default of 1.25cm is used. (#286)
 - **The border between two table cells is drawn once, not once for each cell.** Every cell stroked all four of its edges, so each rule inside a table was drawn twice in the same place. A viewer blends the part-covered pixels along a stroke, and blending them twice made every inner rule darker than the rules round the table's outside. Now, when a cell drawn later has an identical stroke on the same edge, the earlier cell leaves its edge out. The later cell keeps it, because its shading is painted after the earlier cell's borders and would cover half of the earlier stroke. Where the two strokes differ in width, colour or style, both are still drawn. An edge shared only in part, such as under a merged cell, is still drawn twice where the two overlap. Reported against PDFsharp by @gaspardpetit (empira/PDFsharp#408). (#287)
 
+### Signatures & Metadata
+
+#### Security
+
+- **`PdfPinata.Signing` now depends on System.Security.Cryptography.Pkcs 10.0.13 rather than 10.0.12.** Every 10.0.x release up to 10.0.12 is covered by two .NET denial-of-service advisories published on 2026-10-13: [GHSA-846f-f764-76mx](https://github.com/advisories/GHSA-846f-f764-76mx) (CVE-2026-84008, high) and [GHSA-2fmv-rv2c-59x7](https://github.com/advisories/GHSA-2fmv-rv2c-59x7) (CVE-2026-70162, medium). (#293)
+
 ## [0.4.2] - 2026-10-12
 
 ### PinataLayout & DDL
