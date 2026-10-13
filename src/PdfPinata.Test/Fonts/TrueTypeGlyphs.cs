@@ -45,6 +45,34 @@ internal sealed class TrueTypeGlyphs
     public int NumGlyphs { get; }
 
     /// <summary>
+    ///   The table directory as the file states it, in the order it lists the tables.
+    /// </summary>
+    public IReadOnlyList<(string Tag, uint Checksum, int Offset, int Length)> TableRecords
+    {
+        get
+        {
+            var records = new List<(string, uint, int, int)>();
+            var numTables = U16(4);
+            for (var idx = 0; idx < numTables; idx++)
+            {
+                var record = 12 + idx * 16;
+                records.Add((Ascii(record, 4), U32(record + 4), (int)U32(record + 8), (int)U32(record + 12)));
+            }
+
+            return records;
+        }
+    }
+
+    /// <summary>The length of the whole font program, in bytes.</summary>
+    public int FileLength => _bytes.Length;
+
+    /// <summary>
+    ///   The checksum the table at <paramref name="offset"/> of <paramref name="length"/> bytes
+    ///   ought to carry in the directory.
+    /// </summary>
+    public uint ChecksumOf(int offset, int length) => TableChecksum(_bytes, offset, length);
+
+    /// <summary>
     ///   The bytes the glyph occupies. A glyph with no outline of its own occupies none, which
     ///   is also how a subset says it left the glyph out.
     /// </summary>

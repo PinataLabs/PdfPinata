@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fonts & Text
+
+#### Fixed
+
+- **A font subset whose glyphs are all blank is written with a `glyf` table Windows will load.** A subset that keeps only glyphs with no outline has no glyph data, and its `glyf` table was written with a length of zero, at the same offset as the `head` table after it. Liberation Sans Italic and Bold Italic draw `.notdef` as a blank, so italic text made only of spaces, or only of characters the face has no glyph for with no `FontFallback` set, was enough. On a Debug build this failed an assertion and ended the process. On a Release build the PDF rendered, but the font program was one that Windows refuses to load, that FreeType reads as having no `glyf` table, and that the OpenType Sanitizer in Chrome and Firefox rejects. The table now holds one zero byte that no `loca` entry reaches, as fontTools writes it, so every glyph is still blank. (#291)
+
 ### PinataLayout & DDL
 
 #### Fixed

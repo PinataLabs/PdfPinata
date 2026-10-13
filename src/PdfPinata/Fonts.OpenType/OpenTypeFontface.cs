@@ -396,7 +396,7 @@ internal sealed class OpenTypeFontface
         var size = 0;
         for (var idx = 0; idx < glyphCount; idx++)
             size += glyf.GetGlyphSize(glyphArray[idx]);
-        glyfNew.DirectoryEntry.Length = size;
+        glyfNew.DirectoryEntry.Length = Math.Max(size, GlyphDataTable.MinimumLength);
 
         // Create new loca table
         int numGlyphs = maxp.numGlyphs;
