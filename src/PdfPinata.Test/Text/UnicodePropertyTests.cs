@@ -6,8 +6,8 @@ using TUnit.Core;
 namespace PdfPinata.Test.Text;
 
 /// <summary>
-///   The character property tables the bidirectional algorithm and script itemisation are built
-///   on. Generated from the Unicode Character Database by <c>tools/UnicodeTableGenerator</c>; these
+///   The character property tables the bidirectional algorithm, script itemisation and the line
+///   breaking algorithm are built on. Generated from the Unicode Character Database by <c>tools/UnicodeTableGenerator</c>; these
 ///   are the tests that say the generation was right.
 /// </summary>
 public class UnicodePropertyTests
@@ -15,9 +15,9 @@ public class UnicodePropertyTests
     [Test]
     public void TheTablesSayWhichUnicodeTheyCameFrom()
     {
-        // Pinned rather than merely reported: the conformance suites in Assets/Unicode are from
-        // the same version, and a table bumped without them would test one Unicode against
-        // another's expectations.
+        // Pinned rather than merely reported: the conformance suites in Assets/Unicode - the two
+        // bidi suites and LineBreakTest.txt - are from the same version, and a table bumped without
+        // them would test one Unicode against another's expectations.
         UnicodeProperties.UnicodeVersion.Should().Be("17.0.0");
     }
 
@@ -92,12 +92,59 @@ public class UnicodePropertyTests
         UnicodeProperties.ScriptCode(script).Should().Be(code);
     }
 
+    // ----- Line_Break ----------------------------------------------------------------------------
+
+    [Test]
+    [Arguments(0x0041, LineBreakClass.AL, "Latin capital A")]
+    [Arguments(0x0030, LineBreakClass.NU, "digit zero")]
+    [Arguments(0x0020, LineBreakClass.SP, "space")]
+    [Arguments(0x00A0, LineBreakClass.GL, "no-break space")]
+    [Arguments(0x002D, LineBreakClass.HY, "hyphen-minus")]
+    [Arguments(0x2013, LineBreakClass.HH, "en dash, an unambiguous hyphen")]
+    [Arguments(0x2010, LineBreakClass.HH, "hyphen")]
+    [Arguments(0x00AD, LineBreakClass.BA, "soft hyphen")]
+    [Arguments(0x2014, LineBreakClass.B2, "em dash")]
+    [Arguments(0x200B, LineBreakClass.ZW, "zero width space")]
+    [Arguments(0x0301, LineBreakClass.CM, "combining acute accent")]
+    [Arguments(0x4E00, LineBreakClass.ID, "the first CJK ideograph")]
+    [Arguments(0x3002, LineBreakClass.CL, "ideographic full stop")]
+    [Arguments(0x300C, LineBreakClass.OP, "left corner bracket")]
+    [Arguments(0x3005, LineBreakClass.NS, "ideographic iteration mark")]
+    [Arguments(0x3041, LineBreakClass.CJ, "hiragana small a")]
+    [Arguments(0x30FC, LineBreakClass.CJ, "katakana-hiragana prolonged sound mark")]
+    [Arguments(0x0E01, LineBreakClass.SA, "Thai ko kai")]
+    [Arguments(0x05D0, LineBreakClass.HL, "Hebrew alef")]
+    [Arguments(0x1F1E6, LineBreakClass.RI, "regional indicator A")]
+    [Arguments(0x1F3FB, LineBreakClass.EM, "an emoji modifier")]
+    [Arguments(0xAC00, LineBreakClass.H2, "the first Hangul syllable")]
+    public void ACharacterHasTheLineBreakClassTheDatabaseGivesIt(int codePoint, LineBreakClass expected, string what)
+    {
+        UnicodeProperties.LineBreakClassOf(codePoint).Should().Be(expected, what);
+    }
+
+    [Test]
+    [Arguments(0x0378, LineBreakClass.XX, "unassigned in the Greek block")]
+    [Arguments(0x20CF, LineBreakClass.PR, "unassigned in the currency symbols block")]
+    [Arguments(0x2FFFD, LineBreakClass.ID, "unassigned in plane 2")]
+    [Arguments(0x3FFFD, LineBreakClass.ID, "unassigned in plane 3")]
+    [Arguments(0x1FFFD, LineBreakClass.ID, "unassigned in the emoji ranges of plane 1")]
+    [Arguments(0xE000, LineBreakClass.XX, "private use")]
+    [Arguments(0xD800, LineBreakClass.SG, "a surrogate on its own")]
+    public void AnUnassignedCodePointHasTheLineBreakClassItsRangeDefaultsTo(
+        int codePoint, LineBreakClass expected, string what)
+    {
+        // Not all XX: an unassigned code point among the ideographs is ID and one among the
+        // currency symbols PR, so that a character assigned there later breaks as its neighbours
+        // do. The generator materialises the defaults rather than leaving them to run time.
+        UnicodeProperties.LineBreakClassOf(codePoint).Should().Be(expected, what);
+    }
+
     // ----- the shape of the tables ----------------------------------------------------------------
 
     [Test]
-    public void EveryCodePointHasBothProperties()
+    public void EveryCodePointHasEveryProperty()
     {
-        // The tables are a complete partition of the code space, so there is no code point either
+        // The tables are a complete partition of the code space, so there is no code point any
         // lookup can fail to answer for - and a binary search that walked off the end would be
         // found here rather than in the middle of laying out a page. What each answers has to be
         // one of the values its type names, too, or a table has a hole where a class should be.
@@ -107,6 +154,8 @@ public class UnicodePropertyTests
             if (!Enum.IsDefined(UnicodeProperties.BidiClassOf(codePoint)))
                 undefined++;
             if (!Enum.IsDefined(UnicodeProperties.ScriptOf(codePoint)))
+                undefined++;
+            if (!Enum.IsDefined(UnicodeProperties.LineBreakClassOf(codePoint)))
                 undefined++;
         }
 
@@ -120,8 +169,10 @@ public class UnicodePropertyTests
     {
         var bidi = () => UnicodeProperties.BidiClassOf(notACodePoint);
         var script = () => UnicodeProperties.ScriptOf(notACodePoint);
+        var lineBreak = () => UnicodeProperties.LineBreakClassOf(notACodePoint);
 
         bidi.Should().Throw<ArgumentOutOfRangeException>();
         script.Should().Throw<ArgumentOutOfRangeException>();
+        lineBreak.Should().Throw<ArgumentOutOfRangeException>();
     }
 }
