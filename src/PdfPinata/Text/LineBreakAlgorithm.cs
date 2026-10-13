@@ -35,15 +35,13 @@ public static class LineBreakAlgorithm
     /// <see cref="LineBreakOpportunity.Mandatory"/> (LB3) unless the text is empty.
     /// </summary>
     public static LineBreakOpportunity[] BreakOpportunities(
-        string text, LineBreakTailoring tailoring = LineBreakTailoring.None)
+        ReadOnlySpan<char> text, LineBreakTailoring tailoring = LineBreakTailoring.None)
     {
-        ArgumentNullException.ThrowIfNull(text);
-
         var result = new LineBreakOpportunity[text.Length + 1];
         var rented = ArrayPool<Unit>.Shared.Rent(Math.Max(text.Length, 1));
         try
         {
-            var units = rented.AsSpan(0, Resolve(text.AsSpan(), ReadOnlySpan<char>.Empty, tailoring, rented, out _));
+            var units = rented.AsSpan(0, Resolve(text, ReadOnlySpan<char>.Empty, tailoring, rented, out _));
             for (var k = 0; k <= units.Length; k++)
                 result[k < units.Length ? units[k].Index : text.Length] = Decide(units, k);
         }
@@ -154,6 +152,14 @@ public static class LineBreakAlgorithm
         /// </summary>
         public bool Absorbed;
 
+        /// <summary>
+        /// How long the row of regional indicators is that ends here, this one included and what
+        /// LB9 absorbed not counted; 0 for anything that is not one. Unused where
+        /// <see cref="Absorbed"/>. Counted once as the text is resolved, so that LB30a does not
+        /// count a row again at every position in it.
+        /// </summary>
+        public int RegionalIndicators;
+
         public int CodePoint;
 
         /// <summary>The UTF-16 index of its first code unit in the text it came from.</summary>
@@ -172,6 +178,7 @@ public static class LineBreakAlgorithm
         firstCount = Append(first, 0, tailoring, units, 0);
         var count = Append(second, first.Length, tailoring, units, firstCount);
 
+        var row = 0;
         for (var k = 0; k < count; k++)
         {
             ref var unit = ref units[k];
@@ -195,6 +202,9 @@ public static class LineBreakAlgorithm
             {
                 unit.Class = unit.Original;
             }
+
+            row = unit.Class == RI ? row + 1 : 0;
+            unit.RegionalIndicators = row;
         }
 
         return count;
@@ -498,15 +508,8 @@ public static class LineBreakAlgorithm
             return LineBreakOpportunity.None;
 
         // LB30a: sot (RI RI)* RI × RI, [^RI] (RI RI)* RI × RI
-        if (left == RI && right == RI)
-        {
-            var preceding = 0;
-            for (var j = a; j >= 0 && units[j].Class == RI; j = Previous(units, j))
-                preceding++;
-
-            if (preceding % 2 == 1)
-                return LineBreakOpportunity.None;
-        }
+        if (left == RI && right == RI && units[a].RegionalIndicators % 2 == 1)
+            return LineBreakOpportunity.None;
 
         // LB30b: EB × EM, [\p{Extended_Pictographic}&\p{Cn}] × EM
         if (right == EM && (left == EB || (units[a].Flags & LineBreakFlags.UnassignedPictographic) != 0))

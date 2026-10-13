@@ -52,6 +52,41 @@ public class LineBreakAlgorithmTests
     }
 
     [Test]
+    [Arguments(0x20000, "")]       // an ideograph from plane 2
+    [Arguments(0x1F600, "x")]      // an emoji, then a letter
+    [Arguments(0x1F600, "\u200B")] // an emoji, then a zero-width space
+    [Arguments(0x1F1E6, "")]       // a regional indicator
+    public void TwoPiecesMeetingBetweenTheHalvesOfASurrogatePairAreNotBrokenBetween(int codePoint, string rest)
+    {
+        // Asked of the two halves apart, each is a lone surrogate, which is SG and which LB1 makes
+        // AL; and LB28 never breaks between two ALs. So no guard is needed for this entry point to
+        // keep the promise BreakBefore keeps by checking first.
+        var pair = char.ConvertFromUtf32(codePoint);
+
+        LineBreakAlgorithm.IsBreakAllowedBetween(pair.AsSpan(0, 1), (pair[1] + rest).AsSpan()).Should().BeFalse();
+        LineBreakAlgorithm.IsBreakAllowedBetween(("\u200B" + pair[0]).AsSpan(), pair.AsSpan(1)).Should().BeFalse();
+        LineBreakAlgorithm.IsBreakAllowedBetween((" " + pair[0]).AsSpan(), pair.AsSpan(1)).Should().BeFalse();
+    }
+
+    [Test]
+    public void ALongRowOfRegionalIndicatorsPairsFromItsStart()
+    {
+        // LB30a counts the indicators back to the start of their row; a long row is still paired
+        // from its start, and answered without counting the row again at every position.
+        var row = string.Concat(System.Linq.Enumerable.Repeat(char.ConvertFromUtf32(0x1F1E6), 5001));
+
+        var answer = LineBreakAlgorithm.BreakOpportunities(row);
+
+        for (var flag = 0; flag < 5001; flag++)
+        {
+            answer[flag * 2].Should().Be(
+                flag == 0 ? LineBreakOpportunity.None
+                : flag % 2 == 0 ? LineBreakOpportunity.Allowed
+                : LineBreakOpportunity.None);
+        }
+    }
+
+    [Test]
     [Arguments(-1)]
     [Arguments(4)]
     public void APositionOutsideTheTextIsRefused(int index)
