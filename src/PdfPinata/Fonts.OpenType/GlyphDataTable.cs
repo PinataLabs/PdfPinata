@@ -48,8 +48,8 @@ internal class GlyphDataTable : OpenTypeFontTable
     internal byte[] GlyphTable;
 
     /// <summary>
-    /// The fewest bytes a subset's table is written with: a single zero byte, when every glyph it
-    /// keeps is blank and so there is no glyph data to hold.
+    /// The fewest bytes the table is written with: a single zero byte, when every glyph it keeps is
+    /// blank and so there is no glyph data to hold.
     /// </summary>
     /// <remarks>
     /// The specification sets no minimum, and an empty table with every <c>loca</c> entry equal
@@ -61,7 +61,7 @@ internal class GlyphDataTable : OpenTypeFontTable
     /// fontTools writes in this case, for the same reasons (khaledhosny/ots#52). Without it the
     /// table also begins at the same offset as <c>head</c>, the next table.
     /// </remarks>
-    internal const int MinimumLength = 1;
+    private const int MinimumLength = 1;
 
     public GlyphDataTable()
         : base(null, Tag)
@@ -189,6 +189,12 @@ internal class GlyphDataTable : OpenTypeFontTable
 
         if (DirectoryEntry.Length == 0)
             DirectoryEntry.Length = GlyphTable.Length;
+        if (DirectoryEntry.Length < MinimumLength)
+        {
+            DirectoryEntry.Length = MinimumLength;
+            if (GlyphTable.Length < DirectoryEntry.PaddedLength)
+                Array.Resize(ref GlyphTable, DirectoryEntry.PaddedLength);
+        }
         DirectoryEntry.CheckSum = CalcChecksum(GlyphTable);
     }
 

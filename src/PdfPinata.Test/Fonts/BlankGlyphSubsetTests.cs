@@ -4,6 +4,7 @@ using System.Linq;
 using AwesomeAssertions;
 using ImageMagick;
 using PdfPinata.Drawing;
+using PdfPinata.Fonts;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Test.Helpers;
@@ -23,7 +24,7 @@ namespace PdfPinata.Test.Fonts;
 /// <remarks>
 ///   Liberation Sans Italic and Bold Italic draw <c>.notdef</c> as a blank, where Regular and Bold
 ///   draw a box. So a run of italic text the face has no glyph for, with no
-///   <see cref="Fonts.GlobalFontSettings.FontFallback"/> to find another face, keeps only glyph 0 -
+///   <see cref="GlobalFontSettings.FontFallback"/> to find another face, keeps only glyph 0 -
 ///   and so does a run of nothing but spaces, which needs no missing glyph at all. Both are here.
 ///   <para>
 ///     <see cref="TextShaperSensitiveAttribute"/> because the fallback seam has to stay unset while
@@ -108,6 +109,10 @@ public class BlankGlyphSubsetTests
     /// </summary>
     internal static PdfDocument Drawn(string text)
     {
+        // With a fallback, the missing character would be drawn from another face and the italic
+        // subset would no longer be what these tests are about.
+        GlobalFontSettings.FontFallback.Should().BeNull("these tests need the italic face's own .notdef");
+
         var document = new PdfDocument();
         using (var gfx = XGraphics.FromPdfPage(document.AddPage()))
         {
@@ -140,6 +145,12 @@ public class BlankGlyphSubsetTests
 ///   regular word is and none where the blank glyph is. A reader that refused the embedded italic
 ///   program would substitute a face of its own, whose <c>.notdef</c> is seldom blank.
 /// </summary>
+/// <remarks>
+///   This does not pin the fault: Ghostscript drew the zero-length table too, as PDFium and MuPDF
+///   do. The tests above pin it. This one says that the table written instead still draws.
+///   <see cref="RasterizingAttribute"/> carries no key, so this test runs alone, and the fallback
+///   seam <see cref="BlankGlyphSubsetTests"/> needs unset cannot be set beside it.
+/// </remarks>
 [Rasterizing]
 public sealed class BlankGlyphSubsetRenderingTests : IDisposable
 {

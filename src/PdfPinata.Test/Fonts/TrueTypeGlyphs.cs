@@ -271,6 +271,30 @@ internal sealed class TrueTypeGlyphs
     }
 
     /// <summary>
+    ///   A copy whose directory says the table <paramref name="tag"/> has no bytes, as some fonts
+    ///   with their hinting stripped do. Its old data stays where it was, reached by nothing, and
+    ///   its checksum is that of no bytes, which is zero.
+    /// </summary>
+    public byte[] WithTableEmptied(string tag)
+    {
+        var patched = (byte[])_bytes.Clone();
+        var numTables = U16(4);
+        for (var idx = 0; idx < numTables; idx++)
+        {
+            var record = 12 + idx * 16;
+            if (Ascii(record, 4) != tag)
+                continue;
+
+            // The checksum is bytes 4 to 7 of the record and the length bytes 12 to 15.
+            Array.Clear(patched, record + 4, 4);
+            Array.Clear(patched, record + 12, 4);
+            return patched;
+        }
+
+        throw new InvalidOperationException("the font has no '" + tag + "' table");
+    }
+
+    /// <summary>
     ///   The OpenType checksum of a table: its big-endian 32-bit words summed, the last one padded
     ///   with zeros.
     /// </summary>
