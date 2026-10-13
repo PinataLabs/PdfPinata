@@ -3,6 +3,7 @@ using System.Linq;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.Rendering.Tests.Helpers;
+using PdfPinata.Drawing;
 using PdfPinata.Test.Helpers;
 using TUnit.Core;
 
@@ -22,9 +23,10 @@ namespace PinataLayout.Rendering.Tests;
 ///     whole when it does not fit.
 ///   </para>
 ///   <para>
-///     Every paragraph here is sixty points wide, which holds "aaaa bbbb" but not "aaaa bbbbcccc",
+///     Most paragraphs here are sixty points wide, which holds "aaaa bbbb" but not "aaaa bbbbcccc",
 ///     so the question each test asks is whether "bbbb" stays on the first line or goes down with
-///     "cccc".
+///     "cccc". The word of three runs is the exception: its column is measured to hold
+///     "Reference number" and the word's first two runs but not its third.
 ///   </para>
 /// </remarks>
 public class FormattingSeamTests
@@ -177,6 +179,95 @@ public class FormattingSeamTests
 
         placed[1].Y.Should().Be(placed[0].Y, "\"bbbb\" fits on the first line and may stay there");
         placed[^1].Y.Should().BeLessThan(placed[0].Y);
+    }
+
+    /// <summary>
+    ///   "Reference number", then a word of three runs of formatting - <paramref name="first"/> in
+    ///   the paragraph's own font, <paramref name="second"/> and <paramref name="third"/> in the
+    ///   fonts given for them - and " February", in a paragraph just wide enough for the first two
+    ///   runs of the word but not the third.
+    /// </summary>
+    private static Document AWordOfThreeRuns(string first, string second, RunFont secondFont, string third, RunFont thirdFont)
+    {
+        var document = new Document();
+        document.Styles.Normal.Font.Name = "Arial";
+        document.Styles.Normal.Font.Size = 9;
+
+        using var measure = XGraphics.CreateMeasureContext(new XSize(100, 100), XGraphicsUnit.Point, XPageDirection.Downwards);
+        var normal = new XFont("Arial", 9);
+        var width = measure.MeasureString("Reference number ", normal).Width
+            + measure.MeasureString(first, normal).Width
+            + measure.MeasureString(second, secondFont.ToXFont()).Width
+            + 0.2;
+
+        var section = document.AddSection();
+        section.PageSetup.LeftMargin = Unit.FromPoint(20);
+        section.PageSetup.RightMargin = Unit.FromPoint(20);
+        section.PageSetup.PageWidth = Unit.FromPoint(width + 40);
+
+        var paragraph = section.AddParagraph();
+        paragraph.AddText("Reference number ");
+        paragraph.AddFormattedText(first);
+        secondFont.Dress(paragraph.AddFormattedText(second));
+        thirdFont.Dress(paragraph.AddFormattedText(third));
+        paragraph.AddText(" February");
+        return document;
+    }
+
+    private sealed record RunFont(string Family, double Size, XFontStyle Style = XFontStyle.Regular)
+    {
+        internal XFont ToXFont() => new(Family, Size, Style);
+
+        internal void Dress(FormattedText text)
+        {
+            text.Font.Name = Family;
+            text.Font.Size = Size;
+            text.Font.Bold = (Style & XFontStyle.Bold) != 0;
+            text.Font.Italic = (Style & XFontStyle.Italic) != 0;
+        }
+    }
+
+    [Test]
+    [Arguments("1", "5", "0")]
+    [Arguments("A", "b", "c")]
+    public void AWordOfThreeRunsInThreeStylesGoesDownWhole(string first, string second, string third)
+    {
+        // empira/PDFsharp#407: a regular "1", a bold "5" and an italic "0" left "15" at the end of
+        // one line and "0" alone at the start of the next.
+        var placed = BodyRunsOf(AWordOfThreeRuns(
+            first, second, new RunFont("Arial", 9, XFontStyle.Bold), third, new RunFont("Arial", 9, XFontStyle.Italic)));
+
+        placed.Should().HaveCount(6, "\"Reference\", \"number\", the word's three runs and \"February\" are drawn");
+        placed[2].Y.Should().BeLessThan(placed[1].Y, "the word goes down from the line \"number\" is on");
+        placed[3].Y.Should().Be(placed[2].Y);
+        placed[4].Y.Should().Be(placed[2].Y);
+    }
+
+    [Test]
+    public void TheFirstTwoRunsStayOnTheFirstLineWhereTheThirdStartsWithASpace()
+    {
+        // The control: with a space before the third run, a line may be broken there, and the
+        // first two runs fit after "number" and stay - so the word going down whole above is the
+        // join and not the measure.
+        var placed = BodyRunsOf(AWordOfThreeRuns(
+            "1", "5", new RunFont("Arial", 9, XFontStyle.Bold), " 0", new RunFont("Arial", 9, XFontStyle.Italic)));
+
+        placed.Should().HaveCount(6, "\"Reference\", \"number\", the three runs and \"February\" are drawn");
+        placed[2].Y.Should().Be(placed[1].Y, "\"15\" fits on the line \"number\" is on");
+        placed[3].Y.Should().Be(placed[1].Y);
+        placed[4].Y.Should().BeLessThan(placed[1].Y, "\"0\" goes down on its own");
+    }
+
+    [Test]
+    public void AWordOfThreeRunsInDifferentFamiliesAndSizesGoesDownWhole()
+    {
+        var placed = BodyRunsOf(AWordOfThreeRuns(
+            "1", "5", new RunFont(PinnedFontResolver.CffFamilyName, 9), "0", new RunFont("Arial", 14)));
+
+        placed.Should().HaveCount(6, "\"Reference\", \"number\", the word's three runs and \"February\" are drawn");
+        placed[2].Y.Should().BeLessThan(placed[1].Y, "the word goes down from the line \"number\" is on");
+        placed[3].Y.Should().Be(placed[2].Y);
+        placed[4].Y.Should().Be(placed[2].Y);
     }
 
     /// <summary>
