@@ -418,14 +418,21 @@ internal class ParagraphRenderer : Renderer
     /// <see cref="HandleNonFittingLine"/>; and a right, center or decimal aligned tab is not
     /// handled here at all, because its stop holds the text after it in place on whichever line
     /// that text lands - the page number in a table of contents, pushed onto a line of its own.
+    /// A tab that is the paragraph's last leaf answers Continue instead: there is no next line
+    /// for it to break to, and starting one anyway costs the height of a line holding nothing -
+    /// or, at the foot of an area, a continuation of the paragraph onto the next.
     /// </remarks>
     private FormatResult EndLineAtTab()
     {
-        if (phase != Phase.Rendering && currentLeaf != null && currentLeaf != startLeaf && IsTab(currentLeaf.Current))
-        {
-            tabOffsets.Add(new TabOffset(0, 0));
-            currentLeaf = currentLeaf.GetNextLeaf();
-        }
+        if (phase == Phase.Rendering || currentLeaf == null || currentLeaf == startLeaf || !IsTab(currentLeaf.Current))
+            return FormatResult.NewLine;
+
+        tabOffsets.Add(new TabOffset(0, 0));
+        var nextLeaf = currentLeaf.GetNextLeaf();
+        if (nextLeaf == null)
+            return FormatResult.Continue;
+
+        currentLeaf = nextLeaf;
         return FormatResult.NewLine;
     }
 

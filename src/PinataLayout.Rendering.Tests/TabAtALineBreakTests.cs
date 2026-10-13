@@ -136,6 +136,23 @@ public class TabAtALineBreakTests
     }
 
     /// <summary>
+    ///   A tab with no stop left that is the last thing in the paragraph ends the paragraph. It
+    ///   used to be carried onto a line of its own, and with one line to a page that line was a
+    ///   second page with nothing on it.
+    /// </summary>
+    [Test]
+    public void ATabWithNoStopLeftAtTheEndOfAParagraphStartsNoLineOfItsOwn()
+    {
+        var pages = Rendered.Of(Document(paragraph =>
+        {
+            paragraph.AddText("First long segment ends here");
+            paragraph.AddTab();
+        }, onePerPage: true)).Pages;
+
+        pages.Count.Should().Be(1);
+    }
+
+    /// <summary>
     ///   A right aligned stop at the margin with "12" after it: the number does not fit after
     ///   "First long segment ends here", so it goes onto the next line - still ending at the
     ///   stop, as a page number in a table of contents does.
