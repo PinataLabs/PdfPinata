@@ -17,10 +17,11 @@ namespace PinataLayout.Rendering.Tests;
 ///   <para>
 ///     Each leaf is measured on its own and the line is broken before whichever one does not fit,
 ///     so every boundary between two leaves used to be a place a line could break, whether or not
-///     there was a space there. Only a non-breakable blank joined two leaves. Now two leaves that
-///     are part of the same word are joined unless the first ends where a line may be broken -
-///     after a hyphen, a zero-width space or a dash - and a run of them goes down to the next line
-///     whole when it does not fit.
+///     there was a space there. Only a non-breakable blank joined two leaves. Now two leaves are
+///     joined unless the line breaking algorithm, UAX #14, allows a break where they meet - after
+///     a hyphen, a zero-width space or a dash, between two ideographs, but not before a closing
+///     mark or a nonstarter - and a run of them goes down to the next line whole when it does not
+///     fit.
 ///   </para>
 ///   <para>
 ///     Most paragraphs here are sixty points wide, which holds "aaaa bbbb" but not "aaaa bbbbcccc",
@@ -131,6 +132,30 @@ public class FormattingSeamTests
                 paragraph.AddFormattedText(Ideograph + "cccc").Font.Bold = true;
                 return document;
 
+            case "a hyphen before a digit in the same run":
+                // Not a seam at all: one run, split into leaves after its hyphen. UAX #14 would
+                // keep "-1" together (LB25), but a line has always been breakable after every
+                // hyphen-minus inside a run, and breaking inside a run is not what changed.
+                paragraph.AddText("aaaa bbbb-1cc");
+                return document;
+
+            case "a Thai letter":
+                // Thai is written without spaces between words too, and finding the words needs a
+                // dictionary. Without one a seam beside a Thai letter stays a place a line may be
+                // broken, as beside an ideograph, rather than UAX #14's default of joining.
+                paragraph.AddText("aaaa bbbb" + ThaiKoKai);
+                break;
+
+            case "a Thai letter after it":
+                paragraph.AddText("aaaa bbbb");
+                paragraph.AddFormattedText(ThaiKoKai + "cccc").Font.Bold = true;
+                return document;
+
+            case "two Thai letters":
+                paragraph.AddText("aaaa bbbb" + ThaiKoKai);
+                paragraph.AddFormattedText(ThaiKhoKhai + "cccc").Font.Bold = true;
+                return document;
+
             default:
                 throw new System.ArgumentOutOfRangeException(nameof(seam), seam, "No such seam.");
         }
@@ -140,6 +165,10 @@ public class FormattingSeamTests
 
     /// <summary>U+6F22, the ideograph for Han.</summary>
     private const char Ideograph = (char)0x6F22;
+
+    /// <summary>U+0E01 and U+0E02, the Thai letters ko kai and kho khai.</summary>
+    private const char ThaiKoKai = (char)0x0E01;
+    private const char ThaiKhoKhai = (char)0x0E02;
 
     /// <summary>
     ///   The runs of text drawn in the body of the page, leaving out the foot, where a footnote's
@@ -173,6 +202,10 @@ public class FormattingSeamTests
     [Arguments("an em dash typed as text")]
     [Arguments("an ideograph")]
     [Arguments("an ideograph after it")]
+    [Arguments("a hyphen before a digit in the same run")]
+    [Arguments("a Thai letter")]
+    [Arguments("a Thai letter after it")]
+    [Arguments("two Thai letters")]
     public void ALineIsStillBrokenWhereTheFirstRunEndsInABreakOpportunity(string seam)
     {
         var placed = BodyRunsOf(BbbbAndCcccBreakableAt(seam));
@@ -334,6 +367,50 @@ public class FormattingSeamTests
         var placed = BodyRunsOf(document);
 
         placed[1].Y.Should().BeLessThan(placed[0].Y, "the ideograph goes down with the mark after it");
+        placed[^1].Y.Should().Be(placed[1].Y);
+    }
+
+    [Test]
+    [Arguments((char)0x3005)] // ideographic iteration mark
+    [Arguments((char)0x309D)] // hiragana iteration mark
+    [Arguments((char)0x30FC)] // katakana-hiragana prolonged sound mark
+    [Arguments((char)0x3041)] // hiragana letter small a
+    [Arguments((char)0x30C3)] // katakana letter small tu
+    [Arguments((char)0x30FB)] // katakana middle dot
+    public void ANonstarterIsNotLeftToStartALineAfterAnIdeograph(char mark)
+    {
+        // UAX #14's nonstarters (NS) and the small kana (CJ, which rule LB1 makes NS): iteration
+        // marks, the prolonged sound mark, the small kana and the middle dot, none of which
+        // Japanese sets at the start of a line. Neither is a closing mark, so a seam before one
+        // used to be a place a line could be broken.
+        var paragraph = AParagraphSixtyPointsWide(out var document);
+        paragraph.AddText("aaaa ");
+        paragraph.AddFormattedText("bbbb" + Ideograph).Font.Bold = true;
+        paragraph.AddText(mark + "cccc");
+
+        var placed = BodyRunsOf(document);
+
+        placed[1].Y.Should().BeLessThan(placed[0].Y, "the ideograph goes down with the mark after it");
+        placed[^1].Y.Should().Be(placed[1].Y);
+    }
+
+    [Test]
+    [Arguments("\u2014", ")")]      // em dash, right parenthesis
+    [Arguments("\u2013", "\u300D")] // en dash, right corner bracket
+    [Arguments("-", ")")]           // hyphen-minus, right parenthesis
+    [Arguments("-", "\u3002")]      // hyphen-minus, ideographic full stop
+    public void ADashIsNotBrokenFromTheClosingMarkAfterIt(string dash, string mark)
+    {
+        // A line may be broken after a hyphen or a dash, but not where what follows it closes
+        // what went before: UAX #14's LB13 forbids a break before a closing mark whatever precedes
+        // it, and a line starting with ")" is worse than one a dash ends early.
+        var paragraph = AParagraphSixtyPointsWide(out var document);
+        paragraph.AddText("aaaa bbbb" + dash);
+        paragraph.AddFormattedText(mark + "cccc").Font.Bold = true;
+
+        var placed = BodyRunsOf(document);
+
+        placed[1].Y.Should().BeLessThan(placed[0].Y, "the dash goes down with the mark after it");
         placed[^1].Y.Should().Be(placed[1].Y);
     }
 

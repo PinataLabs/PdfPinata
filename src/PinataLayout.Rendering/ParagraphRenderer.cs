@@ -31,7 +31,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Text;
 using PinataLayout.DocumentObjectModel;
 using PdfPinata.Pdf;
@@ -2249,152 +2248,174 @@ internal class ParagraphRenderer : Renderer
     }
 
     /// <summary>
-    /// Whether no line may be broken between two adjacent leaves: both are part of a word, and the
-    /// first does not end somewhere a line may be broken.
+    /// Whether no line may be broken between two adjacent leaves: both are part of the running
+    /// text, and the line breaking algorithm, UAX #14, allows no break where the one ends and the
+    /// other begins.
     /// </summary>
     /// <remarks>
     /// <para>
     /// The text is split into leaves at every blank and after every hyphen and zero-width space,
-    /// so within one run of formatting a boundary between two word-like leaves is always a break
-    /// opportunity. Where one run of formatting ends and another begins it is not: "H", a
-    /// subscript "2" and "O" are one word, and so are "bold" and an emboldened "er". Those are
-    /// joined, and so is a non-breakable blank to the words either side of it - the symbol is
-    /// word-like, and U+00A0 and the other no-break characters typed as text are never a break
-    /// opportunity, so they join without being listed.
+    /// so within one run of formatting a boundary between two leaves is nearly always a place a
+    /// line may be broken. Where one run of formatting ends and another begins it often is not:
+    /// "H", a subscript "2" and "O" are one word, and so are "bold" and an emboldened "er". Which
+    /// it is, is <see cref="LineBreakAlgorithm"/>'s to say, asked of the text either side of the
+    /// seam. So the leaves of a word join (rules LB23 and LB28); a seam after a hyphen, a dash or a
+    /// zero-width space may be broken (LB8, LB31), unless what follows closes what went before
+    /// (LB13) or is a no-break character a line may not be broken before (LB12a - an em dash
+    /// before a no-break space, as French sets dialogue); a seam between two ideographs may be
+    /// broken (LB31); and a seam before a mark Chinese and Japanese never start a line with - a
+    /// closing bracket or stop, an iteration mark, a small kana - or after one they never end a
+    /// line with is not (LB13, LB14, LB21).
     /// </para>
     /// <para>
-    /// A footnote's reference mark belongs to the word it is set against, so it joins as a word
-    /// does, and a bookmark takes no room and joins whatever it sits between. A blank, a tab, a
-    /// line break, a soft hyphen and an image are none of these and still separate what is either
-    /// side of them.
+    /// A boundary inside one run of text, where the text was split after a hyphen-minus, is not a
+    /// seam and still breaks as it always has; see <see cref="IsWordSplitAtAHyphen"/>.
     /// </para>
     /// <para>
-    /// Two exceptions keep what a seam used to allow. Chinese, Japanese and the scripts of South
-    /// East Asia are written without spaces, so a seam beside one of their letters stays a place a
-    /// line may be broken - joining there would make a paragraph with any formatting in it one
-    /// run - though not after a mark that opens what comes next or before one that closes what
-    /// went before, which those scripts never set at the end or the start of a line either. And a
-    /// seam before a no-break character follows UAX #14's
-    /// rule LB12a: joined, unless what comes before it is a hyphen or a dash a line may be broken
-    /// after, which an em dash is not - so the em dash and no-break space of French dialogue stay
-    /// together.
+    /// A leaf that is not text is asked about as the text it stands for. A symbol is its
+    /// character: an em dash is B2, an en dash HH, a non-breakable blank GL. A field, a footnote's
+    /// reference mark and a bookmark are a letter, and join as a word does, as they always have. A
+    /// blank, a tab, a line break, a soft hyphen and an image are not joinable at all and still
+    /// separate what is either side of them; they are read as text only as the context of a leaf
+    /// of one character.
+    /// </para>
+    /// <para>
+    /// One tailoring. Thai, Lao, Khmer, Myanmar and the other scripts UAX #14 gives the class SA
+    /// are written without spaces between words, and finding the words needs a dictionary. Rule
+    /// LB1 makes such a letter AL in the absence of one, which would join every seam in a Thai
+    /// paragraph; it is asked about as an ideograph instead, so a seam beside one stays a place a
+    /// line may be broken, as it was. See <see cref="LineBreakTailoring.SouthEastAsianAsIdeographs"/>.
     /// </para>
     /// </remarks>
-    private static bool IsJoinedTo(DocumentObject left, DocumentObject right)
+    private static bool IsJoinedTo(ParagraphIterator left, ParagraphIterator right)
     {
-        if (!IsJoinable(left) || !IsJoinable(right))
+        if (!IsJoinable(left.Current) || !IsJoinable(right.Current) || IsWordSplitAtAHyphen(left.Current, right.Current))
             return false;
 
-        if ((IsWrittenWithoutSpaces(LastCodePointOf(left)) || IsWrittenWithoutSpaces(FirstCodePointOf(right)))
-            && !EndsInOpeningMark(left) && !BeginsWithClosingMark(right))
-            return false;
+        scoped ReadOnlySpan<char> before = Tail(SeamTextOf(left.Current));
+        scoped ReadOnlySpan<char> after = Head(SeamTextOf(right.Current));
 
-        return BeginsWithNoBreak(right)
-            ? !EndsInBreakOpportunity(left, beforeANoBreak: true)
-            : !EndsInBreakOpportunity(left, beforeANoBreak: false);
+        // A leaf of one character is read with the character next to it in the leaf beyond:
+        // whether a line may be broken after a hyphen depends on whether the hyphen begins a word
+        // (LB20a), which is a question about what is before it. Longer leaves carry their own
+        // context, and do not pay for a walk of the tree.
+        Span<char> widenedBefore = stackalloc char[4];
+        if (IsOneCodePoint(before) && left.GetPreviousLeaf() is { } previous)
+            before = Joined(LastCodePointOf(SeamTextOf(previous.Current)), before, widenedBefore);
+
+        Span<char> widenedAfter = stackalloc char[4];
+        if (IsOneCodePoint(after) && right.GetNextLeaf() is { } next)
+            after = Joined(after, FirstCodePointOf(SeamTextOf(next.Current)), widenedAfter);
+
+        return !LineBreakAlgorithm.IsBreakAllowedBetween(before, after, LineBreakTailoring.SouthEastAsianAsIdeographs);
     }
 
     private static bool IsJoinable(DocumentObject docObj) =>
         IsWordLikeElement(docObj) || docObj is Footnote or BookmarkField;
 
     /// <summary>
-    /// Whether a line may be broken after <paramref name="docObj"/>: it ends in a hyphen, a
-    /// zero-width space - where <c>PdfFlattenVisitor</c> ends a word - or a dash, typed as text or
-    /// as the symbol. Before a no-break character only a hyphen and a dash of UAX #14's class BA
-    /// allow it: an em dash, class B2, does not.
+    /// Whether two leaves are where <c>PdfFlattenVisitor</c> split one run of text after a
+    /// hyphen-minus: two texts of the same run, the first ending in "-".
     /// </summary>
-    private static bool EndsInBreakOpportunity(DocumentObject docObj, bool beforeANoBreak)
-    {
-        var last = docObj switch
-        {
-            Character { SymbolName: SymbolName.EnDash } => EnDash,
-            Character { SymbolName: SymbolName.EmDash } => EmDash,
-            _ => LastCodePointOf(docObj)
-        };
+    /// <remarks>
+    /// That is breaking within a run, which is not a seam and which this has not moved to UAX #14:
+    /// a line may still be broken after every hyphen-minus in a run, as it always could. UAX #14
+    /// would not break "44-1" (LB25) or a word-initial "-x" (LB20a), and moving the break inside
+    /// a run to it - with the breaks at blanks and between ideographs - is a change of its own,
+    /// because it moves where existing documents break.
+    /// </remarks>
+    private static bool IsWordSplitAtAHyphen(DocumentObject left, DocumentObject right) =>
+        left is Text { Content: { Length: > 0 } content } && content[^1] == '-'
+        && right is Text
+        && DocumentRelations.GetParent(left) == DocumentRelations.GetParent(right);
 
-        return last switch
-        {
-            '-' or Hyphen or FigureDash or EnDash or Chars.ZeroWidthSpace => true,
-            EmDash => !beforeANoBreak,
-            _ => false
-        };
+    /// <summary>
+    /// The text a leaf stands for at a seam: a text leaf's own, a symbol's character, and for
+    /// anything else a character of the class it joins as.
+    /// </summary>
+    private static ReadOnlySpan<char> SeamTextOf(DocumentObject docObj) => docObj switch
+    {
+        Text { Content.Length: > 0 } text => text.Content.AsSpan(),
+        Character character => SeamTextOf(character),
+
+        // U+FFFC OBJECT REPLACEMENT CHARACTER, which is CB: a line may be broken either side.
+        Image => "\uFFFC",
+
+        // A field, a footnote's reference mark, a bookmark and an empty text: a letter.
+        _ => "a"
+    };
+
+    private static ReadOnlySpan<char> SeamTextOf(Character character) => character.SymbolName switch
+    {
+        _ when IsSpaceCharacter(character) => " ",
+        SymbolName.Tab => "\t",
+        SymbolName.LineBreak or SymbolName.ParaBreak => "\n",
+        _ => GetSymbol(character).AsSpan()
+    };
+
+    /// <summary>
+    /// How much of a leaf either side of a seam is read. Every rule that reaches further than a
+    /// character or two does so over a number, a row of spaces or a row of flags, and a leaf has
+    /// no spaces in it, so this is room enough; it is a bound so that a long run of CJK text, which
+    /// is one leaf, is not read whole at every seam.
+    /// </summary>
+    private const int SeamWindow = 32;
+
+    /// <summary>The last <see cref="SeamWindow"/> code units of a text, not splitting a surrogate pair.</summary>
+    private static ReadOnlySpan<char> Tail(ReadOnlySpan<char> text)
+    {
+        if (text.Length <= SeamWindow)
+            return text;
+
+        var start = text.Length - SeamWindow;
+        if (char.IsLowSurrogate(text[start]) && char.IsHighSurrogate(text[start - 1]))
+            start--;
+        return text[start..];
+    }
+
+    /// <summary>The first <see cref="SeamWindow"/> code units of a text, not splitting a surrogate pair.</summary>
+    private static ReadOnlySpan<char> Head(ReadOnlySpan<char> text)
+    {
+        if (text.Length <= SeamWindow)
+            return text;
+
+        var end = SeamWindow;
+        if (char.IsHighSurrogate(text[end - 1]) && char.IsLowSurrogate(text[end]))
+            end++;
+        return text[..end];
+    }
+
+    private static bool IsOneCodePoint(ReadOnlySpan<char> text) =>
+        text.Length == 1 || (text.Length == 2 && char.IsSurrogatePair(text[0], text[1]));
+
+    /// <summary>The last code point of a text, as the one or two code units that spell it.</summary>
+    private static ReadOnlySpan<char> LastCodePointOf(ReadOnlySpan<char> text)
+    {
+        if (text.Length == 0)
+            return text;
+
+        return text.Length > 1 && char.IsSurrogatePair(text[^2], text[^1]) ? text[^2..] : text[^1..];
+    }
+
+    /// <summary>The first code point of a text, as the one or two code units that spell it.</summary>
+    private static ReadOnlySpan<char> FirstCodePointOf(ReadOnlySpan<char> text)
+    {
+        if (text.Length == 0)
+            return text;
+
+        return text.Length > 1 && char.IsSurrogatePair(text[0], text[1]) ? text[..2] : text[..1];
     }
 
     /// <summary>
-    /// Whether <paramref name="docObj"/> begins with a character UAX #14 forbids a break before:
-    /// the non-breakable blank, or the no-break space, narrow no-break space, figure space or
-    /// non-breaking hyphen typed as text.
+    /// <paramref name="first"/> followed by <paramref name="second"/>, in <paramref name="buffer"/>,
+    /// which is long enough for two code points.
     /// </summary>
-    private static bool BeginsWithNoBreak(DocumentObject docObj) =>
-        docObj is Character { SymbolName: SymbolName.NonBreakableBlank }
-        || FirstCodePointOf(docObj) is Chars.NonBreakableSpace or NarrowNoBreakSpace or FigureSpace or NonBreakingHyphen;
-
-    /// <summary>
-    /// Whether <paramref name="docObj"/> ends in a mark UAX #14 forbids a break after because it
-    /// opens what comes next: an opening bracket or quotation mark (classes OP and QU).
-    /// </summary>
-    private static bool EndsInOpeningMark(DocumentObject docObj) =>
-        LastCodePointOf(docObj) is >= 0 and <= char.MaxValue and var last
-        && char.GetUnicodeCategory((char)last) is UnicodeCategory.OpenPunctuation or UnicodeCategory.InitialQuotePunctuation;
-
-    /// <summary>
-    /// Whether <paramref name="docObj"/> begins with a mark UAX #14 forbids a break before because
-    /// it closes what went before it: a closing bracket or quotation mark (classes CL, CP and QU),
-    /// or one of the stops Chinese and Japanese set in a width of their own (CL, EX and NS).
-    /// </summary>
-    private static bool BeginsWithClosingMark(DocumentObject docObj)
+    private static ReadOnlySpan<char> Joined(ReadOnlySpan<char> first, ReadOnlySpan<char> second, Span<char> buffer)
     {
-        var first = FirstCodePointOf(docObj);
-        return first is >= 0 and <= char.MaxValue
-            && (ClosingStops.IndexOf((char)first) >= 0
-                || char.GetUnicodeCategory((char)first) is UnicodeCategory.ClosePunctuation or UnicodeCategory.FinalQuotePunctuation);
+        first.CopyTo(buffer);
+        second.CopyTo(buffer[first.Length..]);
+        return buffer[..(first.Length + second.Length)];
     }
-
-    /// <summary>
-    /// The ideographic comma and full stop, their halfwidth forms, and the fullwidth comma, full
-    /// stop, exclamation mark, question mark, colon and semicolon.
-    /// </summary>
-    private const string ClosingStops = "\u3001\u3002\uFF64\uFF61\uFF0C\uFF0E\uFF01\uFF1F\uFF1A\uFF1B";
-
-    /// <summary>
-    /// Whether <paramref name="codePoint"/> belongs to a script written without spaces between
-    /// words, in which a line may be broken between letters.
-    /// </summary>
-    private static bool IsWrittenWithoutSpaces(int codePoint) =>
-        codePoint >= 0 && UnicodeProperties.ScriptOf(codePoint) is UnicodeScript.Han or UnicodeScript.Hiragana
-            or UnicodeScript.Katakana or UnicodeScript.Bopomofo or UnicodeScript.Yi or UnicodeScript.Thai
-            or UnicodeScript.Lao or UnicodeScript.Khmer or UnicodeScript.Myanmar;
-
-    /// <summary>The last code point of a text leaf, or -1 for anything else.</summary>
-    private static int LastCodePointOf(DocumentObject docObj)
-    {
-        if (docObj is not Text { Content: { Length: > 0 } content })
-            return -1;
-
-        var last = content.Length - 1;
-        return last > 0 && char.IsSurrogatePair(content[last - 1], content[last])
-            ? char.ConvertToUtf32(content[last - 1], content[last])
-            : content[last];
-    }
-
-    /// <summary>The first code point of a text leaf, or -1 for anything else.</summary>
-    private static int FirstCodePointOf(DocumentObject docObj)
-    {
-        if (docObj is not Text { Content: { Length: > 0 } content })
-            return -1;
-
-        return content.Length > 1 && char.IsSurrogatePair(content[0], content[1])
-            ? char.ConvertToUtf32(content[0], content[1])
-            : content[0];
-    }
-
-    private const char Hyphen = (char)0x2010;
-    private const char NonBreakingHyphen = (char)0x2011;
-    private const char FigureDash = (char)0x2012;
-    private const char EnDash = (char)0x2013;
-    private const char EmDash = (char)0x2014;
-    private const char FigureSpace = (char)0x2007;
-    private const char NarrowNoBreakSpace = (char)0x202F;
 
     private bool probingJoinedRun;
 
@@ -2429,10 +2450,10 @@ internal class ParagraphRenderer : Renderer
             return false;
 
         var previous = currentLeaf.GetPreviousLeaf();
-        if (previous != null && IsJoinedTo(previous.Current, currentLeaf.Current))
+        if (previous != null && IsJoinedTo(previous, currentLeaf))
             return false;
         var next = currentLeaf.GetNextLeaf();
-        return next != null && IsJoinedTo(currentLeaf.Current, next.Current);
+        return next != null && IsJoinedTo(currentLeaf, next);
     }
 
     /// <summary>
@@ -2458,7 +2479,7 @@ internal class ParagraphRenderer : Renderer
                     break;
 
                 next = leaf.GetNextLeaf();
-                if (next == null || !IsJoinedTo(leaf.Current, next.Current))
+                if (next == null || !IsJoinedTo(leaf, next))
                     break;
             }
         }
