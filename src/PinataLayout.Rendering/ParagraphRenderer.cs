@@ -31,6 +31,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using PinataLayout.DocumentObjectModel;
 using PdfPinata.Pdf;
@@ -2221,9 +2222,11 @@ internal class ParagraphRenderer : Renderer
     /// Two exceptions keep what a seam used to allow. Chinese, Japanese and the scripts of South
     /// East Asia are written without spaces, so a seam beside one of their letters stays a place a
     /// line may be broken - joining there would make a paragraph with any formatting in it one
-    /// run. And a seam before a no-break character follows UAX #14's rule LB12a: joined, unless
-    /// what comes before it is a hyphen or a dash a line may be broken after, which an em dash is
-    /// not - so the em dash and no-break space of French dialogue stay together.
+    /// run - though not before a mark that closes what went before it, which those scripts never
+    /// set at the start of a line either. And a seam before a no-break character follows UAX #14's
+    /// rule LB12a: joined, unless what comes before it is a hyphen or a dash a line may be broken
+    /// after, which an em dash is not - so the em dash and no-break space of French dialogue stay
+    /// together.
     /// </para>
     /// </remarks>
     private static bool IsJoinedTo(DocumentObject left, DocumentObject right)
@@ -2231,7 +2234,8 @@ internal class ParagraphRenderer : Renderer
         if (!IsJoinable(left) || !IsJoinable(right))
             return false;
 
-        if (IsWrittenWithoutSpaces(LastCodePointOf(left)) || IsWrittenWithoutSpaces(FirstCodePointOf(right)))
+        if ((IsWrittenWithoutSpaces(LastCodePointOf(left)) || IsWrittenWithoutSpaces(FirstCodePointOf(right)))
+            && !BeginsWithClosingMark(right))
             return false;
 
         return BeginsWithNoBreak(right)
@@ -2275,6 +2279,19 @@ internal class ParagraphRenderer : Renderer
         || FirstCodePointOf(docObj) is Chars.NonBreakableSpace or NarrowNoBreakSpace or FigureSpace or NonBreakingHyphen;
 
     /// <summary>
+    /// Whether <paramref name="docObj"/> begins with a mark UAX #14 forbids a break before because
+    /// it closes what went before it: a closing bracket or quotation mark, or the comma and full
+    /// stop Chinese and Japanese set in a width of their own, which share the brackets' class CL.
+    /// </summary>
+    private static bool BeginsWithClosingMark(DocumentObject docObj)
+    {
+        var first = FirstCodePointOf(docObj);
+        return first is IdeographicComma or IdeographicFullStop or FullwidthComma or FullwidthFullStop
+            || first is >= 0 and <= char.MaxValue
+            && char.GetUnicodeCategory((char)first) is UnicodeCategory.ClosePunctuation or UnicodeCategory.FinalQuotePunctuation;
+    }
+
+    /// <summary>
     /// Whether <paramref name="codePoint"/> belongs to a script written without spaces between
     /// words, in which a line may be broken between letters.
     /// </summary>
@@ -2313,6 +2330,10 @@ internal class ParagraphRenderer : Renderer
     private const char EmDash = (char)0x2014;
     private const char FigureSpace = (char)0x2007;
     private const char NarrowNoBreakSpace = (char)0x202F;
+    private const char IdeographicComma = (char)0x3001;
+    private const char IdeographicFullStop = (char)0x3002;
+    private const char FullwidthComma = (char)0xFF0C;
+    private const char FullwidthFullStop = (char)0xFF0E;
 
     private bool probingJoinedRun;
 

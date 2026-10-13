@@ -214,6 +214,33 @@ public class FormattingSeamTests
     }
 
     [Test]
+    [Arguments((char)0x300D)] // right corner bracket
+    [Arguments((char)0x300F)] // right white corner bracket
+    [Arguments((char)0x3011)] // right black lenticular bracket
+    [Arguments((char)0xFF09)] // fullwidth right parenthesis
+    [Arguments((char)0x201D)] // right double quotation mark
+    [Arguments((char)0x3002)] // ideographic full stop
+    [Arguments((char)0x3001)] // ideographic comma
+    [Arguments((char)0xFF0C)] // fullwidth comma
+    [Arguments((char)0xFF0E)] // fullwidth full stop
+    public void AClosingMarkIsNotLeftToStartALineAfterAnIdeograph(char mark)
+    {
+        // A seam beside an ideograph is a place a line may be broken, but not one before a mark
+        // that closes what went before it: UAX #14 forbids a break before a closing bracket or
+        // quotation mark, and Chinese and Japanese set none of these at the start of a line. A
+        // quotation whose words are emphasised and whose closing mark is not meets it at a seam.
+        var paragraph = AParagraphSixtyPointsWide(out var document);
+        paragraph.AddText("aaaa ");
+        paragraph.AddFormattedText("bbbb" + Ideograph).Font.Bold = true;
+        paragraph.AddText(mark + "cccc");
+
+        var placed = BodyRunsOf(document);
+
+        placed[1].Y.Should().BeLessThan(placed[0].Y, "the ideograph goes down with the mark after it");
+        placed[^1].Y.Should().Be(placed[1].Y);
+    }
+
+    [Test]
     public void AJoinedRunTooLongForAnyLineIsSetFromTheStartOfOneAndBrokenAtItsSeams()
     {
         // The last resort, as for a word longer than the measure: a run of joined leaves no line
