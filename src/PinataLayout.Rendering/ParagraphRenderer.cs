@@ -2470,9 +2470,10 @@ internal class ParagraphRenderer : Renderer
 
     /// <summary>
     /// How much of a leaf either side of a seam is read. Every rule that reaches further than a
-    /// character or two does so over a number, a row of spaces or a row of flags, and a leaf has
-    /// no spaces in it, so this is room enough; it is a bound so that a long run of CJK text, which
-    /// is one leaf, is not read whole at every seam.
+    /// character or two does so over a number, a row of spaces or a row of regional indicators,
+    /// and a leaf has no spaces in it; <see cref="Tail"/> keeps the count of a row of regional
+    /// indicators right where the window cuts into one. It is a bound so that a long run of CJK
+    /// text, which is one leaf, is not read whole at every seam.
     /// </summary>
     private const int SeamWindow = 32;
 
@@ -2493,7 +2494,8 @@ internal class ParagraphRenderer : Renderer
     private const string CombiningGraphemeJoiner = "\u034F";
 
     /// <summary>
-    /// The last <see cref="SeamWindow"/> code units of a text, not splitting a surrogate pair.
+    /// The last <see cref="SeamWindow"/> code units of a text, not splitting a surrogate pair, and
+    /// not changing how a row of regional indicators pairs up.
     /// </summary>
     private static ReadOnlySpan<char> Tail(ReadOnlySpan<char> text)
     {
@@ -2503,6 +2505,18 @@ internal class ParagraphRenderer : Renderer
         var start = text.Length - SeamWindow;
         if (char.IsLowSurrogate(text[start]) && char.IsHighSurrogate(text[start - 1]))
             start--;
+
+        // Regional indicators pair into flags from the start of their row (LB30a), so a window
+        // that begins inside a row has to leave out an even number of them, or it would pair each
+        // one in it with the wrong partner. Only a window that begins on one walks back.
+        if (IsRegionalIndicatorAt(text, start))
+        {
+            var leftOut = 0;
+            for (var idx = start - 2; IsRegionalIndicatorAt(text, idx); idx -= 2)
+                leftOut++;
+            if (leftOut % 2 == 1)
+                start += 2;
+        }
 
         return text[start..];
     }
@@ -2518,6 +2532,13 @@ internal class ParagraphRenderer : Renderer
             end++;
         return text[..end];
     }
+
+    /// <summary>
+    /// Whether a regional indicator, U+1F1E6 to U+1F1FF, is spelt at <paramref name="idx"/>. All
+    /// twenty-six share the high surrogate U+D83C.
+    /// </summary>
+    private static bool IsRegionalIndicatorAt(ReadOnlySpan<char> text, int idx) =>
+        idx >= 0 && idx + 1 < text.Length && text[idx] == '\uD83C' && text[idx + 1] is >= '\uDDE6' and <= '\uDDFF';
 
     private static bool IsOneCodePoint(ReadOnlySpan<char> text) =>
         text.Length == 1 || (text.Length == 2 && char.IsSurrogatePair(text[0], text[1]));

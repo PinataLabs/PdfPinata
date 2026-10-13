@@ -554,6 +554,62 @@ public class FormattingSeamTests
         placed[^1].Y.Should().Be(placed[1].Y);
     }
 
+    /// <summary>
+    ///   "aaaa", then <paramref name="count"/> regional indicators in one run and one more in
+    ///   another, in a paragraph just wide enough for "aaaa" and the first run.
+    /// </summary>
+    private static Document RegionalIndicatorsMeetingAnother(int count)
+    {
+        var document = new Document();
+        document.Styles.Normal.Font.Name = "Arial";
+        document.Styles.Normal.Font.Size = 9;
+
+        var indicators = string.Concat(Enumerable.Repeat(RegionalIndicatorA, count));
+        using var measure = XGraphics.CreateMeasureContext(new XSize(1000, 100), XGraphicsUnit.Point, XPageDirection.Downwards);
+        var width = measure.MeasureString("aaaa " + indicators, new XFont("Arial", 9)).Width + 0.5;
+
+        var section = document.AddSection();
+        section.PageSetup.LeftMargin = Unit.FromPoint(10);
+        section.PageSetup.RightMargin = Unit.FromPoint(10);
+        section.PageSetup.PageWidth = Unit.FromPoint(width + 20);
+        var paragraph = section.AddParagraph();
+        paragraph.AddText("aaaa ");
+        paragraph.AddText(indicators);
+        paragraph.AddFormattedText(RegionalIndicatorA).Font.Bold = true;
+        return document;
+    }
+
+    /// <summary>U+1F1E6 REGIONAL INDICATOR SYMBOL LETTER A, two of which make a flag.</summary>
+    private const string RegionalIndicatorA = "\uD83C\uDDE6";
+
+    [Test]
+    [Arguments(1)]
+    [Arguments(17)]
+    [Arguments(33)]
+    public void AFlagIsNotBrokenBetweenItsTwoHalvesWhereTheyAreInTwoRuns(int count)
+    {
+        // Regional indicators pair up from the start of their row (LB30a), so after an odd number
+        // the next one is the second half of a flag and a line may not be broken before it. The
+        // seam reads at most 32 code units of a leaf - 16 indicators - and must still count
+        // them from the start of the row.
+        var placed = BodyRunsOf(RegionalIndicatorsMeetingAnother(count));
+
+        placed[1].Y.Should().BeLessThan(placed[0].Y, "the first half of the flag goes down with its second half");
+        placed[^1].Y.Should().Be(placed[1].Y);
+    }
+
+    [Test]
+    [Arguments(2)]
+    [Arguments(18)]
+    [Arguments(34)]
+    public void ALineMayBeBrokenBetweenTwoFlagsWhereTheyAreInTwoRuns(int count)
+    {
+        var placed = BodyRunsOf(RegionalIndicatorsMeetingAnother(count));
+
+        placed[1].Y.Should().Be(placed[0].Y, "the whole flags fit on the first line and may stay there");
+        placed[^1].Y.Should().BeLessThan(placed[0].Y);
+    }
+
     [Test]
     public void AJoinedRunTooLongForAnyLineIsSetFromTheStartOfOneAndBrokenAtItsSeams()
     {
