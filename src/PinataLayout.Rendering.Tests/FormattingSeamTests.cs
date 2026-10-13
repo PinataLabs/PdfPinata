@@ -17,10 +17,11 @@ namespace PinataLayout.Rendering.Tests;
 ///   <para>
 ///     Each leaf is measured on its own and the line is broken before whichever one does not fit,
 ///     so every boundary between two leaves used to be a place a line could break, whether or not
-///     there was a space there. Only a non-breakable blank joined two leaves. Now two leaves that
-///     are part of the same word are joined unless the first ends where a line may be broken -
-///     after a hyphen, a zero-width space or a dash - and a run of them goes down to the next line
-///     whole when it does not fit.
+///     there was a space there. Only a non-breakable blank joined two leaves. Now two leaves are
+///     joined unless the line breaking algorithm, UAX #14, allows a break where they meet - after
+///     a hyphen, a zero-width space or a dash, between two ideographs, but not before a closing
+///     mark or a nonstarter - and a run of them goes down to the next line whole when it does not
+///     fit.
 ///   </para>
 ///   <para>
 ///     Most paragraphs here are sixty points wide, which holds "aaaa bbbb" but not "aaaa bbbbcccc",
@@ -73,6 +74,13 @@ public class FormattingSeamTests
 
             case "a bookmark":
                 paragraph.AddBookmark("inside");
+                break;
+
+            case "a paragraph break inside a run of formatting":
+                // A paragraph break is split out of a paragraph only at its top level; one inside
+                // a run of formatting - an empty line in the run, in MDDDL - reaches the renderer,
+                // which draws nothing for it and never breaks the line there.
+                paragraph.AddFormattedText().AddCharacter(SymbolName.ParaBreak);
                 break;
 
             default:
@@ -131,6 +139,71 @@ public class FormattingSeamTests
                 paragraph.AddFormattedText(Ideograph + "cccc").Font.Bold = true;
                 return document;
 
+            case "a hyphen before a digit in the same run":
+                // Not a seam at all: one run, split into leaves after its hyphen. UAX #14 would
+                // keep "-1" together (LB25), but a line has always been breakable after every
+                // hyphen-minus inside a run, and breaking inside a run is not what changed.
+                paragraph.AddText("aaaa bbbb-1cc");
+                return document;
+
+            case "a Thai letter":
+                // Thai is written without spaces between words too, and finding the words needs a
+                // dictionary. Without one a seam beside a Thai letter stays a place a line may be
+                // broken, as beside an ideograph, rather than UAX #14's default of joining.
+                paragraph.AddText("aaaa bbbb" + ThaiKoKai);
+                break;
+
+            case "a Thai letter after it":
+                paragraph.AddText("aaaa bbbb");
+                paragraph.AddFormattedText(ThaiKoKai + "cccc").Font.Bold = true;
+                return document;
+
+            case "two Thai letters":
+                paragraph.AddText("aaaa bbbb" + ThaiKoKai);
+                paragraph.AddFormattedText(ThaiKhoKhai + "cccc").Font.Bold = true;
+                return document;
+
+            // A bookmark and a footnote's reference mark are read through: the seam after them is
+            // decided by the character before them, as though they were not there. "!" before a
+            // word is a place a line may be broken (LB31), and so is a dash, a "?" or a "}".
+            case "an exclamation mark and a bookmark":
+                paragraph.AddText("aaaa bbbb!");
+                paragraph.AddBookmark("inside");
+                break;
+
+            case "an exclamation mark, a bookmark and a footnote mark":
+                paragraph.AddText("aaaa bbbb!");
+                paragraph.AddBookmark("inside");
+                paragraph.AddFootnote("The note.");
+                break;
+
+            case "a question mark and two bookmarks":
+                paragraph.AddText("aaaa bbbb?");
+                paragraph.AddBookmark("inside");
+                paragraph.AddBookmark("also inside");
+                break;
+
+            case "an em dash typed as text and two bookmarks":
+                paragraph.AddText("aaaa bbbb" + (char)0x2014);
+                paragraph.AddBookmark("inside");
+                paragraph.AddBookmark("also inside");
+                break;
+
+            case "a closing brace, a footnote mark and a bookmark":
+                paragraph.AddText("aaaa bbbb}");
+                paragraph.AddFootnote("The note.");
+                paragraph.AddBookmark("inside");
+                break;
+
+            case "an en dash and a bookmark":
+                // Read through the bookmark, the dash follows "bbbb" and is no word-initial dash
+                // (LB20a), so the seam after it is a place a line may be broken - which needs the
+                // character before the dash as well as the dash.
+                paragraph.AddText("aaaa bbbb");
+                paragraph.AddCharacter(SymbolName.EnDash);
+                paragraph.AddBookmark("inside");
+                break;
+
             default:
                 throw new System.ArgumentOutOfRangeException(nameof(seam), seam, "No such seam.");
         }
@@ -140,6 +213,10 @@ public class FormattingSeamTests
 
     /// <summary>U+6F22, the ideograph for Han.</summary>
     private const char Ideograph = (char)0x6F22;
+
+    /// <summary>U+0E01 and U+0E02, the Thai letters ko kai and kho khai.</summary>
+    private const char ThaiKoKai = (char)0x0E01;
+    private const char ThaiKhoKhai = (char)0x0E02;
 
     /// <summary>
     ///   The runs of text drawn in the body of the page, leaving out the foot, where a footnote's
@@ -155,6 +232,7 @@ public class FormattingSeamTests
     [Arguments("a page field")]
     [Arguments("a symbol")]
     [Arguments("a bookmark")]
+    [Arguments("a paragraph break inside a run of formatting")]
     public void ALineIsNotBrokenWhereOneRunOfFormattingMeetsAnother(string seam)
     {
         var placed = BodyRunsOf(BbbbAndCcccMeetingAt(seam));
@@ -173,6 +251,16 @@ public class FormattingSeamTests
     [Arguments("an em dash typed as text")]
     [Arguments("an ideograph")]
     [Arguments("an ideograph after it")]
+    [Arguments("a hyphen before a digit in the same run")]
+    [Arguments("a Thai letter")]
+    [Arguments("a Thai letter after it")]
+    [Arguments("two Thai letters")]
+    [Arguments("an exclamation mark and a bookmark")]
+    [Arguments("an exclamation mark, a bookmark and a footnote mark")]
+    [Arguments("a question mark and two bookmarks")]
+    [Arguments("an em dash typed as text and two bookmarks")]
+    [Arguments("a closing brace, a footnote mark and a bookmark")]
+    [Arguments("an en dash and a bookmark")]
     public void ALineIsStillBrokenWhereTheFirstRunEndsInABreakOpportunity(string seam)
     {
         var placed = BodyRunsOf(BbbbAndCcccBreakableAt(seam));
@@ -338,6 +426,50 @@ public class FormattingSeamTests
     }
 
     [Test]
+    [Arguments((char)0x3005)] // ideographic iteration mark
+    [Arguments((char)0x309D)] // hiragana iteration mark
+    [Arguments((char)0x30FC)] // katakana-hiragana prolonged sound mark
+    [Arguments((char)0x3041)] // hiragana letter small a
+    [Arguments((char)0x30C3)] // katakana letter small tu
+    [Arguments((char)0x30FB)] // katakana middle dot
+    public void ANonstarterIsNotLeftToStartALineAfterAnIdeograph(char mark)
+    {
+        // UAX #14's nonstarters (NS) and the small kana (CJ, which rule LB1 makes NS): iteration
+        // marks, the prolonged sound mark, the small kana and the middle dot, none of which
+        // Japanese sets at the start of a line. Neither is a closing mark, so a seam before one
+        // used to be a place a line could be broken.
+        var paragraph = AParagraphSixtyPointsWide(out var document);
+        paragraph.AddText("aaaa ");
+        paragraph.AddFormattedText("bbbb" + Ideograph).Font.Bold = true;
+        paragraph.AddText(mark + "cccc");
+
+        var placed = BodyRunsOf(document);
+
+        placed[1].Y.Should().BeLessThan(placed[0].Y, "the ideograph goes down with the mark after it");
+        placed[^1].Y.Should().Be(placed[1].Y);
+    }
+
+    [Test]
+    [Arguments("\u2014", ")")]      // em dash, right parenthesis
+    [Arguments("\u2013", "\u300D")] // en dash, right corner bracket
+    [Arguments("-", ")")]           // hyphen-minus, right parenthesis
+    [Arguments("-", "\u3002")]      // hyphen-minus, ideographic full stop
+    public void ADashIsNotBrokenFromTheClosingMarkAfterIt(string dash, string mark)
+    {
+        // A line may be broken after a hyphen or a dash, but not where what follows it closes
+        // what went before: UAX #14's LB13 forbids a break before a closing mark whatever precedes
+        // it, and a line starting with ")" is worse than one a dash ends early.
+        var paragraph = AParagraphSixtyPointsWide(out var document);
+        paragraph.AddText("aaaa bbbb" + dash);
+        paragraph.AddFormattedText(mark + "cccc").Font.Bold = true;
+
+        var placed = BodyRunsOf(document);
+
+        placed[1].Y.Should().BeLessThan(placed[0].Y, "the dash goes down with the mark after it");
+        placed[^1].Y.Should().Be(placed[1].Y);
+    }
+
+    [Test]
     [Arguments((char)0x300C)] // left corner bracket
     [Arguments((char)0x300E)] // left white corner bracket
     [Arguments((char)0x3010)] // left black lenticular bracket
@@ -354,6 +486,254 @@ public class FormattingSeamTests
         var placed = BodyRunsOf(document);
 
         placed[1].Y.Should().BeLessThan(placed[0].Y, "the mark goes down with the ideograph after it");
+        placed[^1].Y.Should().Be(placed[1].Y);
+    }
+
+    [Test]
+    [Arguments("!")]
+    [Arguments("?")]
+    [Arguments("\u3002")] // ideographic full stop
+    [Arguments("\u200B")] // zero-width space, after which LB8 allows a break before anything
+    public void AFootnoteMarkIsNotLeftToStartALineAfterTheMarkBeforeIt(string stop)
+    {
+        // A footnote's reference mark belongs to what it is set against, whatever that ends in. A
+        // line may be broken after "!" or "?" before a word, but the mark is not a word: it stays
+        // with the stop, and the two go down together when the mark does not fit.
+        var document = new Document();
+        document.Styles.Normal.Font.Name = "Arial";
+        document.Styles.Normal.Font.Size = 9;
+
+        using var measure = XGraphics.CreateMeasureContext(new XSize(200, 200), XGraphicsUnit.Point, XPageDirection.Downwards);
+        var width = measure.MeasureString("aaaa bbbb" + stop, new XFont("Arial", 9)).Width + 0.5;
+
+        var section = document.AddSection();
+        section.PageSetup.LeftMargin = Unit.FromPoint(10);
+        section.PageSetup.RightMargin = Unit.FromPoint(10);
+        section.PageSetup.PageWidth = Unit.FromPoint(width + 20);
+        var paragraph = section.AddParagraph();
+        paragraph.AddText("aaaa bbbb" + stop);
+        paragraph.AddFootnote("The note.");
+        paragraph.AddText(" cccc");
+
+        var placed = BodyRunsOf(document);
+
+        placed.Should().HaveCount(4, "\"aaaa\", \"bbbb\" and its stop, the mark and \"cccc\" are drawn");
+        placed[1].Y.Should().BeLessThan(placed[0].Y, "\"bbbb\" goes down with the mark after it");
+        placed[2].Y.Should().BeInRange(placed[1].Y, placed[1].Y + 4, "the mark is raised above the line \"bbbb\" is on");
+    }
+
+    [Test]
+    public void ABookmarkBetweenAnIdeographAndANonstarterLeavesThemJoined()
+    {
+        // A bookmark takes no room and is read through: what is either side of it decides the
+        // seam, as though it were not there.
+        var paragraph = AParagraphSixtyPointsWide(out var document);
+        paragraph.AddText("aaaa ");
+        paragraph.AddFormattedText("bbbb" + Ideograph).Font.Bold = true;
+        paragraph.AddBookmark("here");
+        paragraph.AddText((char)0x3005 + "cccc");
+
+        var placed = BodyRunsOf(document);
+
+        placed[1].Y.Should().BeLessThan(placed[0].Y, "the ideograph goes down with the mark after it");
+        placed[^1].Y.Should().Be(placed[1].Y);
+    }
+
+    [Test]
+    public void AKoreanWordInTwoRunsIsNotBrokenBetweenThem()
+    {
+        // Korean is written with spaces between words, and inside a run a line is broken only at
+        // them. UAX #14 by default allows a break after any Hangul syllable, which would let a
+        // word be broken where its formatting changes; a seam between two syllables is joined.
+        var paragraph = AParagraphSixtyPointsWide(out var document);
+        paragraph.AddText("aaaa \uAC00\uB098");
+        paragraph.AddFormattedText("\uB2E4cccc").Font.Bold = true;
+
+        var placed = BodyRunsOf(document);
+
+        placed[1].Y.Should().BeLessThan(placed[0].Y, "the word's first syllables go down with its last");
+        placed[^1].Y.Should().Be(placed[1].Y);
+    }
+
+    /// <summary>
+    ///   "aaaa", then <paramref name="count"/> regional indicators in one run and one more in
+    ///   another, in a paragraph just wide enough for "aaaa" and the first run.
+    /// </summary>
+    private static Document RegionalIndicatorsMeetingAnother(int count)
+    {
+        var document = new Document();
+        document.Styles.Normal.Font.Name = "Arial";
+        document.Styles.Normal.Font.Size = 9;
+
+        var indicators = string.Concat(Enumerable.Repeat(RegionalIndicatorA, count));
+        using var measure = XGraphics.CreateMeasureContext(new XSize(1000, 100), XGraphicsUnit.Point, XPageDirection.Downwards);
+        var width = measure.MeasureString("aaaa " + indicators, new XFont("Arial", 9)).Width + 0.5;
+
+        var section = document.AddSection();
+        section.PageSetup.LeftMargin = Unit.FromPoint(10);
+        section.PageSetup.RightMargin = Unit.FromPoint(10);
+        section.PageSetup.PageWidth = Unit.FromPoint(width + 20);
+        var paragraph = section.AddParagraph();
+        paragraph.AddText("aaaa ");
+        paragraph.AddText(indicators);
+        paragraph.AddFormattedText(RegionalIndicatorA).Font.Bold = true;
+        return document;
+    }
+
+    /// <summary>U+1F1E6 REGIONAL INDICATOR SYMBOL LETTER A, two of which make a flag.</summary>
+    private const string RegionalIndicatorA = "\uD83C\uDDE6";
+
+    [Test]
+    [Arguments(1)]
+    [Arguments(17)]
+    [Arguments(33)]
+    public void AFlagIsNotBrokenBetweenItsTwoHalvesWhereTheyAreInTwoRuns(int count)
+    {
+        // Regional indicators pair up from the start of their row (LB30a), so after an odd number
+        // the next one is the second half of a flag and a line may not be broken before it. The
+        // seam reads at most 32 code units of a leaf - 16 indicators - and must still count
+        // them from the start of the row.
+        var placed = BodyRunsOf(RegionalIndicatorsMeetingAnother(count));
+
+        placed[1].Y.Should().BeLessThan(placed[0].Y, "the first half of the flag goes down with its second half");
+        placed[^1].Y.Should().Be(placed[1].Y);
+    }
+
+    [Test]
+    [Arguments(2)]
+    [Arguments(18)]
+    [Arguments(34)]
+    public void ALineMayBeBrokenBetweenTwoFlagsWhereTheyAreInTwoRuns(int count)
+    {
+        var placed = BodyRunsOf(RegionalIndicatorsMeetingAnother(count));
+
+        placed[1].Y.Should().Be(placed[0].Y, "the whole flags fit on the first line and may stay there");
+        placed[^1].Y.Should().BeLessThan(placed[0].Y);
+    }
+
+    [Test]
+    public void AFlagIsNotBrokenBetweenItsHalvesWhereItsRowRunsThroughThreeRuns()
+    {
+        // Two indicators, then one in bold, then one underlined: the bold one is the first half of
+        // the second flag. The seam after a run of one character reads the run before it, and
+        // has to read all of it to know that.
+        var document = new Document();
+        document.Styles.Normal.Font.Name = "Arial";
+        document.Styles.Normal.Font.Size = 9;
+
+        using var measure = XGraphics.CreateMeasureContext(new XSize(1000, 100), XGraphicsUnit.Point, XPageDirection.Downwards);
+        var width = measure.MeasureString(
+            "aaaa " + RegionalIndicatorA + RegionalIndicatorA + RegionalIndicatorA, new XFont("Arial", 9)).Width + 0.5;
+
+        var section = document.AddSection();
+        section.PageSetup.LeftMargin = Unit.FromPoint(10);
+        section.PageSetup.RightMargin = Unit.FromPoint(10);
+        section.PageSetup.PageWidth = Unit.FromPoint(width + 20);
+        var paragraph = section.AddParagraph();
+        paragraph.AddText("aaaa ");
+        paragraph.AddText(RegionalIndicatorA + RegionalIndicatorA);
+        paragraph.AddFormattedText(RegionalIndicatorA).Font.Bold = true;
+        paragraph.AddFormattedText(RegionalIndicatorA).Font.Underline = Underline.Single;
+
+        var placed = BodyRunsOf(document);
+
+        placed[1].Y.Should().Be(placed[0].Y, "the first flag fits on the first line and may stay there");
+        placed[^2].Y.Should().BeLessThan(placed[0].Y, "the first half of the second flag goes down with its second half");
+        placed[^1].Y.Should().Be(placed[^2].Y);
+    }
+
+    [Test]
+    public void AFlagIsNotBrokenBetweenItsHalvesAfterASymbolDrawnThreeTimes()
+    {
+        // A regional indicator given as a symbol drawn three times, then one more in bold: the
+        // bold one is the second half of the second flag, which only the count of all three tells.
+        var document = new Document();
+        document.Styles.Normal.Font.Name = "Arial";
+        document.Styles.Normal.Font.Size = 9;
+
+        using var measure = XGraphics.CreateMeasureContext(new XSize(1000, 100), XGraphicsUnit.Point, XPageDirection.Downwards);
+        var width = measure.MeasureString(
+            "aaaa " + RegionalIndicatorA + RegionalIndicatorA + RegionalIndicatorA, new XFont("Arial", 9)).Width + 0.5;
+
+        var section = document.AddSection();
+        section.PageSetup.LeftMargin = Unit.FromPoint(10);
+        section.PageSetup.RightMargin = Unit.FromPoint(10);
+        section.PageSetup.PageWidth = Unit.FromPoint(width + 20);
+        var paragraph = section.AddParagraph();
+        paragraph.AddText("aaaa ");
+        paragraph.AddCharacter((SymbolName)0x1F1E6, 3);
+        paragraph.AddFormattedText(RegionalIndicatorA).Font.Bold = true;
+
+        var placed = BodyRunsOf(document);
+
+        placed[^2].Y.Should().BeLessThan(placed[0].Y, "the symbol goes down with the half of the flag after it");
+        placed[^1].Y.Should().Be(placed[^2].Y);
+    }
+
+    [Test]
+    public void ACurrencySignIsNotLeftBeforeABracketedNumberInAnotherRun()
+    {
+        // "$(.5": no break after a prefix before an opening bracket and a number (LB25,
+        // PR × OP IS NU). The bracket is a run of one character, and the seam before it has to
+        // read two characters past it to find the number.
+        var paragraph = AParagraphSixtyPointsWide(out var document);
+        paragraph.AddText("aaaa bbbb$");
+        paragraph.AddFormattedText("(").Font.Bold = true;
+        paragraph.AddText(".5cc");
+
+        var placed = BodyRunsOf(document);
+
+        placed[1].Y.Should().BeLessThan(placed[0].Y, "the sign goes down with the number after it");
+        placed[^1].Y.Should().Be(placed[1].Y);
+    }
+
+    [Test]
+    public void ACurrencySignIsNotLeftBeforeABracketAndStopInARunOfTheirOwn()
+    {
+        // "$(.5" again, with the bracket and the stop in one run. That run is two characters, and
+        // the number that decides the seam before it is in the run after it.
+        var paragraph = AParagraphSixtyPointsWide(out var document);
+        paragraph.AddText("aaaa bbbb$");
+        paragraph.AddFormattedText("(.").Font.Bold = true;
+        paragraph.AddText("5cc");
+
+        var placed = BodyRunsOf(document);
+
+        placed[1].Y.Should().BeLessThan(placed[0].Y, "the sign goes down with the number after it");
+        placed[^1].Y.Should().Be(placed[1].Y);
+    }
+
+    [Test]
+    public void ACurrencySignIsNotLeftBeforeABracketAndStopInRunsOfOneCharacterEach()
+    {
+        // "$(.5" with the bracket and the stop each a run of one character: the number is two
+        // runs past the seam after the sign.
+        var paragraph = AParagraphSixtyPointsWide(out var document);
+        paragraph.AddText("aaaa bbbb$");
+        paragraph.AddFormattedText("(").Font.Bold = true;
+        paragraph.AddFormattedText(".").Font.Italic = true;
+        paragraph.AddText("5cc");
+
+        var placed = BodyRunsOf(document);
+
+        placed[1].Y.Should().BeLessThan(placed[0].Y, "the sign goes down with the number after it");
+        placed[^1].Y.Should().Be(placed[1].Y);
+    }
+
+    [Test]
+    public void APercentSignIsNotLeftToStartALineAfterABracketedNumberInAnotherRun()
+    {
+        // "1.)%": no break before a postfix after a number, its stops and a closing bracket (LB25,
+        // NU (SY | IS)* (CL | CP)? × (PO | PR)). Without the number, ")%" may be broken (LB31),
+        // so the seam after ".)" has to read past that run to the "1" in the run before it.
+        var paragraph = AParagraphSixtyPointsWide(out var document);
+        paragraph.AddText("aaaa b1");
+        paragraph.AddFormattedText(".)").Font.Bold = true;
+        paragraph.AddText("%cccc");
+
+        var placed = BodyRunsOf(document);
+
+        placed[1].Y.Should().BeLessThan(placed[0].Y, "the number goes down with the percent sign after it");
         placed[^1].Y.Should().Be(placed[1].Y);
     }
 

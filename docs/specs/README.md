@@ -9,7 +9,7 @@ investigation turned up. All three are tracked the same way, because what a read
 first is the same in each case: is this the code as it stands, or the code as somebody hoped it
 would be?
 
-**48 done · 5 in progress · 10 not started · 63 total.**
+**49 done · 5 in progress · 10 not started · 64 total.**
 
 Read the relevant spec before extending that feature area.
 
@@ -42,6 +42,7 @@ decisions, not outstanding work.
 - [x] [image-pixel-seam.md](image-pixel-seam.md) — the image seam widened from an invented BMP to pixels (T14)
 - [x] [import-size-and-annotations.md](import-size-and-annotations.md) — page-import defects found beyond issue #461
 - [x] [incremental-update-save.md](incremental-update-save.md) — appending to a PDF instead of rewriting it (G6)
+- [x] [line-breaking.md](line-breaking.md) — a line break between two runs of formatting decided by UAX #14, #284
 - [x] [migradoc-field-evaluation.md](migradoc-field-evaluation.md) — a field's value evaluable without a renderer (T18)
 - [x] [migradoc-footnotes.md](migradoc-footnotes.md) — footnotes rendered, having been dropped in silence
 - [x] [nested-lists.md](nested-lists.md) — a list inside a list, said through `ListInfo.NestingLevel` and nested in the tree (G2 tail)

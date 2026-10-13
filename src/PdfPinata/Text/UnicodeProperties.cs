@@ -3,18 +3,19 @@ using System;
 namespace PdfPinata.Text;
 
 /// <summary>
-/// The character properties the bidirectional algorithm and script itemisation are defined in
-/// terms of, read out of tables generated from the Unicode Character Database.
+/// The character properties the bidirectional algorithm, script itemisation and the line breaking
+/// algorithm are defined in terms of, read out of tables generated from the Unicode Character
+/// Database.
 /// </summary>
 /// <remarks>
 /// <para>
-/// .NET exposes General_Category and little else: neither Bidi_Class nor Script is reachable
-/// through <see cref="System.Globalization.CharUnicodeInfo"/>, and neither can be derived from
-/// what is. So the data is carried - see <c>tools/UnicodeTableGenerator</c> for where it comes
+/// .NET exposes General_Category and little else: none of Bidi_Class, Script and Line_Break is
+/// reachable through <see cref="System.Globalization.CharUnicodeInfo"/>, and none can be derived
+/// from what is. So the data is carried - see <c>tools/UnicodeTableGenerator</c> for where it comes
 /// from and how to bump it.
 /// </para>
 /// <para>
-/// Both tables are a complete partition of U+0000..U+10FFFF with the database's own defaults
+/// Every table is a complete partition of U+0000..U+10FFFF with the database's own defaults
 /// materialised into them, so a lookup is one binary search and there is no defaulting left to get
 /// wrong at run time. That matters more than it sounds: unassigned code points in the Hebrew and
 /// Arabic blocks default to <see cref="BidiClass.R"/> and <see cref="BidiClass.AL"/> rather than to
@@ -46,6 +47,26 @@ public static class UnicodeProperties
     public static UnicodeScript ScriptOf(int codePoint)
         => (UnicodeScript)UnicodeTables.UnicodeScriptRangeValue[
             IndexOf(UnicodeTables.UnicodeScriptRangeStart, codePoint)];
+
+    /// <summary>
+    /// The Line_Break class of a code point, as the database gives it - before rule LB1 of the
+    /// line breaking algorithm resolves AI, SA, CJ and the rest. <see cref="LineBreakAlgorithm"/>
+    /// does that resolving.
+    /// </summary>
+    /// <param name="codePoint">
+    /// A Unicode code point, not a UTF-16 code unit. A surrogate on its own answers
+    /// <see cref="LineBreakClass.SG"/>, which is what the database gives it.
+    /// </param>
+    public static LineBreakClass LineBreakClassOf(int codePoint)
+        => (LineBreakClass)UnicodeTables.LineBreakClassRangeValue[
+            IndexOf(UnicodeTables.LineBreakClassRangeStart, codePoint)];
+
+    /// <summary>
+    /// What the line breaking rules read of a code point besides its class.
+    /// </summary>
+    internal static LineBreakFlags LineBreakFlagsOf(int codePoint)
+        => (LineBreakFlags)UnicodeTables.LineBreakFlagsRangeValue[
+            IndexOf(UnicodeTables.LineBreakFlagsRangeStart, codePoint)];
 
     /// <summary>
     /// The ISO 15924 code of a script, lowercased - <c>"arab"</c>, <c>"latn"</c>, <c>"deva"</c>.
