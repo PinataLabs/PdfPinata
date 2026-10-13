@@ -126,8 +126,8 @@ takes under two seconds.
    and an image still separate what is either side of them;
 2. returns false for a boundary inside one run of text split after a hyphen-minus (see the
    tailorings below);
-3. reads up to 32 code units either side of the seam, and for a leaf of one character, up to 32
-   of the next leaf out as well, walking past any leaf the seam reads through;
+3. reads up to 32 code units either side of the seam, from the leaf beside it and from as many
+   leaves beyond as it takes to fill them, walking past any leaf the seam reads through;
 4. asks `IsBreakAllowedBetween` with the `SouthEastAsianAsIdeographs` and `HangulAsAlphabetic`
    tailorings, and joins when the answer is no.
 
@@ -148,8 +148,8 @@ through** (`IsReadThrough`). The seam before such a leaf is always joined, witho
 leaf belongs to what precedes it. Asked as U+034F COMBINING GRAPHEME JOINER, a CM, it was joined by
 LB9 everywhere but after a zero-width space, where LB8 comes first and allows a break before
 anything - which left a footnote mark free to start the next line. The seam after such a leaf
-reads it as the joiner after the text of the nearest leaf before it that is not read through - that
-leaf's window, and the window of the one before that if it is a single character - so LB9 absorbs
+reads it as the joiner after the text of the nearest leaf before it that is not read through - and
+of as many leaves before that as fill the window - so LB9 absorbs
 the joiner and the seam is read as though it followed that text. However many stand together, the character before them is what is read: a footnote mark after
 a bookmark after "!" is decided as "!" before the next word, which may be broken, where reading each
 leaf as a joiner made the two of them a letter by LB10 and joined. So a reference mark set after "!",
@@ -169,15 +169,28 @@ either side of it is a break.
 An empty text cannot reach a seam through the public API - `AddText("")` adds nothing and
 `PdfFlattenVisitor` removes an empty text - but is read through all the same.
 
-**Why the leaf beyond a one-character leaf.** A seam between a lone en dash symbol and the
+**Why the leaves beyond the one beside the seam.** A seam between a lone en dash symbol and the
 word after it is a break in "bbbb–cccc" and is not in "–cccc" at the start of a word (LB20a). Read
 on its own, the dash is at the start of the text, which LB20a counts as the start of a word, and the
-seam would join. One character beyond is not always enough, so the whole window of the neighbour is
-read: a flag whose halves are in two runs after a run holding the first flag is told from the
-start of a flag only by counting the indicators before it (LB30a), and "$" before a "(" in a run of
-its own is kept from the line after it only when a number follows, perhaps after a stop (LB25,
-PR × OP IS NU). Leaves longer than one character carry their own context and do not pay for the
-walk of the tree that fetching a neighbour costs.
+seam would join. One character beyond is not always enough: a flag whose halves are in two runs
+after a run holding the first flag is told from the start of a flag only by counting the
+indicators before it (LB30a), and "$" before a "(" in a run of its own is kept from the line after
+it only when a number follows, perhaps after a stop (LB25, PR × OP IS NU).
+
+Nor is one leaf beyond, and the length of the leaf beside the seam is not what decides it. The seam
+first read a neighbour only for a leaf of one character, on the reasoning that a longer one carries
+its own context. "$" then "(." in a run of its own then "5cc" refuted it: the run after the seam is
+two characters, neither a digit, so LB25 never saw the number and the sign was left at the end of
+the line. "$", "(" and "." as runs of one character each refuted the single leaf beyond, and the
+mirror of the first on the left - "1", ".)" in a run of its own, "%", which UAX #14 joins by
+NU (SY | IS)* (CL | CP)? × (PO | PR) and breaks without the number (")%" is LB31) - showed the left
+side had the same gap. LB9 is another: a run of combining marks takes the class of the base before
+it, which may be a run or two back. So each side now reads leaf after leaf until it holds 32 code
+units or the paragraph ends. Any rule that reaches no further than 32 code units from the seam
+therefore sees exactly what is there, whatever the runs are, and that is every rule but those that
+read a row of numbers, marks or flags longer than that. The walk is bounded as well: every leaf
+read adds at least one code unit, so a side visits at most 32 leaves beyond those it reads through,
+and the answer is kept, so it is walked once per seam per pass.
 
 **Why 32 code units.** Every rule that reaches further than a character or two does so over a
 number, a row of spaces or a row of regional indicators, and a leaf has no spaces in it. The bound
@@ -188,9 +201,8 @@ indicators into flags from the start of their row. After 17 indicators the windo
 break was allowed between the two halves of the 9th flag. So where the window begins on a regional
 indicator, `Tail` walks back over the row it cut into and, when it left out an odd number, leaves
 out one more; the window keeps its bound and the row its pairing. **The limit that remains** is a
-row of indicators that runs through more runs of formatting than the seam reads - the leaf before
-it, and the one before that when the leaf is a single indicator: it is counted from the start of
-what was read.
+row of more than 16 indicators that runs through more than one run of formatting: `Tail` counts
+back only through the run the window begins in, so the row is counted from the start of that run.
 
 **A seam is decided once per pass.** The same seam is asked about again and again - as the one after
 a leaf, straight away as the one before the next, and for every leaf of a joined run each time the

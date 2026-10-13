@@ -688,6 +688,56 @@ public class FormattingSeamTests
     }
 
     [Test]
+    public void ACurrencySignIsNotLeftBeforeABracketAndStopInARunOfTheirOwn()
+    {
+        // "$(.5" again, with the bracket and the stop in one run. That run is two characters, and
+        // the number that decides the seam before it is in the run after it.
+        var paragraph = AParagraphSixtyPointsWide(out var document);
+        paragraph.AddText("aaaa bbbb$");
+        paragraph.AddFormattedText("(.").Font.Bold = true;
+        paragraph.AddText("5cc");
+
+        var placed = BodyRunsOf(document);
+
+        placed[1].Y.Should().BeLessThan(placed[0].Y, "the sign goes down with the number after it");
+        placed[^1].Y.Should().Be(placed[1].Y);
+    }
+
+    [Test]
+    public void ACurrencySignIsNotLeftBeforeABracketAndStopInRunsOfOneCharacterEach()
+    {
+        // "$(.5" with the bracket and the stop each a run of one character: the number is two
+        // runs past the seam after the sign.
+        var paragraph = AParagraphSixtyPointsWide(out var document);
+        paragraph.AddText("aaaa bbbb$");
+        paragraph.AddFormattedText("(").Font.Bold = true;
+        paragraph.AddFormattedText(".").Font.Italic = true;
+        paragraph.AddText("5cc");
+
+        var placed = BodyRunsOf(document);
+
+        placed[1].Y.Should().BeLessThan(placed[0].Y, "the sign goes down with the number after it");
+        placed[^1].Y.Should().Be(placed[1].Y);
+    }
+
+    [Test]
+    public void APercentSignIsNotLeftToStartALineAfterABracketedNumberInAnotherRun()
+    {
+        // "1.)%": no break before a postfix after a number, its stops and a closing bracket (LB25,
+        // NU (SY | IS)* (CL | CP)? × (PO | PR)). Without the number, ")%" may be broken (LB31),
+        // so the seam after ".)" has to read past that run to the "1" in the run before it.
+        var paragraph = AParagraphSixtyPointsWide(out var document);
+        paragraph.AddText("aaaa b1");
+        paragraph.AddFormattedText(".)").Font.Bold = true;
+        paragraph.AddText("%cccc");
+
+        var placed = BodyRunsOf(document);
+
+        placed[1].Y.Should().BeLessThan(placed[0].Y, "the number goes down with the percent sign after it");
+        placed[^1].Y.Should().Be(placed[1].Y);
+    }
+
+    [Test]
     public void AJoinedRunTooLongForAnyLineIsSetFromTheStartOfOneAndBrokenAtItsSeams()
     {
         // The last resort, as for a word longer than the measure: a run of joined leaves no line

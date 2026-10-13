@@ -2279,7 +2279,7 @@ internal class ParagraphRenderer : Renderer
     /// read through by whatever is after them, however many stand together - see
     /// <see cref="IsReadThrough"/>. A blank, a tab, a line
     /// break, a soft hyphen and an image are not joinable at all and still separate what is either
-    /// side of them; they are read as text only as the context of a leaf of one character.
+    /// side of them; they are read as text only as the context of a seam beyond them.
     /// </para>
     /// <para>
     /// Two tailorings, both keeping what a seam did before. Thai, Lao, Khmer, Myanmar and the
@@ -2339,12 +2339,13 @@ internal class ParagraphRenderer : Renderer
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Up to <see cref="SeamWindow"/> code units of the leaf, and for a leaf of one character as
-    /// much of the leaf before it as well: whether a line may be broken after a hyphen depends on
-    /// whether the hyphen begins a word (LB20a), and whether one may be broken before the second
-    /// half of a flag on how many regional indicators precede it (LB30a), which are questions about
-    /// what is before the character. Longer leaves carry their own context, and do not pay for a
-    /// walk of the tree.
+    /// Up to <see cref="SeamWindow"/> code units, from the leaf and from as many leaves before it
+    /// as it takes to fill them, or until there are no more. Whether a line may be broken after a
+    /// hyphen depends on whether the hyphen begins a word (LB20a); whether one may be broken before
+    /// a percent sign, on whether a number comes before the stops and the closing bracket in front
+    /// of it, in however many runs they are (LB25); and whether one may be broken before the second
+    /// half of a flag, on how many regional indicators precede it (LB30a). A leaf shorter than
+    /// the rule reaches cannot answer any of them alone, whether it is one character or two.
     /// </para>
     /// <para>
     /// A leaf the seam reads through (<see cref="IsReadThrough"/>) is U+034F COMBINING GRAPHEME
@@ -2361,23 +2362,28 @@ internal class ParagraphRenderer : Renderer
         {
             start = Prepend(CombiningGraphemeJoiner, buffer, start);
             leaf = PreviousReadLeaf(left);
-            if (leaf == null)
-                return buffer[start..];
         }
 
         Span<char> symbol = stackalloc char[SymbolLength];
-        var text = Tail(SeamTextOf(leaf.Current, symbol));
-        start = Prepend(text, buffer, start);
-        if (IsOneCodePoint(text) && PreviousReadLeaf(leaf) is { } previous)
-            start = Prepend(Tail(SeamTextOf(previous.Current, symbol)), buffer, start);
+        var room = SeamWindow;
+        for (; leaf != null; leaf = PreviousReadLeaf(leaf))
+        {
+            var whole = SeamTextOf(leaf.Current, symbol);
+            var text = Tail(whole, room);
+            start = Prepend(text, buffer, start);
+            room -= text.Length;
+            if (text.Length < whole.Length || room <= 0)
+                break;
+        }
         return buffer[start..];
     }
 
     /// <summary>
     /// The text after a seam, as much of it as the seam is decided by, written into the start of
-    /// <paramref name="buffer"/>: up to <see cref="SeamWindow"/> code units of the leaf, and for a
-    /// leaf of one character as much of the leaf after it as well - after "$(" a break is
-    /// forbidden only when a number follows, perhaps after a stop (LB25, PR × OP IS NU).
+    /// <paramref name="buffer"/>: up to <see cref="SeamWindow"/> code units, from the leaf and from
+    /// as many leaves after it as it takes to fill them, or until there are no more. After "$" a
+    /// break is forbidden before "(" only when a number follows, perhaps after a stop (LB25,
+    /// PR × OP IS NU), and the bracket, the stop and the number may each be a run of its own.
     /// </summary>
     /// <remarks>
     /// Never asked of a leaf the seam reads through: the seam before one is always joined.
@@ -2385,10 +2391,15 @@ internal class ParagraphRenderer : Renderer
     private static ReadOnlySpan<char> TextAfter(ParagraphIterator right, Span<char> buffer)
     {
         Span<char> symbol = stackalloc char[SymbolLength];
-        var text = Head(SeamTextOf(right.Current, symbol));
-        var length = Append(text, buffer, 0);
-        if (IsOneCodePoint(text) && NextReadLeaf(right) is { } next)
-            length = Append(Head(SeamTextOf(next.Current, symbol)), buffer, length);
+        var length = 0;
+        for (var leaf = right; leaf != null; leaf = NextReadLeaf(leaf))
+        {
+            var whole = SeamTextOf(leaf.Current, symbol);
+            var text = Head(whole, SeamWindow - length);
+            length = Append(text, buffer, length);
+            if (text.Length < whole.Length || length >= SeamWindow)
+                break;
+        }
         return buffer[..length];
     }
 
@@ -2483,20 +2494,21 @@ internal class ParagraphRenderer : Renderer
     };
 
     /// <summary>
-    /// How much of a leaf either side of a seam is read. Every rule that reaches further than a
-    /// character or two does so over a number, a row of spaces or a row of regional indicators,
-    /// and a leaf has no spaces in it; <see cref="Tail"/> keeps the count of a row of regional
-    /// indicators right where the window cuts into one. It is a bound so that a long run of CJK
-    /// text, which is one leaf, is not read whole at every seam.
+    /// How much text either side of a seam is read, from however many leaves it takes. Every rule
+    /// that reaches further than a character or two does so over a number, a row of spaces, a row
+    /// of combining marks or a row of regional indicators; <see cref="Tail"/> keeps the count of a
+    /// row of regional indicators right where the window cuts into one. It is a bound so that a
+    /// long run of CJK text, which is one leaf, is not read whole at every seam, and so that the
+    /// walk to the leaves either side ends: every leaf read adds at least one code unit, so no more
+    /// than this many are read on a side.
     /// </summary>
     private const int SeamWindow = 32;
 
     /// <summary>
-    /// The longest text read either side of a seam: a leaf of one character, which may be a
-    /// surrogate pair, the window of the leaf beyond it with the code unit it may take to keep a
-    /// pair whole, and a combining grapheme joiner. A longer leaf is read alone, and in less.
+    /// The longest text read either side of a seam: the window, the code unit it may take at its
+    /// far edge to keep a surrogate pair whole, and a combining grapheme joiner.
     /// </summary>
-    private const int ContextLength = SeamWindow + 4;
+    private const int ContextLength = SeamWindow + 2;
 
     /// <summary>The longest a symbol is spelt at a seam: one code point, three times.</summary>
     private const int SymbolLength = 6;
@@ -2509,15 +2521,15 @@ internal class ParagraphRenderer : Renderer
     private const string CombiningGraphemeJoiner = "\u034F";
 
     /// <summary>
-    /// The last <see cref="SeamWindow"/> code units of a text, not splitting a surrogate pair, and
+    /// The last <paramref name="room"/> code units of a text, not splitting a surrogate pair, and
     /// not changing how a row of regional indicators pairs up.
     /// </summary>
-    private static ReadOnlySpan<char> Tail(ReadOnlySpan<char> text)
+    private static ReadOnlySpan<char> Tail(ReadOnlySpan<char> text, int room)
     {
-        if (text.Length <= SeamWindow)
+        if (text.Length <= room)
             return text;
 
-        var start = text.Length - SeamWindow;
+        var start = text.Length - room;
         if (char.IsLowSurrogate(text[start]) && char.IsHighSurrogate(text[start - 1]))
             start--;
 
@@ -2536,13 +2548,13 @@ internal class ParagraphRenderer : Renderer
         return text[start..];
     }
 
-    /// <summary>The first <see cref="SeamWindow"/> code units of a text, not splitting a surrogate pair.</summary>
-    private static ReadOnlySpan<char> Head(ReadOnlySpan<char> text)
+    /// <summary>The first <paramref name="room"/> code units of a text, not splitting a surrogate pair.</summary>
+    private static ReadOnlySpan<char> Head(ReadOnlySpan<char> text, int room)
     {
-        if (text.Length <= SeamWindow)
+        if (text.Length <= room)
             return text;
 
-        var end = SeamWindow;
+        var end = room;
         if (char.IsHighSurrogate(text[end - 1]) && char.IsLowSurrogate(text[end]))
             end++;
         return text[..end];
@@ -2552,9 +2564,6 @@ internal class ParagraphRenderer : Renderer
     private static bool IsRegionalIndicatorAt(ReadOnlySpan<char> text, int idx) =>
         idx >= 0 && idx + 1 < text.Length && char.IsSurrogatePair(text[idx], text[idx + 1])
         && UnicodeProperties.LineBreakClassOf(char.ConvertToUtf32(text[idx], text[idx + 1])) == LineBreakClass.RI;
-
-    private static bool IsOneCodePoint(ReadOnlySpan<char> text) =>
-        text.Length == 1 || (text.Length == 2 && char.IsSurrogatePair(text[0], text[1]));
 
     /// <summary>
     /// Copies <paramref name="text"/> into <paramref name="buffer"/> to end just before
