@@ -2295,24 +2295,31 @@ internal class ParagraphRenderer : Renderer
     /// </remarks>
     private bool IsJoinedTo(ParagraphIterator left, ParagraphIterator right)
     {
-        // The seam a leaf is asked about as the one after it is asked about again, straight away,
-        // as the one before the next leaf; the answer depends on nothing but the document.
-        if (ReferenceEquals(left.Current, lastSeamLeft) && ReferenceEquals(right.Current, lastSeamRight))
-            return lastSeamJoined;
+        if (!IsJoinable(left.Current) || !IsJoinable(right.Current))
+            return false;
 
-        lastSeamJoined = DecideJoin(left, right);
-        lastSeamLeft = left.Current;
-        lastSeamRight = right.Current;
-        return lastSeamJoined;
+        // A seam is decided by the document alone, and the same one is asked about again and
+        // again: as the seam after a leaf, straight away as the one before the next, and once more
+        // for each leaf of a joined run whenever the run is measured. The leaf after a seam is
+        // always the one that follows the leaf before it, so the leaf before names the seam. A
+        // renderer formats one paragraph in one pass, so nothing kept here outlives it.
+        if (seamsDecided != null && seamsDecided.TryGetValue(left.Current, out var joined))
+            return joined;
+
+        joined = DecideJoin(left, right);
+        (seamsDecided ??= new Dictionary<DocumentObject, bool>()).Add(left.Current, joined);
+        return joined;
     }
 
-    private DocumentObject lastSeamLeft;
-    private DocumentObject lastSeamRight;
-    private bool lastSeamJoined;
+    /// <summary>
+    /// Every seam between two joinable leaves decided so far, by the leaf before it. A document
+    /// object is equal only to itself, so this is keyed by identity.
+    /// </summary>
+    private Dictionary<DocumentObject, bool> seamsDecided;
 
     private static bool DecideJoin(ParagraphIterator left, ParagraphIterator right)
     {
-        if (!IsJoinable(left.Current) || !IsJoinable(right.Current) || IsWordSplitAtAHyphen(left.Current, right.Current))
+        if (IsWordSplitAtAHyphen(left.Current, right.Current))
             return false;
 
         Span<char> before = stackalloc char[ContextLength];
