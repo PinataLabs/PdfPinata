@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using PdfPinata.Pdf;
+using PdfPinata.Pdf.Advanced;
 
 namespace PdfPinata.Test.Fonts;
 
@@ -18,6 +21,7 @@ internal sealed class TrueTypeGlyphs
 
     private readonly byte[] _bytes;
     private readonly Dictionary<string, int> _tables = new(StringComparer.Ordinal);
+    private readonly List<(string Tag, uint Checksum, int Offset, int Length)> _records = [];
     private readonly int[] _loca;
     private readonly int _glyf;
 
@@ -28,8 +32,9 @@ internal sealed class TrueTypeGlyphs
         var numTables = U16(4);
         for (var idx = 0; idx < numTables; idx++)
         {
-            var record = 12 + idx * 16;
-            _tables[Ascii(record, 4)] = (int)U32(record + 8);
+            var record = RecordAt(idx);
+            _records.Add((Ascii(record, 4), U32(record + 4), (int)U32(record + 8), (int)U32(record + 12)));
+            _tables[_records[idx].Tag] = _records[idx].Offset;
         }
 
         NumGlyphs = U16(_tables["maxp"] + 4);
@@ -43,6 +48,80 @@ internal sealed class TrueTypeGlyphs
     }
 
     public int NumGlyphs { get; }
+
+    /// <summary>
+    ///   The TrueType program a document embeds, as <c>/FontFile2</c>, for the one face whose
+    ///   <c>/FontName</c> <paramref name="isFace"/> accepts.
+    /// </summary>
+    public static byte[] EmbeddedIn(PdfDocument document, Func<string, bool> isFace)
+    {
+        var descriptor = document.Internals.GetAllObjects()
+            .OfType<PdfDictionary>()
+            .Where(d => d.Elements.GetName("/Type") == "/FontDescriptor")
+            .Single(d => isFace(d.Elements.GetName("/FontName")));
+
+        var program = descriptor.Elements["/FontFile2"];
+        return ((PdfDictionary)(program is PdfReference reference ? reference.Value : program))
+            .Stream.UnfilteredValue;
+    }
+
+    /// <summary>
+    ///   The table directory as the file states it, in the order it lists the tables.
+    /// </summary>
+    public IReadOnlyList<(string Tag, uint Checksum, int Offset, int Length)> TableRecords => _records;
+
+    /// <summary>
+    ///   Every way in which the table directory fails to describe the file, in words; empty when
+    ///   it describes it. The search fields have to follow from the table count, the records have
+    ///   to be in tag order, every table has to have bytes, begin on a four-byte boundary, lie
+    ///   inside the file, overlap no other table and carry its own checksum, and <c>loca</c> may
+    ///   not reach past the end of <c>glyf</c>.
+    /// </summary>
+    public List<string> DirectoryProblems()
+    {
+        var problems = new List<string>();
+
+        var count = _records.Count;
+        var selector = 0;
+        while (2 << selector <= count)
+            selector++;
+        if (U16(6) != (1 << selector) * 16 || U16(8) != selector || U16(10) != count * 16 - (1 << selector) * 16)
+            problems.Add($"searchRange, entrySelector and rangeShift do not follow from {count} tables");
+
+        foreach (var (tag, checksum, offset, length) in _records)
+        {
+            if (length == 0)
+                problems.Add($"'{tag}' has no bytes");
+            if (offset % 4 != 0)
+                problems.Add($"'{tag}' begins at {offset}, not on a four-byte boundary");
+            if (offset + length > _bytes.Length)
+                problems.Add($"'{tag}' runs past the end of the file");
+            // 'head' is the exception the specification makes: its checksum is taken with the
+            // checksumAdjustment field zeroed, so it cannot be recomputed from the bytes as written.
+            else if (tag != "head" && checksum != TableChecksum(_bytes, offset, length))
+                problems.Add($"'{tag}' does not carry its own checksum");
+        }
+
+        var byOffset = _records.OrderBy(record => record.Offset).ToList();
+        for (var idx = 1; idx < byOffset.Count; idx++)
+        {
+            var (previous, current) = (byOffset[idx - 1], byOffset[idx]);
+            if (current.Offset < previous.Offset + previous.Length)
+                problems.Add($"'{current.Tag}' at {current.Offset} overlaps '{previous.Tag}' at {previous.Offset}");
+        }
+
+        for (var idx = 1; idx < _records.Count; idx++)
+        {
+            if (string.CompareOrdinal(_records[idx - 1].Tag, _records[idx].Tag) >= 0)
+                problems.Add($"'{_records[idx].Tag}' is listed after '{_records[idx - 1].Tag}', out of tag order");
+        }
+
+        var glyfLength = _records.Single(record => record.Tag == "glyf").Length;
+        if (_loca[NumGlyphs] > glyfLength)
+            problems.Add($"loca reaches byte {_loca[NumGlyphs]} of a glyf table {glyfLength} bytes long");
+
+        return problems;
+    }
 
     /// <summary>
     ///   The bytes the glyph occupies. A glyph with no outline of its own occupies none, which
@@ -226,20 +305,42 @@ internal sealed class TrueTypeGlyphs
         patched[os2 + 8] = (byte)(fsType >> 8);
         patched[os2 + 9] = (byte)fsType;
 
-        var numTables = U16(4);
-        for (var idx = 0; idx < numTables; idx++)
-        {
-            var record = 12 + idx * 16;
-            if (Ascii(record, 4) != "OS/2")
-                continue;
-
-            var sum = TableChecksum(patched, os2, (int)U32(record + 12));
-            patched[record + 4] = (byte)(sum >> 24);
-            patched[record + 5] = (byte)(sum >> 16);
-            patched[record + 6] = (byte)(sum >> 8);
-            patched[record + 7] = (byte)sum;
-        }
+        var record = RecordOf("OS/2");
+        var sum = TableChecksum(patched, os2, (int)U32(record + 12));
+        patched[record + 4] = (byte)(sum >> 24);
+        patched[record + 5] = (byte)(sum >> 16);
+        patched[record + 6] = (byte)(sum >> 8);
+        patched[record + 7] = (byte)sum;
         return patched;
+    }
+
+    /// <summary>
+    ///   A copy whose directory says the table <paramref name="tag"/> has no bytes, as some fonts
+    ///   with their hinting stripped do. Its old data stays where it was, reached by nothing, and
+    ///   its checksum is that of no bytes, which is zero.
+    /// </summary>
+    public byte[] WithTableEmptied(string tag)
+    {
+        var patched = (byte[])_bytes.Clone();
+        var record = RecordOf(tag);
+
+        // The checksum is bytes 4 to 7 of the record and the length bytes 12 to 15.
+        Array.Clear(patched, record + 4, 4);
+        Array.Clear(patched, record + 12, 4);
+        return patched;
+    }
+
+    /// <summary>Where the <paramref name="index"/>th record of the table directory begins.</summary>
+    private static int RecordAt(int index) => 12 + index * 16;
+
+    /// <summary>Where the directory record of the table <paramref name="tag"/> begins.</summary>
+    private int RecordOf(string tag)
+    {
+        var index = _records.FindIndex(record => record.Tag == tag);
+        if (index < 0)
+            throw new InvalidOperationException("the font has no '" + tag + "' table");
+
+        return RecordAt(index);
     }
 
     /// <summary>

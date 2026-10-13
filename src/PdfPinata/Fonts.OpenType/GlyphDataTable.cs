@@ -47,6 +47,23 @@ internal class GlyphDataTable : OpenTypeFontTable
 
     internal byte[] GlyphTable;
 
+    /// <summary>
+    /// The fewest bytes a subset's table is written with: a single zero byte, when every glyph it
+    /// keeps is blank and so there is no glyph data to hold.
+    /// </summary>
+    /// <remarks>
+    /// The specification sets no minimum, and an empty table with every <c>loca</c> entry equal
+    /// does describe blank glyphs. Readers do not take it that way. FreeType, which most PDF
+    /// renderers read embedded fonts with, treats a zero-length table as a missing one "for
+    /// compatibility with Windows". With every other table the same, Windows refuses a font whose
+    /// <c>glyf</c> has no bytes and loads one whose <c>glyf</c> has one, and the OpenType Sanitizer
+    /// in Chrome and Firefox rejects any zero-length table. One zero byte that no <c>loca</c> entry
+    /// reaches changes no glyph. It is what fontTools writes in this case, for the same reasons
+    /// (khaledhosny/ots#52). Without it the table also begins at the same offset as <c>head</c>,
+    /// the next table.
+    /// </remarks>
+    internal const int MinimumLength = 1;
+
     public GlyphDataTable()
         : base(null, Tag)
     {

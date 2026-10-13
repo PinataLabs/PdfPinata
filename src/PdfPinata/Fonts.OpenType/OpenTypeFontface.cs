@@ -396,7 +396,7 @@ internal sealed class OpenTypeFontface
         var size = 0;
         for (var idx = 0; idx < glyphCount; idx++)
             size += glyf.GetGlyphSize(glyphArray[idx]);
-        glyfNew.DirectoryEntry.Length = size;
+        glyfNew.DirectoryEntry.Length = Math.Max(size, GlyphDataTable.MinimumLength);
 
         // Create new loca table
         int numGlyphs = maxp.numGlyphs;
@@ -439,18 +439,27 @@ internal sealed class OpenTypeFontface
     {
         if (!cidFont)
             fontData.AddTable(cmap);
-        if (cvt != null)
-            fontData.AddTable(cvt);
-        if (fpgm != null)
-            fontData.AddTable(fpgm);
+        AddOptionalTable(fontData, cvt);
+        AddOptionalTable(fontData, fpgm);
         fontData.AddTable(glyfNew);
         fontData.AddTable(head);
         fontData.AddTable(hhea);
         fontData.AddTable(hmtx);
         fontData.AddTable(locaNew);
         fontData.AddTable(maxp);
-        if (prep != null)
-            fontData.AddTable(prep);
+        AddOptionalTable(fontData, prep);
+    }
+
+    /// <summary>
+    /// Adds an optional table the face has, unless it has no bytes. Copied as it is, an empty table
+    /// would be written with a length of zero, which FreeType reads as a missing table and the
+    /// OpenType Sanitizer rejects, as they do an empty <c>glyf</c>. An empty <c>cvt </c>,
+    /// <c>fpgm</c> or <c>prep</c> holds nothing, so leaving it out changes nothing.
+    /// </summary>
+    private static void AddOptionalTable(OpenTypeFontface fontData, OpenTypeFontTable table)
+    {
+        if (table != null && table.DirectoryEntry.Length > 0)
+            fontData.AddTable(table);
     }
 
     /// <summary>
