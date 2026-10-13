@@ -58,7 +58,7 @@ public static class LineBreakAlgorithm
     /// <summary>
     /// What may happen at one position of a text: whether a line may be broken before the code
     /// unit at <paramref name="index"/>. <paramref name="index"/> may be <c>text.Length</c>, the
-    /// end of the text, where a break is mandatory.
+    /// end of the text, where a break is mandatory unless the text is empty (rule LB2 comes first).
     /// </summary>
     public static LineBreakOpportunity BreakBefore(
         ReadOnlySpan<char> text, int index, LineBreakTailoring tailoring = LineBreakTailoring.None)
@@ -97,7 +97,8 @@ public static class LineBreakAlgorithm
     /// number or a row of spaces, so pass as much of each side as could matter: the whole of each
     /// piece, or a generous window of it. What is not passed counts as the start or the end of the
     /// text. An empty <paramref name="before"/> therefore answers false (rule LB2, never break at
-    /// the start), and an empty <paramref name="after"/> true (LB3, always break at the end).
+    /// the start), and an empty <paramref name="after"/> true (LB3, always break at the end) unless
+    /// <paramref name="before"/> is empty too.
     /// </para>
     /// </remarks>
     public static bool IsBreakAllowedBetween(
@@ -241,6 +242,7 @@ public static class LineBreakAlgorithm
             AI or SG or XX => AL,
             SA when (flags & LineBreakFlags.SouthEastAsianMark) != 0 => CM,
             SA when (tailoring & LineBreakTailoring.SouthEastAsianAsIdeographs) != 0 => ID,
+            JL or JV or JT or H2 or H3 when (tailoring & LineBreakTailoring.HangulAsAlphabetic) != 0 => AL,
             SA => AL,
             CJ => NS,
             _ => lineBreakClass

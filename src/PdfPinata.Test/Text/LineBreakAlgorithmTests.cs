@@ -8,7 +8,7 @@ namespace PdfPinata.Test.Text;
 /// <summary>
 ///   What <see cref="LineBreakAlgorithm"/> answers beyond what the conformance suite asks of it:
 ///   the shape of the answer, surrogate pairs, the question asked of two pieces of text, and the
-///   tailoring for the scripts of South East Asia.
+///   tailorings for the scripts of South East Asia and for Korean.
 /// </summary>
 public class LineBreakAlgorithmTests
 {
@@ -107,6 +107,36 @@ public class LineBreakAlgorithmTests
     {
         LineBreakAlgorithm.IsBreakAllowedBetween("", "a").Should().BeFalse("LB2: never at the start");
         LineBreakAlgorithm.IsBreakAllowedBetween("a", "").Should().BeTrue("LB3: always at the end");
+    }
+
+    [Test]
+    public void TwoEmptyPiecesAreTheStartOfTheText()
+    {
+        // LB2 comes before LB3: an empty text has no break in it.
+        LineBreakAlgorithm.IsBreakAllowedBetween("", "").Should().BeFalse();
+        LineBreakAlgorithm.BreakBefore("", 0).Should().Be(LineBreakOpportunity.None);
+    }
+
+    // ----- Korean ------------------------------------------------------------------------------------
+
+    /// <summary>The Hangul syllables ga and na.</summary>
+    private const string Ga = "\uAC00";
+    private const string Na = "\uB098";
+
+    [Test]
+    public void ByDefaultALineMayBeBrokenBetweenTwoHangulSyllables()
+    {
+        // LB26 and LB27 keep a syllable block together and say nothing against a break after it.
+        LineBreakAlgorithm.IsBreakAllowedBetween(Ga, Na).Should().BeTrue();
+    }
+
+    [Test]
+    public void TailoredTwoHangulSyllablesAreNotBrokenBetween()
+    {
+        LineBreakAlgorithm.IsBreakAllowedBetween(Ga, Na, LineBreakTailoring.HangulAsAlphabetic)
+            .Should().BeFalse("LB28: a syllable is a letter, and a word is broken only at a space");
+        LineBreakAlgorithm.IsBreakAllowedBetween(Ga + " ", Na, LineBreakTailoring.HangulAsAlphabetic)
+            .Should().BeTrue("LB18: after the space between two words");
     }
 
     // ----- South East Asian scripts ------------------------------------------------------------------
