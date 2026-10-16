@@ -53,11 +53,9 @@ internal static class Const
     /// </summary>
     public const double ItalicSkewAngleSinus = 0.34202014332566873304409961468226;  // = sin(20°)
 
-    /// <summary>
-    /// Factor of the em size of a regular font to look bold. Used for bold simulation.
-    /// Value of 2% found in original XPS 1.0 documentation.
-    /// </summary>
-    public const double BoldEmphasis = 0.02;
+    // How much bold simulation strokes and spaces a face is no longer a constant here: it is
+    // chosen per face, as the XBoldSimulation on a FontResolverInfo, whose default is the 2% this
+    // used to say.
 
     // The κ (kappa) for drawing a circle or an ellipse with four Bézier splines, specifying the distance of the influence point from the starting or end point of a spline.
     // Petzold: 4/3 * tan(α / 4)

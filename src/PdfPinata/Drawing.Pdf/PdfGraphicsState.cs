@@ -420,14 +420,18 @@ internal sealed class PdfGraphicsState : ICloneable
     /// The text rendering mode: 0 fills, 1 strokes, 2 does both. Anything else is treated as a
     /// path rather than as text.
     /// </param>
-    /// <param name="fontEmSize">The em size of the font, which scales a simulated stroke width.</param>
+    /// <param name="simulatedStrokeWidth">
+    /// The width in points of the stroke bold simulation draws round each glyph - the face's
+    /// <see cref="XBoldSimulation.StrokeWidth"/> at the font's em size. Read only when there is no
+    /// <paramref name="textPen"/>.
+    /// </param>
     /// <param name="isForPen">True when realizing the stroking colour rather than the filling one.</param>
     /// <param name="textPen">
     /// The pen a stroking text rendering mode strokes with. Null falls back to a pen made from the
     /// brush's own colour, which is how bold simulation fattens a face that has no bold of its own.
     /// Ignored outside the text modes.
     /// </param>
-    public void RealizeBrush(XBrush brush, PdfColorMode colorMode, int renderingMode, double fontEmSize, bool isForPen = false, XPen textPen = null)
+    public void RealizeBrush(XBrush brush, PdfColorMode colorMode, int renderingMode, double simulatedStrokeWidth, bool isForPen = false, XPen textPen = null)
     {
         // Mode 0 fills, 1 strokes, 2 does both. Mode 3 paints nothing and is not produced here -
         // PDFKit does not produce it either, and nothing asks for invisible text.
@@ -444,7 +448,7 @@ internal sealed class PdfGraphicsState : ICloneable
 
         if (haveStroke || haveFill)
         {
-            RealizeSolidPaint(solidBrush, textPen, fills, strokes, colorMode, fontEmSize);
+            RealizeSolidPaint(solidBrush, textPen, fills, strokes, colorMode, simulatedStrokeWidth);
             return;
         }
 
@@ -465,7 +469,7 @@ internal sealed class PdfGraphicsState : ICloneable
     /// <paramref name="fills"/> and <paramref name="strokes"/> say exactly what is to be painted.
     /// </remarks>
     private void RealizeSolidPaint(XSolidBrush solidBrush, XPen textPen, bool fills, bool strokes,
-        PdfColorMode colorMode, double fontEmSize)
+        PdfColorMode colorMode, double simulatedStrokeWidth)
     {
         if (fills && solidBrush == null)
             throw new InvalidOperationException("A filling text rendering mode needs a solid color brush to fill with.");
@@ -484,7 +488,7 @@ internal sealed class PdfGraphicsState : ICloneable
         {
             // Come here for a caller who asked to stroke the text, or for bold simulation,
             // which fattens a face with no bold of its own by stroking it in its own colour.
-            RealizePen(textPen ?? new XPen(solidBrush.Color, fontEmSize * Const.BoldEmphasis), colorMode);
+            RealizePen(textPen ?? new XPen(solidBrush.Color, simulatedStrokeWidth), colorMode);
         }
     }
 
@@ -732,13 +736,22 @@ internal sealed class PdfGraphicsState : ICloneable
         return strokes ? 2 : 0;
     }
 
-    public void RealizeFont(XFont font, XBrush brush, XPen pen, bool boldSimulation, XStringFormat format)
+    /// <param name="font">The font the string was asked for in.</param>
+    /// <param name="brush">The brush the text is filled with.</param>
+    /// <param name="pen">The pen the caller asked the text to be stroked with, if any.</param>
+    /// <param name="boldSimulation">
+    /// How the face of the string that simulates bold does it, or null when none of them does -
+    /// which decides whether the glyphs are stroked at all, how heavily, and how far apart they sit.
+    /// </param>
+    /// <param name="format">The format the string is drawn with.</param>
+    public void RealizeFont(XFont font, XBrush brush, XPen pen, XBoldSimulation boldSimulation, XStringFormat format)
     {
         const string numberFormat = Config.SignificantFigures3;
 
-        var renderingMode = TextRenderingMode(brush, pen, boldSimulation);
+        var renderingMode = TextRenderingMode(brush, pen, boldSimulation != null);
 
-        RealizeBrush(brush, _renderer.ColorMode, renderingMode, font.Size, false, pen); // _renderer.page.document.Options.ColorMode);
+        RealizeBrush(brush, _renderer.ColorMode, renderingMode,
+            font.Size * (boldSimulation?.StrokeWidth ?? 0), false, pen); // _renderer.page.document.Options.ColorMode);
 
         // Realize rendering mode.
         if (RealizedRenderingMode != renderingMode)
@@ -754,8 +767,8 @@ internal sealed class PdfGraphicsState : ICloneable
         // Keyed on the simulation rather than on the rendering mode: a caller who strokes their
         // text is in mode 2 as well, and owes none of this widening.
         var charSpace = format.CharacterSpacing;
-        if (boldSimulation)
-            charSpace += font.Size * Const.BoldEmphasis;
+        if (boldSimulation != null)
+            charSpace += font.Size * boldSimulation.CharacterSpacing;
 
         #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         if (RealizedCharSpace != charSpace)

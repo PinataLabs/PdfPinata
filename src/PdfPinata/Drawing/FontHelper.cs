@@ -65,7 +65,14 @@ internal static class FontHelper
     /// which have to agree or a line is drawn at a width nothing measured.
     /// </remarks>
     internal static double BoldSimulationSpacing(XFont font)
-        => SimulatesBold(font) ? font.Size * Const.BoldEmphasis : 0;
+        => SimulatesBold(font) ? font.Size * font.GlyphTypeface.BoldSimulation.CharacterSpacing : 0;
+
+    /// <summary>
+    /// How this face simulates bold - the stroke and spacing its font resolver chose - or null
+    /// when it is not simulating bold at all.
+    /// </summary>
+    internal static XBoldSimulation BoldSimulationOf(XFont font)
+        => SimulatesBold(font) ? font.GlyphTypeface.BoldSimulation : null;
 
     /// <summary>
     /// Measure string directly from font data.
