@@ -8,6 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+#### Added
+
+- **A font resolver can choose how a face with no bold of its own is made bold.** Simulated bold strokes each glyph and adds a character spacing after it, and both
+were fixed at 2% of the em, the figure in the XPS specification. Microsoft Word strokes at 1/35 of the em and adds no spacing, so a bold title drawn here was wider
+than Word's by 0.02 em per character. The reporter measured 13–18 pt at 12 pt. A smaller font size does not fix it, because the spacing is the same for every glyph,
+ wide or narrow. `XBoldSimulation` holds the stroke width and the spacing. `XBoldSimulation.Default` is what was drawn before, and `XBoldSimulation.WordCompatible`
+sets the glyphs at the regular face's advances, as Word does. A resolver gives one per face with the new `FontResolverInfo(faceName, styleSimulations, boldSimulatio
+n)` constructor. A resolver derived from `FontResolverBase`, such as `SkiaFontResolver` or `ImageSharpFontResolver`, takes it from its new `BoldSimulation` property
+, which must be set before the resolver is first used. `MeasureString` counts the same spacing that is drawn, so text laid out with one setting is never drawn with
+another. Nothing changes for a resolver that does not set it. 
+
 ## [0.4.3] - 2026-10-14
 
 ### Fonts & Text
