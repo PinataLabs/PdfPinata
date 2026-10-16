@@ -409,7 +409,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         var width = _gfx.MeasureString(s, font, format).Width;
 
         var italicSimulation = (font.GlyphTypeface.StyleSimulations & XStyleSimulations.ItalicSimulation) != 0;
-        var boldSimulation = FontHelper.SimulatesBold(font);
+        var boldSimulation = FontHelper.BoldSimulationOf(font);
         var underline = DecorationOf(format.Underline, font.Style, XFontStyle.Underline);
         var strikeout = DecorationOf(format.Strikeout, font.Style, XFontStyle.Strikeout);
 
@@ -418,21 +418,22 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         // was asked for. A face with no bold file has its boldness simulated by stroking, and a
         // string that fell back may be part simulated and part not - so the stroking colour and
         // width have to be ready if any segment needs them, and only the mode and spacing then vary
-        // per segment. The descriptor is the one the measuring path uses, from the same cache,
+        // per segment. The stroke width is the first simulating face's, since one string has one
+        // stroke. The descriptor is the one the measuring path uses, from the same cache,
         // because measuring and drawing shaping the string differently is the one thing that must
         // not happen.
         ShapedText shaped = null;
-        var anySimulatesBold = boldSimulation;
+        var anySimulation = boldSimulation;
         if (font.Unicode)
         {
             var shapingDescriptor = FontDescriptorCache.GetOrCreateDescriptorFor(font) as OpenTypeDescriptor;
             shaped = TextShaping.ShapeText(s.AsSpan(), font, shapingDescriptor, format.TextDirection);
-            anySimulatesBold = anySimulatesBold || AnySegmentSimulatesBold(shaped);
+            anySimulation ??= FirstSegmentBoldSimulation(shaped);
         }
 
         // Identical to boldSimulation whenever the string is all one face, which is every string
         // that needed no fallback - so the common path realizes exactly what it always did.
-        Realize(font, brush, pen, anySimulatesBold, format);
+        Realize(font, brush, pen, anySimulation, format);
 
         // The same arithmetic XGraphicsPath.AddString places its glyphs by, so that a string added
         // to a path lands where the same string drawn here lands.
@@ -468,17 +469,19 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     }
 
     /// <summary>
-    /// Whether any face a shaped string is drawn in has its boldness simulated by stroking.
+    /// How the first face of a shaped string to have its boldness simulated by stroking does it,
+    /// or null when none of them does.
     /// </summary>
-    private static bool AnySegmentSimulatesBold(ShapedText shaped)
+    private static XBoldSimulation FirstSegmentBoldSimulation(ShapedText shaped)
     {
         for (var idx = 0; idx < shaped.Segments.Count; idx++)
         {
-            if (FontHelper.SimulatesBold(shaped.Segments[idx].Font))
-                return true;
+            var simulation = FontHelper.BoldSimulationOf(shaped.Segments[idx].Font);
+            if (simulation != null)
+                return simulation;
         }
 
-        return false;
+        return null;
     }
 
     /// <summary>
@@ -1840,7 +1843,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// <summary>
     /// Makes the specified font and brush to the current graphics objects.
     /// </summary>
-    private void Realize(XFont font, XBrush brush, XPen pen, bool boldSimulation, XStringFormat format)
+    private void Realize(XFont font, XBrush brush, XPen pen, XBoldSimulation boldSimulation, XStringFormat format)
     {
         BeginPage();
         RealizeTransform();

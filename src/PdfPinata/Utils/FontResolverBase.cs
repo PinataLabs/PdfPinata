@@ -1,4 +1,5 @@
 
+using System;
 using System.Linq;
 using System.Diagnostics;
 using System.Collections.Generic;
@@ -433,6 +434,25 @@ public abstract class FontResolverBase
     public bool NullIfFontNotFound { get; set; } = false;
 
     /// <summary>
+    /// Gets or sets how bold is simulated for a family with no bold face of its own.
+    /// <see cref="XBoldSimulation.Default"/> unless set; <see cref="XBoldSimulation.WordCompatible"/>
+    /// draws a simulated bold at the regular face's advances, as Microsoft Word does.
+    /// </summary>
+    /// <remarks>
+    /// Read when a typeface is first resolved, and what that answers is cached for the life of the
+    /// process - so set it before the resolver is registered, not afterwards.
+    /// </remarks>
+    public XBoldSimulation BoldSimulation
+    {
+        get;
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            field = value;
+        }
+    } = XBoldSimulation.Default;
+
+    /// <summary>
     /// Resolves a family name and style to an installed face, falling back to a face of the same
     /// family in another style, and then to the default family, unless
     /// <see cref="NullIfFontNotFound"/> says to answer null instead.
@@ -462,12 +482,12 @@ public abstract class FontResolverBase
     /// a family has no file for - stroking the glyphs, and skewing them - but only if it is
     /// told to, and this is where it is told.
     /// </remarks>
-    private static FontResolverInfo Resolve(FontFamilyModel family, bool isBold, bool isItalic)
+    private FontResolverInfo Resolve(FontFamilyModel family, bool isBold, bool isItalic)
     {
         foreach (var candidate in Candidates(isBold, isItalic))
         {
             if (family.FontFiles.TryGetValue(candidate.Key, out var faceName))
-                return new FontResolverInfo(faceName, candidate.Value);
+                return new FontResolverInfo(faceName, candidate.Value, BoldSimulation);
         }
 
         // The family is keyed by the four styles the candidates cover, so this is unreachable

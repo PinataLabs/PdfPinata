@@ -64,6 +64,19 @@ internal sealed class PinnedFontResolver : IFontResolver
     /// </summary>
     public const string DevanagariFamilyName = "Noto Sans Devanagari";
 
+    /// <summary>
+    ///   A family served by Liberation Sans Regular alone, whose bold is simulated the way Microsoft
+    ///   Word simulates it - <see cref="XBoldSimulation.WordCompatible"/>.
+    /// </summary>
+    public const string WordBoldFamilyName = "Simulated Bold Word";
+
+    /// <summary>
+    ///   The same file as <see cref="WordBoldFamilyName"/>, with its bold simulated the default way.
+    ///   The two are the same face asked for under two names, which is what shows that two ways of
+    ///   simulating it are held apart rather than one answer being cached for both.
+    /// </summary>
+    public const string DefaultBoldFamilyName = "Simulated Bold Default";
+
     private const string ArabicFaceName = "NotoSansArabic-Regular.ttf";
 
     private const string DevanagariFaceName = "NotoSansDevanagari-Regular.ttf";
@@ -118,6 +131,19 @@ internal sealed class PinnedFontResolver : IFontResolver
                 | (isItalic ? XStyleSimulations.ItalicSimulation : XStyleSimulations.None);
 
             return new FontResolverInfo(CffFaceName, simulations);
+        }
+
+        if (string.Equals(familyName, WordBoldFamilyName, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(familyName, DefaultBoldFamilyName, StringComparison.OrdinalIgnoreCase))
+        {
+            var simulations =
+                (isBold ? XStyleSimulations.BoldSimulation : XStyleSimulations.None)
+                | (isItalic ? XStyleSimulations.ItalicSimulation : XStyleSimulations.None);
+            var boldSimulation = string.Equals(familyName, WordBoldFamilyName, StringComparison.OrdinalIgnoreCase)
+                ? XBoldSimulation.WordCompatible
+                : XBoldSimulation.Default;
+
+            return new FontResolverInfo(FaceNameOf(false, false), simulations, boldSimulation);
         }
 
         // Every other family is answered, so that a document asking for a font that is not

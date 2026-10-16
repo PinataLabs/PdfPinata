@@ -176,7 +176,8 @@ The rendering side is complete and has been all along:
   a text matrix, with `AdjustTdOffset` compensating the offset while the skew is on.
 - `XGraphicsPdfRenderer.cs:400` — bold simulation calls `Realize(font, brush, 2)`, PDF text render
   mode 2, fill-then-stroke.
-- `FontHelper.MeasureString` widens the measurement by `Const.BoldEmphasis` per character so layout
+- `FontHelper.MeasureString` widens the measurement by the face's `XBoldSimulation.CharacterSpacing`
+  (a constant, `Const.BoldEmphasis`, until empira/PDFsharp#412 made it the resolver's choice) per character so layout
   agrees with what is drawn.
 
 What never happens is anyone asking for it. `FontResolverBase.ResolveTypeface` falls back through

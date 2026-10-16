@@ -123,7 +123,10 @@ internal sealed class XGlyphTypeface
         // Each font source already contains its OpenTypeFontface. The resolver's simulation
         // flags have to come along: they are the whole record of the difference between the
         // face that was asked for and the file that answered, and the renderer draws from them.
-        glyphTypeface = new XGlyphTypeface(typefaceKey, fontSource, fontResolverInfo.StyleSimulations);
+        glyphTypeface = new XGlyphTypeface(typefaceKey, fontSource, fontResolverInfo.StyleSimulations)
+        {
+            BoldSimulation = fontResolverInfo.BoldSimulation
+        };
         GlyphTypefaceCache.AddGlyphTypeface(glyphTypeface);
 
         return glyphTypeface;
@@ -190,6 +193,12 @@ internal sealed class XGlyphTypeface
     public bool IsItalic { get; private set; }
 
     public XStyleSimulations StyleSimulations { get; }
+
+    /// <summary>
+    /// How bold is simulated when <see cref="StyleSimulations"/> says it must be: the stroke and
+    /// spacing the font resolver chose for this face. Ignored when bold is not simulated.
+    /// </summary>
+    public XBoldSimulation BoldSimulation { get; internal init; } = XBoldSimulation.Default;
 
     /// <summary>
     /// Gets the suffix of the face name in a PDF font and font descriptor.

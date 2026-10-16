@@ -95,6 +95,20 @@ public class FontResolverInfo
     /// <see cref="T:PdfPinata.Utils.TrueTypeCollection"/>.
     /// </param>
     internal FontResolverInfo(string faceName, bool mustSimulateBold, bool mustSimulateItalic, int collectionNumber)
+        : this(faceName, mustSimulateBold, mustSimulateItalic, collectionNumber, null)
+    { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FontResolverInfo"/> class, with the way bold is
+    /// simulated where it must be.
+    /// </summary>
+    /// <param name="faceName">The name that uniquely identifies the fontface.</param>
+    /// <param name="mustSimulateBold">Set to <c>true</c> to simulate bold when rendered, by stroking the glyphs as well as filling them.</param>
+    /// <param name="mustSimulateItalic">Set to <c>true</c> to simulate italic when rendered.</param>
+    /// <param name="collectionNumber">Vestigial, and must be zero - see the constructor without <paramref name="boldSimulation"/>.</param>
+    /// <param name="boldSimulation">How to simulate bold, or null for <see cref="XBoldSimulation.Default"/>.</param>
+    internal FontResolverInfo(string faceName, bool mustSimulateBold, bool mustSimulateItalic, int collectionNumber,
+        XBoldSimulation boldSimulation)
     {
         if (string.IsNullOrEmpty(faceName))
             throw new ArgumentNullException(nameof(faceName));
@@ -104,6 +118,7 @@ public class FontResolverInfo
         FaceName = faceName;
         MustSimulateBold = mustSimulateBold;
         MustSimulateItalic = mustSimulateItalic;
+        BoldSimulation = boldSimulation ?? XBoldSimulation.Default;
     }
 
     /// <summary>
@@ -128,10 +143,47 @@ public class FontResolverInfo
     { }
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="FontResolverInfo" /> class for a face whose
+    /// bold, where it is simulated, is drawn the way <paramref name="boldSimulation"/> says.
+    /// </summary>
+    /// <param name="faceName">The name that uniquely identifies the fontface.</param>
+    /// <param name="styleSimulations">The style simulation flags.</param>
+    /// <param name="boldSimulation">
+    /// How heavily the glyphs are stroked and how far apart they are set when
+    /// <paramref name="styleSimulations"/> includes <see cref="XStyleSimulations.BoldSimulation"/>;
+    /// null means <see cref="XBoldSimulation.Default"/>. Ignored when bold is not simulated.
+    /// </param>
+    /// <remarks>
+    /// Decided here, per face, rather than once for the whole process, because the resolver is what
+    /// knows a face has no bold of its own - and because what it answers is cached against the
+    /// family and style asked for, so every measurement and every drawing of that face reads the
+    /// same value and a line is never drawn at a width it was not measured at.
+    /// </remarks>
+    public FontResolverInfo(string faceName, XStyleSimulations styleSimulations, XBoldSimulation boldSimulation)
+        : this(faceName,
+            (styleSimulations & XStyleSimulations.BoldSimulation) == XStyleSimulations.BoldSimulation,
+            (styleSimulations & XStyleSimulations.ItalicSimulation) == XStyleSimulations.ItalicSimulation, 0,
+            boldSimulation)
+    { }
+
+    /// <summary>
     /// Gets the key for this object.
     /// </summary>
+    /// <remarks>
+    /// Two answers naming the same file with the same flags are one typeface and share an entry,
+    /// so a bold simulation other than the default has to be part of the key - or a second family
+    /// served from the same file would quietly be drawn the first one's way. The default adds
+    /// nothing, which keeps every key this ever made what it was.
+    /// </remarks>
     internal string Key => field ??= KeyPrefix + FaceName.ToLowerInvariant()
-                                              + '/' + (MustSimulateBold ? "b+" : "b-") + (MustSimulateItalic ? "i+" : "i-");
+                                              + '/' + (MustSimulateBold ? "b+" : "b-") + (MustSimulateItalic ? "i+" : "i-")
+                                              + BoldSimulationKeySuffix;
+
+    private string BoldSimulationKeySuffix
+        => MustSimulateBold && !BoldSimulation.Equals(XBoldSimulation.Default)
+            ? string.Format(CultureInfo.InvariantCulture, "/bs{0:R}:{1:R}",
+                BoldSimulation.StrokeWidth, BoldSimulation.CharacterSpacing)
+            : "";
 
     /// <summary>
     /// A name that uniquely identifies the font (not the family), e.g. the file name of the font. PdfPinata does not use this
@@ -143,6 +195,13 @@ public class FontResolverInfo
     /// Indicates whether bold must be simulated, by stroking the glyphs as well as filling them.
     /// </summary>
     public bool MustSimulateBold { get; }
+
+    /// <summary>
+    /// How bold is simulated when <see cref="MustSimulateBold"/> is set: the width of the stroke
+    /// drawn round each glyph and the spacing added after it. <see cref="XBoldSimulation.Default"/>
+    /// unless the resolver chose otherwise.
+    /// </summary>
+    public XBoldSimulation BoldSimulation { get; }
 
     /// <summary>
     /// Indicates whether italic must be simulated.
