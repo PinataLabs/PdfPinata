@@ -9,7 +9,7 @@ investigation turned up. All three are tracked the same way, because what a read
 first is the same in each case: is this the code as it stands, or the code as somebody hoped it
 would be?
 
-**49 done · 5 in progress · 10 not started · 64 total.**
+**50 done · 5 in progress · 10 not started · 65 total.**
 
 Read the relevant spec before extending that feature area.
 
@@ -58,6 +58,7 @@ decisions, not outstanding work.
 - [x] [script-itemizer-contract.md](script-itemizer-contract.md) — `ScriptItemizer` put back where it is called from (T16)
 - [x] [signature-lifetime.md](signature-lifetime.md) — PAdES B-T and B-LT, and a `/DocMDP` level that is enforced (G5 tail)
 - [x] [simple-type-immutability.md](simple-type-immutability.md) — the simple-type rule enforced, not just stated (T12)
+- [x] [sixlabors-licence-key.md](sixlabors-licence-key.md) — the committed community key for ImageSharp 4, which projects carry it, and how to renew it, #306
 - [x] [soft-hyphen-in-justified-list.md](soft-hyphen-in-justified-list.md) — a hyphenated word in a justified list item, empira#339
 - [x] [spot-colours.md](spot-colours.md) — named inks written as `/Separation` colour spaces from `XGraphics`, empira#201
 - [x] [tabbed-bidirectional-lines.md](tabbed-bidirectional-lines.md) — a right-to-left line with a tab in it, reordered segment by segment (G3 tail)

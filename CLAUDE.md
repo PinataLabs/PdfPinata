@@ -76,6 +76,13 @@ months, and `SrgbProfile.cs` is gone. **A CMYK or `Undefined` document is still 
 four CMYK numbers are a different colour on every press — and that asymmetry is the whole of the
 rule, in `PdfConformanceWriter.Enforce` and `PdfOutputIntents`.
 
+**ImageSharp 4.x and Fonts 3.x refuse to build in Release without a Six Labors licence key.** The
+repository's community key is committed as `src/PdfPinata.ImageSharp4/sixlabors.lic`; it covers the
+assembly name `PdfPinata.ImageSharp4` and no other, and it expires on 2028-01-15. Any other project
+takes ImageSharp through a `ProjectReference` to that one rather than a `PackageReference`, which is
+never checked. `Directory.Build.targets` turns Six Labors' bare failure into PPSL001–PPSL004, which
+say which key and what to do; `docs/specs/sixlabors-licence-key.md` has the renewal steps.
+
 There is no lint or format step in the build or in CI.
 
 **Judge a test run by its exit code, not by the word `Passed`.** Every rasterization on Windows
