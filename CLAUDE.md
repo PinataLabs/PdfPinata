@@ -36,10 +36,14 @@ because the global resolver is set once a process. `blazor-wasm-smoke.yml` makes
 Release publish of `src/SampleBlazorWasm`, which **fails with IL2104 on a trim warning from a PdfPinata
 or PinataLayout assembly** (`-p:FailOnPdfPinataTrimWarnings=false` prints them in full), then drives
 it in headless Chromium through `src/SampleBlazorWasm.SmokeTest`. The release workflows build the
-nine packaged projects alone, so a sample cannot hold up a release.
+ten packaged projects alone, so a sample cannot hold up a release. The vulnerable-package check
+allows five advisories against SixLabors.ImageSharp 2.1.x **permanently**: `PdfPinata.ImageSharp`
+stays on that end-of-life line by decision (#305), and they will never be fixed there. An advisory
+against 4.x fails the build; only if NuGet's data is wrong about it (it still flags 3.2.0, which is
+fixed) does it get a temporary entry, with a note saying when to remove it.
 
 **Versions come from git tags, not from the project files.** MinVer (referenced for packable
-projects in `Directory.Build.targets`) versions all nine packages in lockstep from the latest
+projects in `Directory.Build.targets`) versions all ten packages in lockstep from the latest
 `v1.2.3` tag, so no csproj carries a `<Version>`; an untagged commit is a pre-release. Releasing is
 the *Publish Release* workflow (`release-publish.yml`): it takes the version Release Drafter has
 drafted from merged PRs' labels, rolls `CHANGELOG.md`'s `[Unreleased]` section, tags, and calls
@@ -78,10 +82,14 @@ rule, in `PdfConformanceWriter.Enforce` and `PdfOutputIntents`.
 
 **ImageSharp 4.x and Fonts 3.x refuse to build in Release without a Six Labors licence key.** The
 repository's community key is committed as `src/PdfPinata.ImageSharp4/sixlabors.lic`; it covers the
-assembly name `PdfPinata.ImageSharp4` and no other, and it expires on 2028-01-15. Any other project
-takes ImageSharp through a `ProjectReference` to that one rather than a `PackageReference`, which is
-never checked. `Directory.Build.targets` turns Six Labors' bare failure into PPSL001–PPSL004, which
-say which key and what to do; `docs/specs/sixlabors-licence-key.md` has the renewal steps.
+assembly name `PdfPinata.ImageSharp4` and no other, and it expires on 2028-01-15. So **only
+`PdfPinata.ImageSharp4` may have a `PackageReference` to SixLabors.ImageSharp 4.x or Fonts 3.x**:
+any other project — its tests, the Blazor sample — takes them through a `ProjectReference` to it,
+which is never checked, or needs a key of its own for its own assembly name.
+`Directory.Build.targets` turns Six Labors' bare failure into PPSL001–PPSL004, which say which key
+and what to do, and PPSL004 starts warning 60 days before expiry; `docs/specs/sixlabors-licence-key.md`
+has the renewal steps. A consumer of the package needs no key: the check is in the package's
+`build/` folder, which does not flow.
 
 There is no lint or format step in the build or in CI.
 
@@ -118,8 +126,11 @@ not waited out.
 
 ```
 PdfPinata ─────────────┬── PdfPinata.Skia        (SkiaSharp; the default backend)
-   (no imaging or font    ├── PdfPinata.ImageSharp   (ImageSharp 2.1.x, Fonts 1.0.1)
-    dependency of its own)├── PdfPinata.HarfBuzz     (HarfBuzzSharp; shaping, either backend)
+   (no imaging or font    ├── PdfPinata.ImageSharp   (ImageSharp 2.1.x, Fonts 1.0.1; for Unity, Apache-2.0)
+    dependency of its own)├── PdfPinata.ImageSharp4  (ImageSharp 4.x, Fonts 3.x; net8.0;net10.0 only)
+                          │      ▲    (both compile src/ImageSharpBackend; 4 defines IMAGESHARP4)
+                          │      └── PdfPinata.ImageSharp4.Tests  (links its tests out of PdfPinata.Test)
+                          ├── PdfPinata.HarfBuzz     (HarfBuzzSharp; shaping, any backend)
                           ├── PdfPinata.Signing      (CMS signing; net8.0;net10.0 only)
                           └── PdfPinata.EInvoice     (Factur-X / ZUGFeRD; no dependency at all)
    ▲       ▲
@@ -133,8 +144,13 @@ PdfPinata ─────────────┬── PdfPinata.Skia       
            └── SampleApp  (the demonstration CLI; net8.0 alone, so both test legs can reference it)
 ```
 
-Five test projects, and which one a new test belongs in is worth a moment. `PdfPinata.Test`
-is the broad one and the default. `PinataLayout.DocumentObjectModel.Generators.Tests` drives the
+Six test projects, and which one a new test belongs in is worth a moment. `PdfPinata.Test`
+is the broad one and the default; it runs the ImageSharp backend on 2.1.x.
+`PdfPinata.ImageSharp4.Tests` exists because **one project resolves one ImageSharp version**: it
+holds no tests of its own beyond a few for 4.x alone, and compiles the backend's test files from
+`PdfPinata.Test` by link (with `IMAGESHARP4` defined), so both packages answer to one set. A test of
+the ImageSharp backend goes in `PdfPinata.Test` and, if it is not 2.x-specific, is added to that
+project's link list; each linked file says "Shared" in its class comment. `PinataLayout.DocumentObjectModel.Generators.Tests` drives the
 DOM's source generator through `CSharpGeneratorDriver`. `PinataLayout.Rendering.Tests` covers
 PinataLayout's own layout — paragraphs, tables, fields, the paragraph iterator — and its tagged output,
 and deliberately rasterizes nothing, so it needs neither Ghostscript nor ImageMagick. It links four
@@ -195,7 +211,8 @@ through `PdfSigner.Sign` and `Revise` through `SaveIncremental`.
 is a dependency the library forces on a consumer, and both are written out in the project file so
 that what those two demos cost is visible.
 
-`src/SampleBlazorWasm` is the Blazor WebAssembly sample (net10.0, in the solution): ImageSharp and
+`src/SampleBlazorWasm` is the Blazor WebAssembly sample (net10.0, in the solution):
+`PdfPinata.ImageSharp4`, by `ProjectReference` for the licence-key reason above, and
 `InMemoryFontResolver`, registered in `Program.cs` before `RunAsync`, with Liberation Sans fetched
 from `wwwroot/fonts`. `PdfPinata.Test` links its `SampleDocument.cs` and `EncryptedSample.cs` and runs
 them in `Samples/BlazorWasmSampleTests.cs`. `src/SampleBlazorWasm.SmokeTest` is **not** in the
@@ -254,12 +271,23 @@ must not oblige a consumer to pick an imaging backend — `PdfPinata.ImageSharp`
 SixLabors.Fonts 1.0.1 for licence reasons and cannot shape for itself. It takes `HarfBuzzSharp`
 alone, not `SkiaSharp.HarfBuzz`.
 
-**The ImageSharp backend's source is in `src/ImageSharpBackend`, not in its project.** It is written
-once for two packages: `PdfPinata.ImageSharp` compiles it against ImageSharp 2.1.x, and the planned
-`PdfPinata.ImageSharp4` against 4.x with the `IMAGESHARP4` constant defined (#305). A call whose API
-differs between the majors goes behind that constant; everything else is shared as it stands. Its
-tests stay in `PdfPinata.Test`, which is pinned to 2.x, and each file the 4.x tests link says so in
-its class comment.
+**There are two ImageSharp packages, and they are equals.** `PdfPinata.ImageSharp4` (ImageSharp 4.x,
+Fonts 3.x, Six Labors Split License, `net8.0;net10.0`) is the one to recommend; `PdfPinata.ImageSharp`
+(2.1.x, Fonts 1.0.1, Apache-2.0) stays for Unity's `netstandard2.1` and for Apache-2.0-only consumers,
+though 2.1.x is end of life with five advisories that will never be fixed. A package is named for the
+major it binds to and never moves to another, so a new licence never arrives through a routine
+update; each one's range stops below the next major and it throws a named
+`InvalidOperationException` if another loads anyway. Both have the same types in the same
+namespaces, so a consumer switches in the project file alone. `docs/specs/imagesharp4-backend.md`
+records the decisions and what was left out.
+
+**Their source is in `src/ImageSharpBackend`, not in either project.** Both compile it, and the
+4.x project defines `IMAGESHARP4`; a call whose API differs between the majors goes behind that
+constant, and everything else is shared as it stands, so a fix lands in both. The 4.x build sets its
+decoder options to give 2.x's pixels — an embedded ICC profile is kept, not applied — and draws a
+colour glyph from its COLR v0 layers or plain outline, as 2.x does. **A JPEG is the one exception**:
+ImageSharp 3 rewrote the decoder and the two differ by up to 2/255 per channel, so never promise a
+byte-identical PDF across a switch for JPEG input.
 
 Everything that turns a character into a glyph goes through the internal `Fonts/TextShaping` — both
 `FontHelper.MeasureString` and `XGraphicsPdfRenderer.DrawString`, so that the glyphs measured are the
@@ -629,9 +657,10 @@ object rather than built per render pass.
 
 ## Multi-targeting
 
-Every shipped package targets `netstandard2.1;net8.0;net10.0`. `netstandard2.1` exists **for Unity**,
-whose scripting runtime cannot consume a `net8.0` assembly — check with the maintainer before
-dropping it. Two consequences:
+Every shipped package targets `netstandard2.1;net8.0;net10.0` except `PdfPinata.Signing` and
+`PdfPinata.ImageSharp4`, whose dependencies have no netstandard build. `netstandard2.1` exists
+**for Unity**, whose scripting runtime cannot consume a `net8.0` assembly — check with the
+maintainer before dropping it. Two consequences:
 
 - `Directory.Build.props` sets `LangVersion=latest` for every leg, or the netstandard2.1 leg would
   compile shared source as C# 8. This unlocks *syntax* only. Anything needing a BCL type
@@ -648,7 +677,9 @@ dropping it. Two consequences:
 ## Tests
 
 `TestBackendSetup` is a `[ModuleInitializer]` that registers the Skia backend and Ghostscript for
-the whole assembly — individual tests do not set up backends.
+the whole assembly — individual tests do not set up backends. `PdfPinata.ImageSharp4.Tests` has its
+own, registering the ImageSharp 4.x backend instead, so a linked test that goes through a seam
+exercises 4.x there; it rasterizes nothing and needs no Ghostscript.
 
 `PinnedFontResolver` serves Liberation Sans (Arial metrics) from `Assets/Fonts` instead of the
 machine's fonts, because glyph widths decide where a line wraps and therefore what a layout

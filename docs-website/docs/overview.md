@@ -66,8 +66,9 @@ installs one **backend** and registers it when it starts. The other packages are
 |---|---|
 | `PdfPinata` | The PDF object model, `XGraphics` drawing, reading and changing PDFs, forms, annotations, encryption and PDF/A. |
 | `PdfPinata.Skia` | The recommended backend: fonts and images through SkiaSharp. Needs native libraries. |
-| `PdfPinata.ImageSharp` | A fully managed backend: fonts and images through ImageSharp 2.1 and SixLabors.Fonts. |
-| `PdfPinata.HarfBuzz` | Text shaping: kerning, ligatures and joined scripts such as Arabic. Works with either backend. |
+| `PdfPinata.ImageSharp4` | A fully managed backend: fonts and images through ImageSharp 4 and SixLabors.Fonts 3. .NET 8 and later only. |
+| `PdfPinata.ImageSharp` | The same backend on ImageSharp 2.1 and SixLabors.Fonts 1.0, for Unity and for Apache-2.0 dependencies. ImageSharp 2.1 is end of life. |
+| `PdfPinata.HarfBuzz` | Text shaping: kerning, ligatures and joined scripts such as Arabic. Works with any backend. |
 | `PdfPinata.Charting` | Charts drawn with `XGraphics`. |
 | `PdfPinata.Signing` | Digital signatures (CMS and PAdES) with the .NET cryptography libraries. .NET 8 and later only. |
 | `PdfPinata.EInvoice` | Attaches a Factur-X or ZUGFeRD invoice to a PDF/A-3 document. |

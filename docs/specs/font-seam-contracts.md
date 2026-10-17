@@ -152,7 +152,7 @@ which was abstract, so a resolver of one's own no longer has to parse a font to 
 `ImageSharpFontResolver` keeps all three of its own. What is left is three *rules* for picking the
 family name: `OpenTypeFontMetadata` scores the name records, preferring Windows US English; the
 core's `NameTable` in `OpenTypeFontTables` keeps the first record it can read, decoding a Macintosh one
-as UTF-8; and `PdfPinata.ImageSharp` takes SixLabors' answer. Aligning them changes which family a
+as UTF-8; and the ImageSharp backend (both packages, one source) takes SixLabors' answer. Aligning them changes which family a
 face is filed under, so it is a decision of its own rather than part of moving code.
 `FontResolverParityTest` holds two of the three in agreement by walking the machine's font directory
 and does not reach the third.

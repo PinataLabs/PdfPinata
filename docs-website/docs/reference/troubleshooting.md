@@ -93,19 +93,30 @@ version the same as the SkiaSharp or HarfBuzzSharp version that PdfPinata brings
 
 ### NU1107 or NU1608 about SixLabors.ImageSharp
 
-`PdfPinata.ImageSharp` needs ImageSharp 2.1.x and declares the range `[2.1.13,3.0.0)`. If another
-package brings in ImageSharp 3, NuGet reports `NU1107`. If your project references ImageSharp 3
-directly, NuGet uses your version and reports the warning `NU1608`. Treat that warning as an error,
-because ImageSharp 3 is not binary compatible with 2.1:
+Each ImageSharp backend needs one major version of ImageSharp:
+
+| Package | Needs | Declared range |
+|---|---|---|
+| `PdfPinata.ImageSharp4` | ImageSharp 4.x | `[4.1.3,5.0.0)` |
+| `PdfPinata.ImageSharp` | ImageSharp 2.1.x | `[2.1.13,3.0.0)` |
+
+If another package brings in a version outside that range, NuGet reports `NU1107`. If your project
+references a version outside it directly, NuGet uses your version and reports the warning `NU1608`.
+Treat that warning as an error, because the major versions of ImageSharp are not binary compatible:
 
 ```xml
 <WarningsAsErrors>$(WarningsAsErrors);NU1608</WarningsAsErrors>
 ```
 
-If ImageSharp 3 loads anyway, the backend throws an `InvalidOperationException` that starts
-"PdfPinata.ImageSharp is built against SixLabors.ImageSharp 2.1.x, but version ... was loaded at
-runtime." If your application needs ImageSharp 3, use `PdfPinata.Skia`, which does not depend on
-ImageSharp.
+If the wrong version loads anyway, the backend throws an `InvalidOperationException` that starts
+"PdfPinata.ImageSharp4 is built against SixLabors.ImageSharp 4.x" or "PdfPinata.ImageSharp is built
+against SixLabors.ImageSharp 2.1.x", and names the version that was loaded.
+
+To fix it, use the backend that matches the ImageSharp your application needs. If your application
+uses ImageSharp 4, use `PdfPinata.ImageSharp4`. Switching between the two ImageSharp backends is a
+change to the project file only. If it uses ImageSharp 3, use `PdfPinata.Skia`, which does not
+depend on ImageSharp. See
+[Choose an ImageSharp package](../installation.md#choose-an-imagesharp-package).
 
 ## Text
 
