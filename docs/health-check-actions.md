@@ -243,7 +243,7 @@ Public API documentation — the compiler is the only trustworthy measure. Must 
 shipped package:
 
 ```powershell
-foreach ($p in @('PdfPinata','PdfPinata.Skia','PdfPinata.ImageSharp','PdfPinata.Signing',
+foreach ($p in @('PdfPinata','PdfPinata.Skia','PdfPinata.ImageSharp','PdfPinata.ImageSharp4','PdfPinata.Signing',
                  'PdfPinata.Charting','PinataLayout.DocumentObjectModel','PinataLayout.Rendering')) {
   $out = dotnet build "src/$p/$p.csproj" -c Release --no-incremental 2>&1
   "{0,-34} CS1591={1}" -f $p, ($out | Select-String 'warning CS1591').Count

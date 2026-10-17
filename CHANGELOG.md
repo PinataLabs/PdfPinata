@@ -14,6 +14,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **`PdfPinata.ImageSharp4` is an ImageSharp backend on SixLabors.ImageSharp 4.x and SixLabors.Fonts 3.x.** `PdfPinata.ImageSharp` stays on ImageSharp 2.1.x, which is end of life and has five security advisories that will not be fixed; the new package has none of them, and suits an app that already uses a newer ImageSharp, since an app resolves one ImageSharp version. Both are built from the same source and have the same types in the same namespaces, so switching is a change to the project file, not to code. The new package targets `net8.0` and `net10.0` only, because ImageSharp 4 has no `netstandard2.1` build, so Unity stays on `PdfPinata.ImageSharp`. ImageSharp 4 and Fonts 3 are under the Six Labors Split License, not Apache-2.0. An app that references the package needs no Six Labors licence key to build, because the key is checked only when this repository builds the package. The two packages give the same results for the same input. Images decode to the same pixels, except that a JPEG can differ by up to 2 levels in 255, because ImageSharp 3 rewrote the JPEG decoder. An embedded ICC profile is kept and not applied, as 2.x does. `ImageSharpGlyphOutlineProvider` gives the same glyph outlines to within a few millionths of a point. As in 2.x, colour glyphs are drawn from their COLR version 0 layers, and SVG and COLR version 1 glyphs are drawn from their ordinary outlines. When the app loads another ImageSharp major at run time, the package throws an `InvalidOperationException` that names the version it needs. The ImageSharp dependency is `[4.1.3, 5.0.0)` and the Fonts dependency is `[3.2.0, 4.0.0)`. (#308)
 
+#### Changed
+
+- **`PdfPinata.ImageSharp`'s package description says that ImageSharp 2.1.x is end of life.** It has five security advisories that will never be fixed, and the description names `PdfPinata.ImageSharp4` as the package to use unless you target Unity or must keep your dependencies under Apache-2.0. `PdfPinata.ImageSharp4`'s description names its licence, the Six Labors Split License, and quotes Six Labors: an application that uses ImageSharp only through PdfPinata needs no Six Labors licence. (#310)
+
+### Documentation & Samples
+
+#### Changed
+
+- **The installation guide says which ImageSharp package to choose.** A new section, *Choose an ImageSharp package*, covers Unity (2.x only), the licence of each package, the five 2.x advisories, and switching between the two, which is a change to the project file only. A JPEG can decode up to 2 levels in 255 differently after a switch, so the PDF is not always byte-identical. The licensing, platforms, troubleshooting, FAQ, migration and overview pages, and the README, name both packages and link to it. `docs/specs/imagesharp4-backend.md` records the decisions of #305 and what was left out: an ImageSharp 3.x package, a `netstandard2.1` build of the 4.x package, and retiring the 2.x one. (#310)
+
 ## [0.4.4] - 2026-10-17
 
 #### Added

@@ -9,7 +9,7 @@ investigation turned up. All three are tracked the same way, because what a read
 first is the same in each case: is this the code as it stands, or the code as somebody hoped it
 would be?
 
-**50 done · 5 in progress · 10 not started · 65 total.**
+**51 done · 5 in progress · 10 not started · 66 total.**
 
 Read the relevant spec before extending that feature area.
 
@@ -40,6 +40,7 @@ decisions, not outstanding work.
 - [x] [hybrid-reference-files.md](hybrid-reference-files.md) — the `/XRefStm` a classic trailer names, empira#388; every compressed object was invisible without it
 - [x] [image-failure-reporting.md](image-failure-reporting.md) — an image decode failure that says which failure, empira#366
 - [x] [image-pixel-seam.md](image-pixel-seam.md) — the image seam widened from an invented BMP to pixels (T14)
+- [x] [imagesharp4-backend.md](imagesharp4-backend.md) — `PdfPinata.ImageSharp4` beside the 2.x package: one source, equal packages, which to choose, and why no 3.x, #305
 - [x] [import-size-and-annotations.md](import-size-and-annotations.md) — page-import defects found beyond issue #461
 - [x] [incremental-update-save.md](incremental-update-save.md) — appending to a PDF instead of rewriting it (G6)
 - [x] [line-breaking.md](line-breaking.md) — a line break between two runs of formatting decided by UAX #14, #284

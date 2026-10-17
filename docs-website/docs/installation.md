@@ -11,8 +11,9 @@ throws an `InvalidOperationException` that names the property to set.
 ## Requirements
 
 - **.NET 8 or .NET 10.** Every package targets `net8.0` and `net10.0`.
-- **.NET Standard 2.1.** Every package except `PdfPinata.Signing` also targets `netstandard2.1`.
-  This target exists for Unity, whose scripting runtime cannot load `net8.0` assemblies.
+- **.NET Standard 2.1.** Every package except `PdfPinata.Signing` and `PdfPinata.ImageSharp4` also
+  targets `netstandard2.1`. This target exists for Unity, whose scripting runtime cannot load
+  `net8.0` assemblies.
 - **Native libraries for SkiaSharp and HarfBuzzSharp**, if you use `PdfPinata.Skia` or
   `PdfPinata.HarfBuzz`. See [Add the native libraries](#add-the-native-libraries).
 
@@ -20,7 +21,7 @@ throws an `InvalidOperationException` that names the property to set.
 
 | To do this | Install |
 |---|---|
-| Draw pages with `XGraphics`, or change existing PDFs | `PdfPinata.Skia` or `PdfPinata.ImageSharp` (either one brings in `PdfPinata`) |
+| Draw pages with `XGraphics`, or change existing PDFs | A backend: `PdfPinata.Skia`, `PdfPinata.ImageSharp4` or `PdfPinata.ImageSharp` (each one brings in `PdfPinata`) |
 | Lay out documents with paragraphs, tables and styles | `PinataLayout.Rendering` and a backend |
 | Draw charts on an `XGraphics` page | `PdfPinata.Charting` and a backend |
 | Shape Arabic, Indic scripts, ligatures and kerning | `PdfPinata.HarfBuzz`, in addition to a backend |
@@ -28,26 +29,78 @@ throws an `InvalidOperationException` that names the property to set.
 | Attach a Factur-X or ZUGFeRD invoice | `PdfPinata.EInvoice` |
 
 `PinataLayout.Rendering` brings in `PinataLayout.DocumentObjectModel` and `PdfPinata.Charting`. All
-nine packages have the same version number, so install the same version of each.
+ten packages have the same version number, so install the same version of each.
 
 ## Choose a backend
 
-The backend reads font files and decodes images for PdfPinata. Install one of the two.
+The backend reads font files and decodes images for PdfPinata. Install one of the three.
 
-| | `PdfPinata.Skia` | `PdfPinata.ImageSharp` |
-|---|---|---|
-| Built on | SkiaSharp | SixLabors.ImageSharp 2.1 and SixLabors.Fonts 1.0 |
-| Native libraries | Yes, one package for each operating system | No, fully managed |
-| Licence of the dependency | MIT | Apache-2.0 |
-| Works beside ImageSharp 3 in your app | Yes | No |
+| | `PdfPinata.Skia` | `PdfPinata.ImageSharp4` | `PdfPinata.ImageSharp` |
+|---|---|---|---|
+| Built on | SkiaSharp | SixLabors.ImageSharp 4 and SixLabors.Fonts 3 | SixLabors.ImageSharp 2.1 and SixLabors.Fonts 1.0 |
+| Native libraries | Yes, one package for each operating system | No, fully managed | No, fully managed |
+| Licence of the dependency | MIT | Six Labors Split License | Apache-2.0 |
+| Target frameworks | `netstandard2.1`, `net8.0`, `net10.0` | `net8.0`, `net10.0` | `netstandard2.1`, `net8.0`, `net10.0` |
+| ImageSharp your app can use beside it | Any version | 4.x only | 2.1.x only |
+| Open ImageSharp security advisories | Not applicable | None | Five, never to be fixed |
 
-**`PdfPinata.Skia` is the recommended backend.** Choose `PdfPinata.ImageSharp` when you cannot ship
-native libraries.
+**`PdfPinata.Skia` is the recommended backend.** Choose an ImageSharp backend when you cannot ship
+native libraries. The next section says which of the two to use.
 
-`PdfPinata.ImageSharp` accepts ImageSharp versions from 2.1.13 up to, but not including, 3.0.
-ImageSharp 3.0 changed to the Six Labors Split License, and it is not binary compatible with 2.1.
-If your application already uses ImageSharp 3, use `PdfPinata.Skia`. The
-[Licensing](./reference/licensing.md) page has more about this.
+## Choose an ImageSharp package
+
+There are two ImageSharp backends. They have the same types in the same namespaces, and they give
+the same results. The difference is the version of ImageSharp that each one uses.
+
+**Use `PdfPinata.ImageSharp4` unless one of these applies to you:**
+
+- **You build for Unity.** ImageSharp 4 targets `net8.0` only, so `PdfPinata.ImageSharp4` has no
+  `netstandard2.1` build. Unity needs one, and only `PdfPinata.ImageSharp` has it.
+- **Every dependency must be under Apache-2.0.** ImageSharp 4 and SixLabors.Fonts 3 are under the
+  Six Labors Split License. `PdfPinata.ImageSharp` uses ImageSharp 2.1 and SixLabors.Fonts 1.0, the
+  last releases under Apache-2.0.
+
+If you use `PdfPinata.ImageSharp`, know these limits:
+
+- **ImageSharp 2.1 is end of life.** It has five security advisories that will never be fixed:
+  [GHSA-gwg2-r3hj-4w44](https://github.com/advisories/GHSA-gwg2-r3hj-4w44),
+  [GHSA-j3p4-wp97-rph4](https://github.com/advisories/GHSA-j3p4-wp97-rph4),
+  [GHSA-wmxv-xphr-5c9g](https://github.com/advisories/GHSA-wmxv-xphr-5c9g),
+  [GHSA-jjfr-hcj7-qf5w](https://github.com/advisories/GHSA-jjfr-hcj7-qf5w) and
+  [GHSA-j9gm-c75j-xc9q](https://github.com/advisories/GHSA-j9gm-c75j-xc9q). Two of them are in the
+  decoders, for ICC colour profiles and for BigTIFF files. The other three are in histogram
+  equalization and in the TIFF encoder, which the backend does not call. If your application loads
+  images that you do not control, use `PdfPinata.ImageSharp4` or `PdfPinata.Skia`.
+- **Your application cannot use a later ImageSharp.** NuGet gives an application one version of
+  ImageSharp. If your application already uses ImageSharp 3 or later for its own work, use
+  `PdfPinata.ImageSharp4` (for ImageSharp 4) or `PdfPinata.Skia` (for any version).
+
+**You need no Six Labors licence key to use `PdfPinata.ImageSharp4`.** Six Labors checks its key
+when a project that references ImageSharp directly is built. That check runs when PdfPinata builds
+the package, not when your application builds. Six Labors says: "If you use a third party package
+that depends on our libraries, you do not need a license." If your application also references
+ImageSharp 4 directly, the Six Labors licence applies to that use. See
+[Licensing](./reference/licensing.md).
+
+**To switch between the two, change the package reference only.** The code that registers the
+backend is the same for both. Replace one line in your project file:
+
+```xml
+<!-- Before -->
+<PackageReference Include="PdfPinata.ImageSharp" Version="..." />
+<!-- After -->
+<PackageReference Include="PdfPinata.ImageSharp4" Version="..." />
+```
+
+Images decode to the same pixels in both packages, with one exception. A JPEG image can differ by up
+to 2 levels in 255 in each colour channel, because ImageSharp 3 has a new JPEG decoder. So a PDF made
+from a JPEG image is not always byte for byte the same after a switch. PNG images decode to the same
+pixels. Both packages keep an embedded ICC colour profile and do not apply it.
+
+Each package accepts one major version of ImageSharp. `PdfPinata.ImageSharp4` accepts 4.1.3 up to,
+but not including, 5.0. `PdfPinata.ImageSharp` accepts 2.1.13 up to, but not including, 3.0. The
+majors are not binary compatible, so NuGet reports a conflict when your application asks for another
+one. See [Things to know](#things-to-know).
 
 ## Install the packages
 
@@ -100,7 +153,7 @@ example:
 You can also list `SkiaSharp.NativeAssets.Win32` and `SkiaSharp.NativeAssets.macOS` explicitly.
 This does no harm and makes every version visible in your project file.
 
-`PdfPinata.ImageSharp` needs no native libraries.
+`PdfPinata.ImageSharp4` and `PdfPinata.ImageSharp` need no native libraries.
 [Platforms and deployment](./reference/platforms-and-deployment.md) has more about Linux, containers
 and Unity.
 
@@ -122,7 +175,7 @@ ImageSource.ImageSourceImpl = new SkiaImageSource();
 GlobalFontSettings.GlyphOutlineProvider = new SkiaGlyphOutlineProvider();
 ```
 
-For `PdfPinata.ImageSharp`:
+For `PdfPinata.ImageSharp4` or `PdfPinata.ImageSharp` (the code is the same for both):
 
 ```csharp
 using PdfPinata.Fonts;
@@ -176,9 +229,11 @@ See [Fonts](./fonts-and-text/fonts.md).
 - **A shaper changes measurements.** Shaped text can be narrower or wider than unshaped text, so
   lines can wrap at different words. Register the shaper before you lay out anything whose output
   must stay the same between runs.
-- **If you use the ImageSharp backend, treat warning `NU1608` as an error.** NuGet reports it when
-  your project references ImageSharp 3 directly. Without the error, the build succeeds and the
-  backend throws an `InvalidOperationException` when it decodes an image. Add this to your project file:
+- **If you use an ImageSharp backend, treat warning `NU1608` as an error.** NuGet reports it when
+  your project references a major version of ImageSharp that the backend does not accept: anything
+  but 4.x for `PdfPinata.ImageSharp4`, anything but 2.1.x for `PdfPinata.ImageSharp`. Without the
+  error, the build succeeds and the backend throws an `InvalidOperationException` when it decodes an
+  image. Add this to your project file:
 
   ```xml
   <PropertyGroup>
@@ -186,4 +241,4 @@ See [Fonts](./fonts-and-text/fonts.md).
   </PropertyGroup>
   ```
 
-  If ImageSharp 3 arrives through another package, NuGet reports `NU1107` and the restore fails.
+  If the other version arrives through another package, NuGet reports `NU1107` and the restore fails.

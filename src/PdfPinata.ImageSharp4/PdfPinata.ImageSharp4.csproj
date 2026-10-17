@@ -12,7 +12,9 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>ImageSharp 4 imaging and font backend for PdfPinata.
 
-Provides ImageSharpImageSource, ImageSharpFontResolver and ImageSharpGlyphOutlineProvider, built against SixLabors.ImageSharp 4.x and SixLabors.Fonts 3.x, which are under the Six Labors Split License. The same types and namespaces as PdfPinata.ImageSharp, which stays on the Apache-2.0 licensed 2.1.x line; that line is end of life and carries security advisories that will not be fixed, so prefer this package unless you need netstandard2.1 (Unity) or the Apache-2.0 licence. Images decode to the same pixels as PdfPinata.ImageSharp: embedded colour profiles are kept, not applied.</Description>
+Provides ImageSharpImageSource, ImageSharpFontResolver and ImageSharpGlyphOutlineProvider, built against SixLabors.ImageSharp 4.x and SixLabors.Fonts 3.x. Those packages are under the Six Labors Split License, not Apache-2.0. An application that uses them only through PdfPinata needs no Six Labors licence. Six Labors says: "If you use a third party package that depends on our libraries, you do not need a license."
+
+Use this package unless you target Unity (netstandard2.1) or must keep your dependencies under Apache-2.0. For those, PdfPinata.ImageSharp stays on ImageSharp 2.1.x, which is end of life and has five security advisories that will never be fixed. Both packages have the same types in the same namespaces, so switching between them is a change to the project file only. Images decode as they do in PdfPinata.ImageSharp: an embedded colour profile is kept, not applied, and a JPEG can differ by up to 2 levels in 255 per channel.</Description>
     <summary>ImageSharp 4 backend for PdfPinata</summary>
     <IsTrimmable>true</IsTrimmable>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
