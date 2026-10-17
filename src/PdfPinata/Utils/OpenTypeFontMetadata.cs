@@ -15,6 +15,8 @@ namespace PdfPinata.Utils;
 /// This is what <see cref="FontResolverBase"/> describes a face with unless a derived class says
 /// otherwise, and what <c>SkiaFontResolver</c> describes every face with. It is public so that a
 /// resolver of its own can read a collection's faces the same way without parsing a font itself.
+/// Every reading is offered from a path and from bytes, for a resolver that holds its fonts in
+/// memory and has no file to name; the two answer the same for the same font.
 /// <para>
 /// The family is the legacy family name, name ID 1, which is what PdfPinata resolves against. A
 /// font library's own answer is usually not that: SkiaSharp's <c>SKTypeface.FamilyName</c> reports
@@ -111,18 +113,42 @@ public static class OpenTypeFontMetadata
     }
 
 
-    internal static FontMetadata Read(byte[] data)
+    /// <summary>
+    /// Reads the family name and style of the first font in a font held in memory, whether it is
+    /// a collection or not.
+    /// </summary>
+    /// <param name="data">The whole font file, as it would be on disk.</param>
+    /// <returns>The family name and style the font declares; the same as reading its file.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="data"/> is null.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// The bytes are not a font this can read: they hold no <c>name</c> table or no family name in
+    /// it, or the table directory, the <c>name</c> table or the face lies outside them.
+    /// </exception>
+    public static FontMetadata Read(byte[] data)
     {
         return Read(data, -1);
     }
 
 
     /// <summary>
-    /// Reads every face of a collection from bytes already in hand, so that a file holding a
-    /// dozen faces is opened once rather than a dozen times.
+    /// Reads the family name and style of every face of a collection held in memory, in order.
     /// </summary>
-    internal static FontMetadata[] ReadAll(byte[] data, int faceCount)
+    /// <param name="data">The whole collection file, as it would be on disk.</param>
+    /// <param name="faceCount">
+    /// How many faces to read, from face 0 up; at most as many as the collection holds.
+    /// <see cref="TrueTypeCollection.TryGetFaceCount"/> says how many that is.
+    /// </param>
+    /// <returns>The family name and style of each face, in order; the same as reading its file.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="data"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="faceCount"/> is negative, or more faces than the bytes hold.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// One of the faces is not a font this can read.
+    /// </exception>
+    public static FontMetadata[] ReadAll(byte[] data, int faceCount)
     {
+        ArgumentNullException.ThrowIfNull(data);
         ThrowIfNegativeFaceCount(faceCount);
 
         // The last face asked for is looked up before the array is made, so that a count larger
@@ -139,8 +165,27 @@ public static class OpenTypeFontMetadata
     }
 
 
-    internal static FontMetadata Read(byte[] data, int faceIndex)
+    /// <summary>
+    /// Reads the family name and style of one face of a font held in memory.
+    /// </summary>
+    /// <param name="data">The whole font file, as it would be on disk.</param>
+    /// <param name="faceIndex">
+    /// The face to read out of a collection, or -1 for the first font whether it is a collection
+    /// or not. A font that is not a collection holds face 0 alone.
+    /// </param>
+    /// <returns>The family name and style the face declares; the same as reading its file.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="data"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="faceIndex"/> is less than -1, or names a face the bytes do not hold.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// The bytes are not a font this can read: they hold no <c>name</c> table or no family name in
+    /// it, or the table directory, the <c>name</c> table or the face lies outside them.
+    /// </exception>
+    public static FontMetadata Read(byte[] data, int faceIndex)
     {
+        ArgumentNullException.ThrowIfNull(data);
+
         if (faceIndex < -1)
             throw new ArgumentOutOfRangeException(nameof(faceIndex),
                 "A face index is -1, for the first font in the file, or 0 or more; " + faceIndex + " was asked for.");
