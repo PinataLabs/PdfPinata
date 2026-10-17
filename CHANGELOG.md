@@ -19,6 +19,12 @@ n)` constructor. A resolver derived from `FontResolverBase`, such as `SkiaFontRe
 , which must be set before the resolver is first used. `MeasureString` counts the same spacing that is drawn, so text laid out with one setting is never drawn with
 another. Nothing changes for a resolver that does not set it. 
 
+### PDF Reader & Writer
+
+#### Changed
+
+- **Opening an AES-encrypted document where the runtime has no AES now fails with a `NotSupportedException` that says so.** .NET on WebAssembly, which is what Blazor WebAssembly runs on, provides no AES. There `Aes.Create()` throws a `PlatformNotSupportedException` whose message names neither the document's encryption nor a way round it, and that is what opening a document encrypted with revision 4 of the standard security handler (AES-128) or revisions 5 and 6 (AES-256) threw. The new message names the encryption and the platform, and says to open the document on a server or desktop, or to use a copy that is not encrypted or is encrypted with RC4. The runtime's exception is its `InnerException`. RC4-encrypted documents still open on every platform, and saving needs no AES, because PdfPinata encrypts only with RC4. Where the runtime has AES, nothing changes. (#296)
+
 ## [0.4.3] - 2026-10-14
 
 ### Fonts & Text
