@@ -18,6 +18,7 @@ sets the glyphs at the regular face's advances, as Word does. A resolver gives o
 n)` constructor. A resolver derived from `FontResolverBase`, such as `SkiaFontResolver` or `ImageSharpFontResolver`, takes it from its new `BoldSimulation` property
 , which must be set before the resolver is first used. `MeasureString` counts the same spacing that is drawn, so text laid out with one setting is never drawn with
 another. Nothing changes for a resolver that does not set it. 
+- **`OpenTypeFontMetadata` reads a font's family and style from bytes as well as from a path.** `Read(byte[])`, `Read(byte[], faceIndex)` and `ReadAll(byte[], faceCount)` read a single face, one face of a collection and every face of a collection from a font already in memory, and answer the same as the path overloads do for the same file. A resolver that holds its fonts in memory no longer needs a file, or a font library, to describe them. (#295)
 
 ### PDF Reader & Writer
 
