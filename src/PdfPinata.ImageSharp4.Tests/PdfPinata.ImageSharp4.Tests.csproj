@@ -64,6 +64,7 @@
     <Compile Include="..\PdfPinata.Test\Imaging\ImageQualityDefaultTests.cs" Link="Linked\Imaging\ImageQualityDefaultTests.cs" />
     <Compile Include="..\PdfPinata.Test\Imaging\ImageSharpVersionTest.cs" Link="Linked\Imaging\ImageSharpVersionTest.cs" />
     <Compile Include="..\PdfPinata.Test\Imaging\ImageSharpDecodingParityTests.cs" Link="Linked\Imaging\ImageSharpDecodingParityTests.cs" />
+    <Compile Include="..\PdfPinata.Test\Imaging\ImageSharpCmykJpegTests.cs" Link="Linked\Imaging\ImageSharpCmykJpegTests.cs" />
     <Compile Include="..\PdfPinata.Test\Drawing\GlyphOutlineTests.cs" Link="Linked\Drawing\GlyphOutlineTests.cs" />
     <Compile Include="..\PdfPinata.Test\Drawing\ImageSharpGlyphOutlineParityTests.cs" Link="Linked\Drawing\ImageSharpGlyphOutlineParityTests.cs" />
     <Compile Include="..\PdfPinata.Test\Fonts\FontResolverParityTest.cs" Link="Linked\Fonts\FontResolverParityTest.cs" />
@@ -92,7 +93,8 @@
     <None Include="..\PdfPinata.Test\Assets\lenna.png" Link="Assets\lenna.png" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\PdfPinata.Test\Assets\frog-and-toad.jpg" Link="Assets\frog-and-toad.jpg" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\PdfPinata.Test\Assets\Drawing\indexed-trns.png" Link="Assets\Drawing\indexed-trns.png" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\PdfPinata.Test\Assets\Imaging\*.png" Link="Assets\Imaging\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\PdfPinata.Test\Assets\Imaging\*.png;..\PdfPinata.Test\Assets\Imaging\*.jpg;..\PdfPinata.Test\Assets\Imaging\*.gif;..\PdfPinata.Test\Assets\Imaging\*.webp"
+          Link="Assets\Imaging\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
