@@ -2,7 +2,7 @@
 
   <!--
     A Blazor WebAssembly app that builds a PDF in the browser, with no server: PdfPinata, the
-    ImageSharp backend and InMemoryFontResolver, running on .NET for WebAssembly. Publish it and
+    ImageSharp 4 backend and InMemoryFontResolver, running on .NET for WebAssembly. Publish it and
     serve publish/wwwroot from any static file server.
 
     Nothing native is involved - ImageSharp is managed code, where Skia and HarfBuzz would need the
@@ -22,10 +22,11 @@
   <!--
     A Release publish is trimmed, and it fails if the trimmer warns about code in a PdfPinata or
     PinataLayout assembly. CI publishes this app to catch a change that makes the library
-    untrimmable before a consumer does. Warnings from other assemblies are printed but fail nothing:
-    ASP.NET Core and ImageSharp 2.1 have some of their own.
+    untrimmable before a consumer does. PdfPinata.ImageSharp4 is one of those assemblies: the check
+    picks them by the start of their names. Warnings from other assemblies are printed but fail
+    nothing: ASP.NET Core has some of its own.
 
-    Three settings do it, because ILLink can treat a warning code as an error but cannot limit that
+    Four settings do it, because ILLink can treat a warning code as an error but cannot limit that
     to one assembly, and the framework emits the same codes PdfPinata could:
     - Blazor suppresses trim warnings by default, so without SuppressTrimAnalysisWarnings=false the
       trimmer reports nothing at all.
@@ -34,6 +35,12 @@
       collapsing, so no other assembly can produce an IL2104.
     - WarningsAsErrors makes IL2104 an error. ILLink then exits non-zero, so it runs again on the
       next publish rather than being skipped as up to date.
+    - WarningsAsErrors makes IL2026 an error too, because ILLink never collapses that one. IL2026 is
+      a call to a member marked [RequiresUnreferencedCode], and ILLink prints it in full whenever
+      the calling assembly is marked trimmable, as every PdfPinata assembly is - so without this a
+      PdfPinata method that calls Assembly.GetTypes() passes. This one is not limited to our
+      assemblies: an IL2026 from ASP.NET Core or ImageSharp fails the publish too. None of them
+      produces one today; if one starts to, it is printed in full, so the assembly is named.
 
     The IL2104 does not say which member warned. Publish with -p:FailOnPdfPinataTrimWarnings=false
     to see each warning in full, without failing; CI does that when the check fails.
@@ -43,6 +50,7 @@
     <SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
     <TrimmerSingleWarn>false</TrimmerSingleWarn>
     <WarningsAsErrors>$(WarningsAsErrors);IL2104</WarningsAsErrors>
+    <WarningsAsErrors Condition="'$(FailOnPdfPinataTrimWarnings)' == 'true'">$(WarningsAsErrors);IL2026</WarningsAsErrors>
   </PropertyGroup>
 
   <Target Name="CollapsePdfPinataTrimWarnings" AfterTargets="PrepareForILLink"
@@ -53,9 +61,16 @@
     </ItemGroup>
   </Target>
 
+  <!--
+    ImageSharp 4 and Fonts 3 arrive through PdfPinata.ImageSharp4 and nowhere else. Six Labors
+    checks for a licence key in every project that references their packages directly, and the key
+    in src/PdfPinata.ImageSharp4 is good for that assembly name alone, so a PackageReference to
+    SixLabors.ImageSharp or SixLabors.Fonts here would fail this app's Release build.
+    docs/specs/sixlabors-licence-key.md says more.
+  -->
   <ItemGroup>
     <ProjectReference Include="..\PdfPinata\PdfPinata.csproj" />
-    <ProjectReference Include="..\PdfPinata.ImageSharp\PdfPinata.ImageSharp.csproj" />
+    <ProjectReference Include="..\PdfPinata.ImageSharp4\PdfPinata.ImageSharp4.csproj" />
     <ProjectReference Include="..\PinataLayout.Rendering\PinataLayout.Rendering.csproj" />
   </ItemGroup>
 

@@ -13,8 +13,10 @@ namespace SampleBlazorWasm;
 /// </summary>
 /// <remarks>
 /// A browser has no font directory to scan, so the fonts are fetched from <c>wwwroot/fonts</c> and
-/// handed to an <see cref="InMemoryFontResolver"/> as bytes. The images go through ImageSharp, which
-/// is managed code: Skia would need its native library relinked into the WebAssembly runtime.
+/// handed to an <see cref="InMemoryFontResolver"/> as bytes. The images go through ImageSharp 4, from
+/// <c>PdfPinata.ImageSharp4</c>, which is managed code: Skia would need its native library relinked
+/// into the WebAssembly runtime. <c>PdfPinata.ImageSharp</c>, on ImageSharp 2.1, has the same types in
+/// the same namespaces, so only the project reference says which of the two this is.
 /// <para>
 /// <c>ImageSource</c> lives in the PdfPinata assembly but in the
 /// <c>PinataLayout.DocumentObjectModel.Shapes</c> namespace, hence that <c>using</c>.
