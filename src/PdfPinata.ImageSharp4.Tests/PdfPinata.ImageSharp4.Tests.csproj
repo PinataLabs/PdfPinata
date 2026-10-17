@@ -77,6 +77,7 @@
     <Compile Include="..\PdfPinata.Test\Helpers\ContentOperands.cs" Link="Linked\Helpers\ContentOperands.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\DrawnText.cs" Link="Linked\Helpers\DrawnText.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\EmbeddedColourProfile.cs" Link="Linked\Helpers\EmbeddedColourProfile.cs" />
+    <Compile Include="..\PdfPinata.Test\Helpers\GlyphOutlineGeometry.cs" Link="Linked\Helpers\GlyphOutlineGeometry.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\GlyphOutlineSensitiveAttribute.cs" Link="Linked\Helpers\GlyphOutlineSensitiveAttribute.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\PageContent.cs" Link="Linked\Helpers\PageContent.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\PathGeometry.cs" Link="Linked\Helpers\PathGeometry.cs" />
