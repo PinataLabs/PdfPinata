@@ -16,6 +16,10 @@ namespace PdfPinata.Test.Drawing;
 ///   warning. It now produces real geometry, through a backend seam, because reading contours out
 ///   of a font means a <c>glyf</c> decoder for TrueType and a charstring interpreter for
 ///   PostScript outlines — and the core package carries no font dependency to do either with.
+///   <para>
+///     Shared: PdfPinata.ImageSharp4.Tests links this file, so it runs against both ImageSharp
+///     backends. A call that differs between ImageSharp majors goes behind IMAGESHARP4. See #305.
+///   </para>
 /// </summary>
 [GlyphOutlineSensitive]
 public class GlyphOutlineTests
@@ -80,12 +84,21 @@ public class GlyphOutlineTests
         var resolver = GlobalFontSettings.FontResolver;
         var imageSource = PinataLayout.DocumentObjectModel.Shapes
             .ImageSource.ImageSourceImpl;
+        var provider = GlobalFontSettings.GlyphOutlineProvider;
+        try
+        {
+            GlobalFontSettings.GlyphOutlineProvider = new SkiaGlyphOutlineProvider();
 
-        GlobalFontSettings.GlyphOutlineProvider = new SkiaGlyphOutlineProvider();
-
-        GlobalFontSettings.FontResolver.Should().BeSameAs(resolver);
-        PinataLayout.DocumentObjectModel.Shapes.ImageSource.ImageSourceImpl
-            .Should().BeSameAs(imageSource);
+            GlobalFontSettings.FontResolver.Should().BeSameAs(resolver);
+            PinataLayout.DocumentObjectModel.Shapes.ImageSource.ImageSourceImpl
+                .Should().BeSameAs(imageSource);
+        }
+        finally
+        {
+            // Put back, because PdfPinata.ImageSharp4.Tests registers a different provider for
+            // every test after this one.
+            GlobalFontSettings.GlyphOutlineProvider = provider;
+        }
     }
 
     // ----- what the path holds -------------------------------------------------------------------

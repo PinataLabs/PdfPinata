@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- ImageSharp 4.x and Fonts 3.x target net8.0 alone, so this package has no netstandard2.1
+         (Unity) build. PdfPinata.ImageSharp, on the 2.1.x line, keeps that one. See #305. -->
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <!-- The Six Labors community key in this folder is scoped to this assembly name and no other,
+         so it must not change. docs/specs/sixlabors-licence-key.md says more. -->
+    <AssemblyName>PdfPinata.ImageSharp4</AssemblyName>
+    <DefineConstants>$(DefineConstants);IMAGESHARP4</DefineConstants>
+    <!-- Ship the XML documentation alongside the assembly; see PdfPinata.ImageSharp.csproj for why
+         this is set per project. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Description>ImageSharp 4 imaging and font backend for PdfPinata.
+
+Provides ImageSharpImageSource, ImageSharpFontResolver and ImageSharpGlyphOutlineProvider, built against SixLabors.ImageSharp 4.x and SixLabors.Fonts 3.x. Those packages are under the Six Labors Split License, not Apache-2.0. An application that uses them only through PdfPinata needs no Six Labors licence. Six Labors says: "If you use a third party package that depends on our libraries, you do not need a license."
+
+Use this package unless you target Unity (netstandard2.1) or must keep your dependencies under Apache-2.0. For those, PdfPinata.ImageSharp stays on ImageSharp 2.1.x, which is end of life and has five security advisories that will never be fixed. Both packages have the same types in the same namespaces, so switching between them is a change to the project file only. Images decode as they do in PdfPinata.ImageSharp: an embedded colour profile is kept, not applied, and a JPEG can differ by up to 2 levels in 255 per channel.</Description>
+    <summary>ImageSharp 4 backend for PdfPinata</summary>
+    <IsTrimmable>true</IsTrimmable>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The floor is 4.1.3, the release this package is built and tested against. The advisories
+         against 2.1.x and 3.1.x are fixed from 4.1.2, so the floor is clear of them too. The upper
+         bound stops below the next major, which is assumed not binary compatible, as 3.0 was not
+         with 2.1. NuGet does not enforce it against the application: a direct reference to 5.x
+         raises only the NU1608 warning, and the application runs on 5.x. What catches that is the
+         run-time guard in ImageSharpImageSource, which turns the binding failure into an
+         InvalidOperationException naming the version this package needs. Fonts is bounded the same
+         way: Fonts 3 changed the glyph renderer interface this backend implements, and its next
+         major may again. -->
+    <PackageReference Include="SixLabors.ImageSharp" Version="[4.1.3,5.0.0)" />
+    <PackageReference Include="SixLabors.Fonts" Version="[3.2.0,4.0.0)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PdfPinata\PdfPinata.csproj" />
+  </ItemGroup>
+
+  <!--
+    The backend's source lives in src/ImageSharpBackend and is shared with PdfPinata.ImageSharp. The
+    calls that differ between ImageSharp 2.1.x and 4.x sit behind the IMAGESHARP4 constant defined
+    above. One copy of each file, so a fix reaches both packages. See #305.
+  -->
+  <ItemGroup>
+    <Compile Include="..\ImageSharpBackend\*.cs" Link="%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>

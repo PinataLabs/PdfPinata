@@ -15,13 +15,13 @@ first project from scratch, read [Installation](../installation.md) instead.
 
 | Old package | New package |
 | --- | --- |
-| `PdfSharpCore` | `PdfPinata`, plus a backend: `PdfPinata.Skia` or `PdfPinata.ImageSharp` |
+| `PdfSharpCore` | `PdfPinata`, plus a backend: `PdfPinata.Skia`, `PdfPinata.ImageSharp4` or `PdfPinata.ImageSharp` |
 | `PdfSharpCore.Charting` | `PdfPinata.Charting` |
 | `MigraDocCore.DocumentObjectModel` | `PinataLayout.DocumentObjectModel` |
 | `MigraDocCore.Rendering` | `PinataLayout.Rendering` |
 
 The other packages have no counterpart in PdfSharpCore: `PdfPinata.HarfBuzz` (text shaping),
-`PdfPinata.Signing` (digital signatures) and `PdfPinata.EInvoice` (Factur-X and ZUGFeRD). All nine
+`PdfPinata.Signing` (digital signatures) and `PdfPinata.EInvoice` (Factur-X and ZUGFeRD). All ten
 packages have the same version number, so upgrade them together.
 
 ## Change the namespaces
@@ -69,9 +69,11 @@ ImageSource.ImageSourceImpl = new SkiaImageSource();
 GlobalFontSettings.GlyphOutlineProvider = new SkiaGlyphOutlineProvider();
 ```
 
-The ImageSharp backend has `ImageSharpFontResolver`, `ImageSharpImageSource<TPixel>` and
-`ImageSharpGlyphOutlineProvider`, all in `PdfPinata.Utils`. `ImageSharpImageSource<TPixel>` has the
-same name and type parameter as in PdfSharpCore.
+The two ImageSharp backends, `PdfPinata.ImageSharp4` and `PdfPinata.ImageSharp`, both have
+`ImageSharpFontResolver`, `ImageSharpImageSource<TPixel>` and `ImageSharpGlyphOutlineProvider`, all
+in `PdfPinata.Utils`. `ImageSharpImageSource<TPixel>` has the same name and type parameter as in
+PdfSharpCore. [Choose an ImageSharp package](../installation.md#choose-an-imagesharp-package) says
+which of the two to use.
 
 - If you read `GlobalFontSettings.FontResolver` before it is set, it throws an
   `InvalidOperationException` that names the backend packages.
@@ -184,11 +186,12 @@ These affect you only if you call or implement them:
 
 ## Things to know
 
-- **Keep the packages on one version.** All nine packages are released together with the same
+- **Keep the packages on one version.** All ten packages are released together with the same
   version number. Upgrade them together.
-- **The ImageSharp backend needs ImageSharp 2.1.** It does not work with ImageSharp 3. If your
-  application needs ImageSharp 3 for other work, use the Skia backend. See
-  [Platforms and deployment](./platforms-and-deployment.md).
+- **Each ImageSharp backend needs one major version of ImageSharp.** `PdfPinata.ImageSharp4` needs
+  ImageSharp 4 and `PdfPinata.ImageSharp` needs ImageSharp 2.1. If your application needs
+  ImageSharp 3 for other work, use the Skia backend. See
+  [Choose an ImageSharp package](../installation.md#choose-an-imagesharp-package).
 - **The Skia backend needs native assets.** Reference the `SkiaSharp.NativeAssets` package for each
   platform you run on; PdfPinata does not choose them for you.
 - **Register backends in one place.** The font resolver is global to the process and cannot change

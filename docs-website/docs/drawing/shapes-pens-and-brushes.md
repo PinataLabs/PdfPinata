@@ -105,7 +105,7 @@ path.AddString("Clip!", new XFontFamily("Arial"), XFontStyle.Bold, 90,
 gfx.DrawPath(new XPen(XColors.Purple, 2), XBrushes.Orchid, path);
 ```
 
-With PdfPinata.ImageSharp, use `ImageSharpGlyphOutlineProvider` instead. Both are in the
+With either ImageSharp package, use `ImageSharpGlyphOutlineProvider` instead. Both are in the
 `PdfPinata.Utils` namespace. Text in a path is no longer text: readers cannot search or copy it. To
 only outline text, use the `DrawString` overloads that take an `XPen` as well as a brush.
 

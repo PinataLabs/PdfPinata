@@ -7,9 +7,11 @@
          imported before IsPackable is known, or Directory.Build.targets, which is
          imported after the SDK has already derived DocumentationFile from it. -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Description>ImageSharp imaging and font backend for PdfPinata.
+    <Description>ImageSharp 2.1 imaging and font backend for PdfPinata.
 
-Provides ImageSharpImageSource and ImageSharpFontResolver. Pinned to the Apache-2.0 licensed SixLabors 2.1.x / 1.0.x lines; later SixLabors releases use the Six Labors Split License.</Description>
+Provides ImageSharpImageSource, ImageSharpFontResolver and ImageSharpGlyphOutlineProvider, built against SixLabors.ImageSharp 2.1.x and SixLabors.Fonts 1.0.1, the last releases under the Apache-2.0 licence. ImageSharp 2.1.x is end of life and has five security advisories that will never be fixed.
+
+Use PdfPinata.ImageSharp4 instead, unless you target Unity (netstandard2.1) or must keep your dependencies under Apache-2.0. Both packages have the same types in the same namespaces, so switching between them is a change to the project file only.</Description>
     <summary>ImageSharp backend for PdfPinata</summary>
     <IsTrimmable>true</IsTrimmable>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
@@ -27,6 +29,16 @@ Provides ImageSharpImageSource and ImageSharpFontResolver. Pinned to the Apache-
 
   <ItemGroup>
     <ProjectReference Include="..\PdfPinata\PdfPinata.csproj" />
+  </ItemGroup>
+
+  <!--
+    The backend's source lives in src/ImageSharpBackend, not here, because two packages compile it:
+    this one against ImageSharp 2.1.x and PdfPinata.ImageSharp4 against 4.x. The calls that differ
+    between the two majors sit behind the IMAGESHARP4 constant, which this project does not define.
+    One copy of each file, so a fix reaches both packages. See #305.
+  -->
+  <ItemGroup>
+    <Compile Include="..\ImageSharpBackend\*.cs" Link="%(Filename)%(Extension)" />
   </ItemGroup>
 
 </Project>

@@ -17,6 +17,10 @@ namespace PdfPinata.Test.Imaging;
 ///   <c>int</c> and throw. Each test compares against an explicit 75, so it pins what null means as
 ///   well as that it is accepted. The encoders are deterministic, so equal settings give equal
 ///   bytes.
+///   <para>
+///     Shared: PdfPinata.ImageSharp4.Tests links this file, so it runs against both ImageSharp
+///     backends. A call that differs between ImageSharp majors goes behind IMAGESHARP4. See #305.
+///   </para>
 /// </summary>
 public class ImageQualityDefaultTests
 {

@@ -67,7 +67,7 @@ using PdfPinata.HarfBuzz;
 GlobalFontSettings.TextShaper = new HarfBuzzTextShaper();
 ```
 
-`PdfPinata.HarfBuzz` works with either backend, and with no backend at all. The
+`PdfPinata.HarfBuzz` works with any backend, and with no backend at all. The
 [Installation](../installation.md) page lists the packages.
 
 With no shaper registered, each character maps to one glyph through the font's character map. That

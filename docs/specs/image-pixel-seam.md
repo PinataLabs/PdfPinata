@@ -13,7 +13,7 @@ format tag, one call site, grayscale and CMYK deferred — and that is what land
 implementation diverged from the plan's own risk list is the ImageSharp channel swap, and it
 diverged by confirming the risk rather than avoiding it: the plan flagged that `BmpEncoder` was
 performing the R/B reorder invisibly and that removing it would need an explicit replacement, and
-`ImageSharpImageSourceImpl<TPixel2>.ReadPixels` (`src/PdfPinata.ImageSharp/ImageSharpImageSource.cs:180-199`)
+`ImageSharpImageSourceImpl<TPixel2>.ReadPixels` (`src/ImageSharpBackend/ImageSharpImageSource.cs:211-233`)
 is exactly that replacement — `PixelOperations<TPixel2>.Instance.ToBgra32Bytes`, called once per row
 inside `Image.ProcessPixelRows`, which the plan named as the option ImageSharp's 2.1.x line already
 exposed for this. Nothing had to be hand-rolled.

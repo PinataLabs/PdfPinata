@@ -1,0 +1,102 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <IsPackable>false</IsPackable>
+    <!-- The shared test files put their ImageSharp 4.x calls behind this, as the shared backend
+         source does. -->
+    <DefineConstants>$(DefineConstants);IMAGESHARP4</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AwesomeAssertions" Version="9.6.0" />
+    <PackageReference Include="coverlet.MTP" Version="10.1.0" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CrashDump" Version="2.4.1" />
+    <PackageReference Include="Microsoft.Testing.Extensions.HangDump" Version="2.4.1" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="2.4.1" />
+    <PackageReference Include="TUnit.Engine" Version="1.72.16" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.152.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.macOS" Version="4.152.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="4.152.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PdfPinata\PdfPinata.csproj" />
+    <!--
+      The backend under test, and the only way this project reaches SixLabors.ImageSharp 4.x and
+      SixLabors.Fonts 3.x. There is deliberately no PackageReference to either: Six Labors' licence
+      check runs in any project that references them directly, and the repository's community key
+      covers the assembly name PdfPinata.ImageSharp4 alone, so a direct reference would fail this
+      project's Release build. Through a ProjectReference the compile assets flow and the check
+      does not. docs/specs/sixlabors-licence-key.md says more.
+
+      Nothing here references PdfPinata.ImageSharp or ImageSharp 2.x: one project resolves one
+      ImageSharp version, which is why this project exists apart from PdfPinata.Test.
+    -->
+    <ProjectReference Include="..\PdfPinata.ImageSharp4\PdfPinata.ImageSharp4.csproj" />
+    <!-- The shared tests compare the ImageSharp backend against Skia's. -->
+    <ProjectReference Include="..\PdfPinata.Skia\PdfPinata.Skia.csproj" />
+  </ItemGroup>
+
+  <!--
+    ImageSharp 2.1.13's and 3.2.0's assemblies, downloaded but not referenced, for
+    ImageSharpMajorMismatchTests: it loads the backend beside each in a load context of its own, to
+    see what a consumer whose application resolved the wrong major is told. A download takes no
+    compile or build assets, so neither ImageSharp version this project compiles against nor Six
+    Labors' licence check is touched by it.
+  -->
+  <ItemGroup>
+    <PackageDownload Include="SixLabors.ImageSharp" Version="[2.1.13];[3.2.0]" />
+    <None Include="$(NuGetPackageRoot)sixlabors.imagesharp/2.1.13/lib/netcoreapp3.1/SixLabors.ImageSharp.dll"
+          Link="ImageSharp2/SixLabors.ImageSharp.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+    <None Include="$(NuGetPackageRoot)sixlabors.imagesharp/3.2.0/lib/net6.0/SixLabors.ImageSharp.dll"
+          Link="ImageSharp3/SixLabors.ImageSharp.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
+
+  <!--
+    The backend's tests, linked from PdfPinata.Test rather than copied, so that both ImageSharp
+    backends are held to one set of tests. Each says "Shared" in its class comment, and a call that
+    differs between ImageSharp majors goes behind IMAGESHARP4 there. They keep PdfPinata.Test's
+    namespaces, so the file linked is the file as it stands there.
+  -->
+  <ItemGroup>
+    <Compile Include="..\PdfPinata.Test\Imaging\ImagePixelRoundTripTests.cs" Link="Linked\Imaging\ImagePixelRoundTripTests.cs" />
+    <Compile Include="..\PdfPinata.Test\Imaging\ImageQualityDefaultTests.cs" Link="Linked\Imaging\ImageQualityDefaultTests.cs" />
+    <Compile Include="..\PdfPinata.Test\Imaging\ImageSharpVersionTest.cs" Link="Linked\Imaging\ImageSharpVersionTest.cs" />
+    <Compile Include="..\PdfPinata.Test\Imaging\ImageSharpDecodingParityTests.cs" Link="Linked\Imaging\ImageSharpDecodingParityTests.cs" />
+    <Compile Include="..\PdfPinata.Test\Imaging\ImageSharpCmykJpegTests.cs" Link="Linked\Imaging\ImageSharpCmykJpegTests.cs" />
+    <Compile Include="..\PdfPinata.Test\Imaging\ImageSharpTransparencyTests.cs" Link="Linked\Imaging\ImageSharpTransparencyTests.cs" />
+    <Compile Include="..\PdfPinata.Test\Drawing\GlyphOutlineTests.cs" Link="Linked\Drawing\GlyphOutlineTests.cs" />
+    <Compile Include="..\PdfPinata.Test\Drawing\ImageSharpGlyphOutlineParityTests.cs" Link="Linked\Drawing\ImageSharpGlyphOutlineParityTests.cs" />
+    <Compile Include="..\PdfPinata.Test\Fonts\FontResolverParityTest.cs" Link="Linked\Fonts\FontResolverParityTest.cs" />
+    <Compile Include="..\PdfPinata.Test\Fonts\TrueTypeCollectionTest.cs" Link="Linked\Fonts\TrueTypeCollectionTest.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- What those tests read and draw with, linked for the same reason. -->
+    <Compile Include="..\PdfPinata.Test\Helpers\ContentOperands.cs" Link="Linked\Helpers\ContentOperands.cs" />
+    <Compile Include="..\PdfPinata.Test\Helpers\DrawnText.cs" Link="Linked\Helpers\DrawnText.cs" />
+    <Compile Include="..\PdfPinata.Test\Helpers\EmbeddedColourProfile.cs" Link="Linked\Helpers\EmbeddedColourProfile.cs" />
+    <Compile Include="..\PdfPinata.Test\Helpers\GlyphOutlineGeometry.cs" Link="Linked\Helpers\GlyphOutlineGeometry.cs" />
+    <Compile Include="..\PdfPinata.Test\Helpers\GlyphOutlineSensitiveAttribute.cs" Link="Linked\Helpers\GlyphOutlineSensitiveAttribute.cs" />
+    <Compile Include="..\PdfPinata.Test\Helpers\PageContent.cs" Link="Linked\Helpers\PageContent.cs" />
+    <Compile Include="..\PdfPinata.Test\Helpers\PathGeometry.cs" Link="Linked\Helpers\PathGeometry.cs" />
+    <Compile Include="..\PdfPinata.Test\Helpers\PathHelper.cs" Link="Linked\Helpers\PathHelper.cs" />
+    <Compile Include="..\PdfPinata.Test\Helpers\PinnedFontResolver.cs" Link="Linked\Helpers\PinnedFontResolver.cs" />
+    <Compile Include="..\PdfPinata.Test\Helpers\TextBaselines.cs" Link="Linked\Helpers\TextBaselines.cs" />
+    <Compile Include="..\PdfPinata.Test\Helpers\TextOperators.cs" Link="Linked\Helpers\TextOperators.cs" />
+    <Compile Include="..\PdfPinata.Test\Helpers\TrueTypeCollectionBuilder.cs" Link="Linked\Helpers\TrueTypeCollectionBuilder.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\PdfPinata.Test\Assets\Fonts\*.ttf" Link="Assets\Fonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\PdfPinata.Test\Assets\Fonts\*.otf" Link="Assets\Fonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\PdfPinata.Test\Assets\Fonts\LICENSE.txt" Link="Assets\Fonts\LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\PdfPinata.Test\Assets\lenna.png" Link="Assets\lenna.png" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\PdfPinata.Test\Assets\frog-and-toad.jpg" Link="Assets\frog-and-toad.jpg" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\PdfPinata.Test\Assets\Drawing\indexed-trns.png" Link="Assets\Drawing\indexed-trns.png" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\PdfPinata.Test\Assets\Imaging\*.png;..\PdfPinata.Test\Assets\Imaging\*.jpg;..\PdfPinata.Test\Assets\Imaging\*.gif;..\PdfPinata.Test\Assets\Imaging\*.webp"
+          Link="Assets\Imaging\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

@@ -53,21 +53,22 @@ jobs:
           dotnet-version: 10.0.x
 
       # A Release publish, which is what a user deploys and what Blazor trims. No wasm-tools workload:
-      # the sample uses the ImageSharp backend, which is managed code, so the plain SDK publishes it.
+      # the sample uses PdfPinata.ImageSharp4, which is managed code, so the plain SDK publishes it.
       #
       # This is also the trim check, and the only trimmed publish CI makes. Blazor WebAssembly trims
       # every app it publishes, so a change that makes the library untrimmable breaks the apps built
       # on it. The sample's project file makes this publish fail on a trim warning from a PdfPinata
-      # or PinataLayout assembly, and nothing else: ASP.NET Core and ImageSharp warn too, and those
-      # are printed but pass. The failure names only the assembly, so on failure this publishes again
-      # with the check off, which prints each warning in full, and then fails the step.
+      # or PinataLayout assembly, and on an IL2026 from any assembly, because ILLink never collapses
+      # that code into the IL2104 the check looks for. ASP.NET Core's other warnings are printed but
+      # pass; ImageSharp 4 gives none. An IL2104 names only the assembly, so on failure this
+      # publishes again with the check off, which prints each warning in full, and then fails the step.
       - name: Publish the sample, trimmed
         run: |
           if ! dotnet publish src/SampleBlazorWasm -c Release -o artifacts/blazor-wasm; then
             echo "::group::The publish again, with every trim warning in full"
             dotnet publish src/SampleBlazorWasm -c Release -o artifacts/blazor-wasm -p:FailOnPdfPinataTrimWarnings=false || true
             echo "::endgroup::"
-            echo "::error::The trimmed publish of src/SampleBlazorWasm failed. If it failed with IL2104, a PdfPinata or PinataLayout assembly produced trim warnings; the group above lists them."
+            echo "::error::The trimmed publish of src/SampleBlazorWasm failed. If it failed with IL2104, a PdfPinata or PinataLayout assembly produced trim warnings, and the group above lists them; an IL2026 names the call itself."
             exit 1
           fi
 

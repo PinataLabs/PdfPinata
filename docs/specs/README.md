@@ -9,7 +9,7 @@ investigation turned up. All three are tracked the same way, because what a read
 first is the same in each case: is this the code as it stands, or the code as somebody hoped it
 would be?
 
-**49 done · 5 in progress · 10 not started · 64 total.**
+**51 done · 5 in progress · 10 not started · 66 total.**
 
 Read the relevant spec before extending that feature area.
 
@@ -40,6 +40,7 @@ decisions, not outstanding work.
 - [x] [hybrid-reference-files.md](hybrid-reference-files.md) — the `/XRefStm` a classic trailer names, empira#388; every compressed object was invisible without it
 - [x] [image-failure-reporting.md](image-failure-reporting.md) — an image decode failure that says which failure, empira#366
 - [x] [image-pixel-seam.md](image-pixel-seam.md) — the image seam widened from an invented BMP to pixels (T14)
+- [x] [imagesharp4-backend.md](imagesharp4-backend.md) — `PdfPinata.ImageSharp4` beside the 2.x package: one source, equal packages, which to choose, and why no 3.x, #305
 - [x] [import-size-and-annotations.md](import-size-and-annotations.md) — page-import defects found beyond issue #461
 - [x] [incremental-update-save.md](incremental-update-save.md) — appending to a PDF instead of rewriting it (G6)
 - [x] [line-breaking.md](line-breaking.md) — a line break between two runs of formatting decided by UAX #14, #284
@@ -58,6 +59,7 @@ decisions, not outstanding work.
 - [x] [script-itemizer-contract.md](script-itemizer-contract.md) — `ScriptItemizer` put back where it is called from (T16)
 - [x] [signature-lifetime.md](signature-lifetime.md) — PAdES B-T and B-LT, and a `/DocMDP` level that is enforced (G5 tail)
 - [x] [simple-type-immutability.md](simple-type-immutability.md) — the simple-type rule enforced, not just stated (T12)
+- [x] [sixlabors-licence-key.md](sixlabors-licence-key.md) — the committed community key for ImageSharp 4, which projects carry it, and how to renew it, #306
 - [x] [soft-hyphen-in-justified-list.md](soft-hyphen-in-justified-list.md) — a hyphenated word in a justified list item, empira#339
 - [x] [spot-colours.md](spot-colours.md) — named inks written as `/Separation` colour spaces from `XGraphics`, empira#201
 - [x] [tabbed-bidirectional-lines.md](tabbed-bidirectional-lines.md) — a right-to-left line with a tab in it, reordered segment by segment (G3 tail)

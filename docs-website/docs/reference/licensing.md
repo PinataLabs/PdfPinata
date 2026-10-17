@@ -10,7 +10,7 @@ need to know what a licence allows in your situation, read the licence text or a
 ## PdfPinata
 
 PdfPinata and PinataLayout are released under the **MIT License**. The licence text is in
-[LICENSE.md](https://github.com/PinataLabs/PdfPinata/blob/main/LICENSE.md), and every one of the nine
+[LICENSE.md](https://github.com/PinataLabs/PdfPinata/blob/main/LICENSE.md), and every one of the ten
 NuGet packages includes that file.
 
 The licence carries three copyright lines, because PdfPinata continues earlier work:
@@ -33,6 +33,8 @@ their licences as their NuGet packages declare them.
 |---|---|---|
 | `PdfPinata` | SharpZipLib 1.4.2 | MIT |
 | `PdfPinata.Skia` | SkiaSharp, and its native asset packages | MIT |
+| `PdfPinata.ImageSharp4` | SixLabors.ImageSharp 4.1.3 or later 4.x versions | Six Labors Split License |
+| | SixLabors.Fonts 3.2.0 or later 3.x versions | Six Labors Split License |
 | `PdfPinata.ImageSharp` | SixLabors.ImageSharp 2.1.13 or later 2.1 versions | Apache-2.0 |
 | | SixLabors.Fonts 1.0.1 | Apache-2.0 |
 | `PdfPinata.HarfBuzz` | HarfBuzzSharp, and its native asset packages | MIT |
@@ -52,19 +54,36 @@ The `PdfPinata` package also contains a 456-byte sRGB colour profile, which it g
 documents that name no profile of their own. The profile comes from the Compact ICC Profiles
 collection by Clinton Ingram and is released to the public domain under Creative Commons CC0 1.0.
 
-## Why the ImageSharp backend stays on version 2.1
+## The two ImageSharp packages
 
-SixLabors.ImageSharp 3.0 and later versions use the
+There are two ImageSharp backends, and their dependencies have different licences.
+[Choose an ImageSharp package](../installation.md#choose-an-imagesharp-package) says which one to
+use. This section gives the licence facts only.
+
+**`PdfPinata.ImageSharp4`** depends on SixLabors.ImageSharp 4 and SixLabors.Fonts 3. Since version
+3.0 of ImageSharp and version 2.0 of Fonts, Six Labors releases them under the
 [Six Labors Split License](https://github.com/SixLabors/ImageSharp/blob/main/LICENSE), not
-Apache-2.0. Version 2.1 is the last Apache-2.0 line. `PdfPinata.ImageSharp` therefore depends on
-ImageSharp versions from 2.1.13 up to, but not including, 3.0, so that installing it does not bring
-the newer licence into your application. SixLabors.Fonts is held at 1.0.1 for the same reason.
+Apache-2.0.
 
-The limit is also technical. ImageSharp 3 is not binary compatible with 2.1, so the backend cannot
-run against it. [Installation](../installation.md) explains how NuGet reports the conflict.
+An application that uses ImageSharp only through PdfPinata needs no Six Labors licence. Six Labors
+[says](https://sixlabors.com/posts/licence-enforcement-changes/): "If you use a third party package
+that depends on our libraries, you do not need a license." Six Labors checks a licence key when a
+project that references its packages directly is built. PdfPinata's build has a key, so the package
+can be built. Your application's build does not run that check, because the check does not pass to
+the packages that depend on ImageSharp. If your application also references ImageSharp or Fonts
+directly, the Split License applies to that use, as it would without PdfPinata.
 
-If your application needs ImageSharp 3, use `PdfPinata.Skia`. It has no ImageSharp dependency, so
-your application can use ImageSharp 3 for its own work and under its own licence terms.
+**`PdfPinata.ImageSharp`** depends on SixLabors.ImageSharp 2.1 and SixLabors.Fonts 1.0.1, the last
+releases under Apache-2.0. Its version range stops below ImageSharp 3.0, so installing it never
+brings the Split License into your application. ImageSharp 2.1 is end of life and has five security
+advisories that will never be fixed. Use this package if every dependency must be under Apache-2.0,
+or if you build for Unity.
+
+Each package keeps the ImageSharp major version it was made for. A new ImageSharp major gets a new
+package, so a routine update of a PdfPinata package never changes the licence of its dependencies.
+
+`PdfPinata.Skia` has no ImageSharp dependency. With it, your application can use any version of
+ImageSharp for its own work, under that version's licence.
 
 ## Build-time tools
 

@@ -4,7 +4,7 @@
     What a packable project needs to be released, and nothing else does. This is .targets rather than
     Directory.Build.props because the .props file is imported before the project body and so cannot
     read IsPackable out of it. Every test project, ConformanceCorpus, SampleApp, SampleBlazorWasm,
-    the AOT smoke test and the source generator say IsPackable=false; the nine shipped projects say
+    the AOT smoke test and the source generator say IsPackable=false; the ten shipped projects say
     nothing and are packable by default.
 
     MinVer sets the version from the git tag - see Directory.Build.props for the tag prefix and the
@@ -28,7 +28,7 @@
   </PropertyGroup>
 
   <!--
-    The package metadata all nine shipped packages share, and the two files each one carries at its
+    The package metadata all ten shipped packages share, and the two files each one carries at its
     root. What differs between them - Description, PackageTags - stays in each project file.
 
     GenerateDocumentationFile is the exception that cannot move here: the SDK derives DocumentationFile
@@ -70,6 +70,105 @@
       <SbomGenerationBuildComponentPath>$(MSBuildProjectDirectory)/obj</SbomGenerationBuildComponentPath>
       <SbomGenerationNamespaceBaseUri>$(RepositoryUrl)/spdx</SbomGenerationNamespaceBaseUri>
     </PropertyGroup>
+  </Target>
+
+  <!--
+    The Six Labors licence key. ImageSharp 4.x and Fonts 3.x check for one when a project that
+    references them directly is compiled: without a valid key a Debug build warns and any other
+    build fails. Each such project carries a copy of the key as sixlabors.lic in its own folder,
+    which is where the packages' own target looks. docs/specs/sixlabors-licence-key.md says where
+    the key came from, which projects carry it and how to renew it.
+
+    Six Labors' check says only "No Six Labors license found" or "Six Labors license validation
+    failed", which does not say which key, why, or what to do. The two targets below run just before
+    it and say those things, with the same severity it would use: an error, or a warning in Debug.
+
+      * PPSL001 - the project has no key. The key is scoped to one assembly name, so the message
+        says what to do when the project is not PdfPinata.ImageSharp4.
+      * PPSL002 - the key's ExpiryDateUtc cannot be read.
+      * PPSL003 - the key has expired.
+      * PPSL004 - the key expires within PdfPinataSixLaborsKeyWarningDays (60) days. Always a warning.
+
+    Both read the key Six Labors' check will read, so neither fails a build it would pass: the text
+    of $(SixLaborsLicenseKey) when that is set, else the file $(SixLaborsLicenseFile) names, else the
+    project's own sixlabors.lic. That last is the one difference: Six Labors' check also takes a
+    sixlabors.lic anywhere under the project folder, bin/ and obj/ included, where these take only
+    the one in the folder itself, which is where every copy here lives.
+
+    Both hang off Six Labors' own target, so they run in exactly the projects its check runs in. A
+    project that reaches ImageSharp through a ProjectReference to PdfPinata.ImageSharp4 is never
+    checked, because a package's build/ folder does not flow on to the projects that reference the
+    one it is installed in.
+
+    The key is never packed or copied to the output: it is the repository's key, not a consumer's,
+    and a consumer of a PdfPinata package needs none.
+  -->
+  <PropertyGroup>
+    <_PdfPinataSixLaborsProjectKeyFile>$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', 'sixlabors.lic'))</_PdfPinataSixLaborsProjectKeyFile>
+    <PdfPinataSixLaborsKeyFile Condition="'$(SixLaborsLicenseFile)' != ''">$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(SixLaborsLicenseFile)'))</PdfPinataSixLaborsKeyFile>
+    <PdfPinataSixLaborsKeyFile Condition="'$(SixLaborsLicenseFile)' == ''">$(_PdfPinataSixLaborsProjectKeyFile)</PdfPinataSixLaborsKeyFile>
+    <PdfPinataSixLaborsKeyWarningDays Condition="'$(PdfPinataSixLaborsKeyWarningDays)' == ''">60</PdfPinataSixLaborsKeyWarningDays>
+    <_SixLaborsKeyNote>docs/specs/sixlabors-licence-key.md</_SixLaborsKeyNote>
+  </PropertyGroup>
+
+  <ItemGroup Condition="Exists('$(_PdfPinataSixLaborsProjectKeyFile)')">
+    <None Update="sixlabors.lic" Pack="false" CopyToOutputDirectory="Never" />
+    <Content Update="sixlabors.lic" Pack="false" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
+  </ItemGroup>
+
+  <Target Name="PdfPinataRequireSixLaborsKey"
+          BeforeTargets="SixLabors_ValidateLicense"
+          Condition="'$(DesignTimeBuild)' != 'true' and '$(SixLaborsLicenseKey)' == '' and !Exists('$(PdfPinataSixLaborsKeyFile)')">
+    <PropertyGroup>
+      <_SixLaborsKeyMissing Condition="'$(SixLaborsLicenseFile)' != ''">$(MSBuildProjectName) sets SixLaborsLicenseFile to $(PdfPinataSixLaborsKeyFile), which does not exist, and SixLabors.ImageSharp and SixLabors.Fonts build only in Debug without a licence key. Point it at the key, or clear it to use the sixlabors.lic in $(MSBuildProjectDirectory). See $(_SixLaborsKeyNote).</_SixLaborsKeyMissing>
+      <_SixLaborsKeyMissing Condition="'$(SixLaborsLicenseFile)' == ''">$(MSBuildProjectName) references SixLabors.ImageSharp or SixLabors.Fonts directly, and those packages build only in Debug without a licence key, but there is no sixlabors.lic in $(MSBuildProjectDirectory). The repository's community key, in src/PdfPinata.ImageSharp4/sixlabors.lic, covers the assembly name PdfPinata.ImageSharp4 and no other. If this project's AssemblyName ($(AssemblyName)) is that one, copy the key here. Otherwise, take ImageSharp through a ProjectReference to PdfPinata.ImageSharp4 instead of a PackageReference, or apply for a key for $(AssemblyName) at https://licensing.sixlabors.com. See $(_SixLaborsKeyNote).</_SixLaborsKeyMissing>
+    </PropertyGroup>
+    <Error Condition="!$(Configuration.StartsWith('Debug'))" Code="PPSL001" Text="$(_SixLaborsKeyMissing)" />
+    <Warning Condition="$(Configuration.StartsWith('Debug'))" Code="PPSL001" Text="$(_SixLaborsKeyMissing)" />
+  </Target>
+
+  <Target Name="PdfPinataCheckSixLaborsKeyExpiry"
+          BeforeTargets="SixLabors_ValidateLicense"
+          Condition="'$(DesignTimeBuild)' != 'true' and ('$(SixLaborsLicenseKey)' != '' or Exists('$(PdfPinataSixLaborsKeyFile)'))">
+    <PropertyGroup Condition="'$(SixLaborsLicenseKey)' != ''">
+      <!-- Six Labors' target unescapes it too: a key given on the command line arrives MSBuild-escaped. -->
+      <_SixLaborsKeyText>$([MSBuild]::Unescape('$(SixLaborsLicenseKey)').Trim())</_SixLaborsKeyText>
+      <_SixLaborsKeySource>the SixLaborsLicenseKey property</_SixLaborsKeySource>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(SixLaborsLicenseKey)' == ''">
+      <_SixLaborsKeyText>$([System.IO.File]::ReadAllText('$(PdfPinataSixLaborsKeyFile)').Trim())</_SixLaborsKeyText>
+      <_SixLaborsKeySource>$(PdfPinataSixLaborsKeyFile)</_SixLaborsKeySource>
+    </PropertyGroup>
+    <PropertyGroup>
+      <_SixLaborsKeyId>$([System.Text.RegularExpressions.Regex]::Match('$(_SixLaborsKeyText)', '(?&lt;=(^|;)Id=)[^;]+'))</_SixLaborsKeyId>
+      <_SixLaborsKeyExpiry>$([System.Text.RegularExpressions.Regex]::Match('$(_SixLaborsKeyText)', '(?&lt;=(^|;)ExpiryDateUtc=)\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d'))</_SixLaborsKeyExpiry>
+    </PropertyGroup>
+
+    <PropertyGroup>
+      <_SixLaborsKeyUnreadable>The Six Labors licence key in $(_SixLaborsKeySource) has no ExpiryDateUtc this build can read. See $(_SixLaborsKeyNote) for what the key should hold and how to replace it.</_SixLaborsKeyUnreadable>
+    </PropertyGroup>
+    <Error Condition="'$(_SixLaborsKeyExpiry)' == '' and !$(Configuration.StartsWith('Debug'))" Code="PPSL002" Text="$(_SixLaborsKeyUnreadable)" />
+    <Warning Condition="'$(_SixLaborsKeyExpiry)' == '' and $(Configuration.StartsWith('Debug'))" Code="PPSL002" Text="$(_SixLaborsKeyUnreadable)" />
+
+    <PropertyGroup Condition="'$(_SixLaborsKeyExpiry)' != ''">
+      <!-- 's' is the sortable pattern and is the same in every culture; keeping only its digits gives a number to compare. -->
+      <_SixLaborsKeyExpiryDate>$(_SixLaborsKeyExpiry.Substring(0, 10))</_SixLaborsKeyExpiryDate>
+      <_SixLaborsKeyExpiryStamp>$([System.Text.RegularExpressions.Regex]::Replace('$(_SixLaborsKeyExpiry)', '\D', ''))</_SixLaborsKeyExpiryStamp>
+      <_SixLaborsKeyNowStamp>$([System.Text.RegularExpressions.Regex]::Replace($([System.DateTime]::UtcNow.ToString('s')), '\D', ''))</_SixLaborsKeyNowStamp>
+      <_SixLaborsKeyWarnStamp>$([System.Text.RegularExpressions.Regex]::Replace($([System.DateTime]::UtcNow.AddDays($(PdfPinataSixLaborsKeyWarningDays)).ToString('s')), '\D', ''))</_SixLaborsKeyWarnStamp>
+      <_SixLaborsKeyRenewal>To renew, apply for an open-source community key at https://licensing.sixlabors.com and replace every copy of sixlabors.lic with it; $(_SixLaborsKeyNote) lists the copies.</_SixLaborsKeyRenewal>
+      <_SixLaborsKeyExpired>The Six Labors community licence key $(_SixLaborsKeyId) in $(_SixLaborsKeySource) expired on $(_SixLaborsKeyExpiryDate), and ImageSharp and Fonts build only in Debug without a valid key. $(_SixLaborsKeyRenewal)</_SixLaborsKeyExpired>
+    </PropertyGroup>
+
+    <Error Condition="'$(_SixLaborsKeyExpiryStamp)' != '' and $(_SixLaborsKeyExpiryStamp) &lt;= $(_SixLaborsKeyNowStamp) and !$(Configuration.StartsWith('Debug'))"
+           Code="PPSL003"
+           Text="$(_SixLaborsKeyExpired)" />
+    <Warning Condition="'$(_SixLaborsKeyExpiryStamp)' != '' and $(_SixLaborsKeyExpiryStamp) &lt;= $(_SixLaborsKeyNowStamp) and $(Configuration.StartsWith('Debug'))"
+             Code="PPSL003"
+             Text="$(_SixLaborsKeyExpired)" />
+    <Warning Condition="'$(_SixLaborsKeyExpiryStamp)' != '' and $(_SixLaborsKeyExpiryStamp) &gt; $(_SixLaborsKeyNowStamp) and $(_SixLaborsKeyExpiryStamp) &lt;= $(_SixLaborsKeyWarnStamp)"
+             Code="PPSL004"
+             Text="The Six Labors community licence key $(_SixLaborsKeyId) in $(_SixLaborsKeySource) expires on $(_SixLaborsKeyExpiryDate). After that, Release builds of this project fail. $(_SixLaborsKeyRenewal)" />
   </Target>
 
 </Project>
