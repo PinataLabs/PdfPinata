@@ -177,6 +177,73 @@ public class InMemoryFontResolverTests
             .Should().Be("Liberation Sans");
     }
 
+    /// <summary>
+    ///   The library caches a face's bytes by its face name for the life of the process, whichever
+    ///   resolver handed the name out. Two resolvers that named their faces alike would therefore
+    ///   share one font, and the second one's bytes would never be asked for.
+    /// </summary>
+    [Test]
+    public void TwoResolversNeverHandOutTheSameFaceName()
+    {
+        var first = AResolverWith("LiberationSans-Regular.ttf");
+        var second = AResolverWith("LiberationSans-Regular.ttf");
+
+        var firstFace = first.ResolveTypeface("Liberation Sans", false, false).FaceName;
+        var secondFace = second.ResolveTypeface("Liberation Sans", false, false).FaceName;
+
+        secondFace.Should().NotBe(firstFace);
+    }
+
+    /// <summary>
+    ///   A collection whose second face cannot be taken out of it is refused whole: the first face
+    ///   is not left behind, and the default family is not one the caller was told failed.
+    /// </summary>
+    [Test]
+    public void ACollectionWithAFaceThatCannotBeExtractedAddsNoneOfItsFaces()
+    {
+        var collection = TrueTypeCollectionBuilder.Build(
+            Font("SourceCodePro-Regular.otf"), Font("LiberationSans-Bold.ttf"));
+        PointATableOfTheSecondFaceOutsideTheFile(collection);
+        var resolver = new InMemoryFontResolver { NullIfFontNotFound = true };
+
+        var add = () => resolver.AddFont(collection);
+
+        add.Should().Throw<InvalidOperationException>();
+        var defaultName = () => resolver.DefaultFontName;
+        defaultName.Should().Throw<InvalidOperationException>().WithMessage("*AddFont*");
+    }
+
+    /// <summary>
+    ///   Makes the second face's first table that the metadata reader skips - not 'name', 'OS/2' or
+    ///   'head' - run past the end of the file, so its family and style still read but the face
+    ///   cannot be extracted.
+    /// </summary>
+    private static void PointATableOfTheSecondFaceOutsideTheFile(byte[] collection)
+    {
+        static int U16(byte[] data, int offset) => (data[offset] << 8) | data[offset + 1];
+        static int U32(byte[] data, int offset) =>
+            (data[offset] << 24) | (data[offset + 1] << 16) | (data[offset + 2] << 8) | data[offset + 3];
+
+        var directory = U32(collection, 16);
+        var tableCount = U16(collection, directory + 4);
+        for (var table = 0; table < tableCount; table++)
+        {
+            var record = directory + 12 + table * 16;
+            var tag = System.Text.Encoding.ASCII.GetString(collection, record, 4);
+            if (tag is "name" or "OS/2" or "head")
+                continue;
+
+            var length = collection.Length;
+            collection[record + 12] = (byte)(length >> 24);
+            collection[record + 13] = (byte)(length >> 16);
+            collection[record + 14] = (byte)(length >> 8);
+            collection[record + 15] = (byte)length;
+            return;
+        }
+
+        throw new InvalidOperationException("The second face has no table the metadata reader skips.");
+    }
+
     [Test]
     public void AddingTheSameFaceTwiceKeepsTheFirst()
     {
