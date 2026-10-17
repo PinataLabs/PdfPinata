@@ -82,7 +82,7 @@ internal class AESEncryptor : RC4Encryptor
 
     private void CreateEncryptionKeyR5(byte[] encryptedValue, byte[] password, byte[] salt, byte[] uservalue)
     {
-        var aes256Cbc = Aes.Create();
+        var aes256Cbc = AesProvider.Create(AesProvider.Aes256);
         aes256Cbc.KeySize = 256;
         aes256Cbc.Mode = CipherMode.CBC;
         aes256Cbc.Padding = PaddingMode.None;
@@ -151,7 +151,7 @@ internal class AESEncryptor : RC4Encryptor
         var hash = new byte[32];
         var iv = new byte[16];
         ValidateVersion6(password, salt, hashKey, hash);
-        using var aes256 = Aes.Create();
+        using var aes256 = AesProvider.Create(AesProvider.Aes256);
         aes256.KeySize = 256;
         aes256.Mode = CipherMode.CBC;
         aes256.Padding = PaddingMode.None;
@@ -166,7 +166,8 @@ internal class AESEncryptor : RC4Encryptor
         var blockSize = 32;
         var dataLen = 0;
 
-        using (var aes128 = Aes.Create())
+        // AES-128 is a step of the password hash here, but the document it opens is AES-256.
+        using (var aes128 = AesProvider.Create(AesProvider.Aes256))
         {
             aes128.BlockSize = 16 * 8;
             aes128.Mode = CipherMode.CBC;
@@ -301,7 +302,7 @@ internal class AESEncryptor : RC4Encryptor
         // "Strings and streams encrypted with AES shall use a padding scheme that is described in Internet RFC 2898, PKCS #5"
         var output = new byte[bytes.Length - 16];
         int dataLength;
-        using (var aes = Aes.Create())
+        using (var aes = AesProvider.Create(rValue >= 5 ? AesProvider.Aes256 : AesProvider.Aes128))
         {
             aes.Mode = CipherMode.CBC;
             aes.Padding = PaddingMode.PKCS7;
