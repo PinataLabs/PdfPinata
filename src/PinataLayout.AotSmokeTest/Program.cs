@@ -24,6 +24,10 @@ namespace PinataLayout.AotSmokeTest;
 /// SetNull, CreateValue, and the DDL reader and writer that drive all of them - rather than against
 /// the typed API, which never reflected and would pass either way.
 /// </para>
+/// <para>
+/// It is also the one place a document is rendered with InMemoryFontResolver as its only source of
+/// fonts: the global resolver can be set once a process, and the test suites' is set already.
+/// </para>
 /// </remarks>
 public static class Program
 {
@@ -33,11 +37,15 @@ public static class Program
     {
         Console.WriteLine("PinataLayout AOT smoke test");
 
-        // Neither PdfPinata nor PinataLayout ships a font or imaging backend.
-        PdfPinata.Fonts.GlobalFontSettings.FontResolver = new PdfPinata.Utils.SkiaFontResolver();
+        // Neither PdfPinata nor PinataLayout ships a font or imaging backend. The fonts are the
+        // app's own, served from memory, so that the document renders from nothing the machine has
+        // installed - the only way it can render in a browser.
+        PdfPinata.Fonts.GlobalFontSettings.FontResolver = EmbeddedFonts();
         DocumentObjectModel.Shapes.ImageSource.ImageSourceImpl = new SkiaImageSource();
 
         var document = BuildDocument();
+
+        Check("default font is the family added", document.Styles.Normal.Font.Name == "Liberation Sans");
 
         CheckValueModel(document);
         CheckDdlRoundTrip(document);
@@ -51,6 +59,21 @@ public static class Program
 
         Console.WriteLine("All checks passed.");
         return 0;
+    }
+
+    private static PdfPinata.Utils.InMemoryFontResolver EmbeddedFonts()
+    {
+        var fonts = new PdfPinata.Utils.InMemoryFontResolver();
+        var assembly = typeof(Program).Assembly;
+
+        foreach (var face in new[] { "Regular", "Bold", "Italic", "BoldItalic" })
+        {
+            using var stream = assembly.GetManifestResourceStream($"Fonts.LiberationSans-{face}.ttf")
+                               ?? throw new InvalidOperationException($"The {face} face is not embedded.");
+            fonts.AddFont(stream);
+        }
+
+        return fonts;
     }
 
     private static Document BuildDocument()
@@ -171,6 +194,17 @@ public static class Program
         Span<byte> header = stackalloc byte[5];
         buffer.ReadExactly(header);
         Check("PDF header", header is [0x25, 0x50, 0x44, 0x46, 0x2D]);   // %PDF-
+
+        // The fonts embedded are the family added, and the styled paragraph's bold is a font
+        // program of its own - the bold face added - rather than a simulation over the regular one,
+        // which would embed the regular face's bytes again under the same subset tag.
+        var pdf = System.Text.Encoding.Latin1.GetString(buffer.ToArray());
+        var subsets = new System.Collections.Generic.HashSet<string>();
+        foreach (System.Text.RegularExpressions.Match match in
+                 System.Text.RegularExpressions.Regex.Matches(pdf, @"/BaseFont /([A-Z]{6})\+Liberation#20Sans"))
+            subsets.Add(match.Groups[1].Value);
+        Check("fonts embedded from memory", subsets.Count > 0);
+        Check("bold face embedded as a face of its own", subsets.Count == 2 && pdf.Contains("+Liberation#20Sans,Bold"));
     }
 
     private static void Check(string what, bool ok)
