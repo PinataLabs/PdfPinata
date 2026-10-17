@@ -5,6 +5,8 @@ using PinataLayout.DocumentObjectModel.Internals;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Tables;
 using PinataLayout.Rendering;
+using PdfPinata.Pdf;
+using PdfPinata.Pdf.IO;
 using PdfPinata.Skia;
 
 namespace PinataLayout.AotSmokeTest;
@@ -26,7 +28,8 @@ namespace PinataLayout.AotSmokeTest;
 /// </para>
 /// <para>
 /// It is also the one place a document is rendered with InMemoryFontResolver as its only source of
-/// fonts: the global resolver can be set once a process, and the test suites' is set already.
+/// fonts: the global resolver can be set once a process, and the test suites' is set already. The
+/// resolver for installed fonts, which it rendered through before, is still run, called directly.
 /// </para>
 /// </remarks>
 public static class Program
@@ -50,6 +53,7 @@ public static class Program
         CheckValueModel(document);
         CheckDdlRoundTrip(document);
         CheckRendersToPdf(document);
+        CheckInstalledFonts();
 
         if (failures > 0)
         {
@@ -195,16 +199,78 @@ public static class Program
         buffer.ReadExactly(header);
         Check("PDF header", header is [0x25, 0x50, 0x44, 0x46, 0x2D]);   // %PDF-
 
-        // The fonts embedded are the family added, and the styled paragraph's bold is a font
-        // program of its own - the bold face added - rather than a simulation over the regular one,
-        // which would embed the regular face's bytes again under the same subset tag.
         var pdf = System.Text.Encoding.Latin1.GetString(buffer.ToArray());
-        var subsets = new System.Collections.Generic.HashSet<string>();
-        foreach (System.Text.RegularExpressions.Match match in
-                 System.Text.RegularExpressions.Regex.Matches(pdf, @"/BaseFont /([A-Z]{6})\+Liberation#20Sans"))
-            subsets.Add(match.Groups[1].Value);
-        Check("fonts embedded from memory", subsets.Count > 0);
-        Check("bold face embedded as a face of its own", subsets.Count == 2 && pdf.Contains("+Liberation#20Sans,Bold"));
+        Check("fonts embedded from memory", pdf.Contains("+Liberation#20Sans"));
+
+        // The styled paragraph's bold is the bold face added, not the regular face drawn heavier.
+        // Neither a font's name nor its subset tag says which face its program was cut from - the
+        // tag is random, and a simulated bold can be a font of its own with ",Bold" in its name - so
+        // this reads the programs themselves. A subset keeps the face's 'head' table, and macStyle
+        // there says whether the face is bold.
+        buffer.Position = 0;
+        using var reread = PdfReader.Open(buffer, PdfDocumentOpenMode.Import);
+        var bold = 0;
+        var regular = 0;
+        foreach (var item in reread.Internals.GetAllObjects())
+        {
+            // A /FontFile2 stream is the one stream that carries /Length1.
+            if (item is not PdfDictionary { Stream: not null } program || !program.Elements.ContainsKey("/Length1"))
+                continue;
+
+            if (IsBoldFace(program.Stream.UnfilteredValue))
+                bold++;
+            else
+                regular++;
+        }
+
+        Check("regular face embedded", regular > 0);
+        Check("bold face embedded from the bold font, not simulated", bold > 0);
+    }
+
+    /// <summary>
+    /// The resolver for the fonts installed on the machine, which this binary rendered through before
+    /// it took its fonts from memory. It cannot be registered as well - the global resolver is set
+    /// once a process - so it is called directly: its scan of the platform's font folders, the
+    /// metadata it reads from every file it finds, and the bytes it serves for the face it chooses.
+    /// </summary>
+    private static void CheckInstalledFonts()
+    {
+        try
+        {
+            var installed = new PdfPinata.Utils.SkiaFontResolver();
+            var info = installed.ResolveTypeface(installed.DefaultFontName, false, false);
+            Check("installed fonts resolve", info is not null);
+            if (info is null)
+                return;
+
+            var family = PdfPinata.Utils.OpenTypeFontMetadata.Read(installed.GetFont(info.FaceName)).FamilyName;
+            Check($"installed font served ({family})", family.Length > 0);
+        }
+        catch (Exception ex)
+        {
+            Check($"installed fonts resolve ({ex.GetType().Name}: {ex.Message})", false);
+        }
+    }
+
+    /// <summary>
+    /// Whether a TrueType font program says it is a bold face: bit 0 of macStyle in its 'head' table.
+    /// </summary>
+    private static bool IsBoldFace(byte[] font)
+    {
+        static int U16(byte[] data, int offset) => (data[offset] << 8) | data[offset + 1];
+
+        var tableCount = U16(font, 4);
+        for (var table = 0; table < tableCount; table++)
+        {
+            var record = 12 + table * 16;
+            if (font[record] != 'h' || font[record + 1] != 'e' || font[record + 2] != 'a' || font[record + 3] != 'd')
+                continue;
+
+            var head = (font[record + 8] << 24) | (font[record + 9] << 16) | (font[record + 10] << 8) | font[record + 11];
+            return (U16(font, head + 44) & 1) != 0;
+        }
+
+        return false;
     }
 
     private static void Check(string what, bool ok)
