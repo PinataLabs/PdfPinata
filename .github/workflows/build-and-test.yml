@@ -71,10 +71,21 @@ jobs:
       # A package with a published vulnerability anywhere in the dependency graph fails the build,
       # so it cannot reach a release without somebody deciding that it should.
       #
-      # ACCEPTED is that decision, written down: advisories against SixLabors.ImageSharp, which
-      # PdfPinata.ImageSharp pins to 2.1.x because later releases are under the Six Labors Split
-      # License rather than Apache-2.0. Each is accepted by its advisory URL rather than the package
-      # by name, so an advisory published after these still fails the build until someone reads it.
+      # ACCEPTED is that decision, written down. Each entry is accepted by its advisory URL rather
+      # than the package by name, so an advisory published after these still fails the build until
+      # someone reads it.
+      #
+      # The five below are permanent. They are against SixLabors.ImageSharp 2.1.x, which
+      # PdfPinata.ImageSharp pins because later releases are under the Six Labors Split License
+      # rather than Apache-2.0. The 2.x line is end of life: they are fixed only in 3.2.0 and 4.1.2
+      # and later, and 2.1.x will never have a release that fixes them. They stay for as long as
+      # PdfPinata.ImageSharp ships. PdfPinata.ImageSharp4, on ImageSharp 4.x and Fonts 3.x, is in
+      # the solution and so is checked here too, and it carries none of them.
+      #
+      # NuGet's advisory data lags Six Labors' own: it still flags 3.2.0, which has the fixes. If it
+      # ever flags the 4.x release PdfPinata.ImageSharp4 resolves in the same way, accept that entry
+      # here with a comment that says it is temporary, which release fixed it, and that it comes out
+      # when NuGet's data catches up. Do not widen any entry to the package name.
       - name: Check vulnerable packages
         env:
           ACCEPTED: |
@@ -89,6 +100,8 @@ jobs:
           FOUND=$(echo "$OUTPUT" | jq -r '
             [.projects[].frameworks[]? | (.topLevelPackages // []) + (.transitivePackages // []) | .[]
              | .id as $id | .vulnerabilities[] | "\($id) \(.advisoryurl)"] | unique[]')
+          # ACCEPTED comes from the step's env above, which shellcheck cannot see.
+          # shellcheck disable=SC2153
           UNACCEPTED=$(comm -23 <(echo "$FOUND" | sed '/^$/d' | sort) <(echo "$ACCEPTED" | sed '/^$/d' | sort))
           if [ -n "$UNACCEPTED" ]; then
             echo "$UNACCEPTED" | while read -r id url; do echo "::error::$id: $url"; done
