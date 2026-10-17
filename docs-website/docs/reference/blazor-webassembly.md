@@ -33,14 +33,16 @@ dotnet add package PinataLayout.Rendering
 
 `PdfPinata.ImageSharp4` is built on ImageSharp 4 and Fonts 3, which use the Six Labors Split
 License. Your application needs no Six Labors licence key for them. In Six Labors' words: "If you
-use a third party package that depends on our libraries, you do not need a license."
+use a third party package that depends on our libraries, you do not need a license." If your
+application also references ImageSharp directly, the licence applies to that use.
 
 **`PdfPinata.ImageSharp` is the Apache-2.0 alternative.** It is built on ImageSharp 2.1, which is
 end of life and has security advisories that will not be fixed. It works in the browser in the same
 way. The two packages have the same types in the same namespaces, so to change from one to the
 other, you change only the package reference. The code on this page is the same for both.
-ImageSharp 4 adds about 120 KB to the compressed download. [Installation](../installation.md#choose-a-backend)
-and [Licensing](./licensing.md) explain the choice.
+ImageSharp 4 adds about 120 KB to the compressed download.
+[Choose an ImageSharp package](../installation.md#choose-an-imagesharp-package) and
+[Licensing](./licensing.md#the-two-imagesharp-packages) explain the choice.
 
 `PdfPinata.Skia` and `PdfPinata.HarfBuzz` call native code, so the browser needs WebAssembly builds
 of SkiaSharp and HarfBuzzSharp. To use them:
