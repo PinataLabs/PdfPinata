@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.4.4] - 2026-10-17
+
 #### Added
 
 - **A font resolver can choose how a face with no bold of its own is made bold.** Simulated bold strokes each glyph and adds a character spacing after it, and both
