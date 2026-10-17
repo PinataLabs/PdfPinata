@@ -3,7 +3,8 @@ name: Blazor WebAssembly smoke test
 # Publishes the Blazor WebAssembly sample, serves it, and drives it in headless Chromium: Generate is
 # clicked and the PDF the browser downloads is opened with PdfReader. PdfPinata.Test already runs the
 # sample's document code on the desktop runtime; this is what says it still runs on .NET for
-# WebAssembly, trimmed, with its fonts and image fetched over HTTP.
+# WebAssembly, trimmed, with its fonts and image fetched over HTTP. Its publish is also the check that
+# no PdfPinata assembly warns when trimmed.
 #
 # It is a workflow of its own rather than a step in build-and-test because it needs a browser and the
 # system libraries the browser loads, which nothing else there does, and it runs only when something
@@ -53,8 +54,22 @@ jobs:
 
       # A Release publish, which is what a user deploys and what Blazor trims. No wasm-tools workload:
       # the sample uses the ImageSharp backend, which is managed code, so the plain SDK publishes it.
-      - name: Publish the sample
-        run: dotnet publish src/SampleBlazorWasm -c Release -o artifacts/blazor-wasm
+      #
+      # This is also the trim check, and the only trimmed publish CI makes. Blazor WebAssembly trims
+      # every app it publishes, so a change that makes the library untrimmable breaks the apps built
+      # on it. The sample's project file makes this publish fail on a trim warning from a PdfPinata
+      # or PinataLayout assembly, and nothing else: ASP.NET Core and ImageSharp warn too, and those
+      # are printed but pass. The failure names only the assembly, so on failure this publishes again
+      # with the check off, which prints each warning in full, and then fails the step.
+      - name: Publish the sample, trimmed
+        run: |
+          if ! dotnet publish src/SampleBlazorWasm -c Release -o artifacts/blazor-wasm; then
+            echo "::group::The publish again, with every trim warning in full"
+            dotnet publish src/SampleBlazorWasm -c Release -o artifacts/blazor-wasm -p:FailOnPdfPinataTrimWarnings=false || true
+            echo "::endgroup::"
+            echo "::error::The trimmed publish of src/SampleBlazorWasm failed. If it failed with IL2104, a PdfPinata or PinataLayout assembly produced trim warnings; the group above lists them."
+            exit 1
+          fi
 
       # Building drops playwright.ps1 beside the assembly. It is what installs the browser, and it
       # installs the one this version of Microsoft.Playwright drives, so the two cannot drift apart.

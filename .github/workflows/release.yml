@@ -69,15 +69,20 @@ jobs:
             8.0.x
             10.0.x
 
-      - name: Restore dependencies
-        run: dotnet restore src/PdfPinata.slnx
-
       # CycloneDX, pinned in .config/dotnet-tools.json.
       - name: Restore .NET tools
         run: dotnet tool restore
 
+      # The packages and what they reference, and nothing else in the solution. The samples and the
+      # test projects ship nothing, and build-and-test.yml has built and run them already; built
+      # here, a problem in one of them - the Blazor sample's packages, say - could hold up a release.
       - name: Build
-        run: dotnet build src/PdfPinata.slnx --configuration Release --no-restore
+        run: |
+          for project in $PACKAGES; do
+            echo "::group::Build $project"
+            dotnet build "src/$project/$project.csproj" --configuration Release
+            echo "::endgroup::"
+          done
 
       - name: Pack
         run: |

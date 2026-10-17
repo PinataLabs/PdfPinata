@@ -165,21 +165,10 @@ jobs:
           sudo apt-get install -y clang zlib1g-dev
           dotnet publish src/PinataLayout.AotSmokeTest/PinataLayout.AotSmokeTest.csproj -c Release -r linux-x64
           ./src/PinataLayout.AotSmokeTest/bin/Release/net10.0/linux-x64/publish/PinataLayout.AotSmokeTest
-      # Blazor WebAssembly trims every app it publishes, so a change that makes the library
-      # untrimmable breaks the apps built on it. The sample's project file makes its Release publish
-      # fail on a trim warning from a PdfPinata or PinataLayout assembly, and nothing else: ASP.NET
-      # Core and ImageSharp warn too, and those are printed but pass. The failure names only the
-      # assembly, so on failure this publishes again with the check off, which prints each warning
-      # in full, and then fails the step.
-      - name: Trimmed Blazor WebAssembly publish
-        run: |
-          if ! dotnet publish src/SampleBlazorWasm/SampleBlazorWasm.csproj -c Release; then
-            echo "::group::The publish again, with every trim warning in full"
-            dotnet publish src/SampleBlazorWasm/SampleBlazorWasm.csproj -c Release -p:FailOnPdfPinataTrimWarnings=false || true
-            echo "::endgroup::"
-            echo "::error::The trimmed publish of src/SampleBlazorWasm failed. If it failed with IL2104, a PdfPinata or PinataLayout assembly produced trim warnings; the group above lists them."
-            exit 1
-          fi
+      # The trimmed Release publish of src/SampleBlazorWasm, which fails on a trim warning from a
+      # PdfPinata assembly, is in blazor-wasm-smoke.yml: the smoke test needs that publish anyway,
+      # so it happens once per pull request rather than once in each workflow.
+      #
       # Every PDF/A and PDF/UA claim this library makes is otherwise self-certified: the writer
       # refuses to save a document that breaks a rule it can check, and PdfUaValidator says in its own
       # remarks which rules it cannot reach. This is the outside opinion, and it is the same script a
