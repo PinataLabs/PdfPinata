@@ -39,17 +39,17 @@
   </ItemGroup>
 
   <!--
-    ImageSharp 2.1.13's and 3.1.12's assemblies, downloaded but not referenced, for
+    ImageSharp 2.1.13's and 3.2.0's assemblies, downloaded but not referenced, for
     ImageSharpMajorMismatchTests: it loads the backend beside each in a load context of its own, to
     see what a consumer whose application resolved the wrong major is told. A download takes no
     compile or build assets, so neither ImageSharp version this project compiles against nor Six
     Labors' licence check is touched by it.
   -->
   <ItemGroup>
-    <PackageDownload Include="SixLabors.ImageSharp" Version="[2.1.13];[3.1.12]" />
+    <PackageDownload Include="SixLabors.ImageSharp" Version="[2.1.13];[3.2.0]" />
     <None Include="$(NuGetPackageRoot)sixlabors.imagesharp/2.1.13/lib/netcoreapp3.1/SixLabors.ImageSharp.dll"
           Link="ImageSharp2/SixLabors.ImageSharp.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
-    <None Include="$(NuGetPackageRoot)sixlabors.imagesharp/3.1.12/lib/net6.0/SixLabors.ImageSharp.dll"
+    <None Include="$(NuGetPackageRoot)sixlabors.imagesharp/3.2.0/lib/net6.0/SixLabors.ImageSharp.dll"
           Link="ImageSharp3/SixLabors.ImageSharp.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
   </ItemGroup>
 

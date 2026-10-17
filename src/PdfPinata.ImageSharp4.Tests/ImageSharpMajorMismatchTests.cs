@@ -15,7 +15,7 @@ namespace PdfPinata.ImageSharp4.Tests;
 ///   rather than letting a <c>TypeLoadException</c> from inside it reach the caller.
 ///   <para>
 ///     The mismatch is made for real: the backend and the core are loaded into a load context of
-///     their own beside ImageSharp 2.1.13 or 3.1.12, which the project downloads for this and
+///     their own beside ImageSharp 2.1.13 or 3.2.0, which the project downloads for this and
 ///     nothing else.
 ///   </para>
 /// </summary>
