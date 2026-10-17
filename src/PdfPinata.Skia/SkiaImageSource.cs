@@ -86,11 +86,48 @@ public class SkiaImageSource
             throw;
         }
 
-        // Mirrors the previous ImageSharp behaviour: PNG sources keep their alpha and take the
-        // FLATE path, everything else is re-encoded as JPEG.
-        var transparent = codec.EncodedFormat == SKEncodedImageFormat.Png;
+        var transparent = IsTransparent(codec, bitmap);
 
         return new SkiaImageSourceImpl(name, bitmap, quality ?? DefaultQuality, transparent);
+    }
+
+
+    /// <summary>
+    /// Says whether the image is to be written with its alpha - as FLATE samples beside a mask -
+    /// rather than as a JPEG, which has none.
+    /// </summary>
+    /// <remarks>
+    /// The ImageSharp backends' rule, with one shortcut. A PNG always is, whether or not it has any
+    /// transparency, because it always has been, and an image that changed paths would change
+    /// existing documents. A JPEG never is: it cannot carry alpha, so there is nothing to find, and a
+    /// photograph is not worth scanning. Any other format is transparent when one of its pixels is
+    /// less than opaque, unless the codec says the whole image is opaque, which saves the scan. This
+    /// used to be decided by whether the format was PNG and nothing else, so a GIF, WebP or icon with
+    /// transparent pixels was written as a JPEG and its transparency drawn black.
+    /// </remarks>
+    private static bool IsTransparent(SKCodec codec, SKBitmap bitmap)
+    {
+        if (codec.EncodedFormat == SKEncodedImageFormat.Png)
+            return true;
+        if (codec.EncodedFormat == SKEncodedImageFormat.Jpeg)
+            return false;
+        if (codec.Info.AlphaType == SKAlphaType.Opaque)
+            return false;
+
+        // The bitmap is Bgra8888, so every fourth byte from the fourth is an alpha. Rows are read
+        // one at a time because SKBitmap.RowBytes may exceed the packed width.
+        ReadOnlySpan<byte> pixels = bitmap.GetPixelSpan();
+        var stride = bitmap.Width * PixelBuffer.BytesPerPixel;
+        for (var y = 0; y < bitmap.Height; y++)
+        {
+            var row = pixels.Slice(y * bitmap.RowBytes, stride);
+            for (var alpha = 3; alpha < stride; alpha += PixelBuffer.BytesPerPixel)
+            {
+                if (row[alpha] != 255)
+                    return true;
+            }
+        }
+        return false;
     }
 
 
