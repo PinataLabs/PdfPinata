@@ -27,7 +27,8 @@ PdfPinata has no importer of its own. `XImage.FromStream` goes through the
 - `SkiaImageSource.Decode` throws `InvalidOperationException` naming the image and the
   `SKCodecResult` that failed, and its one `catch` disposes the bitmap and rethrows.
 - `ImageSharpImageSource` catches only `MissingMemberException` and `TypeLoadException`, and only
-  to translate an ImageSharp 3.x binding failure into an explanatory exception with the original as
+  to translate a binding failure against the wrong ImageSharp major (3.x for `PdfPinata.ImageSharp`,
+  anything but 4.x for `PdfPinata.ImageSharp4`) into an explanatory exception with the original as
   `InnerException`.
 
 So the exact defect reported does not exist here. The anti-pattern it describes does, one layer up.

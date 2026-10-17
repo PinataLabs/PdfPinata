@@ -23,7 +23,7 @@ using PdfPinata.Utils;
 
 GlobalFontSettings.FontResolver = new SkiaFontResolver();          // PdfPinata.Skia
 // or
-GlobalFontSettings.FontResolver = new ImageSharpFontResolver();    // PdfPinata.ImageSharp
+GlobalFontSettings.FontResolver = new ImageSharpFontResolver();    // PdfPinata.ImageSharp4 or PdfPinata.ImageSharp
 ```
 
 Both resolvers search the operating system's font folders the first time they are asked for a

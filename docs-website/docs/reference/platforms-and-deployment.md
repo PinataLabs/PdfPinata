@@ -12,7 +12,7 @@ both, for each platform. [Installation](../installation.md) covers the packages 
 
 SkiaSharp and HarfBuzzSharp bring in their Windows native libraries, so you add nothing.
 
-The font resolvers in `PdfPinata.Skia` and `PdfPinata.ImageSharp` read two folders:
+The font resolvers in `PdfPinata.Skia` and in both ImageSharp packages read two folders:
 
 - `%SystemRoot%\Fonts`
 - `%LOCALAPPDATA%\Microsoft\Windows\Fonts`, which holds fonts installed for one user only
@@ -92,18 +92,23 @@ Two settings make a missing font easier to find:
 ## Unity
 
 Unity's scripting runtime cannot load `net8.0` assemblies, so it uses the `netstandard2.1` build of
-each package. Every package has one except `PdfPinata.Signing`, which targets .NET 8 and later only.
+each package. Every package has one except `PdfPinata.Signing` and `PdfPinata.ImageSharp4`, which
+target .NET 8 and later only.
 
-`PdfPinata.ImageSharp` is the backend with no native libraries, so it avoids the work of adding
-SkiaSharp's native libraries to a Unity build. ImageSharp 2.1 and SixLabors.Fonts 1.0 both target
-.NET Standard 2.1.
+**In Unity, the ImageSharp backend is `PdfPinata.ImageSharp`.** It needs no native libraries, so it
+avoids the work of adding SkiaSharp's native libraries to a Unity build. ImageSharp 2.1 and
+SixLabors.Fonts 1.0 both target .NET Standard 2.1. ImageSharp 4 targets .NET 8 only, so
+`PdfPinata.ImageSharp4` cannot run in Unity. ImageSharp 2.1 is end of life and has security
+advisories that will never be fixed; [Choose an ImageSharp package](../installation.md#choose-an-imagesharp-package)
+says what that means for you.
 
 The `netstandard2.1` builds are not tested inside Unity. Test your document generation in the Unity
 player you ship.
 
 ## Trimming and Native AOT
 
-These packages are marked as trimmable: `PdfPinata`, `PdfPinata.ImageSharp`, `PdfPinata.Charting`,
+These packages are marked as trimmable: `PdfPinata`, `PdfPinata.ImageSharp4`,
+`PdfPinata.ImageSharp`, `PdfPinata.Charting`,
 `PdfPinata.Signing`, `PdfPinata.EInvoice`, `PinataLayout.DocumentObjectModel` and
 `PinataLayout.Rendering`. `PdfPinata.Skia` and `PdfPinata.HarfBuzz` are not marked.
 
@@ -135,5 +140,6 @@ Blazor Server runs on the server and needs nothing extra. In a container, see
 - **Different machines can give different pages.** Font files, and the region settings that choose
   the default page size of `PdfPage` (A4 or US Letter), come from the machine. If output must match
   on every machine, ship your fonts and set page sizes explicitly.
-- **The ImageSharp backend needs no native libraries**, on any platform.
-- **`PdfPinata.Signing` needs .NET 8 or later.** It cannot run in Unity.
+- **The ImageSharp backends need no native libraries**, on any platform.
+- **`PdfPinata.Signing` and `PdfPinata.ImageSharp4` need .NET 8 or later.** They cannot run in
+  Unity.
