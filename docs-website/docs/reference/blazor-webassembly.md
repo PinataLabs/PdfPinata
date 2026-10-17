@@ -21,15 +21,26 @@ same as for any Linux host: in a container with no fonts, the first font fails. 
 
 ## Choose a backend
 
-**Use `PdfPinata.ImageSharp`.** It is managed code only, it is trimmable, and it needs nothing
+**Use `PdfPinata.ImageSharp4`.** It is managed code only, it is trimmable, and it needs nothing
 added to the build. A Blazor WebAssembly project publishes with it as it is. The publish prints a
 notice that recommends the `wasm-tools` workload. You need that workload only for
 [AOT compilation](#performance) or for the native libraries below.
 
 ```sh
-dotnet add package PdfPinata.ImageSharp
+dotnet add package PdfPinata.ImageSharp4
 dotnet add package PinataLayout.Rendering
 ```
+
+`PdfPinata.ImageSharp4` is built on ImageSharp 4 and Fonts 3, which use the Six Labors Split
+License. Your application needs no Six Labors licence key for them. In Six Labors' words: "If you
+use a third party package that depends on our libraries, you do not need a license."
+
+**`PdfPinata.ImageSharp` is the Apache-2.0 alternative.** It is built on ImageSharp 2.1, which is
+end of life and has security advisories that will not be fixed. It works in the browser in the same
+way. The two packages have the same types in the same namespaces, so to change from one to the
+other, you change only the package reference. The code on this page is the same for both.
+ImageSharp 4 adds about 120 KB to the compressed download. [Installation](../installation.md#choose-a-backend)
+and [Licensing](./licensing.md) explain the choice.
 
 `PdfPinata.Skia` and `PdfPinata.HarfBuzz` call native code, so the browser needs WebAssembly builds
 of SkiaSharp and HarfBuzzSharp. To use them:
@@ -93,7 +104,8 @@ await builder.Build().RunAsync();
 ```
 
 `InMemoryFontResolver` is in the core package, in namespace `PdfPinata.Utils`, so it works with
-either backend. The three ImageSharp types are in `PdfPinata.Utils` too. `ImageSource` is in
+either backend. The three ImageSharp types are in `PdfPinata.Utils` too, in both ImageSharp
+packages. `Rgba32` comes from ImageSharp itself, through the package. `ImageSource` is in
 `PinataLayout.DocumentObjectModel.Shapes`, although it ships in the core package.
 
 You need `GlyphOutlineProvider` only for `XGraphicsPath.AddString` and for drop caps in
@@ -365,16 +377,18 @@ its own font resolver and backend, registered when the worker starts.
 ## Trimming
 
 Blazor WebAssembly trims the application when you publish. The PdfPinata packages that the browser
-can use are marked trimmable: `PdfPinata`, `PdfPinata.ImageSharp`, `PdfPinata.Charting`,
-`PdfPinata.EInvoice`, `PinataLayout.DocumentObjectModel` and `PinataLayout.Rendering`.
+can use are marked trimmable: `PdfPinata`, `PdfPinata.ImageSharp4`, `PdfPinata.ImageSharp`,
+`PdfPinata.Charting`, `PdfPinata.EInvoice`, `PinataLayout.DocumentObjectModel` and
+`PinataLayout.Rendering`.
 
 A Blazor publish hides trim warnings by default. To see them for your own application, publish with
 `-p:SuppressTrimAnalysisWarnings=false`.
 
-The repository's CI publishes the sample app trimmed and fails if the trimmer warns about code in a
-PdfPinata or PinataLayout assembly. The trimmer analyses only the code an app can reach, so this
-covers what the sample uses: text, tables, images, charts, saving, and opening a document. You will still see warnings
-from ASP.NET Core itself and from ImageSharp 2.1.
+The repository's CI publishes the sample app trimmed, with `PdfPinata.ImageSharp4`, and fails if
+the trimmer warns about code in a PdfPinata or PinataLayout assembly. The trimmer analyses only the
+code an app can reach, so this covers what the sample uses: text, tables, images, charts, saving,
+and opening a document. You will still see warnings from ASP.NET Core itself. ImageSharp 4 gives
+none for the sample. ImageSharp 2.1, with `PdfPinata.ImageSharp`, gives one.
 
 ## Things to know
 
@@ -390,5 +404,5 @@ from ASP.NET Core itself and from ImageSharp 2.1.
 ## See it in action
 
 The repository's [Blazor WebAssembly sample](https://github.com/PinataLabs/PdfPinata/tree/main/src/SampleBlazorWasm)
-does everything on this page: it registers ImageSharp and Liberation Sans from `wwwroot`, builds a
+does everything on this page: it registers `PdfPinata.ImageSharp4` and Liberation Sans from `wwwroot`, builds a
 document with text, a table, an image and a chart, and downloads it.

@@ -93,7 +93,7 @@ public static class SampleDocument
         string[][] rows =
         [
             ["Layout", "PinataLayout.Rendering"],
-            ["Images", "PdfPinata.ImageSharp, managed code with nothing native to load"],
+            ["Images", "PdfPinata.ImageSharp4, managed code with nothing native to load"],
             ["Fonts", FontFamily + ", fetched at startup and served by InMemoryFontResolver"],
             ["Download", "JavaScript interop, from a stream the app holds in memory"],
         ];
