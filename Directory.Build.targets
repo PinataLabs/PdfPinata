@@ -72,4 +72,89 @@
     </PropertyGroup>
   </Target>
 
+  <!--
+    The Six Labors licence key. ImageSharp 4.x and Fonts 3.x check for one when a project that
+    references them directly is compiled: without a valid key a Debug build warns and any other
+    build fails. Each such project carries a copy of the key as sixlabors.lic in its own folder,
+    which is where the packages' own target looks. docs/specs/sixlabors-licence-key.md says where
+    the key came from, which projects carry it and how to renew it.
+
+    Six Labors' check says only "No Six Labors license found" or "Six Labors license validation
+    failed", which does not say which key, why, or what to do. The two targets below run just before
+    it and say those things, with the same severity it would use: an error, or a warning in Debug.
+
+      * PPSL001 - the project has no key. The key is scoped to one assembly name, so the message
+        says what to do when the project is not PdfPinata.ImageSharp4.
+      * PPSL002 - the key's ExpiryDateUtc cannot be read.
+      * PPSL003 - the key has expired.
+      * PPSL004 - the key expires within PdfPinataSixLaborsKeyWarningDays (60) days. Always a warning.
+
+    Both hang off Six Labors' own target, so they run in exactly the projects its check runs in. A
+    project that reaches ImageSharp through a ProjectReference to PdfPinata.ImageSharp4 is never
+    checked, because a package's build/ folder does not flow on to the projects that reference the
+    one it is installed in.
+
+    The key is never packed or copied to the output: it is the repository's key, not a consumer's,
+    and a consumer of a PdfPinata package needs none.
+  -->
+  <PropertyGroup>
+    <PdfPinataSixLaborsKeyFile>$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', 'sixlabors.lic'))</PdfPinataSixLaborsKeyFile>
+    <PdfPinataSixLaborsKeyWarningDays Condition="'$(PdfPinataSixLaborsKeyWarningDays)' == ''">60</PdfPinataSixLaborsKeyWarningDays>
+    <_SixLaborsKeyNote>docs/specs/sixlabors-licence-key.md</_SixLaborsKeyNote>
+  </PropertyGroup>
+
+  <ItemGroup Condition="Exists('$(PdfPinataSixLaborsKeyFile)')">
+    <None Update="sixlabors.lic" Pack="false" CopyToOutputDirectory="Never" />
+    <Content Update="sixlabors.lic" Pack="false" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
+  </ItemGroup>
+
+  <Target Name="PdfPinataRequireSixLaborsKey"
+          BeforeTargets="SixLabors_ValidateLicense"
+          Condition="'$(DesignTimeBuild)' != 'true' and '$(SixLaborsLicenseKey)' == '' and '$(SixLaborsLicenseFile)' == ''">
+    <ItemGroup>
+      <_SixLaborsKeyFound Include="**/sixlabors.lic" />
+    </ItemGroup>
+    <PropertyGroup>
+      <_SixLaborsKeyMissing>$(MSBuildProjectName) references SixLabors.ImageSharp or SixLabors.Fonts directly, and those packages build only in Debug without a licence key, but there is no sixlabors.lic in $(MSBuildProjectDirectory). The repository's community key, in src/PdfPinata.ImageSharp4/sixlabors.lic, covers the assembly name PdfPinata.ImageSharp4 and no other. If this project's AssemblyName ($(AssemblyName)) is that one, copy the key here. Otherwise, take ImageSharp through a ProjectReference to PdfPinata.ImageSharp4 instead of a PackageReference, or apply for a key for $(AssemblyName) at https://licensing.sixlabors.com. See $(_SixLaborsKeyNote).</_SixLaborsKeyMissing>
+    </PropertyGroup>
+    <Error Condition="'@(_SixLaborsKeyFound)' == '' and !$(Configuration.StartsWith('Debug'))" Code="PPSL001" Text="$(_SixLaborsKeyMissing)" />
+    <Warning Condition="'@(_SixLaborsKeyFound)' == '' and $(Configuration.StartsWith('Debug'))" Code="PPSL001" Text="$(_SixLaborsKeyMissing)" />
+  </Target>
+
+  <Target Name="PdfPinataCheckSixLaborsKeyExpiry"
+          BeforeTargets="SixLabors_ValidateLicense"
+          Condition="'$(DesignTimeBuild)' != 'true' and Exists('$(PdfPinataSixLaborsKeyFile)')">
+    <PropertyGroup>
+      <_SixLaborsKeyText>$([System.IO.File]::ReadAllText('$(PdfPinataSixLaborsKeyFile)').Trim())</_SixLaborsKeyText>
+      <_SixLaborsKeyId>$([System.Text.RegularExpressions.Regex]::Match('$(_SixLaborsKeyText)', '(?&lt;=(^|;)Id=)[^;]+'))</_SixLaborsKeyId>
+      <_SixLaborsKeyExpiry>$([System.Text.RegularExpressions.Regex]::Match('$(_SixLaborsKeyText)', '(?&lt;=(^|;)ExpiryDateUtc=)\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d'))</_SixLaborsKeyExpiry>
+    </PropertyGroup>
+
+    <PropertyGroup>
+      <_SixLaborsKeyUnreadable>The Six Labors licence key $(PdfPinataSixLaborsKeyFile) has no ExpiryDateUtc this build can read. See $(_SixLaborsKeyNote) for what the file should hold and how to replace it.</_SixLaborsKeyUnreadable>
+    </PropertyGroup>
+    <Error Condition="'$(_SixLaborsKeyExpiry)' == '' and !$(Configuration.StartsWith('Debug'))" Code="PPSL002" Text="$(_SixLaborsKeyUnreadable)" />
+    <Warning Condition="'$(_SixLaborsKeyExpiry)' == '' and $(Configuration.StartsWith('Debug'))" Code="PPSL002" Text="$(_SixLaborsKeyUnreadable)" />
+
+    <PropertyGroup Condition="'$(_SixLaborsKeyExpiry)' != ''">
+      <!-- 's' is the sortable pattern and is the same in every culture; keeping only its digits gives a number to compare. -->
+      <_SixLaborsKeyExpiryDate>$(_SixLaborsKeyExpiry.Substring(0, 10))</_SixLaborsKeyExpiryDate>
+      <_SixLaborsKeyExpiryStamp>$([System.Text.RegularExpressions.Regex]::Replace('$(_SixLaborsKeyExpiry)', '\D', ''))</_SixLaborsKeyExpiryStamp>
+      <_SixLaborsKeyNowStamp>$([System.Text.RegularExpressions.Regex]::Replace($([System.DateTime]::UtcNow.ToString('s')), '\D', ''))</_SixLaborsKeyNowStamp>
+      <_SixLaborsKeyWarnStamp>$([System.Text.RegularExpressions.Regex]::Replace($([System.DateTime]::UtcNow.AddDays($(PdfPinataSixLaborsKeyWarningDays)).ToString('s')), '\D', ''))</_SixLaborsKeyWarnStamp>
+      <_SixLaborsKeyRenewal>To renew, apply for an open-source community key at https://licensing.sixlabors.com and replace every copy of sixlabors.lic with it; $(_SixLaborsKeyNote) lists the copies.</_SixLaborsKeyRenewal>
+      <_SixLaborsKeyExpired>The Six Labors community licence key $(_SixLaborsKeyId) in $(PdfPinataSixLaborsKeyFile) expired on $(_SixLaborsKeyExpiryDate), and ImageSharp and Fonts build only in Debug without a valid key. $(_SixLaborsKeyRenewal)</_SixLaborsKeyExpired>
+    </PropertyGroup>
+
+    <Error Condition="'$(_SixLaborsKeyExpiryStamp)' != '' and $(_SixLaborsKeyExpiryStamp) &lt;= $(_SixLaborsKeyNowStamp) and !$(Configuration.StartsWith('Debug'))"
+           Code="PPSL003"
+           Text="$(_SixLaborsKeyExpired)" />
+    <Warning Condition="'$(_SixLaborsKeyExpiryStamp)' != '' and $(_SixLaborsKeyExpiryStamp) &lt;= $(_SixLaborsKeyNowStamp) and $(Configuration.StartsWith('Debug'))"
+             Code="PPSL003"
+             Text="$(_SixLaborsKeyExpired)" />
+    <Warning Condition="'$(_SixLaborsKeyExpiryStamp)' != '' and $(_SixLaborsKeyExpiryStamp) &gt; $(_SixLaborsKeyNowStamp) and $(_SixLaborsKeyExpiryStamp) &lt;= $(_SixLaborsKeyWarnStamp)"
+             Code="PPSL004"
+             Text="The Six Labors community licence key $(_SixLaborsKeyId) in $(PdfPinataSixLaborsKeyFile) expires on $(_SixLaborsKeyExpiryDate). After that, Release builds of this project fail. $(_SixLaborsKeyRenewal)" />
+  </Target>
+
 </Project>
