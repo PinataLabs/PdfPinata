@@ -1,4 +1,5 @@
 
+using System;
 using PdfPinata.Drawing;
 using SixLabors.Fonts;
 
@@ -29,9 +30,9 @@ public class ImageSharpFontResolver
 
         // LoadDescription reads one font and cannot say which; a collection has to go through
         // the collection reader even for its first face.
-        var descriptions = FontDescription.LoadFontCollectionDescriptions(fontFilePath);
+        var descriptions = CollectionDescriptions(fontFilePath);
         if (faceIndex >= descriptions.Length)
-            throw new System.InvalidOperationException(
+            throw new InvalidOperationException(
                 "Font collection holds " + descriptions.Length + " faces; face " + faceIndex + " was asked for.");
 
         return ToMetadata(descriptions[faceIndex]);
@@ -41,9 +42,9 @@ public class ImageSharpFontResolver
     /// <summary>Reads the family name and style of every face of a collection file, opening it once.</summary>
     protected override FontMetadata[] ReadCollectionMetadata(string fontFilePath, int faceCount)
     {
-        var descriptions = FontDescription.LoadFontCollectionDescriptions(fontFilePath);
+        var descriptions = CollectionDescriptions(fontFilePath);
         if (descriptions.Length < faceCount)
-            throw new System.InvalidOperationException(
+            throw new InvalidOperationException(
                 "Font collection holds " + descriptions.Length + " faces; " + faceCount + " were expected.");
 
         var metadata = new FontMetadata[faceCount];
@@ -51,6 +52,18 @@ public class ImageSharpFontResolver
             metadata[face] = ToMetadata(descriptions[face]);
 
         return metadata;
+    }
+
+
+    /// <summary>Reads the family name and style of every face of a collection file.</summary>
+    private static ReadOnlySpan<FontDescription> CollectionDescriptions(string fontFilePath)
+    {
+#if IMAGESHARP4
+        // Fonts 3 hands the faces back as ReadOnlyMemory rather than as an array.
+        return FontDescription.LoadFontCollectionDescriptions(fontFilePath).Span;
+#else
+        return FontDescription.LoadFontCollectionDescriptions(fontFilePath);
+#endif
     }
 
 

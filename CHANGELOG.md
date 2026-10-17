@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### API & Packaging
+
+#### Added
+
+- **`PdfPinata.ImageSharp4` is an ImageSharp backend on SixLabors.ImageSharp 4.x and SixLabors.Fonts 3.x.** `PdfPinata.ImageSharp` stays on ImageSharp 2.1.x, which is end of life and has five security advisories that will not be fixed; the new package has none of them, and suits an app that already uses a newer ImageSharp, since an app resolves one ImageSharp version. Both are built from the same source and have the same types in the same namespaces, so switching is a change to the project file, not to code. The new package targets `net8.0` and `net10.0` only, because ImageSharp 4 has no `netstandard2.1` build, so Unity stays on `PdfPinata.ImageSharp`. ImageSharp 4 and Fonts 3 are under the Six Labors Split License, not Apache-2.0. An app that references the package needs no Six Labors licence key to build, because the key is checked only when this repository builds the package. The two packages give the same results for the same input. Images decode to the same pixels, except that a JPEG can differ by up to 2 levels in 255, because ImageSharp 3 rewrote the JPEG decoder. An embedded ICC profile is kept and not applied, as 2.x does. `ImageSharpGlyphOutlineProvider` gives the same glyph outlines to within a few millionths of a point. As in 2.x, colour glyphs are drawn from their COLR version 0 layers, and SVG and COLR version 1 glyphs are drawn from their ordinary outlines. When the app loads another ImageSharp major at run time, the package throws an `InvalidOperationException` that names the version it needs. The ImageSharp dependency is `[4.1.3, 5.0.0)` and the Fonts dependency is `[3.2.0, 4.0.0)`. (#308)
+
 ## [0.4.4] - 2026-10-17
 
 #### Added
