@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
@@ -40,11 +42,11 @@ public class NewPasswordOnReadDocumentTests
     [Arguments("protected-ilovepdf.pdf")] // RC4-128, /V 2 /R 3, classic trailer: never failed
     public void TheNewPasswordOpensTheSavedDocumentAndItsContentSurvives(string fileName)
     {
-        var (pageCount, operators) = ContentOf(Read(fileName));
+        var content = ContentOf(Read(fileName));
 
         var reopened = Pdf.IO.PdfReader.Open(SavedWithNewPassword(Read(fileName)), NewPassword, PdfDocumentOpenMode.Import);
 
-        ContentOf(reopened).Should().Be((pageCount, operators));
+        ContentOf(reopened).Should().Equal(content);
     }
 
     [Test]
@@ -68,7 +70,7 @@ public class NewPasswordOnReadDocumentTests
     [Arguments("protected-ilovepdf.pdf")]
     public void SavingWithoutANewPasswordStillWorks(string fileName)
     {
-        var (pageCount, operators) = ContentOf(Read(fileName));
+        var content = ContentOf(Read(fileName));
 
         var saved = new MemoryStream();
         Read(fileName).Save(saved, false);
@@ -76,7 +78,7 @@ public class NewPasswordOnReadDocumentTests
 
         // A password given for a document that is not encrypted is ignored, so this holds whether
         // or not the save kept the encryption.
-        ContentOf(Pdf.IO.PdfReader.Open(saved, OldPassword, PdfDocumentOpenMode.Import)).Should().Be((pageCount, operators));
+        ContentOf(Pdf.IO.PdfReader.Open(saved, OldPassword, PdfDocumentOpenMode.Import)).Should().Equal(content);
     }
 
     [Test]
@@ -133,9 +135,15 @@ public class NewPasswordOnReadDocumentTests
     }
 
     /// <summary>
-    /// The number of pages and of operators on the first. The operators are read out of a
-    /// decrypted, decompressed stream, so a wrong key would have nothing to count.
+    /// What every page draws: its operators and their operands, read out of the decrypted,
+    /// decompressed content and written back out. A wrong key would leave nothing to parse, and a
+    /// change to a string, a coordinate or a colour on any page would show.
     /// </summary>
-    private static (int Pages, int Operators) ContentOf(PdfDocument document) =>
-        (document.PageCount, ContentReader.ReadContent(document.Pages[0]).Count);
+    private static List<string> ContentOf(PdfDocument document)
+    {
+        var pages = new List<string>();
+        foreach (var page in document.Pages)
+            pages.Add(Encoding.Latin1.GetString(ContentReader.ReadContent(page).ToContent()));
+        return pages;
+    }
 }
