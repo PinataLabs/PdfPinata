@@ -98,14 +98,20 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
     // Preserve keeps the profile and leaves the samples alone, as 2.x did. It is 4.1's default as
     // well, and is said here so that a later 4.x changing the default cannot change a document.
     // ImageSharpDecodingParityTests holds both packages to 2.x's pixels.
-    private static readonly DecoderOptions Decoding = new() { ColorProfileHandling = ColorProfileHandling.Preserve };
+    //
+    // The options are made per load and not held in a static field. A field's initialiser runs in
+    // the type initialiser, where a binding failure - 3.x has DecoderOptions but no
+    // ColorProfileHandling - arrives as a TypeInitializationException, on this load and every
+    // later one, and the caller above would not recognise it.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static DecoderOptions Decoding() => new() { ColorProfileHandling = ColorProfileHandling.Preserve };
 #endif
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static Image<TPixel> LoadFromBinary(byte[] data, out bool isPng)
     {
 #if IMAGESHARP4
-        var image = Image.Load<TPixel>(Decoding, data);
+        var image = Image.Load<TPixel>(Decoding(), data);
         isPng = image.Metadata.DecodedImageFormat is PngFormat;
 #else
         var image = Image.Load<TPixel>(data, out var imgFormat);
@@ -118,7 +124,7 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
     private static Image<TPixel> LoadFromFile(string path, out bool isPng)
     {
 #if IMAGESHARP4
-        var image = Image.Load<TPixel>(Decoding, path);
+        var image = Image.Load<TPixel>(Decoding(), path);
         isPng = image.Metadata.DecodedImageFormat is PngFormat;
 #else
         var image = Image.Load<TPixel>(path, out var imgFormat);
@@ -131,7 +137,7 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
     private static Image<TPixel> LoadFromStream(Stream stream, out bool isPng)
     {
 #if IMAGESHARP4
-        var image = Image.Load<TPixel>(Decoding, stream);
+        var image = Image.Load<TPixel>(Decoding(), stream);
         isPng = image.Metadata.DecodedImageFormat is PngFormat;
 #else
         var image = Image.Load<TPixel>(stream, out var imgFormat);
