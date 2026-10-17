@@ -202,6 +202,7 @@ public class PdfSecurity
         var ex = FluentActions.Invoking(() => Pdf.IO.PdfReader.Open(new MemoryStream(bytes), "hunter1", PdfDocumentOpenMode.Import))
             .Should().ThrowExactly<PdfReaderException>().Which;
 
-        ex.Message.Should().Be("The PDF document is protected with an encryption not supported by PdfPinata.");
+        // Both the English and the German message name the library, so this holds in either culture.
+        ex.Message.Should().Contain("PdfPinata").And.NotContain("PDFsharp");
     }
 }

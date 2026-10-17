@@ -181,14 +181,10 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
             _document._trailer.Elements[Keys.Info] = iref;
         }
 
-        // /Encrypt
-        iref = _document._trailer.Elements[Keys.Encrypt] as PdfReference;
-        if (iref != null)
-        {
-            _document._irefTable.Remove(_document._irefTable[iref.ObjectID]);
-            _document._irefTable.Add(_document._trailer._securityHandler);
-            _document._trailer.Elements[Keys.Encrypt] = _document._trailer._securityHandler;
-        }
+        // /Encrypt needs nothing here: PdfReader.ReadEncryptDictionary has already pointed it at the
+        // table's own entry, which is the security handler's reference.
+        Debug.Assert(_document._trailer.Elements[Keys.Encrypt] is not PdfReference encrypt
+            || ReferenceEquals(_document._irefTable[encrypt.ObjectID], encrypt));
 
         Elements.Remove(Keys.Prev);
 

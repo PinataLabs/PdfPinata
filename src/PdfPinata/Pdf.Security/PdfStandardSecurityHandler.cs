@@ -375,9 +375,16 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         // and none of this belongs to RC4 at revision 2 or 3: the crypt filters are read only at
         // /V 4 and 5, and /OE, /UE and /Perms only at revisions 5 and 6. Left in place, a document
         // read as AES-256 was saved naming an /AESV3 crypt filter it was not encrypted with (#304).
-        foreach (var key in (string[])[Keys.CF, Keys.StmF, Keys.StrF, Keys.EFF, Keys.OE, Keys.UE, Keys.Perms, Keys.EncryptMetadata])
+        foreach (var key in KeysNotWrittenByRc4)
             Elements.Remove(key);
     }
+
+    /// <summary>
+    /// The entries of an encryption dictionary that describe AES or crypt filters, which
+    /// <see cref="PrepareEncryption"/> removes because the writer encrypts with RC4 alone.
+    /// </summary>
+    private static readonly string[] KeysNotWrittenByRc4 =
+        [Keys.CF, Keys.StmF, Keys.StrF, Keys.EFF, Keys.OE, Keys.UE, Keys.Perms, Keys.EncryptMetadata];
 
     /// <summary>
     /// The global encryption key.
