@@ -93,9 +93,11 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
     // calling method at JIT.
 
 #if IMAGESHARP4
-    // TODO(#308): 4.x converts embedded ICC profiles on decode by default, which 2.x never did, and
-    // spec #305 asks that the same input decode to the same pixels in both packages. Preserve is the
-    // best guess at 2.x's behaviour; #308 confirms it against the pixel round-trip tests.
+    // 4.x can convert an image to sRGB through its embedded ICC profile as it decodes, which 2.x
+    // never did, and spec #305 asks that the same file decode to the same pixels in both packages.
+    // Preserve keeps the profile and leaves the samples alone, as 2.x did. It is 4.1's default as
+    // well, and is said here so that a later 4.x changing the default cannot change a document.
+    // ImageSharpDecodingParityTests holds both packages to 2.x's pixels.
     private static readonly DecoderOptions Decoding = new() { ColorProfileHandling = ColorProfileHandling.Preserve };
 #endif
 
@@ -251,12 +253,11 @@ internal static class ImageSharpVersion
         var loaded = typeof(Image).Assembly.GetName().Version;
 
 #if IMAGESHARP4
-        // TODO(#308): word this once the 4.x package's version range is settled.
         return new InvalidOperationException(
-            "PdfPinata.ImageSharp4 is built against SixLabors.ImageSharp 4.x, but version "
-            + loaded + " was loaded at runtime, and the two are not binary compatible. Either pin "
-            + "SixLabors.ImageSharp to a 4.x version, use PdfPinata.ImageSharp for the 2.1.x line, or "
-            + "switch to the PdfPinata.Skia backend "
+            "PdfPinata.ImageSharp4 is built against SixLabors.ImageSharp 4.x (4.1.3 or later, below "
+            + "5.0), but version " + loaded + " was loaded at runtime, and the two are not binary "
+            + "compatible. Either pin SixLabors.ImageSharp to a 4.x version, use PdfPinata.ImageSharp "
+            + "for the 2.1.x line, or switch to the PdfPinata.Skia backend "
             + "('ImageSource.ImageSourceImpl = new SkiaImageSource();') which has no such constraint.",
             inner);
 #else

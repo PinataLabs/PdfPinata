@@ -15,6 +15,8 @@
   <Project Path="PdfPinata.EInvoice/PdfPinata.EInvoice.csproj" />
   <Project Path="PdfPinata.HarfBuzz/PdfPinata.HarfBuzz.csproj" />
   <Project Path="PdfPinata.ImageSharp/PdfPinata.ImageSharp.csproj" />
+  <Project Path="PdfPinata.ImageSharp4/PdfPinata.ImageSharp4.csproj" />
+  <Project Path="PdfPinata.ImageSharp4.Tests/PdfPinata.ImageSharp4.Tests.csproj" />
   <Project Path="PdfPinata.Signing/PdfPinata.Signing.csproj" />
   <Project Path="PdfPinata.Skia/PdfPinata.Skia.csproj" />
   <Project Path="PdfPinata.Test/PdfPinata.Test.csproj" />
