@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using PdfPinata.Fonts;
+using PdfPinata.HarfBuzz;
 
 namespace PdfPinata.Test.Helpers;
 
@@ -32,8 +33,19 @@ internal sealed class SeamScope : IDisposable
     private SeamScope(Action restore) => _restore = restore;
 
     /// <summary>Sets <see cref="GlobalFontSettings.TextShaper"/> until the scope is disposed.</summary>
+    /// <exception cref="InvalidOperationException">
+    /// The shaper is a bare <see cref="HarfBuzzTextShaper"/>, which shapes every run it is given and so
+    /// changes the text of every test running beside the one installing it (#317).
+    /// </exception>
     internal static SeamScope TextShaper(ITextShaper shaper)
     {
+        if (shaper is HarfBuzzTextShaper)
+            throw new InvalidOperationException(
+                "A bare HarfBuzzTextShaper shapes every run, so installed for the whole process it kerns "
+                + "the Latin text of every test running beside this one. Wrap it in a shaper that answers "
+                + "for the test's own sentinel strings and returns null for every other run; see "
+                + nameof(TextShaperSensitiveAttribute) + ".");
+
         var previous = GlobalFontSettings.TextShaper;
         GlobalFontSettings.TextShaper = shaper;
         return new SeamScope(() => GlobalFontSettings.TextShaper = previous);
