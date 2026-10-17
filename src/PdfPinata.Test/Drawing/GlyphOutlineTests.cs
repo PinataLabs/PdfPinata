@@ -16,6 +16,10 @@ namespace PdfPinata.Test.Drawing;
 ///   warning. It now produces real geometry, through a backend seam, because reading contours out
 ///   of a font means a <c>glyf</c> decoder for TrueType and a charstring interpreter for
 ///   PostScript outlines — and the core package carries no font dependency to do either with.
+///   <para>
+///     Shared: PdfPinata.ImageSharp4.Tests links this file, so it runs against both ImageSharp
+///     backends. A call that differs between ImageSharp majors goes behind IMAGESHARP4. See #305.
+///   </para>
 /// </summary>
 [GlyphOutlineSensitive]
 public class GlyphOutlineTests

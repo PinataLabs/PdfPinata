@@ -4,7 +4,9 @@ using PinataLayout.DocumentObjectModel.Shapes;
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
+#if !IMAGESHARP4
 using SixLabors.ImageSharp.Advanced;
+#endif
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
@@ -84,31 +86,55 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
         return new ImageSharpImageSourceImpl<TPixel>(name, image, quality ?? DefaultQuality, isPng);
     }
 
-    // The Load(..., out IImageFormat) overloads exist only in ImageSharp 2.x, so each call sits in
-    // its own non-inlined method. That way a version mismatch surfaces as a MissingMethodException
-    // the caller above can catch and translate, rather than tearing down the calling method at JIT.
+    // The Load overloads differ between the majors: 2.x hands the format back through an out
+    // parameter, and 3.0 removed those overloads in favour of the image's own metadata. So each call
+    // sits in its own non-inlined method. That way a version mismatch surfaces as a
+    // MissingMethodException the caller above can catch and translate, rather than tearing down the
+    // calling method at JIT.
+
+#if IMAGESHARP4
+    // TODO(#308): 4.x converts embedded ICC profiles on decode by default, which 2.x never did, and
+    // spec #305 asks that the same input decode to the same pixels in both packages. Preserve is the
+    // best guess at 2.x's behaviour; #308 confirms it against the pixel round-trip tests.
+    private static readonly DecoderOptions Decoding = new() { ColorProfileHandling = ColorProfileHandling.Preserve };
+#endif
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static Image<TPixel> LoadFromBinary(byte[] data, out bool isPng)
     {
+#if IMAGESHARP4
+        var image = Image.Load<TPixel>(Decoding, data);
+        isPng = image.Metadata.DecodedImageFormat is PngFormat;
+#else
         var image = Image.Load<TPixel>(data, out var imgFormat);
         isPng = imgFormat is PngFormat;
+#endif
         return image;
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static Image<TPixel> LoadFromFile(string path, out bool isPng)
     {
+#if IMAGESHARP4
+        var image = Image.Load<TPixel>(Decoding, path);
+        isPng = image.Metadata.DecodedImageFormat is PngFormat;
+#else
         var image = Image.Load<TPixel>(path, out var imgFormat);
         isPng = imgFormat is PngFormat;
+#endif
         return image;
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static Image<TPixel> LoadFromStream(Stream stream, out bool isPng)
     {
+#if IMAGESHARP4
+        var image = Image.Load<TPixel>(Decoding, stream);
+        isPng = image.Metadata.DecodedImageFormat is PngFormat;
+#else
         var image = Image.Load<TPixel>(stream, out var imgFormat);
         isPng = imgFormat is PngFormat;
+#endif
         return image;
     }
 
@@ -161,6 +187,7 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
 
         // ImageSharp 3.0 turned every encoder property from 'set' into 'init', which changes the
         // setter signature, so these initialisers are isolated for the same reason as the loads above.
+        // An object initialiser compiles against either, so this call needs no IMAGESHARP4 branch.
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void EncodeJpeg(MemoryStream ms)
@@ -189,7 +216,11 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
 
             var pixels = new byte[stride * height];
             var operations = PixelOperations<TPixel2>.Instance;
+#if IMAGESHARP4
+            var configuration = Image.Configuration;
+#else
             var configuration = Image.GetConfiguration();
+#endif
 
             Image.ProcessPixelRows(accessor =>
             {
@@ -204,8 +235,9 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
 }
 
 /// <summary>
-/// Translates the binding failures that occur when this assembly, compiled against the
-/// Apache-2.0 licensed SixLabors.ImageSharp 2.1.x line, is run against a later major version.
+/// Translates the binding failures that occur when this assembly is run against a major version of
+/// SixLabors.ImageSharp other than the one it was compiled against: the Apache-2.0 licensed 2.1.x
+/// line for PdfPinata.ImageSharp, the 4.x line for PdfPinata.ImageSharp4.
 /// </summary>
 internal static class ImageSharpVersion
 {
@@ -218,6 +250,16 @@ internal static class ImageSharpVersion
     {
         var loaded = typeof(Image).Assembly.GetName().Version;
 
+#if IMAGESHARP4
+        // TODO(#308): word this once the 4.x package's version range is settled.
+        return new InvalidOperationException(
+            "PdfPinata.ImageSharp4 is built against SixLabors.ImageSharp 4.x, but version "
+            + loaded + " was loaded at runtime, and the two are not binary compatible. Either pin "
+            + "SixLabors.ImageSharp to a 4.x version, use PdfPinata.ImageSharp for the 2.1.x line, or "
+            + "switch to the PdfPinata.Skia backend "
+            + "('ImageSource.ImageSourceImpl = new SkiaImageSource();') which has no such constraint.",
+            inner);
+#else
         return new InvalidOperationException(
             "PdfPinata.ImageSharp is built against SixLabors.ImageSharp 2.1.x, but version "
             + loaded + " was loaded at runtime. ImageSharp 3.0 removed the "
@@ -226,5 +268,6 @@ internal static class ImageSharpVersion
             + "switch to the PdfPinata.Skia backend "
             + "('ImageSource.ImageSourceImpl = new SkiaImageSource();') which has no such constraint.",
             inner);
+#endif
     }
 }

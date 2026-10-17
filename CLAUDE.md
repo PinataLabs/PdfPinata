@@ -247,6 +247,13 @@ must not oblige a consumer to pick an imaging backend — `PdfPinata.ImageSharp`
 SixLabors.Fonts 1.0.1 for licence reasons and cannot shape for itself. It takes `HarfBuzzSharp`
 alone, not `SkiaSharp.HarfBuzz`.
 
+**The ImageSharp backend's source is in `src/ImageSharpBackend`, not in its project.** It is written
+once for two packages: `PdfPinata.ImageSharp` compiles it against ImageSharp 2.1.x, and the planned
+`PdfPinata.ImageSharp4` against 4.x with the `IMAGESHARP4` constant defined (#305). A call whose API
+differs between the majors goes behind that constant; everything else is shared as it stands. Its
+tests stay in `PdfPinata.Test`, which is pinned to 2.x, and each file the 4.x tests link says so in
+its class comment.
+
 Everything that turns a character into a glyph goes through the internal `Fonts/TextShaping` — both
 `FontHelper.MeasureString` and `XGraphicsPdfRenderer.DrawString`, so that the glyphs measured are the
 glyphs drawn. A shaper is handed a `ShapingFont`, not an `XFont`, because the typeface and font source

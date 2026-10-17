@@ -5,6 +5,9 @@ using System.Numerics;
 using PdfPinata.Drawing;
 using PdfPinata.Fonts;
 using SixLabors.Fonts;
+#if IMAGESHARP4
+using SixLabors.Fonts.Rendering;
+#endif
 using SixLabors.Fonts.Unicode;
 
 namespace PdfPinata.Utils;
@@ -57,7 +60,11 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
         var options = new TextOptions(font) { Dpi = PointsPerInch, Origin = Vector2.Zero };
 
         var collector = new OutlineCollector(BaselineOf(font, text));
+#if IMAGESHARP4
+        TextRenderer.RenderTo(collector, text, options);
+#else
         TextRenderer.RenderTextTo(collector, text, options);
+#endif
         return collector.Outlines;
     }
 
@@ -119,6 +126,15 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
         if (CodePoint.IsWhiteSpace(codePoint))
             return 0;
 
+#if IMAGESHARP4
+        // Fonts 3 answers one glyph rather than a list, and asks for a palette; null is the font's
+        // default, which is what spec #305 settles on.
+        if (!metrics.TryGetGlyphMetrics(codePoint, TextAttributes.None, TextDecorations.None,
+                LayoutMode.HorizontalTopBottom, ColorFontSupport.None, null, out var glyph))
+            return 0;
+
+        return glyph.TopSideBearing < 0 ? -glyph.TopSideBearing : 0;
+#else
         if (!metrics.TryGetGlyphMetrics(codePoint, TextAttributes.None, TextDecorations.None,
                 LayoutMode.HorizontalTopBottom, ColorFontSupport.None, out var glyphs))
             return 0;
@@ -131,6 +147,7 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
         }
 
         return overshoot;
+#endif
     }
 
     /// <summary>
@@ -188,6 +205,38 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
             _segments.Add(XGlyphSegment.CurveTo(At(secondControlPoint), At(thirdControlPoint), _current));
         }
 
+#if IMAGESHARP4
+        public void ArcTo(float radiusX, float radiusY, float rotation, bool largeArc, bool sweep, Vector2 point)
+        {
+            // TODO(#308): spec #305 adds an arc to the outline as cubic Béziers. Until then an arc is
+            // refused rather than silently dropped, which would leave a hole in the glyph.
+            throw new NotImplementedException("ArcTo is not yet translated into the glyph outline (#308).");
+        }
+
+        // A colour glyph paints its layers and groups one over another. An outline has one fill, so
+        // every layer's geometry goes into it and the painting instructions are ignored.
+
+        public void BeginLayer(Paint paint, FillRule fillRule)
+        {
+            // Nothing to do: see above.
+        }
+
+        public void EndLayer()
+        {
+            // Nothing to do: see above.
+        }
+
+        public void BeginGroup(CompositeMode mode)
+        {
+            // Nothing to do: see above.
+        }
+
+        public void EndGroup()
+        {
+            // Nothing to do: see above.
+        }
+#endif
+
         public void EndFigure() => _segments.Add(XGlyphSegment.Close());
 
         public void BeginText(in FontRectangle bounds)
@@ -202,7 +251,12 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
 
         public TextDecorations EnabledDecorations() => TextDecorations.None;
 
+#if IMAGESHARP4
+        public void SetDecoration(TextDecorations textDecorations, Vector2 start, Vector2 end, float thickness,
+            ReadOnlyMemory<float> intersections)
+#else
         public void SetDecoration(TextDecorations textDecorations, Vector2 start, Vector2 end, float thickness)
+#endif
         {
             // Underlines and strikeouts are drawn by the text path, not carved into a glyph.
         }
