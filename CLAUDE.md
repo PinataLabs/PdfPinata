@@ -29,7 +29,14 @@ named for the moment they were written.
 
 CI (`.github/workflows/build-and-test.yml`) runs on Linux only, builds `src/PdfPinata.slnx` in Release,
 installs Ghostscript, then runs `dotnet test --coverlet` for OpenCover coverage, which goes to Codecov
-and, with the Debug build it ran against, to SonarCloud (`PinataLabs_PdfPinata`).
+and, with the Debug build it ran against, to SonarCloud (`PinataLabs_PdfPinata`). It also publishes
+`src/PinataLayout.AotSmokeTest` native and runs it: the DOM's value model by name, a document
+rendered with `InMemoryFontResolver` as its only fonts, and `SkiaFontResolver` called directly,
+because the global resolver is set once a process. `blazor-wasm-smoke.yml` makes the one trimmed
+Release publish of `src/SampleBlazorWasm`, which **fails with IL2104 on a trim warning from a PdfPinata
+or PinataLayout assembly** (`-p:FailOnPdfPinataTrimWarnings=false` prints them in full), then drives
+it in headless Chromium through `src/SampleBlazorWasm.SmokeTest`. The release workflows build the
+nine packaged projects alone, so a sample cannot hold up a release.
 
 **Versions come from git tags, not from the project files.** MinVer (referenced for packable
 projects in `Directory.Build.targets`) versions all nine packages in lockstep from the latest
@@ -181,6 +188,13 @@ through `PdfSigner.Sign` and `Revise` through `SaveIncremental`.
 is a dependency the library forces on a consumer, and both are written out in the project file so
 that what those two demos cost is visible.
 
+`src/SampleBlazorWasm` is the Blazor WebAssembly sample (net10.0, in the solution): ImageSharp and
+`InMemoryFontResolver`, registered in `Program.cs` before `RunAsync`, with Liberation Sans fetched
+from `wwwroot/fonts`. `PdfPinata.Test` links its `SampleDocument.cs` and `EncryptedSample.cs` and runs
+them in `Samples/BlazorWasmSampleTests.cs`. `src/SampleBlazorWasm.SmokeTest` is **not** in the
+solution: a Playwright console app that serves the published `wwwroot` and checks the download, with
+the sample's element ids and page count written out in it — change one, change the other.
+
 **The demos are also the documentation website's code.** `docs-website/` is a Docusaurus site
 (pnpm, Node 22) published to GitHub Pages by `.github/workflows/docs.yml`; `docs-website/README.md`
 has the commands. It keeps no copies of code: a block written ```` ```csharp demo=Protect snippet=encrypt ````
@@ -198,7 +212,10 @@ The core package deliberately carries no imaging or font dependency. All five se
 the first three throw a descriptive `InvalidOperationException` when read unset:
 
 - `GlobalFontSettings.FontResolver` — an `IFontResolver`; backends supply `SkiaFontResolver` /
-  `ImageSharpFontResolver`, both built on `Utils/FontResolverBase`. Must be set before any font is
+  `ImageSharpFontResolver`, both built on `Utils/FontResolverBase`, which scans the machine's font
+  folders and throws in a browser. The core's `Utils/InMemoryFontResolver` serves fonts from bytes the
+  app adds, needs no backend, and is what Blazor WebAssembly uses; its face names are per instance,
+  because `FontFactory` caches a face by name for the whole process. Must be set before any font is
   created: the setter throws once one has been.
 - `ImageSource.ImageSourceImpl` — an `ImageSource`; backends supply `SkiaImageSource` /
   `ImageSharpImageSource`. Must be set before any image is loaded.
