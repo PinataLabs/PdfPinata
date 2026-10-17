@@ -329,6 +329,11 @@ can use are marked trimmable: `PdfPinata`, `PdfPinata.ImageSharp`, `PdfPinata.Ch
 A Blazor publish hides trim warnings by default. To see them for your own application, publish with
 `-p:SuppressTrimAnalysisWarnings=false`.
 
+The repository's CI publishes the sample app trimmed and fails if the trimmer warns about code in a
+PdfPinata or PinataLayout assembly. The trimmer analyses only the code an app can reach, so this
+covers what the sample uses: text, tables, images, charts, saving, and opening a document. You will still see warnings
+from ASP.NET Core itself and from ImageSharp 2.1.
+
 ## Things to know
 
 - **Register everything in `Program.cs`.** The backend properties are static and apply to the whole
