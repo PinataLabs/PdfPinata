@@ -60,14 +60,28 @@ warning in a configuration whose name starts with `Debug`.
 
 | code | when | |
 |---|---|---|
-| PPSL001 | the project has no `sixlabors.lic` | says the key covers `PdfPinata.ImageSharp4` alone, and what to do otherwise |
+| PPSL001 | the project has no key | says the key covers `PdfPinata.ImageSharp4` alone, and what to do otherwise |
 | PPSL002 | the key has no `ExpiryDateUtc` the build can read | |
 | PPSL003 | the key has expired | names the Id and the date, and how to renew |
 | PPSL004 | the key expires within 60 days | always a warning; `PdfPinataSixLaborsKeyWarningDays` changes the window |
 
+Both targets read the key Six Labors' check will read, in its order: the text of
+`$(SixLaborsLicenseKey)`, else the file `$(SixLaborsLicenseFile)` names (relative to the project),
+else the project's own `sixlabors.lic`. So an override rescues a build whose committed key has
+expired, and an expired override fails it. The one difference is that Six Labors' check, with no
+override, takes a `sixlabors.lic` anywhere under the project folder, `bin/` and `obj/` included, and
+these take only the one in the folder itself, which is where every copy lives.
+
 The expiry check reads `ExpiryDateUtc` out of the key and compares it with the clock, with property
 functions and nothing else, so it runs the same on Linux CI. It does not check the key's signature.
 Six Labors' own target does that straight after.
+
+The targets were checked on 2026-10-17, against a scratch project named `PdfPinata.ImageSharp4` that
+references ImageSharp 4.1.3: a Release build passes with the key, fails PPSL001 without one, PPSL002
+with an unreadable one and PPSL003 with an expired one, and warns PPSL004 inside the window; a Debug
+build without a key warns PPSL001 and passes. An expired committed key with a valid
+`-p:SixLaborsLicenseKey=…` or `-p:SixLaborsLicenseFile=…` passes, a valid committed key with an
+expired override fails PPSL003, and a `SixLaborsLicenseFile` that does not exist fails PPSL001.
 
 The key is never packed or copied to the build output. `Directory.Build.targets` sets `Pack="false"`
 and `CopyToOutputDirectory="Never"` on it, whether it is a `None` or a `Content` item. That holds even
