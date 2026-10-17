@@ -38,7 +38,7 @@ If you pass `XImage.FromFile` a PDF file, you get an `XPdfForm`, which draws a p
 ## Formats and how they are stored
 
 The backend decides which files it can read, because it is the backend's image library (SkiaSharp or
-ImageSharp) that decodes them. PNG and JPEG work with both. For any other format, check the
+ImageSharp) that decodes them. PNG and JPEG work with every backend. For any other format, check the
 documentation of the image library behind the backend you chose.
 
 The backend decodes every image to pixels. What PdfPinata writes to the PDF then depends only on

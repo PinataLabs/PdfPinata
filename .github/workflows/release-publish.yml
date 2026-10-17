@@ -1,6 +1,6 @@
 name: Publish Release
 
-# One-click stable release of all nine packages:
+# One-click stable release of all ten packages:
 #
 #   1. resolves the version from the release draft (or the version input)
 #   2. rolls CHANGELOG.md's [Unreleased] section into a dated version heading

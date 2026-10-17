@@ -1,9 +1,10 @@
 name: Release
 
-# All nine packages version in lockstep from one tag, so one tag releases the whole
-# set: PdfPinata and its six companion packages, and the two PinataLayout packages.
+# All ten packages version in lockstep from one tag, so one tag releases the whole
+# set: PdfPinata and its seven companion packages, and the two PinataLayout packages.
 # The list is PACKAGES below and in release-prerelease.yml; a new packable project
-# has to be added to both.
+# has to be added to both. Both lists are the same ten, in the same order, and
+# .github/scripts/verify-packages.sh fails a run whose packages are not one per entry.
 #
 # The glob requires a digit after the `v`, so a tag that merely starts with one
 # (`verapdf-...`) cannot fire a release.
@@ -35,6 +36,7 @@ jobs:
         PdfPinata
         PdfPinata.Skia
         PdfPinata.ImageSharp
+        PdfPinata.ImageSharp4
         PdfPinata.HarfBuzz
         PdfPinata.Signing
         PdfPinata.EInvoice
@@ -95,23 +97,13 @@ jobs:
 
       # Every package must carry the tag's version. A mismatch means MinVer did
       # not see the tag, which would publish a pre-release-versioned package and
-      # leave the backends depending on a PdfPinata that was never released.
+      # leave the backends depending on a PdfPinata that was never released. The
+      # script also fails if a project in PACKAGES packed nothing.
       - name: Verify package versions match the tag
+        # PACKAGES is deliberately unquoted: it is one project per word.
         run: |
-          expected=${TAG#v}
-          status=0
-          for package in ./artifacts/*.nupkg; do
-            name=$(basename "$package" .nupkg)
-            if [ "${name%."$expected"}" = "$name" ]; then
-              echo "::error::$name is not version $expected"
-              status=1
-            fi
-          done
-          if [ "$status" -ne 0 ]; then
-            echo "::error::Package versions do not match tag $TAG - refusing to publish"
-            exit 1
-          fi
-          echo "All packages are version $expected"
+          # shellcheck disable=SC2086
+          bash .github/scripts/verify-packages.sh ./artifacts "${TAG#v}" $PACKAGES
 
       # One CycloneDX document per package, attached to the release beside the .nupkg it
       # describes. This is in addition to the SPDX manifest already embedded in each

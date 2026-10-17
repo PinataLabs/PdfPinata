@@ -37,10 +37,13 @@ The core `PdfPinata` package has no imaging or font-rendering dependency of its 
 
 ### Rendering backends
 
-| Package                | Backend                                                                                                       | License    | Notes                                                                           |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------- |
-| `PdfPinata.Skia`       | [SkiaSharp](https://github.com/mono/SkiaSharp)                                                                | MIT        | Recommended backend. Requires native assets for the target platform.            |
-| `PdfPinata.ImageSharp` | [SixLabors.ImageSharp](https://github.com/SixLabors/ImageSharp) / [Fonts](https://github.com/SixLabors/Fonts) | Apache-2.0 | Fully managed. Uses the final Apache-2.0 ImageSharp 2.1.x / Fonts 1.x releases. |
+| Package                 | Backend                                                                                                                   | License                  | Notes                                                                                                                                  |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `PdfPinata.Skia`        | [SkiaSharp](https://github.com/mono/SkiaSharp)                                                                            | MIT                      | Recommended backend. Requires native assets for the target platform.                                                                   |
+| `PdfPinata.ImageSharp4` | [SixLabors.ImageSharp](https://github.com/SixLabors/ImageSharp) 4.x / [Fonts](https://github.com/SixLabors/Fonts) 3.x     | Six Labors Split License | Fully managed. The ImageSharp backend to choose, unless you target Unity or need Apache-2.0 dependencies. `net8.0` and `net10.0` only. |
+| `PdfPinata.ImageSharp`  | [SixLabors.ImageSharp](https://github.com/SixLabors/ImageSharp) 2.1.x / [Fonts](https://github.com/SixLabors/Fonts) 1.0.1 | Apache-2.0               | Fully managed. For Unity and Apache-2.0 only. ImageSharp 2.1.x is end of life, with five security advisories that will never be fixed. |
+
+The two ImageSharp packages have the same types in the same namespaces, so switching between them is a change to the project file only. See [ImageSharp packages](#imagesharp-packages).
 
 Register the backend before creating fonts or loading images:
 
@@ -170,47 +173,48 @@ For example:
 
 Use `SkiaSharp.NativeAssets.Linux` instead of `SkiaSharp.NativeAssets.Linux.NoDependencies` when `libfontconfig1` is available in the target Linux environment.
 
-`PdfPinata.ImageSharp` is fully managed and does not require native rendering assets.
+The ImageSharp packages are fully managed and do not require native rendering assets.
 
-## ImageSharp version support
+## ImageSharp packages
 
-`PdfPinata.ImageSharp` requires `SixLabors.ImageSharp` **2.1.x**.
+There are two ImageSharp backends. Each is named for the ImageSharp major version it is built against, and a package never moves to a new major, so a routine update never changes the licence of its dependencies.
 
-ImageSharp 3.0 moved from Apache-2.0 to the [Six Labors Split License](https://github.com/SixLabors/ImageSharp/blob/main/LICENSE). PdfPinata therefore remains on the final Apache-2.0 ImageSharp release rather than automatically introducing the newer licence into applications using PdfPinata.
+| | `PdfPinata.ImageSharp4` | `PdfPinata.ImageSharp` |
+| --- | --- | --- |
+| ImageSharp / Fonts | `[4.1.3,5.0.0)` / `[3.2.0,4.0.0)` | `[2.1.13,3.0.0)` / `1.0.1` |
+| Their licence | [Six Labors Split License](https://github.com/SixLabors/ImageSharp/blob/main/LICENSE) | Apache-2.0 |
+| Target frameworks | `net8.0`, `net10.0` | `netstandard2.1`, `net8.0`, `net10.0` |
+| Security advisories | None | Five, never to be fixed |
 
-ImageSharp 3.x is also not binary compatible with ImageSharp 2.1.x. APIs used by the backend changed between the releases, so loading ImageSharp 3.x with a backend compiled against 2.1.x can result in runtime failures.
+**Use `PdfPinata.ImageSharp4` unless you target Unity or must keep your dependencies under Apache-2.0.** ImageSharp 4 has no `netstandard2.1` build, so Unity stays on `PdfPinata.ImageSharp`. ImageSharp 2.1.x is end of life, and its five advisories (GHSA-gwg2-r3hj-4w44, GHSA-j3p4-wp97-rph4, GHSA-wmxv-xphr-5c9g, GHSA-jjfr-hcj7-qf5w and GHSA-j9gm-c75j-xc9q) are fixed only in ImageSharp 3.2.0 and 4.1.2 and later.
 
-The dependency is therefore declared as:
+**An application that uses ImageSharp only through PdfPinata needs no Six Labors licence.** Six Labors checks its licence key when a project that references ImageSharp 4 directly is built, which here means when this repository builds `PdfPinata.ImageSharp4`. The check does not flow to the projects that reference the package. In Six Labors' own words: "If you use a third party package that depends on our libraries, you do not need a license."
 
-```text
-[2.1.13,3.0.0)
-```
+Both packages are built from the same source and give the same results. Images decode to the same pixels, except that a JPEG can differ by up to 2 levels in 255 per channel, because ImageSharp 3 rewrote the JPEG decoder; a PDF made from a JPEG is therefore not always byte-identical after a switch. An embedded ICC profile is kept, not applied, in both. Glyph outlines agree to within a few millionths of a point.
 
-This normally exposes the conflict during package restore instead of at runtime.
-
-If ImageSharp 3.x arrives transitively, NuGet reports `NU1107`.
-
-If the application directly references ImageSharp 3.x, NuGet's direct-dependency-wins rule can instead produce `NU1608`. Applications using the ImageSharp backend should treat that warning as an error:
+ImageSharp majors are not binary compatible, so each package declares a range that stops below the next major. A conflict then shows at restore rather than at run time: NuGet reports `NU1107` when the other major arrives transitively, and `NU1608` when the application references it directly. Applications using an ImageSharp backend should treat that warning as an error:
 
 ```xml
 <WarningsAsErrors>$(WarningsAsErrors);NU1608</WarningsAsErrors>
 ```
 
-If an incompatible version is loaded anyway, PdfPinata reports a `InvalidOperationException` including the detected ImageSharp version.
+If an incompatible version is loaded anyway, the backend throws an `InvalidOperationException` that names the version it needs and the version it found.
 
-`SixLabors.Fonts` is referenced at `1.0.1` for the same licensing reason, but the API used by `ImageSharpFontResolver` remains compatible with Fonts 2.x. Resolving a newer Fonts version is therefore a licensing choice rather than a known runtime incompatibility.
+**Applications that use ImageSharp 3.x should use `PdfPinata.Skia`.** It has no ImageSharp dependency, so any ImageSharp version can be used independently in the same application.
 
-**Applications that require ImageSharp 3.x or later should use `PdfPinata.Skia`.** The Skia backend has no ImageSharp dependency, so ImageSharp 3.x can be used independently in the same application.
+The [installation guide](https://pinatalabs.github.io/PdfPinata/installation#choose-an-imagesharp-package) has more on the choice.
 
 ## Target frameworks
 
-All PdfPinata packages target:
+PdfPinata packages target:
 
 ```text
 netstandard2.1
 net8.0
 net10.0
 ```
+
+The exceptions are `PdfPinata.Signing` and `PdfPinata.ImageSharp4`, which target `net8.0` and `net10.0` only. ImageSharp 4 and SixLabors.Fonts 3 have no `netstandard2.1` build.
 
 `netstandard2.1` is retained primarily for **Unity**, whose scripting runtime supports the .NET Standard 2.1 API surface but cannot consume `net8.0` or `net10.0` assemblies directly.
 
@@ -220,12 +224,14 @@ Supporting `netstandard2.1` requires small compatibility shims for APIs introduc
 
 * [Documentation](https://pinatalabs.github.io/PdfPinata/)
 * [Packages](#packages)
+* [ImageSharp packages](#imagesharp-packages)
 * [International text](#international-text)
 * [Fonts](#fonts)
 * [Target frameworks](#target-frameworks)
 * [Example](#example)
 * [Running the demos](#running-the-demos)
 * [Running the tests](#running-the-tests)
+* [Building the ImageSharp backends](#building-the-imagesharp-backends)
 * [Contributing](#contributing)
 * [License](#license)
 
@@ -305,6 +311,14 @@ Some `XTextFormatterTest` visual tests compare generated output with reference i
 
 Font rasterisation varies between operating systems and installed fonts, so these tests are skipped on platforms where the reference output cannot be compared reliably. CI runs them on Linux and is the reference environment for rendering changes.
 
+## Building the ImageSharp backends
+
+Both ImageSharp packages compile one set of source files, in `src/ImageSharpBackend/`. `PdfPinata.ImageSharp` compiles them against ImageSharp 2.1.x. `PdfPinata.ImageSharp4` compiles them against ImageSharp 4.x with the `IMAGESHARP4` constant defined, and the few calls whose API differs between the two majors are behind `#if IMAGESHARP4`. A fix made there reaches both packages.
+
+Their tests are shared the same way. `PdfPinata.Test` runs them against `PdfPinata.ImageSharp`. `PdfPinata.ImageSharp4.Tests` links the same test files and runs them against `PdfPinata.ImageSharp4`. It is a separate project because one project resolves one version of ImageSharp.
+
+ImageSharp 4 and Fonts 3 check for a Six Labors licence key when a project that references them builds: a Debug build warns, and every other build fails. The repository's open-source community key is committed as `src/PdfPinata.ImageSharp4/sixlabors.lic`, so a Release build works from a clone and from a pull request from a fork. The key covers the assembly name `PdfPinata.ImageSharp4` only. Any other project in the repository that needs ImageSharp 4 references `PdfPinata.ImageSharp4` rather than the ImageSharp packages, and so is not checked. The key expires on 2028-01-15. The build warns 60 days before that, and fails with a message that names the key once it has expired. [`docs/specs/sixlabors-licence-key.md`](docs/specs/sixlabors-licence-key.md) says how to renew it.
+
 ## Contributing
 
 Feedback, bug reports, pull requests, and other contributions are welcome. See [Contributing](https://pinatalabs.github.io/PdfPinata/reference/contributing).
@@ -317,9 +331,6 @@ PdfPinata can optionally use projects distributed under other licences.
 
 ### ImageSharp and SixLabors.Fonts
 
-`PdfPinata.ImageSharp` uses the Apache-2.0 licensed releases of:
+`PdfPinata.ImageSharp` uses the Apache-2.0 licensed releases of SixLabors.ImageSharp (2.1.x) and SixLabors.Fonts (1.0.1).
 
-* SixLabors.ImageSharp
-* SixLabors.Fonts
-
-Later versions of those projects use the Six Labors Split License. See the [ImageSharp licence](https://github.com/SixLabors/ImageSharp/blob/main/LICENSE) for details.
+`PdfPinata.ImageSharp4` uses SixLabors.ImageSharp 4.x and SixLabors.Fonts 3.x, which are under the Six Labors Split License. See the [ImageSharp licence](https://github.com/SixLabors/ImageSharp/blob/main/LICENSE) for details. An application that uses them only through PdfPinata needs no Six Labors licence: "If you use a third party package that depends on our libraries, you do not need a license" ([Six Labors](https://sixlabors.com/posts/licence-enforcement-changes/)).

@@ -24,8 +24,11 @@ from a backend package that you register. See [Migrating](./migrating.md).
 
 ### What licence does it use?
 
-MIT. The optional `PdfPinata.ImageSharp` backend depends on the last Apache-2.0 releases of
-SixLabors.ImageSharp and SixLabors.Fonts. See [Licensing](./licensing.md).
+MIT. The backends bring in packages with their own licences. `PdfPinata.ImageSharp4` depends on
+SixLabors.ImageSharp 4 and SixLabors.Fonts 3, which are under the Six Labors Split License; an
+application that uses them only through PdfPinata needs no Six Labors licence. `PdfPinata.ImageSharp`
+depends on the last Apache-2.0 releases of SixLabors.ImageSharp and SixLabors.Fonts. See
+[Licensing](./licensing.md).
 
 ### Is it free for commercial use?
 
@@ -37,9 +40,12 @@ Yes. The MIT licence allows commercial use. Check the licence of each backend yo
 ### Which backend do I choose?
 
 Choose `PdfPinata.Skia` unless you have a reason not to. It is the recommended backend, and it works
-next to any version of ImageSharp that your application already uses. Choose `PdfPinata.ImageSharp`
-if you cannot ship native libraries: it is fully managed code. It is pinned to ImageSharp 2.1.x, so
-it cannot share an application with ImageSharp 3 or later. See [Installation](../installation.md).
+next to any version of ImageSharp that your application already uses. Choose an ImageSharp backend
+if you cannot ship native libraries: both are fully managed code. Of the two, choose
+`PdfPinata.ImageSharp4`, unless you build for Unity or every dependency must be under Apache-2.0.
+Then choose `PdfPinata.ImageSharp`, which uses ImageSharp 2.1. That version is end of life and has
+security advisories that will never be fixed. See
+[Choose an ImageSharp package](../installation.md#choose-an-imagesharp-package).
 
 ### Why must I register a backend at all?
 
@@ -64,9 +70,10 @@ the Skia backend, and make sure the container has fonts or your resolver serves 
 
 ### Does it run in Unity?
 
-Every package except `PdfPinata.Signing` targets `netstandard2.1` as well as `net8.0` and
-`net10.0`. The `netstandard2.1` build is there for Unity, which cannot load `net8.0` assemblies.
-Signing needs .NET 8 or later, so it is not available in Unity. See
+Every package except `PdfPinata.Signing` and `PdfPinata.ImageSharp4` targets `netstandard2.1` as
+well as `net8.0` and `net10.0`. The `netstandard2.1` build is there for Unity, which cannot load
+`net8.0` assemblies. Those two packages need .NET 8 or later, so they are not available in Unity. In
+Unity, the ImageSharp backend is `PdfPinata.ImageSharp`. See
 [Platforms and deployment](./platforms-and-deployment.md).
 
 ### Does it run on .NET Framework?
