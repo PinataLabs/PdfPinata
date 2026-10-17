@@ -129,7 +129,7 @@ jobs:
           /d:sonar.token="$SONAR_TOKEN"
           /d:sonar.host.url="https://sonarcloud.io"
           /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.*.xml"
-          /d:sonar.coverage.exclusions="src/ConformanceCorpus/**,src/PinataLayout.AotSmokeTest/**,src/SampleApp/**,docs-website/**"
+          /d:sonar.coverage.exclusions="src/ConformanceCorpus/**,src/PinataLayout.AotSmokeTest/**,src/SampleApp/**,src/SampleBlazorWasm/**,docs-website/**"
       - name: Build for tests
         run: dotnet build src/PdfPinata.slnx --configuration Debug --no-restore
       # The tests run on Microsoft.Testing.Platform, which global.json selects for "dotnet test", and

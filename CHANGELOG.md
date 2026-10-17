@@ -25,7 +25,13 @@ another. Nothing changes for a resolver that does not set it.
 
 #### Changed
 
-- **Opening an AES-encrypted document where the runtime has no AES now fails with a `NotSupportedException` that says so.** .NET on WebAssembly, which is what Blazor WebAssembly runs on, provides no AES. There `Aes.Create()` throws a `PlatformNotSupportedException` whose message names neither the document's encryption nor a way round it, and that is what opening a document encrypted with revision 4 of the standard security handler (AES-128) or revisions 5 and 6 (AES-256) threw. The new message names the encryption and the platform, and says to open the document on a server or desktop, or to use a copy that is not encrypted or is encrypted with RC4. The runtime's exception is its `InnerException`. RC4-encrypted documents still open on every platform, and saving needs no AES, because PdfPinata encrypts only with RC4. Where the runtime has AES, nothing changes. (#296)
+- **Opening an AES-encrypted document where the runtime has no AES now fails with a `NotSupportedException` that says so.** .NET on WebAssembly, which is what Blazor WebAssembly runs on, provides no AES. There `Aes.Create()` still returns an instance, and asking it for an encryptor or a decryptor throws a `PlatformNotSupportedException` whose message names neither the document's encryption nor a way round it (in a trimmed app it is only the resource key `Cryptography_AlgorithmNotSupported, Aes`), and that is what opening a document encrypted with revision 4 of the standard security handler (AES-128) or revisions 5 and 6 (AES-256) threw. The new message names the encryption and the platform, and says to open the document on a server or desktop, or to use a copy that is not encrypted or is encrypted with RC4. The runtime's exception is its `InnerException`. RC4-encrypted documents still open on every platform, and saving needs no AES, because PdfPinata encrypts only with RC4. Where the runtime has AES, nothing changes. (#296)
+
+### Documentation & Samples
+
+#### Added
+
+- **`src/SampleBlazorWasm` is a Blazor WebAssembly app that builds a PDF in the browser, with no server.** It uses `PdfPinata.ImageSharp` and `InMemoryFontResolver`, fetching Liberation Sans from `wwwroot/fonts` at startup, which is the only place it registers anything. **Generate** lays out one page with PinataLayout, with text, a table, an image and a chart, saves it with `Save(Stream)` and downloads it through JavaScript interop. **Open AES-256 document** opens a bundled AES-256 PDF and shows the message the browser gets. It builds and publishes with the plain .NET SDK, with no `wasm-tools` workload, because ImageSharp is managed code. Publish it with `dotnet publish src/SampleBlazorWasm -c Release` and serve the `wwwroot` folder of the output from any static file server. (#298)
 
 ## [0.4.3] - 2026-10-14
 

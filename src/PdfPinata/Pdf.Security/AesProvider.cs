@@ -11,9 +11,11 @@ namespace PdfPinata.Pdf.Security;
 /// </summary>
 /// <remarks>
 /// <para>
-/// .NET on WebAssembly provides no AES: <see cref="Aes.Create()"/> throws a
-/// <see cref="PlatformNotSupportedException"/> whose message names neither the document's
-/// encryption nor a way round it. That breaks reading a document encrypted with revision 4 of the
+/// .NET on WebAssembly provides no AES. <see cref="Aes.Create()"/> still answers an instance there,
+/// and it is asking that instance for an encryptor or a decryptor that throws a
+/// <see cref="PlatformNotSupportedException"/> - whose message names neither the document's
+/// encryption nor a way round it, and in a trimmed app is only a resource key. So
+/// <see cref="Create"/> asks for a transform before handing the instance out. That breaks reading a document encrypted with revision 4 of the
 /// standard security handler (AES-128) or revisions 5 and 6 (AES-256). RC4, MD5 and the SHA-2
 /// hashes all still work there, so a revision 2 or 3 document is unaffected.
 /// </para>
@@ -45,15 +47,37 @@ internal static class AesProvider
     /// <exception cref="NotSupportedException">The runtime provides no AES.</exception>
     internal static Aes Create(string encryption)
     {
+        var create = CreateOverride.Value;
+        Aes aes = null;
         try
         {
-            return CreateOverride.Value?.Invoke() ?? Aes.Create();
+            aes = create?.Invoke() ?? Aes.Create();
+
+            // The browser hands out an instance and refuses only when a transform is asked of it,
+            // so a working Aes.Create() proves nothing. Ask for one here, where the refusal can be
+            // put into words, rather than at whichever call site happens to be first. The runtime's
+            // answer cannot change, so it is asked once; an override is a test's, and asked each time.
+            if (create != null || !_runtimeTransforms)
+            {
+                aes.CreateEncryptor(new byte[16], new byte[16]).Dispose();
+                if (create == null)
+                    _runtimeTransforms = true;
+            }
+
+            return aes;
         }
         catch (PlatformNotSupportedException ex)
         {
+            aes?.Dispose();
             throw new NotSupportedException(RefusalMessage(encryption, PlatformName()), ex);
         }
     }
+
+    /// <summary>
+    /// Whether the runtime's own AES has been seen to create a transform, which is all a runtime
+    /// without AES is unable to do.
+    /// </summary>
+    private static volatile bool _runtimeTransforms;
 
     /// <summary>
     /// What a document encrypted with <paramref name="encryption"/> is refused with on

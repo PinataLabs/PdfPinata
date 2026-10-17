@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <!--
+    A Blazor WebAssembly app that builds a PDF in the browser, with no server: PdfPinata, the
+    ImageSharp backend and InMemoryFontResolver, running on .NET for WebAssembly. Publish it and
+    serve publish/wwwroot from any static file server.
+
+    Nothing native is involved - ImageSharp is managed code, where Skia and HarfBuzz would need the
+    wasm-tools workload to relink the runtime - so it builds and publishes with the plain SDK.
+
+    No test project references it. SampleDocument.cs and EncryptedSample.cs hold everything that
+    does not need a browser, have no Blazor in them, and are linked into PdfPinata.Test as source.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PdfPinata\PdfPinata.csproj" />
+    <ProjectReference Include="..\PdfPinata.ImageSharp\PdfPinata.ImageSharp.csproj" />
+    <ProjectReference Include="..\PinataLayout.Rendering\PinataLayout.Rendering.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.13" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.13" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>
