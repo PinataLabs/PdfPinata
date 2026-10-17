@@ -181,4 +181,27 @@ public class PdfSecurity
 
         ex.Message.Should().Contain("password is invalid");
     }
+
+    [Test]
+    public void AnEncryptionThisLibraryCannotReadIsRefusedInItsOwnName()
+    {
+        var document = new PdfDocument();
+        _ = document.AddPage();
+        document.SecuritySettings.UserPassword = "hunter1";
+        using var saved = new MemoryStream();
+        document.Save(saved, false);
+
+        // The encryption dictionary is written in the clear, so its /V can be rewritten in place
+        // to an algorithm no revision of the standard security handler defines.
+        var bytes = saved.ToArray();
+        var text = System.Text.Encoding.Latin1.GetString(bytes);
+        var at = text.IndexOf("/V 2", System.StringComparison.Ordinal);
+        at.Should().BeGreaterThan(0);
+        bytes[at + 3] = (byte)'9';
+
+        var ex = FluentActions.Invoking(() => Pdf.IO.PdfReader.Open(new MemoryStream(bytes), "hunter1", PdfDocumentOpenMode.Import))
+            .Should().ThrowExactly<PdfReaderException>().Which;
+
+        ex.Message.Should().Be("The PDF document is protected with an encryption not supported by PdfPinata.");
+    }
 }

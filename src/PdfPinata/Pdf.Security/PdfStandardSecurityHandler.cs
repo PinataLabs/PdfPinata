@@ -370,6 +370,13 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         Elements[Keys.O] = oValue;
         Elements[Keys.U] = uValue;
         Elements[Keys.P] = pValue;
+
+        // A handler read from a file still holds what described the encryption it was read with,
+        // and none of this belongs to RC4 at revision 2 or 3: the crypt filters are read only at
+        // /V 4 and 5, and /OE, /UE and /Perms only at revisions 5 and 6. Left in place, a document
+        // read as AES-256 was saved naming an /AESV3 crypt filter it was not encrypted with (#304).
+        foreach (var key in (string[])[Keys.CF, Keys.StmF, Keys.StrF, Keys.EFF, Keys.OE, Keys.UE, Keys.Perms, Keys.EncryptMetadata])
+            Elements.Remove(key);
     }
 
     /// <summary>

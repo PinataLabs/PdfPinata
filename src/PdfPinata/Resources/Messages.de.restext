@@ -17,4 +17,4 @@ UserOrOwnerPasswordRequired = Zum Verschlüsseln des Dokuments muss ein Kennwort
 ; ----- PdfParser Messages ------------------------------------------------------------------------
 
 UnexpectedToken = Token '{0}' wird an dieser Stelle nicht erwartet.
-UnknownEncryption = Das PDF-Dokument ist mit einer von PDFsharp nicht unterstützten Verschlüsselung geschützt.
+UnknownEncryption = Das PDF-Dokument ist mit einer von PdfPinata nicht unterstützten Verschlüsselung geschützt.
