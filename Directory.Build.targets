@@ -4,7 +4,7 @@
     What a packable project needs to be released, and nothing else does. This is .targets rather than
     Directory.Build.props because the .props file is imported before the project body and so cannot
     read IsPackable out of it. Every test project, ConformanceCorpus, SampleApp, SampleBlazorWasm,
-    the AOT smoke test and the source generator say IsPackable=false; the nine shipped projects say
+    the AOT smoke test and the source generator say IsPackable=false; the ten shipped projects say
     nothing and are packable by default.
 
     MinVer sets the version from the git tag - see Directory.Build.props for the tag prefix and the
@@ -28,7 +28,7 @@
   </PropertyGroup>
 
   <!--
-    The package metadata all nine shipped packages share, and the two files each one carries at its
+    The package metadata all ten shipped packages share, and the two files each one carries at its
     root. What differs between them - Description, PackageTags - stays in each project file.
 
     GenerateDocumentationFile is the exception that cannot move here: the SDK derives DocumentationFile
