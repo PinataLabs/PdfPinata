@@ -1,0 +1,45 @@
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+    color: #1f2328;
+    background: #ffffff;
+}
+
+main {
+    max-width: 44rem;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+section {
+    margin-top: 2rem;
+}
+
+button {
+    font: inherit;
+    padding: 0.4rem 1rem;
+}
+
+[role="status"] {
+    min-height: 1.5em;
+    word-break: break-word;
+}
+
+#blazor-error-ui {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 0.6rem 1.25rem;
+    background: lightyellow;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}

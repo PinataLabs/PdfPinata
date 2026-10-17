@@ -1,0 +1,85 @@
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<main>
+    <h1>PdfPinata in the browser</h1>
+    <p>
+        Everything below runs on .NET for WebAssembly, in this tab. The server only hands out static
+        files: the app, the fonts, an image and one encrypted PDF.
+    </p>
+
+    <section>
+        <h2>Build a PDF</h2>
+        <p>One page laid out with PinataLayout: text, a table, an image and a chart.</p>
+        <button id="generate" type="button" disabled="@busy" @onclick="GenerateAsync">Generate</button>
+        <p id="generate-status" role="status">@generateStatus</p>
+    </section>
+
+    <section>
+        <h2>Open an AES-256 document</h2>
+        <p>
+            .NET on WebAssembly has no AES, so an AES-encrypted PDF cannot be opened here. This shows the
+            error PdfPinata gives for it.
+        </p>
+        <button id="open-aes" type="button" disabled="@busy" @onclick="OpenAesAsync">Open AES-256 document</button>
+        <p id="aes-message" role="status">@aesMessage</p>
+    </section>
+</main>
+
+@code {
+    private bool busy;
+    private string? generateStatus;
+    private string? aesMessage;
+
+    private async Task GenerateAsync()
+    {
+        busy = true;
+        generateStatus = "Generating...";
+        // Laying the document out is synchronous and the browser has one thread, so let the
+        // status render before the work starts.
+        await Task.Delay(1);
+
+        try
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var image = await Http.GetByteArrayAsync(SampleDocument.ImageUrl);
+            var pdf = SampleDocument.Build(image);
+            stopwatch.Stop();
+
+            using var stream = new MemoryStream(pdf);
+            using var streamReference = new DotNetStreamReference(stream);
+            await JS.InvokeVoidAsync("pdfPinata.download", SampleDocument.FileName, streamReference);
+
+            generateStatus = $"Generated {SampleDocument.FileName}: {pdf.Length:N0} bytes in {stopwatch.ElapsedMilliseconds:N0} ms.";
+        }
+        catch (Exception ex)
+        {
+            generateStatus = $"Failed: {ex.GetType().Name}: {ex.Message}";
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private async Task OpenAesAsync()
+    {
+        busy = true;
+        aesMessage = "Opening...";
+        await Task.Delay(1);
+
+        try
+        {
+            var pdf = await Http.GetByteArrayAsync(EncryptedSample.Url);
+            aesMessage = EncryptedSample.TryOpen(pdf);
+        }
+        catch (Exception ex)
+        {
+            aesMessage = $"Failed: {ex.GetType().Name}: {ex.Message}";
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+}
