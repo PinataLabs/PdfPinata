@@ -34,7 +34,8 @@ font:
   such as `/usr/share/fonts`.
 - On macOS, they read `/Library/Fonts/`.
 - On other platforms, such as Android and iOS, the search throws. Use your own files there, as
-  the next section shows.
+  the next section shows. In the browser, use `InMemoryFontResolver`: see
+  [Blazor WebAssembly](../reference/blazor-webassembly.md#fonts).
 
 They find `.ttf`, `.otf`, `.ttc` and `.otc` files, and each face in a collection file is available
 on its own.
