@@ -394,7 +394,7 @@ public abstract class FontResolverBase
     /// last, but it also meant a family with nothing but a bold face answered a request for
     /// bold with a face it believed was regular - and now that the missing weight is drawn on
     /// rather than ignored, that would stroke a bold face bolder still. The candidate list in
-    /// <see cref="Candidates"/> reaches every style, so filing by the truth still resolves.
+    /// <see cref="FontFaceMatching"/> reaches every style, so filing by the truth still resolves.
     /// </remarks>
     private static FontFamilyModel DeserializeFontFamily(string fontFamilyName, IEnumerable<FontFileInfo> fontList)
     {
@@ -466,90 +466,8 @@ public abstract class FontResolverBase
             throw new System.IO.FileNotFoundException("No Fonts installed on this device!");
 
         if (_installedFonts.TryGetValue(familyName.ToLower(), out var family))
-            return Resolve(family, isBold, isItalic);
+            return FontFaceMatching.Resolve(family.FontFiles, isBold, isItalic, BoldSimulation);
 
         return NullIfFontNotFound ? null : new FontResolverInfo(_installedFonts.First().Value.FontFiles.First().Value);
-    }
-
-
-    /// <summary>
-    /// Picks the closest face the family ships a file for, and asks the renderer to supply what
-    /// is missing.
-    /// </summary>
-    /// <remarks>
-    /// Falling back to the regular face and saying nothing, as this used to, renders bold text
-    /// as regular text without a word about it. PdfPinata can draw a bold or an italic that
-    /// a family has no file for - stroking the glyphs, and skewing them - but only if it is
-    /// told to, and this is where it is told.
-    /// </remarks>
-    private FontResolverInfo Resolve(FontFamilyModel family, bool isBold, bool isItalic)
-    {
-        foreach (var candidate in Candidates(isBold, isItalic))
-        {
-            if (family.FontFiles.TryGetValue(candidate.Key, out var faceName))
-                return new FontResolverInfo(faceName, candidate.Value, BoldSimulation);
-        }
-
-        // The family is keyed by the four styles the candidates cover, so this is unreachable
-        // for a family that has any file at all. Kept so that a family which somehow has one
-        // under another key still resolves to something.
-        return new FontResolverInfo(family.FontFiles.First().Value);
-    }
-
-
-    /// <summary>
-    /// The faces to try for a requested style, nearest first, each with what the renderer would
-    /// have to simulate if that face were used.
-    /// </summary>
-    /// <remarks>
-    /// Only the axis that is missing gets simulated. Asked for bold italic by a family shipping
-    /// a bold, the bold file is used and only the slant is drawn on - a simulated italic over a
-    /// real bold beats simulating both over the regular face.
-    /// <para>
-    /// Neither weight nor slant can be taken away, so a request for a plainer face than the
-    /// family ships is answered with the nearest one and no simulation at all.
-    /// </para>
-    /// </remarks>
-    private static IEnumerable<KeyValuePair<XFontStyle, XStyleSimulations>> Candidates(bool isBold, bool isItalic)
-    {
-        const XStyleSimulations none = XStyleSimulations.None;
-        const XStyleSimulations bold = XStyleSimulations.BoldSimulation;
-        const XStyleSimulations italic = XStyleSimulations.ItalicSimulation;
-        const XStyleSimulations both = XStyleSimulations.BoldItalicSimulation;
-
-        if (isBold && isItalic)
-        {
-            yield return Candidate(XFontStyle.BoldItalic, none);
-            yield return Candidate(XFontStyle.Bold, italic);
-            yield return Candidate(XFontStyle.Italic, bold);
-            yield return Candidate(XFontStyle.Regular, both);
-        }
-        else if (isBold)
-        {
-            yield return Candidate(XFontStyle.Bold, none);
-            yield return Candidate(XFontStyle.Regular, bold);
-            yield return Candidate(XFontStyle.BoldItalic, none);
-            yield return Candidate(XFontStyle.Italic, bold);
-        }
-        else if (isItalic)
-        {
-            yield return Candidate(XFontStyle.Italic, none);
-            yield return Candidate(XFontStyle.Regular, italic);
-            yield return Candidate(XFontStyle.BoldItalic, none);
-            yield return Candidate(XFontStyle.Bold, italic);
-        }
-        else
-        {
-            yield return Candidate(XFontStyle.Regular, none);
-            yield return Candidate(XFontStyle.Italic, none);
-            yield return Candidate(XFontStyle.Bold, none);
-            yield return Candidate(XFontStyle.BoldItalic, none);
-        }
-    }
-
-
-    private static KeyValuePair<XFontStyle, XStyleSimulations> Candidate(XFontStyle style, XStyleSimulations simulations)
-    {
-        return new KeyValuePair<XFontStyle, XStyleSimulations>(style, simulations);
     }
 }

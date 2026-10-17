@@ -129,7 +129,7 @@ jobs:
           /d:sonar.token="$SONAR_TOKEN"
           /d:sonar.host.url="https://sonarcloud.io"
           /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.*.xml"
-          /d:sonar.coverage.exclusions="src/ConformanceCorpus/**,src/PinataLayout.AotSmokeTest/**,src/SampleApp/**,docs-website/**"
+          /d:sonar.coverage.exclusions="src/ConformanceCorpus/**,src/PinataLayout.AotSmokeTest/**,src/SampleApp/**,src/SampleBlazorWasm/**,docs-website/**"
       - name: Build for tests
         run: dotnet build src/PdfPinata.slnx --configuration Debug --no-restore
       # The tests run on Microsoft.Testing.Platform, which global.json selects for "dotnet test", and
@@ -165,6 +165,10 @@ jobs:
           sudo apt-get install -y clang zlib1g-dev
           dotnet publish src/PinataLayout.AotSmokeTest/PinataLayout.AotSmokeTest.csproj -c Release -r linux-x64
           ./src/PinataLayout.AotSmokeTest/bin/Release/net10.0/linux-x64/publish/PinataLayout.AotSmokeTest
+      # The trimmed Release publish of src/SampleBlazorWasm, which fails on a trim warning from a
+      # PdfPinata assembly, is in blazor-wasm-smoke.yml: the smoke test needs that publish anyway,
+      # so it happens once per pull request rather than once in each workflow.
+      #
       # Every PDF/A and PDF/UA claim this library makes is otherwise self-certified: the writer
       # refuses to save a document that breaks a rule it can check, and PdfUaValidator says in its own
       # remarks which rules it cannot reach. This is the outside opinion, and it is the same script a

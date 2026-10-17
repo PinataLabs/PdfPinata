@@ -20,6 +20,20 @@ sets the glyphs at the regular face's advances, as Word does. A resolver gives o
 n)` constructor. A resolver derived from `FontResolverBase`, such as `SkiaFontResolver` or `ImageSharpFontResolver`, takes it from its new `BoldSimulation` property
 , which must be set before the resolver is first used. `MeasureString` counts the same spacing that is drawn, so text laid out with one setting is never drawn with
 another. Nothing changes for a resolver that does not set it. 
+- **`OpenTypeFontMetadata` reads a font's family and style from bytes as well as from a path.** `Read(byte[])`, `Read(byte[], faceIndex)` and `ReadAll(byte[], faceCount)` read a single face, one face of a collection and every face of a collection from a font already in memory, and answer the same as the path overloads do for the same file. A resolver that holds its fonts in memory no longer needs a file, or a font library, to describe them. (#295)
+- **`InMemoryFontResolver` serves fonts from bytes the app supplies, and never touches the file system.** It is the font resolver for Blazor WebAssembly, where `FontResolverBase` throws on a platform it does not know and there are no font files to find anyway. `AddFont(byte[])` reads each font's family and style from the font itself, and a TrueType collection adds every face it holds. `AddFont(Stream)` is for an embedded resource; in a browser, fetch a font with `await http.GetByteArrayAsync(...)` and add the bytes, because a browser `HttpClient` stream cannot be read synchronously. A face is chosen by the same rule `FontResolverBase` uses, so only a missing bold or italic is simulated, and `BoldSimulation` says how. `AddAlias("Arial", "Liberation Sans")` lets a document that asks for Arial still get a font. `DefaultFontName` is the first family added unless it is set, and an unknown family falls back to it in the style asked for, unless `NullIfFontNotFound` is set. With no fonts added, it throws an `InvalidOperationException` that says to add one. It needs no imaging backend. Add every font before a document uses one: the library asks about each family and style once and keeps the answer. (#297)
+
+### PDF Reader & Writer
+
+#### Changed
+
+- **Opening an AES-encrypted document where the runtime has no AES now fails with a `NotSupportedException` that says so.** .NET on WebAssembly, which is what Blazor WebAssembly runs on, provides no AES. There `Aes.Create()` still returns an instance, and asking it for an encryptor or a decryptor throws a `PlatformNotSupportedException` whose message names neither the document's encryption nor a way round it (in a trimmed app it is only the resource key `Cryptography_AlgorithmNotSupported, Aes`), and that is what opening a document encrypted with revision 4 of the standard security handler (AES-128) or revisions 5 and 6 (AES-256) threw. The new message names the encryption and the platform, and says to open the document on a server or desktop, or to use a copy that is not encrypted or is encrypted with RC4. The runtime's exception is its `InnerException`. RC4-encrypted documents still open on every platform, and saving needs no AES, because PdfPinata encrypts only with RC4. Where the runtime has AES, nothing changes. (#296)
+
+### Documentation & Samples
+
+#### Added
+
+- **`src/SampleBlazorWasm` is a Blazor WebAssembly app that builds a PDF in the browser, with no server.** It uses `PdfPinata.ImageSharp` and `InMemoryFontResolver`, fetching Liberation Sans from `wwwroot/fonts` at startup, which is the only place it registers anything. **Generate** lays out one page with PinataLayout, with text, a table, an image and a chart, saves it with `Save(Stream)` and downloads it through JavaScript interop. **Open AES-256 document** opens a bundled AES-256 PDF and shows the message the browser gets. It builds and publishes with the plain .NET SDK, with no `wasm-tools` workload, because ImageSharp is managed code. Publish it with `dotnet publish src/SampleBlazorWasm -c Release` and serve the `wwwroot` folder of the output from any static file server. (#298)
 
 ## [0.4.3] - 2026-10-14
 

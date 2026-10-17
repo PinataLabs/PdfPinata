@@ -20,4 +20,5 @@
   <Project Path="PdfPinata.Test/PdfPinata.Test.csproj" />
   <Project Path="PdfPinata/PdfPinata.csproj" />
   <Project Path="SampleApp/SampleApp.csproj" />
+  <Project Path="SampleBlazorWasm/SampleBlazorWasm.csproj" />
 </Solution>

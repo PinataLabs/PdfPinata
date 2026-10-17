@@ -36,6 +36,15 @@
     <ProjectReference Include="..\PdfPinata.Skia\PdfPinata.Skia.csproj" />
   </ItemGroup>
 
+  <!--
+    The fonts the document is set in, served by InMemoryFontResolver rather than found on the
+    machine: the run proves a document renders from nothing but the bytes the app supplies, as it
+    must in a browser. Linked from the tests' assets rather than copied.
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\PdfPinata.Test\Assets\Fonts\LiberationSans-*.ttf" LogicalName="Fonts.%(Filename)%(Extension)" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.152.1" />
     <PackageReference Include="SkiaSharp.NativeAssets.macOS" Version="4.152.1" />

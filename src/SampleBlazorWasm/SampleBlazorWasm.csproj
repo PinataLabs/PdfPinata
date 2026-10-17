@@ -1,0 +1,67 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <!--
+    A Blazor WebAssembly app that builds a PDF in the browser, with no server: PdfPinata, the
+    ImageSharp backend and InMemoryFontResolver, running on .NET for WebAssembly. Publish it and
+    serve publish/wwwroot from any static file server.
+
+    Nothing native is involved - ImageSharp is managed code, where Skia and HarfBuzz would need the
+    wasm-tools workload to relink the runtime - so it builds and publishes with the plain SDK.
+
+    No test project references it. SampleDocument.cs and EncryptedSample.cs hold everything that
+    does not need a browser, have no Blazor in them, and are linked into PdfPinata.Test as source.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
+  </PropertyGroup>
+
+  <!--
+    A Release publish is trimmed, and it fails if the trimmer warns about code in a PdfPinata or
+    PinataLayout assembly. CI publishes this app to catch a change that makes the library
+    untrimmable before a consumer does. Warnings from other assemblies are printed but fail nothing:
+    ASP.NET Core and ImageSharp 2.1 have some of their own.
+
+    Three settings do it, because ILLink can treat a warning code as an error but cannot limit that
+    to one assembly, and the framework emits the same codes PdfPinata could:
+    - Blazor suppresses trim warnings by default, so without SuppressTrimAnalysisWarnings=false the
+      trimmer reports nothing at all.
+    - The target below collapses every warning from our assemblies into one IL2104, "Assembly
+      'PdfPinata' produced trim warnings". TrimmerSingleWarn=false keeps every other assembly from
+      collapsing, so no other assembly can produce an IL2104.
+    - WarningsAsErrors makes IL2104 an error. ILLink then exits non-zero, so it runs again on the
+      next publish rather than being skipped as up to date.
+
+    The IL2104 does not say which member warned. Publish with -p:FailOnPdfPinataTrimWarnings=false
+    to see each warning in full, without failing; CI does that when the check fails.
+  -->
+  <PropertyGroup>
+    <FailOnPdfPinataTrimWarnings Condition="'$(FailOnPdfPinataTrimWarnings)' == ''">true</FailOnPdfPinataTrimWarnings>
+    <SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+    <WarningsAsErrors>$(WarningsAsErrors);IL2104</WarningsAsErrors>
+  </PropertyGroup>
+
+  <Target Name="CollapsePdfPinataTrimWarnings" AfterTargets="PrepareForILLink"
+          Condition="'$(FailOnPdfPinataTrimWarnings)' == 'true'">
+    <ItemGroup>
+      <ManagedAssemblyToLink TrimmerSingleWarn="true"
+                             Condition="$([System.String]::Copy('%(Filename)').StartsWith('PdfPinata')) Or $([System.String]::Copy('%(Filename)').StartsWith('PinataLayout'))" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PdfPinata\PdfPinata.csproj" />
+    <ProjectReference Include="..\PdfPinata.ImageSharp\PdfPinata.ImageSharp.csproj" />
+    <ProjectReference Include="..\PinataLayout.Rendering\PinataLayout.Rendering.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.13" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.13" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

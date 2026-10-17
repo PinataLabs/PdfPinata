@@ -3,9 +3,9 @@
   <!--
     What a packable project needs to be released, and nothing else does. This is .targets rather than
     Directory.Build.props because the .props file is imported before the project body and so cannot
-    read IsPackable out of it. Every test project, ConformanceCorpus, SampleApp, the AOT smoke test
-    and the source generator say IsPackable=false; the nine shipped projects say nothing and are
-    packable by default.
+    read IsPackable out of it. Every test project, ConformanceCorpus, SampleApp, SampleBlazorWasm,
+    the AOT smoke test and the source generator say IsPackable=false; the nine shipped projects say
+    nothing and are packable by default.
 
     MinVer sets the version from the git tag - see Directory.Build.props for the tag prefix and the
     floor it counts from before the first tag exists.
