@@ -39,6 +39,29 @@ internal static class AesProvider
     private static readonly AsyncLocal<Func<Aes>> CreateOverride = new();
 
     /// <summary>
+    /// Whether an override has ever been set in this process. Until one has - which is always, outside
+    /// the test suite - <see cref="Create"/> reads this and not the <see cref="AsyncLocal{T}"/>, so
+    /// every string and stream an AES document decrypts pays one field read for the seam and no more.
+    /// </summary>
+    private static volatile bool _overridden;
+
+    /// <summary>
+    /// Makes <see cref="Create"/> call <paramref name="create"/> in place of <see cref="Aes.Create()"/>,
+    /// in the current flow alone, and answers the override it replaces; null puts the runtime back.
+    /// </summary>
+    /// <remarks>
+    /// The test suite's seam. It reaches this by name, because this repository carries no
+    /// <c>InternalsVisibleTo</c>, so its name and signature are what <c>AesRefusal</c> looks for.
+    /// </remarks>
+    internal static Func<Aes> SetCreateOverride(Func<Aes> create)
+    {
+        _overridden = true;
+        var previous = CreateOverride.Value;
+        CreateOverride.Value = create;
+        return previous;
+    }
+
+    /// <summary>
     /// Creates an AES instance for a document encrypted with <paramref name="encryption"/>.
     /// </summary>
     /// <param name="encryption"><see cref="Aes128"/> or <see cref="Aes256"/>: the document's
@@ -47,7 +70,7 @@ internal static class AesProvider
     /// <exception cref="NotSupportedException">The runtime provides no AES.</exception>
     internal static Aes Create(string encryption)
     {
-        var create = CreateOverride.Value;
+        var create = _overridden ? CreateOverride.Value : null;
         Aes aes = null;
         try
         {
