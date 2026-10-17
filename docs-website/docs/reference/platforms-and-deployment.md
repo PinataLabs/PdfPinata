@@ -1,6 +1,6 @@
 ---
 title: Platforms and deployment
-description: What PdfPinata needs on Windows, macOS, Linux, in containers and in Unity, and how to run it where no fonts are installed.
+description: What PdfPinata needs on Windows, macOS, Linux, in containers, in Unity and in Blazor WebAssembly, and how to run it where no fonts are installed.
 ---
 
 PdfPinata's own code is managed .NET and runs wherever .NET 8, .NET 10 or .NET Standard 2.1 runs.
@@ -118,6 +118,17 @@ the host starts to handle requests. Setting the same resolver instance a second 
 but setting a different one after the first font exists throws.
 
 `HarfBuzzTextShaper` can be used from several threads at once.
+
+## Blazor WebAssembly
+
+PdfPinata runs in the browser with Blazor WebAssembly, but the browser has no font files and no
+real file system. There, the backend font resolvers throw `NotImplementedException` ("FontResolver
+not implemented for this platform") at the first font. Use `InMemoryFontResolver` and serve your
+fonts from `wwwroot`. [Blazor WebAssembly](./blazor-webassembly.md) covers the setup, and what does
+not work in the browser.
+
+Blazor Server runs on the server and needs nothing extra. In a container, see
+[Containers](#containers).
 
 ## Things to know
 

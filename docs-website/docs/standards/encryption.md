@@ -122,7 +122,8 @@ PdfPinata does not help to open a document without its password.
   Treat PdfPinata's encryption as a statement to honest readers, not as protection for sensitive
   data. If you need strong protection, encrypt the file with another tool after PdfPinata writes it.
 - **AES is read, not written.** Documents encrypted by other tools with AES-128 or AES-256 open
-  normally when you give the password.
+  normally when you give the password. In Blazor WebAssembly they do not open, because .NET in the
+  browser has no AES. See [Blazor WebAssembly](../reference/blazor-webassembly.md#encrypted-documents).
 - **PDF/A forbids encryption.** A document that claims a [PDF/A](./pdf-a.md) level and has a password
   will not save.
 - **Saving rewrites the whole file.** If you open a signed document and save it again, with or
