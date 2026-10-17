@@ -460,8 +460,17 @@ public static class PdfReader
         document._readEncrypted = true;
         var encrypt = parser.ReadObject(null, xrefEncrypt.ObjectID, false, false);
 
-        encrypt.Reference = xrefEncrypt;
-        xrefEncrypt.Value = encrypt;
+        // The trailer of a file indexed by a cross-reference stream is that stream's dictionary,
+        // and it is parsed before the entries the stream holds are in the table - so its /Encrypt
+        // is a stand-in reference that belongs to no document. Reading the object has already
+        // given the dictionary the table's own entry, which is what a classic trailer's /Encrypt
+        // already is, and the trailer is pointed at that. Left on the stand-in, the security
+        // handler was dropped by Modify's compaction, which walks only references that belong to
+        // the document; it kept the number it was read with, renumbering gave that number to
+        // another object, and a document given a new password was saved with /Encrypt pointing at
+        // that one - the catalog, in one of the files that showed it (#304).
+        Debug.Assert(ReferenceEquals(encrypt.Reference, document._irefTable[xrefEncrypt.ObjectID]));
+        document._trailer.Elements[PdfTrailer.Keys.Encrypt] = encrypt.Reference;
     }
 
     /// <summary>

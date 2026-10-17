@@ -24,6 +24,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **The ImageSharp backends keep the transparency of a GIF, WebP, TIFF or any other image that is not a PNG.** `ImageSharpImageSource` called an image transparent only when it was a PNG, so every other image was written as a JPEG, which has no alpha, and its transparent pixels were drawn black. It now calls an image transparent when it is a PNG, as before, or when any of its pixels is less than opaque, and such an image is stored without loss with its alpha as a mask. An image with no transparent pixel is written as it was before, so existing documents do not change. A JPEG is never scanned, because it cannot have alpha. This applies to `PdfPinata.ImageSharp` and `PdfPinata.ImageSharp4`, and to `FromImageSharpImage` as well as the loads. The Skia backend still keeps transparency for PNGs only. (#305)
 
+### PDF Reader & Writer
+
+#### Fixed
+
+- **An encrypted document indexed by a cross-reference stream can be given a new password and saved.** The saved file could not be opened again, because it had no encryption dictionary, and its trailer's `/Encrypt` pointed at another object, such as the catalog. Reopening it failed with "The PDF document is protected with an encryption not supported by PDFsharp." The reader attached the encryption dictionary to a placeholder reference that it made while it read the cross-reference stream, and `Modify` mode then removed the dictionary as unreachable and gave its object number to another object. This happened whatever the cipher was: AES-256 at revisions 5 and 6, AES-128 at revision 4, and RC4 written by this library all failed in the same way. A document with a classic cross-reference table was not affected. The saved dictionary also kept the AES entries of the dictionary it was read from (`/CF`, `/StmF`, `/StrF`, `/OE`, `/UE`, `/Perms` and `/EncryptMetadata`), which do not apply to the RC4 encryption that this library writes. These entries are now removed. The message names PdfPinata instead of PDFsharp. (#314)
+
 ### Documentation & Samples
 
 #### Changed
