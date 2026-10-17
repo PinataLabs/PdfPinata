@@ -61,7 +61,17 @@ public static class Program
     private const float BootTimeout = 120_000;
     private const float ActionTimeout = 120_000;
 
+    /// <summary>
+    /// What failed. Written from Playwright's event handlers as well as from the checks, so it is
+    /// read and written under its own lock.
+    /// </summary>
     private static readonly List<string> failures = [];
+
+    /// <summary>
+    /// Waits that lost a race and were left running. Closing the page ends each of them, and each is
+    /// then awaited, so none is left to fault unobserved.
+    /// </summary>
+    private static readonly List<Task> abandoned = [];
 
     public static async Task<int> Main(string[] args)
     {
@@ -95,13 +105,15 @@ public static class Program
         var console = new List<string>();
         page.Console += (_, message) =>
         {
-            console.Add($"[{message.Type}] {message.Text}");
+            lock (console)
+                console.Add($"[{message.Type}] {message.Text}");
             if (message.Type == "error")
                 Fail($"the page logged an error: {message.Text}");
         };
         page.PageError += (_, error) =>
         {
-            console.Add($"[pageerror] {error}");
+            lock (console)
+                console.Add($"[pageerror] {error}");
             Fail($"the page threw: {error}");
         };
 
@@ -124,14 +136,26 @@ public static class Program
         finally
         {
             await page.ScreenshotAsync(new() { Path = Path.Combine(output, "page.png"), FullPage = true });
-            await File.WriteAllLinesAsync(Path.Combine(output, "console.log"), console);
+
+            // Closing the page stops its events, so nothing the page logs can reach the failures
+            // after they are counted below, and it ends the waits that lost a race.
+            await page.CloseAsync();
+            await SettleAbandoned();
+
+            string[] lines;
+            lock (console)
+                lines = [.. console];
+            await File.WriteAllLinesAsync(Path.Combine(output, "console.log"), lines);
             await server.StopAsync();
         }
 
         Console.WriteLine($"Screenshot, console log and download are in {output}");
-        if (failures.Count > 0)
+        int failed;
+        lock (failures)
+            failed = failures.Count;
+        if (failed > 0)
         {
-            Console.WriteLine($"FAILED: {failures.Count} check(s)");
+            Console.WriteLine($"FAILED: {failed} check(s)");
             return 1;
         }
 
@@ -155,6 +179,9 @@ public static class Program
         Console.WriteLine("Clicked Generate.");
 
         var first = await Task.WhenAny(download, failed);
+        lock (abandoned)
+            abandoned.Add(first == download ? failed : download);
+
         if (first == failed && failed.IsCompletedSuccessfully)
         {
             var status = await page.Locator("#generate-status").TextContentAsync();
@@ -186,6 +213,29 @@ public static class Program
             new() { Timeout = ActionTimeout });
         Console.WriteLine($"Status: {await page.Locator("#generate-status").TextContentAsync()}");
         return true;
+    }
+
+    /// <summary>
+    /// Awaits every wait that lost a race, once the page is closed. Each one ends there, by timing
+    /// out or because the page went away; the race was decided already, so how it ends says nothing.
+    /// </summary>
+    private static async Task SettleAbandoned()
+    {
+        Task[] waits;
+        lock (abandoned)
+            waits = [.. abandoned];
+
+        foreach (var wait in waits)
+        {
+            try
+            {
+                await wait;
+            }
+            catch (Exception ex) when (ex is PlaywrightException or TimeoutException)
+            {
+                // Expected: the page this was waiting on is closed.
+            }
+        }
     }
 
     /// <summary>

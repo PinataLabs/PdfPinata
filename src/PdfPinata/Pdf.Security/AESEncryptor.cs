@@ -82,7 +82,7 @@ internal class AESEncryptor : RC4Encryptor
 
     private void CreateEncryptionKeyR5(byte[] encryptedValue, byte[] password, byte[] salt, byte[] uservalue)
     {
-        var aes256Cbc = AesProvider.Create(AesProvider.Aes256);
+        using var aes256Cbc = AesProvider.Create(AesProvider.Aes256);
         aes256Cbc.KeySize = 256;
         aes256Cbc.Mode = CipherMode.CBC;
         aes256Cbc.Padding = PaddingMode.None;
@@ -104,7 +104,6 @@ internal class AESEncryptor : RC4Encryptor
                 }
             }
         }
-        aes256Cbc.Clear();
     }
 
     private void InitVersion6(string password)

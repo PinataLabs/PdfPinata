@@ -10,8 +10,10 @@ namespace PdfPinata.Test.Security;
 
 /// <summary>
 /// What happens to an AES-encrypted document on a platform whose runtime provides no AES, which is
-/// .NET on WebAssembly: <c>Aes.Create()</c> throws a <see cref="PlatformNotSupportedException"/>
-/// there, with a message that names neither the document's encryption nor a way round it.
+/// .NET on WebAssembly: <c>Aes.Create()</c> answers an instance there, and asking it for an encryptor
+/// or a decryptor throws a <see cref="PlatformNotSupportedException"/>, with a message that names
+/// neither the document's encryption nor a way round it. Both that and a runtime whose
+/// <c>Aes.Create()</c> throws outright are simulated.
 /// </summary>
 /// <remarks>
 /// The refusal is simulated through the security handler's one AES factory, set for the running

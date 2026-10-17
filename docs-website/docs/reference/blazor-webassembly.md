@@ -157,10 +157,14 @@ Add this function to `wwwroot/index.html`, after the Blazor script, or to a scri
     anchor.download = fileName;
     anchor.click();
     anchor.remove();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
   };
 </script>
 ```
+
+Do not revoke the URL immediately after `click()`. Some browsers start the download
+asynchronously, and if the URL is already revoked, the download fails. The function above revokes
+it after one minute.
 
 Then render the document and send the stream from a component:
 
@@ -269,18 +273,56 @@ work as on any other platform.
 `System.Security.Cryptography.Pkcs`, and .NET on WebAssembly does not have them. A private key in
 the browser would also be visible to anyone who uses the page.
 
-Build the document in the browser and sign it on a server:
+Build the document in the browser and sign it on a server. The browser sends the unsigned PDF, and
+the server signs it and sends it back:
 
 1. In the browser, render the document and save it to a `MemoryStream`.
-2. Send the bytes to your server, for example with `HttpClient.PostAsync`.
-3. On the server, sign them with `PdfSigner.Sign` and a signer: `Pkcs7Signer` from
-   `PdfPinata.Signing`, or your own implementation of `IPdfSigner` for a hardware security module or
-   a signing service.
-4. Send the signed bytes back, and download them as in [Save and download](#save-and-download).
+2. Send the bytes to your server with `HttpClient.PostAsync`.
+3. On the server, pass the bytes to `PdfSigner.Sign(input, output, signer)` with a signer:
+   `Pkcs7Signer` from `PdfPinata.Signing`, or your own `IPdfSigner` for a hardware security module
+   or a signing service.
+4. Return the signed bytes, and download them in the browser as in
+   [Save and download](#save-and-download).
 
-The browser cannot do the signing step itself through an `IPdfSigner` that calls your server.
-`IPdfSigner.Sign` is synchronous, and in the browser .NET cannot wait for an HTTP response
-synchronously. [Digital signatures](../standards/digital-signatures.md) covers the server side.
+In the browser:
+
+```csharp
+using MemoryStream unsigned = new MemoryStream();
+renderer.PdfDocument.Save(unsigned);
+
+using ByteArrayContent content = new ByteArrayContent(unsigned.ToArray());
+content.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+using HttpResponseMessage response = await Http.PostAsync("api/sign", content);
+response.EnsureSuccessStatusCode();
+
+using MemoryStream signed = new MemoryStream(await response.Content.ReadAsByteArrayAsync());
+using DotNetStreamReference streamReference = new DotNetStreamReference(signed);
+await JS.InvokeVoidAsync("downloadFileFromStream", "signed.pdf", streamReference);
+```
+
+On the server, for example in an ASP.NET Core minimal API:
+
+```csharp
+app.MapPost("/api/sign", async (HttpRequest request) =>
+{
+    using MemoryStream unsigned = new MemoryStream();
+    await request.Body.CopyToAsync(unsigned);
+    unsigned.Position = 0;
+
+    using MemoryStream signed = new MemoryStream();
+    PdfSigner.Sign(unsigned, signed, signer, new PdfSignatureOptions { Reason = "Approved" });
+    return Results.File(signed.ToArray(), "application/pdf");
+});
+```
+
+Here `signer` is a `Pkcs7Signer` that the server creates at startup from its certificate. Check who
+calls the endpoint before you sign: anyone who can post to it can get a document signed with your
+key.
+
+The whole `PdfSigner.Sign` call runs on the server. It cannot run in the browser with an `IPdfSigner`
+that sends only the hash to the server: `PdfSigner.Sign` calls `IPdfSigner.Sign` synchronously while
+it writes the file, and .NET in the browser cannot wait synchronously for an HTTP response.
+[Digital signatures](../standards/digital-signatures.md) covers signers, certificates and options.
 
 ## Performance
 

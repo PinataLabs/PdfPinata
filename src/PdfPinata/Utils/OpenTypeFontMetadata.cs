@@ -136,7 +136,7 @@ public static class OpenTypeFontMetadata
     /// <param name="data">The whole collection file, as it would be on disk.</param>
     /// <param name="faceCount">
     /// How many faces to read, from face 0 up; at most as many as the collection holds.
-    /// <see cref="TrueTypeCollection.TryGetFaceCount"/> says how many that is.
+    /// <see cref="TrueTypeCollection.FaceCount(byte[])"/> says how many that is.
     /// </param>
     /// <returns>The family name and style of each face, in order; the same as reading its file.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="data"/> is null.</exception>

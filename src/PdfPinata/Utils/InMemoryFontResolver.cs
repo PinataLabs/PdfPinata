@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 
 using PdfPinata.Drawing;
 using PdfPinata.Fonts;
@@ -40,7 +41,17 @@ namespace PdfPinata.Utils;
 /// </remarks>
 public sealed class InMemoryFontResolver : IFontResolver
 {
+    /// <summary>How many resolvers have been made, so that each can name its faces apart from the others'.</summary>
+    private static int _instances;
+
     private readonly object _lock = new();
+
+    /// <summary>
+    /// Begins every face name this resolver hands out. The library caches a face's bytes by its name
+    /// for the life of the process, whichever resolver named it, so two resolvers holding different
+    /// bytes for one family and style must not name them alike.
+    /// </summary>
+    private readonly string _faceNamePrefix = "InMemory" + Interlocked.Increment(ref _instances) + ":";
 
     /// <summary>The faces of each family, by style, as the face names handed out.</summary>
     private readonly Dictionary<string, Dictionary<XFontStyle, string>> _families = new(StringComparer.OrdinalIgnoreCase);
@@ -230,39 +241,49 @@ public sealed class InMemoryFontResolver : IFontResolver
     }
 
     /// <summary>Adds a font or collection whose bytes the resolver owns.</summary>
+    /// <remarks>
+    /// Every face is read and extracted before any is added, so a collection with a face that
+    /// cannot be is refused whole rather than left half added.
+    /// </remarks>
     private void Add(byte[] data)
     {
         if (!TrueTypeCollection.IsCollection(data))
         {
-            AddFace(OpenTypeFontMetadata.Read(data), data);
+            AddFaces([(OpenTypeFontMetadata.Read(data), data)]);
             return;
         }
 
         var faceCount = TrueTypeCollection.FaceCount(data);
         var metadata = OpenTypeFontMetadata.ReadAll(data, faceCount);
+        var faces = new (FontMetadata Metadata, byte[] Face)[faceCount];
         for (var face = 0; face < faceCount; face++)
-            AddFace(metadata[face], TrueTypeCollection.ExtractFace(data, face));
+            faces[face] = (metadata[face], TrueTypeCollection.ExtractFace(data, face));
+
+        AddFaces(faces);
     }
 
-    private void AddFace(FontMetadata metadata, byte[] face)
+    private void AddFaces((FontMetadata Metadata, byte[] Face)[] faces)
     {
         lock (_lock)
         {
-            if (!_families.TryGetValue(metadata.FamilyName, out var family))
+            foreach (var (metadata, face) in faces)
             {
-                family = new Dictionary<XFontStyle, string>();
-                _families.Add(metadata.FamilyName, family);
-                _firstFamily ??= metadata.FamilyName;
+                if (!_families.TryGetValue(metadata.FamilyName, out var family))
+                {
+                    family = new Dictionary<XFontStyle, string>();
+                    _families.Add(metadata.FamilyName, family);
+                    _firstFamily ??= metadata.FamilyName;
+                }
+
+                if (family.ContainsKey(metadata.Style))
+                    continue;
+
+                // A face name is never given to other bytes: a family has one face per style, the
+                // first one stays, and the prefix keeps this resolver's names apart from another's.
+                var faceName = _faceNamePrefix + metadata.FamilyName + ":" + metadata.Style;
+                family.Add(metadata.Style, faceName);
+                _faces.Add(faceName, face);
             }
-
-            if (family.ContainsKey(metadata.Style))
-                return;
-
-            // The library keys font sources by face name for the life of the process, so a name is
-            // never given to other bytes: a family has one face per style, and the first one stays.
-            var faceName = "InMemory:" + metadata.FamilyName + ":" + metadata.Style;
-            family.Add(metadata.Style, faceName);
-            _faces.Add(faceName, face);
         }
     }
 

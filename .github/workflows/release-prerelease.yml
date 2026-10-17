@@ -67,11 +67,15 @@ jobs:
           echo "Branch: ${{ github.ref_name }}"
           echo "Pre-release label: ${{ inputs.prerelease-label }}"
 
-      - name: Restore dependencies
-        run: dotnet restore src/PdfPinata.slnx
-
+      # The packages and what they reference, as release.yml builds them: nothing else in the
+      # solution ships, so nothing else can hold up a pre-release.
       - name: Build
-        run: dotnet build src/PdfPinata.slnx --configuration Release --no-restore
+        run: |
+          for project in $PACKAGES; do
+            echo "::group::Build $project"
+            dotnet build "src/$project/$project.csproj" --configuration Release
+            echo "::endgroup::"
+          done
 
       - name: Pack
         run: |

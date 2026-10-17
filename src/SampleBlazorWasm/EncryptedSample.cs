@@ -9,7 +9,8 @@ namespace SampleBlazorWasm;
 /// </summary>
 /// <remarks>
 /// <para>
-/// .NET on WebAssembly provides no AES: <c>Aes.Create()</c> throws there. PdfPinata catches that and
+/// .NET on WebAssembly provides no AES: <c>Aes.Create()</c> answers an instance there, but asking it
+/// for an encryptor or a decryptor throws. PdfPinata asks for one before it uses the instance, and
 /// throws a <see cref="NotSupportedException"/> naming the document's encryption instead, from
 /// <see cref="PdfReader.Open(Stream, string, PdfDocumentOpenMode)"/>, which is where every object is
 /// decrypted. In the browser this therefore answers that message. Anywhere the runtime has AES the
@@ -38,7 +39,7 @@ public static class EncryptedSample
     {
         try
         {
-            var document = PdfReader.Open(new MemoryStream(pdf), Password, PdfDocumentOpenMode.Import);
+            using var document = PdfReader.Open(new MemoryStream(pdf), Password, PdfDocumentOpenMode.Import);
             var pages = document.PageCount;
             return $"Opened the AES-256 document: {pages} {(pages == 1 ? "page" : "pages")}.";
         }

@@ -1,7 +1,6 @@
 using System;
 using System.Reflection;
 using System.Security.Cryptography;
-using System.Threading;
 using PdfPinata.Pdf;
 
 namespace PdfPinata.Test.Helpers;
@@ -20,27 +19,27 @@ namespace PdfPinata.Test.Helpers;
 /// </para>
 /// <para>
 /// The factory is internal and this repository carries no <c>InternalsVisibleTo</c>, so its
-/// override is reached by name, the way the other probes in this suite reach internals. It is an
-/// <see cref="AsyncLocal{T}"/>, so the other encrypted-document tests running beside the one that
-/// begins a refusal are untouched by it.
+/// override is set through a method reached by name, the way the other probes in this suite reach
+/// internals. The method is looked up when a refusal begins rather than when this class is first
+/// touched, so a rename fails the test that needed it, saying what to look for, instead of
+/// surfacing as a <see cref="TypeInitializationException"/>. The override lives in an
+/// <c>AsyncLocal</c>, so the other encrypted-document tests running beside the one that begins a
+/// refusal are untouched by it.
 /// </para>
 /// </remarks>
 internal sealed class AesRefusal : IDisposable
 {
     private const string RuntimeMessage = "Algorithm 'Aes' is not supported on this platform.";
 
-    private static readonly AsyncLocal<Func<Aes>> Override = (AsyncLocal<Func<Aes>>)
-        typeof(PdfDocument).Assembly
-            .GetType("PdfPinata.Pdf.Security.AesProvider", throwOnError: true)!
-            .GetField("CreateOverride", BindingFlags.NonPublic | BindingFlags.Static)!
-            .GetValue(null)!;
+    private const string Factory = "PdfPinata.Pdf.Security.AesProvider";
+
+    private const string Seam = "SetCreateOverride";
 
     private readonly Func<Aes> _previous;
 
     private AesRefusal(Func<Aes> create)
     {
-        _previous = Override.Value;
-        Override.Value = create;
+        _previous = SetOverride(create);
     }
 
     /// <summary><c>Aes.Create()</c> throws.</summary>
@@ -49,7 +48,21 @@ internal sealed class AesRefusal : IDisposable
     /// <summary><c>Aes.Create()</c> answers an instance that throws when asked for a transform.</summary>
     public static AesRefusal BeginAtTransform() => new(static () => new TransformlessAes());
 
-    public void Dispose() => Override.Value = _previous;
+    public void Dispose() => SetOverride(_previous);
+
+    /// <summary>Sets the factory's override for this flow, and answers the one it replaced.</summary>
+    private static Func<Aes> SetOverride(Func<Aes> create)
+    {
+        var seam = typeof(PdfDocument).Assembly.GetType(Factory)
+            ?.GetMethod(Seam, BindingFlags.NonPublic | BindingFlags.Static, null, [typeof(Func<Aes>)], null);
+
+        if (seam == null)
+            throw new InvalidOperationException(
+                $"AesRefusal simulates a runtime with no AES through {Factory}.{Seam}(Func<Aes>), which is not " +
+                "there: it was renamed or removed. Point AesRefusal at whatever replaced it.");
+
+        return (Func<Aes>)seam.Invoke(null, [create]);
+    }
 
     private sealed class TransformlessAes : Aes
     {
