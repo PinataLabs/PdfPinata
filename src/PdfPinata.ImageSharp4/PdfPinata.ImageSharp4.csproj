@@ -21,11 +21,15 @@ Use this package unless you target Unity (netstandard2.1) or must keep your depe
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- 4.1.2 is the first 4.x release clear of the advisories against 2.1.x and 3.x. The next
-         major is assumed not binary compatible, as 3.0 was not with 2.1, so the upper bound turns a
-         consumer's unification onto 5.x into a restore-time version conflict rather than a
-         MissingMethodException at run time. Fonts is bounded the same way: Fonts 3 changed the
-         glyph renderer interface this backend implements, and its next major may again. -->
+    <!-- The floor is 4.1.3, the release this package is built and tested against. The advisories
+         against 2.1.x and 3.1.x are fixed from 4.1.2, so the floor is clear of them too. The upper
+         bound stops below the next major, which is assumed not binary compatible, as 3.0 was not
+         with 2.1. NuGet does not enforce it against the application: a direct reference to 5.x
+         raises only the NU1608 warning, and the application runs on 5.x. What catches that is the
+         run-time guard in ImageSharpImageSource, which turns the binding failure into an
+         InvalidOperationException naming the version this package needs. Fonts is bounded the same
+         way: Fonts 3 changed the glyph renderer interface this backend implements, and its next
+         major may again. -->
     <PackageReference Include="SixLabors.ImageSharp" Version="[4.1.3,5.0.0)" />
     <PackageReference Include="SixLabors.Fonts" Version="[3.2.0,4.0.0)" />
   </ItemGroup>

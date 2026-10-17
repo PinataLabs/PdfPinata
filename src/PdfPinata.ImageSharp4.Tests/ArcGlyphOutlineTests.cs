@@ -13,6 +13,7 @@ using SixLabors.Fonts;
 using SixLabors.Fonts.Rendering;
 using SixLabors.Fonts.Unicode;
 using TUnit.Core;
+using static PdfPinata.Test.Helpers.GlyphOutlineGeometry;
 
 namespace PdfPinata.ImageSharp4.Tests;
 
@@ -216,59 +217,6 @@ public class ArcGlyphOutlineTests
         var document = "<svg xmlns=\"http://www.w3.org/2000/svg\">"
                        + $"<g id=\"glyph{glyph.GlyphId}\"><circle cx=\"600\" cy=\"-700\" r=\"500\"/></g></svg>";
         return SvgGlyphFont.With(font, glyph.GlyphId, document);
-    }
-
-    /// <summary>Each figure of the outline as a polygon, its curves cut into short straight pieces.</summary>
-    private static List<List<XPoint>> Flattened(XGlyphOutline outline)
-    {
-        var figures = new List<List<XPoint>>();
-        List<XPoint> figure = null;
-        var current = new XPoint();
-
-        foreach (var segment in outline.Segments)
-        {
-            switch (segment.Kind)
-            {
-                case XGlyphSegmentKind.Start:
-                    figure = [segment.End];
-                    figures.Add(figure);
-                    current = segment.End;
-                    break;
-                case XGlyphSegmentKind.Line:
-                    figure!.Add(segment.End);
-                    current = segment.End;
-                    break;
-                case XGlyphSegmentKind.Curve:
-                    for (var step = 1; step <= 32; step++)
-                        figure!.Add(OnCubic(current, segment.Control1, segment.Control2, segment.End, step / 32.0));
-                    current = segment.End;
-                    break;
-            }
-        }
-
-        return figures;
-    }
-
-    private static XPoint OnCubic(XPoint p0, XPoint p1, XPoint p2, XPoint p3, double t)
-    {
-        var u = 1 - t;
-        return new XPoint(
-            u * u * u * p0.X + 3 * u * u * t * p1.X + 3 * u * t * t * p2.X + t * t * t * p3.X,
-            u * u * u * p0.Y + 3 * u * u * t * p1.Y + 3 * u * t * t * p2.Y + t * t * t * p3.Y);
-    }
-
-    /// <summary>The shoelace formula, over a figure taken as closed.</summary>
-    private static double SignedArea(List<XPoint> figure)
-    {
-        double sum = 0;
-        for (var i = 0; i < figure.Count; i++)
-        {
-            var a = figure[i];
-            var b = figure[(i + 1) % figure.Count];
-            sum += a.X * b.Y - b.X * a.Y;
-        }
-
-        return sum / 2;
     }
 
     private static double Distance(XPoint a, XPoint b) =>

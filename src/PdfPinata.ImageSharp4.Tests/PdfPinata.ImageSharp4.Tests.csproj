@@ -39,16 +39,18 @@
   </ItemGroup>
 
   <!--
-    ImageSharp 2.1.13's assembly, downloaded but not referenced, for ImageSharpMajorMismatchTests:
-    it loads the backend beside it in a load context of its own, to see what a consumer whose
-    application resolved the wrong major is told. A download takes no compile or build assets, so
-    neither ImageSharp version this project compiles against nor Six Labors' licence check is
-    touched by it.
+    ImageSharp 2.1.13's and 3.2.0's assemblies, downloaded but not referenced, for
+    ImageSharpMajorMismatchTests: it loads the backend beside each in a load context of its own, to
+    see what a consumer whose application resolved the wrong major is told. A download takes no
+    compile or build assets, so neither ImageSharp version this project compiles against nor Six
+    Labors' licence check is touched by it.
   -->
   <ItemGroup>
-    <PackageDownload Include="SixLabors.ImageSharp" Version="[2.1.13]" />
+    <PackageDownload Include="SixLabors.ImageSharp" Version="[2.1.13];[3.2.0]" />
     <None Include="$(NuGetPackageRoot)sixlabors.imagesharp/2.1.13/lib/netcoreapp3.1/SixLabors.ImageSharp.dll"
           Link="ImageSharp2/SixLabors.ImageSharp.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+    <None Include="$(NuGetPackageRoot)sixlabors.imagesharp/3.2.0/lib/net6.0/SixLabors.ImageSharp.dll"
+          Link="ImageSharp3/SixLabors.ImageSharp.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
   </ItemGroup>
 
   <!--
@@ -62,6 +64,8 @@
     <Compile Include="..\PdfPinata.Test\Imaging\ImageQualityDefaultTests.cs" Link="Linked\Imaging\ImageQualityDefaultTests.cs" />
     <Compile Include="..\PdfPinata.Test\Imaging\ImageSharpVersionTest.cs" Link="Linked\Imaging\ImageSharpVersionTest.cs" />
     <Compile Include="..\PdfPinata.Test\Imaging\ImageSharpDecodingParityTests.cs" Link="Linked\Imaging\ImageSharpDecodingParityTests.cs" />
+    <Compile Include="..\PdfPinata.Test\Imaging\ImageSharpCmykJpegTests.cs" Link="Linked\Imaging\ImageSharpCmykJpegTests.cs" />
+    <Compile Include="..\PdfPinata.Test\Imaging\ImageSharpTransparencyTests.cs" Link="Linked\Imaging\ImageSharpTransparencyTests.cs" />
     <Compile Include="..\PdfPinata.Test\Drawing\GlyphOutlineTests.cs" Link="Linked\Drawing\GlyphOutlineTests.cs" />
     <Compile Include="..\PdfPinata.Test\Drawing\ImageSharpGlyphOutlineParityTests.cs" Link="Linked\Drawing\ImageSharpGlyphOutlineParityTests.cs" />
     <Compile Include="..\PdfPinata.Test\Fonts\FontResolverParityTest.cs" Link="Linked\Fonts\FontResolverParityTest.cs" />
@@ -73,6 +77,7 @@
     <Compile Include="..\PdfPinata.Test\Helpers\ContentOperands.cs" Link="Linked\Helpers\ContentOperands.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\DrawnText.cs" Link="Linked\Helpers\DrawnText.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\EmbeddedColourProfile.cs" Link="Linked\Helpers\EmbeddedColourProfile.cs" />
+    <Compile Include="..\PdfPinata.Test\Helpers\GlyphOutlineGeometry.cs" Link="Linked\Helpers\GlyphOutlineGeometry.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\GlyphOutlineSensitiveAttribute.cs" Link="Linked\Helpers\GlyphOutlineSensitiveAttribute.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\PageContent.cs" Link="Linked\Helpers\PageContent.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\PathGeometry.cs" Link="Linked\Helpers\PathGeometry.cs" />
@@ -90,7 +95,8 @@
     <None Include="..\PdfPinata.Test\Assets\lenna.png" Link="Assets\lenna.png" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\PdfPinata.Test\Assets\frog-and-toad.jpg" Link="Assets\frog-and-toad.jpg" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\PdfPinata.Test\Assets\Drawing\indexed-trns.png" Link="Assets\Drawing\indexed-trns.png" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\PdfPinata.Test\Assets\Imaging\*.png" Link="Assets\Imaging\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\PdfPinata.Test\Assets\Imaging\*.png;..\PdfPinata.Test\Assets\Imaging\*.jpg;..\PdfPinata.Test\Assets\Imaging\*.gif;..\PdfPinata.Test\Assets\Imaging\*.webp"
+          Link="Assets\Imaging\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

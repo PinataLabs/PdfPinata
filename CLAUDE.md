@@ -34,9 +34,13 @@ and, with the Debug build it ran against, to SonarCloud (`PinataLabs_PdfPinata`)
 rendered with `InMemoryFontResolver` as its only fonts, and `SkiaFontResolver` called directly,
 because the global resolver is set once a process. `blazor-wasm-smoke.yml` makes the one trimmed
 Release publish of `src/SampleBlazorWasm`, which **fails with IL2104 on a trim warning from a PdfPinata
-or PinataLayout assembly** (`-p:FailOnPdfPinataTrimWarnings=false` prints them in full), then drives
+or PinataLayout assembly** (`-p:FailOnPdfPinataTrimWarnings=false` prints them in full), and with
+IL2026 from any assembly, because ILLink never collapses IL2026 into IL2104 for a trimmable assembly,
+so a call to a `[RequiresUnreferencedCode]` member would otherwise pass. It then drives
 it in headless Chromium through `src/SampleBlazorWasm.SmokeTest`. The release workflows build the
-ten packaged projects alone, so a sample cannot hold up a release. The vulnerable-package check
+ten packaged projects alone, so a sample cannot hold up a release, and
+`.github/scripts/verify-packages.sh` fails a release or pre-release unless it produced exactly one
+package per `PACKAGES` entry, all at one version, with no `sixlabors.lic` in any. The vulnerable-package check
 allows five advisories against SixLabors.ImageSharp 2.1.x **permanently**: `PdfPinata.ImageSharp`
 stays on that end-of-life line by decision (#305), and they will never be fixed there. An advisory
 against 4.x fails the build; only if NuGet's data is wrong about it (it still flags 3.2.0, which is

@@ -18,10 +18,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **`PdfPinata.ImageSharp`'s package description says that ImageSharp 2.1.x is end of life.** It has five security advisories that will never be fixed, and the description names `PdfPinata.ImageSharp4` as the package to use unless you target Unity or must keep your dependencies under Apache-2.0. `PdfPinata.ImageSharp4`'s description names its licence, the Six Labors Split License, and quotes Six Labors: an application that uses ImageSharp only through PdfPinata needs no Six Labors licence. (#310)
 
+### Drawing & Graphics
+
+#### Fixed
+
+- **The ImageSharp backends keep the transparency of a GIF, WebP, TIFF or any other image that is not a PNG.** `ImageSharpImageSource` called an image transparent only when it was a PNG, so every other image was written as a JPEG, which has no alpha, and its transparent pixels were drawn black. It now calls an image transparent when it is a PNG, as before, or when any of its pixels is less than opaque, and such an image is stored without loss with its alpha as a mask. An image with no transparent pixel is written as it was before, so existing documents do not change. A JPEG is never scanned, because it cannot have alpha. This applies to `PdfPinata.ImageSharp` and `PdfPinata.ImageSharp4`, and to `FromImageSharpImage` as well as the loads. The Skia backend still keeps transparency for PNGs only. (#305)
+
 ### Documentation & Samples
 
 #### Changed
 
+- **The Blazor WebAssembly sample and its docs page use `PdfPinata.ImageSharp4`.** The sample takes it through a project reference, with no reference of its own to SixLabors.ImageSharp or SixLabors.Fonts, so it needs no Six Labors licence key, and no code changed, because the types and namespaces are the same. The page recommends `PdfPinata.ImageSharp4` and names `PdfPinata.ImageSharp` as the Apache-2.0 alternative. ImageSharp 4 gives no trim warning, where 2.1 gave one. (#311)
+- **The sample's trim check fails on IL2026, a call to a member marked `[RequiresUnreferencedCode]`.** The check made ILLink collapse every trim warning from a PdfPinata assembly into one IL2104 and failed on that, but ILLink never collapses IL2026 for an assembly marked trimmable, and every PdfPinata assembly is. So an IL2026 was printed in full and the publish passed: a call to `Assembly.GetTypes()` in `PdfDocument.Save` did not fail it. IL2026 is now an error while the check is on, from any assembly; ASP.NET Core and ImageSharp give none today. (#311)
 - **The installation guide says which ImageSharp package to choose.** A new section, *Choose an ImageSharp package*, covers Unity (2.x only), the licence of each package, the five 2.x advisories, and switching between the two, which is a change to the project file only. A JPEG can decode up to 2 levels in 255 differently after a switch, so the PDF is not always byte-identical. The licensing, platforms, troubleshooting, FAQ, migration and overview pages, and the README, name both packages and link to it. `docs/specs/imagesharp4-backend.md` records the decisions of #305 and what was left out: an ImageSharp 3.x package, a `netstandard2.1` build of the 4.x package, and retiring the 2.x one. (#310)
 
 ## [0.4.4] - 2026-10-17
