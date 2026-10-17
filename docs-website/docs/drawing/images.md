@@ -41,14 +41,16 @@ The backend decides which files it can read, because it is the backend's image l
 ImageSharp) that decodes them. PNG and JPEG work with every backend. For any other format, check the
 documentation of the image library behind the backend you chose.
 
-The backend decodes every image to pixels. What PdfPinata writes to the PDF then depends only on
-whether the source was a PNG:
+The backend decodes every image to pixels. What PdfPinata writes to the PDF then depends on whether
+the backend calls the image transparent:
 
 - **A PNG is stored without loss**, with its alpha channel as a soft mask. This is true of palette
   PNGs and truecolour PNGs alike.
-- **Every other format is re-encoded as JPEG**, at quality 75 unless you choose otherwise. This
-  includes JPEG files: their bytes are not copied into the PDF as they are. Any transparency in a GIF
-  or WebP file is lost.
+- **With an ImageSharp backend, so is any other image with a pixel that is not opaque**, such as a
+  GIF or WebP file with transparency. The Skia backend does this for PNGs only, so with Skia any
+  transparency in a GIF or WebP file is lost.
+- **Every other image is re-encoded as JPEG**, at quality 75 unless you choose otherwise. This
+  includes JPEG files: their bytes are not copied into the PDF as they are.
 
 Every image is written in RGB. A CMYK or greyscale JPEG is converted.
 
@@ -164,7 +166,8 @@ PinataLayout, pass your source to `AddImage`.
   throws.
 - **Load once, draw many times.** Each `XImage` object is stored in the file once, however often you
   draw it. Loading the same file twice gives two objects, and two copies in the file.
-- **Only PNGs keep transparency and full quality.** Other formats become JPEGs at quality 75.
+- **Only PNGs, and with ImageSharp other images with transparency, keep full quality.** Other
+  images become JPEGs at quality 75.
 - **Natural size assumes 96 dpi.** A 300 dpi scan drawn with `DrawImage(image, x, y)` comes out more
   than three times its printed size. Give it a width and height.
 - **The source-rectangle overload does not crop.** Use `IntersectClip`.

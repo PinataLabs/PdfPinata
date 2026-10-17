@@ -18,6 +18,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **`PdfPinata.ImageSharp`'s package description says that ImageSharp 2.1.x is end of life.** It has five security advisories that will never be fixed, and the description names `PdfPinata.ImageSharp4` as the package to use unless you target Unity or must keep your dependencies under Apache-2.0. `PdfPinata.ImageSharp4`'s description names its licence, the Six Labors Split License, and quotes Six Labors: an application that uses ImageSharp only through PdfPinata needs no Six Labors licence. (#310)
 
+### Drawing & Graphics
+
+#### Fixed
+
+- **The ImageSharp backends keep the transparency of a GIF, WebP, TIFF or any other image that is not a PNG.** `ImageSharpImageSource` called an image transparent only when it was a PNG, so every other image was written as a JPEG, which has no alpha, and its transparent pixels were drawn black. It now calls an image transparent when it is a PNG, as before, or when any of its pixels is less than opaque, and such an image is stored without loss with its alpha as a mask. An image with no transparent pixel is written as it was before, so existing documents do not change. A JPEG is never scanned, because it cannot have alpha. This applies to `PdfPinata.ImageSharp` and `PdfPinata.ImageSharp4`, and to `FromImageSharpImage` as well as the loads. The Skia backend still keeps transparency for PNGs only. (#305)
+
 ### Documentation & Samples
 
 #### Changed

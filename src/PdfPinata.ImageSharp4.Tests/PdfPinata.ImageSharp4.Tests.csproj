@@ -65,6 +65,7 @@
     <Compile Include="..\PdfPinata.Test\Imaging\ImageSharpVersionTest.cs" Link="Linked\Imaging\ImageSharpVersionTest.cs" />
     <Compile Include="..\PdfPinata.Test\Imaging\ImageSharpDecodingParityTests.cs" Link="Linked\Imaging\ImageSharpDecodingParityTests.cs" />
     <Compile Include="..\PdfPinata.Test\Imaging\ImageSharpCmykJpegTests.cs" Link="Linked\Imaging\ImageSharpCmykJpegTests.cs" />
+    <Compile Include="..\PdfPinata.Test\Imaging\ImageSharpTransparencyTests.cs" Link="Linked\Imaging\ImageSharpTransparencyTests.cs" />
     <Compile Include="..\PdfPinata.Test\Drawing\GlyphOutlineTests.cs" Link="Linked\Drawing\GlyphOutlineTests.cs" />
     <Compile Include="..\PdfPinata.Test\Drawing\ImageSharpGlyphOutlineParityTests.cs" Link="Linked\Drawing\ImageSharpGlyphOutlineParityTests.cs" />
     <Compile Include="..\PdfPinata.Test\Fonts\FontResolverParityTest.cs" Link="Linked\Fonts\FontResolverParityTest.cs" />

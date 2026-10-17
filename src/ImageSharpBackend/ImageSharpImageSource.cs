@@ -26,14 +26,26 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
     /// not be encoded and decoded again to be drawn.
     /// </summary>
     /// <param name="image">The decoded image.</param>
-    /// <param name="imgFormat">The format it was decoded from; a PNG is treated as transparent.</param>
+    /// <param name="imgFormat">
+    /// The format it was decoded from. A PNG is treated as transparent; an image in any other format
+    /// is when one of its pixels is less than opaque.
+    /// </param>
     /// <param name="quality">
     /// JPEG quality, 0 to 100, used when the image is written lossily. <c>null</c> means the default, 75.
     /// </param>
     public static IImageSource FromImageSharpImage(Image<TPixel> image, IImageFormat imgFormat, int? quality = 75)
     {
         var _path = "*" + Guid.NewGuid().ToString("B");
-        return new ImageSharpImageSourceImpl<TPixel>(_path, image, quality ?? DefaultQuality, imgFormat is PngFormat);
+        bool transparent;
+        try
+        {
+            transparent = IsTransparent(image, imgFormat);
+        }
+        catch (Exception ex) when (ImageSharpVersion.IsBindingFailure(ex))
+        {
+            throw ImageSharpVersion.Incompatible(ex);
+        }
+        return new ImageSharpImageSourceImpl<TPixel>(_path, image, quality ?? DefaultQuality, transparent);
     }
 
     /// <summary>Decodes an image from bytes fetched on demand.</summary>
@@ -41,32 +53,34 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
     {
         var data = imageSource.Invoke();
         Image<TPixel> image;
-        bool isPng;
+        bool transparent;
         try
         {
-            image = LoadFromBinary(data, out isPng);
+            image = LoadFromBinary(data, out var format);
+            transparent = IsTransparentOrDispose(image, format);
         }
         catch (Exception ex) when (ImageSharpVersion.IsBindingFailure(ex))
         {
             throw ImageSharpVersion.Incompatible(ex);
         }
-        return new ImageSharpImageSourceImpl<TPixel>(name, image, quality ?? DefaultQuality, isPng);
+        return new ImageSharpImageSourceImpl<TPixel>(name, image, quality ?? DefaultQuality, transparent);
     }
 
     /// <summary>Decodes an image from a file.</summary>
     protected override IImageSource FromFileImpl(string path, int? quality = 75)
     {
         Image<TPixel> image;
-        bool isPng;
+        bool transparent;
         try
         {
-            image = LoadFromFile(path, out isPng);
+            image = LoadFromFile(path, out var format);
+            transparent = IsTransparentOrDispose(image, format);
         }
         catch (Exception ex) when (ImageSharpVersion.IsBindingFailure(ex))
         {
             throw ImageSharpVersion.Incompatible(ex);
         }
-        return new ImageSharpImageSourceImpl<TPixel>(path, image, quality ?? DefaultQuality, isPng);
+        return new ImageSharpImageSourceImpl<TPixel>(path, image, quality ?? DefaultQuality, transparent);
     }
 
     /// <summary>Decodes an image from a stream opened on demand.</summary>
@@ -74,16 +88,82 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
     {
         using var stream = imageStream.Invoke();
         Image<TPixel> image;
-        bool isPng;
+        bool transparent;
         try
         {
-            image = LoadFromStream(stream, out isPng);
+            image = LoadFromStream(stream, out var format);
+            transparent = IsTransparentOrDispose(image, format);
         }
         catch (Exception ex) when (ImageSharpVersion.IsBindingFailure(ex))
         {
             throw ImageSharpVersion.Incompatible(ex);
         }
-        return new ImageSharpImageSourceImpl<TPixel>(name, image, quality ?? DefaultQuality, isPng);
+        return new ImageSharpImageSourceImpl<TPixel>(name, image, quality ?? DefaultQuality, transparent);
+    }
+
+    /// <summary>
+    /// Says whether the image is to be written with its alpha - as FLATE samples beside a mask -
+    /// rather than as a JPEG, which has none.
+    /// </summary>
+    /// <remarks>
+    /// A PNG always is, whether or not it has any transparency, because it always has been, and an
+    /// image that changed paths would change existing documents. A JPEG never is: it cannot carry
+    /// alpha, so there is nothing to find, and a photograph is not worth scanning. Any other format
+    /// is transparent when one of its pixels is less than opaque. This used to be decided by whether
+    /// the format was PNG and nothing else, so a GIF, WebP, TIFF, TGA, QOI or icon with transparent
+    /// pixels was written as a JPEG and its transparency drawn black. Asking each format's metadata
+    /// would take a rule per format and per ImageSharp major; the pixels answer for all of them.
+    /// </remarks>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static bool IsTransparent(Image<TPixel> image, IImageFormat format)
+    {
+        if (format is PngFormat)
+            return true;
+        if (format is JpegFormat)
+            return false;
+
+#if IMAGESHARP4
+        var configuration = image.Configuration;
+#else
+        var configuration = image.GetConfiguration();
+#endif
+        var operations = PixelOperations<TPixel>.Instance;
+        var row = new Rgba32[image.Width];
+        var found = false;
+
+        image.ProcessPixelRows(accessor =>
+        {
+            for (var y = 0; y < accessor.Height && !found; y++)
+            {
+                operations.ToRgba32(configuration, accessor.GetRowSpan(y), row);
+                foreach (var pixel in row)
+                {
+                    if (pixel.A == 255)
+                        continue;
+                    found = true;
+                    break;
+                }
+            }
+        });
+
+        return found;
+    }
+
+    /// <summary>
+    /// <see cref="IsTransparent"/> for an image this class decoded and so owns, which it releases if
+    /// the question cannot be answered.
+    /// </summary>
+    private static bool IsTransparentOrDispose(Image<TPixel> image, IImageFormat format)
+    {
+        try
+        {
+            return IsTransparent(image, format);
+        }
+        catch
+        {
+            image.Dispose();
+            throw;
+        }
     }
 
     // The Load overloads differ between the majors: 2.x hands the format back through an out
@@ -108,40 +188,37 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
 #endif
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static Image<TPixel> LoadFromBinary(byte[] data, out bool isPng)
+    private static Image<TPixel> LoadFromBinary(byte[] data, out IImageFormat format)
     {
 #if IMAGESHARP4
         var image = Image.Load<TPixel>(Decoding(), data);
-        isPng = image.Metadata.DecodedImageFormat is PngFormat;
+        format = image.Metadata.DecodedImageFormat;
 #else
-        var image = Image.Load<TPixel>(data, out var imgFormat);
-        isPng = imgFormat is PngFormat;
+        var image = Image.Load<TPixel>(data, out format);
 #endif
         return image;
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static Image<TPixel> LoadFromFile(string path, out bool isPng)
+    private static Image<TPixel> LoadFromFile(string path, out IImageFormat format)
     {
 #if IMAGESHARP4
         var image = Image.Load<TPixel>(Decoding(), path);
-        isPng = image.Metadata.DecodedImageFormat is PngFormat;
+        format = image.Metadata.DecodedImageFormat;
 #else
-        var image = Image.Load<TPixel>(path, out var imgFormat);
-        isPng = imgFormat is PngFormat;
+        var image = Image.Load<TPixel>(path, out format);
 #endif
         return image;
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static Image<TPixel> LoadFromStream(Stream stream, out bool isPng)
+    private static Image<TPixel> LoadFromStream(Stream stream, out IImageFormat format)
     {
 #if IMAGESHARP4
         var image = Image.Load<TPixel>(Decoding(), stream);
-        isPng = image.Metadata.DecodedImageFormat is PngFormat;
+        format = image.Metadata.DecodedImageFormat;
 #else
-        var image = Image.Load<TPixel>(stream, out var imgFormat);
-        isPng = imgFormat is PngFormat;
+        var image = Image.Load<TPixel>(stream, out format);
 #endif
         return image;
     }
