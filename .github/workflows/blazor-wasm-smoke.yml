@@ -1,0 +1,95 @@
+name: Blazor WebAssembly smoke test
+
+# Publishes the Blazor WebAssembly sample, serves it, and drives it in headless Chromium: Generate is
+# clicked and the PDF the browser downloads is opened with PdfReader. PdfPinata.Test already runs the
+# sample's document code on the desktop runtime; this is what says it still runs on .NET for
+# WebAssembly, trimmed, with its fonts and image fetched over HTTP.
+#
+# It is a workflow of its own rather than a step in build-and-test because it needs a browser and the
+# system libraries the browser loads, which nothing else there does, and it runs only when something
+# the sample is built from changes. The sample is built from the library, so that is any source.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'global.json'
+      - 'Directory.Build.*'
+      - '.github/workflows/blazor-wasm-smoke.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'global.json'
+      - 'Directory.Build.*'
+      - '.github/workflows/blazor-wasm-smoke.yml'
+  workflow_dispatch:
+
+# Nothing here writes anything: it checks out, builds, runs a browser and uploads what it saw.
+permissions:
+  contents: read
+
+# A newer push to the same pull request makes the older run's verdict moot.
+concurrency:
+  group: blazor-wasm-smoke-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      # The sample references PdfPinata, which is packable, so MinVer runs when it builds and reads
+      # the version from the most recent tag. A shallow clone has neither the history nor the tags.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      # The sample and the smoke test both target net10.0 alone.
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      # A Release publish, which is what a user deploys and what Blazor trims. No wasm-tools workload:
+      # the sample uses the ImageSharp backend, which is managed code, so the plain SDK publishes it.
+      - name: Publish the sample
+        run: dotnet publish src/SampleBlazorWasm -c Release -o artifacts/blazor-wasm
+
+      # Building drops playwright.ps1 beside the assembly. It is what installs the browser, and it
+      # installs the one this version of Microsoft.Playwright drives, so the two cannot drift apart.
+      - name: Build the smoke test
+        run: dotnet build src/SampleBlazorWasm.SmokeTest -c Release
+
+      # The browser download is cached by the project file, which holds the Microsoft.Playwright
+      # version. The system libraries the browser needs are installed every time, from apt; the
+      # index is refreshed first because the runner image's own goes stale and the install then
+      # fails with 404s. Headless runs need only the headless shell, not the full browser.
+      - name: Cache the browser
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('src/SampleBlazorWasm.SmokeTest/SampleBlazorWasm.SmokeTest.csproj') }}
+      - name: Install the browser
+        run: |
+          sudo apt-get update
+          pwsh src/SampleBlazorWasm.SmokeTest/bin/Release/net10.0/playwright.ps1 install --with-deps --only-shell chromium
+
+      # The app serves the published wwwroot itself, on a free loopback port, and returns non-zero if
+      # any check fails - Generate reporting a failure, Blazor's error banner, an error in the console,
+      # no download, or a download PdfReader cannot open or that has the wrong page count. So this
+      # step is the gate.
+      - name: Smoke test
+        run: >
+          dotnet run --project src/SampleBlazorWasm.SmokeTest -c Release --no-build --
+          artifacts/blazor-wasm/wwwroot artifacts/blazor-wasm-smoke
+
+      # The downloaded PDF, a screenshot of the page and its console log, kept whether or not the
+      # test passed: a failure is read from the screenshot and the log.
+      - name: Upload what the browser saw
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: blazor-wasm-smoke
+          path: artifacts/blazor-wasm-smoke/
+          if-no-files-found: warn
