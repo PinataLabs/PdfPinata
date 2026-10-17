@@ -105,7 +105,9 @@ In most documents the images outweigh everything else, and no option above shrin
 matters is how you load them:
 
 - **A PNG is stored without loss**, compressed, with its transparency as a separate mask.
-- **Every other format is stored as a JPEG**, encoded again at quality 75 by default. This includes
+- **So is any other image with transparency**, such as a GIF or WebP file with a pixel that is not
+  opaque.
+- **Every other image is stored as a JPEG**, encoded again at quality 75 by default. This includes
   JPEG files, so a JPEG you load is decoded and compressed a second time.
 
 To choose the quality, load the image through `ImageSource` with a quality from 0 to 100:
