@@ -1,11 +1,9 @@
 using System;
 using System.IO;
-using System.Reflection;
-using System.Security.Cryptography;
-using System.Threading;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using TUnit.Core;
 
 namespace PdfPinata.Test.Security;
@@ -37,6 +35,26 @@ public class AesUnavailableTests
 
         ex.Message.Should().StartWith(encryption + " encryption is not supported on this platform, ");
         ex.Message.Should().Contain("RC4");
+        ex.InnerException.Should().BeOfType<PlatformNotSupportedException>();
+    }
+
+    /// <summary>
+    /// What the browser really does: .NET 10 on WebAssembly answers <c>Aes.Create()</c> with an
+    /// instance, and refuses only when an encryptor or decryptor is asked of it - which a document
+    /// reaches first while validating its password, at a call site of its own.
+    /// </summary>
+    [Test]
+    [Arguments("aes-r4-128bit-cleartext-metadata-qpdf.pdf", "user", "AES-128")] // /V 4 /R 4
+    [Arguments("protected-pdfencrypt.pdf", "test123", "AES-256")]               // /V 5 /R 5
+    [Arguments("protected-sodapdf.pdf", "test123", "AES-256")]                  // /V 5 /R 6
+    public void ReadingAnAesDocumentWhereAesRefusesItsTransformsNamesTheEncryption(string file, string password, string encryption)
+    {
+        using var _ = AesRefusal.BeginAtTransform();
+
+        var ex = FluentActions.Invoking(() => Pdf.IO.PdfReader.Open(AssetStream(file), password, PdfDocumentOpenMode.Import))
+            .Should().ThrowExactly<NotSupportedException>().Which;
+
+        ex.Message.Should().StartWith(encryption + " encryption is not supported on this platform, ");
         ex.InnerException.Should().BeOfType<PlatformNotSupportedException>();
     }
 
@@ -77,34 +95,4 @@ public class AesUnavailableTests
     }
 
     private static MemoryStream AssetStream(string file) => new(StandardSecurityAlgorithmTests.Asset(file));
-
-    /// <summary>
-    /// Makes every AES instance the security handler asks for, in this flow alone, refuse the way
-    /// the WebAssembly runtime does, until disposed.
-    /// </summary>
-    /// <remarks>
-    /// The factory is internal and this repository carries no <c>InternalsVisibleTo</c>, so its
-    /// override is reached by name, the way the other probes in this suite reach internals.
-    /// </remarks>
-    private sealed class AesRefusal : IDisposable
-    {
-        private static readonly AsyncLocal<Func<Aes>> Override = (AsyncLocal<Func<Aes>>)
-            typeof(PdfDocument).Assembly
-                .GetType("PdfPinata.Pdf.Security.AesProvider", throwOnError: true)!
-                .GetField("CreateOverride", BindingFlags.NonPublic | BindingFlags.Static)!
-                .GetValue(null)!;
-
-        private readonly Func<Aes> _previous;
-
-        private AesRefusal()
-        {
-            _previous = Override.Value;
-            Override.Value = static () => throw new PlatformNotSupportedException(
-                "System.Security.Cryptography.Algorithms is not supported on this platform.");
-        }
-
-        public static AesRefusal Begin() => new();
-
-        public void Dispose() => Override.Value = _previous;
-    }
 }
