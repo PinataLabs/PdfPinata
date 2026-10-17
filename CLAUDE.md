@@ -655,3 +655,20 @@ once stripped it from 725 files, and every later diff touching the end of a file
 `docs/specs/` holds design notes for this fork's features, each tied to an upstream issue number,
 recording what was built and what was deliberately left out. Read the relevant one before extending
 that feature area.
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues on **PinataLabs/PdfPinata** (the `upstream` remote), not the fork; pass
+`-R PinataLabs/PdfPinata` to every `gh` call. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five default roles, each label named for its role (`needs-triage`, `needs-info`,
+`ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context; design decisions live in `docs/specs/` rather than `docs/adr/`. See
+`docs/agents/domain.md`.
