@@ -15,14 +15,33 @@ namespace PdfPinata.Test.Imaging;
 /// binary compatible with 3.x: the Load(..., out IImageFormat) overloads are gone and the encoder
 /// properties became init-only, which changes their setter signature. Against 3.x the backend
 /// throws MissingMethodException at runtime, which is what issue #348 reported.
+/// PdfPinata.ImageSharp4 compiles the same source against the 4.x line, with the IMAGESHARP4
+/// constant defined, and is held to 4.x the same way.
 ///
 /// These tests pin that assumption, so raising the dependency fails here rather than in a
-/// consumer's application.
+/// consumer's application. Shared: PdfPinata.ImageSharp4.Tests links this file. See #305.
 /// </summary>
 public class ImageSharpVersionTest
 {
     private const string ImageAsset = "lenna.png";
     private const int Size = 512;
+
+#if IMAGESHARP4
+    private const int ExpectedMajor = 4;
+
+    private const string WhyThatMajor =
+        "PdfPinata.ImageSharp4 is compiled against the ImageSharp 4.x line, and the next major is "
+        + "not binary compatible with it. Raising the dependency needs the IMAGESHARP4 branches of "
+        + "the shared backend reviewed, not just the version bumped - see #305.";
+#else
+    private const int ExpectedMajor = 2;
+
+    private const string WhyThatMajor =
+        "PdfPinata.ImageSharp calls APIs that only exist in the ImageSharp 2.1.x line. "
+        + "Raising the dependency past 3.0 needs ImageSharpImageSource rewritten, not just the "
+        + "version bumped - see issue #348. Consumers who need a newer ImageSharp should use "
+        + "the PdfPinata.Skia backend instead.";
+#endif
 
     [Test]
     public void ImageSharpStaysOnTheLineTheBackendIsCompiledAgainst()
@@ -31,11 +50,7 @@ public class ImageSharpVersionTest
 
         version.Should().NotBeNull();
         // ReSharper disable PossibleNullReferenceException
-        version.Major.Should().Be(2,
-            "PdfPinata.ImageSharp calls APIs that only exist in the ImageSharp 2.1.x line. "
-            + "Raising the dependency past 3.0 needs ImageSharpImageSource rewritten, not just the "
-            + "version bumped - see issue #348. Consumers who need a newer ImageSharp should use "
-            + "the PdfPinata.Skia backend instead.");
+        version.Major.Should().Be(ExpectedMajor, WhyThatMajor);
         // ReSharper restore PossibleNullReferenceException
     }
 
@@ -90,9 +105,15 @@ public class ImageSharpVersionTest
     {
         var path = PathHelper.GetInstance().GetAssetPath(ImageAsset);
 
+#if IMAGESHARP4
+        // From 3.0 the format an image was decoded from is on its metadata, not an out parameter.
+        var image = Image.Load<Rgba32>(path);
+        var format = image.Metadata.DecodedImageFormat;
+#else
         // The out-parameter overload this backend depends on. It does not exist in ImageSharp 3.x,
         // so a dependency bump stops the test assembly compiling as well as failing the tests above.
         var image = Image.Load<Rgba32>(path, out var format);
+#endif
 
         // Goes through the public factory rather than ImageSource.ImageSourceImpl, which is a global
         // the rest of the suite has pointed at Skia.

@@ -29,4 +29,14 @@ Provides ImageSharpImageSource and ImageSharpFontResolver. Pinned to the Apache-
     <ProjectReference Include="..\PdfPinata\PdfPinata.csproj" />
   </ItemGroup>
 
+  <!--
+    The backend's source lives in src/ImageSharpBackend, not here, because two packages compile it:
+    this one against ImageSharp 2.1.x and PdfPinata.ImageSharp4 against 4.x. The calls that differ
+    between the two majors sit behind the IMAGESHARP4 constant, which this project does not define.
+    One copy of each file, so a fix reaches both packages. See #305.
+  -->
+  <ItemGroup>
+    <Compile Include="..\ImageSharpBackend\*.cs" Link="%(Filename)%(Extension)" />
+  </ItemGroup>
+
 </Project>

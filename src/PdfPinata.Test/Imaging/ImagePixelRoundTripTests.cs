@@ -23,6 +23,10 @@ namespace PdfPinata.Test.Imaging;
 ///   only thing that says the row order and the channel order are right. A flipped row or a
 ///   swapped channel makes a perfectly valid, perfectly wrong document that veraPDF passes and
 ///   that every solid-fill test in this repository used to pass too.
+///   <para>
+///     Shared: PdfPinata.ImageSharp4.Tests links this file, so it runs against both ImageSharp
+///     backends. A call that differs between ImageSharp majors goes behind IMAGESHARP4. See #305.
+///   </para>
 /// </summary>
 public class ImagePixelRoundTripTests
 {

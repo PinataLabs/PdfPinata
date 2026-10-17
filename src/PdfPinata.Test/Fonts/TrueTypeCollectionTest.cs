@@ -22,6 +22,10 @@ namespace PdfPinata.Test.Fonts;
 /// taken off the machine, so the assertions hold on a box with no collection installed. The
 /// extracted faces are checked with SixLabors.Fonts rather than with PdfPinata's own parser:
 /// an independent reader accepting the output is the claim worth making.
+/// <para>
+///   Shared: PdfPinata.ImageSharp4.Tests links this file, so it runs against both ImageSharp
+///   backends. A call that differs between ImageSharp majors goes behind IMAGESHARP4. See #305.
+/// </para>
 /// </remarks>
 public class TrueTypeCollectionTest
 {

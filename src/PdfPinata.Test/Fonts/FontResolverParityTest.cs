@@ -11,6 +11,10 @@ namespace PdfPinata.Test.Fonts;
 /// SKTypeface.FamilyName reports the typographic family and would collapse "Arial Narrow"
 /// into "Arial". This pins it against the ImageSharp backend, whose behaviour PdfPinata
 /// shipped with: a divergence silently changes which font file a document renders with.
+/// <para>
+///   Shared: PdfPinata.ImageSharp4.Tests links this file, so it runs against both ImageSharp
+///   backends. A call that differs between ImageSharp majors goes behind IMAGESHARP4. See #305.
+/// </para>
 /// </summary>
 public class FontResolverParityTest
 {
