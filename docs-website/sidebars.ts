@@ -96,6 +96,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'reference/migrating',
         'reference/platforms-and-deployment',
+        'reference/blazor-webassembly',
         'reference/troubleshooting',
         'reference/faq',
         'reference/licensing',
