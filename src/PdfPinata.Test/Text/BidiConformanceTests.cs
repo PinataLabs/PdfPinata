@@ -299,7 +299,7 @@ public class BidiConformanceTests
         return null;
     }
 
-    private void Report(int cases, List<string> failures, string suite)
+    private static void Report(int cases, List<string> failures, string suite)
     {
         TestContext.Current!.Output.WriteLine($"{suite}: {cases - failures.Count} of {cases} cases passed.");
         foreach (var failure in failures.Take(20))
