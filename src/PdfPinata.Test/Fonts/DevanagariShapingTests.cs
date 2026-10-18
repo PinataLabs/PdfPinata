@@ -7,6 +7,7 @@ using PdfPinata.Drawing.Layout;
 using PdfPinata.Pdf;
 using PdfPinata.Fonts;
 using PdfPinata.HarfBuzz;
+using PdfPinata.Test.Drawing.Layout;
 using PdfPinata.Test.Helpers;
 using TUnit.Core;
 
@@ -50,6 +51,7 @@ public class DevanagariShapingTests
 
     private const string Conjunct = Ka + Virama + Ssa;   // three characters, one glyph
     private const string Namaste = "नमस्ते";
+    private const string Word = Conjunct + Conjunct + Conjunct;   // what the line-break test repeats
 
     private static ShapingFont Face(double emSize = 20)
     {
@@ -68,6 +70,39 @@ public class DevanagariShapingTests
     }
 
     private static XFont Font() => new(PinnedFontResolver.DevanagariFamilyName, 20);
+
+    /// <summary>
+    ///   HarfBuzz for the strings these tests draw and measure, and for nothing else.
+    /// </summary>
+    /// <remarks>
+    ///   The tests that install it are kept apart from one another by
+    ///   <see cref="TextShaperSensitiveAttribute"/> and from nothing else, so a shaper that shaped
+    ///   every run would kern the Latin text of any test running beside them. The text-layout pins
+    ///   compare bytes, and they noticed (#317).
+    /// </remarks>
+    private static OnlyFor TheShaper() => new(Conjunct, Ka, Ssa, Word);
+
+    private sealed class OnlyFor : ITextShaper, IDisposable
+    {
+        private readonly string[] _mine;
+        private readonly HarfBuzzTextShaper _shaper = new();
+
+        internal OnlyFor(params string[] mine) => _mine = mine;
+
+        public ShapedRun Shape(ReadOnlySpan<char> text, ShapingFont font, XTextDirection direction,
+            string script, string language)
+        {
+            foreach (var mine in _mine)
+            {
+                if (text.SequenceEqual(mine.AsSpan()))
+                    return _shaper.Shape(text, font, direction, script, language);
+            }
+
+            return null;
+        }
+
+        public void Dispose() => _shaper.Dispose();
+    }
 
     // ----- a cluster longer than one character ------------------------------------------------------
 
@@ -153,7 +188,8 @@ public class DevanagariShapingTests
     [Test]
     public void TheDrawnGlyphsAreTheShapedOnes()
     {
-        using var _ = SeamScope.TextShaper(new HarfBuzzTextShaper());
+        using var shaper = TheShaper();
+        using var _ = SeamScope.TextShaper(shaper);
 
         DrawnText.Glyphs(DrawnText.Page(Conjunct, Font()))
             .Should().Equal([Shape(Conjunct).Glyphs.Single().GlyphId],
@@ -163,7 +199,8 @@ public class DevanagariShapingTests
     [Test]
     public void MeasuringAgreesWithDrawing()
     {
-        using var _ = SeamScope.TextShaper(new HarfBuzzTextShaper());
+        using var shaper = TheShaper();
+        using var _ = SeamScope.TextShaper(shaper);
 
         // A conjunct is narrower than the letters it is made of, so a measurement that had not been
         // shaped would be wider than the page. This is the assertion that says both paths shape.
@@ -196,15 +233,18 @@ public class DevanagariShapingTests
         // break inside a glyph. Nothing in the line breaker knows about cluster boundaries; what
         // this pins is that the widths in this case do not lead it into one, so that if it ever does
         // start splitting them the change is visible here rather than in somebody's document.
-        using var _ = SeamScope.TextShaper(new HarfBuzzTextShaper());
+        using var shaper = TheShaper();
+        using var _ = SeamScope.TextShaper(shaper);
 
         var document = new PdfDocument();
         var page = document.AddPage();
         using (var gfx = XGraphics.FromPdfPage(page))
         {
             var formatter = new XTextFormatter(gfx);
-            var word = Conjunct + Conjunct + Conjunct;
-            formatter.DrawString(string.Join(" ", Enumerable.Repeat(word, 8)), Font(),
+            // Sixty points holds one word, so each line the formatter draws is Word on its own, which
+            // is what TheShaper answers for. A rectangle wide enough for two would draw "Word Word"
+            // unshaped and fail this for a reason that has nothing to do with line breaking.
+            formatter.DrawString(string.Join(" ", Enumerable.Repeat(Word, 8)), Font(),
                 XBrushes.Black, new XRect(20, 20, 60, 400));
         }
 
@@ -214,5 +254,26 @@ public class DevanagariShapingTests
         drawn.Should().HaveCount(24, "eight words of three conjuncts, one glyph each");
         drawn.Should().OnlyContain(glyph => glyph == conjunct,
             "a conjunct split across a line break would shape as its parts instead");
+    }
+
+    // ----- and nobody else's text ------------------------------------------------------------------
+
+    [Test]
+    [Arguments("formatter-baseline.txt")]
+    [Arguments("segment-formatter-baseline.txt")]
+    public void TheShaperTheseTestsInstallLeavesLatinTextAsItWas(string baseline)
+    {
+        // The pins run unmarked, so they can lay their text out while one of these tests has its
+        // shaper installed. HarfBuzz kerns Liberation Sans, which moves centred, right-aligned and
+        // justified text a fraction of a point, and a pin compares bytes (#317).
+        using var shaper = TheShaper();
+        using var _ = SeamScope.TextShaper(shaper);
+
+        var written = baseline == "formatter-baseline.txt"
+            ? FormatterOutput.OfEveryArrangement()
+            : SegmentFormatterLayoutPinTests.OfEveryArrangement();
+        var pinned = File.ReadAllText(Path.Combine(PathHelper.GetInstance().GetAssetPath("Layout"), baseline));
+
+        written.Replace("\r\n", "\n").Should().Be(pinned.Replace("\r\n", "\n"));
     }
 }

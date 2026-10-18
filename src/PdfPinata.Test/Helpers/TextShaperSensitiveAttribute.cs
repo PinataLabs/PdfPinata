@@ -17,5 +17,11 @@ namespace PdfPinata.Test.Helpers;
 /// install answers for one sentinel string of its own and declines every other run - and a declined
 /// run is shaped exactly as it would have been with no shaper at all.
 /// </para>
+/// <para>
+/// A shaper that broke the rule would race every unmarked test that lays text out, and the
+/// text-layout pins, which compare bytes, are the ones that notice (#317). So
+/// <see cref="SeamScope.TextShaper"/> refuses a bare <see cref="PdfPinata.HarfBuzz.HarfBuzzTextShaper"/>,
+/// which shapes every run it is given; wrap it in one that answers for the test's own strings.
+/// </para>
 /// </remarks>
 public sealed class TextShaperSensitiveAttribute() : NotInParallelAttribute("Text shaping");
