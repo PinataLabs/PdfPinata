@@ -107,16 +107,32 @@ If the password the callback gives is wrong, or is only the user password when y
 
 ## Remove protection
 
-If you have the owner password, you can save an unprotected copy:
+If you have the owner password, you can save an unprotected copy. Set `DocumentSecurityLevel` to
+`None` to say that this is what you want:
 
 ```csharp
 PdfDocument document = PdfReader.Open("protected.pdf", "owner-password", PdfDocumentOpenMode.Modify);
+document.SecuritySettings.DocumentSecurityLevel = PdfDocumentSecurityLevel.None;
 document.Save("unprotected.pdf");
 ```
 
-A document read from an encrypted file is saved without encryption unless you set a password again.
-To keep the file protected after changing it, set `UserPassword` again before you save. The owner
-password you opened it with, and its permissions, are kept unless you set new ones.
+A document read from an encrypted file is not saved until you choose its security. Before you
+save, do one of these:
+
+- To keep the file protected, set `UserPassword` or `OwnerPassword`. The owner password you opened
+  it with, and its permissions, are kept unless you set new ones. To keep the owner password and
+  set no user password, set `DocumentSecurityLevel` to `Encrypted128Bit` instead. The file is
+  written with RC4, whatever cipher it was read with.
+- To remove the protection, set `DocumentSecurityLevel` to `None`, as above.
+
+If you do not, `Save` throws `PdfPinataException` and `CanSave()` gives the reason. The file you
+named is not changed.
+
+PdfPinata does not keep the original encryption by itself, because it writes only RC4. For an
+AES-256 file it cannot recover the user password from the owner password.
+
+`SaveIncremental` on a document opened with `PdfDocumentOpenMode.Append` is different. It appends a
+revision with the file's own encryption, so it needs no choice.
 
 PdfPinata does not help to open a document without its password.
 

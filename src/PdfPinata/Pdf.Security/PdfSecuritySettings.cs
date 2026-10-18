@@ -53,7 +53,26 @@ public sealed class PdfSecuritySettings
     /// Gets or sets the document security level. If you set the security level to anything but PdfDocumentSecurityLevel.None
     /// you must also set a user and/or an owner password. Otherwise saving the document will fail.
     /// </summary>
-    public PdfDocumentSecurityLevel DocumentSecurityLevel { get; set; }
+    /// <remarks>
+    /// A document read from an encrypted file is at None whatever the file had, and saving it is
+    /// refused until you choose: set a password to save it encrypted, or set this to None to save
+    /// it without protection.
+    /// </remarks>
+    public PdfDocumentSecurityLevel DocumentSecurityLevel
+    {
+        get => _documentSecurityLevel;
+        set
+        {
+            _documentSecurityLevel = value;
+            _securityChosen = true;
+        }
+    }
+    private PdfDocumentSecurityLevel _documentSecurityLevel;
+
+    // Whether the caller has said what the saved document's security is to be: set by assigning the
+    // level, which setting either password does too. A document read encrypted is refused a save
+    // until it is (#318), because None is what reading leaves it at, not what anybody asked for.
+    private bool _securityChosen;
 
     /// <summary>
     /// Sets the user password of the document. Setting a password automatically sets the
@@ -95,6 +114,9 @@ public sealed class PdfSecuritySettings
     /// </summary>
     internal PdfSaveCheck CanSave()
     {
+        if (_document._readEncrypted && !_securityChosen)
+            return PdfSaveCheck.Refused(PSSR.SecurityOfReadEncryptedDocumentNotChosen);
+
         if (DocumentSecurityLevel != PdfDocumentSecurityLevel.None
             && string.IsNullOrEmpty(SecurityHandler._userPassword)
             && string.IsNullOrEmpty(SecurityHandler._ownerPassword))

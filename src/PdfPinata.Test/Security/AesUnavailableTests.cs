@@ -3,6 +3,7 @@ using System.IO;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Pdf.Security;
 using PdfPinata.Test.Helpers;
 using TUnit.Core;
 
@@ -86,6 +87,7 @@ public class AesUnavailableTests
     {
         var document = Pdf.IO.PdfReader.Open(AssetStream(file), password, PdfDocumentOpenMode.Modify);
         var pageCount = document.PageCount;
+        document.SecuritySettings.DocumentSecurityLevel = PdfDocumentSecurityLevel.None;
 
         // This library writes RC4 alone, so nothing after the reader asks for AES.
         using var saved = new MemoryStream();

@@ -54,17 +54,20 @@ public class NewPasswordOnReadDocumentTests
     [Arguments("protected-sodapdf.pdf")]
     [Arguments("protected-adobe.pdf")]
     [Arguments("protected-ilovepdf.pdf")]
-    public void SavingWithoutANewPasswordStillWorks(string fileName)
+    public void SettingTheLevelToNoneSavesItUnencrypted(string fileName)
     {
         var content = ContentOf(Read(fileName));
 
+        // Unless the caller chooses the security, the save is refused (#318); this is the choice
+        // to save in clear.
+        var document = Read(fileName);
+        document.SecuritySettings.DocumentSecurityLevel = PdfDocumentSecurityLevel.None;
         var saved = new MemoryStream();
-        Read(fileName).Save(saved, false);
+        document.Save(saved, false);
         saved.Position = 0;
 
-        // A password given for a document that is not encrypted is ignored, so this holds whether
-        // or not the save kept the encryption.
-        ContentOf(Pdf.IO.PdfReader.Open(saved, OldPassword, PdfDocumentOpenMode.Import)).Should().Equal(content);
+        // Opened with no password, so it opens only if the save wrote it unencrypted.
+        ContentOf(Pdf.IO.PdfReader.Open(saved, PdfDocumentOpenMode.Import)).Should().Equal(content);
     }
 
     [Test]
