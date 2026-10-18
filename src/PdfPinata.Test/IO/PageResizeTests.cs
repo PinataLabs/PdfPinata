@@ -839,7 +839,8 @@ public class PageResizeTests
     public void ADocumentReadBackFromAnEncryptedFileIsRefused()
     {
         var document = DocumentWithAFilledPage();
-        document.SecuritySettings.UserPassword = "secret";
+        // The owner password, because Modify needs it (#315).
+        document.SecuritySettings.OwnerPassword = "secret";
 
         using var stream = new MemoryStream();
         document.Save(stream, false);

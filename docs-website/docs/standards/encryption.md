@@ -24,6 +24,12 @@ You can set either or both. A document with only an owner password opens for any
 permissions still apply. Most "protected" PDFs you meet are like this: they open without a password
 and refuse to print.
 
+A document with only a user password is given a random owner password when it is saved, so the
+user password never opens it as the owner. Nobody can recover that owner password, PdfPinata
+included, so set `OwnerPassword` if you will need to lift the permissions later. Setting both to
+the same password is refused when any permission is turned off, because then every reader would
+open the document as its owner.
+
 ## Protect a document
 
 Set the passwords and permissions on `document.SecuritySettings`, then save. The settings are read
@@ -96,7 +102,8 @@ which case `Open` returns `null`:
 ```
 
 If the password the callback gives is wrong, or is only the user password when you asked for
-`Modify`, PdfPinata calls it again.
+`Modify`, PdfPinata calls it again. If it gives the same user password again for `Modify`, `Open` throws
+`PdfReaderException` instead of asking again.
 
 ## Remove protection
 
@@ -108,8 +115,8 @@ document.Save("unprotected.pdf");
 ```
 
 A document read from an encrypted file is saved without encryption unless you set a password again.
-The old passwords are not reused. To keep the file protected after changing it, set
-`UserPassword`, `OwnerPassword` and the permissions again before you save.
+To keep the file protected after changing it, set `UserPassword` again before you save. The owner
+password you opened it with, and its permissions, are kept unless you set new ones.
 
 PdfPinata does not help to open a document without its password.
 
