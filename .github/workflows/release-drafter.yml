@@ -4,9 +4,14 @@ name: Release Drafter
 # merged PR is added under the category its label names, and the draft's version is
 # resolved from those labels (see .github/release-drafter.yml). release.yml publishes
 # that draft, so edits made to it by hand survive into the release.
+#
+# A merge is a push to main, so this runs on push rather than on pull_request_target:
+# the draft is built from every PR merged since the last release whatever started
+# the run, and a push run has a write token whether the PR came from a fork or not.
+# GitHub blocks pull_request_target on public repositories by default from
+# 2026-11-02; pr-autolabel.yml is the one workflow here that still needs it.
 on:
-  pull_request_target:
-    types: [closed]
+  push:
     branches: [main]
 
 permissions:
@@ -15,7 +20,6 @@ permissions:
 
 jobs:
   update-release-draft:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
