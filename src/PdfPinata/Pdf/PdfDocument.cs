@@ -228,8 +228,9 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     public void Save(string path)
     {
-        EnsureCanModify("saving the document");
-
+        // Before the file is opened, because opening it empties it: a save refused afterwards, over
+        // the file the document was read from, would leave neither document behind.
+        EnsureCanSave();
 
         using Stream stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
         Save(stream);
@@ -240,12 +241,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     public void Save(Stream stream, bool closeStream)
     {
-        EnsureCanModify("saving the document");
-        EnsureCanDeduplicate();
-
-        var check = CanSave();
-        if (!check.CanSave)
-            throw new PdfPinataException(check.Reason);
+        EnsureCanSave();
 
         var buffer = BufferForSavingInPlace(stream);
         PdfWriter writer = null;
@@ -263,6 +259,19 @@ public sealed class PdfDocument : PdfObject, IDisposable
             ReleaseAfterSave(stream, closeStream);
             writer?.Close(closeStream);
         }
+    }
+
+    /// <summary>
+    /// Refuses a save this document cannot make, before anything has been written.
+    /// </summary>
+    private void EnsureCanSave()
+    {
+        EnsureCanModify("saving the document");
+        EnsureCanDeduplicate();
+
+        var check = CanSave();
+        if (!check.CanSave)
+            throw new PdfPinataException(check.Reason);
     }
 
     /// <summary>

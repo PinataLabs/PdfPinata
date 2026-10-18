@@ -204,6 +204,12 @@ internal static class PSSR
 
     public static string UserOrOwnerPasswordRequired => GetString(PSMsgID.UserOrOwnerPasswordRequired);
 
+    public static string SecurityOfReadEncryptedDocumentNotChosen =>
+        "This document was read from an encrypted file, and saving it as it stands would write it "
+        + "unencrypted. Set SecuritySettings.UserPassword or OwnerPassword to save it encrypted, or set "
+        + "SecuritySettings.DocumentSecurityLevel to PdfDocumentSecurityLevel.None to remove its "
+        + "protection deliberately.";
+
     public static string OwnerPasswordIsUserPassword =>
         "The owner password is the same as the user password, so anyone who can open the document "
         + "opens it as its owner and none of the permissions it restricts would apply. Set a "
