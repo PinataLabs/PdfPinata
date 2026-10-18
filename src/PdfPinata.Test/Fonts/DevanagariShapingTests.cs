@@ -241,6 +241,9 @@ public class DevanagariShapingTests
         using (var gfx = XGraphics.FromPdfPage(page))
         {
             var formatter = new XTextFormatter(gfx);
+            // Sixty points holds one word, so each line the formatter draws is Word on its own, which
+            // is what TheShaper answers for. A rectangle wide enough for two would draw "Word Word"
+            // unshaped and fail this for a reason that has nothing to do with line breaking.
             formatter.DrawString(string.Join(" ", Enumerable.Repeat(Word, 8)), Font(),
                 XBrushes.Black, new XRect(20, 20, 60, 400));
         }
