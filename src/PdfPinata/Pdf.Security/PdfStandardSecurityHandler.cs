@@ -30,6 +30,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Security.Cryptography;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Internal;
 
@@ -54,6 +55,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// PdfDocumentSecurityLevel to PdfDocumentSecurityLevel.Encrypted128Bit if its current
     /// value is PdfDocumentSecurityLevel.None.
     /// </summary>
+    /// <remarks>See <see cref="PdfSecuritySettings.UserPassword"/> for the owner password it is saved with.</remarks>
     public string UserPassword
     {
         set
@@ -70,6 +72,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// PdfDocumentSecurityLevel to PdfDocumentSecurityLevel.Encrypted128Bit if its current
     /// value is PdfDocumentSecurityLevel.None.
     /// </summary>
+    /// <remarks>See <see cref="PdfSecuritySettings.OwnerPassword"/>.</remarks>
     public string OwnerPassword
     {
         set
@@ -326,8 +329,8 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     public void PrepareEncryption()
     {
         Debug.Assert(_document._securitySettings.DocumentSecurityLevel != PdfDocumentSecurityLevel.None);
-        var permissions = (int)Permission;
-        var strongEncryption = _document._securitySettings.DocumentSecurityLevel == PdfDocumentSecurityLevel.Encrypted128Bit;
+        var strongEncryption = StrongEncryption;
+        var permissions = PermissionsToWrite;
 
         // The only two combinations this writes: RC4 at 128 bits with revision 3, and at 40 bits
         // with revision 2.
@@ -337,13 +340,11 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
 
         if (string.IsNullOrEmpty(_userPassword))
             _userPassword = "";
-        // Use user password twice if no owner password provided.
+        // A random owner password, never the user password a second time: that is what PDFsharp
+        // did, and it let anyone who could open the document open it as its owner, which made
+        // every permission written beside it meaningless (#315). It is kept for the next save.
         if (string.IsNullOrEmpty(_ownerPassword))
-            _ownerPassword = _userPassword;
-
-        // Correct permission bits
-        permissions |= (int)(strongEncryption ? 0xfffff0c0 : 0xffffffc0);
-        permissions &= unchecked((int)0xfffffffc);
+            _ownerPassword = RandomOwnerPassword();
 
         var pValue = new PdfInteger(permissions);
 
@@ -377,6 +378,54 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         // read as AES-256 was saved naming an /AESV3 crypt filter it was not encrypted with (#304).
         foreach (var key in KeysNotWrittenByRc4)
             Elements.Remove(key);
+    }
+
+    private bool StrongEncryption =>
+        _document._securitySettings.DocumentSecurityLevel == PdfDocumentSecurityLevel.Encrypted128Bit;
+
+    /// <summary>
+    /// The /P entry as it is written: the reserved bits set, bits 1 and 2 clear, and at revision 2
+    /// bits 9 to 12 set as well, because only revision 3 or later honours them.
+    /// </summary>
+    private int PermissionsToWrite
+    {
+        get
+        {
+            var permissions = (int)Permission;
+            permissions |= (int)(StrongEncryption ? 0xfffff0c0 : 0xffffffc0);
+            permissions &= EveryPermission;
+            return permissions;
+        }
+    }
+
+    /// <summary>
+    /// The /P entry that permits everything: every bit set but 1 and 2, which must be clear.
+    /// </summary>
+    private const int EveryPermission = unchecked((int)0xfffffffc);
+
+    /// <summary>
+    /// Whether the document is to be saved withholding any permission from a reader who opens it
+    /// with the user password.
+    /// </summary>
+    internal bool RestrictsAnything => PermissionsToWrite != EveryPermission;
+
+    /// <summary>
+    /// Whether the user and owner passwords are the same, so that opening the document at all opens
+    /// it as its owner.
+    /// </summary>
+    internal bool OwnerPasswordIsUserPassword =>
+        !string.IsNullOrEmpty(_ownerPassword) && _ownerPassword == _userPassword;
+
+    /// <summary>
+    /// An owner password nobody knows: 32 random bytes, which is all of the password the standard
+    /// security handler up to revision 4 reads, spelled one char per byte as a padded password is.
+    /// </summary>
+    private static string RandomOwnerPassword()
+    {
+        var bytes = new byte[32];
+        using (var random = RandomNumberGenerator.Create())
+            random.GetBytes(bytes);
+        return PdfEncoders.RawEncoding.GetString(bytes, 0, bytes.Length);
     }
 
     /// <summary>

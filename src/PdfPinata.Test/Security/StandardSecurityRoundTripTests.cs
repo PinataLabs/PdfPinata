@@ -29,11 +29,18 @@ public class StandardSecurityRoundTripTests
     public void EachPasswordOpensWhatPdfPinataWrote(PdfDocumentSecurityLevel level, string user, string owner)
     {
         var bytes = StandardSecurityAlgorithmTests.SaveEncrypted(level, user, owner, "Round trip");
-        var ownerPassword = string.IsNullOrEmpty(owner) ? user : owner;
+
+        // With no owner password the writer makes up one nobody is told (#315), so the user
+        // password is the only way in, and not as the owner.
+        if (string.IsNullOrEmpty(owner))
+        {
+            OpenedWith(bytes, user).Should().Be(("Round trip", false));
+            return;
+        }
 
         // The owner password is tried first, so a user password equal to it brings owner permissions.
-        OpenedWith(bytes, user ?? "").Should().Be(("Round trip", (user ?? "") == ownerPassword));
-        OpenedWith(bytes, ownerPassword).Should().Be(("Round trip", true));
+        OpenedWith(bytes, user ?? "").Should().Be(("Round trip", (user ?? "") == owner));
+        OpenedWith(bytes, owner).Should().Be(("Round trip", true));
     }
 
     [Test]

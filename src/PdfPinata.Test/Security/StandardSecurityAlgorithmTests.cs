@@ -165,8 +165,18 @@ public class StandardSecurityAlgorithmTests
         entries.Owner.Should().HaveCount(32);
         entries.User.Should().HaveCount(32);
 
-        entries.Owner.Should().Equal(
-            StandardSecurity.OwnerEntry(owner, user ?? "", entries.Revision, entries.KeyLength));
+        if (owner == null)
+        {
+            // The owner password is a random one (#315), so all that can be said of /O is that it is
+            // not the user password a second time, which is what it used to be.
+            entries.Owner.Should().NotEqual(
+                StandardSecurity.OwnerEntry(user, user, entries.Revision, entries.KeyLength));
+        }
+        else
+        {
+            entries.Owner.Should().Equal(
+                StandardSecurity.OwnerEntry(owner, user ?? "", entries.Revision, entries.KeyLength));
+        }
 
         var document = new StandardSecurity(bytes, user ?? "");
         document.DerivedKeyMatchesTheDocument.Should().BeTrue();

@@ -498,6 +498,12 @@ public static class PdfReader
                 // never recorded it.
                 document.SecuritySettings._hasOwnerPermissions =
                     validity == PasswordValidity.OwnerPassword;
+
+                // And the password itself, so that a document given only a new user password keeps
+                // the owner password it already had. Kept on the field rather than through the
+                // setter, which would also switch encryption on for the save (#315).
+                if (validity == PasswordValidity.OwnerPassword)
+                    securityHandler._ownerPassword = password;
                 return true;
             }
 
@@ -508,6 +514,14 @@ public static class PdfReader
             passwordProvider(args);
             if (args.Abort)
                 return false;
+
+            // A user password given again for Modify would be refused again, and a provider that
+            // knows only that one would be asked for ever. It became reachable with #315: a user
+            // password with no owner password beside it used to be the owner password too, and
+            // opened for Modify. A wrong password given again is still asked about, as it always was,
+            // because an interactive provider is a person who may have mistyped it twice.
+            if (validity == PasswordValidity.UserPassword && args.Password == password)
+                throw new PdfReaderException(refusal);
             password = args.Password;
         }
     }

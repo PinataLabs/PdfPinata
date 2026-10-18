@@ -31,7 +31,9 @@ public class PdfSecurity
         document.Save(ms);
         ms.Position = 0;
 
-        var loadDocument = Pdf.IO.PdfReader.Open(ms, PdfDocumentOpenMode.Modify,
+        // Import, because the user password is not the owner password: with none set, the owner
+        // password is a random one (#315), and Modify needs the owner's.
+        var loadDocument = Pdf.IO.PdfReader.Open(ms, PdfDocumentOpenMode.Import,
             delegate(PdfPasswordProviderArgs args) { args.Password = password; });
 
         loadDocument.PageCount.Should().Be(1);

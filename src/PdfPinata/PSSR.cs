@@ -204,6 +204,11 @@ internal static class PSSR
 
     public static string UserOrOwnerPasswordRequired => GetString(PSMsgID.UserOrOwnerPasswordRequired);
 
+    public static string OwnerPasswordIsUserPassword =>
+        "The owner password is the same as the user password, so anyone who can open the document "
+        + "opens it as its owner and none of the permissions it restricts would apply. Set a "
+        + "different OwnerPassword, or leave it unset to have a random one generated.";
+
     /// <summary>
     /// Refuses an operation that would change a document that was not opened for changing, naming
     /// both the mode it was opened with and the modes the operation needs.

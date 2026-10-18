@@ -211,7 +211,7 @@ internal sealed class ProtectDemo : PdfDemo
 
             // docs:begin password-provider
             buffer.Position = 0;
-            using var reopened = PdfReader.Open(buffer, PdfDocumentOpenMode.Modify,
+            using var reopened = PdfReader.Open(buffer, PdfDocumentOpenMode.Import,
                 args =>
                 {
                     timesAsked++;

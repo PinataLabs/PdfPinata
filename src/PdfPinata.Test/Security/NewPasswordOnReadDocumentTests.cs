@@ -54,20 +54,6 @@ public class NewPasswordOnReadDocumentTests
     [Arguments("protected-sodapdf.pdf")]
     [Arguments("protected-adobe.pdf")]
     [Arguments("protected-ilovepdf.pdf")]
-    public void TheOldPasswordNoLongerOpensIt(string fileName)
-    {
-        var saved = SavedWithNewPassword(Read(fileName));
-
-        var open = () => Pdf.IO.PdfReader.Open(saved, OldPassword, PdfDocumentOpenMode.Import);
-
-        open.Should().Throw<PdfReaderException>().WithMessage("*password is invalid*");
-    }
-
-    [Test]
-    [Arguments("protected-qpdf-r5.pdf")]
-    [Arguments("protected-sodapdf.pdf")]
-    [Arguments("protected-adobe.pdf")]
-    [Arguments("protected-ilovepdf.pdf")]
     public void SavingWithoutANewPasswordStillWorks(string fileName)
     {
         var content = ContentOf(Read(fileName));
@@ -110,7 +96,7 @@ public class NewPasswordOnReadDocumentTests
         document.Info.Title = "Indexed by a stream";
         document.Options.CrossReferenceFormat = PdfCrossReferenceFormat.Stream;
         document.SecuritySettings.DocumentSecurityLevel = PdfDocumentSecurityLevel.Encrypted128Bit;
-        document.SecuritySettings.UserPassword = OldPassword;
+        document.SecuritySettings.OwnerPassword = OldPassword;
         var written = new MemoryStream();
         document.Save(written, false);
         written.Position = 0;

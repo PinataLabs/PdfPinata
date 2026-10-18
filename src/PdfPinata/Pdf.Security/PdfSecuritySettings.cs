@@ -60,6 +60,14 @@ public sealed class PdfSecuritySettings
     /// PdfDocumentSecurityLevel to PdfDocumentSecurityLevel.Encrypted128Bit if its current
     /// value is PdfDocumentSecurityLevel.None.
     /// </summary>
+    /// <remarks>
+    /// Setting a user password and no <see cref="OwnerPassword"/> never makes the user password the
+    /// owner password as well. A document read with its owner password keeps that owner password. A
+    /// document with no owner password known, which includes one read with only its user password, is
+    /// given a random one when it is saved, so its original owner password no longer opens it. Nobody can
+    /// recover that password, PdfPinata included, so nobody can open the document as its owner. Set
+    /// <see cref="OwnerPassword"/> to be able to lift the permissions later.
+    /// </remarks>
     public string UserPassword
     {
         set => SecurityHandler.UserPassword = value;
@@ -70,6 +78,13 @@ public sealed class PdfSecuritySettings
     /// PdfDocumentSecurityLevel to PdfDocumentSecurityLevel.Encrypted128Bit if its current
     /// value is PdfDocumentSecurityLevel.None.
     /// </summary>
+    /// <remarks>
+    /// Opening the document with the owner password lifts every permission the <c>Permit*</c>
+    /// properties withhold. Saving is therefore refused when this is the same as
+    /// <see cref="UserPassword"/> and any permission is withheld, because every reader would then be
+    /// the owner. Left unset, it is the owner password the document was read with, or a random one
+    /// generated when the document is saved; see <see cref="UserPassword"/>.
+    /// </remarks>
     public string OwnerPassword
     {
         set => SecurityHandler.OwnerPassword = value;
@@ -87,6 +102,13 @@ public sealed class PdfSecuritySettings
             return PdfSaveCheck.Refused(PSSR.UserOrOwnerPasswordRequired);
         }
 
+        if (DocumentSecurityLevel != PdfDocumentSecurityLevel.None
+            && SecurityHandler.OwnerPasswordIsUserPassword
+            && SecurityHandler.RestrictsAnything)
+        {
+            return PdfSaveCheck.Refused(PSSR.OwnerPasswordIsUserPassword);
+        }
+
         return PdfSaveCheck.Allowed;
     }
 
@@ -94,6 +116,11 @@ public sealed class PdfSecuritySettings
     // Table 22. Bits 9 to 12 are honoured only by revision 3 or later of the standard security
     // handler, which is what Encrypted128Bit writes; Encrypted40Bit writes revision 2, and there
     // those four bits are always set, whatever their properties say.
+    //
+    // They bind only a reader who opened the document with the user password; the owner password
+    // lifts all of them. So a withheld permission means something only while the owner password is
+    // one the readers were not given: see OwnerPassword and UserPassword for what it is when it is
+    // not set (#315).
     #region Permissions
 
     /// <summary>
