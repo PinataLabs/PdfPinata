@@ -18,6 +18,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **`PdfPinata.ImageSharp`'s package description says that ImageSharp 2.1.x is end of life.** It has five security advisories that will never be fixed, and the description names `PdfPinata.ImageSharp4` as the package to use unless you target Unity or must keep your dependencies under Apache-2.0. `PdfPinata.ImageSharp4`'s description names its licence, the Six Labors Split License, and quotes Six Labors: an application that uses ImageSharp only through PdfPinata needs no Six Labors licence. (#310)
 
+#### Fixed
+
+- **A package's README shows its logo and its links work on nuget.org.** The packages carried the repository's README as it stands, but nuget.org renders no HTML and resolves no relative path, so the logo was missing and the links to the licence and to the Six Labors licence-key notes went nowhere. Each package now carries a copy written when it is packed, with the logo as a Markdown image on raw.githubusercontent.com and every relative link pointing at the file on GitHub.
+
 ### Drawing & Graphics
 
 #### Fixed
