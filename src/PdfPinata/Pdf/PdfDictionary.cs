@@ -39,6 +39,7 @@ using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Filters;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Internal;
+using PdfPinata.Pdf.Security;
 using System.Diagnostics.CodeAnalysis;
 
 namespace PdfPinata.Pdf;
@@ -244,7 +245,16 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             item = indirect.Reference;
         }
         key.WriteObject(writer);
-        item.WriteObject(writer);
+        if (writer.SecurityHandler != null && PdfStandardSecurityHandler.IsSignatureValue(this, key.Value))
+        {
+            // A signature value is written as it is, encrypted document or not (ISO 32000-1 7.6.2).
+            var securityHandler = writer.SecurityHandler;
+            writer.SecurityHandler = null;
+            item.WriteObject(writer);
+            writer.SecurityHandler = securityHandler;
+        }
+        else
+            item.WriteObject(writer);
         writer.NewLine();
     }
 

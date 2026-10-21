@@ -92,6 +92,27 @@ internal sealed class StandardSecurity
         return Encoding.Latin1.GetBytes(rewritten);
     }
 
+    /// <summary>
+    ///   The number of the first object whose body matches <paramref name="pattern"/>, or null where
+    ///   none does.
+    /// </summary>
+    public int? ObjectNumberWhere(string pattern)
+    {
+        foreach (Match obj in Regex.Matches(_pdf, @"(?<![0-9])(\d+)\s+0\s+obj(.*?)endobj", RegexOptions.Singleline))
+        {
+            if (Regex.IsMatch(obj.Groups[2].Value, pattern, RegexOptions.Singleline))
+                return int.Parse(obj.Groups[1].Value);
+        }
+        return null;
+    }
+
+    /// <summary>A string entry of an object exactly as it stands in the file, its bytes undecrypted.</summary>
+    public byte[] RawObjectBytes(int objectNumber, string key) => StringValue(ObjectBody(objectNumber), key);
+
+    /// <summary>A string entry of an object, decrypted with that object's own key.</summary>
+    public byte[] DecryptedObjectBytes(int objectNumber, string key) =>
+        Rc4(ObjectKey(_fileKey, objectNumber, 0), RawObjectBytes(objectNumber, key));
+
     private int InfoObjectNumber => int.Parse(Last(_pdf, @"/Info\s+(\d+)\s+\d+\s+R").Groups[1].Value);
     private string InfoDictionary => ObjectBody(InfoObjectNumber);
     private int InfoDictionaryIndex => ObjectMatch(InfoObjectNumber).Groups[1].Index;

@@ -55,6 +55,14 @@ emits untouched, so the reserved run of zeros arrives in the file the length it 
 `PdfLiteral` is not a string, so an encryption handler does not encrypt it — which is right, because
 PDF 32000-1 exempts `/Contents` from encryption.
 
+A signature value that *is* a string — one read from a file — is exempted by the security handler
+itself (#325). `PdfStandardSecurityHandler.IsSignatureValue` says which entry that is: `/Contents`
+of a dictionary that has a `/ByteRange`. The reader leaves it undecrypted and
+`PdfDictionary.WriteDictionaryElement` writes it with the writer's handler set aside, so an
+encrypted, signed file keeps its signature value through a read and a `Modify` save. Every other
+string of the signature dictionary, `/Reason` and `/Name` among them, is encrypted as usual, and so
+is an annotation's `/Contents`, which has no `/ByteRange` beside it.
+
 The revision is always **appended**, never rewritten. That is not an optimisation: rewriting a file
 invalidates every signature already on it. See `docs/specs/incremental-update-save.md`, which is why
 G6 came first.
