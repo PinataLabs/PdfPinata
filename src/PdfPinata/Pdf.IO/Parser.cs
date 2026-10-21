@@ -1651,13 +1651,18 @@ internal sealed class Parser
     /// that is malformed rather than throwing: a bad /CreationDate is no reason to refuse a document.
     /// </summary>
     /// <remarks>
-    ///  Format is
-    /// YYYY Year MM month DD day (01-31)  HH hour (00-23)  mm minute (00-59) ss second (00.59)
-    /// O is the relationship of local time to Universal Time (UT), denoted by one of the characters +, -, or Z (see below)
-    /// HH followed by ' is the absolute value of the offset from UT in hours (00-23)
-    /// mm followed by ' is the absolute value of the offset from UT in minutes (00-59)
-    /// For example, December 23, 1998, at 7:52 PM, U.S.Pacific Standard Time, is represented by the string,
-    /// D:19981223195200-08'00'
+    /// The format is D:YYYYMMDDHHmmSSOHH'mm (ISO 32000-1 7.9.4, ISO 32000-2 7.9.4):
+    /// YYYY year, MM month (01-12), DD day (01-31), HH hour (00-23), mm minute (00-59),
+    /// SS second (00-59), and O the relationship of local time to Universal Time (UT): one of
+    /// +, - or Z, the first two followed by the offset's hours and, after an apostrophe, its minutes.
+    /// For example, December 23, 1998, at 7:52 PM, U.S. Pacific Standard Time, is
+    /// D:19981223195200-08'00.
+    /// <para>
+    /// Every field after the year is optional, provided everything after it is left out too, and
+    /// takes its default: month and day 1, time 00:00:00, UT. ISO 32000-1 closes the minutes with a
+    /// second apostrophe and ISO 32000-2 does not, so both are read; so is a date without its
+    /// D: prefix, which many producers write.
+    /// </para>
     /// </remarks>
     internal static bool TryParseDateTime(string date, out DateTime value)
     {
@@ -1665,19 +1670,47 @@ internal sealed class Parser
         if (date == null)
             return false;
 
-        if (!date.StartsWith("D:", StringComparison.Ordinal))
-        {
-            // Some libraries use plain English format.
-            return DateTime.TryParse(date, CultureInfo.InvariantCulture, DateTimeStyles.None, out value);
-        }
+        if (date.StartsWith("D:", StringComparison.Ordinal))
+            return TryParsePdfDate(date, 2, out value);
 
-        // D:YYYYMMDDHHmmSSOHH'mm'
-        //   ^2      ^10   ^16 ^20
-        // A group too short to be all there is left at zero - and a date without its day is no
-        // date at all, since there is no year zero.
-        if (!TryReadCalendarDate(date, out var year, out var month, out var day) ||
-            !TryReadTimeOfDay(date, out var hour, out var minute, out var second) ||
-            !TryReadOffsetFromUT(date, out var o, out var hh, out var mm))
+        // Many producers leave the prefix off, and some libraries use plain English format. A
+        // string with white space in it is the second sort, whatever its first four characters are.
+        if (!ContainsWhiteSpace(date) && TryParsePdfDate(date, 0, out value))
+            return true;
+        return DateTime.TryParse(date, CultureInfo.InvariantCulture, DateTimeStyles.None, out value);
+    }
+
+    private static bool ContainsWhiteSpace(string text)
+    {
+        foreach (var ch in text)
+        {
+            if (char.IsWhiteSpace(ch))
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Reads the PDF date that begins at <paramref name="start"/>, after its prefix if it has one.
+    /// </summary>
+    private static bool TryParsePdfDate(string date, int start, out DateTime value)
+    {
+        value = default;
+        var position = start;
+        int month = 1, day = 1, hour = 0, minute = 0, second = 0;
+
+        // The year is the one field a date cannot leave out. Each of the others may be, so long as
+        // every field after it is too: the first missing one ends the date and time.
+        if (position + 4 > date.Length || !TryParseField(date, position, 4, out var year))
+            return false;
+        position += 4;
+        var more = true;
+        if (!TryReadOptionalField(date, ref position, ref more, ref month) ||
+            !TryReadOptionalField(date, ref position, ref more, ref day) ||
+            !TryReadOptionalField(date, ref position, ref more, ref hour) ||
+            !TryReadOptionalField(date, ref position, ref more, ref minute) ||
+            !TryReadOptionalField(date, ref position, ref more, ref second) ||
+            !TryReadOffsetFromUT(date, position, out var o, out var hh, out var mm))
             return false;
 
         // There are miserable PDF tools around the world.
@@ -1695,57 +1728,58 @@ internal sealed class Parser
     }
 
     /// <summary>
-    /// Reads the year, month and day of a PDF date, D:YYYYMMDD, all left at zero when the date is too
-    /// short to hold them.
+    /// Reads one two-digit field of a PDF date, leaving <paramref name="field"/> at its default and
+    /// <paramref name="more"/> false when the date ends, or its offset from UT begins, before it.
+    /// Answers false for a field that is cut off or is not a number.
     /// </summary>
-    private static bool TryReadCalendarDate(string date, out int year, out int month, out int day)
+    private static bool TryReadOptionalField(string date, ref int position, ref bool more, ref int field)
     {
-        year = month = day = 0;
-        if (date.Length < 10)
+        if (!more || position == date.Length || date[position] is '+' or '-' or 'Z')
+        {
+            more = false;
             return true;
+        }
 
-        return TryParseField(date, 2, 4, out year) &&
-               TryParseField(date, 6, 2, out month) &&
-               TryParseField(date, 8, 2, out day);
+        if (position + 2 > date.Length || !TryParseField(date, position, 2, out field))
+            return false;
+        position += 2;
+        return true;
     }
 
     /// <summary>
-    /// Reads the hour, minute and second of a PDF date, which follow the day as HHmmSS, all left at
-    /// zero when the date is too short to hold them.
+    /// Reads the relationship of a PDF date's time to UT, OHH'mm, which begins at
+    /// <paramref name="position"/>. It is 'Z' when the date says so or says nothing; the minutes may
+    /// be left out, and the apostrophe that ISO 32000-1 closes them with may be too.
     /// </summary>
-    private static bool TryReadTimeOfDay(string date, out int hour, out int minute, out int second)
-    {
-        hour = minute = second = 0;
-        if (date.Length < 16)
-            return true;
-
-        return TryParseField(date, 10, 2, out hour) &&
-               TryParseField(date, 12, 2, out minute) &&
-               TryParseField(date, 14, 2, out second);
-    }
-
-    /// <summary>
-    /// Reads the relationship of a PDF date's time to UT, OHH'mm', which is 'Z' when the date says
-    /// so or is too short to say anything.
-    /// </summary>
-    private static bool TryReadOffsetFromUT(string date, out char o, out int hh, out int mm)
+    private static bool TryReadOffsetFromUT(string date, int position, out char o, out int hh, out int mm)
     {
         o = 'Z';
         hh = mm = 0;
-        if (date.Length < 23)
+        if (position == date.Length || date[position] == 'Z')
             return true;
 
-        o = date[16];
-        if (o == 'Z')
-            return true;
+        // Anything but +, - or Z is no designator, and without the apostrophe between them the
+        // digits after it are not an offset's hours and minutes.
+        o = date[position++];
+        if (o != '+' && o != '-')
+            return false;
+        if (position + 2 > date.Length || !TryParseField(date, position, 2, out hh))
+            return false;
+        position += 2;
 
-        // Anything but +, - or Z is no designator, and without the apostrophes the
-        // digits either side of them are not an offset's hours and minutes.
-        if ((o != '+' && o != '-') || date[19] != '\'' || date[22] != '\'')
-            return false;
-        if (!TryParseField(date, 17, 2, out hh) ||
-            !TryParseField(date, 20, 2, out mm))
-            return false;
+        if (position < date.Length)
+        {
+            if (date[position++] != '\'')
+                return false;
+            if (position < date.Length)
+            {
+                if (position + 2 > date.Length || !TryParseField(date, position, 2, out mm))
+                    return false;
+                position += 2;
+                if (position < date.Length && date[position] != '\'')
+                    return false;
+            }
+        }
 
         return hh is >= 0 and <= 23 && mm is >= 0 and <= 59;
     }
