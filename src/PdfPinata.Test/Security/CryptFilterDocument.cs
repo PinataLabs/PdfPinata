@@ -7,10 +7,11 @@ using System.Text;
 namespace PdfPinata.Test.Security;
 
 /// <summary>
-///   A one-page document encrypted by the standard security handler at revision 4, written byte by
-///   byte with the crypt filters a test asks for — including <c>/Identity</c>, which no writer to
-///   hand will produce on request. The keys come from <see cref="StandardSecurity"/>, the
-///   independent implementation, so nothing here shares the reader's assumptions.
+///   A one-page document encrypted by the standard security handler at revision 4, or at revision 6
+///   when <see cref="Method"/> is <c>/AESV3</c>, written byte by byte with the crypt filters a test
+///   asks for — including <c>/Identity</c>, which no writer to
+///   hand will produce on request. The keys come from <see cref="StandardSecurity"/> and
+///   <see cref="Aes256Security"/>, the independent implementations, so nothing here shares the reader's assumptions.
 /// </summary>
 /// <remarks>
 ///   The user password is empty and the owner password <see cref="OwnerPassword"/>. Objects: 1 the
@@ -23,7 +24,10 @@ internal sealed class CryptFilterDocument
     public const string OwnerPassword = "owner328";
     public const int MetadataObject = 4;
 
-    /// <summary>The crypt filter <c>/StdCF</c> is defined as: <c>/V2</c> (RC4) or <c>/AESV2</c>.</summary>
+    /// <summary>
+    ///   The crypt filter <c>/StdCF</c> is defined as: <c>/V2</c> (RC4) or <c>/AESV2</c> at <c>/V</c> 4 and
+    ///   revision 4, or <c>/AESV3</c> (AES-256) at <c>/V</c> 5 and revision 6.
+    /// </summary>
     public string Method { get; init; } = "/V2";
 
     /// <summary>The crypt filter streams are encrypted with: <c>/StdCF</c> or <c>/Identity</c>, or null to leave <c>/StmF</c> out, which means <c>/Identity</c>.</summary>
@@ -63,12 +67,17 @@ internal sealed class CryptFilterDocument
     private static readonly byte[] InitializationVector = Enumerable.Range(0, 16).Select(i => (byte)(0xA0 + i)).ToArray();
     private const int Permissions = -4;
 
-    public byte[] FileKey => StandardSecurity.FileKey(StandardSecurity.Pad(""), Owner, Permissions, Id, 4, 16,
-        EncryptMetadata);
+    /// <summary>At revision 6 the file key is chosen rather than derived, and stored under each password.</summary>
+    private static readonly byte[] Aes256FileKey = Enumerable.Range(0, 32).Select(i => (byte)(0x40 + 3 * i)).ToArray();
+
+    public byte[] FileKey => Aes256 ? Aes256FileKey
+        : StandardSecurity.FileKey(StandardSecurity.Pad(""), Owner, Permissions, Id, 4, 16, EncryptMetadata);
 
     private static byte[] Owner => StandardSecurity.OwnerEntry(OwnerPassword, "", 4, 16);
 
-    private bool Aes => Method == "/AESV2";
+    private bool Aes => Method is "/AESV2" or "/AESV3";
+
+    private bool Aes256 => Method == "/AESV3";
 
     /// <summary>
     ///   What the reader would answer for <paramref name="data"/> of object <paramref name="number"/>
@@ -92,7 +101,6 @@ internal sealed class CryptFilterDocument
             ? Encoding.ASCII.GetBytes(Title)
             : Encrypt(6, Encoding.ASCII.GetBytes(Title));
 
-        var user = StandardSecurity.UserEntry(FileKey, Id, 4).Concat(new byte[16]).ToArray();
         var encryptMetadata = EncryptMetadata ? "" : " /EncryptMetadata false";
 
         var objects = new List<byte[]>
@@ -103,13 +111,13 @@ internal sealed class CryptFilterDocument
             Stream($"/Type /Metadata /Subtype /XML{MetadataEntries}", metadata),
             Stream("", content),
             Ascii($"<< /Title <{Hex(title)}> >>"),
-            Ascii($"<< /Filter /Standard /V 4 /R 4 /Length 128 /CF << /StdCF << /CFM {Method} /AuthEvent /DocOpen " +
-                  $"/Length 16 >> >>{Entry("/StmF", StreamFilter)}{Entry("/StrF", StringFilter)} /O <{Hex(Owner)}> /U <{Hex(user)}> " +
+            Ascii($"<< /Filter /Standard {Handler()} /CF << /StdCF << /CFM {Method} /AuthEvent /DocOpen " +
+                  $"/Length {FileKey.Length} >> >>{Entry("/StmF", StreamFilter)}{Entry("/StrF", StringFilter)} " +
                   $"/P {Permissions}{encryptMetadata} >>")
         };
         objects.AddRange(ExtraObjects.Select(Ascii));
 
-        var file = new List<byte>(Ascii("%PDF-1.6\n"));
+        var file = new List<byte>(Ascii(Aes256 ? "%PDF-2.0\n" : "%PDF-1.6\n"));
         var offsets = new List<int>();
         for (var i = 0; i < objects.Count; i++)
         {
@@ -129,6 +137,22 @@ internal sealed class CryptFilterDocument
         return [..file];
     }
 
+    /// <summary>The entries of the encryption dictionary that say which handler and hold its passwords.</summary>
+    private string Handler()
+    {
+        if (!Aes256)
+        {
+            var user = StandardSecurity.UserEntry(FileKey, Id, 4).Concat(new byte[16]).ToArray();
+            return $"/V 4 /R 4 /Length 128 /O <{Hex(Owner)}> /U <{Hex(user)}>";
+        }
+
+        var u = Aes256Security.UserEntry("");
+        return $"/V 5 /R 6 /Length 256 /O <{Hex(Aes256Security.OwnerEntry(OwnerPassword, u))}> /U <{Hex(u)}> " +
+               $"/OE <{Hex(Aes256Security.OwnerKeyEntry(OwnerPassword, u, FileKey))}> " +
+               $"/UE <{Hex(Aes256Security.UserKeyEntry("", FileKey))}> " +
+               $"/Perms <{Hex(Aes256Security.PermsEntry(Permissions, EncryptMetadata, FileKey))}>";
+    }
+
     private byte[] EncryptStream(int number, byte[] data) =>
         StreamFilter is "/Identity" or null ? data : Encrypt(number, data);
 
@@ -138,6 +162,8 @@ internal sealed class CryptFilterDocument
     {
         if (!Aes)
             return StandardSecurity.Rc4(StandardSecurity.ObjectKey(FileKey, number, 0), data);
+        if (Aes256)
+            return Aes256Security.Encrypt(FileKey, InitializationVector, data);
 
         using var aes = System.Security.Cryptography.Aes.Create();
         aes.Key = StandardSecurity.ObjectKey(FileKey, number, 0, aes: true);
