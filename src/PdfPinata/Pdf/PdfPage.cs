@@ -89,7 +89,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         _sheet = new PdfPageSheet(this);
 
         // Set Orientation depending on /Rotate.
-        var rotate = Elements.GetInteger(InheritablePageKeys.Rotate);
+        var rotate = RotationOf(Elements);
         if (Math.Abs(rotate / 90) % 2 == 1)
             Orientation = PageOrientation.Landscape;
     }
@@ -715,13 +715,45 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// </summary>
     public int Rotate
     {
-        get => _elements.GetInteger(InheritablePageKeys.Rotate);
+        get => RotationOf(_elements);
         set
         {
             if (value / 90 * 90 != value)
                 throw new ArgumentException("Value must be a multiple of 90.");
             _elements.SetInteger(InheritablePageKeys.Rotate, value);
         }
+    }
+
+    /// <summary>
+    /// The /Rotate entry of a page dictionary as a whole number of degrees, or 0 when it states none.
+    /// </summary>
+    /// <remarks>
+    /// The entry is meant to be an integer, but a file may say it indirectly or as a real such as
+    /// <c>90.0</c>, and either is the same turn. A real with a fractional part, or anything that is
+    /// not a number, is no turn at all rather than a reason to refuse the page.
+    /// </remarks>
+    internal static int RotationOf(PdfDictionary.DictionaryElements elements) =>
+        TryGetRotation(elements[InheritablePageKeys.Rotate], out var degrees) ? degrees : 0;
+
+    /// <summary>
+    /// Reads a /Rotate value that is an integer, or a real with no fractional part, directly or
+    /// through a reference.
+    /// </summary>
+    private static bool TryGetRotation(PdfItem item, out int degrees)
+    {
+        if (PdfItemValues.TryGetInteger(item, out degrees))
+            return true;
+
+        if (PdfItemValues.TryGetNumber(item, out var number)
+            && number == Math.Floor(number)
+            && number is >= int.MinValue and <= int.MaxValue)
+        {
+            degrees = (int)number;
+            return true;
+        }
+
+        degrees = 0;
+        return false;
     }
 
     /// <summary>
@@ -1251,21 +1283,23 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     {
         PdfDictionary resources;
         var res = InheritableEntry(page, InheritablePageKeys.Resources);
-        if (res is PdfReference reference)
+        if (res is PdfReference { Value: PdfDictionary referenced })
         {
-            resources = (PdfDictionary)reference.Value.Clone();
+            resources = (PdfDictionary)referenced.Clone();
             resources.Document = page.Owner;
         }
         else
         {
-            resources = (PdfDictionary)res;
+            // Resources that are not a dictionary are none at all, so the inherited ones stand
+            // in for them as they would for a page that stated nothing.
+            resources = res as PdfDictionary;
         }
 
         if (resources == null)
         {
             resources = inherited.Clone();
             resources.Document = page.Owner;
-            page.Elements.Add(InheritablePageKeys.Resources, resources);
+            page.Elements[InheritablePageKeys.Resources] = resources;
             return;
         }
 
@@ -1294,11 +1328,11 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     {
         // A null entry is skipped rather than recorded, so it neither reaches the pages below as
         // an empty box nor overrides what a node further up stated.
+        // Resources that are not a dictionary are skipped in the same way, leaving whatever a
+        // node further up stated.
         var item = InheritableEntry(page, InheritablePageKeys.Resources);
-        if (item != null)
-        {
-            values.Resources = (PdfDictionary)PdfReference.Dereference(item);
-        }
+        if (PdfReference.Dereference(item) is PdfDictionary resources)
+            values.Resources = resources;
 
         item = InheritableEntry(page, InheritablePageKeys.MediaBox);
         if (item != null)
@@ -1308,12 +1342,11 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         if (item != null)
             values.CropBox = new PdfRectangle(item);
 
-        item = InheritableEntry(page, InheritablePageKeys.Rotate);
-        if (item != null)
-        {
-            item = PdfReference.Dereference(item);
-            values.Rotate = (PdfInteger)item;
-        }
+        // /Rotate is passed down as the direct integer it should have been written as, whether
+        // the node says it indirectly or as a real with no fractional part. One that is not a
+        // whole number is skipped like a null one.
+        if (TryGetRotation(InheritableEntry(page, InheritablePageKeys.Rotate), out var degrees))
+            values.Rotate = new PdfInteger(degrees);
     }
 
     internal override void PrepareForSave()

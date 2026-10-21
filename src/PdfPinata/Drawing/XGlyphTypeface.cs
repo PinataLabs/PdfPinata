@@ -34,6 +34,7 @@ using System.Diagnostics;
 using System.Globalization;
 using PdfPinata.Fonts;
 using PdfPinata.Fonts.OpenType;
+using PdfPinata.Internal;
 
 namespace PdfPinata.Drawing;
 
@@ -92,7 +93,27 @@ internal sealed class XGlyphTypeface
         Initialize();
     }
 
+    /// <summary>
+    /// Gets the typeface cached for a family and style, or resolves, builds and caches it.
+    /// </summary>
+    /// <remarks>
+    /// The font factory lock is held across the whole of it, not taken around each call in turn.
+    /// Between resolving a typeface and caching it, another thread asking for the same one would
+    /// otherwise find it resolved but not yet built and build a second, and the font source looked
+    /// up in between was read with no lock at all while other threads wrote the same cache (#329).
+    /// The lock is a monitor, so the calls below that take it again are not refused.
+    /// </remarks>
     public static XGlyphTypeface GetOrCreateFrom(string familyName, FontResolvingOptions fontResolvingOptions)
+    {
+        try
+        {
+            Lock.EnterFontFactory();
+            return GetOrCreateFromLocked(familyName, fontResolvingOptions);
+        }
+        finally { Lock.ExitFontFactory(); }
+    }
+
+    private static XGlyphTypeface GetOrCreateFromLocked(string familyName, FontResolvingOptions fontResolvingOptions)
     {
         // Check cache for requested type face.
         var typefaceKey = ComputeKey(familyName, fontResolvingOptions);
