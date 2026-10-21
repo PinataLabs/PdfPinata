@@ -226,7 +226,13 @@ public sealed class PdfListBoxField : PdfChoiceField
     {
         if (texts.Length == 0)
         {
-            Elements.Remove(PdfAcroField.Keys.V);
+            // No entry means the nearest ancestor's /V, which is inheritable. Under a parent
+            // that has one, nothing chosen has to be said out loud, as an empty array, or the
+            // parent's choice would come back.
+            if (InheritedFrom(this, PdfAcroField.Keys.V) is { } owner && owner != this)
+                Elements[PdfAcroField.Keys.V] = new PdfArray(Owner);
+            else
+                Elements.Remove(PdfAcroField.Keys.V);
             return;
         }
 

@@ -65,7 +65,7 @@ public sealed class PdfComboBoxField : PdfChoiceField
     {
         get
         {
-            var value = Elements.GetString(PdfAcroField.Keys.V);
+            var value = ValueOwner.Elements.GetString(PdfAcroField.Keys.V);
             return IndexInOptArray(value);
         }
         set
@@ -98,7 +98,7 @@ public sealed class PdfComboBoxField : PdfChoiceField
     /// </summary>
     public override PdfItem Value
     {
-        get => Elements[PdfAcroField.Keys.V];
+        get => ValueOwner.Elements[PdfAcroField.Keys.V];
         set
         {
             EnsureCanBeFilled();
@@ -141,7 +141,7 @@ public sealed class PdfComboBoxField : PdfChoiceField
         get
         {
             var index = SelectedIndex;
-            return index != -1 ? DisplayTextAt(index) : Elements.GetString(PdfAcroField.Keys.V);
+            return index != -1 ? DisplayTextAt(index) : ValueOwner.Elements.GetString(PdfAcroField.Keys.V);
         }
     }
 
