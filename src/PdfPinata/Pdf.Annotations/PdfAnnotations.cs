@@ -60,12 +60,26 @@ public sealed class PdfAnnotations : PdfArray
         annotation.Document = Owner;
         Owner._irefTable.Add(annotation);
         Elements.Add(annotation.Reference);
+
+        // /P, the page the annotation is on. Optional in general but required of a screen
+        // annotation with a rendition action, and what some readers and importers find an
+        // annotation's page by.
+        if (Page?.Reference != null)
+            annotation.Elements.SetReference("/P", Page);
+
         annotation.OnAddedToPage();
     }
 
     /// <summary>
-    /// Removes an annotation from the document.
+    /// Removes an annotation from the page.
     /// </summary>
+    /// <remarks>
+    /// Only <c>/Annots</c> changes. The annotation stays in the document's cross-reference table,
+    /// because it may still be reached from elsewhere - a field merged with its widget is listed in
+    /// <c>/Fields</c>, a widget in its field's <c>/Kids</c>, a markup annotation in its popup's
+    /// <c>/Parent</c> - and an incremental save decides what changed from that table alone. A full
+    /// save drops it anyway if nothing reaches it any more.
+    /// </remarks>
     public void Remove(PdfAnnotation annotation)
     {
         if (annotation.Owner != Owner)
@@ -73,7 +87,6 @@ public sealed class PdfAnnotations : PdfArray
 
         Owner.EnsureCanModify("removing an annotation", PdfChangeKind.Annotations);
 
-        Owner.Internals.RemoveObject(annotation);
         Elements.Remove(annotation.Reference);
     }
 

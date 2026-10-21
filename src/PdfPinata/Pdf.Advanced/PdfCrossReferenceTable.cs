@@ -73,10 +73,15 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
     /// </summary>
     public void Add(PdfObject value)
     {
+        // Said out loud rather than asserted: a Release build skipped the assertion and wrote into
+        // this document a reference to an object of another, which no reader can follow.
         if (value.Owner == null)
             value.Document = _document;
-        else
-            Debug.Assert(value.Owner == _document);
+        else if (value.Owner != _document)
+            throw new InvalidOperationException(
+                $"A {value.GetType().Name} that belongs to another document cannot be added to "
+                + "this one's cross-reference table. Create it with this document, or import it "
+                + "(an imported page brings what it refers to with it).");
 
         if (value.ObjectID.IsEmpty)
             value.SetObjectID(GetNewObjectNumber(), 0);

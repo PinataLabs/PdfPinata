@@ -174,4 +174,24 @@ public class CrossReferenceConsistencyTests
         ShouldBeConsistent(written);
         Reader.Open(new MemoryStream(written), PdfDocumentOpenMode.Modify).PageCount.Should().Be(3);
     }
+    /// <summary>
+    ///   An object of one document added to another's table was refused by a
+    ///   <c>Debug.Assert</c> alone, so a Release build wrote a reference into a document the object
+    ///   is not in. An embedded file made with another document, given to a file specification,
+    ///   is one way to get there through public API. Issue #337.
+    /// </summary>
+    [Test]
+    public void AnObjectOfAnotherDocumentIsRefusedByTheCrossReferenceTable()
+    {
+        var docA = new PdfDocument();
+        var docB = new PdfDocument();
+        var specification = new PdfPinata.Pdf.Advanced.PdfFileSpecification(docB);
+        var foreign = new PdfPinata.Pdf.Advanced.PdfEmbeddedFile(docA, [1, 2, 3]);
+
+        var adding = () => specification.EmbeddedFile = foreign;
+
+        adding.Should().Throw<System.InvalidOperationException>()
+            .WithMessage("*belongs to another document*");
+        foreign.Reference.Should().BeNull("nothing was added");
+    }
 }
