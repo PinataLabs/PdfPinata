@@ -292,8 +292,9 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
         /// Left to itself, 4.x's encoder writes in the colour type the image was decoded from, and it
         /// can write CMYK and YCCK: a CMYK JPEG came back out as four components under a
         /// <c>/DeviceRGB</c> label. A luminance JPEG keeps its one component, which <c>PdfImage</c>
-        /// reads from the frame header and labels <c>/DeviceGray</c> (#327). 2.x's encoder kept the source's colour type only when it was a
-        /// JPEG's 4:4:4 or 4:2:0 YCbCr, luminance or RGB, the four it could write, and otherwise
+        /// reads from the frame header and labels <c>/DeviceGray</c> (#327). 2.x's encoder kept the
+        /// source's colour type only when it was a JPEG's 4:4:4 or 4:2:0 YCbCr, luminance or RGB,
+        /// the four it could write, and otherwise
         /// wrote YCbCr, 4:4:4 at a quality of 91 or more and 4:2:0 below. Null asks 4.x to keep the
         /// source's. 4.x also reads a colour type out of other formats' metadata, which 2.x never
         /// did - a grayscale TIFF would become a one-component JPEG - so only a JPEG's is kept.
