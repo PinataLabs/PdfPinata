@@ -18,6 +18,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **`PdfPinata.ImageSharp`'s package description says that ImageSharp 2.1.x is end of life.** It has five security advisories that will never be fixed, and the description names `PdfPinata.ImageSharp4` as the package to use unless you target Unity or must keep your dependencies under Apache-2.0. `PdfPinata.ImageSharp4`'s description names its licence, the Six Labors Split License, and quotes Six Labors: an application that uses ImageSharp only through PdfPinata needs no Six Labors licence. (#310)
 
+### Annotations & Forms
+
+#### Fixed
+
+- **Setting `Title` or `Subject` on a widget annotation throws instead of turning the widget into a field.** Both write markup annotation keys, `/T` and `/Subj`, but on a widget `/T` is the partial name of a form field. A widget from `AddWidget` given a `Title` read back after a save as a nested field: it moved from `Widgets` to `Fields`, its field no longer drew its appearance, and the field's full name gained a segment. On the widget of a field merged with its widget, `Title` renamed the field, even to a name with a period in it, which `Name` refuses. The setters now throw an `InvalidOperationException` that points to `PdfAcroField.Name` for the field's name and `PdfAcroField.ToolTip` for a label a person sees. Markup annotations are not affected, and a widget read from a file with `/T` already in it reads as before. (#330)
+
 ### Drawing & Graphics
 
 #### Fixed
