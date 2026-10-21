@@ -73,6 +73,14 @@ public class JpegColourSpaceLabelTests
         ColourSpaceOf([..StartOfImage, ..segment, ..Frame(1), ..EndOfImage]).Should().Be("/DeviceRGB");
     }
 
+    [Test]
+    public void AJpegThatEndsBeforeAnyFrameIsLabelledRgb()
+    {
+        byte[] app0 = [0xFF, 0xE0, 0x00, 0x06, (byte)'J', (byte)'F', (byte)'I', (byte)'F'];
+
+        ColourSpaceOf([..StartOfImage, ..app0]).Should().Be("/DeviceRGB");
+    }
+
     private static string ColourSpaceOf(byte[] jpeg)
     {
         var document = new PdfDocument();
