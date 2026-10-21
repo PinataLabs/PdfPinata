@@ -67,4 +67,6 @@ data, which PDF has no way to carry as a font program anyway.
 
 `src/PdfPinata.Test/Fonts/FontEmbeddingRestrictionTests.cs`. Each case uses Liberation Sans with
 its `fsType` changed and its OS/2 checksum recomputed (`TrueTypeGlyphs.WithFsType`). Each value gets
-its own first letter in the name table, because faces are cached by name.
+its own first letter in the name table, so that its embedded `/FontName` tells it from the others.
+(Faces used to be cached by that name too, and a second file sharing it was refused; since #329 a
+font source is cached by its bytes and by the resolver's face name alone.)

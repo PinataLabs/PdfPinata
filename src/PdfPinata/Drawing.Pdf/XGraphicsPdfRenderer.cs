@@ -775,12 +775,19 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         if (cx == 0 || cy == 0)
             return;
 
+        // A form XObject inherits the graphics state in force at Do, colours included. An imported
+        // page was written as page content, where a viewer starts in black, so one that names no
+        // colour relies on that default and would otherwise be drawn in whatever the caller last
+        // painted with. Black is set inside the q, so the Q puts the caller's colours back. A
+        // template drawn here (XForm) is left as it was.
+        var defaultColours = form is XPdfForm ? "0 g 0 G " : "";
+
         if (_gfx.PageDirection != XPageDirection.Downwards)
         {
             // No MediaBox offset here, unlike Downwards: Upwards is obsolete and was never finished.
             AppendFormatImage(
                 "q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format +
-                "} cm {4} Do Q\n",
+                "} cm " + defaultColours + "{4} Do Q\n",
                 x, y, cx, cy, name);
             return;
         }
@@ -797,7 +804,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         AppendFormatImage(
             "q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format +
-            "} cm 100 Tz {4} Do Q\n",
+            "} cm " + defaultColours + "100 Tz {4} Do Q\n",
             xDraw, yDraw + height, cx, cy, name);
     }
 
