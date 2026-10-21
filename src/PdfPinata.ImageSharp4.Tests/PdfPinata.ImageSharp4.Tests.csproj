@@ -81,6 +81,7 @@
     <!-- What those tests read and draw with, linked for the same reason. -->
     <Compile Include="..\PdfPinata.Test\Helpers\ColourJpegXObject.cs" Link="Linked\Helpers\ColourJpegXObject.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\ContentOperands.cs" Link="Linked\Helpers\ContentOperands.cs" />
+    <Compile Include="..\PdfPinata.Test\Helpers\CoverageController.cs" Link="Linked\Helpers\CoverageController.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\DrawnText.cs" Link="Linked\Helpers\DrawnText.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\EmbeddedColourProfile.cs" Link="Linked\Helpers\EmbeddedColourProfile.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\GhostscriptSetup.cs" Link="Linked\Helpers\GhostscriptSetup.cs" />

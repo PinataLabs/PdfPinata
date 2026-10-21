@@ -59,6 +59,8 @@
       readers above.
     -->
     <Compile Include="..\PdfPinata.Test\Helpers\PinnedFontResolver.cs" Link="Helpers\Linked\PinnedFontResolver.cs" />
+    <!-- Asked by the module initializer whether this is the coverage controller; see the file. -->
+    <Compile Include="..\PdfPinata.Test\Helpers\CoverageController.cs" Link="Helpers\Linked\CoverageController.cs" />
     <!--
       Saving a document and reading it back, which is how a test here sees what a reader sees. One
       owner for it rather than a private copy in each file that needed one.
