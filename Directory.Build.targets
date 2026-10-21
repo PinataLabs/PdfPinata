@@ -33,9 +33,15 @@
 
     GenerateDocumentationFile is the exception that cannot move here: the SDK derives DocumentationFile
     from it before this file is imported, so it stays in each project, whose comment says so.
+
+    GeneratePackageOnBuild packs on every build, which is how build-and-test.yml's Release build
+    proves every project still packs. It is off under `dotnet pack`, which sets _IsPacking: NuGet
+    reads GeneratePackageOnBuild as "the build is already running and calls Pack", so it drops Build
+    from what Pack depends on, and a pack with no build before it packs bin/ folders that are still
+    empty and fails with NU5026. Off, Pack builds first, as it does for any other project.
   -->
   <PropertyGroup Condition="'$(IsPackable)' != 'false'">
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild Condition="'$(_IsPacking)' != 'true'">True</GeneratePackageOnBuild>
     <Authors>Stefan Steiger and Contributors</Authors>
     <Copyright>Copyright (c) 2026 PdfPinata; Copyright (c) 2005-2007 empira Software GmbH, Cologne (Germany)</Copyright>
     <PackageReadmeFile>README.md</PackageReadmeFile>
