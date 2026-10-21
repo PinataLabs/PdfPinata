@@ -761,9 +761,9 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         if (double.IsNaN(value))
             return "null";
 
-        // Rounding to three places can leave a negative zero, which "0.###" writes as "-0".
-        var rounded = Math.Round(value, 3);
-        return rounded == 0 ? "0" : rounded.ToString("0.###", CultureInfo.InvariantCulture);
+        // Rounded first, half to even, as this always has: the format alone would round half away
+        // from zero. Its zero section writes a negative zero the rounding leaves as "0".
+        return Math.Round(value, 3).ToString(Config.SignificantFigures3, CultureInfo.InvariantCulture);
     }
 
     internal override void WriteObject(PdfWriter writer)

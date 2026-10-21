@@ -67,6 +67,10 @@ public class DemoSmokeTests
         // repaginates a document is a failing test rather than a surprise months later.
         opened.PageCount.Should().Be(demo.PageCount);
         result.PageCount.Should().Be(demo.PageCount);
+
+        // A negative zero is noise a reader accepts, but it makes two identical documents differ
+        // byte for byte, and six of the demos used to write one in every translation (#336).
+        NegativeZeros.In(opened).Should().BeEmpty("no content stream should hold a -0 token");
     }
 
     [Test]

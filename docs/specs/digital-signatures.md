@@ -58,7 +58,8 @@ PDF 32000-1 exempts `/Contents` from encryption.
 A signature value that *is* a string — one read from a file — is exempted by the security handler
 itself (#325). `PdfStandardSecurityHandler.IsSignatureValue` says which entry that is: `/Contents`
 of a dictionary that has a `/ByteRange`. The reader leaves it undecrypted and
-`PdfDictionary.WriteDictionaryElement` writes it with the writer's handler set aside, so an
+`PdfDictionary.WriteDictionaryElement` writes it through `PdfWriter.WriteUnencrypted`, which sets the
+writer's handler aside and puts it back in a `finally`, however the write ends, so an
 encrypted, signed file keeps its signature value through a read and a `Modify` save. Every other
 string of the signature dictionary, `/Reason` and `/Name` among them, is encrypted as usual, and so
 is an annotation's `/Contents`, which has no `/ByteRange` beside it.

@@ -246,13 +246,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         }
         key.WriteObject(writer);
         if (writer.SecurityHandler != null && PdfStandardSecurityHandler.IsSignatureValue(this, key.Value))
-        {
-            // A signature value is written as it is, encrypted document or not (ISO 32000-1 7.6.2).
-            var securityHandler = writer.SecurityHandler;
-            writer.SecurityHandler = null;
-            item.WriteObject(writer);
-            writer.SecurityHandler = securityHandler;
-        }
+            writer.WriteUnencrypted(item);
         else
             item.WriteObject(writer);
         writer.NewLine();

@@ -150,6 +150,8 @@ public class UnencryptedDataTests
         var read = Open(document.Build());
 
         MetadataOf(read).Should().Equal(document.Metadata);
+        var filter = read.Internals.Catalog.Elements.GetDictionary("/Metadata").Elements["/Filter"];
+        (filter?.ToString() ?? "").Should().NotContain("/Crypt", "a crypt filter is applied as the stream is read");
     }
 
     [Test]

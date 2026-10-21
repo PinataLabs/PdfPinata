@@ -26,16 +26,22 @@ internal sealed class CryptFilterDocument
     /// <summary>The crypt filter <c>/StdCF</c> is defined as: <c>/V2</c> (RC4) or <c>/AESV2</c>.</summary>
     public string Method { get; init; } = "/V2";
 
-    /// <summary>The crypt filter streams are encrypted with: <c>/StdCF</c> or <c>/Identity</c>.</summary>
+    /// <summary>The crypt filter streams are encrypted with: <c>/StdCF</c> or <c>/Identity</c>, or null to leave <c>/StmF</c> out, which means <c>/Identity</c>.</summary>
     public string StreamFilter { get; init; } = "/StdCF";
 
-    /// <summary>The crypt filter strings are encrypted with: <c>/StdCF</c> or <c>/Identity</c>.</summary>
+    /// <summary>The crypt filter strings are encrypted with: <c>/StdCF</c> or <c>/Identity</c>, or null to leave <c>/StrF</c> out, which means <c>/Identity</c>.</summary>
     public string StringFilter { get; init; } = "/StdCF";
 
     public bool EncryptMetadata { get; init; } = true;
 
     /// <summary>Whether the metadata stream is left in plain whatever <see cref="EncryptMetadata"/> says.</summary>
     public bool PlainMetadata { get; init; }
+
+    /// <summary>
+    ///   Whether the metadata stream is encrypted with <c>/StdCF</c> whatever <see cref="StreamFilter"/> says,
+    ///   as a stream naming that crypt filter in a <c>/Filter /Crypt</c> of its own is.
+    /// </summary>
+    public bool MetadataUnderStdCF { get; init; }
 
     /// <summary>The extra entries of the metadata stream's dictionary, such as a <c>/Filter /Crypt</c>.</summary>
     public string MetadataEntries { get; init; } = "";
@@ -79,9 +85,10 @@ internal sealed class CryptFilterDocument
 
     public byte[] Build()
     {
-        var metadata = EncryptMetadata && !PlainMetadata ? EncryptStream(MetadataObject, Metadata) : Metadata;
+        var metadata = MetadataUnderStdCF ? Encrypt(MetadataObject, Metadata)
+            : EncryptMetadata && !PlainMetadata ? EncryptStream(MetadataObject, Metadata) : Metadata;
         var content = EncryptStream(5, Content);
-        var title = StringFilter == "/Identity"
+        var title = StringFilter is "/Identity" or null
             ? Encoding.ASCII.GetBytes(Title)
             : Encrypt(6, Encoding.ASCII.GetBytes(Title));
 
@@ -97,7 +104,7 @@ internal sealed class CryptFilterDocument
             Stream("", content),
             Ascii($"<< /Title <{Hex(title)}> >>"),
             Ascii($"<< /Filter /Standard /V 4 /R 4 /Length 128 /CF << /StdCF << /CFM {Method} /AuthEvent /DocOpen " +
-                  $"/Length 16 >> >> /StmF {StreamFilter} /StrF {StringFilter} /O <{Hex(Owner)}> /U <{Hex(user)}> " +
+                  $"/Length 16 >> >>{Entry("/StmF", StreamFilter)}{Entry("/StrF", StringFilter)} /O <{Hex(Owner)}> /U <{Hex(user)}> " +
                   $"/P {Permissions}{encryptMetadata} >>")
         };
         objects.AddRange(ExtraObjects.Select(Ascii));
@@ -123,7 +130,9 @@ internal sealed class CryptFilterDocument
     }
 
     private byte[] EncryptStream(int number, byte[] data) =>
-        StreamFilter == "/Identity" ? data : Encrypt(number, data);
+        StreamFilter is "/Identity" or null ? data : Encrypt(number, data);
+
+    private static string Entry(string key, string value) => value == null ? "" : $" {key} {value}";
 
     private byte[] Encrypt(int number, byte[] data)
     {

@@ -81,6 +81,12 @@ stopped caching a font source under the full name inside the file, which refused
 sharing that name: it is cached by its bytes and by the resolver's face name alone, and
 `PdfFontTable` keys a document's fonts by the bytes as well, so both files are embedded.
 
+Holding the lock across the whole of `GetOrCreateFrom` means it is held while the resolver is asked
+for a typeface and for its bytes. That is not new: `FontFactory.ResolveTypeface` already held it
+across `IFontResolver.ResolveTypeface` and `GetFont`, here and upstream, and there is one font
+lock, a monitor, so no second lock can be taken in the other order. A resolver that waits on
+another thread which itself creates a font would deadlock now as it did before.
+
 ## Not concluded here
 
 The tests say that two *separate* documents lay out correctly at the same time. They say nothing

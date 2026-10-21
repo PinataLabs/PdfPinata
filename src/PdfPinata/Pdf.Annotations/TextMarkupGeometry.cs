@@ -1,4 +1,5 @@
 using System;
+using PdfPinata.Pdf.Internal;
 
 namespace PdfPinata.Pdf.Annotations;
 
@@ -21,4 +22,11 @@ internal static class TextMarkupGeometry
     {
         return Math.Max((quad.Y2 - quad.Y1) / 14, 0.25);
     }
+
+    /// <summary>
+    /// The operators that fill a rectangle, each number to three decimal places.
+    /// </summary>
+    public static string FilledRectangle(double x, double y, double width, double height) =>
+        PdfEncoders.Format("{0} {1} {2} {3} re f\n",
+            PdfEncoders.ToString(x), PdfEncoders.ToString(y), PdfEncoders.ToString(width), PdfEncoders.ToString(height));
 }

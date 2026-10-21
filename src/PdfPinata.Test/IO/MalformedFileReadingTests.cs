@@ -45,39 +45,51 @@ public class MalformedFileReadingTests
 
     // ----- /PageMode and /PageLayout -------------------------------------------------------------
 
-    [Test]
-    public void APageModeGivenByReferenceIsTheNameItRefersTo()
+    [Test, Timeout(10000)]
+    public async Task APageModeGivenByReferenceIsTheNameItRefersTo()
     {
         // The getter did not follow the reference, so it parsed " 0 R" as the name of a mode.
-        var document = Open(RawPdf.Build([
+        var file = RawPdf.Build([
             "<< /Type /Catalog /Pages 2 0 R /PageMode 4 0 R /PageLayout 5 0 R >>",
             "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
             "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] >>",
             "/FullScreen",
             "/TwoColumnLeft"
-        ]));
+        ]);
 
-        document.PageMode.Should().Be(PdfPageMode.FullScreen);
-        document.PageLayout.Should().Be(PdfPageLayout.TwoColumnLeft);
+        var (mode, layout) = await Interruptibly.Run(() =>
+        {
+            var document = Open(file);
+            return (document.PageMode, document.PageLayout);
+        });
+
+        mode.Should().Be(PdfPageMode.FullScreen);
+        layout.Should().Be(PdfPageLayout.TwoColumnLeft);
     }
 
-    [Test]
+    [Test, Timeout(10000)]
     [Arguments("/PageMode /Bogus /PageLayout /Bogus")]
     [Arguments("/PageMode (UseOutlines) /PageLayout 3")]
     [Arguments("/PageMode /2 /PageLayout /1")]
     [Arguments("/PageMode 9 0 R /PageLayout 9 0 R")]
-    public void APageModeOrLayoutThatNamesNoneReadsAsTheDefault(string entries)
+    public async Task APageModeOrLayoutThatNamesNoneReadsAsTheDefault(string entries)
     {
         // A name the enumeration does not have, something that is not a name, a number spelled as
         // a name - which Enum.Parse would have taken as a value - and a reference to nothing.
-        var document = Open(RawPdf.Build([
+        var file = RawPdf.Build([
             "<< /Type /Catalog /Pages 2 0 R " + entries + " >>",
             "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
             "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] >>"
-        ]));
+        ]);
 
-        document.PageMode.Should().Be(PdfPageMode.UseNone);
-        document.PageLayout.Should().Be(PdfPageLayout.SinglePage);
+        var (mode, layout) = await Interruptibly.Run(() =>
+        {
+            var document = Open(file);
+            return (document.PageMode, document.PageLayout);
+        });
+
+        mode.Should().Be(PdfPageMode.UseNone);
+        layout.Should().Be(PdfPageLayout.SinglePage);
     }
 
     // ----- An object stream with no stream ----------------------------------------------------------

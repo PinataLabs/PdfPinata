@@ -32,57 +32,85 @@ internal class EncryptorFactory
             encryptor = new IdentityEncryptor(revision >= 5 ? new AESEncryptor() : new RC4Encryptor());
         }
         else
-            encryptor = UsesAesCryptFilter(dict, v, keyName) ? new AESEncryptor() : new RC4Encryptor();
+            encryptor = v >= 4 && IsAes(MethodOf(dict, dict.Elements.GetName(keyName))) ? new AESEncryptor() : new RC4Encryptor();
         encryptor.Initialize(doc, dict);
         return encryptor;
     }
 
     /// <summary>
+    /// The encryptor for the crypt filter a stream names in a <c>/Crypt</c> filter of its own
+    /// (ISO 32000-1 7.4.10), given the file key the document's other encryptors already hold; null
+    /// when that filter leaves the data as it is. A name <c>/CF</c> does not define is decrypted by
+    /// <paramref name="fallback"/>, the stream encryptor, as every stream was before.
+    /// </summary>
+    internal static IEncryptor CreateForStreamFilter(PdfDocument doc, PdfDictionary dict, string filterName,
+        IEncryptor fallback)
+    {
+        if (filterName == IdentityFilter)
+            return null;
+
+        IEncryptor encryptor;
+        switch (MethodOf(dict, filterName))
+        {
+            case "/V2":
+                encryptor = new RC4Encryptor();
+                break;
+
+            case var method when IsAes(method):
+                encryptor = new AESEncryptor();
+                break;
+
+            case "/None":
+                // "The application shall not decrypt data": what is there is what is read.
+                return null;
+
+            default:
+                return fallback;
+        }
+
+        encryptor.Initialize(doc, dict);
+        encryptor.EncryptionKey = fallback.EncryptionKey;
+        return encryptor;
+    }
+
+    /// <summary>
     /// Whether the entry <paramref name="keyName"/> names the crypt filter <c>/Identity</c>, which
-    /// leaves the data it covers as it is (ISO 32000-1 7.6.5).
+    /// leaves the data it covers as it is (ISO 32000-1 7.6.5) - or is missing, which at <c>/V</c> 4
+    /// and later means the same (Table 20).
     /// </summary>
     private static bool UsesIdentityCryptFilter(PdfDictionary dict, int v, string keyName) =>
-        v >= 4 && dict.Elements.GetName(keyName) == IdentityFilter;
+        v >= 4 && dict.Elements.GetName(keyName) is "" or IdentityFilter;
 
     /// <summary>The name of the crypt filter that does nothing.</summary>
     internal const string IdentityFilter = "/Identity";
 
     /// <summary>
-    /// Whether the crypt filter the entry <paramref name="keyName"/> names decrypts with AES.
+    /// The <c>/CFM</c> of the crypt filter <paramref name="filterName"/> in <c>/CF</c>, or null
+    /// when it defines no such filter.
     /// </summary>
-    private static bool UsesAesCryptFilter(PdfDictionary dict, int v, string keyName)
+    /// <remarks>
+    /// Pdf Reference 1.7 Chapter 7.6.5 (Crypt Filters)
+    /// <list type="bullet">
+    /// <item>None: The application shall not decrypt data but shall direct the input stream to the
+    /// security handler for decryption.</item>
+    /// <item>V2: decrypt with "Algorithm 1: Encryption of data using the RC4 or AES algorithms",
+    /// using the RC4 algorithm.</item>
+    /// <item>AESV2 (PDF 1.6): the same, using AES in CBC mode with a 16-byte block size and an
+    /// initialization vector as the first 16 bytes of the stream or string.</item>
+    /// <item>AESV3 (PDF 1.7, ExtensionLevel 3): Algorithm 3.1a, AES-256 in CBC mode, the
+    /// initialization vector likewise first. The key size is 256 bits.</item>
+    /// </list>
+    /// </remarks>
+    private static string MethodOf(PdfDictionary dict, string filterName)
     {
-        if (v < 4)
-            return false;
-
-        var cf = dict.Elements.GetDictionary(PdfSecurityHandler.Keys.CF);
-        if (cf == null)
-            return false;
-
-        var filterName = dict.Elements.GetName(keyName);
         if (string.IsNullOrEmpty(filterName))
-            return false;
+            return null;
 
-        /*
-         * Pdf Reference 1.7 Chapter 7.6.5 (Crypt Filters)
-         *
-         * None:  The application shall not decrypt data but shall direct the input stream to the security handler for decryption.
-         * V2:    The application shall ask the security handler for the encryption key and shall implicitly decrypt data with
-         *        "Algorithm 1: Encryption of data using the RC4 or AES algorithms", using the RC4 algorithm.
-         * AESV2: (PDF 1.6)The application shall ask the security handler for the encryption key and shall implicitly decrypt data with
-         *        "Algorithm 1: Encryption of data using the RC4 or AES algorithms", using the AES algorithm in Cipher Block
-         *        Chaining (CBC) mode with a 16-byte block size and an initialization vector that shall be randomly generated and
-         *        placed as the first 16 bytes in the stream or string.
-         * AESV3: (PDF 1.7, ExtensionLevel 3) The application asks the security handler for the encryption key and implicitly decrypts data with
-         *        Algorithm 3.1a, using the AES-256 algorithm in Cipher Block Chaining (CBC) with padding mode with a 16-byte block size and an
-         *        initialization vector that is randomly generated and placed as the first 16 bytes in the stream or string.
-         *        The key size (Length) shall be 256 bits.
-         */
-        var filterDict = cf.Elements.GetDictionary(filterName);
-        if (filterDict == null)
-            return false;
-
-        var cfm = filterDict.Elements.GetName(PdfSecurityHandler.Keys.CFM);
-        return !string.IsNullOrEmpty(cfm) && cfm.StartsWith("/AESV"); // AESV2(PDF 1.6), AESV3(PDF 1.7, ExtensionLevel 3)
+        var method = dict.Elements.GetDictionary(PdfSecurityHandler.Keys.CF)?.Elements.GetDictionary(filterName)?
+            .Elements.GetName(PdfSecurityHandler.Keys.CFM);
+        return string.IsNullOrEmpty(method) ? null : method;
     }
+
+    /// <summary>AESV2 (PDF 1.6) or AESV3 (PDF 1.7, ExtensionLevel 3).</summary>
+    private static bool IsAes(string method) => method != null && method.StartsWith("/AESV");
 }

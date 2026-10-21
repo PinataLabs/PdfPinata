@@ -166,6 +166,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
             // PrepareForSave, which walks the page tree, so it is right however long it was away.
             Owner._irefTable.Readmit(page);
             Debug.Assert(page.Owner == Owner);
+            PdfAnnotations.PointAtPlacedPage(page);
 
             // Insert page in array.
             PagesArray.Elements.Insert(index, page.Reference);

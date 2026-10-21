@@ -66,25 +66,20 @@ public sealed class PdfReal : PdfNumber
     }
 
     /// <summary>
-    /// A real read from a file, taken as the file said it. The parser cannot produce infinity or
-    /// a NaN from a run of digits, but it can produce a number larger than a PDF real may be, and
-    /// refusing it would make the whole document unreadable for one out-of-range value.
+    /// A real taken as it is, without the range check of the public constructor: one the parser
+    /// has read, or one the library has worked out from such a number - a destination or an
+    /// annotation's points moved with a resized page, a line's other end written back with the
+    /// end a caller moved. A file can hold a number larger than a PDF real may be, and refusing
+    /// it, when it was read or whenever it is touched again, would make the document unusable
+    /// for one out-of-range value. A number a caller supplies goes through the constructor.
     /// </summary>
-    private PdfReal(double value, bool _)
-    {
-        Value = value;
-    }
-
-    /// <summary>
-    /// A real the parser has read, kept even when it is out of range.
-    /// </summary>
-    internal static PdfReal FromFile(double value) => new(value, false);
+    internal static PdfReal Unchecked(double value) => new() { Value = value };
 
     /// <summary>
     /// Gets the value as double.
     /// </summary>
     // This class must behave like a value type. Therefore it cannot be changed (like System.String).
-    public double Value { get; }
+    public double Value { get; private init; }
 
     /// <summary>
     /// Returns the real number as string.
