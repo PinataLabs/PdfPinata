@@ -54,9 +54,10 @@ public class ConcurrentRenderingTests
     public async Task TheSameDocumentLaidOutAgainAndAgainDrawsTheSamePage()
     {
         // The control. What the test below compares against is this one answer, so a page that is
-        // not reproducible on one thread would make that comparison meaningless. Run through
-        // Task.Run because Timeout is honoured on an async test and on no other.
-        var pages = await Task.Run(() =>
+        // not reproducible on one thread would make that comparison meaningless. Handed to a
+        // thread of its own because Timeout is honoured on an async test and on no other; see
+        // Interruptibly for why not the thread pool.
+        var pages = await Interruptibly.Run(() =>
             Enumerable.Range(0, Renders).Select(_ => PageOf(Built())).Distinct().ToList());
 
         pages.Should().ContainSingle();
@@ -67,7 +68,7 @@ public class ConcurrentRenderingTests
     {
         var pages = new ConcurrentBag<string>();
 
-        await Task.Run(() => Parallel.For(0, Renders, new ParallelOptions { MaxDegreeOfParallelism = 8 },
+        await Interruptibly.Run(() => Parallel.For(0, Renders, new ParallelOptions { MaxDegreeOfParallelism = 8 },
             _ => pages.Add(PageOf(Built()))));
 
         // Distinct rather than "equal to the sequential answer": what is being asked is whether the
@@ -85,7 +86,7 @@ public class ConcurrentRenderingTests
         var fonts = new[] { new Font("Arial") { Size = 9.0 }, new Font("Arial") { Size = 6.5 } };
         var wrong = 0;
 
-        await Task.Run(() => Parallel.For(0, Conversions, new ParallelOptions { MaxDegreeOfParallelism = 8 },
+        await Interruptibly.Run(() => Parallel.For(0, Conversions, new ParallelOptions { MaxDegreeOfParallelism = 8 },
             index =>
             {
                 var font = fonts[index % 2];
