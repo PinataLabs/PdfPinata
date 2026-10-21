@@ -365,6 +365,109 @@ public abstract class PdfAcroField : PdfDictionary
     private XColor _borderColor = XColor.Empty;
 
     /// <summary>
+    /// The colour a widget is filled with: <see cref="BackColor"/> when one is set, and otherwise
+    /// the one the widget's <c>/MK /BG</c> names - which is all a field read from a file has.
+    /// </summary>
+    private protected XColor BackColorOf(PdfDictionary widget) =>
+        _backColor.IsEmpty ? CharacteristicColor(widget, "/BG") : _backColor;
+
+    /// <summary>
+    /// The colour of a widget's border: <see cref="BorderColor"/> when one is set, and otherwise
+    /// the one the widget's <c>/MK /BC</c> names.
+    /// </summary>
+    private protected XColor BorderColorOf(PdfDictionary widget) =>
+        _borderColor.IsEmpty ? CharacteristicColor(widget, "/BC") : _borderColor;
+
+    /// <summary>
+    /// The colour an entry of a widget's <c>/MK</c> names - one component for grey, three for RGB
+    /// and four for CMYK, as ISO 32000-1 Table 189 has them - or empty when it names none.
+    /// </summary>
+    private static XColor CharacteristicColor(PdfDictionary widget, string key)
+    {
+        var components = widget.Elements.GetDictionary(PdfWidgetAnnotation.Keys.MK)?.Elements.GetArray(key);
+        if (components == null)
+            return XColor.Empty;
+
+        double At(int index) => Math.Clamp(components.Elements.GetReal(index), 0, 1);
+
+        return components.Elements.Count switch
+        {
+            1 => XColor.FromGrayScale(At(0)),
+            3 => XColor.FromArgb((int)Math.Round(At(0) * 255), (int)Math.Round(At(1) * 255), (int)Math.Round(At(2) * 255)),
+            4 => XColor.FromCmyk(At(0), At(1), At(2), At(3)),
+            _ => XColor.Empty
+        };
+    }
+
+    /// <summary>
+    /// Draws the field's appearance again, from what it would show now.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// A field that draws its own appearance - a text field, a combo box, a list box - redraws
+    /// itself whenever one of its own properties changes, and at no other time: not on save, and
+    /// not when something it reads but does not own changes - an ancestor's <c>/V</c> that it
+    /// inherits, say, or the form's <c>/DA</c>. A field read from a file keeps the appearance it
+    /// came with until one of those two things happens. Issue #340.
+    /// </para>
+    /// <para>
+    /// Asked for, a redraw is held to what setting the value is held to, and one that cannot
+    /// happen says so. A setter that redraws as a side effect does not: with no font to draw in
+    /// it leaves the value it has written for a reader to draw, rather than throw after changing
+    /// the field. A field with no widget has nowhere to be drawn, and is left as it is.
+    /// </para>
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">
+    /// The field does not draw its own appearance; it is read only, or its document was not
+    /// opened to be changed; it belongs to no document; or no <see cref="PdfTextField.Font"/> or
+    /// <see cref="PdfChoiceField.Font"/> is set and no <see cref="GlobalFontSettings.FontResolver"/>
+    /// is registered to give one.
+    /// </exception>
+    public void RedrawAppearance()
+    {
+        EnsureCanBeFilled();
+
+        if (WhyAppearanceCannotBeDrawn() is { } reason)
+            throw new InvalidOperationException(reason);
+
+        RenderOwnAppearance();
+    }
+
+    /// <summary>
+    /// Why the field's appearance cannot be drawn now, or null when it can. A field that draws
+    /// its own appearance overrides this, asks it before every drawing and passes over the
+    /// drawing quietly when it answers; <see cref="RedrawAppearance"/> throws it. Any other
+    /// field answers that it draws none.
+    /// </summary>
+    private protected virtual string WhyAppearanceCannotBeDrawn() =>
+        $"A {GetType().Name} does not draw its own appearance, so there is nothing to redraw: " +
+        "only a text field, a combo box and a list box do.";
+
+    /// <summary>
+    /// Says why a field of variable text cannot be drawn, given the font set on it, or null.
+    /// </summary>
+    private protected string WhyVariableTextCannotBeDrawn(XFont fontSetOnField)
+    {
+        if (Owner == null)
+            return "The field belongs to no document, and its appearance is drawn into one.";
+
+        if (fontSetOnField == null && !GlobalFontSettings.IsFontResolverSet)
+        {
+            return "The field has no Font set and no GlobalFontSettings.FontResolver is registered to give " +
+                   "one, so there is nothing to draw its text in. Set the field's Font, or register a resolver.";
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Draws the field's appearance onto each of its widgets, once
+    /// <see cref="WhyAppearanceCannotBeDrawn"/> has said it can be.
+    /// </summary>
+    private protected virtual void RenderOwnAppearance()
+    { }
+
+    /// <summary>
     /// The field's default appearance string: its own <c>/DA</c>, an ancestor's, or the form's.
     /// </summary>
     private protected string EffectiveDefaultAppearance()

@@ -91,16 +91,22 @@ public class AcroFormInheritedValueTests
     [Test]
     public void ATextFieldRedrawnByTheCallerDrawsTheValueItNowInherits()
     {
+        // Black is set to have the kid drawn at all before the change, and it is also the colour
+        // the parent's /DA names - so the reopened kid, which has lost the in-memory colour,
+        // draws in the same one, and the comparison is of the value alone.
         var document = AGroup("/Tx", 0, new PdfString("abc"));
         Kid<PdfTextField>(document).ForeColor = XColors.Black;
+        var drawnBefore = AppearanceOf(Kid<PdfTextField>(document));
         Parent(document).Elements.SetString(PdfAcroField.Keys.V, "xyz");
         var holding = Kid<PdfTextField>(AGroup("/Tx", 0, new PdfString("abc"),
             kid => kid.Elements.SetString(PdfAcroField.Keys.V, "xyz")));
         holding.ForeColor = XColors.Black;
 
         var kid = Kid<PdfTextField>(document.Reopened());
+        AppearanceOf(kid).Should().Equal(drawnBefore, "saving redraws nothing");
         kid.RedrawAppearance();
 
+        AppearanceOf(kid).Should().NotEqual(drawnBefore);
         AppearanceOf(kid).Should().Equal(AppearanceOf(Kid<PdfTextField>(holding.Owner.Reopened())));
     }
 

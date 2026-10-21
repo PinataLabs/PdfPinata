@@ -425,16 +425,20 @@ public abstract class PdfChoiceField : PdfAcroField
     /// </remarks>
     private protected void RenderAppearance()
     {
-        if (Owner == null)
+        // Drawing needs a document and a font, and with none set on the field that is the
+        // resolver's. Without either, the value has already been written and stands; the field is
+        // left for a reader to draw, as every choice field was before it drew itself, rather than
+        // throwing out of a setter that has already changed it.
+        if (WhyAppearanceCannotBeDrawn() != null)
             return;
 
-        // Drawing needs a font, and with none set on the field that is the resolver's. Without
-        // either, the value has already been written and stands; the field is left for a reader
-        // to draw, as every choice field was before it drew itself, rather than throwing out of
-        // a setter that has already changed it.
-        if (_font == null && !GlobalFontSettings.IsFontResolverSet)
-            return;
+        RenderOwnAppearance();
+    }
 
+    private protected override string WhyAppearanceCannotBeDrawn() => WhyVariableTextCannotBeDrawn(_font);
+
+    private protected override void RenderOwnAppearance()
+    {
         // A widget with no /Rect is still being put together by hand, and is left as it is: there
         // is nothing yet to draw it to, and no reason to take away a drawing it was given.
         foreach (var widget in Widgets)
@@ -443,17 +447,6 @@ public abstract class PdfChoiceField : PdfAcroField
                 RenderAppearanceOn(widget);
         }
     }
-
-    /// <summary>
-    /// Draws the field's appearance again, from what it would show now.
-    /// </summary>
-    /// <remarks>
-    /// The field redraws itself whenever one of its own properties changes, and at no other time:
-    /// not on save, and not when something it reads but does not own changes - an ancestor's
-    /// <c>/V</c> that it inherits, say, or the form's <c>/DA</c>. A field read from a file keeps
-    /// the appearance it came with until one of those two things happens. Issue #340.
-    /// </remarks>
-    public void RedrawAppearance() => RenderAppearance();
 
     internal override void OnWidgetAdded() => RenderAppearance();
 
@@ -472,9 +465,8 @@ public abstract class PdfChoiceField : PdfAcroField
             return;
         }
 
-        var characteristics = widget.Elements.GetDictionary(PdfWidgetAnnotation.Keys.MK);
-        var back = BackColor.IsEmpty ? ColorIn(characteristics, "/BG") : BackColor;
-        var border = BorderColor.IsEmpty ? ColorIn(characteristics, "/BC") : BorderColor;
+        var back = BackColorOf(widget);
+        var border = BorderColorOf(widget);
 
         // Nothing to draw. Writing an empty appearance would blank the field rather than leave a
         // reader to build it, so the one it had is taken away instead.
@@ -504,27 +496,6 @@ public abstract class PdfChoiceField : PdfAcroField
         }
 
         SetVariableTextAppearance(widget, form);
-    }
-
-    /// <summary>
-    /// The colour an appearance-characteristics entry names - one component for grey, three for
-    /// RGB and four for CMYK, as ISO 32000-1 Table 189 has them - or empty when it names none.
-    /// </summary>
-    private static XColor ColorIn(PdfDictionary characteristics, string key)
-    {
-        var components = characteristics?.Elements.GetArray(key);
-        if (components == null)
-            return XColor.Empty;
-
-        double At(int index) => Math.Clamp(components.Elements.GetReal(index), 0, 1);
-
-        return components.Elements.Count switch
-        {
-            1 => XColor.FromGrayScale(At(0)),
-            3 => XColor.FromArgb((int)Math.Round(At(0) * 255), (int)Math.Round(At(1) * 255), (int)Math.Round(At(2) * 255)),
-            4 => XColor.FromCmyk(At(0), At(1), At(2), At(3)),
-            _ => XColor.Empty
-        };
     }
 
     /// <summary>

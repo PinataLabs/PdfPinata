@@ -307,6 +307,45 @@ public sealed class TextFieldAppearanceTests : IDisposable
         inside.Should().NotContain(Fill).And.NotContain(Stroke, "neither is inside the bracket");
     }
 
+    [Test, GoldenImage]
+    [Arguments("Ada Lovelace")]
+    [Arguments("")]
+    public void AFieldReadFromAFileAndRedrawnKeepsTheBoxItsWidgetDescribes(string value)
+    {
+        // BackColor and BorderColor answer what was set on this object, so a field read from a
+        // file answers empty for both - and drawing from those alone took the box away: with no
+        // value either, the appearance went altogether. The widget's /MK still describes the box,
+        // as it does for a choice field, and an appearance hides /MK from a reader.
+        var written = OnAPage(Line, f =>
+        {
+            f.BackColor = XColors.Blue;
+            f.BorderColor = XColors.Red;
+        });
+        written.Text = value;
+        var field = (PdfTextField)written.Owner.Reopened().AcroForm.Fields["text"];
+        field.BackColor.IsEmpty.Should().BeTrue("the precondition: nothing is set on the field read back");
+
+        field.RedrawAppearance();
+
+        // Ghostscript builds a widget's appearance from /MK itself when it has none, so the
+        // pixels alone would not show an appearance taken away.
+        field.Widgets[0].Elements.ContainsKey("/AP").Should().BeTrue("there is a box to draw");
+        var page = Rasterize("redrawn-mk-" + value.Length, field);
+        Count(page, Line, IsBlue).Should().BeGreaterThan(5000, "the background /MK /BG names is drawn");
+        Count(page, Line, IsRed).Should().BeGreaterThan(300, "and the border /MK /BC names");
+    }
+
+    [Test]
+    public void AColourSetOnTheFieldWinsOverTheWidgetsCharacteristics()
+    {
+        var field = OnAPage(Line, f => f.BackColor = XColors.Blue);
+        var reopened = (PdfTextField)field.Owner.Reopened().AcroForm.Fields["text"];
+
+        reopened.BackColor = XColors.Gold;
+
+        AppearanceContent(reopened).Should().Contain("1 0.843 0 rg").And.NotContain("0 0 1 rg");
+    }
+
     [Test]
     public void AChoiceFieldMarksOnlyItsTextToo()
     {
@@ -408,4 +447,8 @@ public sealed class TextFieldAppearanceTests : IDisposable
     }
 
     private static bool IsInk(IMagickColor<byte> c) => c.R < 110 && c.G < 110 && c.B < 110;
+
+    private static bool IsBlue(IMagickColor<byte> c) => c.B > 180 && c.R < 60 && c.G < 60;
+
+    private static bool IsRed(IMagickColor<byte> c) => c.R > 150 && c.G < 90 && c.B < 90;
 }
