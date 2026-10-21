@@ -745,7 +745,7 @@ internal sealed class Parser
                 return new PdfLong(_lexer.TokenToLong);
 
             case Symbol.Real:
-                return PdfReal.FromFile(_lexer.TokenToReal);
+                return PdfReal.Unchecked(_lexer.TokenToReal);
 
             case Symbol.String:
             case Symbol.UnicodeString:

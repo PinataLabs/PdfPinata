@@ -185,8 +185,8 @@ internal static class PdfAnnotationTransformer
         {
             var moved = matrix.Transform(new XPoint(numbers[index], numbers[index + 1]));
 
-            array.Elements[index] = new PdfReal(moved.X);
-            array.Elements[index + 1] = new PdfReal(moved.Y);
+            array.Elements[index] = PdfReal.Unchecked(moved.X);
+            array.Elements[index + 1] = PdfReal.Unchecked(moved.Y);
         }
     }
 
@@ -224,7 +224,7 @@ internal static class PdfAnnotationTransformer
             return;
 
         for (var index = 0; index < 4; index++)
-            array.Elements[index] = new PdfReal(moved[index]);
+            array.Elements[index] = PdfReal.Unchecked(moved[index]);
     }
 
     /// <summary>

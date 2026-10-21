@@ -61,7 +61,7 @@ public sealed class PdfLineAnnotation : PdfMarkupAnnotation
         // A visible default, for the same reason PdfSquareCircleAnnotation has one: a line of no
         // width is an annotation that draws nothing, which is the very thing this class exists to
         // avoid. /L is written from the start because it is required, even while it is degenerate.
-        WriteLine(new XPoint(), new XPoint());
+        WriteLine(Checked(new XPoint()), Checked(new XPoint()));
         Color = XColors.Black;
         BorderWidth = 1;
     }
@@ -72,7 +72,7 @@ public sealed class PdfLineAnnotation : PdfMarkupAnnotation
     public XPoint Start
     {
         get => EndpointAt(0);
-        set => WriteLine(value, End);
+        set => WriteLine(Checked(value), Kept(End));
     }
 
     /// <summary>
@@ -81,7 +81,7 @@ public sealed class PdfLineAnnotation : PdfMarkupAnnotation
     public XPoint End
     {
         get => EndpointAt(2);
-        set => WriteLine(Start, value);
+        set => WriteLine(Kept(Start), Checked(value));
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ public sealed class PdfLineAnnotation : PdfMarkupAnnotation
     /// <param name="end">Where the line ends, in default user space.</param>
     public void SetLine(XPoint start, XPoint end)
     {
-        WriteLine(start, end);
+        WriteLine(Checked(start), Checked(end));
     }
 
     /// <summary>
@@ -155,10 +155,18 @@ public sealed class PdfLineAnnotation : PdfMarkupAnnotation
         return new XPoint(line.Elements.GetReal(first), line.Elements.GetReal(first + 1));
     }
 
-    private void WriteLine(XPoint start, XPoint end)
+    /// <summary>A point a caller gives, refused if a PDF real cannot hold it.</summary>
+    private static (PdfReal X, PdfReal Y) Checked(XPoint point) => (new PdfReal(point.X), new PdfReal(point.Y));
+
+    /// <summary>
+    /// The end a caller did not move, written back as it was read - a file may hold a number
+    /// beyond a PDF real's range, and moving the other end is no reason to refuse it.
+    /// </summary>
+    private static (PdfReal X, PdfReal Y) Kept(XPoint point) => (PdfReal.Unchecked(point.X), PdfReal.Unchecked(point.Y));
+
+    private void WriteLine((PdfReal X, PdfReal Y) start, (PdfReal X, PdfReal Y) end)
     {
-        Elements[Keys.L] = new PdfArray(Owner,
-            new PdfReal(start.X), new PdfReal(start.Y), new PdfReal(end.X), new PdfReal(end.Y));
+        Elements[Keys.L] = new PdfArray(Owner, start.X, start.Y, end.X, end.Y);
 
         Touch();
     }
