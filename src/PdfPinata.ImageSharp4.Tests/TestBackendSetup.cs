@@ -24,5 +24,7 @@ internal static class TestBackendSetup
         // is exercised directly by FontResolverParityTest and TrueTypeCollectionTest.
         GlobalFontSettings.FontResolver = new PinnedFontResolver();
         GlobalFontSettings.GlyphOutlineProvider = new ImageSharpGlyphOutlineProvider();
+        // For the one linked test that rasterizes a page, ImageSharpGrayscaleJpegTests.
+        GhostscriptSetup.Configure();
     }
 }
