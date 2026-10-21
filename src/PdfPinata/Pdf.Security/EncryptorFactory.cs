@@ -22,10 +22,30 @@ internal class EncryptorFactory
     /// </summary>
     private static IEncryptor CreateFor(PdfDocument doc, PdfDictionary dict, int v, string keyName)
     {
-        IEncryptor encryptor = UsesAesCryptFilter(dict, v, keyName) ? new AESEncryptor() : new RC4Encryptor();
+        IEncryptor encryptor;
+        if (UsesIdentityCryptFilter(dict, v, keyName))
+        {
+            // Never an entry of /CF, so asking it for a /CFM would answer RC4 and garble plain data.
+            // The encryptor inside still derives the key and validates the password, and up to
+            // revision 4 that is RC4's whatever the crypt filters say.
+            var revision = dict.Elements.GetInteger(PdfStandardSecurityHandler.Keys.R);
+            encryptor = new IdentityEncryptor(revision >= 5 ? new AESEncryptor() : new RC4Encryptor());
+        }
+        else
+            encryptor = UsesAesCryptFilter(dict, v, keyName) ? new AESEncryptor() : new RC4Encryptor();
         encryptor.Initialize(doc, dict);
         return encryptor;
     }
+
+    /// <summary>
+    /// Whether the entry <paramref name="keyName"/> names the crypt filter <c>/Identity</c>, which
+    /// leaves the data it covers as it is (ISO 32000-1 7.6.5).
+    /// </summary>
+    private static bool UsesIdentityCryptFilter(PdfDictionary dict, int v, string keyName) =>
+        v >= 4 && dict.Elements.GetName(keyName) == IdentityFilter;
+
+    /// <summary>The name of the crypt filter that does nothing.</summary>
+    internal const string IdentityFilter = "/Identity";
 
     /// <summary>
     /// Whether the crypt filter the entry <paramref name="keyName"/> names decrypts with AES.
