@@ -444,6 +444,17 @@ public abstract class PdfChoiceField : PdfAcroField
         }
     }
 
+    /// <summary>
+    /// Draws the field's appearance again, from what it would show now.
+    /// </summary>
+    /// <remarks>
+    /// The field redraws itself whenever one of its own properties changes, and at no other time:
+    /// not on save, and not when something it reads but does not own changes - an ancestor's
+    /// <c>/V</c> that it inherits, say, or the form's <c>/DA</c>. A field read from a file keeps
+    /// the appearance it came with until one of those two things happens. Issue #340.
+    /// </remarks>
+    public void RedrawAppearance() => RenderAppearance();
+
     internal override void OnWidgetAdded() => RenderAppearance();
 
     internal override void OnDefaultAppearanceChanged() => RenderAppearance();

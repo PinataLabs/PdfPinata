@@ -20,6 +20,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Annotations & Forms
 
+#### Added
+
+- **`PdfTextField.RedrawAppearance()` and `PdfChoiceField.RedrawAppearance()` draw a field again from what it would show now.** A field redraws itself when one of its own properties changes and at no other time, so a kid field whose inherited `/V` changed on its parent went on showing the old value. Call this after a change like that. (#340)
+
 #### Fixed
 
 - **Removing an annotation from a page no longer removes it from the document.** `PdfAnnotations.Remove` took the annotation out of the cross-reference table as well as `/Annots`. An incremental save decides what to write from that table, so an annotation still reached from elsewhere lost its changes from the appended revision: a field merged with its widget, which is still in `/Fields`, a widget in its field's `/Kids`, or a markup annotation that a popup's `/Parent` names. `Remove` now changes `/Annots` only. A full save still drops an annotation that nothing reaches. (#337)
