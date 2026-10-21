@@ -521,13 +521,17 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
 
     /// <summary>
     /// The number a destination holds at the position given, or NaN when it holds none there.
-    /// A destination that stops short of the parameters its type takes leaves them unset, which
-    /// is written back out as the null the specification gives for a parameter left to the
-    /// reader.
+    /// A destination that stops short of the parameters its type takes leaves them unset, and so
+    /// does one that says null there - the specification's way of leaving a parameter to the
+    /// reader. Either is written back out as that null. GetReal answers 0 for a null, which is a
+    /// coordinate, and turned "keep the left edge as it is" into "go to the left edge".
     /// </summary>
     private static double RealAt(PdfArray destination, int index)
     {
-        return index < destination.Elements.Count ? destination.Elements.GetReal(index) : double.NaN;
+        if (index >= destination.Elements.Count || PdfItemValues.IsNull(destination.Elements[index]))
+            return double.NaN;
+
+        return destination.Elements.GetReal(index);
     }
 
     private void InitializeChildren()
@@ -748,11 +752,18 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     }
 
     /// <summary>
-    /// Format double.
+    /// A destination parameter as it is written: null for one left to the reader, otherwise the
+    /// number to three decimal places. The pattern used to be <c>#.##</c>, which formats zero as
+    /// nothing at all, so every zero vanished and the parameters after it moved one place left.
     /// </summary>
     private static string Fd(double value)
     {
-        return double.IsNaN(value) ? "null" : value.ToString("#.##", CultureInfo.InvariantCulture);
+        if (double.IsNaN(value))
+            return "null";
+
+        // Rounding to three places can leave a negative zero, which "0.###" writes as "-0".
+        var rounded = Math.Round(value, 3);
+        return rounded == 0 ? "0" : rounded.ToString("0.###", CultureInfo.InvariantCulture);
     }
 
     internal override void WriteObject(PdfWriter writer)

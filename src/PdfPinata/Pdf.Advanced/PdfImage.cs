@@ -127,7 +127,51 @@ public sealed class PdfImage : PdfXObject
         Elements[Keys.Width] = new PdfInteger(Image.PixelWidth);
         Elements[Keys.Height] = new PdfInteger(Image.PixelHeight);
         Elements[Keys.BitsPerComponent] = new PdfInteger(8);
-        Elements[Keys.ColorSpace] = new PdfName("/DeviceRGB");
+        Elements[Keys.ColorSpace] = new PdfName(JpegComponentCount(imageBits) == 1 ? "/DeviceGray" : "/DeviceRGB");
+    }
+
+    /// <summary>
+    /// The number of components a JPEG's start-of-frame segment declares, or 0 when none is found.
+    /// </summary>
+    /// <remarks>
+    /// The colour space has to have as many components as the DCT stream, or the image is invalid:
+    /// a reader refuses it, garbles it or draws a third of it. Both ImageSharp backends keep a
+    /// grayscale JPEG's one component when they re-encode it, so the label follows the stream
+    /// rather than assuming three (#327). Anything but one stays <c>/DeviceRGB</c>, as every JPEG
+    /// was before: no backend writes four.
+    /// </remarks>
+    internal static int JpegComponentCount(byte[] jpeg)
+    {
+        // Past SOI, every segment up to the frame is a marker, a two-byte big-endian length that
+        // counts itself, and that many bytes less two.
+        var at = 2;
+        while (at + 9 < jpeg.Length)
+        {
+            if (jpeg[at] != 0xFF)
+                return 0;
+
+            var marker = jpeg[at + 1];
+
+            // Fill bytes: any number of 0xFF may precede a marker.
+            if (marker == 0xFF)
+            {
+                at++;
+                continue;
+            }
+
+            // SOF0 to SOF15, less DHT (C4), JPG (C8) and DAC (CC), which share the range. The
+            // component count follows the length, the precision, the height and the width.
+            if (marker is >= 0xC0 and <= 0xCF and not (0xC4 or 0xC8 or 0xCC))
+                return jpeg[at + 9];
+
+            // The scan begins, or the image ends, with no frame declared.
+            if (marker is 0xDA or 0xD9)
+                return 0;
+
+            at += 2 + ((jpeg[at + 2] << 8) | jpeg[at + 3]);
+        }
+
+        return 0;
     }
 
     /// <summary>

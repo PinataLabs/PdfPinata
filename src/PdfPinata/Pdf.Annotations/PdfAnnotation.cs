@@ -234,11 +234,19 @@ public abstract class PdfAnnotation : PdfDictionary
     /// pop-up window when open and active. By convention, this entry identifies
     /// the user who added the annotation.
     /// </summary>
+    /// <remarks>
+    /// A markup key. On a <c>/Widget</c>, <c>/T</c> is the partial name of a field, so writing it
+    /// would turn a widget into a nested field or rename the field it is merged with; the setter
+    /// therefore throws there. Name a field with <see cref="PdfAcroField.Name"/> and give it a
+    /// user-facing label with <see cref="PdfAcroField.ToolTip"/>. Reading is unaffected.
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">The annotation is a widget.</exception>
     public string Title
     {
         get => Elements.GetString(Keys.T, true);
         set
         {
+            RefuseMarkupKeyOnWidget(nameof(Title), Keys.T);
             Elements.SetString(Keys.T, value);
             Elements.SetDateTime(Keys.M, GlobalTimeSettings.Now);
         }
@@ -248,14 +256,34 @@ public abstract class PdfAnnotation : PdfDictionary
     /// Gets or sets text representing a short description of the subject being
     /// addressed by the annotation.
     /// </summary>
+    /// <remarks>
+    /// A markup key, refused on a <c>/Widget</c> for the reason <see cref="Title"/> gives.
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">The annotation is a widget.</exception>
     public string Subject
     {
         get => Elements.GetString(Keys.Subj, true);
         set
         {
+            RefuseMarkupKeyOnWidget(nameof(Subject), Keys.Subj);
             Elements.SetString(Keys.Subj, value);
             Elements.SetDateTime(Keys.M, GlobalTimeSettings.Now);
         }
+    }
+
+    /// <summary>
+    /// Throws when this annotation is a widget, on which a markup annotation's key means something
+    /// else or nothing: <c>/T</c> is a field's partial name there (ISO 32000-1 Table 220), and a
+    /// widget given one stops being widget-only and reads back as a nested field. Issue #330.
+    /// </summary>
+    private void RefuseMarkupKeyOnWidget(string property, string key)
+    {
+        if (Elements.GetName(Keys.Subtype) != "/Widget")
+            return;
+        throw new InvalidOperationException(
+            $"{property} writes {key}, a markup annotation's key, and this annotation is a widget, on which "
+            + $"/T is the partial name of a form field. Name the field with {nameof(PdfAcroField)}.{nameof(PdfAcroField.Name)} "
+            + $"and give it a user-facing label with {nameof(PdfAcroField)}.{nameof(PdfAcroField.ToolTip)}.");
     }
 
     /// <summary>
