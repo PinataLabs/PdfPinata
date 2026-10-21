@@ -46,8 +46,91 @@
 
   <ItemGroup Condition="'$(IsPackable)' != 'false'">
     <None Include="$(MSBuildThisFileDirectory)LICENSE.md" Pack="true" PackagePath="" />
-    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="" />
   </ItemGroup>
+
+  <!--
+    The README a package carries is a copy of the repository's, written at pack time, because
+    nuget.org renders neither of the two things the repository's copy leans on GitHub for: it shows
+    no HTML, so the centred <img> logo is dropped, and it resolves no relative path, so a link to
+    docs/specs/... or LICENSE.md goes nowhere and a relative image is not drawn. The copy turns an
+    <img> into a Markdown image, drops a <p> line that only wrapped one, and makes every relative
+    link absolute: an image to raw.githubusercontent.com, which nuget.org allows images from, and
+    anything else to the file on GitHub. Fenced code is left as it is. Links point at main, which
+    is what the README in the repository describes.
+  -->
+  <PropertyGroup Condition="'$(IsPackable)' != 'false'">
+    <BeforePack>$(BeforePack);WriteNuGetReadme</BeforePack>
+    <NuGetReadmeFile>$(IntermediateOutputPath)nuget/README.md</NuGetReadmeFile>
+  </PropertyGroup>
+
+  <Target Name="WriteNuGetReadme" Condition="'$(IsPackable)' != 'false'">
+    <WriteNuGetReadme Source="$(MSBuildThisFileDirectory)README.md"
+                      Destination="$(NuGetReadmeFile)"
+                      FileBaseUrl="$(RepositoryUrl)/blob/main/"
+                      ImageBaseUrl="$([System.String]::Copy('$(RepositoryUrl)').Replace('https://github.com/', 'https://raw.githubusercontent.com/'))/main/" />
+    <ItemGroup>
+      <None Include="$(NuGetReadmeFile)" Pack="true" PackagePath="README.md" />
+    </ItemGroup>
+  </Target>
+
+  <UsingTask TaskName="WriteNuGetReadme" TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)/Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Source ParameterType="System.String" Required="true" />
+      <Destination ParameterType="System.String" Required="true" />
+      <FileBaseUrl ParameterType="System.String" Required="true" />
+      <ImageBaseUrl ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Text" />
+      <Using Namespace="System.Text.RegularExpressions" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        Func<string, bool> isRelative = url =>
+            url.Length > 0 && url[0] != '#' && url[0] != '/' && !Regex.IsMatch(url, @"^[A-Za-z][A-Za-z0-9+.-]*:");
+        var image = new Regex(@"<img\s[^>]*>", RegexOptions.IgnoreCase);
+        var attribute = new Func<string, string, string>((tag, name) =>
+        {
+            var m = Regex.Match(tag, name + @"\s*=\s*""([^""]*)""", RegexOptions.IgnoreCase);
+            return m.Success ? m.Groups[1].Value : "";
+        });
+        var link = new Regex(@"(!?)\[((?:[^\[\]]|\[[^\]]*\])*)\]\(([^)\s]+)\)");
+
+        var output = new StringBuilder();
+        var fenced = false;
+        foreach (var line in File.ReadAllLines(Source))
+        {
+            if (line.TrimStart().StartsWith("```"))
+                fenced = !fenced;
+            if (fenced || line.TrimStart().StartsWith("```"))
+            {
+                output.Append(line).Append('\n');
+                continue;
+            }
+            if (Regex.IsMatch(line, @"^\s*(<p(\s[^>]*)?>|</p>)\s*$", RegexOptions.IgnoreCase))
+                continue;
+
+            var text = image.IsMatch(line)
+                ? image.Replace(line, m => "![" + attribute(m.Value, "alt") + "](" + attribute(m.Value, "src") + ")").Trim()
+                : line;
+            text = link.Replace(text, m =>
+            {
+                var url = m.Groups[3].Value;
+                if (!isRelative(url))
+                    return m.Value;
+                var absolute = (m.Groups[1].Value == "!" ? ImageBaseUrl : FileBaseUrl) + url.TrimStart('.', '/');
+                return m.Groups[1].Value + "[" + m.Groups[2].Value + "](" + absolute + ")";
+            });
+            output.Append(text).Append('\n');
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(Destination)));
+        var content = output.ToString();
+        if (!File.Exists(Destination) || File.ReadAllText(Destination) != content)
+            File.WriteAllText(Destination, content, new UTF8Encoding(false));
+      ]]></Code>
+    </Task>
+  </UsingTask>
 
   <!--
     Corrects the metadata Microsoft.Sbom.Targets would otherwise record.
