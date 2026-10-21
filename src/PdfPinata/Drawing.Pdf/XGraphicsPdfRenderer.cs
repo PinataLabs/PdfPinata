@@ -88,6 +88,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         {
             var content2 = Page.RenderContent;
             content2.CreateStream(PdfEncoders.RawEncoding.GetBytes(GetContent()));
+            // Nothing drawn leaves the page as it was: no empty stream beside its content, and
+            // that content not wrapped in a q and Q there is nothing after to protect it from.
+            Page.Contents.FinishRenderContent(content2);
 
             _gfx = null;
             Page.RenderContent.PdfRenderer = null;

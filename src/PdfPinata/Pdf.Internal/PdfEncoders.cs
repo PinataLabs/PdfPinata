@@ -84,7 +84,7 @@ internal static class PdfEncoders
     /// <summary>
     /// Converts a name, leading slash included, into the form it is written in: the slash, then
     /// every byte of the name, with white space, the ten delimiters, '#' and anything outside
-    /// '!'..'~' written as #xx (ISO 32000-1 7.3.5).
+    /// '!'..'~' written as #xx (ISO 32000-1 7.3.5). A NUL, which no name may hold, is left out.
     /// </summary>
     /// <remarks>
     /// A name is a byte string held one char per byte, and every name the lexers read has only
@@ -153,6 +153,11 @@ internal static class PdfEncoders
     {
         switch ((char)b)
         {
+            // A name may not hold the NUL character at all, escaped or not (ISO 32000-1 7.3.5),
+            // so "#00" would be no better than the byte itself. It is left out.
+            case '\0':
+                break;
+
             case < '!' or > '~':
             case '(' or ')' or '<' or '>' or '[' or ']' or '{' or '}' or '/' or '%' or '#':
                 pdf.Append('#').Append(Convert.ToHexString([b]));

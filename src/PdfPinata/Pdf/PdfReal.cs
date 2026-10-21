@@ -27,6 +27,7 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System;
 using System.Diagnostics;
 using System.Globalization;
 using PdfPinata.Pdf.IO;
@@ -49,10 +50,35 @@ public sealed class PdfReal : PdfNumber
     /// Initializes a new instance of the <see cref="PdfReal"/> class.
     /// </summary>
     /// <param name="value">The value.</param>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="value"/> is infinite, not a number, or outside the range of a
+    /// single-precision real, none of which a PDF file can say (ISO 32000-1 Annex C).
+    /// </exception>
     public PdfReal(double value)
+    {
+        if (double.IsNaN(value) || double.IsInfinity(value) || Math.Abs(value) > float.MaxValue)
+        {
+            throw new ArgumentException(string.Format(CultureInfo.InvariantCulture,
+                "{0} cannot be written as a PDF real, which has to be a finite number no larger in magnitude than {1}.",
+                value, float.MaxValue), nameof(value));
+        }
+        Value = value;
+    }
+
+    /// <summary>
+    /// A real read from a file, taken as the file said it. The parser cannot produce infinity or
+    /// a NaN from a run of digits, but it can produce a number larger than a PDF real may be, and
+    /// refusing it would make the whole document unreadable for one out-of-range value.
+    /// </summary>
+    private PdfReal(double value, bool _)
     {
         Value = value;
     }
+
+    /// <summary>
+    /// A real the parser has read, kept even when it is out of range.
+    /// </summary>
+    internal static PdfReal FromFile(double value) => new(value, false);
 
     /// <summary>
     /// Gets the value as double.

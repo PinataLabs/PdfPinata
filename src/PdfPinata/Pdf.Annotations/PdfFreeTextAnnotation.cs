@@ -281,7 +281,7 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
         var size = _font?.Size ?? _readFontSize;
 
         var appearance = string.Format(CultureInfo.InvariantCulture,
-            "/Helv {0:0.###} Tf {1} rg", size, PdfEncoders.ToString(_textColor, PdfColorMode.Rgb));
+            "/Helv {0:0.###;-0.###;0} Tf {1} rg", size, PdfEncoders.ToString(_textColor, PdfColorMode.Rgb));
 
         Elements.SetString(Keys.DA, appearance);
     }

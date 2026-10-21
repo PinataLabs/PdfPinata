@@ -205,7 +205,7 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
                 Elements[Keys.Dest] = double.IsNaN(_destTop)
                     ? new PdfLiteral("[{0} 0 R/XYZ null null 0]", dest.ObjectNumber)
                     : new PdfLiteral("[{0} 0 R/XYZ null {1} 0]", dest.ObjectNumber,
-                        PdfEncoders.Format("{0:0.###}", _destTop));
+                        PdfEncoders.Format("{0:0.###;-0.###;0}", _destTop));
                 break;
 
             case LinkType.Named:

@@ -69,7 +69,7 @@ public class EmptyContentStreamTests
     }
 
     [Test]
-    public void TheContentThatWasAlreadyOnThePageKeepsEveryMarkAndGainsOnlyItsQAndQ()
+    public void TheContentThatWasAlreadyOnThePageKeepsEveryMarkByteForByte()
     {
         using var input = new MemoryStream(BuildDocumentWithThreeContentStreams());
         var document = PdfPinata.Pdf.IO.PdfReader.Open(input, PdfDocumentOpenMode.Modify);
@@ -78,12 +78,30 @@ public class EmptyContentStreamTests
 
         var streams = ContentStreamsOf(Saved.Bytes(document));
 
-        // Byte for byte what BuildDocumentWithThreeContentStreams put there, in the same order,
-        // save for the "q" and " Q\n" that PdfContents.SetModified wraps the whole run in so that
-        // anything drawn after it starts from the graphics state the page started from. Asserted
-        // whole rather than by the operators looked for, so that dropping the empty stream cannot
-        // quietly take a mark with it.
+        // Byte for byte what BuildDocumentWithThreeContentStreams put there, in the same order.
+        // Nothing was drawn after it, so there is no graphics state to protect and the run is not
+        // wrapped in q and Q either (#336). Asserted whole rather than by the operators looked
+        // for, so that dropping the empty stream cannot quietly take a mark with it.
         streams.Should().Equal(
+            "0 0 1 RG 10 10 100 100 re S",
+            "0 1 0 RG 20 20 100 100 re S",
+            "1 0 0 RG 30 30 100 100 re S");
+    }
+
+    [Test]
+    public void TheContentThatWasAlreadyOnThePageGainsItsQAndQWhenSomethingIsDrawnAfterIt()
+    {
+        using var input = new MemoryStream(BuildDocumentWithThreeContentStreams());
+        var document = PdfPinata.Pdf.IO.PdfReader.Open(input, PdfDocumentOpenMode.Modify);
+
+        using (var gfx = XGraphics.FromPdfPage(document.Pages[0]))
+            gfx.DrawRectangle(XPens.Red, 40, 40, 100, 100);
+
+        var streams = ContentStreamsOf(Saved.Bytes(document));
+
+        // The "q" and " Q\n" that PdfContents.SetModified wraps the whole run in, so that what is
+        // drawn after it starts from the graphics state the page started from.
+        streams.Take(3).Should().Equal(
             "q\n0 0 1 RG 10 10 100 100 re S",
             "0 1 0 RG 20 20 100 100 re S",
             "1 0 0 RG 30 30 100 100 re S Q\n");
