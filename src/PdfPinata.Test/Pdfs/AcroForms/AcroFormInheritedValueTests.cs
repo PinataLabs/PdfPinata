@@ -74,6 +74,60 @@ public class AcroFormInheritedValueTests
     }
 
     [Test]
+    public void SavingDoesNotRedrawATextFieldWhoseInheritedValueChanged()
+    {
+        // Nothing redraws a field on save (#340): what is drawn is what was drawn last, and a
+        // parent's /V changing underneath a kid is not something the kid is told about.
+        var document = AGroup("/Tx", 0, new PdfString("abc"));
+        Kid<PdfTextField>(document).ForeColor = XColors.Black;
+        var drawnBefore = AppearanceOf(Kid<PdfTextField>(document));
+
+        Parent(document).Elements.SetString(PdfAcroField.Keys.V, "xyz");
+
+        drawnBefore.Should().NotBeNull();
+        AppearanceOf(Kid<PdfTextField>(document.Reopened())).Should().Equal(drawnBefore);
+    }
+
+    [Test]
+    public void ATextFieldRedrawnByTheCallerDrawsTheValueItNowInherits()
+    {
+        var document = AGroup("/Tx", 0, new PdfString("abc"));
+        Kid<PdfTextField>(document).ForeColor = XColors.Black;
+        Parent(document).Elements.SetString(PdfAcroField.Keys.V, "xyz");
+        var holding = Kid<PdfTextField>(AGroup("/Tx", 0, new PdfString("abc"),
+            kid => kid.Elements.SetString(PdfAcroField.Keys.V, "xyz")));
+        holding.ForeColor = XColors.Black;
+
+        var kid = Kid<PdfTextField>(document.Reopened());
+        kid.RedrawAppearance();
+
+        AppearanceOf(kid).Should().Equal(AppearanceOf(Kid<PdfTextField>(holding.Owner.Reopened())));
+    }
+
+    [Test]
+    public void AComboBoxRedrawnByTheCallerDrawsTheValueItNowInherits()
+    {
+        var document = AGroup("/Ch", PdfAcroFieldFlags.Combo, new PdfString("a"),
+            kid => AcroFormBuilder.WithOptions(kid, "a", "b", "c"));
+        Kid<PdfComboBoxField>(document).ForeColor = XColors.Black;
+        var drawnBefore = AppearanceOf(Kid<PdfComboBoxField>(document));
+        Parent(document).Elements.SetString(PdfAcroField.Keys.V, "c");
+        var holding = Kid<PdfComboBoxField>(AGroup("/Ch", PdfAcroFieldFlags.Combo, new PdfString("a"), kid =>
+        {
+            AcroFormBuilder.WithOptions(kid, "a", "b", "c");
+            kid.Elements.SetString(PdfAcroField.Keys.V, "c");
+        }));
+        holding.ForeColor = XColors.Black;
+
+        var kid = Kid<PdfComboBoxField>(document.Reopened());
+        AppearanceOf(kid).Should().Equal(drawnBefore, "saving redraws nothing");
+        kid.RedrawAppearance();
+
+        AppearanceOf(kid).Should().NotEqual(drawnBefore);
+        AppearanceOf(kid).Should().Equal(AppearanceOf(Kid<PdfComboBoxField>(holding.Owner.Reopened())));
+    }
+
+    [Test]
     public void AComboBoxWithNoValueOfItsOwnSelectsItsParents()
     {
         var document = AGroup("/Ch", PdfAcroFieldFlags.Combo, new PdfString("b"),
