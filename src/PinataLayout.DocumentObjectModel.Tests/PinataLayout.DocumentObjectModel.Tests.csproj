@@ -35,4 +35,14 @@
     <ProjectReference Include="..\PinataLayout.DocumentObjectModel\PinataLayout.DocumentObjectModel.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!--
+      Where a [Timeout] test hands a read of malformed MDDDL: a thread of its own, so the timeout
+      measures the read and not how long the thread pool took to start it. Linked from the main
+      test project rather than copied, keeping its namespace, PdfPinata.Test.Helpers; compiling
+      the source needs no project reference, so the line above still holds.
+    -->
+    <Compile Include="..\PdfPinata.Test\Helpers\Interruptibly.cs" Link="Helpers\Linked\Interruptibly.cs" />
+  </ItemGroup>
+
 </Project>

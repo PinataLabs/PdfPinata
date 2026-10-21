@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AwesomeAssertions;
+using PdfPinata.Test.Helpers;
 using PinataLayout.DocumentObjectModel.IO;
 using TUnit.Core;
 
@@ -14,8 +15,8 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 ///   line: the first comment swallowed the rest of the document, and every error was on line 1.
 ///   <para>
 ///   Each read runs under a timeout, because a scanner that misses the end of a line can miss the
-///   end of the document with it. <c>Timeout</c> is honoured only on an async test, hence the
-///   <c>Task.Run</c>.
+///   end of the document with it. <c>Timeout</c> is honoured only on an async test, hence
+///   <c>Interruptibly.Run</c>.
 ///   </para>
 /// </summary>
 public class DdlLineEndTests
@@ -51,7 +52,7 @@ public class DdlLineEndTests
     private static string WithLineEnds(string ddl, string lineEnd) => ddl.Replace("\n", lineEnd);
 
     private static Task<string> RereadAndWritten(string ddl) =>
-        Task.Run(() => DdlWriter.WriteToString(DdlReader.DocumentFromString(ddl)));
+        Interruptibly.Run(() => DdlWriter.WriteToString(DdlReader.DocumentFromString(ddl)));
 
     [Test, Timeout(Patience)]
     [Arguments("\r")]
@@ -66,7 +67,7 @@ public class DdlLineEndTests
     [Test, Timeout(Patience)]
     public async Task ACommentInADocumentWithCarriageReturnsAloneEndsAtTheEndOfItsLine()
     {
-        var document = await Task.Run(() => DdlReader.DocumentFromString(WithLineEnds(Commented, "\r")));
+        var document = await Interruptibly.Run(() => DdlReader.DocumentFromString(WithLineEnds(Commented, "\r")));
 
         document.Sections.Count.Should().Be(1);
         document.LastSection.Elements.Count.Should().Be(2,
@@ -81,7 +82,7 @@ public class DdlLineEndTests
     [Arguments("\r\n")]
     public async Task AnErrorIsReportedOnTheLineItIsOn(string lineEnd)
     {
-        var errors = await Task.Run(() =>
+        var errors = await Interruptibly.Run(() =>
         {
             var reported = new DdlReaderErrors();
             try
@@ -106,7 +107,7 @@ public class DdlLineEndTests
         // "\r\r\n" is a lone CR followed by a CRLF: two line ends, so the fault that follows is on
         // line 3. Were the CRLF counted twice it would be on line 4, and were the lone CR skipped
         // on line 2.
-        var errors = await Task.Run(() =>
+        var errors = await Interruptibly.Run(() =>
         {
             var reported = new DdlReaderErrors();
             try

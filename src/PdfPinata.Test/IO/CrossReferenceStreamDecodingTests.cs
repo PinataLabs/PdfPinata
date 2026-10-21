@@ -50,7 +50,7 @@ public class CrossReferenceStreamDecodingTests
         int type, int field2, int field3, uint expectedType, uint expectedField2, uint expectedField3)
     {
         var w = new[] { type, field2, field3 };
-        var entries = await Task.Run(() => EntriesOf(
+        var entries = await Interruptibly.Run(() => EntriesOf(
             Build(w, index: [10, 1], size: 11,
                 data: Encode(w, (expectedType, expectedField2, expectedField3)))));
 
@@ -63,7 +63,7 @@ public class CrossReferenceStreamDecodingTests
     public async Task WithoutAnIndexTheSizeSaysHowManyEntriesThereAre()
     {
         var w = new[] { 1, 2, 1 };
-        var entries = await Task.Run(() => EntriesOf(
+        var entries = await Interruptibly.Run(() => EntriesOf(
             Build(w, index: null, size: 3,
                 data: Encode(w, (2u, 11u, 0u), (2u, 22u, 1u), (2u, 33u, 2u)))));
 
@@ -169,7 +169,7 @@ public class CrossReferenceStreamDecodingTests
     public async Task TheEntriesOfEverySubsectionAreReadInTheOrderTheIndexGivesThem()
     {
         var w = new[] { 1, 2, 1 };
-        var entries = await Task.Run(() => EntriesOf(
+        var entries = await Interruptibly.Run(() => EntriesOf(
             // One entry for object 1, then two for objects 5 and 6.
             Build(w, index: [1, 1, 5, 2], size: 7,
                 data: Encode(w, (2u, 11u, 0u), (2u, 55u, 0u), (2u, 66u, 1u)))));
@@ -183,7 +183,7 @@ public class CrossReferenceStreamDecodingTests
     public async Task AnEntryForAnObjectInTheFileAddsItAtThePositionTheEntryGives()
     {
         var w = new[] { 1, 2, 1 };
-        var table = await Task.Run(() => TableAfterReading(
+        var table = await Interruptibly.Run(() => TableAfterReading(
             Build(w, index: [2, 1], size: 3, data: Encode(w, (1u, 0u, 0u)))));
 
         ParserProbe.ReferenceTo(table, PlaceholderId).Position.Should()
@@ -195,7 +195,7 @@ public class CrossReferenceStreamDecodingTests
     {
         // An object may be described by more than one section, and the first one read wins.
         var w = new[] { 1, 2, 1 };
-        var table = await Task.Run(() =>
+        var table = await Interruptibly.Run(() =>
         {
             var owner = new PdfDocument();
             ParserProbe.AddReference(owner, PlaceholderId, 4711);
@@ -210,7 +210,7 @@ public class CrossReferenceStreamDecodingTests
     public async Task AFreeEntryPutsNothingInTheTable()
     {
         var w = new[] { 1, 2, 1 };
-        var table = await Task.Run(() => TableAfterReading(
+        var table = await Interruptibly.Run(() => TableAfterReading(
             Build(w, index: [2, 1], size: 3, data: Encode(w, (0u, 0u, 0u)))));
 
         ParserProbe.ObjectIdsIn(table).Should()
@@ -225,7 +225,7 @@ public class CrossReferenceStreamDecodingTests
         // by position - but its number is claimed as the entry is read, because the revisions are
         // read newest first and an older revision's entry for the same number must not take it.
         var w = new[] { 1, 2, 1 };
-        var table = await Task.Run(() => TableAfterReading(
+        var table = await Interruptibly.Run(() => TableAfterReading(
             Build(w, index: [3, 1], size: 4, data: Encode(w, (2u, 9u, 0u)))));
 
         ParserProbe.ReferenceTo(table, new PdfObjectID(3, 0)).Position.Should()
@@ -239,7 +239,7 @@ public class CrossReferenceStreamDecodingTests
         // to empira/PDFsharp#213 did with its /AcroForm. That entry was read first; the stream is
         // not what it means (empira/PDFsharp#353).
         var w = new[] { 1, 2, 1 };
-        var table = await Task.Run(() =>
+        var table = await Interruptibly.Run(() =>
         {
             var owner = new PdfDocument();
             ParserProbe.AddReference(owner, StreamId, 4711);
@@ -257,7 +257,7 @@ public class CrossReferenceStreamDecodingTests
     {
         // A newer cross-reference stream may list this one among its objects, at its own offset.
         var w = new[] { 1, 2, 1 };
-        var (stream, table) = await Task.Run(() =>
+        var (stream, table) = await Interruptibly.Run(() =>
         {
             var owner = new PdfDocument();
             var built = Build(w, index: [2, 1], size: 3, data: Encode(w, (1u, 0u, 0u)));
@@ -274,7 +274,7 @@ public class CrossReferenceStreamDecodingTests
         // PdfReader resolves compressed objects by finding the cross-reference stream in the
         // entry's value, and would parse it a second time if it were left null.
         var w = new[] { 1, 2, 1 };
-        var (stream, table) = await Task.Run(() =>
+        var (stream, table) = await Interruptibly.Run(() =>
         {
             var owner = new PdfDocument();
             var built = Build(w, index: [4, 1], size: 5, data: Encode(w, (1u, 0u, 0u)));
@@ -301,7 +301,7 @@ public class CrossReferenceStreamDecodingTests
         var file = new SparseStream(offset + Placeholder.Length,
             (0, body), (offset, ParserProbe.Bytes(Placeholder)));
 
-        var table = await Task.Run(() =>
+        var table = await Interruptibly.Run(() =>
         {
             var owner = new PdfDocument();
             var parser = ParserProbe.Over(owner, file);

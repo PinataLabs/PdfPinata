@@ -3,6 +3,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
@@ -33,7 +34,7 @@ public class TolerantParsingTests
     [Arguments("", Symbol.Eof)]
     public async Task EndsAnObject_takesWhatEndsTheBodyOfTheFileAsTheEndOfTheObject(string body, Symbol expected)
     {
-        var (symbol, endsIt) = await Task.Run(() =>
+        var (symbol, endsIt) = await Interruptibly.Run(() =>
         {
             var parser = ParserProbe.Over(new PdfDocument(), body);
             var scanned = ParserProbe.Scan(parser);
@@ -49,7 +50,7 @@ public class TolerantParsingTests
     {
         // The reported file: object 59 does not close, so the "60" opening object 60 is what
         // stands where "endobj" should have been.
-        var endsIt = await Task.Run(() => EndsAnObject("60 0 obj"));
+        var endsIt = await Interruptibly.Run(() => EndsAnObject("60 0 obj"));
 
         endsIt.Should().BeTrue();
     }
@@ -61,7 +62,7 @@ public class TolerantParsingTests
     [Arguments("0 0 obj")] // object numbers count from one; zero heads the list of free objects
     public async Task EndsAnObject_stillReportsAStrayNumberThatOpensNoObject(string body)
     {
-        var endsIt = await Task.Run(() => EndsAnObject(body));
+        var endsIt = await Interruptibly.Run(() => EndsAnObject(body));
 
         endsIt.Should().BeFalse();
     }
@@ -74,7 +75,7 @@ public class TolerantParsingTests
     [Arguments("true")]
     public async Task EndsAnObject_reportsAnythingElseFoundWhereTheKeywordShouldBe(string body)
     {
-        var endsIt = await Task.Run(() => EndsAnObject(body));
+        var endsIt = await Interruptibly.Run(() => EndsAnObject(body));
 
         endsIt.Should().BeFalse();
     }
@@ -84,7 +85,7 @@ public class TolerantParsingTests
     {
         // Looking ahead is all it does: the caller goes on to read the number itself, so what it
         // reads to decide has to be put back.
-        var (before, after) = await Task.Run(() =>
+        var (before, after) = await Interruptibly.Run(() =>
         {
             var parser = ParserProbe.Over(new PdfDocument(), "60 0 obj");
             ParserProbe.Scan(parser);
@@ -101,7 +102,7 @@ public class TolerantParsingTests
     [Test, Timeout(5000)]
     public async Task TryReadStreamUpToEndOfStream_readsUpToTheKeywordWithoutTheEndOfLineBeforeIt()
     {
-        var dict = await Task.Run(() => StreamOf("<< >>\nstream\r\nDATA\r\nendstream"));
+        var dict = await Interruptibly.Run(() => StreamOf("<< >>\nstream\r\nDATA\r\nendstream"));
 
         dict.Stream.Value.Should().Equal(ParserProbe.Bytes("DATA"));
     }
@@ -111,7 +112,7 @@ public class TolerantParsingTests
     {
         // A document that gets its stream lengths wrong is not one to be trusted to write the
         // separator either, and a stream ending without one still ends.
-        var dict = await Task.Run(() => StreamOf("<< >>\nstream\nDATAendstream"));
+        var dict = await Interruptibly.Run(() => StreamOf("<< >>\nstream\nDATAendstream"));
 
         dict.Stream.Value.Should().Equal(ParserProbe.Bytes("DATA"));
     }
@@ -120,7 +121,7 @@ public class TolerantParsingTests
     public async Task TryReadStreamUpToEndOfStream_recordsTheLengthItRead()
     {
         // The dictionary has to describe its stream correctly once the document is written again.
-        var dict = await Task.Run(() => StreamOf("<< >>\nstream\r\nDATA\r\nendstream"));
+        var dict = await Interruptibly.Run(() => StreamOf("<< >>\nstream\r\nDATA\r\nendstream"));
 
         dict.Elements.GetInteger("/Length").Should().Be(4);
     }
@@ -128,7 +129,7 @@ public class TolerantParsingTests
     [Test, Timeout(5000)]
     public async Task TryReadStreamUpToEndOfStream_reportsADocumentThatHoldsNoKeywordAtAll()
     {
-        var (found, dict) = await Task.Run(() =>
+        var (found, dict) = await Interruptibly.Run(() =>
         {
             var owner = new PdfDocument();
             var parser = ParserProbe.Over(owner, "<< >>\nstream\r\nDATA and then nothing");
@@ -172,7 +173,7 @@ public class TolerantParsingTests
     {
         // PDF Reference 3.2.9: an indirect reference to an undefined object is not an error, it is
         // simply a reference to the null object.
-        var items = await Task.Run(() =>
+        var items = await Interruptibly.Run(() =>
         {
             var parser = ParserProbe.Over(new PdfDocument(), "7 0 R]");
             return ParserProbe.ParseObject(parser, Symbol.EndArray);
@@ -186,7 +187,7 @@ public class TolerantParsingTests
     {
         // A document with more than one cross-reference table can have its first trailer refer to
         // an object whose entry has not been read yet. PdfTrailer.FixXRefs replaces these later.
-        var items = await Task.Run(() =>
+        var items = await Interruptibly.Run(() =>
         {
             var owner = new PdfDocument();
             ParserProbe.IsUnderConstruction(ParserProbe.IrefTableOf(owner), true);
@@ -202,7 +203,7 @@ public class TolerantParsingTests
     [Test, Timeout(5000)]
     public async Task ParseObject_readsAReferenceToAKnownObjectAsTheTablesOwnEntry()
     {
-        var (items, owner) = await Task.Run(() =>
+        var (items, owner) = await Interruptibly.Run(() =>
         {
             var document = new PdfDocument();
             ParserProbe.AddReference(document, new PdfObjectID(7, 0), 4711);
@@ -220,7 +221,7 @@ public class TolerantParsingTests
     public async Task ReadDictionary_keepsThePairsAroundAValueThatHasNoKey()
     {
         // pdfTeX writes its PTEX.FullBanner as two strings with no key in front of them.
-        var dict = await Task.Run(() =>
+        var dict = await Interruptibly.Run(() =>
         {
             var owner = new PdfDocument();
             var parser = ParserProbe.Over(owner, "<< /First 1 (stray) /Second 2 >>");
