@@ -106,6 +106,13 @@ exactly when `Fields` would list it.
 The test goes in one internal place, `PdfAcroField.IsWidgetOnly(PdfDictionary)`. `Fields`, `Widgets`
 and every walk in the library call it.
 
+Because `/T` is the test, nothing in the library may write `/T` onto a widget by accident.
+`PdfAnnotation.Title` writes `/T` as a markup annotation's author label, so its setter throws on a
+`/Widget`, as does `Subject` (`/Subj`), the other markup key on the base class (#330). Otherwise a
+widget given a title reads back as a nested field, and the widget view of a merged field is renamed
+past `Name`'s ban on a period. The message points to `PdfAcroField.Name` and `PdfAcroField.ToolTip`.
+Only the setter is guarded: a file whose widget already carries `/T` is read by the rule above.
+
 ### 3.2 Which object a dictionary is
 
 > Every dictionary has one **canonical** wrapper, which `Reference.Value` points at. A dictionary
