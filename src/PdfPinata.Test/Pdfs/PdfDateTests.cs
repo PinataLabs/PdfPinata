@@ -71,6 +71,21 @@ public class PdfDateTests
     }
 
     [Test]
+    [Arguments("2024-05", 2024, 5, 1)]
+    [Arguments("2024-05-01", 2024, 5, 1)]
+    [Arguments("1998-12-23T19:52:00", 1998, 12, 23)]
+    public void ADateWithoutItsPrefixThatIsNotShapedLikeAPdfDateIsReadTheWayTheInvariantCultureReadsIt(
+        string text, int year, int month, int day)
+    {
+        // The dash after a year alone is a separator, not the start of an offset from UT: read as a
+        // PDF date, "2024-05" would be the first of January at five in the morning.
+        var value = new PdfDate(text).Value;
+
+        value.Should().Be(DateTime.Parse(text, CultureInfo.InvariantCulture));
+        value.Date.Should().Be(new DateTime(year, month, day));
+    }
+
+    [Test]
     [Arguments("D:199")]                      // too short to hold a year
     [Arguments("D:19981")]                    // a field cut off halfway
     [Arguments("D:1998122")]

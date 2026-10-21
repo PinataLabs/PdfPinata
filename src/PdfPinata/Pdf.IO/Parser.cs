@@ -1706,21 +1706,26 @@ internal sealed class Parser
         if (date.StartsWith("D:", StringComparison.Ordinal))
             return TryParsePdfDate(date, 2, out value);
 
-        // Many producers leave the prefix off, and some libraries use plain English format. A
-        // string with white space in it is the second sort, whatever its first four characters are.
-        if (!ContainsWhiteSpace(date) && TryParsePdfDate(date, 0, out value))
+        // Many producers leave the prefix off, and some libraries use plain English format or
+        // ISO 8601. Only a string shaped like a PDF date is read as one.
+        if (IsShapedLikeAPdfDate(date) && TryParsePdfDate(date, 0, out value))
             return true;
         return DateTime.TryParse(date, CultureInfo.InvariantCulture, DateTimeStyles.None, out value);
     }
 
-    private static bool ContainsWhiteSpace(string text)
+    /// <summary>
+    /// Whether a date without its D: prefix is shaped like a PDF date: digits and nothing else, or
+    /// at least a whole calendar date of digits, YYYYMMDD, followed by an offset from UT. A dash
+    /// after a year alone or a year and a month is ISO 8601's separator, not the start of an
+    /// offset - read as a PDF date, "2024-05" would be five in the morning on the first of January
+    /// - and a string with white space or any other character in it is not a PDF date either.
+    /// </summary>
+    private static bool IsShapedLikeAPdfDate(string date)
     {
-        foreach (var ch in text)
-        {
-            if (char.IsWhiteSpace(ch))
-                return true;
-        }
-        return false;
+        var digits = 0;
+        while (digits < date.Length && date[digits] is >= '0' and <= '9')
+            digits++;
+        return digits == date.Length || (digits >= 8 && date[digits] is '+' or '-' or 'Z');
     }
 
     /// <summary>
