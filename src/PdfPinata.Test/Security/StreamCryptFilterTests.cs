@@ -19,6 +19,7 @@ public class StreamCryptFilterTests
     [Test]
     [Arguments("/V2", OwnCryptFilter)]
     [Arguments("/AESV2", OwnCryptFilter)]
+    [Arguments("/AESV3", OwnCryptFilter)]
     [Arguments("/V2", " /Filter [/Crypt] /DecodeParms [<< /Name /StdCF >>]")]
     public void AStreamNamingACryptFilterIsDecryptedWithItThoughStreamsAreIdentity(string method, string entries)
     {
@@ -40,6 +41,7 @@ public class StreamCryptFilterTests
     [Test]
     [Arguments("/V2")]
     [Arguments("/AESV2")]
+    [Arguments("/AESV3")]
     public void AStreamNamingTheCryptFilterStreamsAreUnderAlreadyLosesItsCryptEntry(string method)
     {
         var document = new CryptFilterDocument { Method = method, MetadataEntries = OwnCryptFilter };
@@ -54,6 +56,7 @@ public class StreamCryptFilterTests
     [Test]
     [Arguments("/V2")]
     [Arguments("/AESV2")]
+    [Arguments("/AESV3")]
     public void AMissingStmFMeansStreamsAreNotEncrypted(string method)
     {
         var document = new CryptFilterDocument { Method = method, StreamFilter = null };
@@ -68,6 +71,7 @@ public class StreamCryptFilterTests
     [Test]
     [Arguments("/V2")]
     [Arguments("/AESV2")]
+    [Arguments("/AESV3")]
     public void AMissingStrFMeansStringsAreNotEncrypted(string method)
     {
         var document = new CryptFilterDocument { Method = method, StringFilter = null };
