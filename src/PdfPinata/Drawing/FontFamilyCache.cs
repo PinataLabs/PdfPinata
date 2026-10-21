@@ -29,7 +29,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using PdfPinata.Internal;
 
 namespace PdfPinata.Drawing;
@@ -96,22 +95,6 @@ internal sealed class FontFamilyCache
     }
 
     private static volatile FontFamilyCache _singleton;
-
-    internal static string GetCacheState()
-    {
-        var state = new StringBuilder();
-        state.Append("====================\n");
-        state.Append("Font families by name\n");
-        var familyKeys = Singleton._familiesByName.Keys;
-        var count = familyKeys.Count;
-        var keys = new string[count];
-        familyKeys.CopyTo(keys, 0);
-        Array.Sort(keys, StringComparer.OrdinalIgnoreCase);
-        foreach (var key in keys)
-            state.AppendFormat("  {0}: {1}\n", key, Singleton._familiesByName[key].DebuggerDisplay);
-        state.Append('\n');
-        return state.ToString();
-    }
 
     /// <summary>
     /// Maps family name to internal font family.

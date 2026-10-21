@@ -386,14 +386,14 @@ public class AttachmentTests
     ///   entering each node once.
     /// </summary>
     /// <remarks>
-    ///   Wrapped in <see cref="Task.Run(Func{Task})"/> because a timeout is honoured only on an async test, and
+    ///   Handed to <see cref="Interruptibly"/> because a timeout is honoured only on an async test, and
     ///   a timeout is the whole point here: without one a regression stops the run instead of failing
     ///   it, and a stopped run is the failure mode this repository already has to be careful about.
     /// </remarks>
     [Test, Timeout(30000)]
     public async Task ANameTreeThatLeadsBackIntoItselfIsGivenUpOnRatherThanWalkedForever()
     {
-        await Task.Run(() =>
+        await Interruptibly.Run(() =>
         {
             var document = new PdfDocument();
             _ = document.AddPage();
@@ -420,7 +420,7 @@ public class AttachmentTests
     {
         // The same shape on the lookup path, which searches rather than enumerates and had the same
         // cap doing the same not-quite-enough job.
-        await Task.Run(() =>
+        await Interruptibly.Run(() =>
         {
             var document = new PdfDocument();
             var page = document.AddPage();

@@ -230,7 +230,7 @@ public class XTextSegmentFormatterTests
     {
         // A block that cannot be broken and does not fit is the case the layout has to place
         // somewhere rather than loop over.
-        var page = await Task.Run(() => PageShowing(XParagraphAlignment.Justify,
+        var page = await Interruptibly.Run(() => PageShowing(XParagraphAlignment.Justify,
             Segment(new string('W', 80), Plain, XBrushes.Black)));
 
         TextBaselines.PositionsOf(page).Should().NotBeEmpty();
@@ -239,7 +239,7 @@ public class XTextSegmentFormatterTests
     [Test, Timeout(30000)]
     public async Task TextThatRunsPastTheBottomOfTheRectangleDoesNotLoop()
     {
-        var page = await Task.Run(() => PageShowing(XParagraphAlignment.Justify,
+        var page = await Interruptibly.Run(() => PageShowing(XParagraphAlignment.Justify,
             Segment(string.Join(" ", Enumerable.Repeat(TwoLinesOfWords, 20)), Plain, XBrushes.Black)));
 
         TextBaselines.PositionsOf(page).Should().NotBeEmpty();

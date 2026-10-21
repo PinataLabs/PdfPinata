@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AwesomeAssertions;
+using PdfPinata.Test.Helpers;
 using PinataLayout.DocumentObjectModel.Fields;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Tables;
@@ -473,7 +474,7 @@ public class DdlReadingTests
     {
         // The same truncation one token earlier, which is handled - so the parser can complain
         // about a short file, and the defect above is the section loop rather than the idea.
-        var reading = Task.Run(() =>
+        var reading = Interruptibly.Run(() =>
         {
             var act = () => DdlReader.ObjectFromString("\\document{", new DdlReaderErrors());
             act.Should().Throw<Exception>();

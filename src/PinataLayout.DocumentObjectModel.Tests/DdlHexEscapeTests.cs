@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AwesomeAssertions;
+using PdfPinata.Test.Helpers;
 using PinataLayout.DocumentObjectModel.IO;
 using TUnit.Core;
 
@@ -43,7 +44,7 @@ public class DdlHexEscapeTests
     }
 
     private static Task<Document> Read(string literalBody) =>
-        Task.Run(() => DdlReader.DocumentFromString(DocumentTitled(literalBody)));
+        Interruptibly.Run(() => DdlReader.DocumentFromString(DocumentTitled(literalBody)));
 
     private static string TextOf(Document document) =>
         string.Concat(((Paragraph)document.LastSection.Elements[0]).Elements.OfType<Text>().Select(text => text.Content));
@@ -90,7 +91,7 @@ public class DdlHexEscapeTests
     [Arguments("a\\x42c")]
     public async Task AnEscapeWithNoDigitsOrMoreThanTwoIsRefused(string literalBody)
     {
-        var complaints = await Task.Run(() => ReaderDiagnostics.ComplaintsAbout(DocumentTitled(literalBody)));
+        var complaints = await Interruptibly.Run(() => ReaderDiagnostics.ComplaintsAbout(DocumentTitled(literalBody)));
 
         complaints.Should().Contain("Invalid escape sequence.");
     }

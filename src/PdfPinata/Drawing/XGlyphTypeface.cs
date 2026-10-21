@@ -80,19 +80,6 @@ internal sealed class XGlyphTypeface
         Initialize();
     }
 
-    // ReSharper disable once UnusedMember.Global
-    public XGlyphTypeface(string key, XFontFamily fontFamily, XFontSource fontSource,
-        XStyleSimulations styleSimulations)
-    {
-        Key = key;
-        FontFamily = fontFamily;
-        FontSource = fontSource;
-        StyleSimulations = styleSimulations;
-        Fontface = OpenTypeFontface.CetOrCreateFrom(fontSource);
-
-        Initialize();
-    }
-
     /// <summary>
     /// Gets the typeface cached for a family and style, or resolves, builds and caches it.
     /// </summary>

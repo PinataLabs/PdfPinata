@@ -48,6 +48,7 @@ public class UnencryptedDataTests
     [Test]
     [Arguments("/V2")]
     [Arguments("/AESV2")]
+    [Arguments("/AESV3")]
     public void EncryptedMetadataIsStillDecrypted(string method)
     {
         var document = new CryptFilterDocument { Method = method };
@@ -62,6 +63,7 @@ public class UnencryptedDataTests
     [Test]
     [Arguments("/V2")]
     [Arguments("/AESV2")]
+    [Arguments("/AESV3")] // /V 5, /R 6: the /Identity filter still derives the key with AES-256
     public void StreamsUnderTheIdentityFilterReadAsTheyStandInTheFile(string method)
     {
         var document = new CryptFilterDocument { Method = method, StreamFilter = "/Identity" };
@@ -76,6 +78,7 @@ public class UnencryptedDataTests
     [Test]
     [Arguments("/V2")]
     [Arguments("/AESV2")]
+    [Arguments("/AESV3")] // the string encryptor validates the password, from behind /Identity
     public void StringsUnderTheIdentityFilterReadAsTheyStandInTheFile(string method)
     {
         var document = new CryptFilterDocument { Method = method, StringFilter = "/Identity" };
@@ -89,6 +92,7 @@ public class UnencryptedDataTests
     [Test]
     [Arguments("/V2", " /Filter /Crypt /DecodeParms << /Name /Identity >>")]
     [Arguments("/AESV2", " /Filter /Crypt /DecodeParms << /Name /Identity >>")]
+    [Arguments("/AESV3", " /Filter /Crypt /DecodeParms << /Name /Identity >>")]
     [Arguments("/V2", " /Filter [/Crypt] /DecodeParms [<< /Name /Identity >>]")]
     [Arguments("/V2", " /Filter /Crypt")] // A /Crypt filter with no /Name is /Identity.
     [Arguments("/V2", " /Filter [/Crypt] /DecodeParms []")] // nor with no parameters at all
@@ -122,6 +126,7 @@ public class UnencryptedDataTests
     [Test]
     [Arguments("/V2", " /DecodeParms [<< /Name /Identity >> null]")]
     [Arguments("/AESV2", " /DecodeParms [<< /Name /Identity >> null]")]
+    [Arguments("/AESV3", " /DecodeParms [<< /Name /Identity >> null]")]
     [Arguments("/V2", "")] // no parameters: a /Crypt filter with none is /Identity
     public void AnIdentityCryptFilterBeforeAnotherIsTakenOffAndTheOtherStillDecodes(string method, string parms)
     {

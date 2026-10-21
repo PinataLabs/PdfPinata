@@ -286,7 +286,7 @@ public class EqualValueScaleTests
         chart.YAxis.MajorTick = 0;
         chart.YAxis.HasMajorGridlines = true;
 
-        var page = await Task.Run(() => Drawn.Page(chart));
+        var page = await Interruptibly.Run(() => Drawn.Page(chart));
 
         ShownText.NumericOn(page).Should().BeEmpty();
     }

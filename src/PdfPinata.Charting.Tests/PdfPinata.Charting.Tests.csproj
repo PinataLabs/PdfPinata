@@ -70,6 +70,11 @@
       owner for it rather than a private copy in each file that needed one.
     -->
     <Compile Include="..\PdfPinata.Test\Helpers\Saved.cs" Link="Helpers\Linked\Saved.cs" />
+    <!--
+      Where a [Timeout] test hands its work: a thread of its own, so the timeout measures the work
+      and not how long the thread pool took to start it. The file says why.
+    -->
+    <Compile Include="..\PdfPinata.Test\Helpers\Interruptibly.cs" Link="Helpers\Linked\Interruptibly.cs" />
   </ItemGroup>
 
   <ItemGroup>
