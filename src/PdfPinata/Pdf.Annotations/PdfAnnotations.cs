@@ -63,11 +63,30 @@ public sealed class PdfAnnotations : PdfArray
 
         // /P, the page the annotation is on. Optional in general but required of a screen
         // annotation with a rendition action, and what some readers and importers find an
-        // annotation's page by.
+        // annotation's page by. A page not yet placed has no reference to name, and is given its
+        // annotations' /P when it is placed: see PointAtPlacedPage.
         if (Page?.Reference != null)
             annotation.Elements.SetReference("/P", Page);
 
         annotation.OnAddedToPage();
+    }
+
+    /// <summary>
+    /// Writes <c>/P</c> on each annotation of a page that has just been placed in its own document
+    /// and so has just been given a reference, where the annotation does not name a page already.
+    /// </summary>
+    internal static void PointAtPlacedPage(PdfPage page)
+    {
+        var annots = page.Elements.GetArray(PdfPage.Keys.Annots);
+        if (annots == null || page.Reference == null)
+            return;
+
+        for (var idx = 0; idx < annots.Elements.Count; idx++)
+        {
+            var annot = annots.Elements.GetDictionary(idx);
+            if (annot != null && !annot.Elements.ContainsKey("/P"))
+                annot.Elements["/P"] = page.Reference;
+        }
     }
 
     /// <summary>

@@ -252,6 +252,24 @@ public class AnnotationCollectionTests
     }
 
     /// <summary>
+    ///   A page made with <c>new PdfPage(document)</c> has no reference until it is placed, so an
+    ///   annotation added before then has no page to name in <c>/P</c> yet. Placing the page gives
+    ///   it one. Issue #337.
+    /// </summary>
+    [Test]
+    public void AnAnnotationAddedBeforeItsPageIsPlacedIsSavedPointingAtThatPage()
+    {
+        var document = new PdfDocument();
+        var page = new PdfPage(document);
+        page.Annotations.Add(ANote());
+        document.AddPage(page);
+
+        page.Annotations[0].Elements.GetReference("/P").Should().BeSameAs(page.Reference);
+        var reread = ReadBack(document);
+        reread.Pages[0].Annotations[0].Elements.GetReference("/P").Should().BeSameAs(reread.Pages[0].Reference);
+    }
+
+    /// <summary>
     ///   Taking an annotation off a page leaves it in the document: it may be reached from
     ///   elsewhere, and a full save drops it when nothing does. Issue #337.
     /// </summary>
