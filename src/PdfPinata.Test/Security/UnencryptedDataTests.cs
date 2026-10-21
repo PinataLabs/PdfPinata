@@ -120,15 +120,16 @@ public class UnencryptedDataTests
     }
 
     [Test]
-    [Arguments("/V2")]
-    [Arguments("/AESV2")]
-    public void AnIdentityCryptFilterBeforeAnotherIsTakenOffAndTheOtherStillDecodes(string method)
+    [Arguments("/V2", " /DecodeParms [<< /Name /Identity >> null]")]
+    [Arguments("/AESV2", " /DecodeParms [<< /Name /Identity >> null]")]
+    [Arguments("/V2", "")] // no parameters: a /Crypt filter with none is /Identity
+    public void AnIdentityCryptFilterBeforeAnotherIsTakenOffAndTheOtherStillDecodes(string method, string parms)
     {
         var plain = new CryptFilterDocument().Metadata;
         var document = new CryptFilterDocument
         {
             Method = method, PlainMetadata = true, Metadata = Deflated(plain),
-            MetadataEntries = " /Filter [/Crypt /FlateDecode] /DecodeParms [<< /Name /Identity >> null]"
+            MetadataEntries = " /Filter [/Crypt /FlateDecode]" + parms
         };
 
         var read = Open(document.Build());
