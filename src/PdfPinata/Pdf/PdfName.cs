@@ -64,11 +64,18 @@ public sealed class PdfName : PdfItem
     }
 
     /// <summary>
-    /// Determines whether the specified object is equal to this name.
+    /// Determines whether the specified object is equal to this name: a <see cref="PdfName"/>,
+    /// a <see cref="PdfNameObject"/> or a <see cref="string"/> with the same value.
     /// </summary>
     public override bool Equals(object obj)
     {
-        return Value.Equals(obj);
+        return obj switch
+        {
+            PdfName name => Value == name.Value,
+            PdfNameObject name => Value == name.Value,
+            string value => Value == value,
+            _ => false
+        };
     }
 
     /// <summary>
@@ -172,10 +179,10 @@ public sealed class PdfName : PdfItem
         /// <param name="r">The second object to compare.</param>
         public int Compare(PdfName l, PdfName r)
         {
-            if (l == null) return r != null ? 1 : 0;
-            if (r != null)
-                return string.Compare(l.Value, r.Value, StringComparison.Ordinal);
-            return -1;
+            // Null sorts before every name, as it does for string.
+            if (l is null) return r is null ? 0 : -1;
+            if (r is null) return 1;
+            return string.Compare(l.Value, r.Value, StringComparison.Ordinal);
         }
     }
 }

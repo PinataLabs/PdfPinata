@@ -937,46 +937,7 @@ internal sealed class Parser
     /// </summary>
     internal void ReadIRefsFromCompressedObject(PdfObjectID objectID)
     {
-        Debug.Assert(_document._irefTable.Contains(objectID));
-        var iref = _document._irefTable[objectID];
-        if (iref == null)
-        {
-            // We should never come here because the object stream must be a type 1 entry in the xref stream
-            // and iref was created before.
-            throw new NotImplementedException("This case is not coded or something else went wrong");
-        }
-
-        // Read in object stream object when we come here for the very first time.
-        if (iref.Value == null)
-        {
-            try
-            {
-                Debug.Assert(_document._irefTable.Contains(iref.ObjectID));
-                var pdfObject = (PdfDictionary)ReadObject(null, iref.ObjectID, false, false);
-                var objectStream = new PdfObjectStream(pdfObject);
-                Debug.Assert(objectStream.Reference == iref);
-                Debug.Assert(objectStream.Reference.Value != null, "Something went wrong.");
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.Message);
-                throw;
-            }
-        }
-
-        Debug.Assert(iref.Value != null);
-
-        var objectStreamStream = iref.Value as PdfObjectStream;
-        if (objectStreamStream == null)
-        {
-            Debug.Assert(((PdfDictionary)iref.Value).Elements.GetName("/Type") == "/ObjStm");
-
-            objectStreamStream = new PdfObjectStream((PdfDictionary)iref.Value);
-            Debug.Assert(objectStreamStream.Reference == iref);
-            Debug.Assert(objectStreamStream.Reference.Value != null, "Something went wrong.");
-        }
-
-        objectStreamStream.ReadReferences(_document._irefTable);
+        ObjectStream(objectID).ReadReferences(_document._irefTable);
     }
 
     /// <summary>
@@ -985,44 +946,49 @@ internal sealed class Parser
     /// </summary>
     internal PdfReference ReadCompressedObject(PdfObjectID objectID, int index)
     {
-        Debug.Assert(_document._irefTable.Contains(objectID));
+        return ObjectStream(objectID).ReadCompressedObject(index);
+    }
+
+    /// <summary>
+    /// The object stream with the given number, read in the first time it is asked for.
+    /// </summary>
+    /// <remarks>
+    /// Its number comes from a type 2 cross-reference entry, which is to say from the file, so
+    /// what is found there is checked rather than cast: a dictionary with no data, or an object
+    /// that is not a dictionary at all, is refused with a message saying so rather than with a
+    /// NullReferenceException or an InvalidCastException.
+    /// </remarks>
+    private PdfObjectStream ObjectStream(PdfObjectID objectID)
+    {
         var iref = _document._irefTable[objectID];
         if (iref == null)
         {
-            throw new NotImplementedException("This case is not coded or something else went wrong");
+            throw new PdfReaderException(
+                $"A cross-reference stream says objects are compressed in object stream {objectID.ObjectNumber}, "
+                + "and the file has no such object.");
         }
 
         // Read in object stream object when we come here for the very first time.
         if (iref.Value == null)
+            ReadObject(null, iref.ObjectID, false, false);
+
+        if (iref.Value is PdfObjectStream objectStream)
+            return objectStream;
+
+        if (iref.Value is not PdfDictionary { Stream: not null } dictionary)
         {
-            try
-            {
-                Debug.Assert(_document._irefTable.Contains(iref.ObjectID));
-                var pdfObject = (PdfDictionary)ReadObject(null, iref.ObjectID, false, false);
-                var objectStream = new PdfObjectStream(pdfObject);
-                Debug.Assert(objectStream.Reference == iref);
-                Debug.Assert(objectStream.Reference.Value != null, "Something went wrong.");
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.Message);
-                throw;
-            }
+            throw new PdfReaderException(
+                $"A cross-reference stream says objects are compressed in object stream {objectID.ObjectNumber}, "
+                + $"and object {objectID.ObjectNumber} is "
+                + (iref.Value is PdfDictionary ? "a dictionary with no stream data" : "not a stream")
+                + ", so the objects in it cannot be read.");
         }
 
-        Debug.Assert(iref.Value != null);
+        if (dictionary.Elements.GetName("/Type") != "/ObjStm")
+            Debug.WriteLine($"Object stream {objectID.ObjectNumber} has no /Type /ObjStm; it is read as one anyway.");
 
-        var objectStreamStream = iref.Value as PdfObjectStream;
-        if (objectStreamStream == null)
-        {
-            Debug.Assert(((PdfDictionary)iref.Value).Elements.GetName("/Type") == "/ObjStm");
-
-            objectStreamStream = new PdfObjectStream((PdfDictionary)iref.Value);
-            Debug.Assert(objectStreamStream.Reference == iref);
-            Debug.Assert(objectStreamStream.Reference.Value != null, "Something went wrong.");
-        }
-
-        return objectStreamStream.ReadCompressedObject(index);
+        objectStream = new PdfObjectStream(dictionary);
+        return objectStream;
     }
 
     /// <summary>
@@ -1152,7 +1118,9 @@ internal sealed class Parser
     /// </summary>
     private void RecordLargestSize(PdfTrailer trailer)
     {
-        var size = trailer != null ? trailer.Elements.GetInteger(PdfTrailer.Keys.Size) : 0;
+        // A /Size that is not an integer says nothing, which is what a missing one says.
+        if (trailer == null || !PdfItemValues.TryGetInteger(trailer.Elements[PdfTrailer.Keys.Size], out var size))
+            return;
         if (size <= MaximumSize)
             LargestSize = Math.Max(LargestSize, size);
     }
@@ -1465,8 +1433,11 @@ internal sealed class Parser
         // where the section began.
         var endOfNumber = _lexer.Position;
         var number = _lexer.TokenToInteger;
+        // A cross-reference stream is written under generation 0, but one under another is still
+        // the stream, and the generation is only part of how it is filed.
         var generation = ReadInteger();
-        Debug.Assert(generation == 0);
+        if (generation != 0)
+            Debug.WriteLine($"Cross-reference stream {number} is written with generation {generation} rather than 0.");
 
         ReadSymbol(Symbol.Obj);
         ReadSymbol(Symbol.BeginDictionary);
@@ -1532,22 +1503,24 @@ internal sealed class Parser
     /// </summary>
     private void ReadXRefStreamEntries(PdfCrossReferenceTable xrefTable, PdfCrossReferenceStream xrefStream)
     {
-        Debug.Assert(xrefStream.Stream != null);
-        var bytes = xrefStream.Stream.UnfilteredValue;
-
-        var size = xrefStream.Elements.GetInteger(PdfCrossReferenceStream.Keys.Size);
-        var index = xrefStream.Elements.GetValue(PdfCrossReferenceStream.Keys.Index) as PdfArray;
-        var w = (PdfArray)xrefStream.Elements.GetValue(PdfCrossReferenceStream.Keys.W);
+        // Every check below is on what the file says, so none of them is an assertion: a failed
+        // Debug.Assert ends the process it runs in rather than reporting the file.
+        var bytes = xrefStream.Stream?.UnfilteredValue ?? [];
+        var wsize = XRefStreamFieldWidths(xrefStream);
+        var wsum = StreamHelper.WSize(wsize);
+        var available = bytes.Length / wsum;
 
         // E.g.: W[1 2 1] ¤ Index[7 12] ¤ Size 19
+        var index = xrefStream.Elements.GetValue(PdfCrossReferenceStream.Keys.Index) as PdfArray;
+        var subsections = XRefStreamSubsections(xrefStream, index, available, out var subsectionEntryCount);
 
-        var subsections = XRefStreamSubsections(index, size, out var subsectionEntryCount);
-
-        // W key.
-        Debug.Assert(w.Elements.Count == 3);
-        int[] wsize = [w.Elements.GetInteger(0), w.Elements.GetInteger(1), w.Elements.GetInteger(2)];
-        var wsum = StreamHelper.WSize(wsize);
-        Debug.Assert(wsum * subsectionEntryCount == bytes.Length, "Check implementation here.");
+        // More entries said than there is data for are read as far as the data goes, and the rest
+        // cannot be read at all. More data than entries is left unread.
+        if (subsectionEntryCount != available || bytes.Length % wsum != 0)
+        {
+            Debug.WriteLine($"Cross-reference stream: {subsectionEntryCount} entries of {wsum} bytes are said, "
+                            + $"and the data is {bytes.Length} bytes long.");
+        }
 
         var index2 = -1;
         foreach (var subsection in subsections)
@@ -1555,6 +1528,8 @@ internal sealed class Parser
             for (var idx = 0; idx < subsection[1]; idx++)
             {
                 index2++;
+                if (index2 >= available)
+                    return;
 
                 var item =
                     new PdfCrossReferenceStream.CrossReferenceStreamEntry
@@ -1572,30 +1547,82 @@ internal sealed class Parser
     }
 
     /// <summary>
+    /// The widths /W gives the three fields of an entry. Refused, with a message naming /W, when
+    /// they are not three integers from 0 to 8 of which at least one is not zero: there is no
+    /// reading the entries without them.
+    /// </summary>
+    private static int[] XRefStreamFieldWidths(PdfCrossReferenceStream xrefStream)
+    {
+        var w = xrefStream.Elements.GetValue(PdfCrossReferenceStream.Keys.W) as PdfArray;
+        if (w is { Elements.Count: 3 })
+        {
+            var widths = new int[3];
+            var valid = true;
+            for (var field = 0; field < 3; field++)
+            {
+                // Eight bytes is as wide as a field can be read: ReadBytes gathers it into a ulong.
+                valid &= PdfItemValues.TryGetInteger(w.Elements[field], out widths[field])
+                         && widths[field] is >= 0 and <= 8;
+            }
+
+            if (valid && StreamHelper.WSize(widths) > 0)
+                return widths;
+        }
+
+        throw new PdfReaderException(
+            "A cross-reference stream's /W is not three field widths, so its entries cannot be read: "
+            + (w?.ToString() ?? "it has none") + ".");
+    }
+
+    /// <summary>
     /// Answers the subsections a cross-reference stream's /Index describes, each as its first object
     /// number and its entry count, and how many entries they hold between them.
     /// </summary>
-    private static int[][] XRefStreamSubsections(PdfArray index, int size, out int entryCount)
+    /// <remarks>
+    /// Without /Index there is one subsection, from object 0, of /Size entries. A /Size that is
+    /// missing or not an integer leaves nothing but the data saying how many entries there are, and
+    /// the data holds <paramref name="entriesInTheData"/> of them.
+    /// </remarks>
+    private static int[][] XRefStreamSubsections(PdfCrossReferenceStream xrefStream, PdfArray index,
+        int entriesInTheData, out int entryCount)
     {
         if (index == null)
         {
-            // Setup with default values.
+            var sizeEntry = xrefStream.Elements[PdfCrossReferenceStream.Keys.Size];
+            if (!PdfItemValues.TryGetInteger(sizeEntry, out var size) || size < 0)
+            {
+                Debug.WriteLine("A cross-reference stream with no /Index has no usable /Size ("
+                                + (sizeEntry?.ToString() ?? "none") + "); its entries are counted from its data.");
+                size = entriesInTheData;
+            }
+
             entryCount = size;
-            return [[0, size]]; // HACK: What is size? Contratiction in PDF reference.
+            return [[0, size]];
         }
 
-        // Read subsections from array.
-        Debug.Assert(index.Elements.Count % 2 == 0);
-        var subsectionCount = index.Elements.Count / 2;
-        var subsections = new int[subsectionCount][];
+        // A last number with no partner says where a subsection starts and not how long it is, so
+        // it describes none; nor does a pair that is not two counts.
+        if (index.Elements.Count % 2 != 0)
+            Debug.WriteLine("A cross-reference stream's /Index has an odd number of elements; the last is ignored.");
+
+        var subsections = new List<int[]>(index.Elements.Count / 2);
         entryCount = 0;
-        for (var idx = 0; idx < subsectionCount; idx++)
+        for (var idx = 0; idx + 1 < index.Elements.Count; idx += 2)
         {
-            subsections[idx] = [index.Elements.GetInteger(2 * idx), index.Elements.GetInteger(2 * idx + 1)];
-            entryCount += subsections[idx][1];
+            if (!PdfItemValues.TryGetInteger(index.Elements[idx], out var first)
+                || !PdfItemValues.TryGetInteger(index.Elements[idx + 1], out var count)
+                || first < 0 || count < 0)
+            {
+                Debug.WriteLine("A cross-reference stream's /Index has a pair that is not two counts: "
+                                + $"{index.Elements[idx]} {index.Elements[idx + 1]}; it is ignored.");
+                continue;
+            }
+
+            subsections.Add([first, count]);
+            entryCount += count;
         }
 
-        return subsections;
+        return [..subsections];
     }
 
     /// <summary>
@@ -1618,7 +1645,13 @@ internal sealed class Parser
                 // offsets an int cannot hold (implementation note 21 in Appendix H).
                 var position = item.Field2;
                 var objectID = ReadObjectNumber(position);
-                Debug.Assert(objectID.GenerationNumber == item.Field3);
+                if (objectID.GenerationNumber != item.Field3)
+                {
+                    // The object found there is the one read; the entry's generation is only what
+                    // the stream expected it to be.
+                    Debug.WriteLine($"Cross-reference stream entry for object {item.ObjectNumber} gives generation "
+                                    + $"{item.Field3}, and the object at {position} is {objectID}.");
+                }
 
                 //// Ignore the latter one.
                 if (!xrefTable.Contains(objectID))

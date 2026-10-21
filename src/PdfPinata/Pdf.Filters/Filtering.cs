@@ -62,9 +62,11 @@ public static class Filtering
 
     /// <summary>
     /// Whether the name is one of the standard filters this library knows of but cannot apply.
+    /// <c>CCF</c> and <c>DCT</c> are the abbreviations ISO 32000-1 Table 94 gives for inline
+    /// images, and name the same filters as their full names do.
     /// </summary>
     private static bool IsRecognisedButNotImplemented(string filterName) =>
-        filterName is "CCITTFaxDecode" or "JBIG2Decode" or "DCTDecode" or "JPXDecode" or "Crypt";
+        filterName is "CCITTFaxDecode" or "CCF" or "JBIG2Decode" or "DCTDecode" or "DCT" or "JPXDecode" or "Crypt";
 
     /// <summary>
     /// What a recognised but unimplemented filter is looked up as: nothing, with a note in the

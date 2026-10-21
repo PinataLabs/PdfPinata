@@ -371,16 +371,25 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         internal void ChangeOwner(PdfDictionary ownerDictionary)
         {
-            if (_ownerDictionary != null)
-            {
-                // ???
-            }
+            var previousOwner = _ownerDictionary;
 
             // Set new owner.
             _ownerDictionary = ownerDictionary;
 
             // Set owners elements to this.
             ownerDictionary._elements = this;
+
+            // The values written inside the dictionary now sit inside the object it was retyped
+            // as. Left pointing at the old one, a change to a direct value - a page's /Annots -
+            // marked a dictionary nothing writes, and an incremental save left it out.
+            if (previousOwner != null)
+            {
+                foreach (var value in _elements.Values)
+                {
+                    if (value is PdfObject contained && ReferenceEquals(contained.Container, previousOwner))
+                        contained.Container = ownerDictionary;
+                }
+            }
         }
 
         /// <summary>
@@ -765,8 +774,20 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 // ReSharper disable once PossibleInvalidCastException because Enum objects can always be casted to int.
                 return (int)defaultValue;
             }
-            Debug.Assert(obj is PdfName);
-            return (int)Enum.Parse(defaultValue.GetType(), obj.ToString().AsSpan(1), false);
+            // The entry may be indirect, as any entry may, and a name the enumeration does not
+            // have - or something that is not a name at all - says nothing the default does not.
+            // A name is matched against the members' names alone: Enum.TryParse would also take
+            // "/2" as the member whose value is 2, and that is not a name the file wrote.
+            if (PdfItemValues.TryGetName(obj, out var name) && name.Length > 1)
+            {
+                var enumType = defaultValue.GetType();
+                var member = name.Substring(1);
+                if (Array.IndexOf(Enum.GetNames(enumType), member) >= 0)
+                    return (int)Enum.Parse(enumType, member);
+            }
+
+            // ReSharper disable once PossibleInvalidCastException because Enum objects can always be casted to int.
+            return (int)defaultValue;
         }
 
         internal int GetEnumFromName(string key, object defaultValue)
