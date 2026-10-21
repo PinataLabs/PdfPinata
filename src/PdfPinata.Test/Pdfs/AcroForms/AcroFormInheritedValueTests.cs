@@ -180,6 +180,20 @@ public class AcroFormInheritedValueTests
         Parent(document).Elements.GetString(PdfAcroField.Keys.V).Should().Be("b");
     }
 
+    [Test]
+    public void ClearingAListThatNothingWasEverSelectedInWritesNoValue()
+    {
+        var document = new PdfDocument();
+        document.AddPage();
+        var list = new PdfListBoxField(document) { Name = "list" };
+        document.GetOrCreateAcroForm().Fields.Add(list);
+
+        list.SelectedIndices = [];
+
+        list.SelectedIndices.Should().BeEmpty();
+        list.Elements.ContainsKey(PdfAcroField.Keys.V).Should().BeFalse();
+    }
+
     private static byte[] AppearanceOf(PdfAcroField field)
     {
         var appearances = field.Widgets.Single().Elements.GetDictionary("/AP");

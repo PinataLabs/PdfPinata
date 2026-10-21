@@ -46,6 +46,17 @@ public class PdfNameEqualityTests
     }
 
     [Test]
+    public void ANameObjectEqualsNothingButANameOrAString()
+    {
+        var name = new PdfNameObject(new PdfDocument(), "/A");
+
+        name.Equals(null).Should().BeFalse();
+        name.Equals(new PdfString("/A")).Should().BeFalse("a string object is not a name, whatever it says");
+        name.Equals(42).Should().BeFalse();
+        name.Equals("/B").Should().BeFalse();
+    }
+
+    [Test]
     public void EqualNamesFindEachOtherInAHashSet()
     {
         var names = new HashSet<PdfName> { new("/Font") };

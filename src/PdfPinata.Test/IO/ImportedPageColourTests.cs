@@ -108,6 +108,19 @@ public sealed class ImportedPageColourTests : IDisposable
     }
 
     [Test]
+    public void AnImportedPageDrawnOnAnUpwardsPageIsGivenBlackFillAndStrokeToo()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        using var source = AnUncolouredPage();
+        using var form = XPdfForm.FromStream(source);
+        using (var gfx = XGraphics.FromPdfPage(page, XPageDirection.Upwards))
+            gfx.DrawImage(form, new XRect(0, 0, page.Width.Point, page.Height.Point));
+
+        ContentOf(page).Should().MatchRegex(@"q [^Q]* cm 0 g 0 G /[A-Za-z0-9]+ Do Q\n");
+    }
+
+    [Test]
     public void ATemplateIsDrawnWithTheBytesItAlwaysWas()
     {
         var document = new PdfDocument();
