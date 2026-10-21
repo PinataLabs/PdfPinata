@@ -76,8 +76,7 @@ public sealed class PdfHighlightAnnotation : PdfTextMarkupAnnotation
     /// </summary>
     protected override void DrawQuad(StringBuilder content, PdfRectangle quad)
     {
-        content.Append(PdfEncoders.Format("{0:0.###} {1:0.###} {2:0.###} {3:0.###} re f\n",
-            quad.X1, quad.Y1, quad.X2 - quad.X1, quad.Y2 - quad.Y1));
+        content.Append(TextMarkupGeometry.FilledRectangle(quad.X1, quad.Y1, quad.X2 - quad.X1, quad.Y2 - quad.Y1));
     }
 
     /// <summary>

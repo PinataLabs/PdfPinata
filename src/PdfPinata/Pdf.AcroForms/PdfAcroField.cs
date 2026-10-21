@@ -662,6 +662,14 @@ public abstract class PdfAcroField : PdfDictionary
         => (PdfAcroFieldFlags)(InheritedFrom(field, Keys.Ff)?.Elements.GetInteger(Keys.Ff) ?? 0);
 
     /// <summary>
+    /// The dictionary this field's value is read from: the field itself when it has a <c>/V</c>
+    /// of its own or none of its ancestors has one either, or else the nearest ancestor that
+    /// does, <c>/V</c> being inheritable (ISO 32000-1 Table 220). A value is always written on
+    /// the field itself, never through this.
+    /// </summary>
+    private protected PdfDictionary ValueOwner => InheritedFrom(this, Keys.V) ?? this;
+
+    /// <summary>
     /// The nearest of a field dictionary and its ancestors, walking up <c>/Parent</c>, that
     /// carries an entry for an inheritable key; or null when none does.
     /// </summary>
@@ -854,7 +862,7 @@ public abstract class PdfAcroField : PdfDictionary
     /// </summary>
     public virtual PdfItem Value
     {
-        get => Elements[Keys.V];
+        get => ValueOwner.Elements[Keys.V];
         set
         {
             EnsureCanBeFilled();

@@ -65,8 +65,9 @@ public sealed class PdfNameObject : PdfObject
     }
 
     /// <summary>
-    /// Determines whether the specified object is equal to the current object. A name whose value
-    /// is null equals nothing at all.
+    /// Determines whether the specified object is equal to the current object: a
+    /// <see cref="PdfNameObject"/>, a <see cref="PdfName"/> or a <see cref="string"/> with the same
+    /// value. A name whose value is null equals nothing at all.
     /// </summary>
     /// <remarks>
     /// <see cref="Value"/> is settable and may be set to null, so neither this nor
@@ -74,10 +75,7 @@ public sealed class PdfNameObject : PdfObject
     /// putting the name in a hash set, would otherwise throw
     /// <see cref="System.NullReferenceException"/> rather than answer.
     /// </remarks>
-    public override bool Equals(object obj)
-    {
-        return Value != null && Value.Equals(obj);
-    }
+    public override bool Equals(object obj) => PdfName.IsName(Value, obj);
 
     /// <summary>
     /// Serves as a hash function for this type.

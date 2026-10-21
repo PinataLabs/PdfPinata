@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
@@ -67,6 +68,101 @@ public class CrossReferenceStreamDecodingTests
                 data: Encode(w, (2u, 11u, 0u), (2u, 22u, 1u), (2u, 33u, 2u)))));
 
         entries.Select(entry => entry.Field2).Should().Equal(11u, 22u, 33u);
+    }
+
+    [Test, Timeout(5000)]
+    [Arguments("")]
+    [Arguments(" /Size /Three")]
+    [Arguments(" /Size 2.5")]
+    public async Task WithoutAnIndexOrAUsableSizeTheEntriesAreCountedFromTheData(string sizeEntry)
+    {
+        // /Size is required, and without /Index it is the only thing saying how many entries there
+        // are. Left out, or written as something other than an integer, it was read as zero, and
+        // the stream as one subsection of no entries: nothing went into the table and the document
+        // failed later for no stated reason. The data is a whole number of entries of the widths
+        // /W gives, so how many there are is in the data itself.
+        var w = new[] { 1, 2, 1 };
+        var entries = await Interruptibly.Run(() => EntriesOf(
+            Build(" /W [1 2 1]", "", sizeEntry,
+                data: Encode(w, (2u, 11u, 0u), (2u, 22u, 1u), (2u, 33u, 2u)))));
+
+        entries.Select(entry => entry.Field2).Should().Equal(11u, 22u, 33u);
+    }
+
+    // ----- What the file says that the reader cannot take at its word ----------------------------------
+    //
+    // Each of these reached a Debug.Assert, which ends the test host - and so any application
+    // reading the file in a debug build - rather than reporting the file. In a release build the
+    // first went on to read past the end of the data.
+
+    [Test, Timeout(5000)]
+    public async Task MoreEntriesSaidThanThereIsDataForAreReadAsFarAsTheDataGoes()
+    {
+        var w = new[] { 1, 2, 1 };
+        var entries = await Interruptibly.Run(() => EntriesOf(
+            Build(w, index: [10, 5], size: 15, data: Encode(w, (2u, 11u, 0u), (2u, 22u, 1u)))));
+
+        entries.Select(entry => entry.Field2).Should().Equal(11u, 22u);
+    }
+
+    [Test, Timeout(5000)]
+    public async Task AnIndexWithAnOddNumberOfElementsIgnoresTheLastOne()
+    {
+        var w = new[] { 1, 2, 1 };
+        var entries = await Interruptibly.Run(() => EntriesOf(
+            Build(w, index: [10, 1, 20], size: 21, data: Encode(w, (2u, 11u, 0u)))));
+
+        entries.Should().ContainSingle().Which.Field2.Should().Be(11u);
+    }
+
+    [Test, Timeout(5000)]
+    [Arguments(" /Index [/Ten 1 20 1]")]   // a first object number that is not a number
+    [Arguments(" /Index [10 1.5 20 1]")]   // a count that is not a whole number
+    [Arguments(" /Index [-1 1 20 1]")]     // a first object number below zero
+    [Arguments(" /Index [10 -1 20 1]")]    // a count below zero
+    public async Task AnIndexPairThatIsNotTwoCountsIsIgnoredAndTheRestAreRead(string indexEntry)
+    {
+        var w = new[] { 1, 2, 1 };
+        var entries = await Interruptibly.Run(() => EntriesOf(
+            Build(" /W [1 2 1]", indexEntry, " /Size 21", Encode(w, (2u, 11u, 0u)))));
+
+        entries.Should().ContainSingle().Which.Field2.Should().Be(11u);
+    }
+
+    [Test, Timeout(5000)]
+    public async Task AStreamWrittenUnderAGenerationOtherThanZeroIsStillRead()
+    {
+        var w = new[] { 1, 2, 1 };
+        var entries = await Interruptibly.Run(() => EntriesOf(
+            Build(" /W [1 2 1]", " /Index [10 1]", " /Size 11", Encode(w, (2u, 11u, 0u)), generation: "3")));
+
+        entries.Should().ContainSingle().Which.Field2.Should().Be(11u);
+    }
+
+    [Test, Timeout(5000)]
+    public async Task AnEntryWhoseGenerationDisagreesWithTheObjectItPointsAtStillFindsTheObject()
+    {
+        // The placeholder is written as "2 0 obj"; the entry says generation 7.
+        var w = new[] { 1, 2, 1 };
+        var table = await Interruptibly.Run(() => TableAfterReading(
+            Build(w, index: [2, 1], size: 3, data: Encode(w, (1u, 0u, 7u)))));
+
+        ParserProbe.ReferenceTo(table, PlaceholderId).Position.Should().Be(0);
+    }
+
+    [Test, Timeout(5000)]
+    [Arguments("")]
+    [Arguments(" /W [1 2]")]
+    [Arguments(" /W [1 /Two 1]")]
+    [Arguments(" /W [0 0 0]")]
+    [Arguments(" /W [1 -2 1]")]
+    [Arguments(" /W [1 9 1]")]
+    public async Task FieldWidthsThatCannotBeReadAreRefusedByName(string wEntry)
+    {
+        var read = () => Interruptibly.Run(() => EntriesOf(
+            Build(wEntry, " /Index [10 1]", " /Size 11", [2, 0, 11, 0])));
+
+        await read.Should().ThrowAsync<PdfReaderException>().WithMessage("*/W*");
     }
 
     [Test, Timeout(5000)]
@@ -279,10 +375,19 @@ public class CrossReferenceStreamDecodingTests
         internal long Position;
     }
 
-    private static BuiltFile Build(int[] w, int[] index, int size, byte[] data)
+    private static BuiltFile Build(int[] w, int[] index, int size, byte[] data) =>
+        Build(w == null ? "" : $" /W [{string.Join(" ", w)}]",
+            index == null ? "" : $" /Index [{string.Join(" ", index)}]",
+            $" /Size {size}", data);
+
+    /// <summary>
+    ///   The same, with each of the three entries written out as it is to appear - or as the empty
+    ///   string, for a stream that leaves it out.
+    /// </summary>
+    private static BuiltFile Build(string wEntry, string indexEntry, string sizeEntry, byte[] data,
+        string generation = "0")
     {
-        var indexEntry = index == null ? "" : $" /Index [{string.Join(" ", index)}]";
-        var header = $"4 0 obj\n<< /Type /XRef /Size {size} /W [{string.Join(" ", w)}]{indexEntry}"
+        var header = $"4 {generation} obj\n<< /Type /XRef{sizeEntry}{wEntry}{indexEntry}"
                      + $" /Length {data.Length} >>\nstream\n";
 
         var bytes = new List<byte>();

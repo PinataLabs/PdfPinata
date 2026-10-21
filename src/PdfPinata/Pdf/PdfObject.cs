@@ -83,6 +83,11 @@ public abstract class PdfObject : PdfItem
         // is what an incremental save asks from now on - a change forgotten here would be silently
         // left out of the appended revision.
         IsDirty = obj.IsDirty;
+
+        // A direct value retyped where it is read - a page's /Annots as PdfAnnotations - is not
+        // put back into its container, which goes on holding the original. The new object sits in
+        // the same place, so a change made through it has to mark the same container changed.
+        Container = obj.Container;
     }
 
     /// <summary>

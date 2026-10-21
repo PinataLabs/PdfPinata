@@ -69,6 +69,24 @@ the probe needs: **two stable `Font` instances**. A memo keyed on the object nev
 allocated per call, so a test that builds a fresh `Font` each time would hide the race rather than
 look for it.
 
+## Later: the caches were not wholly locked (#329)
+
+The second row of the table above overstated it. `FontFactory` held its caches in plain
+`Dictionary` objects, and `XGlyphTypeface.GetOrCreateFrom` took the lock around each call in turn
+and looked a font source up with no lock at all, while another thread could be writing the same
+dictionary. The caches are `ConcurrentDictionary` now, written with `TryAdd`, and `GetOrCreateFrom`
+holds the lock from its first lookup to its last. `SameFullNameFontTests` creates fonts for forty
+families on eight threads at once and checks each measures with its own bytes. The same issue
+stopped caching a font source under the full name inside the file, which refused a second file
+sharing that name: it is cached by its bytes and by the resolver's face name alone, and
+`PdfFontTable` keys a document's fonts by the bytes as well, so both files are embedded.
+
+Holding the lock across the whole of `GetOrCreateFrom` means it is held while the resolver is asked
+for a typeface and for its bytes. That is not new: `FontFactory.ResolveTypeface` already held it
+across `IFontResolver.ResolveTypeface` and `GetFont`, here and upstream, and there is one font
+lock, a monitor, so no second lock can be taken in the other order. A resolver that waits on
+another thread which itself creates a font would deadlock now as it did before.
+
 ## Not concluded here
 
 The tests say that two *separate* documents lay out correctly at the same time. They say nothing

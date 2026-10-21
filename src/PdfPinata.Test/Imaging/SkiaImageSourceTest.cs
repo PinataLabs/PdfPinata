@@ -151,4 +151,19 @@ public class SkiaImageSourceTest
         // Preserves the previous ImageSharp behaviour: only PNG sources are treated as transparent.
         xImage.Format.Should().Be(XImageFormat.Jpeg);
     }
+
+    [Test]
+    public void AColourJpegIsWrittenExactlyAsBefore()
+    {
+        // #327 taught PdfImage to read a JPEG's frame header. Skia re-encodes everything as colour,
+        // so for it nothing may have moved: the same entries, and its own JPEG byte for byte.
+        var path = Test.Helpers.PathHelper.GetInstance().GetAssetPath("frog-and-toad.jpg");
+        var source = ImageSource.FromFile(path); // Skia: the backend this assembly registers
+        using var encoded = new MemoryStream();
+        source.SaveAsJpeg(encoded);
+
+        var image = new Pdf.Advanced.PdfImage(new PdfDocument(), XImage.FromImageSource(source));
+
+        Test.Helpers.ColourJpegXObject.ShouldBeAsBefore(image, 478, 441, encoded.ToArray());
+    }
 }

@@ -73,14 +73,8 @@ public sealed class PdfContents : PdfArray
     /// </summary>
     public PdfContent AppendContent()
     {
-        Debug.Assert(Owner != null);
-
         SetModified();
-        var content = new PdfContent(Owner);
-        Owner._irefTable.Add(content);
-        Debug.Assert(content.Reference != null);
-        Elements.Add(content.Reference);
-        return content;
+        return AddRenderContent(prepend: false);
     }
 
     /// <summary>
@@ -88,14 +82,8 @@ public sealed class PdfContents : PdfArray
     /// </summary>
     public PdfContent PrependContent()
     {
-        Debug.Assert(Owner != null);
-
         SetModified();
-        var content = new PdfContent(Owner);
-        Owner._irefTable.Add(content);
-        Debug.Assert(content.Reference != null);
-        Elements.Insert(0, content.Reference);
-        return content;
+        return AddRenderContent(prepend: true);
     }
 
     /// <summary>
@@ -151,17 +139,73 @@ public sealed class PdfContents : PdfArray
         return content;
     }
 
-    private void SetModified()
+    /// <summary>
+    /// Adds the content stream an <see cref="Drawing.XGraphics"/> is about to draw into, at the end or at
+    /// the start, without yet wrapping what is already there in q and Q.
+    /// </summary>
+    /// <remarks>
+    /// The wrapping waits for <see cref="FinishRenderContent"/>, because only then is it known
+    /// whether anything was drawn. An XGraphics disposed without a mark being made has no
+    /// graphics state to protect, and leaves the page as it found it.
+    /// </remarks>
+    internal PdfContent AddRenderContent(bool prepend)
+    {
+        Debug.Assert(Owner != null);
+
+        var content = new PdfContent(Owner);
+        Owner._irefTable.Add(content);
+        Debug.Assert(content.Reference != null);
+        if (prepend)
+            Elements.Insert(0, content.Reference);
+        else
+            Elements.Add(content.Reference);
+        return content;
+    }
+
+    /// <summary>
+    /// Settles the content stream <see cref="AddRenderContent"/> added once the XGraphics drawing
+    /// into it has closed: a stream with something in it has the rest of the page's content
+    /// wrapped in q and Q, as <see cref="AppendContent"/> would have done, and an empty one is
+    /// taken off a page that has other content.
+    /// </summary>
+    /// <remarks>
+    /// An empty stream that is the page's only content stays, so that a page drawn with nothing
+    /// still has the /Contents it was given. The save path removes empty streams either way.
+    /// </remarks>
+    internal void FinishRenderContent(PdfContent content)
+    {
+        var reference = content.Reference;
+        if (content.Stream == null || content.Stream.Length == 0)
+        {
+            if (Elements.Count > 1)
+                Elements.Remove(reference);
+            return;
+        }
+        SetModified(reference);
+    }
+
+    /// <summary>
+    /// Wraps the content streams in q and Q, once, so that what is drawn after them starts from
+    /// the graphics state the page started from.
+    /// </summary>
+    /// <param name="drawn">A stream to leave out of the wrapping: the one just drawn into.</param>
+    private void SetModified(PdfItem drawn = null)
     {
         if (_modified)
             return;
 
         _modified = true;
-        var count = Elements.Count;
+        var others = new List<PdfItem>(Elements.Count);
+        foreach (var item in Elements)
+        {
+            if (!ReferenceEquals(item, drawn))
+                others.Add(item);
+        }
+        var count = others.Count;
 
         if (count == 1)
         {
-            var content = (PdfContent)((PdfReference)Elements[0]).Value;
+            var content = (PdfContent)((PdfReference)others[0]).Value;
             content.PreserveGraphicsState();
         }
         else if (count > 1)
@@ -169,7 +213,7 @@ public sealed class PdfContents : PdfArray
             // Surround content streams with q/Q operations
             byte[] value;
             int length;
-            var content = (PdfContent)((PdfReference)Elements[0]).Value;
+            var content = (PdfContent)((PdfReference)others[0]).Value;
             if (content is { Stream: not null })
             {
                 length = content.Stream.Length;
@@ -180,7 +224,7 @@ public sealed class PdfContents : PdfArray
                 content.Stream.Value = value;
                 content.Elements.SetInteger("/Length", length + 2);
             }
-            content = (PdfContent)((PdfReference)Elements[count - 1]).Value;
+            content = (PdfContent)((PdfReference)others[count - 1]).Value;
             if (content is { Stream: not null })
             {
                 length = content.Stream.Length;

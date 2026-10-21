@@ -94,8 +94,9 @@ internal sealed class PdfGraphicsState : ICloneable
     /// Null rather than <see cref="XColor.Empty"/>, whose alpha is 0: a fully transparent first
     /// pen matched that, no ExtGState was written for it, and the line was stroked at the default
     /// alpha of 1. Null always writes the alpha. For the colour itself it still stands for black,
-    /// the default stroke colour, so a first black stroke writes no "RG" - see
-    /// <see cref="_realizedStrokePattern"/>.
+    /// the default stroke colour, so a first black stroke on a page writes no "RG" - see
+    /// <see cref="_realizedStrokePattern"/>. Inside a form XObject it does not, because a form
+    /// inherits the caller's stroke colour rather than starting in black.
     /// </remarks>
     private XColor? _realizedStrokeColor;
     private bool _realizedStrokeOverPrint;
@@ -264,9 +265,12 @@ internal sealed class PdfGraphicsState : ICloneable
     /// </summary>
     private bool StrokeRgbDiffersFrom(XColor color)
     {
-        // Null still stands for the default black here, so only a spot colour realized last
-        // forces "RG" - it left the Separation space selected, whatever its components say.
+        // On a page null still stands for the default black, so only a spot colour realized last
+        // forces "RG" - it left the Separation space selected, whatever its components say. A form
+        // XObject has no default: it inherits the stroke colour in force where it is drawn, so
+        // inside one nothing written yet means the colour is unknown and has to be written (#333).
         return _realizedStrokePattern
+            || (_realizedStrokeColor == null && _renderer.Form != null)
             || _realizedStrokeColor?.Spot != null
             || (_realizedStrokeColor ?? XColor.Empty).Rgb != color.Rgb;
     }
@@ -869,9 +873,10 @@ internal sealed class PdfGraphicsState : ICloneable
         if (_renderer.Gfx.PageDirection == XPageDirection.Downwards)
         {
             // Take chirality into account and
-            // invert the direction of rotation.
-            transform.M12 = -value.M12;
-            transform.M21 = -value.M21;
+            // invert the direction of rotation. Subtracted from zero rather than negated, so that
+            // the zero of a plain translation stays a zero and is not written "-0".
+            transform.M12 = 0 - value.M12;
+            transform.M21 = 0 - value.M21;
         }
         UnrealizedCtm.Prepend(transform);
 

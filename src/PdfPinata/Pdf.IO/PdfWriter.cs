@@ -522,6 +522,25 @@ internal class PdfWriter
 
     internal PdfStandardSecurityHandler SecurityHandler { get; set; }
 
+    /// <summary>
+    /// Writes an item as it is in a document that is otherwise encrypted: a signature value, which
+    /// ISO 32000-1 7.6.2 leaves in plain because it is computed over the file's bytes. The security
+    /// handler is put back however the write ends, so nothing written after it goes out in plain.
+    /// </summary>
+    internal void WriteUnencrypted(PdfItem item)
+    {
+        var securityHandler = SecurityHandler;
+        SecurityHandler = null;
+        try
+        {
+            item.WriteObject(this);
+        }
+        finally
+        {
+            SecurityHandler = securityHandler;
+        }
+    }
+
     private class StackItem
     {
         public StackItem(PdfObject value)

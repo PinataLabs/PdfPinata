@@ -82,8 +82,8 @@ public sealed class PdfSquigglyAnnotation : PdfTextMarkupAnnotation
         var bottom = quad.Y1 + thickness;
         var top = bottom + amplitude;
 
-        content.Append(PdfEncoders.Format("{0:0.###} w\n", thickness));
-        content.Append(PdfEncoders.Format("{0:0.###} {1:0.###} m\n", quad.X1, bottom));
+        content.Append(PdfEncoders.ToString(thickness)).Append(" w\n");
+        content.Append(PdfEncoders.ToString(quad.X1)).Append(' ').Append(PdfEncoders.ToString(bottom)).Append(" m\n");
 
         // Half a period per segment, alternating between the trough and the crest. The last one
         // is clipped to the end of the quadrilateral rather than allowed to overhang it.
@@ -92,7 +92,7 @@ public sealed class PdfSquigglyAnnotation : PdfTextMarkupAnnotation
         while (x < quad.X2)
         {
             x = Math.Min(x + amplitude, quad.X2);
-            content.Append(PdfEncoders.Format("{0:0.###} {1:0.###} l\n", x, up ? top : bottom));
+            content.Append(PdfEncoders.ToString(x)).Append(' ').Append(PdfEncoders.ToString(up ? top : bottom)).Append(" l\n");
             up = !up;
         }
         content.Append("S\n");

@@ -64,12 +64,23 @@ public sealed class PdfName : PdfItem
     }
 
     /// <summary>
-    /// Determines whether the specified object is equal to this name.
+    /// Determines whether the specified object is equal to this name: a <see cref="PdfName"/>,
+    /// a <see cref="PdfNameObject"/> or a <see cref="string"/> with the same value.
     /// </summary>
-    public override bool Equals(object obj)
+    public override bool Equals(object obj) => IsName(Value, obj);
+
+    /// <summary>
+    /// Whether <paramref name="obj"/> is a <see cref="PdfName"/>, a <see cref="PdfNameObject"/> or a
+    /// <see cref="string"/> spelling <paramref name="value"/>: the one equality both name types
+    /// answer. A null value equals nothing at all.
+    /// </summary>
+    internal static bool IsName(string value, object obj) => value != null && obj switch
     {
-        return Value.Equals(obj);
-    }
+        PdfName name => value == name.Value,
+        PdfNameObject name => value == name.Value,
+        string text => value == text,
+        _ => false
+    };
 
     /// <summary>
     /// Returns the hash code for this instance.
@@ -172,10 +183,10 @@ public sealed class PdfName : PdfItem
         /// <param name="r">The second object to compare.</param>
         public int Compare(PdfName l, PdfName r)
         {
-            if (l == null) return r != null ? 1 : 0;
-            if (r != null)
-                return string.Compare(l.Value, r.Value, StringComparison.Ordinal);
-            return -1;
+            // Null sorts before every name, as it does for string.
+            if (l is null) return r is null ? 0 : -1;
+            if (r is null) return 1;
+            return string.Compare(l.Value, r.Value, StringComparison.Ordinal);
         }
     }
 }

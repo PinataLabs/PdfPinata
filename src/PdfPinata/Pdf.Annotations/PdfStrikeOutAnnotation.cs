@@ -78,8 +78,7 @@ public sealed class PdfStrikeOutAnnotation : PdfTextMarkupAnnotation
     {
         var thickness = TextMarkupGeometry.RuleThickness(quad);
         var height = quad.Y2 - quad.Y1;
-        content.Append(PdfEncoders.Format("{0:0.###} {1:0.###} {2:0.###} {3:0.###} re f\n",
-            quad.X1, quad.Y1 + height * 3 / 7, quad.X2 - quad.X1, thickness));
+        content.Append(TextMarkupGeometry.FilledRectangle(quad.X1, quad.Y1 + height * 3 / 7, quad.X2 - quad.X1, thickness));
     }
 
     /// <summary>

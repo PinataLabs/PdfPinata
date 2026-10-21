@@ -32,14 +32,20 @@ namespace PdfPinata;
 /// <summary>
 /// Floating point formatting.
 /// </summary>
+/// <remarks>
+/// Each format has three sections - positive, negative and zero - so that a value that rounds to
+/// zero from below, and a negative zero itself, is written "0" rather than "-0". A single-section
+/// format keeps the sign of whatever it rounds away, and a negative zero is noise in a content
+/// stream and a trap for anything comparing two files byte for byte.
+/// </remarks>
 internal static class Config
 {
-    public const string SignificantFigures2 = "0.##";
-    public const string SignificantFigures3 = "0.###";
-    public const string SignificantFigures4 = "0.####";
-    public const string SignificantFigures7 = "0.#######";
-    public const string SignificantFigures10 = "0.##########";
-    public const string SignificantFigures1Plus9 = "0.0#########";
+    public const string SignificantFigures2 = "0.##;-0.##;0";
+    public const string SignificantFigures3 = "0.###;-0.###;0";
+    public const string SignificantFigures4 = "0.####;-0.####;0";
+    public const string SignificantFigures7 = "0.#######;-0.#######;0";
+    public const string SignificantFigures10 = "0.##########;-0.##########;0";
+    public const string SignificantFigures1Plus9 = "0.0#########;-0.0#########;0.0";
 }
 
 internal static class Const

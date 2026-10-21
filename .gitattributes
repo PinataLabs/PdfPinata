@@ -75,3 +75,7 @@
 
 # Shell scripts run on Linux runners and under Git Bash; a CRLF breaks the shebang line.
 *.sh text eol=lf
+
+# Fixtures whose bytes are all ASCII, so text=auto would take them for text, and a CRLF checkout
+# would move every object off the offset its cross-reference entry gives.
+src/PdfPinata.Test/Assets/signed-*-qpdf.pdf binary

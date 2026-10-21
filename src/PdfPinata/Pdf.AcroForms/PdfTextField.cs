@@ -62,7 +62,7 @@ public sealed class PdfTextField : PdfAcroField
     /// </summary>
     public string Text
     {
-        get => Elements.GetString(PdfAcroField.Keys.V);
+        get => ValueOwner.Elements.GetString(PdfAcroField.Keys.V);
         set
         {
             EnsureCanBeFilled();

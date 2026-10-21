@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
@@ -229,6 +230,98 @@ public class AnnotationCollectionTests
         var annotation = placed.Annotations[0];
 
         annotation.Elements.GetReference("/P").Should().BeSameAs(placed.Reference);
+    }
+
+    /// <summary>
+    ///   <c>/P</c> names the page an annotation is on. Optional in general, but required of a
+    ///   screen annotation with a rendition action, and what some readers and importers find an
+    ///   annotation's page by. Issue #337.
+    /// </summary>
+    [Test]
+    public void AnAnnotationAddedToAPageIsSavedPointingAtThatPage()
+    {
+        var document = new PdfDocument();
+        document.AddPage();
+        var page = document.AddPage();
+        page.Annotations.Add(ANote());
+
+        var reread = ReadBack(document);
+
+        var annotation = reread.Pages[1].Annotations[0];
+        annotation.Elements.GetReference("/P").Should().BeSameAs(reread.Pages[1].Reference);
+    }
+
+    /// <summary>
+    ///   A page made with <c>new PdfPage(document)</c> has no reference until it is placed, so an
+    ///   annotation added before then has no page to name in <c>/P</c> yet. Placing the page gives
+    ///   it one. Issue #337.
+    /// </summary>
+    [Test]
+    public void AnAnnotationAddedBeforeItsPageIsPlacedIsSavedPointingAtThatPage()
+    {
+        var document = new PdfDocument();
+        var page = new PdfPage(document);
+        page.Annotations.Add(ANote());
+        document.AddPage(page);
+
+        page.Annotations[0].Elements.GetReference("/P").Should().BeSameAs(page.Reference);
+        var reread = ReadBack(document);
+        reread.Pages[0].Annotations[0].Elements.GetReference("/P").Should().BeSameAs(reread.Pages[0].Reference);
+    }
+
+    /// <summary>
+    ///   Taking an annotation off a page leaves it in the document: it may be reached from
+    ///   elsewhere, and a full save drops it when nothing does. Issue #337.
+    /// </summary>
+    [Test]
+    public void AnAnnotationTakenOffAPageThatNothingElseReachesIsNotSaved()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var note = ANote("gone");
+        page.Annotations.Add(note);
+        page.Annotations.Remove(note);
+
+        var reread = ReadBack(document);
+
+        reread.Internals.GetAllObjects().OfType<PdfDictionary>()
+            .Should().NotContain(dictionary => dictionary.Elements.GetString("/Contents") == "gone");
+    }
+
+    [Test]
+    public void AnAnnotationAddedToAPageBeforeThePageIsPlacedIsSavedOnIt()
+    {
+        // The page is not yet an object of the document, so there is nothing for /P to name.
+        var document = new PdfDocument();
+        var page = new PdfPage(document);
+        page.Annotations.Add(ANote("early"));
+        document.Pages.Add(page);
+
+        var reread = ReadBack(document);
+
+        reread.Pages[0].Annotations.Count.Should().Be(1);
+        reread.Pages[0].Annotations[0].Contents.Should().Be("early");
+    }
+
+    /// <summary>
+    ///   An annotation written directly inside a page's <c>/Annots</c>, not as an object of its own,
+    ///   is still part of the page: changing it in an appended revision rewrites the page that
+    ///   holds it. Issue #337.
+    /// </summary>
+    [Test]
+    public void ADirectAnnotationChangedInAnAppendedRevisionIsSavedWithItsPage()
+    {
+        var original = PdfPinata.Test.IO.RawPdf.Build([
+            "<</Type/Catalog/Pages 2 0 R>>",
+            "<</Type/Pages/Kids[3 0 R]/Count 1>>",
+            "<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 100]"
+            + "/Annots[<</Type/Annot/Subtype/Text/Rect[10 10 30 30]/Contents(before)>>]>>"
+        ]);
+
+        var updated = Revisions.AppendChange(original, document => document.Pages[0].Annotations[0].Contents = "after");
+
+        var reread = PdfPinata.Pdf.IO.PdfReader.Open(new System.IO.MemoryStream(updated), PdfDocumentOpenMode.Import);
+        reread.Pages[0].Annotations[0].Contents.Should().Be("after");
     }
 
     private static PdfDocument ReadBack(PdfDocument document,

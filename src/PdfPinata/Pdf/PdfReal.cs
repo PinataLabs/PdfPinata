@@ -27,6 +27,7 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System;
 using System.Diagnostics;
 using System.Globalization;
 using PdfPinata.Pdf.IO;
@@ -49,16 +50,36 @@ public sealed class PdfReal : PdfNumber
     /// Initializes a new instance of the <see cref="PdfReal"/> class.
     /// </summary>
     /// <param name="value">The value.</param>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="value"/> is infinite, not a number, or outside the range of a
+    /// single-precision real, none of which a PDF file can say (ISO 32000-1 Annex C).
+    /// </exception>
     public PdfReal(double value)
     {
+        if (double.IsNaN(value) || double.IsInfinity(value) || Math.Abs(value) > float.MaxValue)
+        {
+            throw new ArgumentException(string.Format(CultureInfo.InvariantCulture,
+                "{0} cannot be written as a PDF real, which has to be a finite number no larger in magnitude than {1}.",
+                value, float.MaxValue), nameof(value));
+        }
         Value = value;
     }
+
+    /// <summary>
+    /// A real taken as it is, without the range check of the public constructor: one the parser
+    /// has read, or one the library has worked out from such a number - a destination or an
+    /// annotation's points moved with a resized page, a line's other end written back with the
+    /// end a caller moved. A file can hold a number larger than a PDF real may be, and refusing
+    /// it, when it was read or whenever it is touched again, would make the document unusable
+    /// for one out-of-range value. A number a caller supplies goes through the constructor.
+    /// </summary>
+    internal static PdfReal Unchecked(double value) => new() { Value = value };
 
     /// <summary>
     /// Gets the value as double.
     /// </summary>
     // This class must behave like a value type. Therefore it cannot be changed (like System.String).
-    public double Value { get; }
+    public double Value { get; private init; }
 
     /// <summary>
     /// Returns the real number as string.

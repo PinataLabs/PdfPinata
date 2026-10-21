@@ -683,7 +683,8 @@ maintainer before dropping it. Two consequences:
 `TestBackendSetup` is a `[ModuleInitializer]` that registers the Skia backend and Ghostscript for
 the whole assembly — individual tests do not set up backends. `PdfPinata.ImageSharp4.Tests` has its
 own, registering the ImageSharp 4.x backend instead, so a linked test that goes through a seam
-exercises 4.x there; it rasterizes nothing and needs no Ghostscript.
+exercises 4.x there. It configures Ghostscript too, and references Ghostscript.NativeAssets and
+Magick.NET, for the one linked test that rasterizes a page (`ImageSharpGrayscaleJpegTests`).
 
 `PinnedFontResolver` serves Liberation Sans (Arial metrics) from `Assets/Fonts` instead of the
 machine's fonts, because glyph widths decide where a line wraps and therefore what a layout

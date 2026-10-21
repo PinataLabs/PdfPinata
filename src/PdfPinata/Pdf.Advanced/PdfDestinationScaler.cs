@@ -287,8 +287,8 @@ internal static class PdfDestinationScaler
             if (hasLeft && hasTop)
             {
                 var moved = matrix.Transform(new XPoint(left, top));
-                destination.Elements[2] = new PdfReal(moved.X);
-                destination.Elements[3] = new PdfReal(moved.Y);
+                destination.Elements[2] = PdfReal.Unchecked(moved.X);
+                destination.Elements[3] = PdfReal.Unchecked(moved.Y);
                 return;
             }
 
@@ -296,10 +296,10 @@ internal static class PdfDestinationScaler
             // One on its own can only be moved when the axes have not been swapped around, which
             // is to say when the other coordinate makes no difference to it.
             if (hasLeft && IsAxisAligned(matrix))
-                destination.Elements[2] = new PdfReal(TransformX(left, matrix));
+                destination.Elements[2] = PdfReal.Unchecked(TransformX(left, matrix));
 
             if (hasTop && IsAxisAligned(matrix))
-                destination.Elements[3] = new PdfReal(TransformY(top, matrix));
+                destination.Elements[3] = PdfReal.Unchecked(TransformY(top, matrix));
         }
 
         /// <summary>
@@ -327,10 +327,10 @@ internal static class PdfDestinationScaler
                     Math.Abs(right - left), Math.Abs(top - bottom)),
                 matrix);
 
-            destination.Elements[2] = new PdfReal(moved.X);
-            destination.Elements[3] = new PdfReal(moved.Y);
-            destination.Elements[4] = new PdfReal(moved.X + moved.Width);
-            destination.Elements[5] = new PdfReal(moved.Y + moved.Height);
+            destination.Elements[2] = PdfReal.Unchecked(moved.X);
+            destination.Elements[3] = PdfReal.Unchecked(moved.Y);
+            destination.Elements[4] = PdfReal.Unchecked(moved.X + moved.Width);
+            destination.Elements[5] = PdfReal.Unchecked(moved.Y + moved.Height);
         }
 
         /// <summary>
@@ -345,14 +345,14 @@ internal static class PdfDestinationScaler
 
             if (IsAxisAligned(matrix))
             {
-                destination.Elements[2] = new PdfReal(TransformY(value, matrix));
+                destination.Elements[2] = PdfReal.Unchecked(TransformY(value, matrix));
                 return;
             }
 
             // Turned: the line y = value becomes the line x = M21 * value + OffsetX, which no
             // longer depends on y at all, so it is exactly a /FitV.
             destination.Elements[1] = new PdfName(Turned(destination.Elements.GetName(1)));
-            destination.Elements[2] = new PdfReal(value * matrix.M21 + matrix.OffsetX);
+            destination.Elements[2] = PdfReal.Unchecked(value * matrix.M21 + matrix.OffsetX);
         }
 
         /// <summary>
@@ -366,12 +366,12 @@ internal static class PdfDestinationScaler
 
             if (IsAxisAligned(matrix))
             {
-                destination.Elements[2] = new PdfReal(TransformX(value, matrix));
+                destination.Elements[2] = PdfReal.Unchecked(TransformX(value, matrix));
                 return;
             }
 
             destination.Elements[1] = new PdfName(Turned(destination.Elements.GetName(1)));
-            destination.Elements[2] = new PdfReal(value * matrix.M12 + matrix.OffsetY);
+            destination.Elements[2] = PdfReal.Unchecked(value * matrix.M12 + matrix.OffsetY);
         }
 
         /// <summary>
