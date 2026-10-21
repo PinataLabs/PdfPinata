@@ -238,7 +238,7 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
     private void SetBoundingBoxOf(PdfPage importPage)
     {
         var rect = importPage.Elements.GetRectangle(PdfPage.InheritablePageKeys.MediaBox);
-        var rotate = importPage.Elements.GetInteger(PdfPage.InheritablePageKeys.Rotate);
+        var rotate = PdfPage.RotationOf(importPage.Elements);
         Elements["/BBox"] = rect;
         if (rotate == 0)
             return;
