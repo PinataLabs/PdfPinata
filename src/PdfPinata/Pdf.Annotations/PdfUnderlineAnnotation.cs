@@ -77,8 +77,7 @@ public sealed class PdfUnderlineAnnotation : PdfTextMarkupAnnotation
     protected override void DrawQuad(StringBuilder content, PdfRectangle quad)
     {
         var thickness = TextMarkupGeometry.RuleThickness(quad);
-        content.Append(PdfEncoders.Format("{0:0.###;-0.###;0} {1:0.###;-0.###;0} {2:0.###;-0.###;0} {3:0.###;-0.###;0} re f\n",
-            quad.X1, quad.Y1 + thickness, quad.X2 - quad.X1, thickness));
+        content.Append(TextMarkupGeometry.FilledRectangle(quad.X1, quad.Y1 + thickness, quad.X2 - quad.X1, thickness));
     }
 
     /// <summary>

@@ -107,7 +107,8 @@ internal static class PdfGradientSoftMask
 
         var name = form.Resources.AddPattern(alphaPattern);
         form.CreateStream(PdfEncoders.RawEncoding.GetBytes(
-            PdfEncoders.Format("/Pattern cs\n{0} scn\n0 0 {1:0.###;-0.###;0} {2:0.###;-0.###;0} re\nf\n", name, box.Width, box.Height)));
+            PdfEncoders.Format("/Pattern cs\n{0} scn\n0 0 {1} {2} re\nf\n", name,
+                PdfEncoders.ToString(box.Width), PdfEncoders.ToString(box.Height))));
 
         return form;
     }
