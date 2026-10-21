@@ -30,6 +30,7 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Globalization;
 using PdfPinata.Drawing;
 using PdfPinata.Fonts;
 using PdfPinata.Fonts.OpenType;
@@ -126,10 +127,17 @@ internal sealed class PdfFontTable : PdfResourceTable
         return pdfFont;
     }
 
+    /// <summary>
+    /// The key a font drawn with is held under. It names the font file's bytes as well as its full
+    /// name, because two files can share a full name - two revisions of one font - and each has to
+    /// be embedded from its own bytes rather than the first one drawn with (#329). Faces drawn from
+    /// one file still share one font, whatever style each simulates.
+    /// </summary>
     internal static string ComputeKey(XFont font)
     {
         var glyphTypeface = font.GlyphTypeface;
         var key = glyphTypeface.Fontface.FullFaceName.ToLowerInvariant() +
+                  "/" + glyphTypeface.FontSource.Key.ToString(CultureInfo.InvariantCulture) +
                   (glyphTypeface.IsBold ? "/b" : "") + (glyphTypeface.IsItalic ? "/i" : "") + font.Unicode;
         return key;
     }

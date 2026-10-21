@@ -261,9 +261,10 @@ internal sealed class TrueTypeGlyphs
     }
 
     /// <summary>
-    ///   A copy that calls itself something else. The library caches a font source under the
-    ///   name in the font's own name table, and refuses a second one by that name, so a font
-    ///   built by altering another has to stop claiming to be it. Only the first letter of each
+    ///   A copy that calls itself something else, so that a document drawn with it embeds it under
+    ///   a <c>/FontName</c> of its own and a test can tell it from the font it was altered from.
+    ///   The library no longer needs it: a font source is cached by its bytes and by the face
+    ///   name the resolver serves it under, not by the name inside it (#329). Only the first letter of each
     ///   name is overwritten, so every string keeps its length and its offset. Fonts altered in
     ///   different ways need different <paramref name="letter"/>s, or they share a name again.
     /// </summary>
@@ -291,6 +292,24 @@ internal sealed class TrueTypeGlyphs
             renamed[U16(record) == 3 ? at + 1 : at] = (byte)letter;
         }
         return renamed;
+    }
+
+    /// <summary>
+    ///   A copy in which <paramref name="character"/>'s glyph advances <paramref name="advance"/>
+    ///   font units, and which still calls itself by every name the original does. Only the one
+    ///   <c>hmtx</c> entry changes, so the file keeps its length and every offset in it.
+    /// </summary>
+    public byte[] WithAdvanceOf(char character, ushort advance)
+    {
+        var glyph = GlyphIndexOf(character);
+        if (glyph >= U16(_tables["hhea"] + 34))
+            throw new InvalidOperationException("glyph " + glyph + " has no long metric of its own");
+
+        var patched = (byte[])_bytes.Clone();
+        var at = _tables["hmtx"] + glyph * 4;
+        patched[at] = (byte)(advance >> 8);
+        patched[at + 1] = (byte)advance;
+        return patched;
     }
 
     /// <summary>
