@@ -88,19 +88,6 @@ internal sealed class OpenTypeFontface
         FullFaceName = name.FullFontName;
     }
 
-    public static OpenTypeFontface CetOrCreateFrom(XFontSource fontSource)
-    {
-        if (OpenTypeFontfaceCache.TryGetFontface(fontSource.Key, out var fontface))
-        {
-            return fontface;
-        }
-        //  Each font source already contains its OpenTypeFontface.
-        Debug.Assert(fontSource.Fontface != null);
-        fontface = OpenTypeFontfaceCache.AddFontface(fontSource.Fontface);
-        Debug.Assert(ReferenceEquals(fontSource.Fontface, fontface));
-        return fontface;
-    }
-
     /// <summary>
     /// Gets the full face name from the name table.
     /// Name is also used as the key.
