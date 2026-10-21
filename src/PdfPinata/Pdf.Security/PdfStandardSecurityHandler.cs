@@ -181,6 +181,9 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         {
             switch (item.Value)
             {
+                case PdfString when IsSignatureValue(dict, item.Key):
+                    break;
+
                 case PdfString value1:
                     decrypted ??= [];
                     decrypted.Add(new KeyValuePair<string, PdfString>(item.Key, EncryptString(value1)));
@@ -205,6 +208,23 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         foreach (var replacement in decrypted)
             dict.Elements[replacement.Key] = replacement.Value;
     }
+
+    /// <summary>
+    /// Whether <paramref name="key"/> of <paramref name="dict"/> is a signature value, which is never
+    /// encrypted — so neither decrypted as it is read nor encrypted as it is written.
+    /// </summary>
+    /// <remarks>
+    /// ISO 32000-1 7.6.2 leaves out the <c>/Contents</c> of a signature dictionary, because it is the
+    /// signature over the bytes of the file, itself among them. A dictionary is taken to be one by its
+    /// <c>/ByteRange</c>, which nothing else has: <c>/Type /Sig</c> is optional, and a
+    /// <c>/Contents</c> alone is an annotation's text, which is encrypted like any other string.
+    /// Only that entry is left alone; <c>/Name</c>, <c>/Reason</c> and the rest are encrypted as usual.
+    /// </remarks>
+    internal static bool IsSignatureValue(PdfDictionary dict, string key) =>
+        key == SignatureValueKey && dict.Elements.ContainsKey(SignatureByteRangeKey);
+
+    private const string SignatureValueKey = "/Contents";
+    private const string SignatureByteRangeKey = "/ByteRange";
 
     /// <summary>
     /// Encrypts the stream of a dictionary, if it has one with anything in it.
