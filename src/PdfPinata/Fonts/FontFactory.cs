@@ -31,7 +31,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Text;
 using PdfPinata.Drawing;
 using PdfPinata.Fonts.OpenType;
 using PdfPinata.Internal;
@@ -195,43 +194,6 @@ internal static class FontFactory
             return fontSource;
         }
         finally { Lock.ExitFontFactory(); }
-    }
-
-    internal static string GetFontCachesState()
-    {
-        var state = new StringBuilder();
-
-        // FontResolverInfo by name.
-        state.Append("====================\n");
-        state.Append("Font resolver info by name\n");
-        foreach (var pair in Sorted(FontResolverInfosByName))
-            state.AppendFormat("  {0}: {1}\n", pair.Key, pair.Value.DebuggerDisplay);
-        state.Append('\n');
-
-        // FontSource by key.
-        state.Append("Font source by key and face name\n");
-        var byKey = FontSourcesByKey.ToArray();
-        Array.Sort(byKey, (x, y) => x.Key.CompareTo(y.Key));
-        foreach (var pair in byKey)
-            state.AppendFormat("  {0}: {1}\n", pair.Key, pair.Value.DebuggerDisplay);
-        foreach (var pair in Sorted(FontSourcesByFaceName))
-            state.AppendFormat("  {0}: {1}\n", pair.Key, pair.Value.DebuggerDisplay);
-        state.Append("--------------------\n\n");
-
-        // FontFamilyInternal by name.
-        state.Append(FontFamilyCache.GetCacheState());
-        // XGlyphTypeface by name.
-        state.Append(GlyphTypefaceCache.GetCacheState());
-        // OpenTypeFontface by name.
-        state.Append(OpenTypeFontfaceCache.GetCacheState());
-        return state.ToString();
-    }
-
-    private static System.Collections.Generic.KeyValuePair<string, T>[] Sorted<T>(ConcurrentDictionary<string, T> cache)
-    {
-        var pairs = cache.ToArray();
-        Array.Sort(pairs, (x, y) => StringComparer.OrdinalIgnoreCase.Compare(x.Key, y.Key));
-        return pairs;
     }
 
     /// <summary>

@@ -1505,7 +1505,8 @@ internal sealed class Parser
     {
         // Every check below is on what the file says, so none of them is an assertion: a failed
         // Debug.Assert ends the process it runs in rather than reporting the file.
-        var bytes = xrefStream.Stream?.UnfilteredValue ?? [];
+        // ReadXRefStream has read the stream, and ReadStream either gives the dictionary one or throws.
+        var bytes = xrefStream.Stream.UnfilteredValue;
         var wsize = XRefStreamFieldWidths(xrefStream);
         var wsum = StreamHelper.WSize(wsize);
         var available = bytes.Length / wsum;

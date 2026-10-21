@@ -125,6 +125,20 @@ public class InheritedPageEntryTests
     });
 
     [Test, Timeout(10000)]
+    public Task IndirectResourcesOnThePageAreKept() => Interruptibly.Run(() =>
+    {
+        var document = Open(
+            "<</Type/Catalog/Pages 2 0 R>>",
+            "<</Type/Pages/Kids[3 0 R]/Count 1/MediaBox[0 0 200 100]/Resources<</Font<</F1 4 0 R>>>>>>",
+            "<</Type/Page/Parent 2 0 R/Resources 5 0 R>>",
+            "<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>",
+            "<</ProcSet[/PDF]>>");
+
+        var pageResources = document.Pages[0].Elements.GetDictionary("/Resources")!;
+        pageResources.Elements.ContainsKey("/ProcSet").Should().BeTrue();
+    });
+
+    [Test, Timeout(10000)]
     public Task AWellFormedInheritedRotateAndResourcesAreReadAsBefore() => Interruptibly.Run(() =>
     {
         var document = Open(

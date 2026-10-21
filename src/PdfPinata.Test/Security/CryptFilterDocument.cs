@@ -15,7 +15,8 @@ namespace PdfPinata.Test.Security;
 /// <remarks>
 ///   The user password is empty and the owner password <see cref="OwnerPassword"/>. Objects: 1 the
 ///   catalog, 2 the page tree, 3 the page, 4 the metadata stream, 5 the content stream, 6 the
-///   information dictionary, 7 the encryption dictionary.
+///   information dictionary, 7 the encryption dictionary, and from 8 the
+///   <see cref="ExtraObjects"/>.
 /// </remarks>
 internal sealed class CryptFilterDocument
 {
@@ -44,6 +45,12 @@ internal sealed class CryptFilterDocument
 
     /// <summary>The extra entries of the metadata stream's dictionary, such as a <c>/Filter /Crypt</c>.</summary>
     public string MetadataEntries { get; init; } = "";
+
+    /// <summary>
+    ///   Objects written after the encryption dictionary, numbered from 8, for the entries of
+    ///   <see cref="MetadataEntries"/> to refer to. Nothing in them is encrypted.
+    /// </summary>
+    public IReadOnlyList<string> ExtraObjects { get; init; } = [];
 
     public byte[] Metadata { get; init; } = Encoding.ASCII.GetBytes(
         "<?xpacket begin=\"\" id=\"W5M0MpCehiHzreSzNTczkc9d\"?><x:xmpmeta xmlns:x=\"adobe:ns:meta/\"/>\n<?xpacket end=\"w\"?>");
@@ -100,6 +107,7 @@ internal sealed class CryptFilterDocument
                   $"/Length 16 >> >>{Entry("/StmF", StreamFilter)}{Entry("/StrF", StringFilter)} /O <{Hex(Owner)}> /U <{Hex(user)}> " +
                   $"/P {Permissions}{encryptMetadata} >>")
         };
+        objects.AddRange(ExtraObjects.Select(Ascii));
 
         var file = new List<byte>(Ascii("%PDF-1.6\n"));
         var offsets = new List<int>();
