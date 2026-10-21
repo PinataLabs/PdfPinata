@@ -68,6 +68,21 @@ public sealed class ImageSharpGrayscaleJpegTests : IDisposable
         image.Elements.GetName(PdfImage.Keys.ColorSpace).Should().Be("/DeviceRGB");
     }
 
+    [Test]
+    public void AColourJpegIsWrittenExactlyAsBefore()
+    {
+        // Reading the frame header changed nothing else: the XObject has the entries it always had,
+        // and its stream is the backend's own JPEG, byte for byte.
+        var source = new Probe().Load(Asset(ColourAsset));
+        using var _ = source as IDisposable;
+        using var encoded = new MemoryStream();
+        source.SaveAsJpeg(encoded);
+
+        var image = new PdfImage(new PdfDocument(), XImage.FromImageSource(source));
+
+        ColourJpegXObject.ShouldBeAsBefore(image, 478, 441, encoded.ToArray());
+    }
+
     [Test, GoldenImage]
     public void AGrayscaleJpegIsDrawnInItsOwnGreys()
     {
