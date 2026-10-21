@@ -31,6 +31,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Security.Cryptography;
+using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Internal;
 
@@ -238,10 +239,83 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         if (bytes.Length == 0)
             return;
 
+        if (IsLeftInPlain(dict))
+            return;
+
         streamEncryptor.CreateHashKey(dict.ObjectID);
         bytes = streamEncryptor.Encrypt(bytes);
         dict.Stream.Value = bytes;
     }
+
+    /// <summary>
+    /// Whether the stream of <paramref name="dict"/> is one the encryption dictionary says is not
+    /// encrypted, and so is left as it is read.
+    /// </summary>
+    /// <remarks>
+    /// A metadata stream when <c>/EncryptMetadata</c> is false (ISO 32000-1 Table 20). It is read
+    /// at <c>/V</c> 4 and 5 alone, where it is part of the file key too; the rule is applied to every
+    /// <c>/Type /Metadata</c> stream, as qpdf does, because some writers leave out the
+    /// <c>/Crypt</c> filter that would otherwise say the stream is plain.
+    /// </remarks>
+    private bool IsLeftInPlain(PdfDictionary dict) =>
+        TakeOffIdentityCryptFilter(dict) || !EncryptsMetadata && dict.Elements.GetName("/Type") == "/Metadata";
+
+    /// <summary>
+    /// Whether the stream of <paramref name="dict"/> names a <c>/Crypt</c> filter of its own that is
+    /// <c>/Identity</c>, as one with no <c>/Name</c> is; if it does, that filter is taken off.
+    /// </summary>
+    /// <remarks>
+    /// ISO 32000-1 7.4.10 puts it first among the stream's filters. It is taken off because what
+    /// is read is plain and what is written is encrypted with everything else, so a save that kept
+    /// it would mark encrypted data as plain. A <c>/Crypt</c> naming any other filter is left to the
+    /// stream encryptor as before.
+    /// </remarks>
+    private static bool TakeOffIdentityCryptFilter(PdfDictionary dict)
+    {
+        var filter = dict.Elements[PdfStream.Keys.Filter];
+        var parms = dict.Elements[PdfStream.Keys.DecodeParms];
+        if (filter is PdfReference filterReference)
+            filter = filterReference.Value;
+        if (parms is PdfReference parmsReference)
+            parms = parmsReference.Value;
+
+        var filterArray = filter as PdfArray;
+        var first = filterArray is { Elements.Count: > 0 } ? filterArray.Elements[0] : filter;
+        if ((first as PdfName)?.Value != CryptFilter)
+            return false;
+
+        var parmsArray = parms as PdfArray;
+        var firstParms = parmsArray is { Elements.Count: > 0 } ? parmsArray.Elements[0] : parms;
+        if (firstParms is PdfReference firstParmsReference)
+            firstParms = firstParmsReference.Value;
+        var name = (firstParms as PdfDictionary)?.Elements.GetName("/Name");
+        if (!string.IsNullOrEmpty(name) && name != EncryptorFactory.IdentityFilter)
+            return false;
+
+        if (filterArray is { Elements.Count: > 1 })
+        {
+            filterArray.Elements.RemoveAt(0);
+            if (parmsArray is { Elements.Count: > 0 })
+                parmsArray.Elements.RemoveAt(0);
+        }
+        else
+        {
+            dict.Elements.Remove(PdfStream.Keys.Filter);
+            dict.Elements.Remove(PdfStream.Keys.DecodeParms);
+        }
+        return true;
+    }
+
+    private const string CryptFilter = "/Crypt";
+
+    /// <summary>
+    /// Whether the document's metadata streams are encrypted: <c>/EncryptMetadata</c>, which means
+    /// something only at <c>/V</c> 4 and 5 and defaults to true.
+    /// </summary>
+    private bool EncryptsMetadata =>
+        Elements.GetInteger(PdfSecurityHandler.Keys.V) < 4
+        || !Elements.ContainsKey(Keys.EncryptMetadata)
+        || Elements.GetBoolean(Keys.EncryptMetadata);
 
     /// <summary>
     /// Encrypts an array.
