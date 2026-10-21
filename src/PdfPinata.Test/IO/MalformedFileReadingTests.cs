@@ -101,6 +101,43 @@ public class MalformedFileReadingTests
         await open.Should().ThrowAsync<PdfReaderException>().WithMessage("*object stream*4*");
     }
 
+    [Test, Timeout(10000)]
+    public async Task AnObjectStreamTheFileDoesNotHaveIsRefusedByName()
+    {
+        // Object 5 is said to be compressed in object stream 9, and there is no object 9.
+        var file = WithCrossReferenceStream(" /Size 7", [
+            "<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+            "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << /ExtGState << /GS1 5 0 R >> >> >>",
+            "<< /Kind /Unrelated >>"
+        ], compressed: (5, 9));
+
+        var open = () => Interruptibly.Run(() => Open(file));
+
+        await open.Should().ThrowAsync<PdfReaderException>().WithMessage("*object stream 9*no such object*");
+    }
+
+    [Test, Timeout(10000)]
+    public async Task AnObjectStreamWithoutItsTypeIsStillReadAsOne()
+    {
+        // /Type /ObjStm is required, and some writers leave it out. "5 0 " is the header the
+        // stream's /First skips: object 5 at offset 0.
+        const string compressed = "<< /Type /ExtGState /CA 0.5 >>";
+        var file = WithCrossReferenceStream(" /Size 7", [
+            "<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+            "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << /ExtGState << /GS1 5 0 R >> >> >>",
+            $"<< /N 1 /First 4 /Length {4 + compressed.Length} >>\nstream\n5 0 {compressed}\nendstream"
+        ], compressed: (5, 4));
+
+        var graphicsState = await Interruptibly.Run(() => Open(file).Pages[0].Resources.Elements
+            .GetDictionary("/ExtGState")!.Elements.GetDictionary("/GS1"));
+
+        graphicsState.Should().NotBeNull();
+        graphicsState!.Elements.GetName("/Type").Should().Be("/ExtGState");
+        graphicsState.Elements.GetReal("/CA").Should().Be(0.5);
+    }
+
     // ----- the documents ------------------------------------------------------------------------------
 
     private static PdfDocument Open(byte[] file) =>

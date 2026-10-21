@@ -116,6 +116,20 @@ public class CrossReferenceStreamDecodingTests
     }
 
     [Test, Timeout(5000)]
+    [Arguments(" /Index [/Ten 1 20 1]")]   // a first object number that is not a number
+    [Arguments(" /Index [10 1.5 20 1]")]   // a count that is not a whole number
+    [Arguments(" /Index [-1 1 20 1]")]     // a first object number below zero
+    [Arguments(" /Index [10 -1 20 1]")]    // a count below zero
+    public async Task AnIndexPairThatIsNotTwoCountsIsIgnoredAndTheRestAreRead(string indexEntry)
+    {
+        var w = new[] { 1, 2, 1 };
+        var entries = await Interruptibly.Run(() => EntriesOf(
+            Build(" /W [1 2 1]", indexEntry, " /Size 21", Encode(w, (2u, 11u, 0u)))));
+
+        entries.Should().ContainSingle().Which.Field2.Should().Be(11u);
+    }
+
+    [Test, Timeout(5000)]
     public async Task AStreamWrittenUnderAGenerationOtherThanZeroIsStillRead()
     {
         var w = new[] { 1, 2, 1 };

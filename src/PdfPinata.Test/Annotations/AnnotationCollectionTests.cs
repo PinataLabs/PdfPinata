@@ -270,6 +270,42 @@ public class AnnotationCollectionTests
             .Should().NotContain(dictionary => dictionary.Elements.GetString("/Contents") == "gone");
     }
 
+    [Test]
+    public void AnAnnotationAddedToAPageBeforeThePageIsPlacedIsSavedOnIt()
+    {
+        // The page is not yet an object of the document, so there is nothing for /P to name.
+        var document = new PdfDocument();
+        var page = new PdfPage(document);
+        page.Annotations.Add(ANote("early"));
+        document.Pages.Add(page);
+
+        var reread = ReadBack(document);
+
+        reread.Pages[0].Annotations.Count.Should().Be(1);
+        reread.Pages[0].Annotations[0].Contents.Should().Be("early");
+    }
+
+    /// <summary>
+    ///   An annotation written directly inside a page's <c>/Annots</c>, not as an object of its own,
+    ///   is still part of the page: changing it in an appended revision rewrites the page that
+    ///   holds it. Issue #337.
+    /// </summary>
+    [Test]
+    public void ADirectAnnotationChangedInAnAppendedRevisionIsSavedWithItsPage()
+    {
+        var original = PdfPinata.Test.IO.RawPdf.Build([
+            "<</Type/Catalog/Pages 2 0 R>>",
+            "<</Type/Pages/Kids[3 0 R]/Count 1>>",
+            "<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 100]"
+            + "/Annots[<</Type/Annot/Subtype/Text/Rect[10 10 30 30]/Contents(before)>>]>>"
+        ]);
+
+        var updated = Revisions.AppendChange(original, document => document.Pages[0].Annotations[0].Contents = "after");
+
+        var reread = PdfPinata.Pdf.IO.PdfReader.Open(new System.IO.MemoryStream(updated), PdfDocumentOpenMode.Import);
+        reread.Pages[0].Annotations[0].Contents.Should().Be("after");
+    }
+
     private static PdfDocument ReadBack(PdfDocument document,
         PdfDocumentOpenMode mode = PdfDocumentOpenMode.Modify) => document.Reopened(mode);
 }

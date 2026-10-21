@@ -91,6 +91,7 @@ public class UnencryptedDataTests
     [Arguments("/AESV2", " /Filter /Crypt /DecodeParms << /Name /Identity >>")]
     [Arguments("/V2", " /Filter [/Crypt] /DecodeParms [<< /Name /Identity >>]")]
     [Arguments("/V2", " /Filter /Crypt")] // A /Crypt filter with no /Name is /Identity.
+    [Arguments("/V2", " /Filter [/Crypt] /DecodeParms []")] // nor with no parameters at all
     public void AStreamItsOwnCryptFilterLeavesInPlainReadsAsItStands(string method, string entries)
     {
         var document = new CryptFilterDocument { Method = method, PlainMetadata = true, MetadataEntries = entries };
@@ -99,6 +100,56 @@ public class UnencryptedDataTests
 
         MetadataOf(read).Should().Equal(document.Metadata);
         ContentOf(read).Should().Equal(document.Content, "every other stream is still under /StdCF");
+    }
+
+    [Test]
+    [Arguments("/V2")]
+    [Arguments("/AESV2")]
+    public void AnIdentityCryptFilterGivenByReferenceLeavesTheStreamInPlain(string method)
+    {
+        // /Filter, /DecodeParms and the parameters inside them are each an indirect object.
+        var document = new CryptFilterDocument
+        {
+            Method = method, PlainMetadata = true, MetadataEntries = " /Filter 8 0 R /DecodeParms 9 0 R",
+            ExtraObjects = ["[/Crypt]", "[10 0 R]", "<< /Type /CryptFilterDecodeParms /Name /Identity >>"]
+        };
+
+        var read = Open(document.Build());
+
+        MetadataOf(read).Should().Equal(document.Metadata);
+    }
+
+    [Test]
+    [Arguments("/V2", " /DecodeParms [<< /Name /Identity >> null]")]
+    [Arguments("/AESV2", " /DecodeParms [<< /Name /Identity >> null]")]
+    [Arguments("/V2", "")] // no parameters: a /Crypt filter with none is /Identity
+    public void AnIdentityCryptFilterBeforeAnotherIsTakenOffAndTheOtherStillDecodes(string method, string parms)
+    {
+        var plain = new CryptFilterDocument().Metadata;
+        var document = new CryptFilterDocument
+        {
+            Method = method, PlainMetadata = true, Metadata = Deflated(plain),
+            MetadataEntries = " /Filter [/Crypt /FlateDecode]" + parms
+        };
+
+        var read = Open(document.Build());
+
+        var metadata = read.Internals.Catalog.Elements.GetDictionary("/Metadata");
+        metadata.Elements.GetArray("/Filter").Elements.Should().ContainSingle()
+            .Which.Should().Be(new PdfName("/FlateDecode"), "only the crypt filter is taken off");
+        metadata.Stream.UnfilteredValue.Should().Equal(plain);
+    }
+
+    [Test]
+    [Arguments(" /Filter /Crypt /DecodeParms << /Name /StdCF >>")] // the document's own filter, by name
+    [Arguments(" /Filter []")]                                    // no filter at all
+    public void AStreamWhoseFiltersNameNoIdentityCryptFilterIsDecryptedWithTheDocument(string entries)
+    {
+        var document = new CryptFilterDocument { MetadataEntries = entries };
+
+        var read = Open(document.Build());
+
+        MetadataOf(read).Should().Equal(document.Metadata);
     }
 
     [Test]
@@ -139,6 +190,14 @@ public class UnencryptedDataTests
                 return document;
         }
         throw new System.InvalidOperationException("No whitespace ending decrypts to valid padding.");
+    }
+
+    private static byte[] Deflated(byte[] data)
+    {
+        var compressed = new MemoryStream();
+        using (var zlib = new System.IO.Compression.ZLibStream(compressed, System.IO.Compression.CompressionLevel.Optimal))
+            zlib.Write(data);
+        return compressed.ToArray();
     }
 
     private static PdfDocument Open(byte[] bytes) =>
