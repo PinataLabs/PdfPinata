@@ -89,11 +89,11 @@ public sealed class XGraphics : IDisposable
                 goto case XGraphicsPdfPageOptions.Append;
 
             case XGraphicsPdfPageOptions.Prepend:
-                content = page.Contents.PrependContent();
+                content = page.Contents.AddRenderContent(prepend: true);
                 break;
 
             case XGraphicsPdfPageOptions.Append:
-                content = page.Contents.AppendContent();
+                content = page.Contents.AddRenderContent(prepend: false);
                 break;
         }
         page.RenderContent = content;

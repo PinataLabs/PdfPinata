@@ -873,9 +873,10 @@ internal sealed class PdfGraphicsState : ICloneable
         if (_renderer.Gfx.PageDirection == XPageDirection.Downwards)
         {
             // Take chirality into account and
-            // invert the direction of rotation.
-            transform.M12 = -value.M12;
-            transform.M21 = -value.M21;
+            // invert the direction of rotation. Subtracted from zero rather than negated, so that
+            // the zero of a plain translation stays a zero and is not written "-0".
+            transform.M12 = 0 - value.M12;
+            transform.M21 = 0 - value.M21;
         }
         UnrealizedCtm.Prepend(transform);
 

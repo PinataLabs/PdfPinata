@@ -28,6 +28,8 @@
 #endregion
 
 using System.Collections.Generic;
+using PdfPinata.Pdf.Internal;
+using PdfPinata.Pdf.IO;
 
 namespace PdfPinata.Pdf.Advanced;
 
@@ -50,7 +52,34 @@ public sealed class PdfResources : PdfDictionary
     public PdfResources(PdfDocument document)
         : base(document)
     {
-        Elements[Keys.ProcSet] = new PdfLiteral("[/PDF/Text/ImageB/ImageC/ImageI]");
+        Elements[Keys.ProcSet] = new ProcSetArray(document);
+    }
+
+    /// <summary>
+    /// The procedure sets a new resource dictionary names: an array of names in memory, as the
+    /// same dictionary read back from a file is, and written without a space between them, as it
+    /// always was while it was a literal.
+    /// </summary>
+    private sealed class ProcSetArray : PdfArray
+    {
+        public ProcSetArray(PdfDocument document)
+            : base(document, new PdfName("/PDF"), new PdfName("/Text"), new PdfName("/ImageB"),
+                new PdfName("/ImageC"), new PdfName("/ImageI"))
+        { }
+
+        internal override void WriteObject(PdfWriter writer)
+        {
+            // A name begins with a slash, which is a delimiter, so one needs no space before it.
+            writer.WriteBeginObject(this);
+            foreach (var item in Elements)
+            {
+                if (item is PdfName name)
+                    writer.WriteRaw(PdfEncoders.ToNameLiteral(name.Value));
+                else
+                    item.WriteObject(writer);
+            }
+            writer.WriteEndObject();
+        }
     }
 
     internal PdfResources(PdfDictionary dict)

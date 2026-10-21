@@ -287,7 +287,7 @@ internal sealed class PdfPageSheet
 
     private static void Mark(StringBuilder marks, double x1, double y1, double x2, double y2)
     {
-        marks.AppendFormat(CultureInfo.InvariantCulture, "{0:0.###} {1:0.###} m {2:0.###} {3:0.###} l S\n",
+        marks.AppendFormat(CultureInfo.InvariantCulture, "{0:0.###;-0.###;0} {1:0.###;-0.###;0} m {2:0.###;-0.###;0} {3:0.###;-0.###;0} l S\n",
             x1, y1, x2, y2);
     }
 }
