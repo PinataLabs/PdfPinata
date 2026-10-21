@@ -73,14 +73,8 @@ public sealed class PdfContents : PdfArray
     /// </summary>
     public PdfContent AppendContent()
     {
-        Debug.Assert(Owner != null);
-
         SetModified();
-        var content = new PdfContent(Owner);
-        Owner._irefTable.Add(content);
-        Debug.Assert(content.Reference != null);
-        Elements.Add(content.Reference);
-        return content;
+        return AddRenderContent(prepend: false);
     }
 
     /// <summary>
@@ -88,14 +82,8 @@ public sealed class PdfContents : PdfArray
     /// </summary>
     public PdfContent PrependContent()
     {
-        Debug.Assert(Owner != null);
-
         SetModified();
-        var content = new PdfContent(Owner);
-        Owner._irefTable.Add(content);
-        Debug.Assert(content.Reference != null);
-        Elements.Insert(0, content.Reference);
-        return content;
+        return AddRenderContent(prepend: true);
     }
 
     /// <summary>

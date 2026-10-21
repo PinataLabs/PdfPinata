@@ -75,19 +75,7 @@ public sealed class PdfNameObject : PdfObject
     /// putting the name in a hash set, would otherwise throw
     /// <see cref="System.NullReferenceException"/> rather than answer.
     /// </remarks>
-    public override bool Equals(object obj)
-    {
-        if (Value == null)
-            return false;
-
-        return obj switch
-        {
-            PdfNameObject name => Value == name.Value,
-            PdfName name => Value == name.Value,
-            string value => Value == value,
-            _ => false
-        };
-    }
+    public override bool Equals(object obj) => PdfName.IsName(Value, obj);
 
     /// <summary>
     /// Serves as a hash function for this type.

@@ -67,16 +67,20 @@ public sealed class PdfName : PdfItem
     /// Determines whether the specified object is equal to this name: a <see cref="PdfName"/>,
     /// a <see cref="PdfNameObject"/> or a <see cref="string"/> with the same value.
     /// </summary>
-    public override bool Equals(object obj)
+    public override bool Equals(object obj) => IsName(Value, obj);
+
+    /// <summary>
+    /// Whether <paramref name="obj"/> is a <see cref="PdfName"/>, a <see cref="PdfNameObject"/> or a
+    /// <see cref="string"/> spelling <paramref name="value"/>: the one equality both name types
+    /// answer. A null value equals nothing at all.
+    /// </summary>
+    internal static bool IsName(string value, object obj) => value != null && obj switch
     {
-        return obj switch
-        {
-            PdfName name => Value == name.Value,
-            PdfNameObject name => Value == name.Value,
-            string value => Value == value,
-            _ => false
-        };
-    }
+        PdfName name => value == name.Value,
+        PdfNameObject name => value == name.Value,
+        string text => value == text,
+        _ => false
+    };
 
     /// <summary>
     /// Returns the hash code for this instance.
