@@ -755,8 +755,20 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 // ReSharper disable once PossibleInvalidCastException because Enum objects can always be casted to int.
                 return (int)defaultValue;
             }
-            Debug.Assert(obj is PdfName);
-            return (int)Enum.Parse(defaultValue.GetType(), obj.ToString().AsSpan(1), false);
+            // The entry may be indirect, as any entry may, and a name the enumeration does not
+            // have - or something that is not a name at all - says nothing the default does not.
+            // A name is matched against the members' names alone: Enum.TryParse would also take
+            // "/2" as the member whose value is 2, and that is not a name the file wrote.
+            if (PdfItemValues.TryGetName(obj, out var name) && name.Length > 1)
+            {
+                var enumType = defaultValue.GetType();
+                var member = name.Substring(1);
+                if (Array.IndexOf(Enum.GetNames(enumType), member) >= 0)
+                    return (int)Enum.Parse(enumType, member);
+            }
+
+            // ReSharper disable once PossibleInvalidCastException because Enum objects can always be casted to int.
+            return (int)defaultValue;
         }
 
         internal int GetEnumFromName(string key, object defaultValue)

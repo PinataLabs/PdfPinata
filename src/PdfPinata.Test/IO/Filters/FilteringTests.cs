@@ -53,6 +53,8 @@ public class FilteringTests
     [Arguments("DCTDecode")]
     [Arguments("JPXDecode")]
     [Arguments("Crypt")]
+    [Arguments("CCF")]
+    [Arguments("DCT")]
     public void AFilterThatIsRealButUnimplementedComesBackAsNothing(string name)
     {
         // Named in the reference and not written here. The caller gets null rather than an
@@ -66,6 +68,28 @@ public class FilteringTests
         Filtering.DecodeToString([1, 2, 3], name, null).Should().BeNull();
         Filtering.Encode([1, 2, 3], name).Should().BeNull();
         Filtering.Encode("abc", name).Should().BeNull();
+    }
+
+    [Test]
+    [Arguments("/CCF")]
+    [Arguments("/DCT")]
+    [Arguments("/CCITTFaxDecode")]
+    [Arguments("/DCTDecode")]
+    public void AStreamInAFilterThatCannotBeAppliedSaysSoRatherThanThrowing(string name)
+    {
+        // ISO 32000-1 Table 94 abbreviates CCITTFaxDecode and DCTDecode for inline images, and a
+        // stream named by an abbreviation is the same stream as one named in full. Both fell
+        // through to "Unknown filter", so asking whether the stream could be decoded was answered
+        // with a NotImplementedException.
+        var document = new PdfDocument();
+        var dictionary = new PdfDictionary(document);
+        dictionary.CreateStream([1, 2, 3]);
+        dictionary.Elements["/Filter"] = new PdfName(name);
+
+        dictionary.Stream.TryUnfilter().Should().BeFalse();
+
+        dictionary.Elements.GetName("/Filter").Should().Be(name, "a stream left encoded still says how");
+        dictionary.Stream.Value.Should().Equal([1, 2, 3]);
     }
 
     [Test]
