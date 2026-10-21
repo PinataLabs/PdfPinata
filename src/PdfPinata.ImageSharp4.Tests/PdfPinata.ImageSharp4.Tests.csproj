@@ -15,6 +15,9 @@
     <PackageReference Include="Microsoft.Testing.Extensions.HangDump" Version="2.4.1" />
     <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="2.4.1" />
     <PackageReference Include="TUnit.Engine" Version="1.72.16" />
+    <!-- Rasterizing, for the one linked test that draws a page: ImageSharpGrayscaleJpegTests. -->
+    <PackageReference Include="Ghostscript.NativeAssets" Version="10.8.0" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.17.1" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.152.1" />
     <PackageReference Include="SkiaSharp.NativeAssets.macOS" Version="4.152.1" />
     <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="4.152.1" />
@@ -65,6 +68,7 @@
     <Compile Include="..\PdfPinata.Test\Imaging\ImageSharpVersionTest.cs" Link="Linked\Imaging\ImageSharpVersionTest.cs" />
     <Compile Include="..\PdfPinata.Test\Imaging\ImageSharpDecodingParityTests.cs" Link="Linked\Imaging\ImageSharpDecodingParityTests.cs" />
     <Compile Include="..\PdfPinata.Test\Imaging\ImageSharpCmykJpegTests.cs" Link="Linked\Imaging\ImageSharpCmykJpegTests.cs" />
+    <Compile Include="..\PdfPinata.Test\Imaging\ImageSharpGrayscaleJpegTests.cs" Link="Linked\Imaging\ImageSharpGrayscaleJpegTests.cs" />
     <Compile Include="..\PdfPinata.Test\Imaging\ImageTransparencyTests.cs" Link="Linked\Imaging\ImageTransparencyTests.cs" />
     <Compile Include="..\PdfPinata.Test\Imaging\ImageSharpTransparencyTests.cs" Link="Linked\Imaging\ImageSharpTransparencyTests.cs" />
     <Compile Include="..\PdfPinata.Test\Drawing\GlyphOutlineTests.cs" Link="Linked\Drawing\GlyphOutlineTests.cs" />
@@ -78,12 +82,19 @@
     <Compile Include="..\PdfPinata.Test\Helpers\ContentOperands.cs" Link="Linked\Helpers\ContentOperands.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\DrawnText.cs" Link="Linked\Helpers\DrawnText.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\EmbeddedColourProfile.cs" Link="Linked\Helpers\EmbeddedColourProfile.cs" />
+    <Compile Include="..\PdfPinata.Test\Helpers\GhostscriptSetup.cs" Link="Linked\Helpers\GhostscriptSetup.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\GlyphOutlineGeometry.cs" Link="Linked\Helpers\GlyphOutlineGeometry.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\GlyphOutlineSensitiveAttribute.cs" Link="Linked\Helpers\GlyphOutlineSensitiveAttribute.cs" />
+    <Compile Include="..\PdfPinata.Test\Helpers\GoldenImageAttribute.cs" Link="Linked\Helpers\GoldenImageAttribute.cs" />
+    <Compile Include="..\PdfPinata.Test\Helpers\JpegFrame.cs" Link="Linked\Helpers\JpegFrame.cs" />
+    <Compile Include="..\PdfPinata.Test\Helpers\PageInk.cs" Link="Linked\Helpers\PageInk.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\PageContent.cs" Link="Linked\Helpers\PageContent.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\PathGeometry.cs" Link="Linked\Helpers\PathGeometry.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\PathHelper.cs" Link="Linked\Helpers\PathHelper.cs" />
+    <Compile Include="..\PdfPinata.Test\Helpers\PdfHelper.cs" Link="Linked\Helpers\PdfHelper.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\PinnedFontResolver.cs" Link="Linked\Helpers\PinnedFontResolver.cs" />
+    <Compile Include="..\PdfPinata.Test\Helpers\Rasterizations.cs" Link="Linked\Helpers\Rasterizations.cs" />
+    <Compile Include="..\PdfPinata.Test\Helpers\RasterizingAttribute.cs" Link="Linked\Helpers\RasterizingAttribute.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\TextBaselines.cs" Link="Linked\Helpers\TextBaselines.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\TextOperators.cs" Link="Linked\Helpers\TextOperators.cs" />
     <Compile Include="..\PdfPinata.Test\Helpers\TrueTypeCollectionBuilder.cs" Link="Linked\Helpers\TrueTypeCollectionBuilder.cs" />
