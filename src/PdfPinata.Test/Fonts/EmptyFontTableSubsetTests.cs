@@ -22,8 +22,8 @@ public class EmptyFontTableSubsetTests
     [Arguments("prep", 'S')]
     public void AnEmptyOptionalTableOfTheFaceIsLeftOutOfTheSubset(string tag, char letter)
     {
-        // A family, and a name inside the font, of each case's own: the library caches a face
-        // under the name in its name table, and the resolver keeps the first bytes it is given.
+        // A family, and a name inside the font, of each case's own: the resolver keeps the first
+        // bytes it is given for a family, and the name is how the embedded program is found again.
         var family = "Empty " + tag.Trim() + " Probe";
         var original = new TrueTypeGlyphs(File.ReadAllBytes(
             PathHelper.GetInstance().GetAssetPath("Fonts", "LiberationSans-Regular.ttf")));
