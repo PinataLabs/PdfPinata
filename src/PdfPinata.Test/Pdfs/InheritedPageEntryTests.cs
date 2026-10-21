@@ -139,6 +139,31 @@ public class InheritedPageEntryTests
     });
 
     [Test, Timeout(10000)]
+    public Task IndirectResourcesOnThePageTakeTheCategoriesTheTreeGives() => Interruptibly.Run(() =>
+    {
+        // Two pages share one resources dictionary, which names /ProcSet and no /Font; the tree
+        // gives /Font. Each page reads both, and the shared dictionary is not changed under them.
+        var document = Open(
+            "<</Type/Catalog/Pages 2 0 R>>",
+            "<</Type/Pages/Kids[3 0 R 6 0 R]/Count 2/MediaBox[0 0 200 100]/Resources<</Font<</F1 4 0 R>>>>>>",
+            "<</Type/Page/Parent 2 0 R/Resources 5 0 R>>",
+            "<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>",
+            "<</ProcSet[/PDF]>>",
+            "<</Type/Page/Parent 2 0 R/Resources 5 0 R>>");
+
+        foreach (var page in new[] { document.Pages[0], document.Pages[1] })
+        {
+            var pageResources = page.Elements.GetDictionary("/Resources")!;
+            pageResources.Elements.ContainsKey("/ProcSet").Should().BeTrue();
+            pageResources.Elements.GetDictionary("/Font")!.Elements.ContainsKey("/F1").Should().BeTrue();
+        }
+
+        var reread = Pdf.IO.PdfReader.Open(new MemoryStream(Test.Helpers.Saved.Bytes(document)), PdfDocumentOpenMode.Import);
+        reread.Pages[1].Elements.GetDictionary("/Resources")!.Elements.GetDictionary("/Font")!
+            .Elements.ContainsKey("/F1").Should().BeTrue();
+    });
+
+    [Test, Timeout(10000)]
     public Task AWellFormedInheritedRotateAndResourcesAreReadAsBefore() => Interruptibly.Run(() =>
     {
         var document = Open(

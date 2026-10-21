@@ -1279,14 +1279,26 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// Gives the page the inherited resources outright when it has none of its own, and otherwise
     /// adds each inherited category the page does not name itself.
     /// </summary>
+    /// <remarks>
+    /// Resources the page names by reference may be shared with other pages, which may inherit
+    /// differently, so they are not changed in place. The page is given a copy of them with the
+    /// inherited categories added, and keeps the reference when there is nothing to add.
+    /// </remarks>
     private static void InheritResources(PdfDictionary page, PdfDictionary inherited)
     {
         PdfDictionary resources;
         var res = InheritableEntry(page, InheritablePageKeys.Resources);
         if (res is PdfReference { Value: PdfDictionary referenced })
         {
+            var missing = false;
+            foreach (var name in inherited.Elements.KeyNames)
+                missing |= !referenced.Elements.ContainsKey(name.Value);
+            if (!missing)
+                return;
+
             resources = (PdfDictionary)referenced.Clone();
             resources.Document = page.Owner;
+            page.Elements[InheritablePageKeys.Resources] = resources;
         }
         else
         {
