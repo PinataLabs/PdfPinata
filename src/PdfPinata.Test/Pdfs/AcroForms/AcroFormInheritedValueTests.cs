@@ -181,6 +181,23 @@ public class AcroFormInheritedValueTests
     }
 
     [Test]
+    public void ClearingAKidsOwnSelectionDoesNotBringBackItsParents()
+    {
+        // The kid holds a /V of its own when it is cleared, so it is the nearest field with one -
+        // which is no reason to drop the entry: the parent's is still there beneath it.
+        var document = AGroup("/Ch", 0, new PdfString("b"),
+            kid => AcroFormBuilder.WithOptions(kid, "a", "b", "c"));
+        var kid = Kid<PdfListBoxField>(document);
+        kid.SelectedIndex = 0;
+
+        kid.SelectedIndices = [];
+
+        kid.SelectedIndices.Should().BeEmpty();
+        Kid<PdfListBoxField>(document.Reopened()).SelectedIndices.Should().BeEmpty();
+        Parent(document).Elements.GetString(PdfAcroField.Keys.V).Should().Be("b");
+    }
+
+    [Test]
     public void ClearingAListThatNothingWasEverSelectedInWritesNoValue()
     {
         var document = new PdfDocument();
