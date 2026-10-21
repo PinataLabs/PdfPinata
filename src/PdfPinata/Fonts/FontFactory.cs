@@ -27,9 +27,10 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Collections.Generic;
 using System.Text;
 using PdfPinata.Drawing;
 using PdfPinata.Fonts.OpenType;
@@ -42,6 +43,12 @@ namespace PdfPinata.Fonts;
 /// <summary>
 /// Provides functionality to map a fontface request to a physical font.
 /// </summary>
+/// <remarks>
+/// Every cache here is a <see cref="ConcurrentDictionary{TKey,TValue}"/>, because some of its
+/// readers take no lock: a plain dictionary read while another thread writes it can throw, answer
+/// the wrong entry or never return. Writes are still made under the font factory lock, so that
+/// what is resolved and what is cached for it are one step to every other thread.
+/// </remarks>
 internal static class FontFactory
 {
     /// <summary>
@@ -86,6 +93,11 @@ internal static class FontFactory
     /// Registers a typeface the custom font resolver resolved under <paramref name="typefaceKey"/>,
     /// and answers the info to use for it — an existing one where the resolver's answer duplicates it.
     /// </summary>
+    /// <remarks>
+    /// The font source is cached before either key is, so that a resolver whose <c>GetFont</c>
+    /// throws leaves nothing behind. A typeface key registered ahead of its font source used to send
+    /// every later request for that typeface to a font source that was never cached.
+    /// </remarks>
     private static FontResolverInfo Register(string typefaceKey, FontResolverInfo fontResolverInfo,
         IFontResolver customFontResolver)
     {
@@ -95,60 +107,51 @@ internal static class FontFactory
             // Case: A new typeface was resolved with the same info as a previous one.
             // Discard new object an reuse previous one.
             // Associate with typeface key.
-            FontResolverInfosByName.Add(typefaceKey, existingFontResolverInfo);
+            FontResolverInfosByName.TryAdd(typefaceKey, existingFontResolverInfo);
             // The font source should exist.
-            Debug.Assert(FontSourcesByName.ContainsKey(existingFontResolverInfo.FaceName));
+            Debug.Assert(FontSourcesByFaceName.ContainsKey(existingFontResolverInfo.FaceName));
             return existingFontResolverInfo;
         }
-
-        // Case: No such font resolver info exists.
-        // Add to both dictionaries.
-        FontResolverInfosByName.Add(typefaceKey, fontResolverInfo);
-        Debug.Assert(resolverInfoKey == fontResolverInfo.Key);
-        FontResolverInfosByName.Add(resolverInfoKey, fontResolverInfo);
 
         // Create font source if not yet exists.
         // Otherwise the font source exists, because a previous font resolver info comes
         // with the same face name, but was different in style simulation flags.
-        // Nothing to do.
-        if (!FontSourcesByName.TryGetValue(fontResolverInfo.FaceName, out _))
+        if (!FontSourcesByFaceName.ContainsKey(fontResolverInfo.FaceName))
             AddFontSource(fontResolverInfo, customFontResolver);
 
+        // Case: No such font resolver info exists.
+        FontResolverInfosByName.TryAdd(typefaceKey, fontResolverInfo);
+        FontResolverInfosByName.TryAdd(resolverInfoKey, fontResolverInfo);
         return fontResolverInfo;
     }
 
+    /// <summary>
+    /// Caches the bytes the resolver serves for a face under that face's name, which is the one
+    /// name a font source is looked up by.
+    /// </summary>
+    /// <remarks>
+    /// A font source is not also held under the full name in its own name table. Two files can
+    /// share one — two revisions of a font, or a font with a byte of it changed — and a resolver may
+    /// serve both, under two face names. Holding them by full name refused the second file with an
+    /// <see cref="ArgumentException"/>, and would have handed one face the other's bytes had it
+    /// not (#329).
+    /// </remarks>
     private static void AddFontSource(FontResolverInfo fontResolverInfo, IFontResolver customFontResolver)
     {
-        // Case: Get font from custom font resolver and create font source.
         var bytes = customFontResolver.GetFont(fontResolverInfo.FaceName);
         var fontSource = XFontSource.GetOrCreateFrom(bytes);
-
-        // Add font source's font resolver name if it is different to the face name.
-        if (string.Compare(fontResolverInfo.FaceName, fontSource.FontName, StringComparison.OrdinalIgnoreCase) != 0)
-            FontSourcesByName.Add(fontResolverInfo.FaceName, fontSource);
+        FontSourcesByFaceName.TryAdd(fontResolverInfo.FaceName, fontSource);
     }
 
     /// <summary>
-    /// Gets the bytes of a physical font with specified face name.
+    /// Gets the font source the resolver served for the face with the specified name.
     /// </summary>
     public static XFontSource GetFontSourceByFontName(string fontName)
     {
-        if (FontSourcesByName.TryGetValue(fontName, out var fontSource))
+        if (FontSourcesByFaceName.TryGetValue(fontName, out var fontSource))
             return fontSource;
 
         Debug.Assert(false, $"An XFontSource with the name '{fontName}' does not exists.");
-        return null;
-    }
-
-    /// <summary>
-    /// Gets the bytes of a physical font with specified face name.
-    /// </summary>
-    public static XFontSource GetFontSourceByTypefaceKey(string typefaceKey)
-    {
-        if (FontSourcesByName.TryGetValue(typefaceKey, out var fontSource))
-            return fontSource;
-
-        Debug.Assert(false, $"An XFontSource with the typeface key '{typefaceKey}' does not exists.");
         return null;
     }
 
@@ -160,40 +163,15 @@ internal static class FontFactory
     /// <summary>
     /// Gets a value indicating whether at least one font source was created.
     /// </summary>
-    public static bool HasFontSources => FontSourcesByName.Count > 0;
+    public static bool HasFontSources => !FontSourcesByKey.IsEmpty;
 
     public static bool TryGetFontResolverInfoByTypefaceKey(string typeFaceKey, out FontResolverInfo info)
     {
         return FontResolverInfosByName.TryGetValue(typeFaceKey, out info);
     }
 
-    public static bool TryGetFontSourceByTypefaceKey(string typefaceKey, out XFontSource source)
-    {
-        return FontSourcesByName.TryGetValue(typefaceKey, out source);
-    }
-
-    internal static void CacheFontResolverInfo(string typefaceKey, FontResolverInfo fontResolverInfo)
-    {
-        // Check whether identical font is already registered.
-        if (FontResolverInfosByName.TryGetValue(typefaceKey, out _))
-        {
-            // Should never come here.
-            throw new InvalidOperationException(
-                $"A font file with different content already exists with the specified face name '{typefaceKey}'.");
-        }
-        if (FontResolverInfosByName.TryGetValue(fontResolverInfo.Key, out _))
-        {
-            // Should never come here.
-            throw new InvalidOperationException(
-                $"A font resolver already exists with the specified key '{fontResolverInfo.Key}'.");
-        }
-        // Add to both dictionaries.
-        FontResolverInfosByName.Add(typefaceKey, fontResolverInfo);
-        FontResolverInfosByName.Add(fontResolverInfo.Key, fontResolverInfo);
-    }
-
     /// <summary>
-    /// Caches a font source under its face name and its key.
+    /// Caches a font source under its key, or answers the one already cached for the same bytes.
     /// </summary>
     public static XFontSource CacheFontSource(XFontSource fontSource)
     {
@@ -213,44 +191,8 @@ internal static class FontFactory
                 // Create OpenType fontface for this font source.
                 fontSource.Fontface = new OpenTypeFontface(fontSource);
             }
-            FontSourcesByKey.Add(fontSource.Key, fontSource);
-            FontSourcesByName.Add(fontSource.FontName, fontSource);
+            FontSourcesByKey.TryAdd(fontSource.Key, fontSource);
             return fontSource;
-        }
-        finally { Lock.ExitFontFactory(); }
-    }
-
-    /// <summary>
-    /// Caches a font source under its face name and its key.
-    /// </summary>
-    public static XFontSource CacheNewFontSource(string typefaceKey, XFontSource fontSource)
-    {
-        // Check whether an identical font source with a different face name already exists.
-        if (FontSourcesByKey.TryGetValue(fontSource.Key, out var existingFontSource))
-        {
-            return existingFontSource;
-        }
-
-        var fontface = fontSource.Fontface;
-        if (fontface == null)
-        {
-            fontface = new OpenTypeFontface(fontSource);
-            fontSource.Fontface = fontface;  // Also sets the font name in fontSource
-        }
-
-        FontSourcesByName.Add(typefaceKey, fontSource);
-        FontSourcesByName.Add(fontSource.FontName, fontSource);
-        FontSourcesByKey.Add(fontSource.Key, fontSource);
-
-        return fontSource;
-    }
-
-    public static void CacheExistingFontSourceWithNewTypefaceKey(string typefaceKey, XFontSource fontSource)
-    {
-        try
-        {
-            Lock.EnterFontFactory();
-            FontSourcesByName.Add(typefaceKey, fontSource);
         }
         finally { Lock.ExitFontFactory(); }
     }
@@ -262,31 +204,18 @@ internal static class FontFactory
         // FontResolverInfo by name.
         state.Append("====================\n");
         state.Append("Font resolver info by name\n");
-        var keyCollection = FontResolverInfosByName.Keys;
-        var count = keyCollection.Count;
-        var keys = new string[count];
-        keyCollection.CopyTo(keys, 0);
-        Array.Sort(keys, StringComparer.OrdinalIgnoreCase);
-        foreach (var key in keys)
-            state.AppendFormat("  {0}: {1}\n", key, FontResolverInfosByName[key].DebuggerDisplay);
+        foreach (var pair in Sorted(FontResolverInfosByName))
+            state.AppendFormat("  {0}: {1}\n", pair.Key, pair.Value.DebuggerDisplay);
         state.Append('\n');
 
         // FontSource by key.
-        state.Append("Font source by key and name\n");
-        var fontSourceKeys = FontSourcesByKey.Keys;
-        count = fontSourceKeys.Count;
-        var ulKeys = new ulong[count];
-        fontSourceKeys.CopyTo(ulKeys, 0);
-        Array.Sort(ulKeys, (x, y) => x == y ? 0 : x > y ? 1 : -1);
-        foreach (var ul in ulKeys)
-            state.AppendFormat("  {0}: {1}\n", ul, FontSourcesByKey[ul].DebuggerDisplay);
-        var fontSourceNames = FontSourcesByName.Keys;
-        count = fontSourceNames.Count;
-        keys = new string[count];
-        fontSourceNames.CopyTo(keys, 0);
-        Array.Sort(keys, StringComparer.OrdinalIgnoreCase);
-        foreach (var key in keys)
-            state.AppendFormat("  {0}: {1}\n", key, FontSourcesByName[key].DebuggerDisplay);
+        state.Append("Font source by key and face name\n");
+        var byKey = FontSourcesByKey.ToArray();
+        Array.Sort(byKey, (x, y) => x.Key.CompareTo(y.Key));
+        foreach (var pair in byKey)
+            state.AppendFormat("  {0}: {1}\n", pair.Key, pair.Value.DebuggerDisplay);
+        foreach (var pair in Sorted(FontSourcesByFaceName))
+            state.AppendFormat("  {0}: {1}\n", pair.Key, pair.Value.DebuggerDisplay);
         state.Append("--------------------\n\n");
 
         // FontFamilyInternal by name.
@@ -298,18 +227,25 @@ internal static class FontFactory
         return state.ToString();
     }
 
+    private static System.Collections.Generic.KeyValuePair<string, T>[] Sorted<T>(ConcurrentDictionary<string, T> cache)
+    {
+        var pairs = cache.ToArray();
+        Array.Sort(pairs, (x, y) => StringComparer.OrdinalIgnoreCase.Compare(x.Key, y.Key));
+        return pairs;
+    }
+
     /// <summary>
     /// Maps font typeface key to font resolver info.
     /// </summary>
-    private static readonly Dictionary<string, FontResolverInfo> FontResolverInfosByName = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly ConcurrentDictionary<string, FontResolverInfo> FontResolverInfosByName = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
-    /// Maps typeface key or font name to font source.
+    /// Maps a font resolver's face name to the font source it served for that face.
     /// </summary>
-    private static readonly Dictionary<string, XFontSource> FontSourcesByName = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly ConcurrentDictionary<string, XFontSource> FontSourcesByFaceName = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// Maps font source key to font source.
     /// </summary>
-    private static readonly Dictionary<ulong, XFontSource> FontSourcesByKey = new();
+    private static readonly ConcurrentDictionary<ulong, XFontSource> FontSourcesByKey = new();
 }

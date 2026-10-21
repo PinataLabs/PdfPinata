@@ -38,6 +38,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **A refused `Save(path)` leaves the file at that path as it was.** `Save(path)` opened the file before it checked whether the document could be saved, and opening it emptied it. So a save refused for a reason that `CanSave()` gives, over the file the document was read from, left an empty file and no document. The checks now come first. (#318)
 - **An encrypted document indexed by a cross-reference stream can be given a new password and saved.** The saved file could not be opened again, because it had no encryption dictionary, and its trailer's `/Encrypt` pointed at another object, such as the catalog. Reopening it failed with "The PDF document is protected with an encryption not supported by PDFsharp." The reader attached the encryption dictionary to a placeholder reference that it made while it read the cross-reference stream, and `Modify` mode then removed the dictionary as unreachable and gave its object number to another object. This happened whatever the cipher was: AES-256 at revisions 5 and 6, AES-128 at revision 4, and RC4 written by this library all failed in the same way. A document with a classic cross-reference table was not affected. The saved dictionary also kept the AES entries of the dictionary it was read from (`/CF`, `/StmF`, `/StrF`, `/OE`, `/UE`, `/Perms` and `/EncryptMetadata`), which do not apply to the RC4 encryption that this library writes. These entries are now removed. The message names PdfPinata instead of PDFsharp. (#314)
 
+### Fonts & Text
+
+#### Fixed
+
+- **Two font files with the same full name can both be used.** A resolver that served two different files whose name tables give one full name, such as two revisions of a font, under two face names made the second `XFont` throw `ArgumentException`, and every later attempt for that face fail differently. Fonts were cached under the full name inside the file as well as under the face name. They are now cached under the face name and their bytes alone, so each face measures and draws from its own file, and a document that uses both embeds both. Font creation on many threads at once is also safe now: the font caches are concurrent collections, and building a typeface holds the font lock from the first lookup to the last, where one lookup was made with no lock while other threads wrote the same cache. Nothing changes for a single thread or for fonts with distinct names. (#329)
+
 ### Documentation & Samples
 
 #### Changed

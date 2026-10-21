@@ -70,22 +70,6 @@ internal class XFontSource
         }
         return fontSource;
     }
-    public static XFontSource GetOrCreateFrom(string typefaceKey, byte[] fontBytes)
-    {
-        var key = FontHelper.CalcChecksum(fontBytes);
-        if (FontFactory.TryGetFontSourceByKey(key, out var fontSource))
-        {
-            // The font source already exists, but is not yet cached under the specified typeface key.
-            FontFactory.CacheExistingFontSourceWithNewTypefaceKey(typefaceKey, fontSource);
-        }
-        else
-        {
-            // No font source exists. Create new one and cache it.
-            fontSource = new XFontSource(fontBytes, key);
-            FontFactory.CacheNewFontSource(typefaceKey, fontSource);
-        }
-        return fontSource;
-    }
 
     public static XFontSource CreateCompiledFont(byte[] bytes)
     {
