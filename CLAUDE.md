@@ -530,8 +530,12 @@ these count pixels; asserting keys would pass on a document nobody can see.
 `/Tx BMC … EMC` bracket. A choice field draws in the size and colour its `/DA` names unless `Font`
 or `ForeColor` is set, and takes its background and border from each widget's `/MK` unless
 `BackColor` or `BorderColor` is — an appearance hides `/MK` from a reader, so ignoring it would
-strip the box from any field decorated that way. Unlike the text field, a choice field **does not
-redraw on save**: a form read from a file keeps its own drawing until the caller changes the field.
+strip the box from any field decorated that way. **No field redraws on save**, text or choice: a
+form read from a file keeps its own drawing until the caller changes the field, or calls
+`RedrawAppearance` on it — the way to redraw after something the field reads but does not own
+changes, such as an ancestor's `/V` it inherits (#340). `PdfTextField` once had a `PrepareForSave`
+override that redrew it, but nothing walks `/AcroForm` on save and it never ran; do not bring it
+back without deciding to replace every appearance another program drew.
 `/NeedAppearances` is no longer what makes a choice visible, and PDF/A forbids it. **Both lay their
 text out as a viewer edits it** (#155): size and colour from `/DA` via `PdfAcroField`'s
 `FontFromDefaultAppearance`/`ColorFromDefaultAppearance`, one line centred vertically two points in,

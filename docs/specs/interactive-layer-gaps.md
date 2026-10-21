@@ -235,6 +235,13 @@ had been writing by hand and a file from other software usually carries. It redr
 the options, `/DA` or a colour changes, and when a widget is added - but not on save, so a field
 read from a file keeps the drawing it came with. `ChoiceFieldAppearanceTests` counts pixels.
 
+A text field is the same, though for a while it seemed not to be: `PdfTextField` overrode
+`PrepareForSave` to redraw itself, and nothing ever called it, because nothing in
+`PdfDocument.PrepareForSave` walks `/AcroForm`. Wiring it up would have replaced every text-field
+appearance another program drew on every save, and put each one in an `Append` revision, so it was
+deleted instead (#340). `PdfTextField.RedrawAppearance` and `PdfChoiceField.RedrawAppearance` are
+the explicit way to redraw, for a change the field is not told about - an inherited `/V`, chiefly.
+
 Not done: the conformance corpus has no document with a choice field, so veraPDF has not yet
 checked one. Adding one is the natural follow-up.
 
