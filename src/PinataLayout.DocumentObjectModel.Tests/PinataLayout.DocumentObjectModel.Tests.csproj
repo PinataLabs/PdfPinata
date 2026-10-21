@@ -35,4 +35,13 @@
     <ProjectReference Include="..\PinataLayout.DocumentObjectModel\PinataLayout.DocumentObjectModel.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!--
+      Asked by NamedFontsOnly's module initializer whether this process is the one coverlet
+      instruments from, where registering a resolver would lock PdfPinata.dll on Windows. It
+      references nothing, so it does not bend the rule above.
+    -->
+    <Compile Include="..\PdfPinata.Test\Helpers\CoverageController.cs" Link="Helpers\Linked\CoverageController.cs" />
+  </ItemGroup>
+
 </Project>

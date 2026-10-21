@@ -10,7 +10,8 @@ dotnet test --solution src/PdfPinata.slnx           # whole suite, both test tar
 dotnet test --solution src/PdfPinata.slnx -f net10.0  # one framework; the test projects target net8.0;net10.0
 dotnet test --project src/PdfPinata.Test --treenode-filter "/*/*/CLexerTests/*"                 # one class
 dotnet test --project src/PdfPinata.Test --treenode-filter "/*/*/CLexerTests/ScanNextToken*"    # one test
-dotnet test --solution src/PdfPinata.slnx --coverlet                                            # with coverage
+dotnet test --solution src/PdfPinata.slnx --coverlet                                            # with coverage (Linux, macOS)
+dotnet test --solution src/PdfPinata.slnx --coverlet -p:EnableTUnitSourceGeneration=false       # with coverage (Windows)
 ./verapdf-check.ps1                                 # conformance corpus + veraPDF; needs Docker. Gates.
 ./verapdf-check.ps1 -NoGate                         # the same, but always succeeds — for reading a failure
 ```
@@ -26,6 +27,21 @@ that runner for `dotnet test`, which is why the solution is passed as `--solutio
 options. Coverage is `--coverlet` (the `coverlet.MTP` extension), configured in `testconfig.json` at
 the root, which every test project copies next to its assembly; reports land in `TestResults/`,
 named for the moment they were written.
+
+**On Windows, coverage needs `-p:EnableTUnitSourceGeneration=false`, or PdfPinata.dll is left out.**
+Coverlet rewrites each assembly on disk, and it does that in the *controller* process: the
+test executable itself, which then starts itself again to run the tests. Windows will not open an
+assembly for writing once a process has loaded it, so anything the controller loads is logged as
+`Skipping module …: Locked` and gets no rows in the report. Linux lets the file be rewritten,
+which is why CI never saw this. Two things loaded them. The test projects' module initializers
+registered their backends, and now ask `Helpers/CoverageController` first and do nothing in the
+controller. Keep the registering code in a `NoInlining` method of its own, because compiling a
+call to it loads its types. TUnit's generated test registration is the other, and test code cannot
+stop it: it names every test class, and loading those loads PdfPinata and the DOM. The property
+switches TUnit to reflection mode, which has no generated registration. It finds the same tests,
+and changing the property recompiles. In that mode TUnit does not scan an assembly whose path
+contains `ref` or `runtimes`, so keep those words out of an `--artifacts-path`. If the property is
+left out, the run still passes, and only the report is short. (#345)
 
 CI (`.github/workflows/build-and-test.yml`) runs on Linux only, builds `src/PdfPinata.slnx` in Release,
 installs Ghostscript, then runs `dotnet test --coverlet` for OpenCover coverage, which goes to Codecov

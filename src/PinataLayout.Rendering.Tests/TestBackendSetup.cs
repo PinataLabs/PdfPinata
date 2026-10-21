@@ -21,6 +21,16 @@ internal static class TestBackendSetup
     [ModuleInitializer]
     internal static void Initialize()
     {
+        // In the --coverlet controller, loading PdfPinata.dll here would lock it against
+        // instrumentation on Windows. See CoverageController.
+        if (!CoverageController.IsThisProcess)
+            Register();
+    }
+
+    // Kept out of Initialize so that compiling Initialize loads no PdfPinata assembly.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void Register()
+    {
         ImageSource.ImageSourceImpl = new SkiaImageSource();
         // Not the resolver the library ships: that one picks a font off the machine, which lays a
         // document out differently on each of them. See PinnedFontResolver.
