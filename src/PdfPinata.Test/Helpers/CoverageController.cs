@@ -1,4 +1,6 @@
 using System;
+using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace PdfPinata.Test.Helpers;
 
@@ -34,6 +36,71 @@ internal static class CoverageController
 {
     /// <summary>True in the controller of a <c>--coverlet</c> run, and in no other process.</summary>
     public static bool IsThisProcess { get; } = Determine(Environment.GetCommandLineArgs());
+
+    /// <summary>
+    /// Runs <paramref name="register"/> - a module initializer's registration of its backend or
+    /// resolver - in every process but the controller of a <c>--coverlet</c> run. In the
+    /// controller it registers nothing, and on Windows ends the run if a PdfPinata or PinataLayout
+    /// assembly is loaded there anyway.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The registration is passed as a delegate so that compiling the initializer loads none of
+    /// the types it names: making a delegate takes the method's address and leaves its body
+    /// uncompiled until it is called, and here it is never called. A registration that is a
+    /// static method of a class implementing a PdfPinata interface has to be wrapped in a lambda,
+    /// because taking the address of a method loads the class it is declared on.
+    /// </para>
+    /// <para>
+    /// Keeping the initializers out of the controller is not the whole of it: TUnit's generated
+    /// test registration names every test class, and loading those loads PdfPinata and the DOM
+    /// before coverlet runs. Only <c>-p:EnableTUnitSourceGeneration=false</c> keeps that out, and a
+    /// run without it used to pass with a report that had no rows for the core library. A warning
+    /// would not do: <c>dotnet test</c> shows a test application's standard error only when the
+    /// application fails. So the controller watches for those assemblies and, on Windows, where a
+    /// loaded assembly cannot be rewritten, exits with an error naming the property. Linux
+    /// rewrites a loaded file, so a run there is left alone.
+    /// </para>
+    /// </remarks>
+    public static void OutsideController(Action register)
+    {
+        if (!IsThisProcess)
+        {
+            register();
+            return;
+        }
+
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return;
+
+        // Both, because module initializers run in an order nobody here chooses: TUnit's may have
+        // loaded them already, or may be about to.
+        var domain = AppDomain.CurrentDomain;
+        domain.AssemblyLoad += (_, loaded) => RefuseIfCoverletWouldSkip(loaded.LoadedAssembly);
+        foreach (var assembly in domain.GetAssemblies())
+            RefuseIfCoverletWouldSkip(assembly);
+    }
+
+    private static void RefuseIfCoverletWouldSkip(Assembly assembly)
+    {
+        // The test assembly itself is not instrumented; this class is compiled into each one.
+        if (assembly == typeof(CoverageController).Assembly)
+            return;
+
+        var name = assembly.GetName().Name ?? "";
+        if (!name.StartsWith("PdfPinata", StringComparison.Ordinal)
+            && !name.StartsWith("PinataLayout", StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        Console.Error.WriteLine(
+            $"error: {name}.dll was loaded by coverlet's controller process before coverlet could " +
+            "instrument it, and Windows will not let a loaded assembly be rewritten, so the coverage " +
+            "report would have no rows for it. Run the tests with -p:EnableTUnitSourceGeneration=false " +
+            "to have coverage on Windows. See CLAUDE.md and issue #345.");
+        Environment.Exit(1);
+    }
 
     private static bool Determine(string[] arguments)
     {

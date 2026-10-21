@@ -28,20 +28,24 @@ options. Coverage is `--coverlet` (the `coverlet.MTP` extension), configured in 
 the root, which every test project copies next to its assembly; reports land in `TestResults/`,
 named for the moment they were written.
 
-**On Windows, coverage needs `-p:EnableTUnitSourceGeneration=false`, or PdfPinata.dll is left out.**
+**On Windows, coverage needs `-p:EnableTUnitSourceGeneration=false`, or PdfPinata.dll cannot be instrumented.**
 Coverlet rewrites each assembly on disk, and it does that in the *controller* process: the
 test executable itself, which then starts itself again to run the tests. Windows will not open an
 assembly for writing once a process has loaded it, so anything the controller loads is logged as
 `Skipping module …: Locked` and gets no rows in the report. Linux lets the file be rewritten,
 which is why CI never saw this. Two things loaded them. The test projects' module initializers
-registered their backends, and now ask `Helpers/CoverageController` first and do nothing in the
-controller. Keep the registering code in a `NoInlining` method of its own, because compiling a
-call to it loads its types. TUnit's generated test registration is the other, and test code cannot
+registered their backends, and now hand the registration to `Helpers/CoverageController.OutsideController`
+as a delegate, which does nothing in the controller. Pass a delegate, never call the registering
+code directly, because compiling a call loads its types; and wrap a static method of a class that
+implements a PdfPinata interface in a lambda, because taking its address loads that class.
+TUnit's generated test registration is the other, and test code cannot
 stop it: it names every test class, and loading those loads PdfPinata and the DOM. The property
 switches TUnit to reflection mode, which has no generated registration. It finds the same tests,
 and changing the property recompiles. In that mode TUnit does not scan an assembly whose path
 contains `ref` or `runtimes`, so keep those words out of an `--artifacts-path`. If the property is
-left out, the run still passes, and only the report is short. (#345)
+left out, the controller sees PdfPinata loaded and **exits with an error naming the property**
+rather than letting the run pass with a short report — a warning would not do, because
+`dotnet test` shows a test application's standard error only when it fails. (#345)
 
 CI (`.github/workflows/build-and-test.yml`) runs on Linux only, builds `src/PdfPinata.slnx` in Release,
 installs Ghostscript, then runs `dotnet test --coverlet` for OpenCover coverage, which goes to Codecov

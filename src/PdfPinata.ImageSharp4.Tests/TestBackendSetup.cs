@@ -15,17 +15,11 @@ namespace PdfPinata.ImageSharp4.Tests;
 /// </summary>
 internal static class TestBackendSetup
 {
+    // Not in the --coverlet controller, where loading PdfPinata.dll would lock it against
+    // instrumentation on Windows. See CoverageController.OutsideController.
     [ModuleInitializer]
-    internal static void Initialize()
-    {
-        // In the --coverlet controller, loading PdfPinata.dll here would lock it against
-        // instrumentation on Windows. See CoverageController.
-        if (!CoverageController.IsThisProcess)
-            Register();
-    }
+    internal static void Initialize() => CoverageController.OutsideController(Register);
 
-    // Kept out of Initialize so that compiling Initialize loads no PdfPinata assembly.
-    [MethodImpl(MethodImplOptions.NoInlining)]
     private static void Register()
     {
         ImageSource.ImageSourceImpl = new ImageSharpImageSource<Rgba32>();
