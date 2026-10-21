@@ -111,5 +111,12 @@ public enum PdfAnnotationFlags
     /// A typical use is to have an annotation that appears only when a mouse cursor is
     /// held over it.
     /// </summary>
-    ToggleNoView = 1 << (9 - 1)
+    ToggleNoView = 1 << (9 - 1),
+
+    /// <summary>
+    /// (PDF 1.7) If set, do not allow the contents of the annotation to be modified by the user.
+    /// This flag does not restrict deletion of the annotation or changes to other annotation
+    /// properties, such as position and size.
+    /// </summary>
+    LockedContents = 1 << (10 - 1)
 }

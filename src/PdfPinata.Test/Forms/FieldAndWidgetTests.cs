@@ -442,4 +442,31 @@ public class FieldAndWidgetTests
         box.Checked.Should().BeTrue();
         box.Widgets[0].Reference.Should().BeSameAs(box.Reference);
     }
+
+    /// <summary>
+    ///   Taking a merged field's widget off its page takes it out of <c>/Annots</c> and nothing
+    ///   more: the dictionary is still the field, listed in <c>/Fields</c>. Removing it from the
+    ///   cross-reference table as well left an incremental save, which asks the table what changed,
+    ///   without the field's new value. Issue #337.
+    /// </summary>
+    [Test]
+    public void AFieldWhoseMergedWidgetWasTakenOffThePageKeepsItsNewValueInTheAppendedRevision()
+    {
+        var stream = new MemoryStream();
+        AMergedFieldAndWidget().Save(stream, false);
+        stream.Position = 0;
+
+        var document = Reader.Open(stream, PdfDocumentOpenMode.Append);
+        var page = document.Pages[0];
+        page.Annotations.Remove(page.Annotations[0]);
+        ((PdfTextField)document.AcroForm.Fields["merged"]).Text = "changed";
+
+        var output = new MemoryStream();
+        document.SaveIncremental(output);
+        output.Position = 0;
+
+        var reread = Reader.Open(output, PdfDocumentOpenMode.Modify);
+        ((PdfTextField)reread.AcroForm.Fields["merged"]).Text.Should().Be("changed");
+        reread.Pages[0].Annotations.Count.Should().Be(0, "the widget is off the page");
+    }
 }

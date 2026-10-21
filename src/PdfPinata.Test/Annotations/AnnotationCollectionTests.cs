@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
@@ -229,6 +230,44 @@ public class AnnotationCollectionTests
         var annotation = placed.Annotations[0];
 
         annotation.Elements.GetReference("/P").Should().BeSameAs(placed.Reference);
+    }
+
+    /// <summary>
+    ///   <c>/P</c> names the page an annotation is on. Optional in general, but required of a
+    ///   screen annotation with a rendition action, and what some readers and importers find an
+    ///   annotation's page by. Issue #337.
+    /// </summary>
+    [Test]
+    public void AnAnnotationAddedToAPageIsSavedPointingAtThatPage()
+    {
+        var document = new PdfDocument();
+        document.AddPage();
+        var page = document.AddPage();
+        page.Annotations.Add(ANote());
+
+        var reread = ReadBack(document);
+
+        var annotation = reread.Pages[1].Annotations[0];
+        annotation.Elements.GetReference("/P").Should().BeSameAs(reread.Pages[1].Reference);
+    }
+
+    /// <summary>
+    ///   Taking an annotation off a page leaves it in the document: it may be reached from
+    ///   elsewhere, and a full save drops it when nothing does. Issue #337.
+    /// </summary>
+    [Test]
+    public void AnAnnotationTakenOffAPageThatNothingElseReachesIsNotSaved()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var note = ANote("gone");
+        page.Annotations.Add(note);
+        page.Annotations.Remove(note);
+
+        var reread = ReadBack(document);
+
+        reread.Internals.GetAllObjects().OfType<PdfDictionary>()
+            .Should().NotContain(dictionary => dictionary.Elements.GetString("/Contents") == "gone");
     }
 
     private static PdfDocument ReadBack(PdfDocument document,

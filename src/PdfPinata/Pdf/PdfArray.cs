@@ -201,16 +201,23 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
         /// </summary>
         internal void ChangeOwner(PdfArray array)
         {
-            if (_ownerArray != null)
-            {
-                // ???
-            }
+            var previousOwner = _ownerArray;
 
             // Set new owner.
             _ownerArray = array;
 
             // Set owners elements to this.
             array._elements = this;
+
+            // As for a dictionary: the direct values now sit inside the array it was retyped as.
+            if (previousOwner != null)
+            {
+                foreach (var value in _elements)
+                {
+                    if (value is PdfObject contained && ReferenceEquals(contained.Container, previousOwner))
+                        contained.Container = array;
+                }
+            }
         }
 
         /// <summary>

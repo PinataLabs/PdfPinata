@@ -371,16 +371,25 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         internal void ChangeOwner(PdfDictionary ownerDictionary)
         {
-            if (_ownerDictionary != null)
-            {
-                // ???
-            }
+            var previousOwner = _ownerDictionary;
 
             // Set new owner.
             _ownerDictionary = ownerDictionary;
 
             // Set owners elements to this.
             ownerDictionary._elements = this;
+
+            // The values written inside the dictionary now sit inside the object it was retyped
+            // as. Left pointing at the old one, a change to a direct value - a page's /Annots -
+            // marked a dictionary nothing writes, and an incremental save left it out.
+            if (previousOwner != null)
+            {
+                foreach (var value in _elements.Values)
+                {
+                    if (value is PdfObject contained && ReferenceEquals(contained.Container, previousOwner))
+                        contained.Container = ownerDictionary;
+                }
+            }
         }
 
         /// <summary>

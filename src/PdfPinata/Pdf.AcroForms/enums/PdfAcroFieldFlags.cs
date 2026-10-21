@@ -79,6 +79,13 @@ public enum PdfAcroFieldFlags
     /// </summary>
     NoToggleToOff = 1 << (15 - 1),
 
+    /// <summary>
+    /// (PDF 1.5, radio buttons only) If set, a group of radio buttons within a radio button field
+    /// that use the same value for the on state turn on and off in unison; that is, if one is
+    /// checked, they are all checked. If clear, the buttons are mutually exclusive.
+    /// </summary>
+    RadiosInUnison = 1 << (26 - 1),
+
     // ----- Specific to text fields --------------------------------------------------------------
 
     /// <summary>
@@ -126,6 +133,14 @@ public enum PdfAcroFieldFlags
     /// </summary>
     Comb = 1 << (25 - 1),
 
+    /// <summary>
+    /// (PDF 1.5) If set, the value of this field is a rich text string, and the field's /RV entry
+    /// holds the rich text; if clear, the field's contents are not to be interpreted as rich text.
+    /// </summary>
+    #pragma warning disable CA1069 // Bit 26 means "radios in unison" for a radio field and "rich text" for a text field, so the two names share it on purpose.
+    RichText = 1 << (26 - 1),
+    #pragma warning restore CA1069
+
     // ----- Specific to choice fields ------------------------------------------------------------
 
     /// <summary>
@@ -161,4 +176,10 @@ public enum PdfAcroFieldFlags
     #pragma warning disable CA1069 // Bit 23 means "do not spell-check" for a text field and a choice field alike, so the two names share it on purpose.
     DoNotSpellCheckChoiseField = 1 << (23 - 1),
     #pragma warning restore CA1069
+
+    /// <summary>
+    /// (PDF 1.5) If set, the new value is committed as soon as a selection is made with the
+    /// pointing device, rather than when the user leaves the field.
+    /// </summary>
+    CommitOnSelChange = 1 << (27 - 1),
 }
