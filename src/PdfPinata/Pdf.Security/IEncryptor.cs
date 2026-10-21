@@ -2,8 +2,6 @@ namespace PdfPinata.Pdf.Security;
 
 internal interface IEncryptor
 {
-    bool PasswordValid { get; }
-
     bool HaveOwnerPermission { get; }
 
     /// <summary>
