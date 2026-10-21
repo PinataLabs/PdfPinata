@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.AcroForms;
+using PdfPinata.Test.Helpers;
 using TUnit.Core;
 
 namespace PdfPinata.Test.Pdfs.AcroForms;
@@ -129,7 +130,7 @@ public class AcroFormInheritedFlagsTests
     [Test, Timeout(10_000)]
     public async Task AParentChainThatComesBackOnItselfEndsRatherThanLoopingForEver()
     {
-        await Task.Run(() =>
+        await Interruptibly.Run(() =>
         {
             var document = new PdfDocument();
             var field = new PdfTextField(document);

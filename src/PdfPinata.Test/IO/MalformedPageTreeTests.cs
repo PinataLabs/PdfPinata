@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
@@ -270,7 +271,7 @@ public class MalformedPageTreeTests
 
         var opening = Opening(RawPdf.Build(objects));
 
-        await Task.Run(() => opening.Should().Throw<PdfReaderException>().WithMessage("*over and over*"));
+        await Interruptibly.Run(() => opening.Should().Throw<PdfReaderException>().WithMessage("*over and over*"));
     }
 
     private const string Page = "<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 100]>>";

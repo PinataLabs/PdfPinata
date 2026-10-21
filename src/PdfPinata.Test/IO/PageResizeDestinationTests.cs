@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
+using PdfPinata.Test.Helpers;
 using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
@@ -297,7 +298,7 @@ public class PageResizeDestinationTests
     /// <summary>
     ///   A node whose /Kids name it twice doubles the walk at every level, so a depth cap alone lets
     ///   a few hundred bytes run to 2^32 visits: a hang rather than a failure. Timeout is honoured
-    ///   only on an async test, hence the Task.Run.
+    ///   only on an async test, hence Interruptibly.Run.
     /// </summary>
     [Test, Timeout(30000)]
     public async Task ANameTreeWhoseKidsLeadBackToItselfDoesNotHangTheResize()
@@ -320,7 +321,7 @@ public class PageResizeDestinationTests
         var namesDictionary = new PdfDictionary(fixture.Document) { Elements = { ["/Dests"] = dests.Reference } };
         fixture.Document.Internals.Catalog.Elements["/Names"] = namesDictionary;
 
-        await Task.Run(() => HalveThePage(fixture.Target));
+        await Interruptibly.Run(() => HalveThePage(fixture.Target));
 
         destination.Elements.GetReal(3).Should().BeApproximately(350, Tolerance,
             "the destination is still moved, and moved once");
@@ -346,7 +347,7 @@ public class PageResizeDestinationTests
         var outlines = new PdfDictionary(fixture.Document) { Elements = { ["/First"] = item.Reference } };
         fixture.Document.Internals.Catalog.Elements["/Outlines"] = outlines;
 
-        await Task.Run(() => HalveThePage(fixture.Target));
+        await Interruptibly.Run(() => HalveThePage(fixture.Target));
 
         destination.Elements.GetReal(3).Should().BeApproximately(350, Tolerance);
     }

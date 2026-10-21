@@ -398,7 +398,7 @@ public class TextExtractionTests
         var page = Reopen(WithWidths(Draw(gfx => gfx.DrawString("Hello", Font, XBrushes.Black, 40, 100)),
             first, last));
 
-        var text = await Task.Run(() => PdfTextExtractor.ExtractText(page));
+        var text = await Interruptibly.Run(() => PdfTextExtractor.ExtractText(page));
 
         text.Should().Be("Hello");
     }

@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AwesomeAssertions;
+using PdfPinata.Test.Helpers;
 using PinataLayout.DocumentObjectModel.IO;
 using TUnit.Core;
 
@@ -39,7 +40,7 @@ public class DdlStringEscapeTests
     [Arguments("a\\tb\\\\c", "a\tb\\c")]
     public async Task ASimpleEscapeIsTheCharacterItNames(string literalBody, string expected)
     {
-        var document = await Task.Run(() => DdlReader.DocumentFromString(DocumentTitled(literalBody)));
+        var document = await Interruptibly.Run(() => DdlReader.DocumentFromString(DocumentTitled(literalBody)));
 
         document.Info.Title.Should().Be(expected);
     }
@@ -50,7 +51,7 @@ public class DdlStringEscapeTests
     [Arguments("a\\Nb")]
     public async Task AnyOtherEscapeIsRefused(string literalBody)
     {
-        var complaints = await Task.Run(() => ReaderDiagnostics.ComplaintsAbout(DocumentTitled(literalBody)));
+        var complaints = await Interruptibly.Run(() => ReaderDiagnostics.ComplaintsAbout(DocumentTitled(literalBody)));
 
         complaints.Should().Contain("Invalid escape sequence.");
     }
