@@ -114,7 +114,10 @@ public sealed class ImportedPageColourTests : IDisposable
         var page = document.AddPage();
         using var source = AnUncolouredPage();
         using var form = XPdfForm.FromStream(source);
+        // Obsolete, but FromPdfPage still reaches it, and the colours have to be reset there too.
+#pragma warning disable CS0618
         using (var gfx = XGraphics.FromPdfPage(page, XPageDirection.Upwards))
+#pragma warning restore CS0618
             gfx.DrawImage(form, new XRect(0, 0, page.Width.Point, page.Height.Point));
 
         ContentOf(page).Should().MatchRegex(@"q [^Q]* cm 0 g 0 G /[A-Za-z0-9]+ Do Q\n");
