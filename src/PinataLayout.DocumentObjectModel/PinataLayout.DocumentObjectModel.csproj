@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;net8.0;net10.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;net8.0;net10.0;net11.0</TargetFrameworks>
     <!-- Ship the XML documentation alongside the assembly, so a consumer of the package gets the
          doc comments as IntelliSense. This project is clean of CS1591, so a public member added
          without one now warns. Set per project rather than in Directory.Build.props, which is

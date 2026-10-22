@@ -2,11 +2,11 @@
 
   <PropertyGroup>
     <!--
-      Both legs, as the renderer's tests do. The DOM ships on netstandard2.1, net8.0 and net10.0,
+      Every leg, as the renderer's tests do. The DOM ships on netstandard2.1, net8.0, net10.0 and net11.0,
       and what these cover is largely parsing, formatting and value semantics - exactly the kind of
       thing a BCL change between two target frameworks moves under you without warning.
     -->
-    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net10.0;net11.0</TargetFrameworks>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 

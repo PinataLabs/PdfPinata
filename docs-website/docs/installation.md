@@ -10,7 +10,7 @@ throws an `InvalidOperationException` that names the property to set.
 
 ## Requirements
 
-- **.NET 8 or .NET 10.** Every package targets `net8.0` and `net10.0`.
+- **.NET 8, .NET 10 or .NET 11.** Every package targets `net8.0`, `net10.0` and `net11.0`.
 - **.NET Standard 2.1.** Every package except `PdfPinata.Signing` and `PdfPinata.ImageSharp4` also
   targets `netstandard2.1`. This target exists for Unity, whose scripting runtime cannot load
   `net8.0` assemblies.
@@ -40,7 +40,7 @@ The backend reads font files and decodes images for PdfPinata. Install one of th
 | Built on | SkiaSharp | SixLabors.ImageSharp 4 and SixLabors.Fonts 3 | SixLabors.ImageSharp 2.1 and SixLabors.Fonts 1.0 |
 | Native libraries | Yes, one package for each operating system | No, fully managed | No, fully managed |
 | Licence of the dependency | MIT | Six Labors Split License | Apache-2.0 |
-| Target frameworks | `netstandard2.1`, `net8.0`, `net10.0` | `net8.0`, `net10.0` | `netstandard2.1`, `net8.0`, `net10.0` |
+| Target frameworks | `netstandard2.1`, `net8.0`, `net10.0`, `net11.0` | `net8.0`, `net10.0`, `net11.0` | `netstandard2.1`, `net8.0`, `net10.0`, `net11.0` |
 | ImageSharp your app can use beside it | Any version | 4.x only | 2.1.x only |
 | Open ImageSharp security advisories | Not applicable | None | Five, never to be fixed |
 

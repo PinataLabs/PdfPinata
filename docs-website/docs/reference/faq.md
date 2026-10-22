@@ -71,7 +71,7 @@ the Skia backend, and make sure the container has fonts or your resolver serves 
 ### Does it run in Unity?
 
 Every package except `PdfPinata.Signing` and `PdfPinata.ImageSharp4` targets `netstandard2.1` as
-well as `net8.0` and `net10.0`. The `netstandard2.1` build is there for Unity, which cannot load
+well as `net8.0`, `net10.0` and `net11.0`. The `netstandard2.1` build is there for Unity, which cannot load
 `net8.0` assemblies. Those two packages need .NET 8 or later, so they are not available in Unity. In
 Unity, the ImageSharp backend is `PdfPinata.ImageSharp`. See
 [Platforms and deployment](./platforms-and-deployment.md).

@@ -2,11 +2,11 @@
 
   <PropertyGroup>
     <!--
-      Both legs, unlike the generator tests. What these cover is the renderer at runtime, and the
-      renderer ships on net8.0 and net10.0 as well as netstandard2.1; a layout decision that came
+      Every leg, unlike the generator tests. What these cover is the renderer at runtime, and the
+      renderer ships on net8.0, net10.0 and net11.0 as well as netstandard2.1; a layout decision that came
       out differently on one of them would show here and nowhere else.
     -->
-    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net10.0;net11.0</TargetFrameworks>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
