@@ -9,10 +9,10 @@ that shows the problem makes a report much faster to act on.
 
 ## Build and test
 
-You need the .NET SDK version named in `global.json` (10.0.100 or a later feature band). The test
-project also runs on .NET 8, so install the .NET 8 runtime too. Every project and the solution are
-under `src/`, so name the solution in each command; a bare `dotnet test` at the repository root
-finds nothing to run.
+You need the .NET SDK version named in `global.json` (the .NET 11 RC2 SDK, 11.0.100-rc.2, or a
+later feature band). The test projects also run on .NET 8 and .NET 10, so install those runtimes
+too. Every project and the solution are under `src/`, so name the solution in each command; a bare
+`dotnet test` at the repository root finds nothing to run.
 
 ```powershell
 dotnet build src/PdfPinata.slnx

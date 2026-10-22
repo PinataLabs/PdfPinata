@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;net8.0;net10.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;net8.0;net10.0;net11.0</TargetFrameworks>
     <Description>HarfBuzz text shaping backend for PdfPinata.
 
 Provides HarfBuzzTextShaper, an ITextShaper for GlobalFontSettings.TextShaper, so that Arabic joins, Devanagari reorders, and Latin kerns and ligates. Depends on HarfBuzzSharp alone rather than on SkiaSharp, so it is usable from either imaging backend or from neither. HarfBuzzSharp is a native library: consumers must also reference the HarfBuzzSharp.NativeAssets package for their target platform.</Description>

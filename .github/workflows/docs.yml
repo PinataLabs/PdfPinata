@@ -48,10 +48,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # The SampleApp targets net8.0 and global.json pins the 10.0 SDK.
+      # The SampleApp targets net8.0, and global.json pins the SDK, which setup-dotnet installs from it.
       - name: Setup dotnet
         uses: actions/setup-dotnet@v6
         with:
+          global-json-file: global.json
           dotnet-version: |
             8.0.x
             10.0.x

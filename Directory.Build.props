@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <!--
-      Every shipped package multi-targets netstandard2.1;net8.0;net10.0. Without this, each leg gets
+      Every shipped package multi-targets netstandard2.1;net8.0;net10.0;net11.0. Without this, each leg gets
       the SDK's default C# version for its TFM - netstandard2.1 would compile as C# 8.0 while net8.0
-      gets C# 12 and net10.0 gets C# 14, so shared source using anything newer than C# 8 fails to
+      gets C# 12, net10.0 C# 14 and net11.0 C# 15, so shared source using anything newer than C# 8 fails to
       build on the netstandard2.1 leg only.
 
       Raising this unlocks syntax, not runtime support. Features needing BCL types that

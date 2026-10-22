@@ -2,7 +2,7 @@
   <PropertyGroup>
     <!-- ImageSharp 4.x and Fonts 3.x target net8.0 alone, so this package has no netstandard2.1
          (Unity) build. PdfPinata.ImageSharp, on the 2.1.x line, keeps that one. See #305. -->
-    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net10.0;net11.0</TargetFrameworks>
     <!-- The Six Labors community key in this folder is scoped to this assembly name and no other,
          so it must not change. docs/specs/sixlabors-licence-key.md says more. -->
     <AssemblyName>PdfPinata.ImageSharp4</AssemblyName>

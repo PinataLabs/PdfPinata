@@ -2,12 +2,12 @@
 
   <PropertyGroup>
     <!--
-      Both legs, as the renderer's tests do. The charting package ships on netstandard2.1, net8.0
-      and net10.0, and most of what these cover is arithmetic - axis scales, column geometry, label
+      Every leg, as the renderer's tests do. The charting package ships on netstandard2.1, net8.0,
+      net10.0 and net11.0, and most of what these cover is arithmetic - axis scales, column geometry, label
       placement - run through double and formatted with ToString. Both are things a BCL change
       between two target frameworks moves under you without a compiler error to say so.
     -->
-    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net10.0;net11.0</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <RootNamespace>PdfPinata.Charting.Tests</RootNamespace>
   </PropertyGroup>

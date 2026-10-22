@@ -46,10 +46,11 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      # The sample and the smoke test both target net10.0 alone.
+      # The sample and the smoke test both target net10.0 alone; global.json names the SDK that builds them.
       - name: Setup dotnet
         uses: actions/setup-dotnet@v6
         with:
+          global-json-file: global.json
           dotnet-version: 10.0.x
 
       # A Release publish, which is what a user deploys and what Blazor trims. No wasm-tools workload:

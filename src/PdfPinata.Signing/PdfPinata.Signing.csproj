@@ -8,7 +8,7 @@
       not compile. Consumers on those runtimes can implement IPdfSigner themselves; the seam is in
       the core package and needs no cryptography of its own, which is the whole point of it.
     -->
-    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net10.0;net11.0</TargetFrameworks>
     <!-- Ship the XML documentation alongside the assembly, so a consumer of the package gets the
          doc comments as IntelliSense. This project is clean of CS1591, so a public member added
          without one now warns. Set per project rather than in Directory.Build.props, which is
@@ -42,6 +42,10 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="11.0.0-rc.2.26504.105" />
   </ItemGroup>
 
 </Project>

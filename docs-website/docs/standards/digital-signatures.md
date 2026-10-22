@@ -14,8 +14,8 @@ Signing is split across two packages:
   signature, and the byte range it covers. It contains no cryptography. It is in namespace
   `PdfPinata.Pdf.Signatures`.
 - [`PdfPinata.Signing`](https://www.nuget.org/packages/PdfPinata.Signing) does the cryptography
-  with `System.Security.Cryptography.Pkcs`, which is part of .NET. It targets `net8.0` and `net10.0`
-  only, not `netstandard2.1`, so it is not available on Unity.
+  with `System.Security.Cryptography.Pkcs`, which is part of .NET. It targets `net8.0`, `net10.0`
+  and `net11.0` only, not `netstandard2.1`, so it is not available on Unity.
 
 ```sh
 dotnet add package PdfPinata.Signing

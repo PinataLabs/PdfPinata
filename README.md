@@ -183,7 +183,7 @@ There are two ImageSharp backends. Each is named for the ImageSharp major versio
 | --- | --- | --- |
 | ImageSharp / Fonts | `[4.1.3,5.0.0)` / `[3.2.0,4.0.0)` | `[2.1.13,3.0.0)` / `1.0.1` |
 | Their licence | [Six Labors Split License](https://github.com/SixLabors/ImageSharp/blob/main/LICENSE) | Apache-2.0 |
-| Target frameworks | `net8.0`, `net10.0` | `netstandard2.1`, `net8.0`, `net10.0` |
+| Target frameworks | `net8.0`, `net10.0`, `net11.0` | `netstandard2.1`, `net8.0`, `net10.0`, `net11.0` |
 | Security advisories | None | Five, never to be fixed |
 
 **Use `PdfPinata.ImageSharp4` unless you target Unity or must keep your dependencies under Apache-2.0.** ImageSharp 4 has no `netstandard2.1` build, so Unity stays on `PdfPinata.ImageSharp`. ImageSharp 2.1.x is end of life, and its five advisories (GHSA-gwg2-r3hj-4w44, GHSA-j3p4-wp97-rph4, GHSA-wmxv-xphr-5c9g, GHSA-jjfr-hcj7-qf5w and GHSA-j9gm-c75j-xc9q) are fixed only in ImageSharp 3.2.0 and 4.1.2 and later.
@@ -212,9 +212,10 @@ PdfPinata packages target:
 netstandard2.1
 net8.0
 net10.0
+net11.0
 ```
 
-The exceptions are `PdfPinata.Signing` and `PdfPinata.ImageSharp4`, which target `net8.0` and `net10.0` only. ImageSharp 4 and SixLabors.Fonts 3 have no `netstandard2.1` build.
+The exceptions are `PdfPinata.Signing` and `PdfPinata.ImageSharp4`, which target `net8.0`, `net10.0` and `net11.0` only. ImageSharp 4 and SixLabors.Fonts 3 have no `netstandard2.1` build.
 
 `netstandard2.1` is retained primarily for **Unity**, whose scripting runtime supports the .NET Standard 2.1 API surface but cannot consume `net8.0` or `net10.0` assemblies directly.
 
