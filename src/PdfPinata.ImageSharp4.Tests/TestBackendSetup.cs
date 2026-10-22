@@ -15,8 +15,12 @@ namespace PdfPinata.ImageSharp4.Tests;
 /// </summary>
 internal static class TestBackendSetup
 {
+    // Not in the --coverlet controller, where loading PdfPinata.dll would lock it against
+    // instrumentation on Windows. See CoverageController.OutsideController.
     [ModuleInitializer]
-    internal static void Initialize()
+    internal static void Initialize() => CoverageController.OutsideController(Register);
+
+    private static void Register()
     {
         ImageSource.ImageSourceImpl = new ImageSharpImageSource<Rgba32>();
         // The pinned resolver rather than ImageSharpFontResolver, for the same reason as in

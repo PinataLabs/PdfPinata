@@ -33,7 +33,6 @@ using PdfPinata.Drawing;
 using PdfPinata.Internal;
 using System;
 using System.Collections.Concurrent;
-using System.Text;
 
 namespace PdfPinata.Fonts.OpenType;
 
@@ -101,22 +100,6 @@ internal class GlyphTypefaceCache
     }
 
     private static volatile GlyphTypefaceCache _singleton;
-
-    internal static string GetCacheState()
-    {
-        var state = new StringBuilder();
-        state.Append("====================\n");
-        state.Append("Glyph typefaces by name\n");
-        var familyKeys = Singleton._glyphTypefacesByKey.Keys;
-        var count = familyKeys.Count;
-        var keys = new string[count];
-        familyKeys.CopyTo(keys, 0);
-        Array.Sort(keys, StringComparer.OrdinalIgnoreCase);
-        foreach (var key in keys)
-            state.AppendFormat("  {0}: {1}\n", key, Singleton._glyphTypefacesByKey[key].DebuggerDisplay);
-        state.Append('\n');
-        return state.ToString();
-    }
 
     /// <summary>
     /// Maps typeface key to glyph typeface.

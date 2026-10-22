@@ -14,8 +14,12 @@ namespace PdfPinata.Test;
 /// </summary>
 internal static class TestBackendSetup
 {
+    // Not in the --coverlet controller, where loading PdfPinata.dll would lock it against
+    // instrumentation on Windows. See CoverageController.OutsideController.
     [ModuleInitializer]
-    internal static void Initialize()
+    internal static void Initialize() => CoverageController.OutsideController(Register);
+
+    private static void Register()
     {
         ImageSource.ImageSourceImpl = new SkiaImageSource();
         // Not the resolver the library ships: that one picks a font off the machine, which

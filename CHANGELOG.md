@@ -20,8 +20,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Annotations & Forms
 
+#### Added
+
+- **`PdfAcroField.RedrawAppearance()` draws a field again from what it would show now.** A field redraws itself when one of its own properties changes and at no other time, so a kid field whose inherited `/V` changed on its parent went on showing the old value. Call this after a change like that. It is refused where setting the value is refused, and it throws an `InvalidOperationException` if it cannot draw: for a field that draws no appearance of its own (only text, combo box and list box fields do), a field in no document, or a field with no `Font` when no font resolver is registered. (#340)
+
 #### Fixed
 
+- **A text field read from a file keeps the background and border its widget's `/MK` names when it is redrawn.** `BackColor` and `BorderColor` return only what was set on the object, so they are empty for a field read from a file. The text field drew from those two alone, so setting its `Text` lost the box, and with no value the appearance was removed. Like a combo box and a list box, it now uses each widget's `/MK /BG` and `/BC` when the field sets no colour. (#340)
 - **Removing an annotation from a page no longer removes it from the document.** `PdfAnnotations.Remove` took the annotation out of the cross-reference table as well as `/Annots`. An incremental save decides what to write from that table, so an annotation still reached from elsewhere lost its changes from the appended revision: a field merged with its widget, which is still in `/Fields`, a widget in its field's `/Kids`, or a markup annotation that a popup's `/Parent` names. `Remove` now changes `/Annots` only. A full save still drops an annotation that nothing reaches. (#337)
 - **`PdfAnnotations.Add` writes `/P`, the page the annotation is on.** Only `AddWidget` and the signer wrote it. An annotation added to a page made with `new PdfPage(document)` before the page is placed is given `/P` when the page is placed. A screen annotation with a rendition action requires it, and some readers and importers find an annotation's page by it. (#337)
 - **The missing field and annotation flags have names.** `PdfAcroFieldFlags` has `RadiosInUnison` (bit 26, radio buttons), `RichText` (bit 26, text fields) and `CommitOnSelChange` (bit 27, choice fields), and `PdfAnnotationFlags` has `LockedContents` (bit 10). Before, setting one meant casting an integer. Setting `RadiosInUnison` on a radio field keeps it a radio field. (#337)

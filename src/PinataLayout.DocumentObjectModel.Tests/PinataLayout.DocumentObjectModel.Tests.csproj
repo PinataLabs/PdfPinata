@@ -35,4 +35,21 @@
     <ProjectReference Include="..\PinataLayout.DocumentObjectModel\PinataLayout.DocumentObjectModel.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!--
+      Where a [Timeout] test hands a read of malformed MDDDL: a thread of its own, so the timeout
+      measures the read and not how long the thread pool took to start it. Linked from the main
+      test project rather than copied, keeping its namespace, PdfPinata.Test.Helpers; compiling
+      the source needs no project reference, so the line above still holds.
+    -->
+    <Compile Include="..\PdfPinata.Test\Helpers\Interruptibly.cs" Link="Helpers\Linked\Interruptibly.cs" />
+
+    <!--
+      Asked by NamedFontsOnly's module initializer whether this process is the one coverlet
+      instruments from, where registering a resolver would lock PdfPinata.dll on Windows. It
+      references nothing, so it does not bend the rule above.
+    -->
+    <Compile Include="..\PdfPinata.Test\Helpers\CoverageController.cs" Link="Helpers\Linked\CoverageController.cs" />
+  </ItemGroup>
+
 </Project>

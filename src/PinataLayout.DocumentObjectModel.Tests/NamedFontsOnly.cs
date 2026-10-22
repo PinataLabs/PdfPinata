@@ -41,14 +41,30 @@ internal sealed class NamedFontsOnly : IFontResolver
             + nameof(ResolveTypeface) + " above.");
 
     /// <summary>
-    ///   Registered for the whole assembly rather than per test, because the resolver may only be
-    ///   set before the first font is created and nothing guarantees an order that would let
-    ///   a fixture get there first. The same reasoning as <c>PdfPinata.Test</c>'s
-    ///   <c>TestBackendSetup</c>, which is a module initializer for the same reason.
+    ///   Sets this as the resolver. Called once, by the module initializer in
+    ///   <see cref="NamedFontsOnlyRegistration"/>: registered for the whole assembly rather than
+    ///   per test, because the resolver may only be set before the first font is created and
+    ///   nothing guarantees an order that would let a fixture get there first - the same
+    ///   reasoning as <c>PdfPinata.Test</c>'s <c>TestBackendSetup</c>.
     /// </summary>
-    [ModuleInitializer]
     internal static void Register()
     {
         GlobalFontSettings.FontResolver = new NamedFontsOnly();
     }
+}
+
+/// <summary>
+///   Calls <see cref="NamedFontsOnly.Register"/> when the module loads, except in the
+///   <c>--coverlet</c> controller. A class of its own because <see cref="NamedFontsOnly"/>
+///   implements a PdfPinata interface, so merely reaching a static method on it loads PdfPinata.dll,
+///   and in the controller that locks the file against instrumentation on Windows. See
+///   <see cref="PdfPinata.Test.Helpers.CoverageController"/>.
+/// </summary>
+internal static class NamedFontsOnlyRegistration
+{
+    // A lambda rather than the method group: taking NamedFontsOnly.Register's address loads
+    // NamedFontsOnly, and with it PdfPinata.dll, whether or not the delegate is ever called.
+    [ModuleInitializer]
+    internal static void Initialize() =>
+        PdfPinata.Test.Helpers.CoverageController.OutsideController(() => NamedFontsOnly.Register());
 }

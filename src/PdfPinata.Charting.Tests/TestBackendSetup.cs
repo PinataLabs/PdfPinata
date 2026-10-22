@@ -20,8 +20,12 @@ namespace PdfPinata.Charting.Tests;
 /// </remarks>
 internal static class TestBackendSetup
 {
+    // Not in the --coverlet controller, where loading PdfPinata.dll would lock it against
+    // instrumentation on Windows. See CoverageController.OutsideController.
     [ModuleInitializer]
-    internal static void Initialize()
+    internal static void Initialize() => CoverageController.OutsideController(Register);
+
+    private static void Register()
     {
         // Not the resolver the library ships: that one picks a font off the machine, which measures
         // a tick label differently on each of them. See PinnedFontResolver.

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AwesomeAssertions;
+using PdfPinata.Test.Helpers;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
@@ -25,7 +26,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 ///   Every read runs under a timeout. Some malformed documents are never finished with at all -
 ///   <c>DdlReadingTests</c> pins the ones known - and a test that meets a new one must fail
 ///   rather than take the test host with it. <c>Timeout</c> is honoured only on an async test,
-///   hence the <c>Task.Run</c>.
+///   hence <c>Interruptibly.Run</c>.
 ///   </para>
 /// </summary>
 public class DdlMalformedInputTests
@@ -33,7 +34,7 @@ public class DdlMalformedInputTests
     private const int Patience = 5000;
 
     private static Task<IReadOnlyList<string>> ComplaintsAbout(string ddl) =>
-        Task.Run(() => ReaderDiagnostics.ComplaintsAbout(ddl));
+        Interruptibly.Run(() => ReaderDiagnostics.ComplaintsAbout(ddl));
 
     private static Task<IReadOnlyList<string>> ComplaintsAboutParagraph(string paragraphBody) =>
         ComplaintsAbout("\\document{\\section{\\paragraph{" + paragraphBody + "}}}");
@@ -49,7 +50,7 @@ public class DdlMalformedInputTests
     ///   hands back what it read along with the errors - leaving out warnings - it reported.
     /// </summary>
     private static Task<(Document Document, IReadOnlyList<DdlReaderError> Errors)> ReadDespite(string ddl) =>
-        Task.Run(() =>
+        Interruptibly.Run(() =>
         {
             var errors = new DdlReaderErrors();
             var document = (Document)DdlReader.ObjectFromString(ddl, errors);

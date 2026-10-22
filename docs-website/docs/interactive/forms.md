@@ -56,7 +56,11 @@ For a field divided into equal cells, such as a postcode, set `MaxLength` and th
 `PdfAcroFieldFlags.Comb` flag together.
 
 A text field draws its own box and value. `BackColor`, `BorderColor`, `ForeColor` and `Font` decide how
-it looks, and the field redraws when any of them or `Text` changes:
+it looks, and the field redraws when any of them or `Text` changes. It does not redraw on save, so a
+field read from a file keeps the drawing it came with. If you change something the field reads but
+does not own, such as the `/V` of a parent field it inherits its value from, call
+`RedrawAppearance()`. A field read from a file takes its background and border from its widgets'
+`/MK` unless you set `BackColor` or `BorderColor`:
 
 ```csharp demo=Forms snippet=style-text
 ```

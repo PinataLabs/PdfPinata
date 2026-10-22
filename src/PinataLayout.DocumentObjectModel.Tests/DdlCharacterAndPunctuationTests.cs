@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AwesomeAssertions;
+using PdfPinata.Test.Helpers;
 using PinataLayout.DocumentObjectModel.IO;
 using TUnit.Core;
 
@@ -265,7 +266,7 @@ public class DdlCharacterAndPunctuationTests
     [Arguments("?")]
     public async Task EveryPunctuatorInCodeIsATokenOfItsOwn(string punctuator)
     {
-        var complaints = await Task.Run(() =>
+        var complaints = await Interruptibly.Run(() =>
             ComplaintsAbout("\\document{\\section{\\paragraph{\\symbol(Euro" + punctuator + ")}}}"));
 
         complaints[0].Should().Be("')' expected, found '" + punctuator + "'.");

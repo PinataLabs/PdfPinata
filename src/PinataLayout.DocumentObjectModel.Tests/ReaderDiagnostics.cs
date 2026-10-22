@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
+using PdfPinata.Test.Helpers;
 using PinataLayout.DocumentObjectModel.IO;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
@@ -49,42 +49,28 @@ internal static class ReaderDiagnostics
             .Where(error => error.ErrorLevel == DdlErrorLevel.Error)];
 
     /// <summary>
-    ///   Reads the DDL on a thread of its own. The task finishes when the reader does - with the
-    ///   exception it threw, or with null when it returned - and never finishes when the reader
-    ///   does not come back, which for some documents it does not.
+    ///   Reads the DDL on a thread of its own, through <see cref="Interruptibly"/>. The task
+    ///   finishes when the reader does - with the exception it threw, or with null when it
+    ///   returned - and never finishes when the reader does not come back, which for some
+    ///   documents it does not.
     /// </summary>
     /// <remarks>
-    ///   A dedicated background thread rather than <c>Task.Run</c>: a reader that does not return
-    ///   keeps whatever it is running on for the life of the process, and one of the thread pool's
-    ///   workers is not that thread's to keep. Marked background so it cannot hold the test host
-    ///   open once the run is over. A fault completes the task rather than failing it, so there is
-    ///   never an exception left for nobody to observe.
+    ///   A fault completes the task rather than failing it, so there is never an exception left
+    ///   for nobody to observe when a caller stops waiting.
     /// </remarks>
-    public static Task<Exception> ReadingOnItsOwnThread(string ddl)
-    {
-        var completion = new TaskCompletionSource<Exception>(
-            TaskCreationOptions.RunContinuationsAsynchronously);
-
-        var thread = new Thread(() =>
+    public static Task<Exception> ReadingOnItsOwnThread(string ddl) =>
+        Interruptibly.Run<Exception>(() =>
         {
             try
             {
                 DdlReader.ObjectFromString(ddl, new DdlReaderErrors());
-                completion.TrySetResult(null);
+                return null;
             }
             catch (Exception fault)
             {
-                completion.TrySetResult(fault);
+                return fault;
             }
-        })
-        {
-            IsBackground = true,
-            Name = "mdddl-reader-that-may-not-return"
-        };
-        thread.Start();
-
-        return completion.Task;
-    }
+        });
 
     /// <summary>
     ///   What reading the DDL threw, or null if it returned - or if it never came back at all,

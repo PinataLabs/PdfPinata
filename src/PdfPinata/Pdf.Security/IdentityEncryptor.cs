@@ -10,8 +10,6 @@ namespace PdfPinata.Pdf.Security;
 /// </remarks>
 internal sealed class IdentityEncryptor(IEncryptor keys) : IEncryptor
 {
-    public bool PasswordValid => keys.PasswordValid;
-
     public bool HaveOwnerPermission => keys.HaveOwnerPermission;
 
     public byte[] EncryptionKey

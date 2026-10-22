@@ -175,9 +175,16 @@ public sealed class PdfTextField : PdfAcroField
     {
         // With no font set and no resolver to give one, the value stands and the drawing is left
         // to the reader, rather than a setter throwing after it has changed the field.
-        if (_font == null && !GlobalFontSettings.IsFontResolverSet)
+        if (WhyAppearanceCannotBeDrawn() != null)
             return;
 
+        RenderOwnAppearance();
+    }
+
+    private protected override string WhyAppearanceCannotBeDrawn() => WhyVariableTextCannotBeDrawn(_font);
+
+    private protected override void RenderOwnAppearance()
+    {
         if (Elements.ContainsKey(PdfAnnotation.Keys.Rect))
         {
             RenderAppearanceOn(this);
@@ -222,10 +229,16 @@ public sealed class PdfTextField : PdfAcroField
             return;
         }
 
+        // The colours set on the field, or else the ones the widget's /MK names - which are all a
+        // field read from a file has, since BackColor and BorderColor answer what was set on this
+        // object. Drawing from those two alone took the box away from every such field redrawn.
+        var back = BackColorOf(annotation);
+        var border = BorderColorOf(annotation);
+
         // Nothing asked for. An appearance is what a reader shows in place of building one from
         // /MK, so writing an empty one here would blank a field decorated that way rather than
         // leave it alone - which is the difference between "draw nothing" and "draw it yourself".
-        if (BackColor.IsEmpty && BorderColor.IsEmpty && Text.Length == 0)
+        if (back.IsEmpty && border.IsEmpty && Text.Length == 0)
         {
             RemoveVariableTextAppearance(annotation);
             return;
@@ -234,14 +247,14 @@ public sealed class PdfTextField : PdfAcroField
         var form = new XForm(_document, rect.Size);
         var gfx = XGraphics.FromForm(form);
 
-        if (!BackColor.IsEmpty)
-            gfx.DrawRectangle(new XSolidBrush(BackColor), rect.ToXRect() - rect.Location);
+        if (!back.IsEmpty)
+            gfx.DrawRectangle(new XSolidBrush(back), rect.ToXRect() - rect.Location);
 
-        if (!BorderColor.IsEmpty)
+        if (!border.IsEmpty)
         {
             // Inside the rectangle rather than centred on its edge, so that the outer half of the
             // stroke is not clipped by the annotation's own bounds.
-            gfx.DrawRectangle(new XPen(BorderColor, 1),
+            gfx.DrawRectangle(new XPen(border, 1),
                 new XRect(0.5, 0.5, rect.Width - 1, rect.Height - 1));
         }
 
@@ -359,12 +372,6 @@ public sealed class PdfTextField : PdfAcroField
 
             return Owner?.AcroForm?.Elements.GetInteger(PdfAcroForm.Keys.Q) ?? 0;
         }
-    }
-
-    internal override void PrepareForSave()
-    {
-        base.PrepareForSave();
-        RenderAppearance();
     }
 
     /// <summary>
