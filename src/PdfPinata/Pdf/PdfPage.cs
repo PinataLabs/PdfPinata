@@ -744,9 +744,12 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         if (PdfItemValues.TryGetInteger(item, out degrees))
             return true;
 
+        #pragma warning disable S1244 // Exact on purpose: a real is an integer only when it is exactly one.
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
         if (PdfItemValues.TryGetNumber(item, out var number)
             && number == Math.Floor(number)
             && number is >= int.MinValue and <= int.MaxValue)
+        #pragma warning restore S1244
         {
             degrees = (int)number;
             return true;
