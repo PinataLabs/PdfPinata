@@ -77,6 +77,14 @@ internal sealed class PinnedFontResolver : IFontResolver
     /// </summary>
     public const string DefaultBoldFamilyName = "Simulated Bold Default";
 
+    /// <summary>
+    ///   A family this resolver does not serve: it answers null for it, as the contract on
+    ///   <see cref="IFontResolver.ResolveTypeface"/> allows, where every other name it is given is
+    ///   answered with Liberation Sans. It is what lets a test reach the path a caller takes when
+    ///   the resolver declines a family.
+    /// </summary>
+    public const string UnservedFamilyName = "NoSuchFamily";
+
     private const string ArabicFaceName = "NotoSansArabic-Regular.ttf";
 
     private const string DevanagariFaceName = "NotoSansDevanagari-Regular.ttf";
@@ -105,6 +113,9 @@ internal sealed class PinnedFontResolver : IFontResolver
 
     public FontResolverInfo ResolveTypeface(string familyName, bool isBold, bool isItalic)
     {
+        if (string.Equals(familyName, UnservedFamilyName, StringComparison.OrdinalIgnoreCase))
+            return null;
+
         if (Registered.TryGetValue(familyName, out var testFaceName))
             return new FontResolverInfo(testFaceName);
 

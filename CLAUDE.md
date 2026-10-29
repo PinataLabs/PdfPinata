@@ -548,7 +548,7 @@ these count pixels; asserting keys would pass on a document nobody can see.
 **So does every field of variable text.** `PdfTextField` and, since #151, `PdfComboBoxField` and
 `PdfListBoxField` draw into each of `Widgets` through `SetVariableTextAppearance`, which adds the
 `/Tx BMC … EMC` bracket. Each draws in the size and colour its `/DA` names unless `Font`
-or `ForeColor` is set, and takes its background and border from each widget's `/MK` unless
+or `ForeColor` is set, and in the family the `/BaseFont` of its `/DA` font names in the form's `/DR` (`DefaultAppearanceFont`, #353), and takes its background and border from each widget's `/MK` unless
 `BackColor` or `BorderColor` is (`PdfAcroField.BackColorOf`/`BorderColorOf`) — an appearance hides
 `/MK` from a reader, and those two properties answer only what was set on the object, so ignoring
 `/MK` stripped the box from every field read from a file. **No field redraws on save**, text or

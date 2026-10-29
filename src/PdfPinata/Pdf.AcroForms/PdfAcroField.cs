@@ -480,13 +480,38 @@ public abstract class PdfAcroField : PdfDictionary
     }
 
     /// <summary>
-    /// The font a field of variable text draws in when none is set: the resolver's default font
-    /// at the size <c>/DA</c> names, or 10 points when it names none or asks for auto-sizing.
+    /// The font a field of variable text draws in when none is set: the family <c>/DA</c> names
+    /// through the form's <c>/DR</c>, where the resolver has it, and the resolver's default font
+    /// where it has not - at the size <c>/DA</c> names, or 10 points when it names none or asks
+    /// for auto-sizing.
     /// </summary>
+    /// <remarks>
+    /// Asked for only by a drawing, or by a caller reading <c>Font</c>: reading a field resolves
+    /// no font face, and nothing here runs until then. A name the resolver does not know, or a
+    /// <c>/DA</c> that names no font the form has, is the resolver's default as it always was -
+    /// drawing never fails for a name (issue #353). See <see cref="DefaultAppearanceFont"/> for how
+    /// a name becomes a family.
+    /// </remarks>
     private protected XFont FontFromDefaultAppearance()
     {
         var named = FontSizeFromDefaultAppearance();
-        return new XFont(GlobalFontSettings.FontResolver.DefaultFontName, named > 0 ? named.Value : 10);
+        var size = named > 0 ? named.Value : 10;
+        var resolver = GlobalFontSettings.FontResolver;
+
+        var asked = DefaultAppearanceFont.Read(EffectiveDefaultAppearance(), Owner?.AcroForm);
+        if (asked != null)
+        {
+            var bold = (asked.Style & XFontStyle.Bold) != 0;
+            var italic = (asked.Style & XFontStyle.Italic) != 0;
+
+            foreach (var family in asked.Families)
+            {
+                if (resolver.ResolveTypeface(family, bold, italic) != null)
+                    return new XFont(family, size, asked.Style);
+            }
+        }
+
+        return new XFont(resolver.DefaultFontName, size);
     }
 
     /// <summary>
@@ -518,6 +543,7 @@ public abstract class PdfAcroField : PdfDictionary
     /// Asked for by the family name <paramref name="font"/> was asked for by, not by
     /// <see cref="XFont.Name"/>: that is the family the resolved face calls itself, and a resolver
     /// serving an alias - "Arial" from a file of Liberation Sans - need not know it by that name.
+    /// A family chosen from <c>/DA</c> (issue #353) is such a name more often than not.
     /// </remarks>
     private protected static XFont Resized(XFont font, double size) =>
         new(font.FamilyName, size, font.Style, font.PdfOptions);

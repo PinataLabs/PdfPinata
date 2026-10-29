@@ -333,13 +333,20 @@ public abstract class PdfChoiceField : PdfAcroField
     // ----- Appearance ------------------------------------------------------------------------
 
     /// <summary>
-    /// Gets or sets the font the options are drawn in. Unset, it is the resolver's default font at
-    /// the size the field's <c>/DA</c> names, or 10 points when that names none or asks for
-    /// auto-sizing.
+    /// Gets or sets the font the options are drawn in. Unset, it is the family the field's
+    /// <c>/DA</c> names, where the resolver has it, at the size <c>/DA</c> names, or 10 points
+    /// when that names none or asks for auto-sizing.
     /// </summary>
     /// <remarks>
+    /// <para>
+    /// The family is read from the <c>/BaseFont</c> of the font <c>/DA</c> sets, looked up in the
+    /// form's <see cref="PdfAcroForm.DefaultResources"/>, as <see cref="PdfTextField.Font"/> says;
+    /// a name the resolver does not know leaves the resolver's default font (issue #353).
+    /// </para>
+    /// <para>
     /// The size is taken from <c>/DA</c> so that the drawing agrees with the one a reader builds
     /// from the same string. Setting this, or any of the colours below, redraws the field.
+    /// </para>
     /// <para>
     /// A size of zero asks for the text to be sized to the box, so with this unset the drawing
     /// chooses its own size for each widget, whatever this answers: a combo box's value as large

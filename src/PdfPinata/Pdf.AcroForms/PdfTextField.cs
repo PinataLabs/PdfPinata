@@ -75,11 +75,20 @@ public sealed class PdfTextField : PdfAcroField
     }
 
     /// <summary>
-    /// Gets or sets the font used to draw the text of the field. Unset, it is the resolver's
-    /// default font at the size the field's <c>/DA</c> names, or 10 points when that names none
-    /// or asks for auto-sizing.
+    /// Gets or sets the font used to draw the text of the field. Unset, it is the family the
+    /// field's <c>/DA</c> names, where the resolver has it, at the size <c>/DA</c> names, or 10
+    /// points when that names none or asks for auto-sizing.
     /// </summary>
     /// <remarks>
+    /// <para>
+    /// The family comes from the font <c>/DA</c> sets, looked up in the form's
+    /// <see cref="PdfAcroForm.DefaultResources"/>: the <c>/BaseFont</c> found there is read for its
+    /// family and style, so <c>/ABCDEF+ArialMT</c> asks the resolver for Arial and
+    /// <c>/Arial,Bold</c> for Arial bold. The font itself is not used, being often a subset that
+    /// cannot draw a new value. Where <c>/DA</c> names no font the form has, or the resolver
+    /// declines the family, the value is drawn in the resolver's default font, as it was before
+    /// issue #353.
+    /// </para>
     /// <para>
     /// The size comes from <c>/DA</c> because <c>/DA</c> is what a viewer edits the field in: a
     /// drawing in any other size makes the text jump as the field gains and loses the focus. It
