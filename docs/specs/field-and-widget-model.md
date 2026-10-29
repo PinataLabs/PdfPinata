@@ -14,6 +14,7 @@ libraries do, and the plan. The plan breaks the public API on purpose, while the
 | 5 | `PdfWidgetAnnotation.Field`, and the library's own kid walks moved onto `Widgets` | no | done |
 | 6 | `AddWidget` on a merged field splits it first | no | done |
 | 7 | A check box's state is its field's `/V`, shown by every widget | **yes**, behaviour | done |
+| 8 | A field can be removed, with its descendants and every widget (§6, #352) | no | done |
 | — | Separate classes for terminal and non-terminal fields | **deliberately not done** (§5.3) |
 | — | Thin, uncached wrappers throughout (the PDFBox model) | **deliberately not done** (§5.1) |
 | — | Merging or splitting dictionaries while reading | **deliberately not done** (§5.4) |
@@ -283,3 +284,62 @@ would break the recommended way of nesting to buy a distinction that `IsTerminal
 iText can merge a lone widget into its field, or split one out, and `AddWidget` does not merge on
 write. Doing either while *reading* would change a file the caller only opened. The one split this
 note plans (item 6) happens only when the caller asks for a second widget.
+
+## 6. Removing a field (#352)
+
+`PdfAcroFieldCollection` had `Add` and no way back, so a caller who wanted a field gone edited
+`/Fields`, `/Kids` and `/Annots` by hand. A field is reachable from more places than that, and a
+reader follows each of them.
+
+```csharp
+public bool Remove(PdfAcroField field);   // false when the field is not in this collection
+public void RemoveAt(int index);          // counts fields only, as the indexer does
+```
+
+On the collection rather than on the field, because the collection already owns `Add` and the
+`/Parent` rule, and because "the collection this field is in" is what `Remove` has to know: a form's
+`/Fields` and a field's `/Kids` are the same class. A nested field is removed through its parent's
+`Fields`.
+
+**What goes.** The field and every field nested under it, from the form's `/Fields` or the parent's
+`/Kids`; every widget of each of them, from **every** page's `/Annots` and not only the page the
+widget's `/P` names, since `/P` is optional and files from other software get it wrong; each field
+from the form's `/CO`, which names fields by reference; and, in a tagged document, each widget's
+`/OBJR` among the kids of its structure element, the `/Form` element itself when that was its only
+content, and the parent tree entry under the widget's `/StructParent`. A field merged with its widget
+is both a form entry and an annotation, and leaves both.
+
+**What is decided, and why.**
+
+- **A signed signature field is refused.** A signature field with a `/V` holds a signature, and the
+  same goes for a parent holding one at any depth. Removing it would discard the evidence that the
+  document was signed while the document went on looking untouched. The check runs over the whole
+  subtree before anything is changed, so a refusal leaves the document as it was. An unsigned
+  signature field is removed like any other.
+- **Removing a parent's last kid leaves the parent.** A field with nothing nested under it is an
+  ordinary field with no widgets. Removing it as well would make one call's result depend on how
+  many siblings the field had, and would delete a name the caller may be about to give a new kid.
+- **Refused where the document cannot be modified**, through `EnsureCanModify`, asked before the
+  field is looked for. The kind is the default, `DocumentStructure`, which no certifying signature
+  permits: removing a field is not filling one in, signing, or annotating.
+- **The removed field is not changed.** Its widgets are off every page, but it can be added to a
+  collection again and given widgets with `AddWidget`.
+
+**The structure tree has two shapes, and both are handled.** A tree built in this session through
+`document.Structure` keeps each annotation's parent tree entry in the builder until the tree is
+written at save, so the builder forgets the entry as well as the tree (`ForgetAnnotationKeys`), or
+the first save puts it back. A tree read from a file is the plain dictionaries under the catalog's
+`/StructTreeRoot`, and is walked as they are; its parent tree is wrapped as a `PdfNumberTreeNode`
+for the one `Remove`, which writes the tree back as a flat leaf or a two-level tree as that class
+always does. `PdfStructureAnnotationRemover` does both, and creates no tree in a document that has
+none.
+
+**The step flattening shares.** Taking a widget off its pages and out of the structure tree is
+`PdfWidgetAnnotation.RemoveFromPagesAndStructure(document, widgets)`, internal, and takes the whole
+set so that each page and the tree are walked once however many widgets there are. Form flattening
+ends with the same step.
+
+**Deliberately not done.** A removed `/Form` element that carried an `/ID` stays in a file-read
+tree's `/IDTree`; only elements this library gives an `/ID` (a `/Note`) are indexed, and the tree
+of a built document is rebuilt at save. A `/Lock` entry of a signature field naming a removed
+field by name is left alone: it is a name, not a reference, and nothing here rewrites names.

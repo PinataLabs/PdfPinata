@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Annotations & Forms
+
+#### Added
+
+- **`PdfAcroFieldCollection.Remove(field)` and `RemoveAt(index)` remove a form field, its descendants and all their widgets.** The collection had `Add` and no way back, so a caller edited `/Fields`, `/Kids` and `/Annots` by hand and left something behind: a widget still on the page with no field, or a structure element pointing at an annotation that was gone. A field now leaves the form's `/Fields` or its parent's `/Kids`, the calculation order, **every** page's `/Annots` (not only the page a widget's `/P` names) and, in a tagged document, the widgets' `/Form` elements, `/OBJR` kids and parent tree entries. A field merged with its widget leaves both `/Fields` and `/Annots`. `Remove` answers false for a field that is not in the collection. It throws an `InvalidOperationException` in a document opened without the right to modify it, and for a signature field that has been signed, or a field holding one at any depth; nothing is changed when it throws. Removing a parent's last kid leaves the parent. (#352)
+
 ## [0.5.0] - 2026-10-22
 
 ### API & Packaging

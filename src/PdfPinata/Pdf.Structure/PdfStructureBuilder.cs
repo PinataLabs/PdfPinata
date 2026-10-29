@@ -145,6 +145,20 @@ public sealed class PdfStructureBuilder
         _annotations.Add(new KeyValuePair<int, PdfStructureElement>(key, element));
     }
 
+    /// <summary>
+    /// Forgets the parent tree entries <see cref="AddAnnotation"/> recorded for annotations that
+    /// have been removed from the document.
+    /// </summary>
+    /// <remarks>
+    /// The entries are held here until <see cref="PrepareForSave"/> writes them into the parent
+    /// tree, so removing the annotation's key from the tree alone would be undone at the next save.
+    /// </remarks>
+    internal void ForgetAnnotationKeys(ICollection<int> keys)
+    {
+        if (keys.Count > 0)
+            _annotations.RemoveAll(pair => keys.Contains(pair.Key));
+    }
+
     private PageMarks MarksOf(PdfPage page)
     {
         if (_pages.TryGetValue(page, out var marks))
