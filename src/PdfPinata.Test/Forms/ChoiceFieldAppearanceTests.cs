@@ -91,8 +91,12 @@ public sealed class ChoiceFieldAppearanceTests : IDisposable
         combo.ForeColor.G.Should().Be(0);
     }
 
+    /// <summary>
+    ///   What the property answers. The drawing sizes itself to each widget's box, which
+    ///   <see cref="AutoSizedFieldAppearanceTests"/> covers.
+    /// </summary>
     [Test]
-    public void AnAutoSizedDefaultAppearanceDrawsAtTenPoints()
+    public void AnAutoSizedDefaultAppearanceAnswersTenPointsForTheFont()
     {
         var (_, combo) = OnAPage(ACountryCombo);
 

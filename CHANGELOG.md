@@ -14,6 +14,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **`PdfAcroFieldCollection.Remove(field)` and `RemoveAt(index)` remove a form field, its descendants and all their widgets.** The collection had `Add` and no way back, so a caller edited `/Fields`, `/Kids` and `/Annots` by hand and left something behind: a widget still on the page with no field, or a structure element pointing at an annotation that was gone. A field now leaves the form's `/Fields` or its parent's `/Kids`, the calculation order, **every** page's `/Annots` (not only the page a widget's `/P` names) and, in a tagged document, the widgets' `/Form` elements, `/OBJR` kids and parent tree entries. A field merged with its widget leaves both `/Fields` and `/Annots`. `Remove` answers false for a field that is not in the collection. It throws an `InvalidOperationException` in a document opened without the right to modify it, and for a signature field that has been signed, or a field holding one at any depth; nothing is changed when it throws. Removing a parent's last kid leaves the parent. (#352)
 
+#### Fixed
+
+- **A field whose `/DA` names a font size of 0 sizes its text to the box.** A size of 0 means auto-size (ISO 32000-1 12.7.3.3), and forms from form designers use it all the time, but text, combo box and list box fields drew it at a fixed 10 points: a value was a sliver in a tall box, and ran past the edge of a narrow one and was cut off. A single line, and a combo box's value, is now as large as the box is tall, and then smaller if that is what it takes to fit across it. A comb field fits its widest character to one cell. A multi-line value and a list box's rows start at 12 points and shrink until they fit. Nothing is drawn below 4 points; text that does not fit at 4 points is clipped. The size is chosen for each widget's appearance and is not written into `/DA`, so a reader that rebuilds the field still auto-sizes it. A `Font` set on the field, or a non-zero size in `/DA`, is drawn as before, and the `Font` property still answers 10 points for an auto-sized field. (#354)
+
 ## [0.5.0] - 2026-10-22
 
 ### API & Packaging

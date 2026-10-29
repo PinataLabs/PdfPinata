@@ -159,7 +159,11 @@ public sealed class PdfComboBoxField : PdfChoiceField
             return;
 
         var line = new XRect(inside.X + 1, inside.Y, Math.Max(inside.Width - 2, 0), inside.Height);
-        gfx.DrawString(text, Font, new XSolidBrush(ForeColor), line, XStringFormats.CenterLeft);
+        var font = Font;
+        if (AutoSizes)
+            font = Resized(font, OneLineAutoSize(gfx, font, text, line.Size));
+
+        gfx.DrawString(text, font, new XSolidBrush(ForeColor), line, XStringFormats.CenterLeft);
     }
 
     /// <summary>

@@ -340,6 +340,13 @@ public abstract class PdfChoiceField : PdfAcroField
     /// <remarks>
     /// The size is taken from <c>/DA</c> so that the drawing agrees with the one a reader builds
     /// from the same string. Setting this, or any of the colours below, redraws the field.
+    /// <para>
+    /// A size of zero asks for the text to be sized to the box, so with this unset the drawing
+    /// chooses its own size for each widget, whatever this answers: a combo box's value as large
+    /// as the box is tall and then small enough to fit across it, and a list box's options 12
+    /// points or smaller until every row from <see cref="PdfListBoxField.TopIndex"/> down fits -
+    /// never below 4 points (issue #354).
+    /// </para>
     /// </remarks>
     public XFont Font
     {
@@ -352,6 +359,12 @@ public abstract class PdfChoiceField : PdfAcroField
     }
 
     private XFont _font;
+
+    /// <summary>
+    /// Whether the drawing sizes the text to the box: no <see cref="Font"/> is set and <c>/DA</c>
+    /// names a size of zero.
+    /// </summary>
+    private protected bool AutoSizes => _font == null && DefaultAppearanceAutoSizes;
 
     /// <summary>
     /// Gets or sets the colour of the text. Unset, it is the colour the field's <c>/DA</c> names,
