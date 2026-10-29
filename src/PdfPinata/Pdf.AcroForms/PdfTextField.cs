@@ -335,7 +335,9 @@ public sealed class PdfTextField : PdfAcroField
         if (Comb && cells > 0 && !MultiLine && !Password)
         {
             var cellWidth = size.Width / cells;
-            var characters = new List<string>(cells);
+            // No more room than the value can fill: /MaxLen comes from the file, and a list sized
+            // for every cell of a field claiming two billion of them is an array no runtime makes.
+            var characters = new List<string>(Math.Min(cells, text.Length));
             var elements = StringInfo.GetTextElementEnumerator(text);
             while (characters.Count < cells && elements.MoveNext())
                 characters.Add(elements.GetTextElement());

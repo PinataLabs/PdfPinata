@@ -151,6 +151,52 @@ public sealed class AutoSizedFieldAppearanceTests : IDisposable
         FontSizesSetBy(field).Should().Equal(12);
     }
 
+    [Test, GoldenImage]
+    public void ALineFeedInASingleLineValueIsMeasuredAsTheJoinedLineItIsDrawnAs()
+    {
+        // DrawString drops the line feed and draws sixteen H's on one line. Measured as two
+        // lines of eight, the value was sized for half its width and the clip cut the rest off.
+        var box = new XRect(60, 60, 100, 30);
+        var field = AText(box);
+        field.Text = "HHHHHHHH\nHHHHHHHH";
+
+        var image = _rasterized.FirstPageOf(field.Owner, "joined-line");
+
+        StemsAcross(image, box).Should().Be(32, "every H of the joined line is drawn");
+    }
+
+    [Test, GoldenImage]
+    public void AListBoxShrinksUntilItsWidestOptionFitsAcross()
+    {
+        // Twelve H's are 104 points wide at 12 points, and the box has less than 100 inside its
+        // border: one row fits the height easily, so the height alone left the option clipped.
+        var box = new XRect(60, 60, 100, 30);
+        var list = OnAPage(new PdfListBoxField(new PdfDocument())
+        {
+            Name = "list",
+            Options = [new string('H', 12)]
+        }, box);
+
+        var image = _rasterized.FirstPageOf(list.Owner, "wide-option");
+
+        StemsAcross(image, box).Should().Be(24, "every H of the option is drawn");
+    }
+
+    [Test]
+    public void ACombFieldOfAHugeMaximumLengthDrawsAShortValue()
+    {
+        // /MaxLen comes from the file. The cells were collected into a list sized for every one
+        // of them, so a short value in a field claiming two billion cells asked for an array
+        // larger than any the runtime will make.
+        var field = AText(new XRect(60, 60, 300, 30), "/Helv 12 Tf 0 g");
+        field.MaxLength = int.MaxValue;
+        field.Flags |= PdfAcroFieldFlags.Comb;
+
+        var drawing = () => field.Text = "A";
+
+        drawing.Should().NotThrow();
+    }
+
     [Test]
     public void ALineNeverShrinksBelowFourPoints()
     {

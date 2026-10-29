@@ -514,8 +514,13 @@ public abstract class PdfAcroField : PdfDictionary
     /// <summary>
     /// <paramref name="font"/> at another size.
     /// </summary>
+    /// <remarks>
+    /// Asked for by the family name <paramref name="font"/> was asked for by, not by
+    /// <see cref="XFont.Name"/>: that is the family the resolved face calls itself, and a resolver
+    /// serving an alias - "Arial" from a file of Liberation Sans - need not know it by that name.
+    /// </remarks>
     private protected static XFont Resized(XFont font, double size) =>
-        new(font.Name, size, font.Style, font.PdfOptions);
+        new(font.FamilyName, size, font.Style, font.PdfOptions);
 
     /// <summary>
     /// The size an auto-sized single line is drawn at: as large as <paramref name="space"/> is
@@ -527,7 +532,9 @@ public abstract class PdfAcroField : PdfDictionary
         var size = space.Height / (font.GetHeight() / font.Size);
 
         // Width is proportional to size, so one measurement says what size fills the width.
-        var width = gfx.MeasureString(text, font).Width / font.Size;
+        // Measured as DrawString draws it: MeasureString splits at a line feed and answers the
+        // widest line, where DrawString drops the line feed and draws one line of the lot.
+        var width = gfx.MeasureString(TextNormalization.NormalizeLine(text), font).Width / font.Size;
         if (width > 0)
             size = Math.Min(size, space.Width / width);
 
