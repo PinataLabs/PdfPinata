@@ -485,17 +485,83 @@ public abstract class PdfAcroField : PdfDictionary
     /// </summary>
     private protected XFont FontFromDefaultAppearance()
     {
-        var size = 10.0;
+        var named = FontSizeFromDefaultAppearance();
+        return new XFont(GlobalFontSettings.FontResolver.DefaultFontName, named > 0 ? named.Value : 10);
+    }
+
+    /// <summary>
+    /// The font size <c>/DA</c> names, or null when it names none.
+    /// </summary>
+    private double? FontSizeFromDefaultAppearance()
+    {
         var match = FontSize.Match(EffectiveDefaultAppearance());
         if (match.Success
-            && double.TryParse(match.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var named)
-            && named > 0)
+            && double.TryParse(match.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var named))
         {
-            size = named;
+            return named;
         }
 
-        return new XFont(GlobalFontSettings.FontResolver.DefaultFontName, size);
+        return null;
     }
+
+    /// <summary>
+    /// Whether <c>/DA</c> asks for the text to be sized to the box, by naming a size of zero
+    /// (ISO 32000-1 12.7.3.3). Only a field with no <c>Font</c> of its own takes the size from
+    /// <c>/DA</c> at all, so a drawing asks this only of such a field.
+    /// </summary>
+    private protected bool DefaultAppearanceAutoSizes => FontSizeFromDefaultAppearance() == 0;
+
+    /// <summary>
+    /// <paramref name="font"/> at another size.
+    /// </summary>
+    private protected static XFont Resized(XFont font, double size) =>
+        new(font.Name, size, font.Style, font.PdfOptions);
+
+    /// <summary>
+    /// The size an auto-sized single line is drawn at: as large as <paramref name="space"/> is
+    /// tall, a line being the font's own line spacing, and then smaller if that is what it takes
+    /// for <paramref name="text"/> to fit across it.
+    /// </summary>
+    private protected static double OneLineAutoSize(XGraphics gfx, XFont font, string text, XSize space)
+    {
+        var size = space.Height / (font.GetHeight() / font.Size);
+
+        // Width is proportional to size, so one measurement says what size fills the width.
+        var width = gfx.MeasureString(text, font).Width / font.Size;
+        if (width > 0)
+            size = Math.Min(size, space.Width / width);
+
+        return Math.Max(size, MinimumAutoSize);
+    }
+
+    /// <summary>
+    /// The size auto-sized text of several lines is drawn at: 12 points, or less, a step at a time,
+    /// until <paramref name="fits"/> says the text fits at it - but never less than
+    /// <see cref="MinimumAutoSize"/>.
+    /// </summary>
+    /// <remarks>
+    /// Stepped rather than solved for, because wrapping makes the height of the text jump as the
+    /// size goes down rather than shrink in proportion to it.
+    /// </remarks>
+    private protected static double MultiLineAutoSize(Func<double, bool> fits)
+    {
+        const double Largest = 12;
+        const double Step = 0.5;
+
+        for (var size = Largest; size > MinimumAutoSize; size -= Step)
+        {
+            if (fits(size))
+                return size;
+        }
+
+        return MinimumAutoSize;
+    }
+
+    /// <summary>
+    /// The smallest size auto-sizing draws at. Text that does not fit at this size is clipped
+    /// rather than shrunk further, past the point of being read.
+    /// </summary>
+    private protected const double MinimumAutoSize = 4;
 
     /// <summary>
     /// The colour <c>/DA</c> names for the text - its last <c>g</c>, <c>rg</c> or <c>k</c> - or

@@ -186,6 +186,14 @@ public sealed class PdfListBoxField : PdfChoiceField
             return;
 
         var font = Font;
+        if (AutoSizes)
+        {
+            // Every row from the top index down, as many as there are, has room in the box.
+            var rows = options.Length - Math.Min(TopIndex, options.Length - 1);
+            var lineSpacing = font.GetHeight() / font.Size;
+            font = Resized(font, MultiLineAutoSize(candidate => rows * candidate * lineSpacing <= inside.Height));
+        }
+
         var rowHeight = font.GetHeight();
         var chosen = SelectedIndicesFromValue();
         var brush = new XSolidBrush(ForeColor);
