@@ -220,27 +220,33 @@ public abstract class PdfAcroField : PdfDictionary
     /// This field and every field nested under it, outermost first.
     /// </summary>
     /// <remarks>
-    /// Guarded against a <c>/Kids</c> chain that comes back on itself, which is malformed but can
-    /// be read from a file: a field already seen is not walked into again.
+    /// Walked with a stack of its own rather than by recursion, so a chain of <c>/Kids</c> as deep
+    /// as a file can make it does not overflow the thread's. Guarded against a chain that comes
+    /// back on itself, which is malformed but can be read from a file: a field already seen is not
+    /// walked into again.
     /// </remarks>
     internal List<PdfAcroField> SelfAndDescendants()
     {
         var found = new List<PdfAcroField>();
-        CollectSelfAndDescendants(found);
+        var seen = new HashSet<PdfAcroField>();
+        var pending = new Stack<PdfAcroField>();
+        pending.Push(this);
+        while (pending.Count > 0)
+        {
+            var field = pending.Pop();
+            if (!seen.Add(field))
+                continue;
+
+            found.Add(field);
+            if (!field.HasKids)
+                continue;
+
+            // Pushed last to first, so that the first kid is the next one walked.
+            var kids = new List<PdfAcroField>(field.Fields);
+            for (var idx = kids.Count - 1; idx >= 0; idx--)
+                pending.Push(kids[idx]);
+        }
         return found;
-    }
-
-    private void CollectSelfAndDescendants(List<PdfAcroField> found)
-    {
-        if (found.Exists(seen => ReferenceEquals(seen, this)))
-            return;
-
-        found.Add(this);
-        if (!HasKids)
-            return;
-
-        foreach (var child in Fields)
-            child.CollectSelfAndDescendants(found);
     }
 
     /// <summary>
@@ -1445,10 +1451,13 @@ public abstract class PdfAcroField : PdfDictionary
             if (order == null)
                 return;
 
+            var targets = new HashSet<PdfDictionary>();
+            foreach (var each in removed)
+                targets.Add(each.Reference?.Value as PdfDictionary ?? each);
+
             for (var idx = order.Elements.Count - 1; idx >= 0; idx--)
             {
-                var entry = order.Elements.GetDictionary(idx);
-                if (entry != null && removed.Exists(each => ReferenceEquals(each.Reference?.Value ?? each, entry)))
+                if (order.Elements.GetDictionary(idx) is { } entry && targets.Contains(entry))
                     order.Elements.RemoveAt(idx);
             }
         }

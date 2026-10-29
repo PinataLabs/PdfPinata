@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
@@ -301,15 +302,17 @@ public class RemoveFieldTests
     ///   A tagged form of two text fields on one page, each widget the content of a <c>/Form</c>
     ///   element of its own.
     /// </summary>
-    private static PdfDocument ATaggedForm()
+    private static PdfDocument ATaggedForm(string tag = "/Form")
     {
         var document = new PdfDocument();
         var page = document.AddPage();
         document.Structure.RegisterPage(page);
+        if (tag != "/Form")
+            document.Structure.Root.RoleMap[tag.TrimStart('/')] = "/Form";
         foreach (var name in new[] { "keep", "drop" })
         {
             var field = AddText(document, page, name);
-            var element = document.Structure.CreateElement(new PdfTag("/Form"));
+            var element = document.Structure.CreateElement(new PdfTag(tag));
             document.Structure.AddAnnotation(element, page, field.Widgets[0]);
         }
         return document;
@@ -321,7 +324,7 @@ public class RemoveFieldTests
     ///   does not list, and a parent tree entry for each widget's <c>/StructParent</c> and for
     ///   nothing else but the page.
     /// </summary>
-    private static void AssertTreeHoldsOnlyTheWidgetsOnThePages(PdfDocument saved)
+    private static void AssertTreeHoldsOnlyTheWidgetsOnThePages(PdfDocument saved, string formTag = "/Form")
     {
         var listed = new List<PdfDictionary>();
         foreach (var page in saved.Pages)
@@ -334,13 +337,13 @@ public class RemoveFieldTests
         var root = saved.Internals.Catalog.Elements.GetDictionary("/StructTreeRoot");
         var objrs = new List<PdfDictionary>();
         var forms = new List<PdfDictionary>();
-        Walk(root.Elements["/K"], objrs, forms, 0);
+        Walk(root.Elements["/K"], objrs, forms, formTag, 0);
 
         var named = objrs.Select(objr => objr.Elements.GetDictionary("/Obj")).ToList();
         named.Should().HaveCount(listed.Count, "each annotation a page lists has one object reference");
         new HashSet<PdfDictionary>(named).SetEquals(listed)
             .Should().BeTrue("every object reference names an annotation a page lists");
-        forms.Should().HaveCount(listed.Count, "a /Form element with nothing in it stands for nothing");
+        forms.Should().HaveCount(listed.Count, "a form element with nothing in it stands for nothing");
 
         var keys = ParentTreeKeys(root);
         var wanted = listed.Select(annot => annot.Elements.GetInteger("/StructParent")).ToList();
@@ -349,7 +352,7 @@ public class RemoveFieldTests
         keys.Should().BeEquivalentTo(wanted, "the parent tree names the annotations on the pages and the pages");
     }
 
-    private static void Walk(PdfItem item, List<PdfDictionary> objrs, List<PdfDictionary> forms, int depth)
+    private static void Walk(PdfItem item, List<PdfDictionary> objrs, List<PdfDictionary> forms, string formTag, int depth)
     {
         item = item is global::PdfPinata.Pdf.Advanced.PdfReference reference ? reference.Value : item;
         if (item == null || depth > 64)
@@ -358,15 +361,15 @@ public class RemoveFieldTests
         if (item is PdfArray array)
         {
             foreach (var kid in array.Elements.Items)
-                Walk(kid, objrs, forms, depth + 1);
+                Walk(kid, objrs, forms, formTag, depth + 1);
         }
         else if (item is PdfDictionary dict)
         {
             if (dict.Elements.GetName("/Type") == "/OBJR")
                 objrs.Add(dict);
-            if (dict.Elements.GetName("/S") == "/Form")
+            if (dict.Elements.GetName("/S") == formTag)
                 forms.Add(dict);
-            Walk(dict.Elements["/K"], objrs, forms, depth + 1);
+            Walk(dict.Elements["/K"], objrs, forms, formTag, depth + 1);
         }
     }
 
@@ -443,6 +446,82 @@ public class RemoveFieldTests
         document.Save(first, false);
 
         AssertTreeHoldsOnlyTheWidgetsOnThePages(document.Reopened());
+    }
+
+    [Test]
+    public void AnElementWhoseTagIsRoleMappedToFormIsPrunedLikeOneTaggedForm()
+    {
+        const string Custom = "/FieldBlock";
+        var document = ATaggedForm(Custom);
+        var reopened = document.Reopened();
+        AssertTreeHoldsOnlyTheWidgetsOnThePages(reopened, Custom);
+
+        reopened.AcroForm.Fields.Remove(reopened.AcroForm.Fields["drop"]);
+
+        var saved = reopened.Reopened();
+        WidgetOwners(saved).Should().Equal("keep");
+        AssertTreeHoldsOnlyTheWidgetsOnThePages(saved, Custom);
+    }
+
+    [Test]
+    public void ARoleMappedFormElementIsPrunedInTheSessionThatMadeIt()
+    {
+        const string Custom = "/FieldBlock";
+        var document = ATaggedForm(Custom);
+
+        document.AcroForm.Fields.Remove(document.AcroForm.Fields["drop"]);
+
+        AssertTreeHoldsOnlyTheWidgetsOnThePages(document.Reopened(), Custom);
+    }
+
+    [Test]
+    public void RemovingManyTaggedWidgetsRewritesTheParentTreeOnce()
+    {
+        // 300 keys is five leaves of a number tree, and the tree is written again whole each time an
+        // entry goes: one write per widget leaves hundreds of nodes behind that nothing reaches.
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        document.Structure.RegisterPage(page);
+        for (var idx = 0; idx < 100; idx++)
+        {
+            var field = AddText(document, page, "keep" + idx);
+            document.Structure.AddAnnotation(document.Structure.CreateElement(new PdfTag("/Form")), page, field.Widgets[0]);
+        }
+        var bulk = new PdfTextField(document) { Name = "bulk" };
+        document.AcroForm.Fields.Add(bulk);
+        for (var idx = 0; idx < 200; idx++)
+        {
+            var widget = bulk.AddWidget(page, Box);
+            document.Structure.AddAnnotation(document.Structure.CreateElement(new PdfTag("/Form")), page, widget);
+        }
+        var reopened = document.Reopened();
+        var before = reopened.Internals.GetAllObjects().Length;
+
+        reopened.AcroForm.Fields.Remove(reopened.AcroForm.Fields["bulk"]);
+
+        reopened.Internals.GetAllObjects().Length.Should().BeLessThan(before + 10);
+        AssertTreeHoldsOnlyTheWidgetsOnThePages(reopened.Reopened());
+    }
+
+    [Test]
+    [Timeout(120_000)]
+    public void AVeryDeepChainOfKidsIsRemovedWithoutOverflowingTheStack(CancellationToken cancellationToken)
+    {
+        var document = new PdfDocument();
+        var form = document.GetOrCreateAcroForm();
+        var root = new PdfTextField(document) { Name = "level0" };
+        form.Fields.Add(root);
+        var parent = root;
+        for (var level = 1; level < 100_000; level++)
+        {
+            var child = new PdfTextField(document) { Name = "level" + level };
+            parent.Fields.Add(child);
+            parent = child;
+        }
+
+        form.Fields.Remove(root).Should().BeTrue();
+
+        form.Fields.Count.Should().Be(0);
     }
 
     // ----- refusals --------------------------------------------------------------------------------------

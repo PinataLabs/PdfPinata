@@ -155,8 +155,11 @@ public sealed class PdfStructureBuilder
     /// </remarks>
     internal void ForgetAnnotationKeys(ICollection<int> keys)
     {
-        if (keys.Count > 0)
-            _annotations.RemoveAll(pair => keys.Contains(pair.Key));
+        if (keys.Count == 0)
+            return;
+
+        var forgotten = new HashSet<int>(keys);
+        _annotations.RemoveAll(pair => forgotten.Contains(pair.Key));
     }
 
     private PageMarks MarksOf(PdfPage page)

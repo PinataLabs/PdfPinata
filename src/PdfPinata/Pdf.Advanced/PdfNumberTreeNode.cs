@@ -134,6 +134,29 @@ public sealed class PdfNumberTreeNode : PdfDictionary
     }
 
     /// <summary>
+    /// Takes the entries for the keys out of the tree, writing the tree back once however many
+    /// there were, and says how many entries there were to take.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="Remove(int)"/> writes the tree back each time, and writing a tree of more than one
+    /// node makes new nodes each time, so removing a form's worth of entries one by one leaves a
+    /// node for each of them in the document with nothing pointing at it.
+    /// </remarks>
+    internal int RemoveRange(IEnumerable<int> keys)
+    {
+        var removed = 0;
+        foreach (var key in keys)
+        {
+            if (Entries.Remove(key))
+                removed++;
+        }
+
+        if (removed > 0)
+            Write();
+        return removed;
+    }
+
+    /// <summary>
     /// An indirect object is held in the tree as the reference to it, which is what the tree
     /// is written with.
     /// </summary>
