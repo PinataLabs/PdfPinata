@@ -65,6 +65,9 @@ internal sealed class DefaultAppearanceFont
     private static readonly Regex SubsetTag = new(
         @"^[A-Z]{6}\+", RegexOptions.CultureInvariant, MatchTimeout);
 
+    private static readonly Regex NameEscape = new(
+        "#([0-9A-Fa-f]{2})", RegexOptions.CultureInvariant, MatchTimeout);
+
     private static readonly Regex Suffix = new(
         "(?:PSMT|MT|PS)$", RegexOptions.CultureInvariant, MatchTimeout);
 
@@ -118,6 +121,10 @@ internal sealed class DefaultAppearanceFont
         if (key == null)
             return null;
 
+        // A name in a content stream is written with #hh escapes, which the lexer has already
+        // resolved in the dictionary's keys.
+        key = NameEscape.Replace(key, escape => ((char)Convert.ToInt32(escape.Groups[1].Value, 16)).ToString());
+
         var font = form.Elements.GetDictionary(PdfAcroForm.Keys.DR)?
             .Elements.GetDictionary("/Font")?
             .Elements.GetDictionary("/" + key);
@@ -145,8 +152,11 @@ internal sealed class DefaultAppearanceFont
         var comma = name.IndexOf(',');
         if (comma >= 0)
         {
-            // "Arial,Bold": whatever follows is the style, and an unrecognised one is none.
-            style = StyleOf(name[(comma + 1)..]) ?? XFontStyle.Regular;
+            // "Arial,Bold": whatever follows is the style, and is read for the words in it, since
+            // a Windows name is written how its author liked: "Bold Italic", "BoldItalicMT", "Semibold".
+            var words = name[(comma + 1)..].ToLowerInvariant();
+            style = (words.Contains("bold") ? XFontStyle.Bold : XFontStyle.Regular)
+                | (words.Contains("italic") || words.Contains("oblique") ? XFontStyle.Italic : XFontStyle.Regular);
             name = name[..comma];
         }
         else
@@ -159,7 +169,10 @@ internal sealed class DefaultAppearanceFont
             }
         }
 
-        var family = Suffix.Replace(name, "");
+        // Only a PostScript name has these suffixes to lose: a name with a space in it is a family
+        // as the platform spells it, and "Gill Sans MT" is the whole of one.
+        name = name.Trim();
+        var family = name.Contains(' ') ? name : Suffix.Replace(name, "");
         if (family.Length == 0)
             family = name;
         if (family.Length == 0)

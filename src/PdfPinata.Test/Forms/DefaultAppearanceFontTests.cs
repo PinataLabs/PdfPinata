@@ -141,6 +141,8 @@ public sealed class DefaultAppearanceFontTests
     [Arguments("Arial-ItalicMT", XFontStyle.Italic)]
     [Arguments("ABCDEF+Arial-BoldItalicMT", XFontStyle.BoldItalic)]
     [Arguments("Arial-Bold", XFontStyle.Bold)]
+    [Arguments("Arial,Bold Italic", XFontStyle.BoldItalic)]
+    [Arguments("Arial,Semibold", XFontStyle.Bold)]
     [Arguments("Helvetica-Oblique", XFontStyle.Italic)]
     [Arguments("Helvetica-BoldOblique", XFontStyle.BoldItalic)]
     public void TheStyleInTheNameIsAskedForAlongWithTheFamily(string baseFont, XFontStyle style)
@@ -215,6 +217,31 @@ public sealed class DefaultAppearanceFontTests
 
         draw.Should().NotThrow();
         ShouldBeDrawnIn(field, Sans());
+    }
+
+    [Test]
+    public void AFamilyThatEndsInTheLettersOfASuffixKeepsThem()
+    {
+        // "Pinata MT" is a family as the platform spells it; stripping "MT" would ask for "Pinata ".
+        PinnedFontResolver.Register("Pinata MT", File.ReadAllBytes(
+            PathHelper.GetInstance().GetAssetPath("Fonts", "SourceCodePro-Regular.otf")));
+        var field = Text("Pinata MT");
+
+        field.Text = "Hello";
+
+        ShouldBeDrawnIn(field, Mono);
+    }
+
+    [Test]
+    public void AKeyWrittenWithAnEscapeIsFoundInTheDefaultResources()
+    {
+        // /F#20A in a content stream is the name "F A", which is how the lexer stores it as a key.
+        var field = Text(MonoFamily, "/F#20A 12 Tf 0 g");
+        field.Owner.AcroForm.AddStandardFont("F A", MonoFamily);
+
+        field.Text = "Hello";
+
+        ShouldBeDrawnIn(field, Mono);
     }
 
     [Test]
