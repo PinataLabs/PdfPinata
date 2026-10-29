@@ -228,6 +228,21 @@ public class RemoveFieldTests
         WidgetOwners(reopened).Should().Equal("nested");
     }
 
+
+    [Test]
+    public void AFieldListedTwiceIsRemovedFromEveryEntry()
+    {
+        // A file can list a field twice; the second entry would be a field with no widgets.
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        AddText(document, page, "keep");
+        var drop = AddText(document, page, "drop");
+        document.AcroForm.Elements.GetArray("/Fields").Elements.Add(drop.Reference);
+
+        document.AcroForm.Fields.Remove(drop).Should().BeTrue();
+
+        document.Reopened().AcroForm.Fields.DescendantNames.Should().Equal("keep");
+    }
     [Test]
     public void ARemovedFieldLeavesTheCalculationOrder()
     {

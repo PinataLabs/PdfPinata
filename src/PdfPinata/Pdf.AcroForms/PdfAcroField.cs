@@ -1384,18 +1384,17 @@ public abstract class PdfAcroField : PdfDictionary
             if (entries == null)
                 return false;
 
-            var position = -1;
+            // Every place it is listed: a file can list a field twice, and the second entry would
+            // otherwise be a field with no widgets that the form still finds.
+            var positions = new List<int>();
             var target = field.Reference?.Value ?? field;
             for (var idx = 0; idx < entries.Elements.Count; idx++)
             {
                 if (ReferenceEquals(entries.Elements.GetDictionary(idx), target))
-                {
-                    position = idx;
-                    break;
-                }
+                    positions.Add(idx);
             }
 
-            if (position < 0)
+            if (positions.Count == 0)
                 return false;
 
             var removed = field.SelfAndDescendants();
@@ -1415,7 +1414,8 @@ public abstract class PdfAcroField : PdfDictionary
             foreach (var each in removed)
                 widgets.AddRange(each.Widgets);
 
-            entries.Elements.RemoveAt(position);
+            for (var at = positions.Count - 1; at >= 0; at--)
+                entries.Elements.RemoveAt(positions[at]);
             RemoveFromCalculationOrder(removed);
             PdfWidgetAnnotation.RemoveFromPagesAndStructure(Owner, widgets);
             return true;

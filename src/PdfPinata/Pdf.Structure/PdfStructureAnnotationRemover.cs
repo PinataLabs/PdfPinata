@@ -88,6 +88,8 @@ internal static class PdfStructureAnnotationRemover
     /// </summary>
     private static PdfDictionary RootOf(PdfDocument document)
     {
+        // A tree built this session replaces whatever tree the file had when the document is saved, so
+        // it is the only one that survives to be kept consistent.
         if (document.TaggedStructure is { } structure)
             return structure.Root;
 
