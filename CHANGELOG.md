@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Annotations & Forms
+
+#### Fixed
+
+- **A field whose `/DA` names a font size of 0 sizes its text to the box.** A size of 0 means auto-size (ISO 32000-1 12.7.3.3), and forms from form designers use it all the time, but text, combo box and list box fields drew it at a fixed 10 points: a value was a sliver in a tall box, and ran past the edge of a narrow one and was cut off. A single line, and a combo box's value, is now as large as the box is tall, and then smaller if that is what it takes to fit across it. A comb field fits its widest character to one cell. A multi-line value and a list box's rows start at 12 points and shrink until they fit. Nothing is drawn below 4 points; text that does not fit at 4 points is clipped. The size is chosen for each widget's appearance and is not written into `/DA`, so a reader that rebuilds the field still auto-sizes it. A `Font` set on the field, or a non-zero size in `/DA`, is drawn as before, and the `Font` property still answers 10 points for an auto-sized field. (#354)
+
 ## [0.5.0] - 2026-10-22
 
 ### API & Packaging
