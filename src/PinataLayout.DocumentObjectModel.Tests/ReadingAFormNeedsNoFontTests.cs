@@ -60,7 +60,7 @@ public class ReadingAFormNeedsNoFontTests
             + "/Rect [20 700 220 720] >>",
             // 6: text, read only, taking the form's /DA.
             "<< /Type /Annot /Subtype /Widget /FT /Tx /Ff 1 /T (Locked) /V (fixed) /Rect [20 670 220 690] >>",
-            // 7: text, auto-sized by a /DA size of zero: the other branch of the lazy font.
+            // 7: text, with a /DA size of zero (auto-size), the one size an eager font would have to special-case.
             "<< /Type /Annot /Subtype /Widget /FT /Tx /T (Auto) /V (anything) /DA (/Helv 0 Tf 0 g) "
             + "/Rect [20 640 220 660] >>",
             // 8: combo box, flag 1 << 17.
@@ -167,8 +167,9 @@ public class ReadingAFormNeedsNoFontTests
         using var document = OpenTheForm();
         var fields = document.AcroForm.Fields;
 
-        // A /DA naming a size of nine, none of its own (the form's twelve is not this field's to
-        // report), and a /DA naming a size of zero, which asks for auto-sizing.
+        // DefaultAppearance answers the field's own /DA: one naming a size of nine, none (the form's
+        // twelve applies to the field but is not the field's to report), and one naming a size of zero,
+        // which asks for auto-sizing. Reading them must not build the font they would size.
         var named = (PdfTextField)fields["Name"];
         TextOf(named.Value).Should().Be("Jane Doe");
         named.Text.Should().Be("Jane Doe");
