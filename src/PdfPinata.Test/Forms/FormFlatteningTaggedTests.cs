@@ -502,7 +502,7 @@ public class FormFlatteningTaggedTests
 
         var content = ContentOf(reopened.Pages[0]);
         Drawn(reopened.Pages[0]).Should().ContainSingle("the one the tree holds");
-        Regex.Matches(content, @"/Artifact\s+BMC\s+q[^E]*? Do Q\s*EMC").Count.Should().Be(1, "the one it does not");
+        Regex.Count(content, @"/Artifact\s+BMC\s+q[^E]*? Do Q\s*EMC").Should().Be(1, "the one it does not");
 
         // An artifact is what the extractor leaves out of the text, and keeps among the runs.
         PdfTextExtractor.ExtractText(reopened.Pages[0]).Should().NotContain("Not in the tree");

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Content.Objects;
@@ -351,7 +350,24 @@ internal sealed class PdfStructureFlattenTagger
     private static string WritableTagOf(PdfDictionary element)
     {
         var tag = element.Elements.GetName(PdfStructureElement.Keys.S);
-        return Regex.IsMatch(tag, @"^/[A-Za-z0-9_.\-]+$") ? tag : PdfTag.Span.Name;
+        return IsWritableAsItStands(tag) ? tag : PdfTag.Span.Name;
+    }
+
+    /// <summary>
+    /// Whether a name is a slash and then one or more ASCII letters, digits, '_', '.' or '-': the
+    /// characters a name needs no escaping for in a content stream.
+    /// </summary>
+    private static bool IsWritableAsItStands(string name)
+    {
+        if (name.Length < 2 || name[0] != '/')
+            return false;
+
+        for (var idx = 1; idx < name.Length; idx++)
+        {
+            if (name[idx] is not ((>= 'A' and <= 'Z') or (>= 'a' and <= 'z') or (>= '0' and <= '9') or '_' or '.' or '-'))
+                return false;
+        }
+        return true;
     }
 
     // ----- numbering, for a tree read from a file ---------------------------------------------------------------

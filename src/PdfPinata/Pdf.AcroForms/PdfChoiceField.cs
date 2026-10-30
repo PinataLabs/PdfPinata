@@ -455,6 +455,8 @@ public abstract class PdfChoiceField : PdfAcroField
         RenderOwnAppearance();
     }
 
+    private protected override bool DrawsOwnAppearance => true;
+
     private protected override string WhyAppearanceCannotBeDrawn() => WhyVariableTextCannotBeDrawn(_font);
 
     private protected override void RenderOwnAppearance()

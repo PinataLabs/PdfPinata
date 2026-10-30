@@ -52,6 +52,8 @@ public sealed class PdfSignatureField : PdfAcroField
         : base(dict)
     { }
 
+    internal override bool IsSigned => InheritedFrom(this, Keys.V) != null;
+
     /// <summary>
     /// The fields that become read-only once this field is signed - <c>/Lock</c> - or null.
     /// </summary>

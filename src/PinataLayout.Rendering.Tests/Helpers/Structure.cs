@@ -189,7 +189,7 @@ internal sealed class StructureNode
 
     private void Write(StringBuilder text, int depth)
     {
-        text.Append(new string(' ', depth * 2)).Append(Tag);
+        text.Append(' ', depth * 2).Append(Tag);
 
         if (MarkCount > 0)
             text.Append(" (").Append(MarkCount).Append(MarkCount == 1 ? " mark)" : " marks)");

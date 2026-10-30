@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using PdfPinata.Test.Helpers;
 using PinataLayout.DocumentObjectModel.IO;
@@ -80,8 +81,29 @@ internal static class ReaderDiagnostics
     {
         var reading = ReadingOnItsOwnThread(ddl);
 
-        return await Task.WhenAny(reading, Task.Delay(patience)) == reading
+        return await FinishesWithin(reading, patience)
             ? await reading
             : null;
+    }
+
+    /// <summary>
+    ///   Whether the task finishes within the time given, however it finishes: a failure stays
+    ///   with the task, for a caller that awaits it. The wait is given up on, not the task, and
+    ///   the delay it is raced against is cancelled rather than left running to its end.
+    /// </summary>
+    /// <remarks>
+    ///   Which of the two <c>Task.WhenAny</c> answers is the whole decision. Waiting with
+    ///   <c>WaitAsync</c> and asking afterwards whether the task had completed was a race: a task
+    ///   finishing between the deadline and the question turned the wait's timeout into an
+    ///   exception.
+    /// </remarks>
+    public static async Task<bool> FinishesWithin(Task task, TimeSpan patience)
+    {
+        using var giveUp = new CancellationTokenSource();
+        var deadline = Task.Delay(patience, giveUp.Token);
+
+        var first = await Task.WhenAny(task, deadline);
+        await giveUp.CancelAsync();
+        return first == task;
     }
 }
