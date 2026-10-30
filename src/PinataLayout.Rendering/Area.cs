@@ -2,7 +2,7 @@
 
 //
 // Authors:
-//   Klaus Potzesny (mailto:Klaus.Potzesny@PdfPinata.com)
+//   Klaus Potzesny (mailto:Klaus.Potzesny@pdfsharp.com)
 //
 // Copyright (c) 2001-2009 empira Software GmbH, Cologne (Germany)
 //
