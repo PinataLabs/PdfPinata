@@ -80,8 +80,26 @@ internal static class ReaderDiagnostics
     {
         var reading = ReadingOnItsOwnThread(ddl);
 
-        return await Task.WhenAny(reading, Task.Delay(patience)) == reading
+        return await FinishesWithin(reading, patience)
             ? await reading
             : null;
+    }
+
+    /// <summary>
+    ///   Whether the task finishes within the time given. The wait is given up on, not the task,
+    ///   and nothing is left running behind it - a timer raced against the task with
+    ///   <c>Task.WhenAny</c> runs on to its end when the task wins.
+    /// </summary>
+    public static async Task<bool> FinishesWithin(Task task, TimeSpan patience)
+    {
+        try
+        {
+            await task.WaitAsync(patience);
+            return true;
+        }
+        catch (TimeoutException) when (!task.IsCompleted)
+        {
+            return false;
+        }
     }
 }

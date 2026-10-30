@@ -426,9 +426,9 @@ public class DdlReadingTests
     {
         var reading = ReaderDiagnostics.ReadingOnItsOwnThread(ddl);
 
-        var finished = await Task.WhenAny(reading, Task.Delay(TimeSpan.FromSeconds(2)));
+        var finished = await ReaderDiagnostics.FinishesWithin(reading, TimeSpan.FromSeconds(2));
 
-        finished.Should().NotBeSameAs(reading, "the reader does not come back from either of these");
+        finished.Should().BeFalse("the reader does not come back from either of these");
     }
 
     /// <summary>
@@ -463,10 +463,9 @@ public class DdlReadingTests
     {
         var reading = ReaderDiagnostics.ReadingOnItsOwnThread(truncated);
 
-        var finished = await Task.WhenAny(reading, Task.Delay(TimeSpan.FromSeconds(2)));
+        var finished = await ReaderDiagnostics.FinishesWithin(reading, TimeSpan.FromSeconds(2));
 
-        finished.Should().NotBeSameAs(reading,
-            "the reader does not come back from a file that stops inside a section");
+        finished.Should().BeFalse("the reader does not come back from a file that stops inside a section");
     }
 
     [Test]
@@ -480,9 +479,9 @@ public class DdlReadingTests
             act.Should().Throw<Exception>();
         });
 
-        var finished = await Task.WhenAny(reading, Task.Delay(TimeSpan.FromSeconds(5)));
+        var finished = await ReaderDiagnostics.FinishesWithin(reading, TimeSpan.FromSeconds(5));
 
-        finished.Should().BeSameAs(reading, "this one comes back");
+        finished.Should().BeTrue("this one comes back");
         await reading;
     }
 

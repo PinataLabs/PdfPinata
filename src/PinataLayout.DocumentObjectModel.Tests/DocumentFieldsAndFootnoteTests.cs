@@ -303,7 +303,7 @@ public class DocumentFieldsAndFootnoteTests
 
             var found = ImageHelper.GetImageName(root, "picture.png", "nowhere;pictures");
 
-            found.Should().Be(Path.Combine(Path.Combine(root, "pictures"), "picture.png"));
+            found.Should().Be(Path.Combine(root, "pictures", "picture.png"));
             ImageHelper.InSubfolder(root, "picture.png", "nowhere;pictures", found).Should().BeTrue();
             ImageHelper.InSubfolder(root, "picture.png", "nowhere;pictures", "elsewhere.png")
                 .Should().BeFalse();

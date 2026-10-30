@@ -36,9 +36,9 @@ public class ChartFrameTests
         var page = Drawn.Page(Charts.Of(type, 1.0, 5.0, 3.0));
 
         PageContent.Of(page).Should().NotBeEmpty();
-        var drewSomething = StrokedLines.Of(page).Any()
-            || PaintedRectangles.On(page).Any()
-            || ShownText.On(page).Any();
+        var drewSomething = StrokedLines.Of(page).Count != 0
+            || PaintedRectangles.On(page).Count != 0
+            || ShownText.On(page).Count != 0;
         drewSomething.Should().BeTrue();
     }
 

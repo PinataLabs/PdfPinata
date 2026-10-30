@@ -122,7 +122,7 @@ internal static class CoverageController
     /// </summary>
     private static string OptionName(string argument)
     {
-        if (!argument.StartsWith("-", StringComparison.Ordinal))
+        if (!argument.StartsWith('-'))
             return null;
         var name = argument.TrimStart('-');
         var separator = name.IndexOfAny([':', '=']);

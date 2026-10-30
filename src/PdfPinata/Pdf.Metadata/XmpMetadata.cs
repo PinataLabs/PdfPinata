@@ -180,7 +180,7 @@ public sealed class XmpMetadata
         // without moving anything after it. Nothing here does that yet, and leaving the room costs
         // a few hundred bytes against the day something does.
         for (var line = 0; line < 4; line++)
-            xmp.Append(new string(' ', 99)).Append('\n');
+            xmp.Append(' ', 99).Append('\n');
 
         // "w" says the packet may be written over in place; "r" would say it may not.
         xmp.Append("<?xpacket end=\"w\"?>\n");

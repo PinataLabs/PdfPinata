@@ -253,7 +253,7 @@ public abstract class PdfAcroField : PdfDictionary
     /// Whether this is a signature field that holds a signature - one with a <c>/V</c>, its own or
     /// inherited.
     /// </summary>
-    internal bool IsSigned => this is PdfSignatureField && InheritedFrom(this, Keys.V) != null;
+    internal virtual bool IsSigned => false;
 
     /// <summary>
     /// The dictionaries under <c>/Kids</c>, whatever each of them is, without making a collection
@@ -499,7 +499,13 @@ public abstract class PdfAcroField : PdfDictionary
     /// Whether flattening with a redraw draws this field again: it is one of the kinds that draw
     /// their own appearance, and it has a widget to draw it on.
     /// </summary>
-    private bool RedrawsForFlattening => (this is PdfTextField or PdfChoiceField) && Widgets.Count > 0;
+    private bool RedrawsForFlattening => DrawsOwnAppearance && Widgets.Count > 0;
+
+    /// <summary>
+    /// Whether this kind of field draws its own appearance - a text field, a combo box or a list
+    /// box, each of which overrides <see cref="RenderOwnAppearance"/> and answers true.
+    /// </summary>
+    private protected virtual bool DrawsOwnAppearance => false;
 
     /// <summary>
     /// Why the field's appearance cannot be drawn now, or null when it can. A field that draws
