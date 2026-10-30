@@ -312,10 +312,24 @@ runs first (step 4) and the remover second (step 5)**:
 - **Built this session** through `PdfStructureBuilder`: identifiers come from
   `AllocateMarkedContent`, which records the element in the page's marks, and the builder writes the
   parent tree at save. The tagger tells it to forget the annotations' keys (`ForgetAnnotationKeys`).
-- **Read from a file**: the plain dictionaries under `/StructTreeRoot`. Identifiers are numbered
-  after the page's existing parent tree array, and after the largest `/MCID` the page's content
-  streams name, because a file whose array is shorter than its content would otherwise have an
-  identifier handed out twice. The array is extended in place, with null for any gap.
+- **Read from a file**: the plain dictionaries under `/StructTreeRoot`. A page's identifiers come
+  from two places, and both are read, because a file may say a mark in one and not the other.
+  - The parent tree array: a non-null entry at index `i` means `i` is in use; a null is free.
+  - The page's own content, parsed by `ContentReader` and read from its `BDC` and `DP` operators, by
+    the `/MCID` of the property list written out in the operator or named in the page's
+    `/Resources /Properties` (the same two readings as the text extractor's). A string or comment
+    that says `/MCID 100000000`, and inline image data, are not operators and count for nothing. Forms
+    the page draws number their own marks and are not read.
+- **Numbering takes the lowest free number**, not one past the largest. The in-use numbers are a
+  set, never a length. A real sequence with `/MCID 100000000` therefore takes only its own place; the
+  new identifiers are 1, 2, ... round it, and the page's array grows by the identifiers there are and
+  not by the largest one named. Counting up from the largest would have padded the array with a
+  hundred million nulls. **Decision: there is no refusal for a large identifier**, because steering
+  round it costs nothing and cannot clash; the file's own array is whatever length the file made it.
+- **The one refusal** is a page that lists a widget and whose content cannot be read (the parser
+  throws): its identifiers cannot be known. It is an `InvalidOperationException` naming the content,
+  raised when the tagger opens, before the redraw and before anything is drawn, so the document is
+  unchanged. A tree built this session never reads the page: the builder numbers its own marks.
 
 ### 11.5 A widget no element holds
 
@@ -326,7 +340,8 @@ worse.
 
 ### 11.6 Still refused
 
-A signed form, as before. A document marked tagged with no tree (section 5).
+A signed form, as before. A document marked tagged with no tree, or whose `/StructTreeRoot` is not
+a dictionary (section 5). A page whose content cannot be read (section 11.4).
 
 ### 11.7 Conformance
 

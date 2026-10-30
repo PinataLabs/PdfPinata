@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
@@ -623,5 +624,99 @@ public class FormFlatteningTaggedTests
         sequence.Tag.Should().Be("/Form", "the sequence says what its element is");
         ElementsNaming(reopened, reopened.Pages[0], sequence.Mcid).Should().ContainSingle()
             .Which.Elements.GetName("/S").Should().Be("/Form");
+    }
+
+    // ----- the identifiers a page already uses ----------------------------------------------------------------
+
+    /// <summary>
+    ///   A tagged form whose page also carries <paramref name="operators"/>, written to a file and read
+    ///   back - a page of another producer, whose content says things the parent tree does not.
+    /// </summary>
+    private static PdfDocument ATaggedFormWithContent(string operators, bool namedProperty = false)
+    {
+        var document = ATaggedForm();
+        var page = document.Pages[0];
+        if (namedProperty)
+        {
+            var one = new PdfDictionary(document);
+            one.Elements.SetInteger("/MCID", 1);
+            var properties = new PdfDictionary(document);
+            properties.Elements["/Pr1"] = one;
+            page.Resources.Elements["/Properties"] = properties;
+        }
+        page.Contents.AppendContent().CreateStream(System.Text.Encoding.ASCII.GetBytes(operators));
+        return document.Reopened();
+    }
+
+    private static int ParentArrayLength(PdfDocument document, PdfPage page) =>
+        (Deref(ParentTreeNode(document, page.Elements.GetInteger("/StructParents")).Elements["/Value"]) as PdfArray).Elements.Count;
+
+    /// <summary>The identifiers the two flattened values were given, after flattening the form.</summary>
+    private static List<int> NewIdentifiers(PdfDocument document, out int arrayLength)
+    {
+        var reopened = Flattened(document, readFromFile: false);
+        var page = reopened.Pages[0];
+        arrayLength = ParentArrayLength(reopened, page);
+        return Drawn(page).Select(sequence => sequence.Mcid).Order().ToList();
+    }
+
+    [Test]
+    [Timeout(30_000)]
+    public void TextThatSaysMcidIsNotAnIdentifier(CancellationToken cancellationToken)
+    {
+        var document = ATaggedFormWithContent("BT (/MCID 100000000) Tj ET\n");
+
+        var identifiers = NewIdentifiers(document, out var arrayLength);
+
+        identifiers.Should().Equal(new[] { 1, 2 }); // the heading has 0 and the text is not a sequence
+        arrayLength.Should().Be(3);
+    }
+
+    [Test]
+    [Timeout(30_000)]
+    public void ACommentThatSaysMcidIsNotAnIdentifier(CancellationToken cancellationToken)
+    {
+        var document = ATaggedFormWithContent("q Q % /MCID 100000000\n");
+
+        var identifiers = NewIdentifiers(document, out var arrayLength);
+
+        identifiers.Should().Equal(new[] { 1, 2 });
+        arrayLength.Should().Be(3);
+    }
+
+    [Test]
+    [Timeout(30_000)]
+    public void ARealSequenceWithAHugeIdentifierTakesOnlyItsOwnNumber(CancellationToken cancellationToken)
+    {
+        var document = ATaggedFormWithContent("/Span <</MCID 100000000>> BDC q Q EMC\n");
+
+        var identifiers = NewIdentifiers(document, out var arrayLength);
+
+        identifiers.Should().Equal(new[] { 1, 2 }, "the numbers are the lowest that are free, so the huge one is steered round and not counted up from");
+        arrayLength.Should().Be(3, "the array grows by the identifiers there are, not by the largest one named");
+    }
+
+    [Test]
+    [Timeout(30_000)]
+    public void AnIdentifierANamedPropertyListGivesIsInUse(CancellationToken cancellationToken)
+    {
+        var document = ATaggedFormWithContent("/Span /Pr1 BDC q Q EMC\n", namedProperty: true);
+
+        var identifiers = NewIdentifiers(document, out _);
+
+        identifiers.Should().Equal(new[] { 2, 3 }); // 0 is the heading and 1 is the property list
+    }
+
+    [Test]
+    public void APageWhoseContentCannotBeReadRefusesTheFlattenBeforeAnythingChanges()
+    {
+        var document = ATaggedFormWithContent("1.2.3 w\n");
+
+        var flatten = () => document.AcroForm.Flatten();
+
+        flatten.Should().Throw<InvalidOperationException>().WithMessage("*content cannot be read*");
+        document.AcroForm.Should().NotBeNull();
+        ObjectReferences(document).Should().HaveCount(2);
+        document.Pages[0].Elements.GetArray("/Annots").Elements.Count.Should().Be(2);
     }
 }

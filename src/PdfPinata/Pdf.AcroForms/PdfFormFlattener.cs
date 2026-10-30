@@ -59,12 +59,6 @@ internal static class PdfFormFlattener
         if (redrawAppearances)
             RefuseUnredrawable(fields);
 
-        if (redrawAppearances)
-        {
-            foreach (var field in fields)
-                field.RedrawForFlattening();
-        }
-
         var widgets = new List<PdfWidgetAnnotation>();
         foreach (var field in fields)
             widgets.AddRange(field.Widgets);
@@ -73,9 +67,16 @@ internal static class PdfFormFlattener
         foreach (var widget in widgets)
             targets.Add(widget.Reference?.Value as PdfDictionary ?? widget);
 
-        // Before anything is drawn, because the tree is what hands out the identifiers the drawing is
-        // marked with. Null for a document with no structure tree, which draws as it always did.
+        // Before anything is changed, because the tree is what hands out the identifiers the drawing
+        // is marked with and it may refuse - a page whose content cannot be read. Null for a document
+        // with no structure tree, which draws as it always did.
         var tagger = tagged ? PdfStructureFlattenTagger.Open(document, targets, AlternateTextOf(fields)) : null;
+
+        if (redrawAppearances)
+        {
+            foreach (var field in fields)
+                field.RedrawForFlattening();
+        }
 
         foreach (var page in document.Pages)
             DrawWidgetsOnto(page, targets, form, tagger);

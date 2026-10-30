@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using PdfPinata.Pdf.Advanced;
-using PdfPinata.Pdf.Internal;
+using PdfPinata.Pdf.Content;
+using PdfPinata.Pdf.Content.Objects;
+using PdfPinata.Pdf.Extraction;
 
 namespace PdfPinata.Pdf.Structure;
 
@@ -52,8 +54,6 @@ namespace PdfPinata.Pdf.Structure;
 /// </remarks>
 internal sealed class PdfStructureFlattenTagger
 {
-    private static readonly Regex McidInContent = new(@"/MCID\s+(\d+)", RegexOptions.CultureInvariant);
-
     private readonly PdfDocument _document;
     private readonly PdfDictionary _root;
     private readonly PdfStructureBuilder _builder;
@@ -63,6 +63,7 @@ internal sealed class PdfStructureFlattenTagger
     private readonly Dictionary<PdfDictionary, Hit> _hits = new();
     private readonly List<Pending> _pending = [];
     private readonly Dictionary<PdfPage, PageNumbering> _numbering = new();
+    private readonly Dictionary<PdfPage, HashSet<int>> _usedOnPage = new();
     private int _nextKey = -1;
 
     private PdfStructureFlattenTagger(PdfDocument document, PdfDictionary root, ICollection<PdfDictionary> widgets,
@@ -89,6 +90,10 @@ internal sealed class PdfStructureFlattenTagger
     /// <c>/TU</c>. Answers null or empty for none.
     /// </param>
     /// <returns>The tagger, or null when the document has no structure tree.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// A tree read from a file, and a page that lists one of the widgets has content that cannot be
+    /// read, so the identifiers it already uses cannot be known. Nothing has been changed.
+    /// </exception>
     internal static PdfStructureFlattenTagger Open(PdfDocument document, ICollection<PdfDictionary> widgets,
         Func<PdfDictionary, string> alternateTextOf)
     {
@@ -98,6 +103,7 @@ internal sealed class PdfStructureFlattenTagger
 
         var tagger = new PdfStructureFlattenTagger(document, root, widgets, alternateTextOf);
         tagger.Find(root, widgets, new HashSet<PdfDictionary>(), 0);
+        tagger.ReadPagesThatListAWidget(widgets);
         return tagger;
     }
 
@@ -135,7 +141,7 @@ internal sealed class PdfStructureFlattenTagger
         else
         {
             var numbering = NumberingOf(page);
-            mcid = numbering.Next++;
+            mcid = numbering.Take();
             numbering.Elements[mcid] = hit.Element;
         }
 
@@ -362,13 +368,43 @@ internal sealed class PdfStructureFlattenTagger
         var parentTree = PdfStructureAnnotationRemover.ParentTreeOf(_root);
         var existing = parentTree?.GetValue(key) as PdfArray;
 
-        // The array's length is the first free identifier when the file is whole. A page's content
-        // stream is read as well, because an identifier already written there and missing from the
-        // array would otherwise be handed out a second time.
-        var next = Math.Max(existing?.Elements.Count ?? 0, LargestMcidIn(page) + 1);
-        numbering = new PageNumbering(key, existing, next);
+        // What the page already uses, from both places a file may say so: the parent tree array, where
+        // a null is a free number, and the page's content, which is what the marks really are. An
+        // identifier in the content and missing from the array would otherwise be handed out twice.
+        var used = new HashSet<int>(_usedOnPage.TryGetValue(page, out var inContent) ? inContent : ReadMcidsOf(page));
+        for (var idx = 0; existing != null && idx < existing.Elements.Count; idx++)
+        {
+            if (PdfReference.Dereference(existing.Elements[idx]) is not (null or PdfNull))
+                used.Add(idx);
+        }
+
+        numbering = new PageNumbering(key, existing, used);
         _numbering[page] = numbering;
         return numbering;
+    }
+
+    /// <summary>
+    /// Reads the content of every page that lists one of the widgets, before anything is drawn, so
+    /// that content that cannot be read refuses the flatten instead of stopping it half way.
+    /// </summary>
+    private void ReadPagesThatListAWidget(ICollection<PdfDictionary> widgets)
+    {
+        // A tree built this session numbers its marks itself, and never reads the page.
+        if (_builder != null)
+            return;
+
+        foreach (var page in _document.Pages)
+        {
+            var annotations = page.Elements.GetArray(PdfPage.Keys.Annots);
+            for (var idx = 0; annotations != null && idx < annotations.Elements.Count; idx++)
+            {
+                if (annotations.Elements.GetDictionary(idx) is { } annotation && widgets.Contains(annotation))
+                {
+                    _usedOnPage[page] = ReadMcidsOf(page);
+                    break;
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -404,24 +440,72 @@ internal sealed class PdfStructureFlattenTagger
     }
 
     /// <summary>
-    /// The largest <c>/MCID</c> the page's own content streams name, or -1.
+    /// The <c>/MCID</c> of every marked-content sequence the page's own content opens, read from the
+    /// <c>BDC</c> and <c>DP</c> operators by the content parser.
     /// </summary>
-    private static int LargestMcidIn(PdfPage page)
+    /// <remarks>
+    /// <para>
+    /// By the operators and not by looking for the text <c>/MCID</c>: the parser skips strings,
+    /// comments and inline image data, which a search of the bytes does not, so a string that says
+    /// "/MCID 100000000" is not an identifier. A property list is read the two ways a producer may
+    /// write one, as the text extractor reads them: written out in the operator, or a name looked up
+    /// in the page's <c>/Resources /Properties</c>. Forms the page draws number their own marks, so
+    /// they are not read.
+    /// </para>
+    /// <para>
+    /// The numbers are used as a set and never as a length. The next identifier is the lowest one
+    /// that is free, so a real sequence carrying a huge number takes nothing but its own place, and
+    /// the page's array grows by no more than the identifiers there are.
+    /// </para>
+    /// </remarks>
+    private static HashSet<int> ReadMcidsOf(PdfPage page)
     {
-        var largest = -1;
-        foreach (var content in page.Contents)
+        CSequence content;
+        try
         {
-            var bytes = content.Stream?.UnfilteredValue;
-            if (bytes == null)
+            content = ContentReader.ReadContent(page);
+        }
+        catch (ContentReaderException error)
+        {
+            throw new InvalidOperationException(
+                "A page's content cannot be read, so the marked-content identifiers it already uses are "
+                + "not known and the flattened form cannot be given ones that are free: " + error.Message,
+                error);
+        }
+
+        var used = new HashSet<int>();
+        for (var index = 0; index < content.Count; index++)
+        {
+            if (content[index] is not COperator op || op.OpCode.OpCodeName is not (OpCodeName.BDC or OpCodeName.DP))
                 continue;
 
-            foreach (Match match in McidInContent.Matches(PdfEncoders.RawEncoding.GetString(bytes)))
+            int? mcid = null;
+            if (op.Operands.Count >= 2 && op.Operands[0] is CName)
             {
-                if (int.TryParse(match.Groups[1].Value, out var mcid))
-                    largest = Math.Max(largest, mcid);
+                var properties = PropertiesNamed(page, op.NameOperand(1));
+                if (properties != null && properties.Elements.ContainsKey("/MCID"))
+                    mcid = properties.Elements.GetInteger("/MCID");
             }
+            else if (index > 0 && content[index - 1] is COperator { OpCode.OpCodeName: OpCodeName.Dictionary } prior
+                && prior.Operands.Count >= 2 && prior.Operands[1] is CString inline)
+            {
+                mcid = InlineMarkedContentProperties.Read(inline.Value).Mcid;
+            }
+
+            if (mcid is >= 0)
+                used.Add(mcid.Value);
         }
-        return largest;
+        return used;
+    }
+
+    private static PdfDictionary PropertiesNamed(PdfPage page, string name)
+    {
+        if (name == null)
+            return null;
+
+        var category = page.Elements.GetDictionary("/Resources")?.Elements.GetDictionary("/Properties")
+            ?? page.Resources?.Elements.GetDictionary("/Properties");
+        return category?.Elements.GetDictionary(name);
     }
 
     private sealed record Hit(PdfDictionary Element, PdfDictionary ObjectReference);
@@ -437,14 +521,25 @@ internal sealed class PdfStructureFlattenTagger
         private readonly int _key;
         private readonly PdfArray _existing;
 
-        public PageNumbering(int key, PdfArray existing, int next)
+        private readonly HashSet<int> _used;
+        private int _cursor;
+
+        public PageNumbering(int key, PdfArray existing, HashSet<int> used)
         {
             _key = key;
             _existing = existing;
-            Next = next;
+            _used = used;
         }
 
-        public int Next { get; set; }
+        /// <summary>The lowest identifier nothing on the page uses yet.</summary>
+        public int Take()
+        {
+            while (_used.Contains(_cursor))
+                _cursor++;
+
+            _used.Add(_cursor);
+            return _cursor;
+        }
 
         public SortedDictionary<int, PdfDictionary> Elements { get; } = new();
 
