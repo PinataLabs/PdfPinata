@@ -137,6 +137,29 @@ public sealed class PdfResources : PdfDictionary
     }
 
     /// <summary>
+    /// Adds a form XObject that is already in the document - one read from a file, say, such as a
+    /// widget's appearance - to this resource dictionary and returns its local resource name.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="AddForm"/> wants a <see cref="PdfFormXObject"/>, which is what a form made in this
+    /// session is. One read from a file is a plain dictionary with a stream, and is no less a form
+    /// for that; the resource dictionary only needs the reference. Asked twice for the same form,
+    /// it answers the same name.
+    /// </remarks>
+    internal string AddExistingForm(PdfDictionary form)
+    {
+        if (!_resources.TryGetValue(form, out var name))
+        {
+            name = NextFormName;
+            _resources[form] = name;
+            if (form.Reference == null)
+                Owner._irefTable.Add(form);
+            XObjects.Elements[name] = form.Reference;
+        }
+        return name;
+    }
+
+    /// <summary>
     /// Adds the specified graphics state to this resource dictionary
     /// and returns its local resource name.
     /// </summary>

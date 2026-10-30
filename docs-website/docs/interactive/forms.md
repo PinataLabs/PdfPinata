@@ -180,8 +180,10 @@ signature certifies the document and does not allow form filling, setting a valu
 
 ## Things to know
 
-- **Flattening is not offered.** PdfPinata cannot turn fields into ordinary page content. Making the
-  fields read-only is the nearest option.
+- **Flattening is `form.Flatten()`.** It draws each widget's appearance into its page, removes the
+  widgets and removes the form. A tagged document and a form holding a signed signature field are
+  refused. Pass `true` to redraw text fields, combo boxes and list boxes first. Making the fields
+  read-only is the option that keeps the form.
 - **A text field needs a font resolver.** Creating a `PdfTextField`, or reading one from a file, asks
   the registered font resolver for its default font. Register one first; see
   [Installation](../installation.md).

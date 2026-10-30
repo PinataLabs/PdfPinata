@@ -97,8 +97,8 @@ Yes. PinataLayout tags what it renders by default, and you can claim PDF/UA-1. S
 ### Can it fill in and create forms?
 
 Yes. You can create text fields, check boxes, radio buttons, combo boxes, list boxes and push
-buttons, and set the values of fields in an existing form. It cannot flatten a form into page
-content. See [Forms](../interactive/forms.md).
+buttons, and set the values of fields in an existing form. It can flatten a filled form into page
+content, except in a tagged document. See [Forms](../interactive/forms.md).
 
 ### Can it extract text from a PDF?
 
