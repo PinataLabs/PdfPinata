@@ -6,6 +6,7 @@ using PinataLayout.Rendering;
 using PdfPinata.Drawing;
 using PdfPinata.EInvoice;
 using PdfPinata.Pdf;
+using PdfPinata.Pdf.AcroForms;
 
 namespace ConformanceCorpus;
 
@@ -35,6 +36,7 @@ internal static class Corpus
         yield return ("pdfa-3b", Drawn(PdfAConformance.PdfA3B, transparency: true));
         yield return ("pdfa-2b-cff", Cff());
         yield return ("pdfa-3b-facturx", Invoice());
+        yield return ("pdfa-2b-flattened-form", FlattenedForm());
         yield return ("pdfua-1", Tagged(doc => doc.Options.UAConformance = PdfUAConformance.PdfUA1));
         yield return ("pdfa-1a", Tagged(doc => doc.Options.Conformance = PdfAConformance.PdfA1A));
         yield return ("pdfa-2a", Tagged(doc => doc.Options.Conformance = PdfAConformance.PdfA2A));
@@ -263,6 +265,68 @@ internal static class Corpus
         claim(renderer.PdfDocument);
 
         return Bytes(renderer.PdfDocument);
+    }
+
+    /// <summary>
+    /// A filled form, flattened, claiming PDF/A-2b.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The one document here whose claim is about what a <em>change</em> leaves behind. Flattening
+    /// draws each widget's appearance into the page and removes the form, and four things have to
+    /// be true of what is left: no <c>/NeedAppearances</c> (PDF/A-2 forbids it true, and it goes with
+    /// the form), no <c>/AcroForm</c> and no widget annotation, and every font the drawn appearances
+    /// use still embedded - which is easy to lose, because after flattening the only thing that
+    /// names those fonts is a form XObject in the page's resources rather than the form's own.
+    /// </para>
+    /// <para>
+    /// A text field, a combo box and a check box, so that the three ways an appearance comes to
+    /// exist are all here: drawn by a text field, drawn by a choice field, and drawn by the caller
+    /// as one of a button's two states. The fonts are set on the fields because a font named only by
+    /// a <c>/DA</c> string and the form's <c>/DR</c> is a standard font a PDF/A document cannot name.
+    /// </para>
+    /// </remarks>
+    private static byte[] FlattenedForm()
+    {
+        var document = new PdfDocument();
+        document.Info.Title = "Conformance corpus: flattened form";
+        document.Info.Author = "PdfPinata conformance corpus";
+        document.Options.Conformance = PdfAConformance.PdfA2B;
+
+        var page = document.AddPage();
+        var form = document.GetOrCreateAcroForm();
+        var font = new XFont("Arial", 12);
+
+        var name = new PdfTextField(document) { Name = "name", Font = font, BorderColor = XColors.Black };
+        form.Fields.Add(name);
+        name.AddWidget(page, new PdfRectangle(new XRect(50, 740, 240, 24)));
+        name.Text = "Ada Lovelace";
+
+        var country = new PdfComboBoxField(document)
+        {
+            Name = "country", Font = font, BorderColor = XColors.Black, Options = ["Australia", "Canada", "Ireland"]
+        };
+        form.Fields.Add(country);
+        country.AddWidget(page, new PdfRectangle(new XRect(50, 700, 240, 24)));
+        country.SelectedIndex = 1;
+
+        var subscribe = new PdfCheckBoxField(document) { Name = "subscribe" };
+        form.Fields.Add(subscribe);
+        var widget = subscribe.AddWidget(page, new PdfRectangle(new XRect(50, 660, 20, 20)));
+        var ticked = new XForm(document, new XSize(20, 20));
+        using (var gfx = XGraphics.FromForm(ticked))
+        {
+            gfx.DrawRectangle(new XPen(XColors.Black, 1), 1, 1, 18, 18);
+            gfx.DrawLine(new XPen(XColors.Black, 2), 4, 10, 8, 15);
+            gfx.DrawLine(new XPen(XColors.Black, 2), 8, 15, 16, 4);
+        }
+        widget.SetAppearance("/Yes", ticked);
+        widget.SetAppearance("/Off", new XForm(document, new XSize(20, 20)));
+        subscribe.Checked = true;
+
+        form.Flatten();
+
+        return Bytes(document);
     }
 
     private static byte[] Bytes(PdfDocument document)

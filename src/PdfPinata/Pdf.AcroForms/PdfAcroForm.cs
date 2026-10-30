@@ -177,6 +177,55 @@ public sealed class PdfAcroForm : PdfDictionary
     }
 
     /// <summary>
+    /// Turns the filled form into page content: draws each widget's appearance into the page it is
+    /// on, takes the widgets off every page, and takes this form out of the document.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Each widget is drawn <em>as it is</em>: its normal appearance, <c>/AP /N</c>, or for a check
+    /// box or radio button the state <c>/AS</c> names. No field redraws on save, so a form read from
+    /// a file shows what its producer drew, and that is what is drawn. <see cref="Flatten(bool)"/>
+    /// redraws the fields that draw their own appearance first.
+    /// </para>
+    /// <para>
+    /// The appearance is placed as ISO 32000-1 12.5.5 places it: the form's <c>/BBox</c> through its
+    /// <c>/Matrix</c>, then onto the widget's <c>/Rect</c>. A widget flagged Hidden or NoView, and a
+    /// widget with no appearance to show, is not drawn. Every widget of every field leaves every
+    /// page's <c>/Annots</c>, whether it was drawn or not; annotations that are not widgets of this
+    /// form are left alone. Afterwards <see cref="PdfDocument.AcroForm"/> answers null, and this
+    /// object is detached from the document.
+    /// </para>
+    /// <para>
+    /// <strong>Nothing is changed when it throws.</strong> The document is refused when it cannot
+    /// be modified, when it is tagged (flattening a tagged form is tracked as issue #357), and when
+    /// any signature field in it has been signed, because saving it would invalidate the signature.
+    /// </para>
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">
+    /// The document was not opened for modification, a certifying signature forbids changing its
+    /// structure, it is tagged, a signature field has been signed, or this is not the form of its
+    /// document.
+    /// </exception>
+    public void Flatten() => Flatten(redrawAppearances: false);
+
+    /// <summary>
+    /// Turns the filled form into page content, as <see cref="Flatten()"/> does, optionally drawing
+    /// the fields that draw their own appearance again first.
+    /// </summary>
+    /// <param name="redrawAppearances">
+    /// True to call <see cref="PdfAcroField.RedrawAppearance"/> on every text field, combo box and
+    /// list box before drawing - for a form changed in a way no field noticed, such as an
+    /// ancestor's <c>/V</c> a kid inherits. A read-only field is redrawn too, since flattening does
+    /// not fill it. Other fields draw no appearance of their own and are drawn as they are.
+    /// </param>
+    /// <exception cref="InvalidOperationException">
+    /// As for <see cref="Flatten()"/>; and, with <paramref name="redrawAppearances"/>, a field that
+    /// cannot be redrawn because it has no <see cref="PdfTextField.Font"/> and no font resolver is
+    /// registered.
+    /// </exception>
+    public void Flatten(bool redrawAppearances) => PdfFormFlattener.Flatten(this, redrawAppearances);
+
+    /// <summary>
     /// Gets the fields collection of this form.
     /// </summary>
     /// <remarks>

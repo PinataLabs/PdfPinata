@@ -13,6 +13,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 #### Added
 
 - **`PdfAcroFieldCollection.Remove(field)` and `RemoveAt(index)` remove a form field, its descendants and all their widgets.** The collection had `Add` and no way back, so a caller edited `/Fields`, `/Kids` and `/Annots` by hand and left something behind: a widget still on the page with no field, or a structure element pointing at an annotation that was gone. A field now leaves the form's `/Fields` or its parent's `/Kids`, the calculation order, **every** page's `/Annots` (not only the page a widget's `/P` names) and, in a tagged document, the widgets' `/Form` elements, `/OBJR` kids and parent tree entries. A field merged with its widget leaves both `/Fields` and `/Annots`. `Remove` answers false for a field that is not in the collection. It throws an `InvalidOperationException` in a document opened without the right to modify it, and for a signature field that has been signed, or a field holding one at any depth; nothing is changed when it throws. Removing a parent's last kid leaves the parent. (#352)
+- **`PdfAcroForm.Flatten()` turns a filled form into page content.** It draws each widget's normal appearance (`/AP /N`, or the state `/AS` names for a check box or radio button) into the page it is on, placed as ISO 32000-1 12.5.5 places it: the form's `/BBox` through its `/Matrix`, then onto the widget's `/Rect`. Widgets flagged Hidden or NoView, and widgets with no appearance, are not drawn. Every widget of the form leaves every page's `/Annots`, other annotations stay, and `/AcroForm` leaves the catalogue, with `/NeedAppearances`. Appearances are drawn as they are; `Flatten(true)` first redraws text fields, combo boxes and list boxes, including read-only ones. It throws an `InvalidOperationException`, changing nothing, for a document that cannot be modified, for a tagged document (flattening a tagged form is tracked as #357), and when any signature field has been signed, since saving would invalidate the signature. A flattened PDF/A-2b form is in the conformance corpus and passes veraPDF. (#355)
+
+### PDF Reader & Writer
+
+#### Fixed
+
+- **`PdfTextExtractor` reads the text inside a form XObject.** It did not follow the `Do` operator, so text drawn in a form was missing from `ExtractRuns` and `ExtractText`: a flattened form field, and any page imported with `XPdfForm`. A form's `/Matrix` and its own `/Resources` are applied, a marked-content sequence open around the `Do` still applies to the form's text, and a form that draws itself ends. `ExtractRuns` now returns runs it left out before. (#355)
 
 ## [0.5.0] - 2026-10-22
 

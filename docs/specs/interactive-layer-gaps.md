@@ -211,7 +211,8 @@ the flag second, because the flag now stops the program as well as the reader.
 
 A push button's `/A` action has no wrapper, and it is the one entry the `Forms` demo still writes by
 name. (`/MK` had none either until item 12: `BackColor`, `BorderColor` and a push button's `Caption`
-write it now.) **Flattening** a form into page content is still not offered, and
+write it now.) **Flattening** a form into page content is `PdfAcroForm.Flatten()` now (#355; see
+[form-flattening.md](form-flattening.md)), refusing a tagged document (#357) and a signed one, and
 `PdfSignatureField` is still a field type rather than a signature implementation:
 `PdfPinata.Signing` is what signs a document.
 

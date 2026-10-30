@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf.Content;
@@ -132,6 +133,15 @@ public static class PdfTextExtractor
         private readonly Stack<XMatrix> _graphicsStack = new();
         private readonly Stack<MarkedContentScope> _markedContent = new();
 
+        /// <summary>
+        /// The resources of the form being walked, or null on the page itself, whose resources are
+        /// read through <see cref="_page"/>.
+        /// </summary>
+        private readonly PdfDictionary _formResources;
+
+        /// <summary>The forms entered so far, and which of them are being walked now.</summary>
+        private readonly FormVisits _visits;
+
         private XMatrix _ctm = XMatrix.Identity;
         private XMatrix _textMatrix = XMatrix.Identity;
         private XMatrix _lineMatrix = XMatrix.Identity;
@@ -146,9 +156,44 @@ public static class PdfTextExtractor
         private double _rise;
         private int _renderMode;
 
-        public Walker(PdfPage page) => _page = page;
+        public Walker(PdfPage page)
+        {
+            _page = page;
+            _visits = new FormVisits();
+            Runs = [];
+        }
 
-        public List<PdfTextRun> Runs { get; } = [];
+        /// <summary>
+        /// A walker for a form XObject drawn from <paramref name="parent"/>'s content: it reports into
+        /// the same list of runs, starts from the graphics state in force at the <c>Do</c> with the
+        /// form's matrix applied to it, and reads fonts from the form's own resources.
+        /// </summary>
+        private Walker(Walker parent, PdfDictionary formResources, XMatrix formMatrix)
+        {
+            _page = parent._page;
+            _visits = parent._visits;
+            _formResources = formResources;
+            Runs = parent.Runs;
+
+            _ctm = Multiply(formMatrix, parent._ctm);
+            _font = parent._font;
+            _fontName = parent._fontName;
+            _fontSize = parent._fontSize;
+            _charSpacing = parent._charSpacing;
+            _wordSpacing = parent._wordSpacing;
+            _horizontalScale = parent._horizontalScale;
+            _leading = parent._leading;
+            _rise = parent._rise;
+            _renderMode = parent._renderMode;
+
+            // A sequence open around the Do still applies to what the form draws - an artifact
+            // stays an artifact. Stack's enumerator runs top first, so it is copied in reverse.
+            foreach (var scope in parent._markedContent.Reverse())
+                _markedContent.Push(scope);
+            _uncappedMarkedContentDepth = parent._uncappedMarkedContentDepth;
+        }
+
+        public List<PdfTextRun> Runs { get; }
 
         /// <remarks>
         /// Indexed rather than iterated. <see cref="CSequence"/> implements
@@ -178,6 +223,7 @@ public static class PdfTextExtractor
         {
             var name = op.OpCode.OpCodeName;
             _ = ExecuteGraphicsState(name, op)
+                || ExecuteExternalObject(name, op)
                 || ExecuteTextPositioning(name, op)
                 || ExecuteTextState(name, op)
                 || ExecuteTextShowing(name, op)
@@ -205,6 +251,41 @@ public static class PdfTextExtractor
                 default:
                     return false;
             }
+        }
+
+        /// <summary>
+        /// <c>Do</c> of a form XObject: its text is on the page like any other, and is read where the
+        /// operator is, under the form's <c>/Matrix</c>. An image, or a name that resolves to nothing,
+        /// shows no text and is ignored.
+        /// </summary>
+        /// <remarks>
+        /// A form is entered at most once at a time and at most <see cref="FormVisits.Limit"/> times
+        /// in all, so a form that draws itself, or a tree of forms that each draw the next twice,
+        /// ends instead of running for ever. The text state a form changes is its own: the walker
+        /// that reads it is a copy.
+        /// </remarks>
+        private bool ExecuteExternalObject(OpCodeName name, COperator op)
+        {
+            if (name != OpCodeName.Do)
+                return false;
+
+            var key = op.NameOperand(0);
+            var form = key == null ? null : ResourceCategory("/XObject")?.Elements.GetDictionary(key);
+            if (form?.Stream == null || form.Elements.GetName("/Subtype") != "/Form" || !_visits.TryEnter(form))
+                return true;
+
+            try
+            {
+                var matrix = form.Elements.ContainsKey("/Matrix") ? form.Elements.GetMatrix("/Matrix", false) : XMatrix.Identity;
+                var resources = form.Elements.GetDictionary("/Resources") ?? _formResources;
+                new Walker(this, resources, matrix).Walk(ContentReader.ReadContent(form.Stream.UnfilteredValue));
+            }
+            finally
+            {
+                _visits.Leave(form);
+            }
+
+            return true;
         }
 
         /// <summary><c>BT</c>, <c>Td</c>, <c>TD</c>, <c>Tm</c> and <c>T*</c>: where the text goes.</summary>
@@ -627,7 +708,8 @@ public static class PdfTextExtractor
         /// is missing or was never linked back to the page it belongs to.
         /// </summary>
         private PdfDictionary ResourceCategory(string category) =>
-            _page.Elements.GetDictionary("/Resources")?.Elements.GetDictionary(category)
+            _formResources?.Elements.GetDictionary(category)
+            ?? _page.Elements.GetDictionary("/Resources")?.Elements.GetDictionary(category)
             ?? _page.Resources?.Elements.GetDictionary(category);
 
         private static XMatrix Multiply(XMatrix first, XMatrix second) => XMatrix.Multiply(first, second);
@@ -645,6 +727,30 @@ public static class PdfTextExtractor
 
         private static double Number(COperator op, int index) =>
             op.TryNumberOperand(index, out var value) ? value : 0;
+    }
+
+    /// <summary>
+    /// Which form XObjects a walk is inside and how many it has entered, shared by the walker for
+    /// the page and the walkers for the forms it draws.
+    /// </summary>
+    private sealed class FormVisits
+    {
+        internal const int Limit = 4096;
+
+        private readonly HashSet<PdfDictionary> _active = new();
+        private int _entered;
+
+        /// <summary>Whether <paramref name="form"/> may be entered now; if so, it has been.</summary>
+        internal bool TryEnter(PdfDictionary form)
+        {
+            if (_entered >= Limit || !_active.Add(form))
+                return false;
+
+            _entered++;
+            return true;
+        }
+
+        internal void Leave(PdfDictionary form) => _active.Remove(form);
     }
 
     /// <summary>

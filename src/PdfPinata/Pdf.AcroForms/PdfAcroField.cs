@@ -467,6 +467,30 @@ public abstract class PdfAcroField : PdfDictionary
     }
 
     /// <summary>
+    /// Why this field cannot be redrawn as part of flattening the form, or null when it can be or
+    /// when it draws no appearance of its own and so has nothing to redraw. A field with no widget
+    /// has nowhere to be drawn and is passed over.
+    /// </summary>
+    /// <remarks>
+    /// Not <see cref="EnsureCanBeFilled"/>: that asks whether the field may be <em>filled</em>, and
+    /// refuses a read-only one. Flattening a form does not change a value, and a read-only field is
+    /// the commonest thing to want flattened. The open mode is asked by the flatten itself.
+    /// </remarks>
+    internal string WhyCannotBeRedrawnForFlattening() =>
+        this is PdfTextField or PdfChoiceField && Widgets.Count > 0 ? WhyAppearanceCannotBeDrawn() : null;
+
+    /// <summary>
+    /// Draws the appearance of a text field, combo box or list box again for flattening, having
+    /// been told by <see cref="WhyCannotBeRedrawnForFlattening"/> that it can. Any other field is
+    /// left as it is.
+    /// </summary>
+    internal void RedrawForFlattening()
+    {
+        if (this is PdfTextField or PdfChoiceField && Widgets.Count > 0)
+            RenderOwnAppearance();
+    }
+
+    /// <summary>
     /// Why the field's appearance cannot be drawn now, or null when it can. A field that draws
     /// its own appearance overrides this, asks it before every drawing and passes over the
     /// drawing quietly when it answers; <see cref="RedrawAppearance"/> throws it. Any other

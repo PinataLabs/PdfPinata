@@ -25,7 +25,8 @@ the argument for it, made in one run.
 
 **A corpus, built by a program.** `ConformanceCorpus` writes one PDF per claim the library can make:
 PDF/A-1b, PDF/A-2b, PDF/A-3b, PDF/A-2b set in a face with PostScript outlines, PDF/A-3b carrying
-an associated file, and a tagged PDF/UA-1 document.
+an associated file, a PDF/A-2b filled form after `PdfAcroForm.Flatten()`, and a tagged PDF/UA-1
+document.
 A program rather than a test, because what it produces is an input to something else — a test asserts
 and returns nothing, and these have to exist as files for a validator to open.
 

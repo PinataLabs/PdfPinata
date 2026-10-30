@@ -33,7 +33,9 @@ When any item is picked up it gets a spec of its own and its row here becomes a 
 
 ## The ten
 
-**Form filling, appearance generation and flattening** — *3–5 wk.* The field model reads and models
+**Form filling, appearance generation and flattening** — *3–5 wk.* **Flattening is done**
+(`PdfAcroForm.Flatten()`, [form-flattening.md](form-flattening.md)); the rest below was written
+before it. The field model reads and models
 eight field types and nothing sets a value, generates an appearance or flattens a widget away. The
 sample application's forms demonstration draws its own appearance streams by hand, which is the
 clearest possible evidence of the gap. **Seam:** the typed field model that already exists — a value
