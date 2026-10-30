@@ -118,7 +118,7 @@ public class FormFlatteningTaggedTests
             switch (Deref(pending.Pop()))
             {
                 case PdfArray array:
-                    foreach (var kid in array.Elements.Items.Reverse())
+                    foreach (var kid in Enumerable.Reverse(array.Elements.Items))
                         pending.Push(kid);
                     break;
                 case PdfDictionary dict when dict.Elements.ContainsKey("/S"):
