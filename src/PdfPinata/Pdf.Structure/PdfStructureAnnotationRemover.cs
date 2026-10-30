@@ -29,9 +29,9 @@ internal static class PdfStructureAnnotationRemover
     /// How deep into the tree to go before giving up on it, against a file that makes an element
     /// its own ancestor.
     /// </summary>
-    private const int MaxTreeDepth = 256;
+    internal const int MaxTreeDepth = 256;
 
-    private const string StructParent = "/StructParent";
+    internal const string StructParent = "/StructParent";
 
     /// <summary>
     /// Removes every reference to <paramref name="annotations"/> from the document's structure
@@ -82,7 +82,7 @@ internal static class PdfStructureAnnotationRemover
     /// The structure tree root: the builder's when anything has been tagged in this session, else
     /// the catalog's, else null.
     /// </summary>
-    private static PdfDictionary RootOf(PdfDocument document)
+    internal static PdfDictionary RootOf(PdfDocument document)
     {
         // A tree built this session replaces whatever tree the file had when the document is saved, so
         // it is the only one that survives to be kept consistent.
@@ -95,7 +95,7 @@ internal static class PdfStructureAnnotationRemover
     /// <summary>
     /// The root's parent tree, wrapped as a number tree when it was read as a plain dictionary.
     /// </summary>
-    private static PdfNumberTreeNode ParentTreeOf(PdfDictionary root)
+    internal static PdfNumberTreeNode ParentTreeOf(PdfDictionary root)
     {
         if (root is PdfStructureTreeRoot built)
             return built.ParentTree;
@@ -183,7 +183,7 @@ internal static class PdfStructureAnnotationRemover
     /// save writes it out, and one read from a file holds it as the root's <c>/RoleMap</c>; both are
     /// read, since a file's tree may also have had entries added.
     /// </remarks>
-    private static Dictionary<string, string> RoleMapOf(PdfDictionary root)
+    internal static Dictionary<string, string> RoleMapOf(PdfDictionary root)
     {
         var roles = new Dictionary<string, string>();
         if (root is PdfStructureTreeRoot built)
@@ -208,7 +208,7 @@ internal static class PdfStructureAnnotationRemover
     /// treats the two alike, so an element is pruned for what it is mapped to rather than for what it
     /// is called. A map that comes back on itself is followed no further than a few steps.
     /// </remarks>
-    private static string ResolveTag(string tag, Dictionary<string, string> roles)
+    internal static string ResolveTag(string tag, Dictionary<string, string> roles)
     {
         for (var step = 0; step < 16 && roles.TryGetValue(tag, out var next) && next != tag; step++)
             tag = next;

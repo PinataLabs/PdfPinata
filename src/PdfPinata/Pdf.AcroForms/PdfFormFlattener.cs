@@ -6,6 +6,7 @@ using PdfPinata.Drawing;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.Internal;
+using PdfPinata.Pdf.Structure;
 
 namespace PdfPinata.Pdf.AcroForms;
 
@@ -17,9 +18,14 @@ namespace PdfPinata.Pdf.AcroForms;
 /// <remarks>
 /// <para>
 /// Everything that can be refused is refused before anything is changed, so a refusal leaves the
-/// document as it was: a document that cannot be modified, a tagged one, a form holding a signed
-/// signature field, and - when the appearances are to be redrawn - a field that has nothing to
-/// draw them in.
+/// document as it was: a document that cannot be modified, one marked as tagged with no structure
+/// tree to tag into, a form holding a signed signature field, and - when the appearances are to be
+/// redrawn - a field that has nothing to draw them in.
+/// </para>
+/// <para>
+/// A tagged document is not refused. Each appearance is drawn inside a marked-content sequence and
+/// the structure element that held the widget's <c>/OBJR</c> is re-pointed at it, as a <c>/Span</c>;
+/// see <see cref="PdfStructureFlattenTagger"/>.
 /// </para>
 /// <para>
 /// The appearance is drawn as a form XObject, by the same <c>q … cm … Do Q</c> the page resizer
@@ -46,18 +52,12 @@ internal static class PdfFormFlattener
                 + "the document's own form and its widgets in place. Flatten document.AcroForm.");
         }
 
-        RefuseTagged(document);
+        var tagged = RefuseUntaggable(document);
 
         var fields = FieldsOf(form);
         RefuseSigned(fields);
         if (redrawAppearances)
             RefuseUnredrawable(fields);
-
-        if (redrawAppearances)
-        {
-            foreach (var field in fields)
-                field.RedrawForFlattening();
-        }
 
         var widgets = new List<PdfWidgetAnnotation>();
         foreach (var field in fields)
@@ -67,8 +67,23 @@ internal static class PdfFormFlattener
         foreach (var widget in widgets)
             targets.Add(widget.Reference?.Value as PdfDictionary ?? widget);
 
+        // Before anything is changed, because the tree is what hands out the identifiers the drawing
+        // is marked with and it may refuse - a page whose content cannot be read. Null for a document
+        // with no structure tree, which draws as it always did.
+        var tagger = tagged ? PdfStructureFlattenTagger.Open(document, targets, AlternateTextOf(fields)) : null;
+
+        if (redrawAppearances)
+        {
+            foreach (var field in fields)
+                field.RedrawForFlattening();
+        }
+
         foreach (var page in document.Pages)
-            DrawWidgetsOnto(page, targets, form);
+            DrawWidgetsOnto(page, targets, form, tagger);
+
+        // Before the widgets leave the structure tree, so that the remover finds the object
+        // references of everything drawn already replaced and prunes only what drew nothing.
+        tagger?.Commit();
 
         PdfWidgetAnnotation.RemoveFromPagesAndStructure(document, widgets);
         catalog.Remove(AcroFormKey);
@@ -92,20 +107,75 @@ internal static class PdfFormFlattener
         return fields;
     }
 
-    private static void RefuseTagged(PdfDocument document)
+    /// <summary>
+    /// Whether the document has a structure tree for the drawn appearances to be tagged into,
+    /// refusing a document that says it is tagged and has none.
+    /// </summary>
+    /// <remarks>
+    /// <c>/MarkInfo /Marked true</c> with no <c>/StructTreeRoot</c> is a document that claims its
+    /// content is tagged and holds no element to tag anything as. Drawing the values there would be
+    /// content that is neither tagged nor an artifact, and marking it an artifact would take the
+    /// values out of the reading order of a document that is meant to be read aloud; neither is a
+    /// decision for this to make, so it is refused.
+    /// </remarks>
+    private static bool RefuseUntaggable(PdfDocument document)
     {
         var catalog = document.Internals.Catalog.Elements;
+        if (document.IsTagged || catalog.ContainsKey(PdfCatalog.Keys.StructTreeRoot))
+        {
+            // A /StructTreeRoot that is not a dictionary is a tree there is nothing to read; drawing
+            // the values untagged would contradict the claim just as no tree would.
+            if (PdfStructureAnnotationRemover.RootOf(document) == null)
+            {
+                throw new InvalidOperationException(
+                    "This document's /StructTreeRoot is not a dictionary, so there is no structure tree "
+                    + "for the flattened form to be tagged into. Repair or remove it before flattening.");
+            }
+            return true;
+        }
+
         var marked = catalog.GetDictionary(PdfCatalog.Keys.MarkInfo)?.Elements.GetBoolean("/Marked") ?? false;
-        if (!document.IsTagged && !marked && !catalog.ContainsKey(PdfCatalog.Keys.StructTreeRoot))
-            return;
+        if (!marked)
+            return false;
 
         throw new InvalidOperationException(
-            "This document is tagged, and flattening a form in a tagged document is not supported: "
-            + "each widget's /Form structure element points at the annotation, and the appearance "
-            + "drawn into the page in its place would be content that is neither tagged nor an "
-            + "artifact. Flattening a tagged form, with re-tagging, is tracked as issue #357. For a "
-            + "document rendered by PinataLayout, set PdfDocumentRenderer.TagContent to false before "
-            + "rendering.");
+            "This document is marked as tagged but has no structure tree, so there is no structure "
+            + "element for the flattened form to be tagged as. Flattening a form in it would draw "
+            + "content that is neither tagged nor an artifact. Remove /MarkInfo, or give the "
+            + "document a structure tree, before flattening.");
+    }
+
+    /// <summary>
+    /// What to say for each widget in place of its control: its field's <c>/TU</c>, or the nearest
+    /// ancestor's, since a file may write it on a parent.
+    /// </summary>
+    private static Func<PdfDictionary, string> AlternateTextOf(List<PdfAcroField> fields)
+    {
+        var texts = new Dictionary<PdfDictionary, string>();
+        foreach (var field in fields)
+        {
+            var text = ToolTipOf(field);
+            if (text.Length == 0)
+                continue;
+
+            foreach (var widget in field.Widgets)
+                texts[widget.Reference?.Value as PdfDictionary ?? widget] = text;
+        }
+        return widget => texts.GetValueOrDefault(widget);
+    }
+
+    private static string ToolTipOf(PdfDictionary field)
+    {
+        // A malformed file may make a field its own ancestor.
+        for (var depth = 0; field != null && depth < 32; depth++)
+        {
+            var text = field.Elements.GetString(PdfAcroField.Keys.TU);
+            if (text.Length > 0)
+                return text;
+
+            field = field.Elements.GetDictionary(PdfAcroField.Keys.Parent);
+        }
+        return "";
     }
 
     private static void RefuseSigned(List<PdfAcroField> fields)
@@ -145,7 +215,8 @@ internal static class PdfFormFlattener
     /// widget's <c>/P</c> is optional, files from other software get it wrong, and a widget listed
     /// on two pages is drawn on both.
     /// </remarks>
-    private static void DrawWidgetsOnto(PdfPage page, HashSet<PdfDictionary> targets, PdfAcroForm form)
+    private static void DrawWidgetsOnto(PdfPage page, HashSet<PdfDictionary> targets, PdfAcroForm form,
+        PdfStructureFlattenTagger tagger)
     {
         var annotations = page.Elements.GetArray(PdfPage.Keys.Annots);
         if (annotations == null)
@@ -163,6 +234,7 @@ internal static class PdfFormFlattener
 
             resources ??= page.Resources;
             var name = resources.AddExistingForm(appearance);
+            BeginMarkedContent(operators, page, widget, tagger);
             // The page's own path for drawing a form notes this; without it a translucent
             // appearance is drawn on a page that is saved with no transparency group.
             page.NoteTransparencyOf(appearance);
@@ -170,6 +242,8 @@ internal static class PdfFormFlattener
             foreach (var value in new[] { matrix.M11, matrix.M12, matrix.M21, matrix.M22, matrix.OffsetX, matrix.OffsetY })
                 operators.Append(value.ToString(Config.SignificantFigures10, CultureInfo.InvariantCulture)).Append(' ');
             operators.Append("cm ").Append(name).Append(" Do Q\n");
+            if (tagger != null)
+                operators.Append("EMC\n");
         }
 
         if (operators.Length == 0)
@@ -177,6 +251,27 @@ internal static class PdfFormFlattener
 
         var content = page.Contents.AppendContent();
         content.CreateStream(PdfEncoders.RawEncoding.GetBytes(operators.ToString()));
+    }
+
+    /// <summary>
+    /// Opens the marked-content sequence a drawn appearance goes in: <c>/Span</c> with the
+    /// identifier the structure tree handed out, or an artifact for a widget the tree does not hold.
+    /// </summary>
+    /// <remarks>
+    /// The tag is the type the element has afterwards - <c>/Span</c> for a form control, which is
+    /// retyped - because a reader expects the two to agree. A widget no element holds is not content of anything - a tagged document
+    /// that never put it in the tree - and an artifact is what is left for a drawing with nowhere to
+    /// belong.
+    /// </remarks>
+    private static void BeginMarkedContent(StringBuilder operators, PdfPage page, PdfDictionary widget, PdfStructureFlattenTagger tagger)
+    {
+        if (tagger == null)
+            return;
+
+        if (tagger.TryBegin(page, widget, out var mcid, out var tag))
+            operators.Append(tag).Append(" <</MCID ").Append(mcid.ToString(CultureInfo.InvariantCulture)).Append(">> BDC\n");
+        else
+            operators.Append("/Artifact BMC\n");
     }
 
     /// <summary>

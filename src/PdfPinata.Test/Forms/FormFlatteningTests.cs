@@ -442,53 +442,7 @@ public class FormFlatteningTests
 
     // ----- refusals ------------------------------------------------------------------------------------------
 
-    [Test]
-    public void ATaggedDocumentIsRefusedAndNamesTheIssue()
-    {
-        var document = new PdfDocument();
-        var page = document.AddPage();
-        document.Structure.RegisterPage(page);
-        var field = AddText(document, page, "name", "Ada");
-        document.Structure.AddAnnotation(document.Structure.CreateElement(new PdfTag("/Form")), page, field.Widgets[0]);
-
-        var flatten = () => document.AcroForm.Flatten();
-
-        flatten.Should().Throw<InvalidOperationException>().WithMessage("*tagged*#357*");
-        var reopened = document.Reopened();
-        reopened.AcroForm.Should().NotBeNull();
-        AnnotationSubtypes(reopened).Should().Equal("/Widget");
-        ContentOf(reopened.Pages[0]).Should().NotContain(" Do");
-    }
-
-    [Test]
-    public void ATaggedDocumentReadFromAFileIsRefusedToo()
-    {
-        var document = new PdfDocument();
-        var page = document.AddPage();
-        document.Structure.RegisterPage(page);
-        var field = AddText(document, page, "name", "Ada");
-        document.Structure.AddAnnotation(document.Structure.CreateElement(new PdfTag("/Form")), page, field.Widgets[0]);
-        var reopened = document.Reopened();
-
-        var flatten = () => reopened.AcroForm.Flatten();
-
-        flatten.Should().Throw<InvalidOperationException>().WithMessage("*#357*");
-    }
-
-    [Test]
-    public void ADocumentMarkedAsTaggedIsRefusedWithNoTreeToShowIt()
-    {
-        var document = new PdfDocument();
-        var page = document.AddPage();
-        AddText(document, page, "name", "Ada");
-        var markInfo = new PdfDictionary(document);
-        markInfo.Elements.SetBoolean("/Marked", true);
-        document.Internals.Catalog.Elements["/MarkInfo"] = markInfo;
-
-        var flatten = () => document.AcroForm.Flatten();
-
-        flatten.Should().Throw<InvalidOperationException>().WithMessage("*#357*");
-    }
+    // A tagged document is flattened, not refused: FormFlatteningTaggedTests (issue #357).
 
     [Test]
     public void AFormHoldingASignedSignatureFieldIsRefusedWhole()

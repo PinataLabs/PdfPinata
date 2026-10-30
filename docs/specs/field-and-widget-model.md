@@ -337,7 +337,8 @@ none.
 **The step flattening shares.** Taking a widget off its pages and out of the structure tree is
 `PdfWidgetAnnotation.RemoveFromPagesAndStructure(document, widgets)`, internal, and takes the whole
 set so that each page and the tree are walked once however many widgets there are. Form flattening
-ends with the same step.
+ends with the same step, after `PdfStructureFlattenTagger` has re-pointed the elements of the widgets
+it drew, so the remover has nothing of theirs to prune (`docs/specs/form-flattening.md`, section 11).
 
 **Deliberately not done.** A removed `/Form` element that carried an `/ID` stays in a file-read
 tree's `/IDTree`; only elements this library gives an `/ID` (a `/Note`) are indexed, and the tree

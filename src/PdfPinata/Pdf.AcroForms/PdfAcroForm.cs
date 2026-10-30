@@ -197,8 +197,15 @@ public sealed class PdfAcroForm : PdfDictionary
     /// object is detached from the document.
     /// </para>
     /// <para>
+    /// <strong>A tagged document stays tagged.</strong> Each appearance is drawn inside a
+    /// marked-content sequence, and the structure element that held the widget's <c>/OBJR</c> now
+    /// names that sequence instead, as a <c>/Span</c> carrying the field's <c>/TU</c> as alternate
+    /// text where it has none of its own. The parent tree follows. A widget that no structure
+    /// element holds is drawn as an artifact.
+    /// </para>
+    /// <para>
     /// <strong>A refusal changes nothing.</strong> The document is refused when it cannot be
-    /// modified, when it is tagged (flattening a tagged form is tracked as issue #357), and when
+    /// modified, when it is marked as tagged but has no structure tree to tag into, and when
     /// any signature field in it has been signed, because saving it would invalidate the signature.
     /// </para>
     /// <para>
@@ -211,7 +218,7 @@ public sealed class PdfAcroForm : PdfDictionary
     /// </remarks>
     /// <exception cref="InvalidOperationException">
     /// The document was not opened for modification, a certifying signature forbids changing its
-    /// structure, it is tagged, a signature field has been signed, or this is not the form of its
+    /// structure, it is marked as tagged and has no structure tree, a signature field has been signed, or this is not the form of its
     /// document.
     /// </exception>
     public void Flatten() => Flatten(redrawAppearances: false);
