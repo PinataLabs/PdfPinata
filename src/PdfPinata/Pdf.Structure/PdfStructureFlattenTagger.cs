@@ -107,14 +107,20 @@ internal sealed class PdfStructureFlattenTagger
     /// <param name="page">The page the appearance is drawn on.</param>
     /// <param name="widget">The widget, as its reference answers it.</param>
     /// <param name="mcid">The identifier, unique on the page, to put in the sequence's <c>/MCID</c>.</param>
+    /// <param name="tag">
+    /// The structure type the element will have once this is committed, to open the sequence with:
+    /// <c>/Span</c> for a form control, which is retyped, else the element's own type, so that the
+    /// sequence and its element agree.
+    /// </param>
     /// <returns>
     /// False when no element of the tree holds the widget, so there is nothing to attach the drawing
     /// to; the caller marks it as an artifact instead, which is what a drawing that is not content of
     /// anything is.
     /// </returns>
-    internal bool TryBegin(PdfPage page, PdfDictionary widget, out int mcid)
+    internal bool TryBegin(PdfPage page, PdfDictionary widget, out int mcid, out string tag)
     {
         mcid = -1;
+        tag = null;
         if (!_hits.TryGetValue(widget, out var hit))
             return false;
 
@@ -133,6 +139,7 @@ internal sealed class PdfStructureFlattenTagger
             numbering.Elements[mcid] = hit.Element;
         }
 
+        tag = BecomesSpan(hit.Element) ? PdfTag.Span.Name : WritableTagOf(hit.Element);
         _pending.Add(new Pending(page, widget, hit, mcid));
         return true;
     }
@@ -283,22 +290,8 @@ internal sealed class PdfStructureFlattenTagger
     /// </summary>
     private void Retype(PdfDictionary element, List<Pending> drawn)
     {
-        var tag = element.Elements.GetName(PdfStructureElement.Keys.S);
-        if (PdfStructureAnnotationRemover.ResolveTag(tag, _roles) != "/Form")
+        if (!BecomesSpan(element))
             return;
-
-        // An element that still holds an annotation after this - a link, say - is not only the
-        // control, and what it is called is not this step's to change. A widget of the form that was
-        // not drawn does not count: it is taken out of the tree next, and the element is what the
-        // widgets that were drawn leave behind.
-        foreach (var kid in KidsOf(element))
-        {
-            if (kid.Elements.GetName(PdfStructureElement.Keys.Type) == "/OBJR"
-                && !(kid.Elements.GetDictionary("/Obj") is { } target && _widgets.Contains(target)))
-            {
-                return;
-            }
-        }
 
         if (element is PdfStructureElement built)
             built.Retag(PdfTag.Span);
@@ -316,6 +309,43 @@ internal sealed class PdfStructureFlattenTagger
                 return;
             }
         }
+    }
+
+    /// <summary>
+    /// Whether the element is a form control that flattening turns into a span: a <c>/Form</c>, or a
+    /// type the role map reads as one, holding no annotation but widgets of the form.
+    /// </summary>
+    /// <remarks>
+    /// An element that still holds an annotation after this - a link, say - is not only the control,
+    /// and what it is called is not this step's to change. A widget of the form that was not drawn
+    /// does not count: it is taken out of the tree next, and the element is what the widgets that
+    /// were drawn leave behind.
+    /// </remarks>
+    private bool BecomesSpan(PdfDictionary element)
+    {
+        var tag = element.Elements.GetName(PdfStructureElement.Keys.S);
+        if (PdfStructureAnnotationRemover.ResolveTag(tag, _roles) != "/Form")
+            return false;
+
+        foreach (var kid in KidsOf(element))
+        {
+            if (kid.Elements.GetName(PdfStructureElement.Keys.Type) == "/OBJR"
+                && !(kid.Elements.GetDictionary("/Obj") is { } target && _widgets.Contains(target)))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// The element's own type as a name that can be written into a content stream as it stands, or
+    /// <c>/Span</c> for one that cannot.
+    /// </summary>
+    private static string WritableTagOf(PdfDictionary element)
+    {
+        var tag = element.Elements.GetName(PdfStructureElement.Keys.S);
+        return Regex.IsMatch(tag, @"^/[A-Za-z0-9_.\-]+$") ? tag : PdfTag.Span.Name;
     }
 
     // ----- numbering, for a tree read from a file ---------------------------------------------------------------

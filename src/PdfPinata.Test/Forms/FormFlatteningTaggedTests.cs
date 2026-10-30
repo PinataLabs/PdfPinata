@@ -583,4 +583,45 @@ public class FormFlatteningTaggedTests
 
         ContentOf(document.Reopened().Pages[0]).Should().NotContain("BDC").And.NotContain("BMC");
     }
+
+    [Test]
+    public void AWidgetWithNoStructParentStillGetsItsMarkMappedInThePagesExistingArray()
+    {
+        // Another producer's file: the element holds the widget, but the widget never said which
+        // parent tree key it is filed under, so there is no key of the annotation's to take out.
+        var document = ATaggedForm(fields: [("name", "Ada Lovelace")]).Reopened();
+        var widget = document.AcroForm.Fields["name"].Widgets[0];
+        widget.Elements.Remove("/StructParent");
+        var reopened = Flattened(document, readFromFile: false);
+
+        var page = reopened.Pages[0];
+        var drawn = Drawn(page).Should().ContainSingle().Subject;
+        ElementsNaming(reopened, page, drawn.Mcid).Should().ContainSingle();
+        ParentTreeElement(reopened, page, drawn.Mcid).Should().BeSameAs(ElementsNaming(reopened, page, drawn.Mcid)[0]);
+    }
+
+    [Test]
+    [Arguments(false)]
+    [Arguments(true)]
+    public void AnElementThatHoldsAnotherAnnotationAsWellKeepsItsTypeAndItsSequenceSaysSo(bool readFromFile)
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var element = document.Structure.CreateElement(new PdfTag("/Form"));
+        var field = new PdfTextField(document) { Name = "name" };
+        document.GetOrCreateAcroForm().Fields.Add(field);
+        var widget = field.AddWidget(page, Box);
+        field.Text = "Ada";
+        var note = new PdfTextAnnotation { Rectangle = new PdfRectangle(new XRect(10, 10, 20, 20)) };
+        page.Annotations.Add(note);
+        document.Structure.AddAnnotation(element, page, widget);
+        document.Structure.AddAnnotation(element, page, note);
+
+        var reopened = Flattened(document, readFromFile);
+
+        var sequence = Drawn(reopened.Pages[0]).Should().ContainSingle().Subject;
+        sequence.Tag.Should().Be("/Form", "the sequence says what its element is");
+        ElementsNaming(reopened, reopened.Pages[0], sequence.Mcid).Should().ContainSingle()
+            .Which.Elements.GetName("/S").Should().Be("/Form");
+    }
 }

@@ -121,7 +121,17 @@ internal static class PdfFormFlattener
     {
         var catalog = document.Internals.Catalog.Elements;
         if (document.IsTagged || catalog.ContainsKey(PdfCatalog.Keys.StructTreeRoot))
+        {
+            // A /StructTreeRoot that is not a dictionary is a tree there is nothing to read; drawing
+            // the values untagged would contradict the claim just as no tree would.
+            if (PdfStructureAnnotationRemover.RootOf(document) == null)
+            {
+                throw new InvalidOperationException(
+                    "This document's /StructTreeRoot is not a dictionary, so there is no structure tree "
+                    + "for the flattened form to be tagged into. Repair or remove it before flattening.");
+            }
             return true;
+        }
 
         var marked = catalog.GetDictionary(PdfCatalog.Keys.MarkInfo)?.Elements.GetBoolean("/Marked") ?? false;
         if (!marked)
@@ -247,8 +257,8 @@ internal static class PdfFormFlattener
     /// identifier the structure tree handed out, or an artifact for a widget the tree does not hold.
     /// </summary>
     /// <remarks>
-    /// The tag is <c>/Span</c> because that is what the element becomes, and a reader expects the
-    /// two to agree. A widget no element holds is not content of anything - a tagged document
+    /// The tag is the type the element has afterwards - <c>/Span</c> for a form control, which is
+    /// retyped - because a reader expects the two to agree. A widget no element holds is not content of anything - a tagged document
     /// that never put it in the tree - and an artifact is what is left for a drawing with nowhere to
     /// belong.
     /// </remarks>
@@ -257,8 +267,8 @@ internal static class PdfFormFlattener
         if (tagger == null)
             return;
 
-        if (tagger.TryBegin(page, widget, out var mcid))
-            operators.Append("/Span <</MCID ").Append(mcid.ToString(CultureInfo.InvariantCulture)).Append(">> BDC\n");
+        if (tagger.TryBegin(page, widget, out var mcid, out var tag))
+            operators.Append(tag).Append(" <</MCID ").Append(mcid.ToString(CultureInfo.InvariantCulture)).Append(">> BDC\n");
         else
             operators.Append("/Artifact BMC\n");
     }
