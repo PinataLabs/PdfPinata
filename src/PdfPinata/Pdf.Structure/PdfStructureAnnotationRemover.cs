@@ -44,7 +44,7 @@ internal static class PdfStructureAnnotationRemover
     /// </param>
     /// <remarks>
     /// An element left with no kids because its only kid was the annotation is removed too, but
-    /// only when it is a <c>/Form</c>: that is the element a widget is tagged as, and one with
+    /// only when it is a <c>/Form</c>, or a type the role map maps to one: that is the element a widget is tagged as, and one with
     /// nothing in it stands for nothing. Any other type is left, since the annotation was not what
     /// made it.
     /// </remarks>
@@ -67,19 +67,15 @@ internal static class PdfStructureAnnotationRemover
 
         document.TaggedStructure?.ForgetAnnotationKeys(keys);
 
+        // All the keys at once: the tree is written again whole each time an entry goes, and a tree
+        // of several nodes makes new ones each time.
         if (keys.Count > 0 && ParentTreeOf(root) is { } parentTree)
-        {
-            foreach (var key in keys)
-            {
-                if (parentTree.Contains(key))
-                    parentTree.Remove(key);
-            }
-        }
+            parentTree.RemoveRange(keys);
 
         foreach (var annotation in annotations)
             annotation.Elements.Remove(StructParent);
 
-        RemoveKids(root, annotations, new HashSet<PdfDictionary>(), 0);
+        RemoveKids(root, annotations, RoleMapOf(root), new HashSet<PdfDictionary>(), 0);
     }
 
     /// <summary>
@@ -122,7 +118,7 @@ internal static class PdfStructureAnnotationRemover
     /// into the elements among them.
     /// </summary>
     /// <returns>Whether anything under this element changed.</returns>
-    private static bool RemoveKids(PdfDictionary element, ICollection<PdfDictionary> annotations,
+    private static bool RemoveKids(PdfDictionary element, ICollection<PdfDictionary> annotations, Dictionary<string, string> roles,
         HashSet<PdfDictionary> seen, int depth)
     {
         if (depth > MaxTreeDepth || !seen.Add(element))
@@ -137,7 +133,7 @@ internal static class PdfStructureAnnotationRemover
                     if (kids.Elements.GetDictionary(idx) is not { } kid)
                         continue;
 
-                    if (Decide(kid, annotations, seen, depth, out var drop))
+                    if (Decide(kid, annotations, roles, seen, depth, out var drop))
                         changed = true;
                     if (drop)
                         kids.Elements.RemoveAt(idx);
@@ -145,7 +141,7 @@ internal static class PdfStructureAnnotationRemover
                 break;
 
             case PdfDictionary only:
-                if (Decide(only, annotations, seen, depth, out var dropOnly))
+                if (Decide(only, annotations, roles, seen, depth, out var dropOnly))
                     changed = true;
                 if (dropOnly)
                     element.Elements.Remove(PdfStructureElement.Keys.K);
@@ -159,7 +155,7 @@ internal static class PdfStructureAnnotationRemover
     /// an element, dropping it as well when it is a <c>/Form</c> that the recursion emptied.
     /// </summary>
     /// <returns>Whether the kid, or anything under it, changed.</returns>
-    private static bool Decide(PdfDictionary kid, ICollection<PdfDictionary> annotations,
+    private static bool Decide(PdfDictionary kid, ICollection<PdfDictionary> annotations, Dictionary<string, string> roles,
         HashSet<PdfDictionary> seen, int depth, out bool drop)
     {
         drop = false;
@@ -174,9 +170,49 @@ internal static class PdfStructureAnnotationRemover
         if (type == "/MCR" || !kid.Elements.ContainsKey(PdfStructureElement.Keys.S))
             return false;
 
-        var changed = RemoveKids(kid, annotations, seen, depth + 1);
-        drop = changed && kid.Elements.GetName(PdfStructureElement.Keys.S) == "/Form" && !HasKids(kid);
+        var changed = RemoveKids(kid, annotations, roles, seen, depth + 1);
+        drop = changed && ResolveTag(kid.Elements.GetName(PdfStructureElement.Keys.S), roles) == "/Form" && !HasKids(kid);
         return changed;
+    }
+
+    /// <summary>
+    /// The tree's role map: what each structure type of the document's own invention stands for.
+    /// </summary>
+    /// <remarks>
+    /// A tree built this session holds its map in <see cref="PdfStructureTreeRoot.RoleMap"/> until
+    /// save writes it out, and one read from a file holds it as the root's <c>/RoleMap</c>; both are
+    /// read, since a file's tree may also have had entries added.
+    /// </remarks>
+    private static Dictionary<string, string> RoleMapOf(PdfDictionary root)
+    {
+        var roles = new Dictionary<string, string>();
+        if (root is PdfStructureTreeRoot built)
+        {
+            foreach (var pair in built.RoleMap)
+                roles[PdfName.WithSolidus(pair.Key)] = PdfName.WithSolidus(pair.Value);
+        }
+
+        if (root.Elements.GetDictionary(PdfStructureTreeRoot.Keys.RoleMap) is { } map)
+        {
+            foreach (var key in map.Elements.Keys)
+                roles[key] = map.Elements.GetName(key);
+        }
+        return roles;
+    }
+
+    /// <summary>
+    /// The standard type a structure type stands for, following the role map as far as it goes.
+    /// </summary>
+    /// <remarks>
+    /// A document may call a form control anything and map the name onto <c>/Form</c>, and a reader
+    /// treats the two alike, so an element is pruned for what it is mapped to rather than for what it
+    /// is called. A map that comes back on itself is followed no further than a few steps.
+    /// </remarks>
+    private static string ResolveTag(string tag, Dictionary<string, string> roles)
+    {
+        for (var step = 0; step < 16 && roles.TryGetValue(tag, out var next) && next != tag; step++)
+            tag = next;
+        return tag;
     }
 
     private static bool HasKids(PdfDictionary element) =>

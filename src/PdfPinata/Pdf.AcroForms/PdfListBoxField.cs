@@ -29,6 +29,7 @@
 
 using System;
 using PdfPinata.Drawing;
+using PdfPinata.Fonts;
 
 namespace PdfPinata.Pdf.AcroForms;
 
@@ -186,6 +187,26 @@ public sealed class PdfListBoxField : PdfChoiceField
             return;
 
         var font = Font;
+        if (AutoSizes)
+        {
+            // Every row from the top index down, as many as there are, has room in the box, and
+            // the widest of them has room across it - inside the point each side the row's text
+            // is inset by below.
+            var top = Math.Min(TopIndex, options.Length - 1);
+            var rows = options.Length - top;
+            var lineSpacing = font.GetHeight() / font.Size;
+            var widest = 0.0;
+            for (var index = top; index < options.Length; index++)
+            {
+                var text = TextNormalization.NormalizeLine(DisplayTextAt(index));
+                widest = Math.Max(widest, gfx.MeasureString(text, font).Width / font.Size);
+            }
+
+            font = Resized(font, MultiLineAutoSize(candidate =>
+                rows * candidate * lineSpacing <= inside.Height
+                && widest * candidate <= inside.Width - 2));
+        }
+
         var rowHeight = font.GetHeight();
         var chosen = SelectedIndicesFromValue();
         var brush = new XSolidBrush(ForeColor);

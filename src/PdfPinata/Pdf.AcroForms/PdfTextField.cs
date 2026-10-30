@@ -28,7 +28,9 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using PdfPinata.Drawing;
 using PdfPinata.Drawing.Layout;
 using PdfPinata.Fonts;
@@ -73,15 +75,31 @@ public sealed class PdfTextField : PdfAcroField
     }
 
     /// <summary>
-    /// Gets or sets the font used to draw the text of the field. Unset, it is the resolver's
-    /// default font at the size the field's <c>/DA</c> names, or 10 points when that names none
-    /// or asks for auto-sizing.
+    /// Gets or sets the font used to draw the text of the field. Unset, it is the family the
+    /// field's <c>/DA</c> names, where the resolver has it, at the size <c>/DA</c> names, or 10
+    /// points when that names none or asks for auto-sizing.
     /// </summary>
     /// <remarks>
+    /// <para>
+    /// The family comes from the font <c>/DA</c> sets, looked up in the form's
+    /// <see cref="PdfAcroForm.DefaultResources"/>: the <c>/BaseFont</c> found there is read for its
+    /// family and style, so <c>/ABCDEF+ArialMT</c> asks the resolver for Arial and
+    /// <c>/Arial,Bold</c> for Arial bold. The font itself is not used, being often a subset that
+    /// cannot draw a new value. Where <c>/DA</c> names no font the form has, or the resolver
+    /// declines the family, the value is drawn in the resolver's default font, as it was before
+    /// issue #353.
+    /// </para>
     /// <para>
     /// The size comes from <c>/DA</c> because <c>/DA</c> is what a viewer edits the field in: a
     /// drawing in any other size makes the text jump as the field gains and loses the focus. It
     /// used to be a fixed 10 points whatever <c>/DA</c> said (issue #155).
+    /// </para>
+    /// <para>
+    /// A size of zero asks for the text to be sized to the box, so with this unset the drawing
+    /// chooses its own size for each widget, whatever this answers: one line as large as the box
+    /// is tall and then small enough to fit across it, several lines 12 points or smaller until
+    /// they fit, and a comb field the size that fits its widest character to a cell - never below
+    /// 4 points (issue #354). Set, this is drawn at its own size.
     /// </para>
     /// <para>
     /// This and the colours redraw the field, as <see cref="Text"/> does. They used not to: the
@@ -101,6 +119,12 @@ public sealed class PdfTextField : PdfAcroField
     }
 
     private XFont _font;
+
+    /// <summary>
+    /// Whether the drawing sizes the text to the box: no <see cref="Font"/> is set and <c>/DA</c>
+    /// names a size of zero.
+    /// </summary>
+    private bool AutoSizes => _font == null && DefaultAppearanceAutoSizes;
 
     /// <summary>
     /// Gets or sets the colour of the text. Unset, or set to <see cref="XColor.Empty"/>, it is the
@@ -320,10 +344,25 @@ public sealed class PdfTextField : PdfAcroField
         if (Comb && cells > 0 && !MultiLine && !Password)
         {
             var cellWidth = size.Width / cells;
-            var characters = StringInfo.GetTextElementEnumerator(text);
-            for (var index = 0; index < cells && characters.MoveNext(); index++)
+            // No more room than the value can fill: /MaxLen comes from the file, and a list sized
+            // for every cell of a field claiming two billion of them is an array no runtime makes.
+            var characters = new List<string>(Math.Min(cells, text.Length));
+            var elements = StringInfo.GetTextElementEnumerator(text);
+            while (characters.Count < cells && elements.MoveNext())
+                characters.Add(elements.GetTextElement());
+
+            // One size for every cell, the one the widest character allows, so that the
+            // characters stand in a row rather than each at a size of its own.
+            if (AutoSizes)
             {
-                gfx.DrawString(characters.GetTextElement(), font, brush,
+                var cell = new XSize(cellWidth, Math.Max(size.Height - 2 * Margin, 0));
+                var unsized = font;
+                font = Resized(font, characters.Min(character => OneLineAutoSize(gfx, unsized, character, cell)));
+            }
+
+            for (var index = 0; index < characters.Count; index++)
+            {
+                gfx.DrawString(characters[index], font, brush,
                     new XRect(index * cellWidth, 0, cellWidth, size.Height), XStringFormats.Center);
             }
             return;
@@ -341,9 +380,23 @@ public sealed class PdfTextField : PdfAcroField
                     _ => XParagraphAlignment.Left
                 }
             };
+
+            if (AutoSizes)
+            {
+                // Laid out past the bottom of the box, so that the height it takes says whether
+                // the size fits rather than how much of it did.
+                var measure = new XTextFormatter(gfx) { Alignment = formatter.Alignment, AllowVerticalOverflow = true };
+                var unsized = font;
+                font = Resized(font, MultiLineAutoSize(candidate =>
+                    measure.GetLayout(text, Resized(unsized, candidate), brush, inside).Height <= inside.Height));
+            }
+
             formatter.DrawString(text, font, brush, inside);
             return;
         }
+
+        if (AutoSizes)
+            font = Resized(font, OneLineAutoSize(gfx, font, text, inside.Size));
 
         gfx.DrawString(text, font, brush, inside, alignment switch
         {

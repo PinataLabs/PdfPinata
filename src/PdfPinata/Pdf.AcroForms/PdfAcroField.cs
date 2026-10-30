@@ -220,27 +220,33 @@ public abstract class PdfAcroField : PdfDictionary
     /// This field and every field nested under it, outermost first.
     /// </summary>
     /// <remarks>
-    /// Guarded against a <c>/Kids</c> chain that comes back on itself, which is malformed but can
-    /// be read from a file: a field already seen is not walked into again.
+    /// Walked with a stack of its own rather than by recursion, so a chain of <c>/Kids</c> as deep
+    /// as a file can make it does not overflow the thread's. Guarded against a chain that comes
+    /// back on itself, which is malformed but can be read from a file: a field already seen is not
+    /// walked into again.
     /// </remarks>
     internal List<PdfAcroField> SelfAndDescendants()
     {
         var found = new List<PdfAcroField>();
-        CollectSelfAndDescendants(found);
+        var seen = new HashSet<PdfAcroField>();
+        var pending = new Stack<PdfAcroField>();
+        pending.Push(this);
+        while (pending.Count > 0)
+        {
+            var field = pending.Pop();
+            if (!seen.Add(field))
+                continue;
+
+            found.Add(field);
+            if (!field.HasKids)
+                continue;
+
+            // Pushed last to first, so that the first kid is the next one walked.
+            var kids = new List<PdfAcroField>(field.Fields);
+            for (var idx = kids.Count - 1; idx >= 0; idx--)
+                pending.Push(kids[idx]);
+        }
         return found;
-    }
-
-    private void CollectSelfAndDescendants(List<PdfAcroField> found)
-    {
-        if (found.Exists(seen => ReferenceEquals(seen, this)))
-            return;
-
-        found.Add(this);
-        if (!HasKids)
-            return;
-
-        foreach (var child in Fields)
-            child.CollectSelfAndDescendants(found);
     }
 
     /// <summary>
@@ -542,22 +548,126 @@ public abstract class PdfAcroField : PdfDictionary
     }
 
     /// <summary>
-    /// The font a field of variable text draws in when none is set: the resolver's default font
-    /// at the size <c>/DA</c> names, or 10 points when it names none or asks for auto-sizing.
+    /// The font a field of variable text draws in when none is set: the family <c>/DA</c> names
+    /// through the form's <c>/DR</c>, where the resolver has it, and the resolver's default font
+    /// where it has not - at the size <c>/DA</c> names, or 10 points when it names none or asks
+    /// for auto-sizing.
     /// </summary>
+    /// <remarks>
+    /// Asked for only by a drawing, or by a caller reading <c>Font</c>: reading a field resolves
+    /// no font face, and nothing here runs until then. A name the resolver does not know, or a
+    /// <c>/DA</c> that names no font the form has, is the resolver's default as it always was -
+    /// drawing never fails for a name (issue #353). See <see cref="DefaultAppearanceFont"/> for how
+    /// a name becomes a family.
+    /// </remarks>
     private protected XFont FontFromDefaultAppearance()
     {
-        var size = 10.0;
-        var match = FontSize.Match(EffectiveDefaultAppearance());
-        if (match.Success
-            && double.TryParse(match.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var named)
-            && named > 0)
+        var named = FontSizeFromDefaultAppearance();
+        var size = named > 0 ? named.Value : 10;
+
+        var asked = DefaultAppearanceFont.Read(EffectiveDefaultAppearance(), Owner?.AcroForm);
+        if (asked != null)
         {
-            size = named;
+            // Asked through FontFactory, as XFont asks, rather than of the resolver directly: it
+            // takes the lock a resolver may rely on, and what it is told is cached for the XFont
+            // made next, which would otherwise ask the resolver a second time.
+            var options = new FontResolvingOptions(asked.Style);
+
+            foreach (var family in asked.Families)
+            {
+                if (FontFactory.ResolveTypeface(family, options, null) != null)
+                    return new XFont(family, size, asked.Style);
+            }
         }
 
         return new XFont(GlobalFontSettings.FontResolver.DefaultFontName, size);
     }
+
+    /// <summary>
+    /// The font size <c>/DA</c> names, or null when it names none.
+    /// </summary>
+    private double? FontSizeFromDefaultAppearance()
+    {
+        // The last Tf is the one in force when the text is shown, and the one the font is read from.
+        Match last = null;
+        foreach (Match match in FontSize.Matches(EffectiveDefaultAppearance()))
+            last = match;
+
+        if (last != null
+            && double.TryParse(last.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var named))
+        {
+            return named;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Whether <c>/DA</c> asks for the text to be sized to the box, by naming a size of zero
+    /// (ISO 32000-1 12.7.3.3). Only a field with no <c>Font</c> of its own takes the size from
+    /// <c>/DA</c> at all, so a drawing asks this only of such a field.
+    /// </summary>
+    private protected bool DefaultAppearanceAutoSizes => FontSizeFromDefaultAppearance() == 0;
+
+    /// <summary>
+    /// <paramref name="font"/> at another size.
+    /// </summary>
+    /// <remarks>
+    /// Asked for by the family name <paramref name="font"/> was asked for by, not by
+    /// <see cref="XFont.Name"/>: that is the family the resolved face calls itself, and a resolver
+    /// serving an alias - "Arial" from a file of Liberation Sans - need not know it by that name.
+    /// A family chosen from <c>/DA</c> (issue #353) is such a name more often than not.
+    /// </remarks>
+    private protected static XFont Resized(XFont font, double size) =>
+        new(font.FamilyName, size, font.Style, font.PdfOptions);
+
+    /// <summary>
+    /// The size an auto-sized single line is drawn at: as large as <paramref name="space"/> is
+    /// tall, a line being the font's own line spacing, and then smaller if that is what it takes
+    /// for <paramref name="text"/> to fit across it.
+    /// </summary>
+    private protected static double OneLineAutoSize(XGraphics gfx, XFont font, string text, XSize space)
+    {
+        var size = space.Height / (font.GetHeight() / font.Size);
+
+        // Width is proportional to size, so one measurement says what size fills the width.
+        // Measured as DrawString draws it: MeasureString splits at a line feed and answers the
+        // widest line, where DrawString drops the line feed and draws one line of the lot.
+        var width = gfx.MeasureString(TextNormalization.NormalizeLine(text), font).Width / font.Size;
+        if (width > 0)
+            size = Math.Min(size, space.Width / width);
+
+        return Math.Max(size, MinimumAutoSize);
+    }
+
+    /// <summary>
+    /// The size auto-sized text of several lines is drawn at: 12 points, or less, a step at a time,
+    /// until <paramref name="fits"/> says the text fits at it - but never less than
+    /// <see cref="MinimumAutoSize"/>.
+    /// </summary>
+    /// <remarks>
+    /// Stepped rather than solved for, because wrapping makes the height of the text jump as the
+    /// size goes down rather than shrink in proportion to it.
+    /// </remarks>
+    private protected static double MultiLineAutoSize(Func<double, bool> fits)
+    {
+        const double Largest = 12;
+        const double Step = 0.5;
+
+        for (var size = Largest; size > MinimumAutoSize; size -= Step)
+        {
+            if (fits(size))
+                return size;
+        }
+
+        return MinimumAutoSize;
+    }
+
+    /// <summary>
+    /// The smallest size auto-sizing draws at. Text that does not fit at this size is clipped
+    /// rather than shrunk further, past the point of being read.
+    /// </summary>
+    private protected const double MinimumAutoSize = 4;
 
     /// <summary>
     /// The colour <c>/DA</c> names for the text - its last <c>g</c>, <c>rg</c> or <c>k</c> - or
@@ -597,9 +707,12 @@ public abstract class PdfAcroField : PdfDictionary
     // /DA is read from files, and the old [0-9]*\.?[0-9]+ could split a run of digits between its
     // two quantifiers n ways from every one of n starting points: five thousand digits took a
     // minute and a half to fail to match. The timeout is the backstop, not the fix.
-    private const string Number = @"(?>[0-9]+(?:\.[0-9]+)?|\.[0-9]+)";
+    // A number as ISO 32000-1 7.3.3 writes it: a sign if it likes, and "12." and ".5" as well as
+    // "12.5". DefaultAppearanceFont reads the Tf operator with the same two, so that the size and
+    // the font it selects are found in the same places.
+    internal const string Number = @"(?>[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+))";
 
-    private const string NumberStart = @"(?<![0-9.])";
+    internal const string NumberStart = @"(?<![0-9.])";
 
     private static readonly TimeSpan MatchTimeout = TimeSpan.FromSeconds(1);
 
@@ -1474,10 +1587,13 @@ public abstract class PdfAcroField : PdfDictionary
             if (order == null)
                 return;
 
+            var targets = new HashSet<PdfDictionary>();
+            foreach (var each in removed)
+                targets.Add(each.Reference?.Value as PdfDictionary ?? each);
+
             for (var idx = order.Elements.Count - 1; idx >= 0; idx--)
             {
-                var entry = order.Elements.GetDictionary(idx);
-                if (entry != null && removed.Exists(each => ReferenceEquals(each.Reference?.Value ?? each, entry)))
+                if (order.Elements.GetDictionary(idx) is { } entry && targets.Contains(entry))
                     order.Elements.RemoveAt(idx);
             }
         }

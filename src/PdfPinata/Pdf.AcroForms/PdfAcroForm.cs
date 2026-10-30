@@ -91,10 +91,11 @@ public sealed class PdfAcroForm : PdfDictionary
     /// <c>"/Helv 9 Tf 0 g"</c> wants a <c>/Helv</c> there - which
     /// <see cref="AddStandardFont"/> puts in.
     /// <para>
-    /// Name a real size. Zero means auto-size, and what a reader makes of that on a multiline
-    /// field is its own business: Ghostscript scales the first line to the height of the whole
-    /// box, so a two-line value fills the page. It is the natural thing to write at form level
-    /// and the reason a form can look right in one reader and wrong in another.
+    /// Zero means auto-size. The appearance a text, combo box or list box field draws for itself
+    /// sizes its text to each widget's box (issue #354), but a reader that builds its own drawing
+    /// from <c>/DA</c> decides for itself what that means on a multiline field: Ghostscript scales
+    /// the first line to the height of the whole box, so a two-line value fills the page. Name a
+    /// real size where every reader has to agree.
     /// </para>
     /// </remarks>
     public string DefaultAppearance
