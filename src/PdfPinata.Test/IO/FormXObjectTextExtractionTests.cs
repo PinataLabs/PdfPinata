@@ -165,4 +165,26 @@ public class FormXObjectTextExtractionTests
 
         PdfTextExtractor.ExtractText(reopened.Pages[0]).Should().Be("Beside");
     }
+
+    [Test]
+    public void AnXObjectWhoseSubtypeIsNotANameIsSkippedAndTheRestOfThePageIsStillRead()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var form = new XForm(document, new XSize(200, 50));
+        using (var inside = XGraphics.FromForm(form))
+            inside.DrawString("Inside", Font, XBrushes.Black, 10, 30);
+        using (var gfx = XGraphics.FromPdfPage(page))
+        {
+            gfx.DrawImage(form, 100, 200, 200, 50);
+            gfx.DrawString("Beside", Font, XBrushes.Black, 40, 100);
+        }
+
+        var reopened = document.Reopened();
+        var drawn = (PdfDictionary)reopened.Pages[0].Elements.GetDictionary("/Resources")
+            .Elements.GetDictionary("/XObject").Elements.GetObject("/Fm0");
+        drawn.Elements["/Subtype"] = new PdfPinata.Pdf.PdfInteger(123);
+
+        PdfTextExtractor.ExtractText(reopened.Pages[0]).Should().Be("Beside");
+    }
 }

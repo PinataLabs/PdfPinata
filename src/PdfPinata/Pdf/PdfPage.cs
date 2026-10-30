@@ -1243,7 +1243,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// Nothing is examined once the page is known to need a group. The answer cannot turn back,
     /// and working it out means walking the resources of a form and of every form within it.
     /// </remarks>
-    private void NoteTransparencyOf(PdfDictionary xObject)
+    internal void NoteTransparencyOf(PdfDictionary xObject)
     {
         if (!TransparencyUsed && PdfTransparencyDetector.UsesTransparency(xObject))
             TransparencyUsed = true;

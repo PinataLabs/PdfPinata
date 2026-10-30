@@ -272,7 +272,7 @@ public static class PdfTextExtractor
 
             var key = op.NameOperand(0);
             var form = key == null ? null : ResourceCategory("/XObject")?.Elements.GetDictionary(key);
-            if (form?.Stream == null || form.Elements.GetName("/Subtype") != "/Form"
+            if (form?.Stream == null || form.Elements.GetNameOrEmpty("/Subtype") != "/Form"
                 || !TryReadMatrix(form, out var matrix) || !_visits.TryEnter(form))
             {
                 return true;

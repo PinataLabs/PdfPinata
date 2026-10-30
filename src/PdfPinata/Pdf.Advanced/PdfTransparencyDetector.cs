@@ -48,12 +48,12 @@ internal static class PdfTransparencyDetector
             return false;
         }
 
-        if (xObject.Elements.GetName("/Subtype") == "/Image")
+        if (xObject.Elements.GetNameOrEmpty("/Subtype") == "/Image")
             return ImagePaints(xObject);
 
         // A form declaring a transparency group of its own says so outright.
         var group = xObject.Elements.GetDictionary(PdfPage.Keys.Group);
-        if (group != null && group.Elements.GetName("/S") == "/Transparency")
+        if (group != null && group.Elements.GetNameOrEmpty("/S") == "/Transparency")
             return true;
 
         return ResourcesPaint(xObject.Elements.GetDictionary(PdfPage.InheritablePageKeys.Resources), seen, depth);
