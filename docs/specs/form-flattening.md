@@ -44,7 +44,8 @@ object a caller still holds is detached from the document; its `Fields` still li
 changing them changes nothing.
 
 Everything that can be refused is refused **before anything changes**, so a refusal leaves the
-document as it was.
+document as it was. A redraw that fails part-way, which the checks cannot foresee - a field box too
+small to draw in - is an error and not a refusal, and leaves the fields redrawn before it redrawn.
 
 ## 3. What it does, in order
 
@@ -82,6 +83,12 @@ and then flattens. It is for the form that was changed in a way no field noticed
 `/V` that a kid inherits, the form's `/DA` - which is the case #340 added `RedrawAppearance` for. A
 check box, radio button, push button and signature field draw no appearance of their own and are
 drawn as they are.
+
+**A form with no appearances flattens to nothing.** A producer that left the drawing to the reader and
+set `/NeedAppearances` writes widgets with no `/AP`; flattened as they are they are removed and
+draw nothing, and their values are lost. The default is "as it is" by decision, so this is what it
+does; `Flatten(true)` draws a text field, combo box or list box first and is what such a form
+wants. A check box or radio button with no appearance has none to redraw.
 
 Three details. A **read-only field is redrawn**: `RedrawAppearance` refuses one, because it is
 about filling the field, and flattening is not. A redraw that **cannot** happen - no `Font` on the
@@ -185,7 +192,8 @@ The acceptance test is that text extraction from the flattened page finds the va
 page imported with `XPdfForm` - was invisible to it. It does now. A form's `/Matrix` is applied, its
 own `/Resources` are used for its fonts (falling back to the enclosing ones, as a form with none
 does), the text state it leaves is not kept, marked content open around the `Do` still applies to the
-text inside, and nesting is capped. Runs come back in the order drawn, with the form's text where
+text inside, a form whose `/Matrix` is not six numbers is skipped, and nesting is capped: a form
+is entered once at a time, 32 deep and 4,096 times in all. Runs come back in the order drawn, with the form's text where
 the `Do` is. This changes what `ExtractRuns` returns for a page that draws forms; it was returning
 less than the page says.
 

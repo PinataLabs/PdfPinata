@@ -259,9 +259,10 @@ public static class PdfTextExtractor
         /// shows no text and is ignored.
         /// </summary>
         /// <remarks>
-        /// A form is entered at most once at a time and at most <see cref="FormVisits.Limit"/> times
-        /// in all, so a form that draws itself, or a tree of forms that each draw the next twice,
-        /// ends instead of running for ever. The text state a form changes is its own: the walker
+        /// A form is entered at most once at a time, at most <see cref="FormVisits.MaximumDepth"/>
+        /// deep and at most <see cref="FormVisits.Limit"/> times in all, so a form that draws itself,
+        /// a chain of forms each drawing the next, or a tree of forms that each draw the next twice,
+        /// ends instead of running for ever or exhausting the stack. The text state a form changes is its own: the walker
         /// that reads it is a copy.
         /// </remarks>
         private bool ExecuteExternalObject(OpCodeName name, COperator op)
@@ -271,12 +272,14 @@ public static class PdfTextExtractor
 
             var key = op.NameOperand(0);
             var form = key == null ? null : ResourceCategory("/XObject")?.Elements.GetDictionary(key);
-            if (form?.Stream == null || form.Elements.GetName("/Subtype") != "/Form" || !_visits.TryEnter(form))
+            if (form?.Stream == null || form.Elements.GetName("/Subtype") != "/Form"
+                || !TryReadMatrix(form, out var matrix) || !_visits.TryEnter(form))
+            {
                 return true;
+            }
 
             try
             {
-                var matrix = form.Elements.ContainsKey("/Matrix") ? form.Elements.GetMatrix("/Matrix", false) : XMatrix.Identity;
                 var resources = form.Elements.GetDictionary("/Resources") ?? _formResources;
                 new Walker(this, resources, matrix).Walk(ContentReader.ReadContent(form.Stream.UnfilteredValue));
             }
@@ -286,6 +289,28 @@ public static class PdfTextExtractor
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// A form's <c>/Matrix</c>, the identity when it has none. A form whose matrix is not six
+        /// numbers is skipped rather than failing the page: before forms were followed such a page
+        /// extracted, and it should go on doing so.
+        /// </summary>
+        private static bool TryReadMatrix(PdfDictionary form, out XMatrix matrix)
+        {
+            matrix = XMatrix.Identity;
+            if (!form.Elements.ContainsKey("/Matrix"))
+                return true;
+
+            try
+            {
+                matrix = form.Elements.GetMatrix("/Matrix", false);
+                return true;
+            }
+            catch (InvalidCastException)
+            {
+                return false;
+            }
         }
 
         /// <summary><c>BT</c>, <c>Td</c>, <c>TD</c>, <c>Tm</c> and <c>T*</c>: where the text goes.</summary>
@@ -737,13 +762,19 @@ public static class PdfTextExtractor
     {
         internal const int Limit = 4096;
 
+        /// <summary>
+        /// How deep forms may nest. Each level is a walker and several calls deep, and a stack
+        /// overflow cannot be caught; real documents nest forms a handful deep.
+        /// </summary>
+        internal const int MaximumDepth = 32;
+
         private readonly HashSet<PdfDictionary> _active = new();
         private int _entered;
 
         /// <summary>Whether <paramref name="form"/> may be entered now; if so, it has been.</summary>
         internal bool TryEnter(PdfDictionary form)
         {
-            if (_entered >= Limit || !_active.Add(form))
+            if (_entered >= Limit || _active.Count >= MaximumDepth || !_active.Add(form))
                 return false;
 
             _entered++;

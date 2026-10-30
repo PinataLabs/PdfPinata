@@ -196,9 +196,16 @@ public sealed class PdfAcroForm : PdfDictionary
     /// object is detached from the document.
     /// </para>
     /// <para>
-    /// <strong>Nothing is changed when it throws.</strong> The document is refused when it cannot
-    /// be modified, when it is tagged (flattening a tagged form is tracked as issue #357), and when
+    /// <strong>A refusal changes nothing.</strong> The document is refused when it cannot be
+    /// modified, when it is tagged (flattening a tagged form is tracked as issue #357), and when
     /// any signature field in it has been signed, because saving it would invalidate the signature.
+    /// </para>
+    /// <para>
+    /// <strong>A widget with no appearance draws nothing.</strong> A form whose producer left the
+    /// drawing to the reader and set <see cref="NeedAppearances"/> has widgets like that, and
+    /// flattened as they are their values are gone. <see cref="Flatten(bool)"/> with
+    /// <c>true</c> draws a text field, combo box or list box first, which is what such a form
+    /// wants.
     /// </para>
     /// </remarks>
     /// <exception cref="InvalidOperationException">

@@ -80,11 +80,12 @@ internal static class PdfFormFlattener
     private static List<PdfAcroField> FieldsOf(PdfAcroForm form)
     {
         var fields = new List<PdfAcroField>();
+        var seen = new HashSet<PdfAcroField>();
         foreach (var root in form.Fields)
         {
             foreach (var field in root.SelfAndDescendants())
             {
-                if (!fields.Exists(seen => ReferenceEquals(seen, field)))
+                if (seen.Add(field))
                     fields.Add(field);
             }
         }

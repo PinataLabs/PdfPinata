@@ -178,6 +178,32 @@ public class FormFlatteningTests
         ContentOf(reopened.Pages[0]).Should().NotContain(" Do");
     }
 
+    [Test]
+    public void AGraphicsStateTheExistingContentLeavesBehindDoesNotMoveTheWidgets()
+    {
+        // Content from other software often ends with a transform still in force. What is drawn
+        // after it must not inherit it, so the existing content is bracketed first.
+        PdfTextRun Flattened(bool leaking)
+        {
+            var document = new PdfDocument();
+            var page = document.AddPage();
+            AddText(document, page, "name", "Ada");
+            if (leaking)
+                page.Contents.AppendContent().CreateStream(Encoding.ASCII.GetBytes("2 0 0 2 30 40 cm"));
+
+            var reopened = document.Reopened();
+            reopened.AcroForm.Flatten();
+            return PdfTextExtractor.ExtractRuns(reopened.Reopened().Pages[0]).Single();
+        }
+
+        var leaked = Flattened(leaking: true);
+        var control = Flattened(leaking: false);
+
+        leaked.Origin.X.Should().BeApproximately(control.Origin.X, 0.01);
+        leaked.Origin.Y.Should().BeApproximately(control.Origin.Y, 0.01);
+        leaked.FontSize.Should().BeApproximately(control.FontSize, 0.01);
+    }
+
     // ----- the states of a button ------------------------------------------------------------------------
 
     /// <summary>A form XObject that paints a rectangle, which is all a button state needs to be.</summary>

@@ -476,8 +476,7 @@ public abstract class PdfAcroField : PdfDictionary
     /// refuses a read-only one. Flattening a form does not change a value, and a read-only field is
     /// the commonest thing to want flattened. The open mode is asked by the flatten itself.
     /// </remarks>
-    internal string WhyCannotBeRedrawnForFlattening() =>
-        this is PdfTextField or PdfChoiceField && Widgets.Count > 0 ? WhyAppearanceCannotBeDrawn() : null;
+    internal string WhyCannotBeRedrawnForFlattening() => RedrawsForFlattening ? WhyAppearanceCannotBeDrawn() : null;
 
     /// <summary>
     /// Draws the appearance of a text field, combo box or list box again for flattening, having
@@ -486,9 +485,15 @@ public abstract class PdfAcroField : PdfDictionary
     /// </summary>
     internal void RedrawForFlattening()
     {
-        if (this is PdfTextField or PdfChoiceField && Widgets.Count > 0)
+        if (RedrawsForFlattening)
             RenderOwnAppearance();
     }
+
+    /// <summary>
+    /// Whether flattening with a redraw draws this field again: it is one of the kinds that draw
+    /// their own appearance, and it has a widget to draw it on.
+    /// </summary>
+    private bool RedrawsForFlattening => (this is PdfTextField or PdfChoiceField) && Widgets.Count > 0;
 
     /// <summary>
     /// Why the field's appearance cannot be drawn now, or null when it can. A field that draws
