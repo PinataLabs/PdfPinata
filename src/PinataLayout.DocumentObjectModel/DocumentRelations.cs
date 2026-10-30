@@ -2,9 +2,9 @@
 
 //
 // Authors:
-//   Stefan Lange (mailto:Stefan.Lange@PdfPinata.com)
-//   Klaus Potzesny (mailto:Klaus.Potzesny@PdfPinata.com)
-//   David Stephensen (mailto:David.Stephensen@PdfPinata.com)
+//   Stefan Lange (mailto:Stefan.Lange@pdfsharp.com)
+//   Klaus Potzesny (mailto:Klaus.Potzesny@pdfsharp.com)
+//   David Stephensen (mailto:David.Stephensen@pdfsharp.com)
 //
 // Copyright (c) 2001-2009 empira Software GmbH, Cologne (Germany)
 //

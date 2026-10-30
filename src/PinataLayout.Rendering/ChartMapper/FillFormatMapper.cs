@@ -1,7 +1,7 @@
 #region Copyright
 //
 // Authors:
-//   David Stephensen (mailto:David.Stephensen@PdfPinata.com)
+//   David Stephensen (mailto:David.Stephensen@pdfsharp.com)
 //
 // Copyright (c) 2001-2009 empira Software GmbH, Cologne (Germany)
 //
