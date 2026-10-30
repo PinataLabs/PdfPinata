@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Text.RegularExpressions;
 using PdfPinata.Pdf.Advanced;
+using PdfPinata.Pdf.Internal;
 
 namespace PdfPinata.Pdf.Structure;
 
@@ -59,13 +59,16 @@ internal sealed class PdfStructureFlattenTagger
     private readonly PdfStructureBuilder _builder;
     private readonly Dictionary<string, string> _roles;
     private readonly Func<PdfDictionary, string> _alternateTextOf;
+    private readonly ICollection<PdfDictionary> _widgets;
     private readonly Dictionary<PdfDictionary, Hit> _hits = new();
     private readonly List<Pending> _pending = [];
     private readonly Dictionary<PdfPage, PageNumbering> _numbering = new();
     private int _nextKey = -1;
 
-    private PdfStructureFlattenTagger(PdfDocument document, PdfDictionary root, Func<PdfDictionary, string> alternateTextOf)
+    private PdfStructureFlattenTagger(PdfDocument document, PdfDictionary root, ICollection<PdfDictionary> widgets,
+        Func<PdfDictionary, string> alternateTextOf)
     {
+        _widgets = widgets;
         _document = document;
         _root = root;
         _builder = document.TaggedStructure;
@@ -93,7 +96,7 @@ internal sealed class PdfStructureFlattenTagger
         if (root == null)
             return null;
 
-        var tagger = new PdfStructureFlattenTagger(document, root, alternateTextOf);
+        var tagger = new PdfStructureFlattenTagger(document, root, widgets, alternateTextOf);
         tagger.Find(root, widgets, new HashSet<PdfDictionary>(), 0);
         return tagger;
     }
@@ -285,11 +288,16 @@ internal sealed class PdfStructureFlattenTagger
             return;
 
         // An element that still holds an annotation after this - a link, say - is not only the
-        // control, and what it is called is not this step's to change.
+        // control, and what it is called is not this step's to change. A widget of the form that was
+        // not drawn does not count: it is taken out of the tree next, and the element is what the
+        // widgets that were drawn leave behind.
         foreach (var kid in KidsOf(element))
         {
-            if (kid.Elements.GetName(PdfStructureElement.Keys.Type) == "/OBJR")
+            if (kid.Elements.GetName(PdfStructureElement.Keys.Type) == "/OBJR"
+                && !(kid.Elements.GetDictionary("/Obj") is { } target && _widgets.Contains(target)))
+            {
                 return;
+            }
         }
 
         if (element is PdfStructureElement built)
@@ -377,7 +385,7 @@ internal sealed class PdfStructureFlattenTagger
             if (bytes == null)
                 continue;
 
-            foreach (Match match in McidInContent.Matches(Encoding.Latin1.GetString(bytes)))
+            foreach (Match match in McidInContent.Matches(PdfEncoders.RawEncoding.GetString(bytes)))
             {
                 if (int.TryParse(match.Groups[1].Value, out var mcid))
                     largest = Math.Max(largest, mcid);

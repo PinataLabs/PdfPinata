@@ -559,6 +559,9 @@ may ask the question at a moment of their own choosing.
 - **Reading order different from drawing order.** The structure tree defines reading order, so this
   falls out for MigraDoc. For hand-drawn pages the caller controls it by scope order and is on their
   own.
+- **Flattening a form** is covered: `PdfAcroForm.Flatten()` re-tags what it draws
+  (`docs/specs/form-flattening.md`, section 11). Each appearance becomes a marked-content sequence and
+  the widget's `/Form` element becomes a `/Span` naming it.
 - **Making the structure tree survive `PdfPage.Resize`.** The proposal guessed that it would survive
   untouched, because the marks move into the form XObject along with the content. That guess is wrong
   in the way that matters: the identifiers move with them, but the page's `/StructParents` indexes the

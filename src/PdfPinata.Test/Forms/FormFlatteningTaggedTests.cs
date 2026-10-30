@@ -301,6 +301,21 @@ public class FormFlatteningTaggedTests
             .Should().BeGreaterThan(flattened.Elements.GetInteger("/StructParents"));
     }
 
+    [Test]
+    public void AnIdentifierTheContentStreamAlreadyUsesIsNotHandedOutAgainWhateverTheParentTreeSays()
+    {
+        var reopened = ATaggedForm().Reopened();
+        var page = reopened.Pages[0];
+        var array = Deref(ParentTreeNode(reopened, page.Elements.GetInteger("/StructParents")).Elements["/Value"]) as PdfArray;
+        array.Elements.Clear();
+        Sequences(page).Should().ContainSingle("the heading, whose identifier the content stream still names");
+
+        reopened.AcroForm.Flatten();
+
+        var sequences = Sequences(reopened.Reopened().Pages[0]);
+        sequences.Select(sequence => sequence.Mcid).Should().OnlyHaveUniqueItems().And.HaveCount(3);
+    }
+
     // ----- several pages, many widgets ---------------------------------------------------------------------
 
     [Test]
@@ -487,7 +502,11 @@ public class FormFlatteningTaggedTests
         var content = ContentOf(reopened.Pages[0]);
         Drawn(reopened.Pages[0]).Should().ContainSingle("the one the tree holds");
         Regex.Matches(content, @"/Artifact\s+BMC\s+q[^E]*? Do Q\s*EMC").Count.Should().Be(1, "the one it does not");
-        PdfTextExtractor.ExtractText(reopened.Pages[0]).Should().Contain("Not in the tree");
+
+        // An artifact is what the extractor leaves out of the text, and keeps among the runs.
+        PdfTextExtractor.ExtractText(reopened.Pages[0]).Should().NotContain("Not in the tree");
+        PdfTextExtractor.ExtractRuns(reopened.Pages[0]).Where(run => run.IsArtifact).Select(run => run.Text)
+            .Should().Contain("Not in the tree");
     }
 
     // ----- reading it back ---------------------------------------------------------------------------------------
@@ -501,6 +520,13 @@ public class FormFlatteningTaggedTests
 
         var page = reopened.Pages[0];
         PdfTextExtractor.ExtractText(page).Should().Contain("Ada Lovelace").And.Contain("Canada").And.Contain("Registration");
+
+        // The sequence open around the Do applies to the text in the form it draws. The run's own
+        // innermost sequence is the appearance's /Tx, which is a plain BMC, so what is read here is
+        // that the value is content and not an artifact; the identifier is read from the stream above.
+        var runs = PdfTextExtractor.ExtractRuns(page);
+        foreach (var value in new[] { "Ada Lovelace", "Canada" })
+            runs.Should().ContainSingle(candidate => candidate.Text.Contains(value)).Which.IsArtifact.Should().BeFalse();
         Drawn(page).Should().HaveCount(2);
     }
 

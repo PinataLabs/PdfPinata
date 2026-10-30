@@ -7,6 +7,7 @@ using PdfPinata.Drawing;
 using PdfPinata.EInvoice;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.AcroForms;
+using PdfPinata.Pdf.Structure;
 
 namespace ConformanceCorpus;
 
@@ -37,6 +38,7 @@ internal static class Corpus
         yield return ("pdfa-2b-cff", Cff());
         yield return ("pdfa-3b-facturx", Invoice());
         yield return ("pdfa-2b-flattened-form", FlattenedForm());
+        yield return ("pdfua-1-flattened-form", FlattenedTaggedForm());
         yield return ("pdfua-1", Tagged(doc => doc.Options.UAConformance = PdfUAConformance.PdfUA1));
         yield return ("pdfa-1a", Tagged(doc => doc.Options.Conformance = PdfAConformance.PdfA1A));
         yield return ("pdfa-2a", Tagged(doc => doc.Options.Conformance = PdfAConformance.PdfA2A));
@@ -323,6 +325,68 @@ internal static class Corpus
         widget.SetAppearance("/Yes", ticked);
         widget.SetAppearance("/Off", new XForm(document, new XSize(20, 20)));
         subscribe.Checked = true;
+
+        form.Flatten();
+
+        return Bytes(document);
+    }
+
+    /// <summary>
+    /// A tagged form, filled and flattened, claiming PDF/UA-1.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The one document here that asks what a change to a <em>tagged</em> document leaves behind.
+    /// Before flattening, each widget is the content of a <c>/Form</c> element through an
+    /// <c>/OBJR</c>; after it, the appearances are page content and the annotations are gone. For
+    /// that to conform, every drawn appearance has to sit in a marked-content sequence with an
+    /// <c>/MCID</c> that a structure element names, the parent tree has to say the same back, and no
+    /// <c>/OBJR</c> may name an annotation that is no longer there. The in-process tests read each
+    /// of those out of the saved file; whether a validator agrees that the result is a document
+    /// whose content is all tagged is what this is for.
+    /// </para>
+    /// <para>
+    /// A heading and two fields, a text field and a combo box, with the fonts set on the fields for
+    /// the reason <see cref="FlattenedForm"/> sets them. Each field has a tool tip, which becomes the
+    /// alternate text of the <c>/Span</c> its <c>/Form</c> element turns into.
+    /// </para>
+    /// </remarks>
+    private static byte[] FlattenedTaggedForm()
+    {
+        var document = new PdfDocument();
+        document.Info.Title = "Conformance corpus: flattened tagged form";
+        document.Info.Author = "PdfPinata conformance corpus";
+        document.Structure.Language = "en-GB";
+        document.Options.UAConformance = PdfUAConformance.PdfUA1;
+
+        var page = document.AddPage();
+        var root = document.Structure.CreateElement(PdfTag.Document);
+        var heading = document.Structure.CreateElement(PdfTag.H1, root);
+        using (var gfx = XGraphics.FromPdfPage(page))
+        using (gfx.BeginMarkedContent(heading))
+            gfx.DrawString("Registration", new XFont("Arial", 18), XBrushes.Black, 50, 60);
+
+        var form = document.GetOrCreateAcroForm();
+        var font = new XFont("Arial", 12);
+
+        var name = new PdfTextField(document)
+        {
+            Name = "name", Font = font, BorderColor = XColors.Black, ToolTip = "Full name"
+        };
+        form.Fields.Add(name);
+        var nameWidget = name.AddWidget(page, new PdfRectangle(new XRect(50, 740, 240, 24)));
+        name.Text = "Ada Lovelace";
+        document.Structure.AddAnnotation(document.Structure.CreateElement(new PdfTag("/Form"), root), page, nameWidget);
+
+        var country = new PdfComboBoxField(document)
+        {
+            Name = "country", Font = font, BorderColor = XColors.Black, ToolTip = "Country",
+            Options = ["Australia", "Canada", "Ireland"]
+        };
+        form.Fields.Add(country);
+        var countryWidget = country.AddWidget(page, new PdfRectangle(new XRect(50, 700, 240, 24)));
+        country.SelectedIndex = 1;
+        document.Structure.AddAnnotation(document.Structure.CreateElement(new PdfTag("/Form"), root), page, countryWidget);
 
         form.Flatten();
 
