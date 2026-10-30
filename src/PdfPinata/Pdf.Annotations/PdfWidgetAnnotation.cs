@@ -28,9 +28,11 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using PdfPinata.Pdf.AcroForms;
+using PdfPinata.Pdf.Structure;
 
 namespace PdfPinata.Pdf.Annotations;
 
@@ -127,6 +129,66 @@ public sealed class PdfWidgetAnnotation : PdfAnnotation
         Reference = null;
         Owner.Internals.AddObject(this);
         Elements.SetReference(PdfAcroField.Keys.Parent, field);
+    }
+
+    /// <summary>
+    /// Takes widgets off every page they are listed on and out of the document's structure tree,
+    /// leaving them where the form keeps them. The step shared by removing a field and by
+    /// flattening one: both end with a widget that is no longer drawn as an annotation.
+    /// </summary>
+    /// <param name="document">The document the widgets belong to.</param>
+    /// <param name="widgets">
+    /// The widgets, including the widget view of a field merged with its widget.
+    /// </param>
+    /// <remarks>
+    /// <para>
+    /// Three things, because a widget is reachable from three places and a reader follows each.
+    /// Every page's <c>/Annots</c> loses its entry, and not only the page the widget's <c>/P</c>
+    /// names, since a field with widgets on several pages is the ordinary case and <c>/P</c> is
+    /// optional and sometimes wrong. A tagged document's structure tree loses the <c>/OBJR</c>
+    /// pointing at it, and the <c>/Form</c> element it was the only content of, and the parent
+    /// tree loses the entry under the widget's <c>/StructParent</c>; see
+    /// <see cref="Structure.PdfStructureAnnotationRemover"/>. A widget left in <c>/Annots</c>
+    /// without its field still shows on the page, and an <c>/OBJR</c> to an annotation that is
+    /// gone is a PDF/UA failure that nothing but a validator reports.
+    /// </para>
+    /// <para>
+    /// Takes the whole set at once rather than one widget at a time, because each page's annotations
+    /// and the whole structure tree are walked once however many widgets there are. The caller has
+    /// already asked <see cref="PdfDocument.EnsureCanModify"/>, since what it is doing to the
+    /// field decides which kind of change that is.
+    /// </para>
+    /// <para>
+    /// The widgets stay in the cross-reference table, as <c>PdfAnnotations.Remove</c> leaves an
+    /// annotation: an incremental save decides what changed from that table, and a full save drops
+    /// whatever nothing reaches any longer.
+    /// </para>
+    /// </remarks>
+    internal static void RemoveFromPagesAndStructure(PdfDocument document, IReadOnlyCollection<PdfWidgetAnnotation> widgets)
+    {
+        if (widgets.Count == 0)
+            return;
+
+        // Each as its reference answers it, because that is the object a page's array and a
+        // structure element resolve to - the field itself, for the view of a merged one.
+        var targets = new HashSet<PdfDictionary>();
+        foreach (var widget in widgets)
+            targets.Add(widget.Reference?.Value as PdfDictionary ?? widget);
+
+        foreach (var page in document.Pages)
+        {
+            var annotations = page.Elements.GetArray(PdfPage.Keys.Annots);
+            if (annotations == null)
+                continue;
+
+            for (var idx = annotations.Elements.Count - 1; idx >= 0; idx--)
+            {
+                if (annotations.Elements.GetDictionary(idx) is { } annotation && targets.Contains(annotation))
+                    annotations.Elements.RemoveAt(idx);
+            }
+        }
+
+        PdfStructureAnnotationRemover.Remove(document, targets);
     }
 
     /// <summary>

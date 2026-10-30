@@ -217,6 +217,45 @@ public abstract class PdfAcroField : PdfDictionary
     public bool IsTerminal => !HasKids || Fields.Count == 0;
 
     /// <summary>
+    /// This field and every field nested under it, outermost first.
+    /// </summary>
+    /// <remarks>
+    /// Walked with a stack of its own rather than by recursion, so a chain of <c>/Kids</c> as deep
+    /// as a file can make it does not overflow the thread's. Guarded against a chain that comes
+    /// back on itself, which is malformed but can be read from a file: a field already seen is not
+    /// walked into again.
+    /// </remarks>
+    internal List<PdfAcroField> SelfAndDescendants()
+    {
+        var found = new List<PdfAcroField>();
+        var seen = new HashSet<PdfAcroField>();
+        var pending = new Stack<PdfAcroField>();
+        pending.Push(this);
+        while (pending.Count > 0)
+        {
+            var field = pending.Pop();
+            if (!seen.Add(field))
+                continue;
+
+            found.Add(field);
+            if (!field.HasKids)
+                continue;
+
+            // Pushed last to first, so that the first kid is the next one walked.
+            var kids = new List<PdfAcroField>(field.Fields);
+            for (var idx = kids.Count - 1; idx >= 0; idx--)
+                pending.Push(kids[idx]);
+        }
+        return found;
+    }
+
+    /// <summary>
+    /// Whether this is a signature field that holds a signature - one with a <c>/V</c>, its own or
+    /// inherited.
+    /// </summary>
+    internal bool IsSigned => this is PdfSignatureField && InheritedFrom(this, Keys.V) != null;
+
+    /// <summary>
     /// The dictionaries under <c>/Kids</c>, whatever each of them is, without making a collection
     /// of them.
     /// </summary>
@@ -1359,6 +1398,141 @@ public abstract class PdfAcroField : PdfDictionary
                 field.Elements.SetReference(Keys.Parent, _parent);
             else
                 field.Elements.Remove(Keys.Parent);
+        }
+
+        /// <summary>
+        /// Removes a field from this collection, together with the fields nested under it and every
+        /// widget any of them is drawn as.
+        /// </summary>
+        /// <param name="field">The field, as this collection hands it out.</param>
+        /// <returns>
+        /// True when the field was in this collection and has been removed; false when it was not,
+        /// which leaves the document as it was. Only a field listed directly in this collection is
+        /// found - a nested field is removed through the <see cref="PdfAcroField.Fields"/> of the
+        /// field it is nested under.
+        /// </returns>
+        /// <exception cref="InvalidOperationException">
+        /// The document was not opened for modification, or a certifying signature forbids changing
+        /// the form's structure; or the field, or a field nested under it, is a signature field that
+        /// has been signed.
+        /// </exception>
+        /// <remarks>
+        /// <para>
+        /// A field is reachable from several places and a reader follows each of them, so removing
+        /// one by editing the dictionaries leaves something behind: a widget in a page's
+        /// <c>/Annots</c> without its field still shows, and a structure element pointing at an
+        /// annotation that is gone breaks PDF/UA. This takes the field out of the form's
+        /// <c>/Fields</c> or the parent's <c>/Kids</c> and out of the form's calculation order; takes
+        /// every widget of the field and of its descendants off <em>every</em> page, not only the
+        /// one a widget's <c>/P</c> names; and, in a tagged document, removes the widgets' structure
+        /// elements and parent tree entries. A field merged with its widget is both a form entry and
+        /// an annotation, and leaves both.
+        /// </para>
+        /// <para>
+        /// <strong>Removing a field's last kid leaves the parent in place.</strong> A field with
+        /// nothing nested under it is an ordinary field - one with no widgets and no value, and so
+        /// one that is not drawn - and a caller who wants the parent gone as well removes it too. The
+        /// alternative, removing it implicitly, would make the result of one call depend on how many
+        /// siblings the field happened to have, and would delete a name the caller may be about to
+        /// give a new kid.
+        /// </para>
+        /// <para>
+        /// <strong>A signed signature field is refused.</strong> A signature field with a
+        /// <c>/V</c> holds a signature, and removing it - or a parent holding it - discards the
+        /// evidence that something was signed while leaving the document looking untouched. Nothing
+        /// is changed when it throws. An unsigned signature field is removed like any other.
+        /// </para>
+        /// <para>
+        /// The field and its widgets stay in the document's cross-reference table, as a removed
+        /// annotation does, and a full save drops them once nothing reaches them. The removed
+        /// <paramref name="field"/> is not changed, and can be added to a collection again; its
+        /// widgets are no longer on any page, though, and <see cref="PdfAcroField.AddWidget"/> is how
+        /// it gets new ones.
+        /// </para>
+        /// </remarks>
+        public bool Remove(PdfAcroField field)
+        {
+            ArgumentNullException.ThrowIfNull(field);
+
+            // Asked before anything is looked up, so that the answer does not depend on whether the
+            // field happened to be here. A certifying signature never permits a change to the form's
+            // structure, which is what the default kind says.
+            Owner.EnsureCanModify("removing a form field");
+
+            var entries = Entries;
+            if (entries == null)
+                return false;
+
+            // Every place it is listed: a file can list a field twice, and the second entry would
+            // otherwise be a field with no widgets that the form still finds.
+            var positions = new List<int>();
+            var target = field.Reference?.Value ?? field;
+            for (var idx = 0; idx < entries.Elements.Count; idx++)
+            {
+                if (ReferenceEquals(entries.Elements.GetDictionary(idx), target))
+                    positions.Add(idx);
+            }
+
+            if (positions.Count == 0)
+                return false;
+
+            var removed = field.SelfAndDescendants();
+            foreach (var signed in removed)
+            {
+                if (signed.IsSigned)
+                {
+                    throw new InvalidOperationException(
+                        "The signature field '" + signed.Elements.GetString(Keys.T) + "' has been signed, so "
+                        + "it cannot be removed - nor can the field '" + field.Elements.GetString(Keys.T)
+                        + "' that holds it. Removing it would discard the signature while the "
+                        + "document went on looking untouched.");
+                }
+            }
+
+            var widgets = new List<PdfWidgetAnnotation>();
+            foreach (var each in removed)
+                widgets.AddRange(each.Widgets);
+
+            for (var at = positions.Count - 1; at >= 0; at--)
+                entries.Elements.RemoveAt(positions[at]);
+            RemoveFromCalculationOrder(removed);
+            PdfWidgetAnnotation.RemoveFromPagesAndStructure(Owner, widgets);
+            return true;
+        }
+
+        /// <summary>
+        /// Removes the field at a position among the fields in this collection, with the fields
+        /// nested under it and every widget any of them is drawn as. See <see cref="Remove"/>.
+        /// </summary>
+        /// <param name="index">The position, as <see cref="this[int]"/> counts it.</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="index"/> is negative, or not less than <see cref="Count"/>.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// As <see cref="Remove"/> throws it.
+        /// </exception>
+        public void RemoveAt(int index) => Remove(this[index]);
+
+        /// <summary>
+        /// Takes fields out of the form's <c>/CO</c>, the calculation order, which names fields by
+        /// reference and so would otherwise be left naming ones that are gone.
+        /// </summary>
+        private void RemoveFromCalculationOrder(List<PdfAcroField> removed)
+        {
+            var form = Owner.Internals.Catalog.Elements.GetDictionary("/AcroForm");
+            var order = form?.Elements.GetArray(PdfAcroForm.Keys.CO);
+            if (order == null)
+                return;
+
+            var targets = new HashSet<PdfDictionary>();
+            foreach (var each in removed)
+                targets.Add(each.Reference?.Value as PdfDictionary ?? each);
+
+            for (var idx = order.Elements.Count - 1; idx >= 0; idx--)
+            {
+                if (order.Elements.GetDictionary(idx) is { } entry && targets.Contains(entry))
+                    order.Elements.RemoveAt(idx);
+            }
         }
 
         /// <summary>

@@ -1023,6 +1023,12 @@ public sealed class PdfDocument : PdfObject, IDisposable
     internal bool IsTagged => _structure != null;
 
     /// <summary>
+    /// Gets the structure builder if anything has been tagged, and null if not, without creating a
+    /// structure tree by asking.
+    /// </summary>
+    internal Structure.PdfStructureBuilder TaggedStructure => _structure;
+
+    /// <summary>
     /// Gets or sets the PDF version number. Return value 14 e.g. means PDF 1.4 / Acrobat 5 etc.
     /// Return value 20 means PDF 2.0.
     /// </summary>

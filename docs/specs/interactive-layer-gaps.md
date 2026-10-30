@@ -23,6 +23,7 @@ worth writing down: each item is a thing somebody trying to use the library woul
 | 11 | forms | a combo box or list box draws no appearance, so its value is invisible outside a viewer that honours `/NeedAppearances` | **fixed** (#151) |
 | 12 | forms | field colours are drawn but not written to `/MK`, and the demo's `/NeedAppearances` made Chrome and Edge discard every appearance | **fixed** (#153) |
 | 13 | forms | a text field's value jumps when it is clicked into; multi-line, comb and password values are drawn as plain single lines | **fixed** (#155) |
+| 14 | forms | there is no way to remove a field and its widgets | **fixed** (#352) |
 
 Items 7 and 8 are done under `docs/specs/bookmarks-and-outlines.md` item 5; everything else except
 item 10 is done under this one. Item 10 is out of scope here and stays where it was recorded:
@@ -286,6 +287,20 @@ does: one line centred vertically two points in from the side `/Q` names; `Multi
 the top with `XTextFormatter`; `Comb` one character centred in each of `MaxLength` cells; and
 `Password` as an asterisk per character, where it used to write the value in the clear into the
 drawing. `TextFieldAppearanceTests` rasterizes each; seven of its eight fail against the old drawing.
+
+### 14 — there was no way to remove a field — **fixed**
+
+`PdfAcroFieldCollection` had `Add` and nothing to take a field out again, so a caller edited the
+dictionaries by hand, and a field is reachable from more places than anybody remembers: the form's
+`/Fields` or a parent's `/Kids`, a widget in every page's `/Annots`, and in a tagged document the
+widget's `/Form` element with its `/OBJR` and the page's parent tree entry. Leave the widget in
+`/Annots` and it still shows on the page with no field behind it; leave the `/OBJR` and the tree
+names an annotation that is gone, which renders perfectly and fails PDF/UA.
+
+`PdfAcroFieldCollection.Remove(field)` and `RemoveAt(index)` take all of it out, the field's
+descendants and their widgets included. The decisions - a signed signature field is refused, a
+parent whose last kid goes stays, every page is searched rather than the one `/P` names - are in
+`field-and-widget-model.md` section 6.
 
 ### 2 — `PdfAcroFieldFlags` has no `Comb` — **fixed**
 
