@@ -59,7 +59,7 @@ internal sealed class DefaultAppearanceFont
     // The name a Tf operator sets. /DA is read from files, so the number is matched one way only,
     // as the font size is in PdfAcroField, and a name is whatever runs to a delimiter.
     private static readonly Regex FontKey = new(
-        @"/(?<key>[^\s/\[\]()<>{}%]+)\s+(?>[0-9]+(?:\.[0-9]+)?|\.[0-9]+)\s+Tf\b",
+        $@"/(?<key>[^\s/\[\]()<>{{}}%]+)\s+{PdfAcroField.NumberStart}{PdfAcroField.Number}\s+Tf\b",
         RegexOptions.CultureInvariant, MatchTimeout);
 
     private static readonly Regex SubsetTag = new(
@@ -132,7 +132,9 @@ internal sealed class DefaultAppearanceFont
             return null;
 
         // A composite font's own name is the descendant's with the encoding on the end.
-        var named = font.Elements.GetArray("/DescendantFonts")?.Elements.GetDictionary(0) ?? font;
+        // An array with nothing in it is a malformed file as well, and GetDictionary(0) throws on one.
+        var descendants = font.Elements.GetArray("/DescendantFonts");
+        var named = descendants is { Elements.Count: > 0 } ? descendants.Elements.GetDictionary(0) ?? font : font;
 
         // A /BaseFont that is not a name is a malformed file, and a drawing does not fail for one.
         return PdfItemValues.TryGetName(named.Elements["/BaseFont"], out var baseFont)

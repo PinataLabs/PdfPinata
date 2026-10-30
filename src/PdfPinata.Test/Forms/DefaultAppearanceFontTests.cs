@@ -1,4 +1,3 @@
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using AwesomeAssertions;
@@ -19,34 +18,23 @@ namespace PdfPinata.Test.Forms;
 ///   The font embedded in <c>/DR</c> is often a subset and cannot draw new glyphs, so only its name
 ///   is used. What these tests read is the <c>/BaseFont</c> of the font in the widget's appearance
 ///   stream, which is the name of the face the resolver served. <see cref="PinnedFontResolver"/>
-///   serves Liberation Sans for every family it has not been told about, so the families the
-///   tests name are registered with a face of their own - Source Code Pro - and a name that
-///   reached the resolver is told apart from one that did not.
+///   serves Liberation Sans for every family it does not know, so the families the tests name are
+///   ones it serves from the start with a face of their own - Source Code Pro, or Liberation Sans
+///   Bold - and a name that reached the resolver is told apart from one that did not. They are
+///   constants there, not registered by these tests, for the reason the remarks on
+///   <see cref="PinnedFontResolver.ArabicFamilyName"/> give.
 /// </remarks>
 public sealed class DefaultAppearanceFontTests
 {
     /// <summary>A family only these tests ask for, served by Source Code Pro.</summary>
-    private const string MonoFamily = "PinataDaMono";
+    private const string MonoFamily = PinnedFontResolver.DefaultAppearanceMonoFamilyName;
 
     /// <summary>
     ///   A family served by Liberation Sans Bold, whose own name - Liberation Sans - is one the
     ///   resolver serves as a regular face. Asking it for the family the face calls itself instead
     ///   of the one it was asked for would draw this in the wrong weight.
     /// </summary>
-    private const string BoldFamily = "PinataDaBoldFace";
-
-    static DefaultAppearanceFontTests()
-    {
-        // Nothing else in the suite draws in Times New Roman or Courier New - the document object
-        // model's tests name them but resolve no face - which is what makes it safe to register
-        // them: the resolver is shared by everything running beside these tests.
-        var mono = File.ReadAllBytes(PathHelper.GetInstance().GetAssetPath("Fonts", "SourceCodePro-Regular.otf"));
-        PinnedFontResolver.Register(MonoFamily, mono);
-        PinnedFontResolver.Register(BoldFamily,
-            File.ReadAllBytes(PathHelper.GetInstance().GetAssetPath("Fonts", "LiberationSans-Bold.ttf")));
-        PinnedFontResolver.Register("Times New Roman", mono);
-        PinnedFontResolver.Register("Courier New", mono);
-    }
+    private const string BoldFamily = PinnedFontResolver.DefaultAppearanceBoldFamilyName;
 
     /// <summary>
     ///   A field of the given kind on a page, whose <c>/DA</c> names <c>/F1</c> and whose form's
@@ -223,13 +211,42 @@ public sealed class DefaultAppearanceFontTests
     public void AFamilyThatEndsInTheLettersOfASuffixKeepsThem()
     {
         // "Pinata MT" is a family as the platform spells it; stripping "MT" would ask for "Pinata ".
-        PinnedFontResolver.Register("Pinata MT", File.ReadAllBytes(
-            PathHelper.GetInstance().GetAssetPath("Fonts", "SourceCodePro-Regular.otf")));
-        var field = Text("Pinata MT");
+        var field = Text(PinnedFontResolver.DefaultAppearanceSpacedFamilyName);
 
         field.Text = "Hello";
 
         ShouldBeDrawnIn(field, Mono);
+    }
+
+    [Test]
+    public void ATypeZeroFontWithNoDescendantsIsDrawnInTheDefaultFontWithoutThrowing()
+    {
+        var field = Text("Arial");
+        var type0 = field.Owner.AcroForm.DefaultResources.Elements.GetDictionary("/Font").Elements.GetDictionary("/F1");
+        type0.Elements.SetName("/Subtype", "/Type0");
+        type0.Elements.SetName("/BaseFont", "/ABCDEF+" + MonoFamily + "-Identity-H");
+        type0.Elements["/DescendantFonts"] = new PdfArray(field.Owner);
+
+        var draw = () => field.Text = "Hello";
+
+        draw.Should().NotThrow();
+        ShouldBeDrawnIn(field, Sans());
+    }
+
+    [Test]
+    [Arguments("/F1 +12 Tf 0 g", 12)]
+    [Arguments("/F1 12. Tf 0 g", 12)]
+    [Arguments("/F1 .5 Tf 0 g", 0.5)]
+    [Arguments("/F2 12 Tf /F1 +9 Tf 0 g", 9)]
+    public void ASizeWrittenWithASignOrATrailingPointStillSelectsItsFont(string defaultAppearance, double size)
+    {
+        var field = Text(MonoFamily, defaultAppearance);
+        field.Owner.AcroForm.AddStandardFont("F2", "Arial");
+
+        field.Text = "Hello";
+
+        ShouldBeDrawnIn(field, Mono);
+        field.Font.Size.Should().Be(size);
     }
 
     [Test]

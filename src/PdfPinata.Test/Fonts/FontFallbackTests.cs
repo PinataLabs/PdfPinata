@@ -282,7 +282,7 @@ public class FontFallbackTests
         // other way a candidate can fail - a family that resolves to nothing at all and throws
         // from the XFont constructor - is a branch nothing here can produce.
         using var _ = SeamScope.FontFallback(
-            new Only(Arabic, "No Such Family Exists", "Times New Roman", ArabicFamily));
+            new Only(Arabic, "No Such Family Exists", "Another Family That Does Not Exist", ArabicFamily));
 
         DrawnText.Glyphs(DrawnText.Page(Arabic, Latin())).Should().Equal(expected,
             "a family is only taken if it really has a glyph for the character, and the list is "

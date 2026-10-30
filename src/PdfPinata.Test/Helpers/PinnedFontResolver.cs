@@ -85,6 +85,31 @@ internal sealed class PinnedFontResolver : IFontResolver
     /// </summary>
     public const string UnservedFamilyName = "NoSuchFamily";
 
+    /// <summary>
+    ///   Families served from the start for the tests of the font a field's <c>/DA</c> names (issue
+    ///   #353), each with a face that is not the one every other family gets, so that a test can
+    ///   tell the family it asked for from the one it did not. Constants here rather than
+    ///   registered by the tests, for the reason <see cref="ArabicFamilyName"/> gives: a family
+    ///   registered on first use means whatever the first caller made it mean, and the library
+    ///   caches the first answer.
+    /// </summary>
+    /// <remarks>
+    ///   <c>Times New Roman</c> and <c>Courier New</c> are among them because they are what the
+    ///   standard Times and Courier faces are asked for first. Nothing else in the suite may draw in
+    ///   either; a test that needs a family nobody serves names one of its own.
+    /// </remarks>
+    public const string DefaultAppearanceMonoFamilyName = "PinataDaMono";
+
+    /// <summary>Served by Liberation Sans Bold, whatever style is asked for.</summary>
+    public const string DefaultAppearanceBoldFamilyName = "PinataDaBoldFace";
+
+    /// <summary>A family with a space and the letters of a PostScript suffix in it.</summary>
+    public const string DefaultAppearanceSpacedFamilyName = "Pinata MT";
+
+    private const string TimesNewRomanFamilyName = "Times New Roman";
+
+    private const string CourierNewFamilyName = "Courier New";
+
     private const string ArabicFaceName = "NotoSansArabic-Regular.ttf";
 
     private const string DevanagariFaceName = "NotoSansDevanagari-Regular.ttf";
@@ -118,6 +143,19 @@ internal sealed class PinnedFontResolver : IFontResolver
 
         if (Registered.TryGetValue(familyName, out var testFaceName))
             return new FontResolverInfo(testFaceName);
+
+        // Style is ignored for these: the face is the same whatever is asked, so a test sees the
+        // family and nothing else.
+        if (familyName.Equals(DefaultAppearanceBoldFamilyName, StringComparison.OrdinalIgnoreCase))
+            return new FontResolverInfo(FaceNameOf(true, false));
+
+        if (familyName.Equals(DefaultAppearanceMonoFamilyName, StringComparison.OrdinalIgnoreCase)
+            || familyName.Equals(DefaultAppearanceSpacedFamilyName, StringComparison.OrdinalIgnoreCase)
+            || familyName.Equals(TimesNewRomanFamilyName, StringComparison.OrdinalIgnoreCase)
+            || familyName.Equals(CourierNewFamilyName, StringComparison.OrdinalIgnoreCase))
+        {
+            return new FontResolverInfo(CffFaceName);
+        }
 
         if (string.Equals(familyName, ArabicFamilyName, StringComparison.OrdinalIgnoreCase))
         {

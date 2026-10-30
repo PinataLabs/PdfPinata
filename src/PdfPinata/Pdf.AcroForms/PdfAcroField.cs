@@ -496,22 +496,23 @@ public abstract class PdfAcroField : PdfDictionary
     {
         var named = FontSizeFromDefaultAppearance();
         var size = named > 0 ? named.Value : 10;
-        var resolver = GlobalFontSettings.FontResolver;
 
         var asked = DefaultAppearanceFont.Read(EffectiveDefaultAppearance(), Owner?.AcroForm);
         if (asked != null)
         {
-            var bold = (asked.Style & XFontStyle.Bold) != 0;
-            var italic = (asked.Style & XFontStyle.Italic) != 0;
+            // Asked through FontFactory, as XFont asks, rather than of the resolver directly: it
+            // takes the lock a resolver may rely on, and what it is told is cached for the XFont
+            // made next, which would otherwise ask the resolver a second time.
+            var options = new FontResolvingOptions(asked.Style);
 
             foreach (var family in asked.Families)
             {
-                if (resolver.ResolveTypeface(family, bold, italic) != null)
+                if (FontFactory.ResolveTypeface(family, options, null) != null)
                     return new XFont(family, size, asked.Style);
             }
         }
 
-        return new XFont(resolver.DefaultFontName, size);
+        return new XFont(GlobalFontSettings.FontResolver.DefaultFontName, size);
     }
 
     /// <summary>
@@ -519,9 +520,13 @@ public abstract class PdfAcroField : PdfDictionary
     /// </summary>
     private double? FontSizeFromDefaultAppearance()
     {
-        var match = FontSize.Match(EffectiveDefaultAppearance());
-        if (match.Success
-            && double.TryParse(match.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var named))
+        // The last Tf is the one in force when the text is shown, and the one the font is read from.
+        Match last = null;
+        foreach (Match match in FontSize.Matches(EffectiveDefaultAppearance()))
+            last = match;
+
+        if (last != null
+            && double.TryParse(last.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var named))
         {
             return named;
         }
@@ -634,9 +639,12 @@ public abstract class PdfAcroField : PdfDictionary
     // /DA is read from files, and the old [0-9]*\.?[0-9]+ could split a run of digits between its
     // two quantifiers n ways from every one of n starting points: five thousand digits took a
     // minute and a half to fail to match. The timeout is the backstop, not the fix.
-    private const string Number = @"(?>[0-9]+(?:\.[0-9]+)?|\.[0-9]+)";
+    // A number as ISO 32000-1 7.3.3 writes it: a sign if it likes, and "12." and ".5" as well as
+    // "12.5". DefaultAppearanceFont reads the Tf operator with the same two, so that the size and
+    // the font it selects are found in the same places.
+    internal const string Number = @"(?>[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+))";
 
-    private const string NumberStart = @"(?<![0-9.])";
+    internal const string NumberStart = @"(?<![0-9.])";
 
     private static readonly TimeSpan MatchTimeout = TimeSpan.FromSeconds(1);
 
