@@ -519,13 +519,39 @@ public abstract class PdfAcroField : PdfDictionary
     }
 
     /// <summary>
-    /// The font a field of variable text draws in when none is set: the resolver's default font
-    /// at the size <c>/DA</c> names, or 10 points when it names none or asks for auto-sizing.
+    /// The font a field of variable text draws in when none is set: the family <c>/DA</c> names
+    /// through the form's <c>/DR</c>, where the resolver has it, and the resolver's default font
+    /// where it has not - at the size <c>/DA</c> names, or 10 points when it names none or asks
+    /// for auto-sizing.
     /// </summary>
+    /// <remarks>
+    /// Asked for only by a drawing, or by a caller reading <c>Font</c>: reading a field resolves
+    /// no font face, and nothing here runs until then. A name the resolver does not know, or a
+    /// <c>/DA</c> that names no font the form has, is the resolver's default as it always was -
+    /// drawing never fails for a name (issue #353). See <see cref="DefaultAppearanceFont"/> for how
+    /// a name becomes a family.
+    /// </remarks>
     private protected XFont FontFromDefaultAppearance()
     {
         var named = FontSizeFromDefaultAppearance();
-        return new XFont(GlobalFontSettings.FontResolver.DefaultFontName, named > 0 ? named.Value : 10);
+        var size = named > 0 ? named.Value : 10;
+
+        var asked = DefaultAppearanceFont.Read(EffectiveDefaultAppearance(), Owner?.AcroForm);
+        if (asked != null)
+        {
+            // Asked through FontFactory, as XFont asks, rather than of the resolver directly: it
+            // takes the lock a resolver may rely on, and what it is told is cached for the XFont
+            // made next, which would otherwise ask the resolver a second time.
+            var options = new FontResolvingOptions(asked.Style);
+
+            foreach (var family in asked.Families)
+            {
+                if (FontFactory.ResolveTypeface(family, options, null) != null)
+                    return new XFont(family, size, asked.Style);
+            }
+        }
+
+        return new XFont(GlobalFontSettings.FontResolver.DefaultFontName, size);
     }
 
     /// <summary>
@@ -533,9 +559,13 @@ public abstract class PdfAcroField : PdfDictionary
     /// </summary>
     private double? FontSizeFromDefaultAppearance()
     {
-        var match = FontSize.Match(EffectiveDefaultAppearance());
-        if (match.Success
-            && double.TryParse(match.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var named))
+        // The last Tf is the one in force when the text is shown, and the one the font is read from.
+        Match last = null;
+        foreach (Match match in FontSize.Matches(EffectiveDefaultAppearance()))
+            last = match;
+
+        if (last != null
+            && double.TryParse(last.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var named))
         {
             return named;
         }
@@ -557,6 +587,7 @@ public abstract class PdfAcroField : PdfDictionary
     /// Asked for by the family name <paramref name="font"/> was asked for by, not by
     /// <see cref="XFont.Name"/>: that is the family the resolved face calls itself, and a resolver
     /// serving an alias - "Arial" from a file of Liberation Sans - need not know it by that name.
+    /// A family chosen from <c>/DA</c> (issue #353) is such a name more often than not.
     /// </remarks>
     private protected static XFont Resized(XFont font, double size) =>
         new(font.FamilyName, size, font.Style, font.PdfOptions);
@@ -647,9 +678,12 @@ public abstract class PdfAcroField : PdfDictionary
     // /DA is read from files, and the old [0-9]*\.?[0-9]+ could split a run of digits between its
     // two quantifiers n ways from every one of n starting points: five thousand digits took a
     // minute and a half to fail to match. The timeout is the backstop, not the fix.
-    private const string Number = @"(?>[0-9]+(?:\.[0-9]+)?|\.[0-9]+)";
+    // A number as ISO 32000-1 7.3.3 writes it: a sign if it likes, and "12." and ".5" as well as
+    // "12.5". DefaultAppearanceFont reads the Tf operator with the same two, so that the size and
+    // the font it selects are found in the same places.
+    internal const string Number = @"(?>[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+))";
 
-    private const string NumberStart = @"(?<![0-9.])";
+    internal const string NumberStart = @"(?<![0-9.])";
 
     private static readonly TimeSpan MatchTimeout = TimeSpan.FromSeconds(1);
 
