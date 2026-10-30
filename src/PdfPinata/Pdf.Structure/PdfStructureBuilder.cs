@@ -78,10 +78,25 @@ public sealed class PdfStructureBuilder
     /// </summary>
     internal int AddMarkedContent(PdfPage page, PdfStructureElement element)
     {
+        var mcid = AllocateMarkedContent(page, element);
+        element.AddMarkedContent(page, mcid);
+        return mcid;
+    }
+
+    /// <summary>
+    /// Hands out the next marked-content identifier for a page and records which element it belongs
+    /// to in the page's run of the parent tree, without adding a content item to the element.
+    /// </summary>
+    /// <remarks>
+    /// For a caller that puts the content item in itself, because it is replacing a kid in place
+    /// rather than adding one at the end: flattening a form puts a marked-content reference where
+    /// the annotation's <c>/OBJR</c> was.
+    /// </remarks>
+    internal int AllocateMarkedContent(PdfPage page, PdfStructureElement element)
+    {
         var marks = MarksOf(page);
         var mcid = marks.Elements.Count;
         marks.Elements.Add(element);
-        element.AddMarkedContent(page, mcid);
         return mcid;
     }
 

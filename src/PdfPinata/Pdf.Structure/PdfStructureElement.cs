@@ -1,3 +1,5 @@
+using PdfPinata.Pdf.Advanced;
+
 namespace PdfPinata.Pdf.Structure;
 
 /// <summary>
@@ -17,7 +19,17 @@ public sealed class PdfStructureElement : PdfDictionary
     /// <summary>
     /// Gets the structure type of this element.
     /// </summary>
-    public PdfTag Tag { get; }
+    public PdfTag Tag { get; private set; }
+
+    /// <summary>
+    /// Changes the structure type of this element, for an element whose content has become
+    /// something other than what it was tagged as.
+    /// </summary>
+    internal void Retag(PdfTag tag)
+    {
+        Elements.SetName(Keys.S, tag.Name);
+        Tag = tag;
+    }
 
     /// <summary>
     /// Gets or sets the text that stands in for this element for a reader who cannot see it. A
@@ -115,30 +127,41 @@ public sealed class PdfStructureElement : PdfDictionary
     /// whichever page happened to be named first, and a reader following it would land on the wrong
     /// page or on nothing at all.
     /// </remarks>
-    internal void AddMarkedContent(PdfPage page, int mcid)
+    internal void AddMarkedContent(PdfPage page, int mcid) =>
+        Kids().Elements.Add(MarkedContentKid(this, page, mcid));
+
+    /// <summary>
+    /// The content item that names a mark on a page, for any structure element - one built in this
+    /// session or one read from a file: a bare integer when the element's own <c>/Pg</c> is that page,
+    /// else a marked-content reference carrying its own.
+    /// </summary>
+    /// <remarks>
+    /// An element with no <c>/Pg</c> yet is given the page, so that the integer has a page to be read
+    /// against. The caller puts the item where it belongs; see <see cref="AddMarkedContent"/> for why
+    /// the two forms exist.
+    /// </remarks>
+    internal static PdfItem MarkedContentKid(PdfDictionary element, PdfPage page, int mcid)
     {
-        var pg = Elements[Keys.Pg];
+        var pg = element.Elements[Keys.Pg];
 
         if (pg == null)
         {
-            Elements[Keys.Pg] = page.Reference;
-            Kids().Elements.Add(new PdfInteger(mcid));
-            return;
+            element.Elements[Keys.Pg] = page.Reference;
+            return new PdfInteger(mcid);
         }
 
-        if (ReferenceEquals(pg, page.Reference))
-        {
-            Kids().Elements.Add(new PdfInteger(mcid));
-            return;
-        }
+        // By object number, because a file's elements hold a reference of their own to the page
+        // rather than the one the page holds of itself.
+        if (ReferenceEquals(pg, page.Reference) || (pg is PdfReference same && same.ObjectID == page.ObjectID))
+            return new PdfInteger(mcid);
 
         // Direct rather than indirect: it is two entries long, it has exactly one referent, and
         // tagging already multiplies the object count enough without a fresh object per mark.
-        var reference = new PdfDictionary(Owner);
+        var reference = new PdfDictionary(element.Owner);
         reference.Elements.SetName(Keys.Type, "/MCR");
         reference.Elements[MarkedContentKeys.Pg] = page.Reference;
         reference.Elements.SetInteger(MarkedContentKeys.MCID, mcid);
-        Kids().Elements.Add(reference);
+        return reference;
     }
 
     /// <summary>

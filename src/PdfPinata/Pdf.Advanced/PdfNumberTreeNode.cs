@@ -157,6 +157,32 @@ public sealed class PdfNumberTreeNode : PdfDictionary
     }
 
     /// <summary>
+    /// Takes the entries for some keys out of the tree and puts entries under others, writing the
+    /// tree back once whichever of the two there were.
+    /// </summary>
+    /// <remarks>
+    /// For a change that is a form's worth of entries going and a page's worth arriving together:
+    /// each of <see cref="SetValue"/> and <see cref="RemoveRange"/> writes the tree back, and a tree of
+    /// more than one node makes new nodes each time it is written. A key in both is set, since the
+    /// removal runs first.
+    /// </remarks>
+    internal void Update(IEnumerable<int> remove, IEnumerable<KeyValuePair<int, PdfItem>> set)
+    {
+        var changed = false;
+        foreach (var key in remove)
+            changed |= Entries.Remove(key);
+
+        foreach (var pair in set)
+        {
+            Entries[pair.Key] = Referenced(pair.Value);
+            changed = true;
+        }
+
+        if (changed)
+            Write();
+    }
+
+    /// <summary>
     /// An indirect object is held in the tree as the reference to it, which is what the tree
     /// is written with.
     /// </summary>
