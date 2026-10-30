@@ -224,6 +224,9 @@ internal static class PdfFormFlattener
             resources ??= page.Resources;
             var name = resources.AddExistingForm(appearance);
             BeginMarkedContent(operators, page, widget, tagger);
+            // The page's own path for drawing a form notes this; without it a translucent
+            // appearance is drawn on a page that is saved with no transparency group.
+            page.NoteTransparencyOf(appearance);
             operators.Append("q ");
             foreach (var value in new[] { matrix.M11, matrix.M12, matrix.M21, matrix.M22, matrix.OffsetX, matrix.OffsetY })
                 operators.Append(value.ToString(Config.SignificantFigures10, CultureInfo.InvariantCulture)).Append(' ');
@@ -329,14 +332,14 @@ internal static class PdfFormFlattener
 
         if (normal.Stream == null)
         {
-            var state = widget.Elements.GetName(PdfAnnotation.Keys.AS);
+            var state = widget.Elements.GetNameOrEmpty(PdfAnnotation.Keys.AS);
             normal = state.Length == 0 ? null : normal.Elements.GetDictionary(state);
         }
 
         if (normal?.Stream == null)
             return null;
 
-        var subtype = normal.Elements.GetName("/Subtype");
+        var subtype = normal.Elements.GetNameOrEmpty("/Subtype");
         return subtype.Length == 0 || subtype == "/Form" ? normal : null;
     }
 

@@ -295,6 +295,45 @@ public class FormFlatteningTests
         FormsDrawnOn(document.Reopened().Pages[0]).Should().HaveCount(1);
     }
 
+    // ----- transparency -------------------------------------------------------------------------------------
+
+    /// <summary>A page with one widget whose appearance fills a box in the given colour.</summary>
+    private static PdfDocument AWidgetFilledWith(XColor colour)
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var field = new PdfTextField(document) { Name = "t" };
+        document.GetOrCreateAcroForm().Fields.Add(field);
+        var widget = field.AddWidget(page, new PdfRectangle(new XRect(60, 700, 100, 40)));
+        var appearance = new XForm(document, new XSize(100, 40));
+        using (var gfx = XGraphics.FromForm(appearance))
+            gfx.DrawRectangle(new XSolidBrush(colour), 0, 0, 100, 40);
+        widget.SetAppearance(appearance);
+        return document;
+    }
+
+    [Test]
+    public void AnAppearanceThatPaintsWithTransparencyGivesThePageATransparencyGroup()
+    {
+        var document = AWidgetFilledWith(XColor.FromArgb(128, 255, 0, 0));
+
+        document.AcroForm.Flatten();
+
+        var group = document.Reopened().Pages[0].Elements.GetDictionary("/Group");
+        group.Should().NotBeNull("Adobe renders a page that paints with transparency wrongly without one");
+        group.Elements.GetName("/S").Should().Be("/Transparency");
+    }
+
+    [Test]
+    public void AnOpaqueAppearanceLeavesThePageWithoutAGroup()
+    {
+        var document = AWidgetFilledWith(XColor.FromArgb(255, 255, 0, 0));
+
+        document.AcroForm.Flatten();
+
+        document.Reopened().Pages[0].Elements.GetDictionary("/Group").Should().BeNull();
+    }
+
     // ----- ISO 32000-1 12.5.5 -------------------------------------------------------------------------------
 
     /// <summary>The <c>cm</c> operands the first widget was drawn with.</summary>

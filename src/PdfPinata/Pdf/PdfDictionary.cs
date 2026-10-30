@@ -587,6 +587,18 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         }
 
         /// <summary>
+        /// The name an entry holds, or the empty string when it holds none - absent, null, or
+        /// something that is not a name, which <see cref="GetName"/> throws for.
+        /// </summary>
+        /// <remarks>
+        /// For a reader of a file that has to get past a damaged entry rather than stop at it: an
+        /// XObject whose <c>/Subtype</c> is a number is not a form, and is no reason to lose the
+        /// text on the rest of the page.
+        /// </remarks>
+        internal string GetNameOrEmpty(string key) =>
+            PdfItemValues.TryGetName(ValueOf(key), out var value) ? value : string.Empty;
+
+        /// <summary>
         /// Sets the specified name value.
         /// If the value doesn't start with a slash, it is added automatically.
         /// </summary>
