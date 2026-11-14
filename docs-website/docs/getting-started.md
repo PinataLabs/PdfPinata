@@ -29,7 +29,7 @@ You need the .NET 8 SDK or later. The steps use the `PdfPinata.Skia` backend.
    `dotnet list package --include-transitive` shows:
 
    ```sh
-   dotnet add package SkiaSharp.NativeAssets.Linux.NoDependencies --version 4.152.1
+   dotnet add package SkiaSharp.NativeAssets.Linux.NoDependencies --version 4.156.0
    ```
 
 [Installation](./installation.md) explains the backends and the native libraries.

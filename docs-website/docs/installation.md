@@ -145,7 +145,7 @@ example:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.152.1" />
+  <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.156.0" />
   <PackageReference Include="HarfBuzzSharp.NativeAssets.Linux" Version="14.2.1.201" />
 </ItemGroup>
 ```
