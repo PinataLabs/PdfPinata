@@ -166,9 +166,9 @@ PdfPinata intentionally does not choose these packages automatically because Lin
 For example:
 
 ```xml
-<PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="4.150.1" />
-<PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.150.1" />
-<PackageReference Include="SkiaSharp.NativeAssets.macOS" Version="4.150.1" />
+<PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="4.156.0" />
+<PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.156.0" />
+<PackageReference Include="SkiaSharp.NativeAssets.macOS" Version="4.156.0" />
 ```
 
 Use `SkiaSharp.NativeAssets.Linux` instead of `SkiaSharp.NativeAssets.Linux.NoDependencies` when `libfontconfig1` is available in the target Linux environment.

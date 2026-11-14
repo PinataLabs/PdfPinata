@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### API & Packaging
+
+#### Changed
+
+- **The `net11.0` builds are compiled with the released .NET 11 SDK.** They were compiled with the .NET 11 RC2 SDK. `PdfPinata.Signing`'s `net11.0` build now depends on `System.Security.Cryptography.Pkcs` `11.0.0`, not `11.0.0-rc.2`, so no package depends on a prerelease one. (#349)
+- **`PdfPinata.Skia` depends on SkiaSharp 4.156.0.** It depended on 4.152.1. Reference the `SkiaSharp.NativeAssets` package for your platform at the same version.
+
 ### Annotations & Forms
 
 #### Added

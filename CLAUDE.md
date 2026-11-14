@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```powershell
-dotnet build src/PdfPinata.slnx                     # SDK is pinned to 11.0.100-rc.2 by global.json
+dotnet build src/PdfPinata.slnx                     # SDK is pinned to 11.0.100 by global.json
 dotnet test --solution src/PdfPinata.slnx           # whole suite, both test target frameworks
 dotnet test --solution src/PdfPinata.slnx -f net10.0  # one framework; the test projects target net8.0;net10.0;net11.0
 dotnet test --project src/PdfPinata.Test --treenode-filter "/*/*/CLexerTests/*"                 # one class
@@ -707,12 +707,11 @@ maintainer before dropping it. Two consequences:
   members in `src/Polyfills/`, compiled into the netstandard2.1 leg only. Write shared source the
   modern way and add to one of the two, rather than fencing a line with `#if` or a pragma.
 
-**`net11.0` is built with a release candidate.** `global.json` pins the .NET 11 RC2 SDK with
-`allowPrerelease`, so every build — every leg, and CI and the release workflows, which install the
-SDK `global.json` names — uses it, and `LangVersion=latest` means C# 15 on every leg. Two things
-move at .NET 11's general release: `global.json` to `11.0.100` with `allowPrerelease` off, and
-`PdfPinata.Signing`'s net11.0 `System.Security.Cryptography.Pkcs` from `11.0.0-rc.2…` to `11.0.0`,
-which is also what stops a stable package depending on a prerelease one. Like `-f net8.0`, a
+**Every leg is built with the .NET 11 SDK.** `global.json` pins `11.0.100`
+and rolls forward to a later feature band, so every build — every leg, and CI and the release
+workflows, which install the SDK `global.json` names — uses it, and `LangVersion=latest` means
+C# 15 on every leg. `PdfPinata.Signing`'s net11.0 `System.Security.Cryptography.Pkcs` is `11.0.0`,
+so no stable package depends on a prerelease one. Like `-f net8.0`, a
 solution-wide `-f net11.0` fails with NETSDK1005, because the net10.0-only projects have no such
 leg; run the five multi-targeted test projects one by one.
 
