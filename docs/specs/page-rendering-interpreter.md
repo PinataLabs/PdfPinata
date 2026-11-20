@@ -130,6 +130,34 @@ it is for a fill. That is all text not stretched by `Tz` or by a text matrix tha
 differently. For such stretched text the pen is an ellipse in the outline's space, which a
 `PageStroke` cannot say, so the outline is copied into user space and that path is not shared.
 
+## Annotations
+
+After the page's content, and unless `PageRendering.Render` was told `annotations: false`, each
+entry of `/Annots` that has an appearance is drawn through the Form XObject path (ISO 32000-1
+12.5.5). They are drawn in the order listed, each from the graphics state the page began in and
+under the clip of the page's box, whatever the content left set. The appearance is `/AP /N`, or,
+where that is a dictionary of states, the stream `/AS` names. A dictionary of states with no `/AS`
+or one that names no state draws nothing, which is what a check box with no state does.
+
+The box is mapped on to the rectangle by the algorithm of 12.5.5: `/BBox` is taken through
+`/Matrix`, and the rectangle that encloses the result is scaled and moved on to `/Rect`. The
+interpreter then draws the form with that map as the CTM, and `DrawForm` applies `/Matrix` and the
+clip to `/BBox` as it does for a `Do`. A `/Rect` with no area draws nothing and is not reported. An
+appearance whose box has no area once the matrix is applied, one with no `/BBox`, and a `/Rect`
+that is not four finite numbers are reported as `InvalidValue`, as is a bad `/Matrix`. The form's
+own resources are used, and the page's where it has none. An appearance that draws itself is
+stopped by `FormVisits`, as any form is, and its entries count against the same limits.
+
+**Not drawn:** a hidden annotation (`/F` bit 2), one with the no-view flag (bit 6), and a
+`/Popup`. The invisible flag (bit 1) only matters for annotations of a type the viewer does not
+know and that have no appearance, so it changes nothing here. The print flag is not read: this is
+screen rendering, and a print mode that kept only annotations with bit 3 set was left out, because
+no caller has asked for it. A widget with no `/AP` is not drawn. `/MK` is not consulted: a reader
+shows an appearance in place of one built from it.
+
+Annotation transparency (`/CA`), blend modes and the annotation's own `/OC` are handled as for any
+form: `/OC` is reported where the group is off and not applied.
+
 ## Reading content that is broken
 
 `ContentReader.ReadContent` throws at the first fault and loses every operator of the stream, those

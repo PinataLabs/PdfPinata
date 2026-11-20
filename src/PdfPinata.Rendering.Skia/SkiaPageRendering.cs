@@ -193,7 +193,7 @@ public static class SkiaPageRendering
             canvas.ClipRect(region, SKClipOperation.Intersect, antialias: false);
 
             using var device = new SkiaPageDevice(canvas, options.AntiAlias);
-            return PageRendering.Render(page, device, view);
+            return PageRendering.Render(page, device, view, annotations: options.Annotations);
         }
         finally
         {

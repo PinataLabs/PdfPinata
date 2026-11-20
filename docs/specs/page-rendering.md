@@ -29,7 +29,7 @@ the other items is added.
 | 14 | Separation, DeviceN, Lab, and ICC colour management | deferred |
 | 15 | CCITTFax, JBIG2 and JPX images | deferred |
 | 16 | Optional content | deferred; content of a group that is off is drawn and reported |
-| 17 | Annotation appearances, and the option to draw them | deferred |
+| 17 | Annotation appearances, and the option to draw them | done (#387) |
 | 18 | `PdfTextExtractor` and `PdfImagePlacementReader` on the new interpreter | follow-up |
 | 19 | A `RenderPage` demo in SampleApp and on the docs site | follow-up |
 
@@ -191,6 +191,7 @@ of every canvas, bitmap and picture.
 | `Box` | effective crop box | which page box is drawn: crop, media, bleed, trim or art |
 | `Region` | the whole box | the rectangle to draw |
 | `Background` | white | painted before the page |
+| `Annotations` | on | draw each annotation's normal appearance over the page |
 | `AntiAlias` | on | |
 
 **A region is in points from the top-left of the page as displayed**, after the box, `/Rotate` and
@@ -199,8 +200,10 @@ top-left space `XGraphics` draws in. Output always comes out the way the page is
 default-user-space region would have been closer to the PDF, but every caller would then have had
 to work out the rotation themselves.
 
-There is no option for annotations yet. An option that did nothing would be worse than none, so it
-arrives with item 17.
+**Annotations are drawn by default** (#387), because a viewer shows them and the page is not what a
+reader sees without them. `Annotations = false` draws the content alone, and the core's
+`PageRendering.Render` takes the same choice as its `annotations` argument. The rules are in
+`page-rendering-interpreter.md`, "Annotations".
 
 The package references the core and `SkiaSharp` alone. It does not reference `PdfPinata.Skia`, which
 is the *writing* backend, and rendering needs no backend registered. It targets

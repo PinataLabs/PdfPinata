@@ -86,7 +86,7 @@ internal sealed partial class ContentInterpreter
     /// content does, and whatever is thrown, the device has been restored as often as it was
     /// saved when this returns.
     /// </summary>
-    internal void RunPage(PdfPage page)
+    internal void RunPage(PdfPage page, bool includeAnnotations)
     {
         try
         {
@@ -107,16 +107,23 @@ internal sealed partial class ContentInterpreter
             {
                 _sink.Report(PageRenderProblem.UnreadableContent, "page",
                     "The page's content could not be decoded, and nothing of it is drawn.");
-                return;
             }
-
-            if (unreadable > 0)
+            else
             {
-                _sink.Report(PageRenderProblem.UnreadableContent, "page",
-                    $"{unreadable} of the streams the page's content is written in could not be decoded. What the others say is drawn.");
+                if (unreadable > 0)
+                {
+                    _sink.Report(PageRenderProblem.UnreadableContent, "page",
+                        $"{unreadable} of the streams the page's content is written in could not be decoded. What the others say is drawn.");
+                }
+
+                // What the content sets outside a q is not what annotations start from.
+                var initial = State.Copy();
+                RunStream(ParsedContent.Of(content), ResourceScope.OfPage(page), "page");
+                _states.Replace(initial);
             }
 
-            RunStream(ParsedContent.Of(content), ResourceScope.OfPage(page), "page");
+            if (includeAnnotations)
+                DrawAnnotations(page);
         }
         finally
         {
