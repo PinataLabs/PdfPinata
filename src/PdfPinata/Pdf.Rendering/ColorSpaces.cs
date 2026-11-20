@@ -24,7 +24,7 @@ internal static class ColorSpaces
             return device;
 
         if (name == "/Pattern")
-            return Unsupported(name, -1, sink);
+            return PatternColorSpace.Plain;
 
         var definition = resources.LookupItem("/ColorSpace", name);
         if (definition == null)
@@ -48,7 +48,7 @@ internal static class ColorSpaces
     {
         definition = PdfReference.Dereference(definition);
         if (PdfItemValues.TryGetName(definition, out var name))
-            return DeviceSpace(name) ?? Unsupported(name, -1, sink);
+            return DeviceSpace(name) ?? (name == "/Pattern" ? PatternColorSpace.Plain : Unsupported(name, -1, sink));
 
         if (definition is not PdfArray array || array.Elements.Count == 0
             || !PdfItemValues.TryGetName(array.Elements[0], out var family))
@@ -61,7 +61,33 @@ internal static class ColorSpaces
         // Indexed and ICCBased are resolved here once they are read: Indexed through its base
         // space, ICCBased through its /Alternate or the device space its /N names. Either
         // resolves another definition, so it needs a guard against one that names itself.
+        if (family == "/Pattern")
+            return PatternOver(array, sink);
+
         return DeviceSpace(family) ?? Unsupported(family, ComponentCountOf(family, array), sink);
+    }
+
+    /// <summary>
+    /// <c>[/Pattern base]</c>: the space of an uncoloured tiling pattern's colour. A base that is
+    /// itself a pattern space is none, which also keeps a definition from naming itself.
+    /// </summary>
+    private static PatternColorSpace PatternOver(PdfArray definition, DiagnosticSink sink)
+    {
+        if (definition.Elements.Count < 2)
+            return PatternColorSpace.Plain;
+
+        var underlying = PdfReference.Dereference(definition.Elements[1]);
+        var named = PdfItemValues.TryGetName(underlying, out var name) ? name
+            : underlying is PdfArray inner && inner.Elements.Count > 0
+              && PdfItemValues.TryGetName(inner.Elements[0], out var family) ? family : null;
+        if (named == "/Pattern")
+        {
+            sink.Report(PageRenderProblem.InvalidValue, "/Pattern",
+                "A pattern colour space is not over another pattern colour space. It is read as having no underlying space.");
+            return PatternColorSpace.Plain;
+        }
+
+        return new PatternColorSpace(Resolve(underlying, sink));
     }
 
     private static RenderColorSpace DeviceSpace(string name) => name switch

@@ -70,6 +70,35 @@ internal sealed class DeviceCmykColorSpace : RenderColorSpace
 }
 
 /// <summary>
+/// <c>/Pattern</c>, or <c>[/Pattern base]</c>. A colour in it is the name of a pattern, after as
+/// many numbers as the underlying space takes where there is one: the colour an uncoloured tiling
+/// pattern is painted in.
+/// </summary>
+/// <remarks>
+/// The operators that set colour do not ask this space for RGB. <c>scn</c> resolves the pattern
+/// it names, and until it has, the colour is the pattern that paints nothing
+/// (ISO 32000-1 8.6.3).
+/// </remarks>
+internal sealed class PatternColorSpace : RenderColorSpace
+{
+    internal static readonly PatternColorSpace Plain = new(null);
+
+    internal PatternColorSpace(RenderColorSpace underlying)
+    {
+        Underlying = underlying;
+    }
+
+    /// <summary>The space an uncoloured pattern's colour is given in, or null where there is none.</summary>
+    internal RenderColorSpace Underlying { get; }
+
+    internal override int ComponentCount => Underlying?.ComponentCount ?? 0;
+
+    internal override PagePaint InitialColor => default;
+
+    internal override PagePaint ToRgb(ReadOnlySpan<double> components) => default;
+}
+
+/// <summary>
 /// A space this version cannot resolve. It takes as many components as its family has, so that
 /// the colours set in it are read as what they are, and answers one fallback colour for all of
 /// them.

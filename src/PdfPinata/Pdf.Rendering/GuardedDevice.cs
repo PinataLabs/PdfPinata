@@ -11,8 +11,9 @@ namespace PdfPinata.Pdf.Rendering;
 /// device only where the <see cref="Save"/> it matches did.
 /// </summary>
 /// <remarks>
-/// Every call the interpreter makes to a device goes through this, so that there is one place a
-/// device's exception is caught rather than a guard to remember at each call. A page is drawn but
+/// Every call the interpreter makes to a device goes through this, by way of
+/// <see cref="PaintRouter"/>, so that there is one place a device's exception is caught rather
+/// than a guard to remember at each call. A page is drawn but
 /// for what the device could not draw, as it is drawn but for what the file got wrong. Being out
 /// of memory is passed on, as it is everywhere.
 /// </remarks>
@@ -120,6 +121,47 @@ internal sealed class GuardedDevice : PageDevice
         {
             Report(ex);
             return null;
+        }
+    }
+
+    // A shader call that throws has begun to draw, so it answers true: nothing is drawn a second
+    // time in a fallback colour.
+    public override bool TryFill(PagePath path, XMatrix transform, XFillMode fillMode, PageShaderPaint paint)
+    {
+        try
+        {
+            return _device.TryFill(path, transform, fillMode, paint);
+        }
+        catch (Exception ex) when (!Unrecoverable.Is(ex))
+        {
+            Report(ex);
+            return true;
+        }
+    }
+
+    public override bool TryStroke(PagePath path, XMatrix transform, PageStroke stroke, PageShaderPaint paint)
+    {
+        try
+        {
+            return _device.TryStroke(path, transform, stroke, paint);
+        }
+        catch (Exception ex) when (!Unrecoverable.Is(ex))
+        {
+            Report(ex);
+            return true;
+        }
+    }
+
+    public override bool TryDrawStencil(PageImage mask, XMatrix transform, PageShaderPaint paint)
+    {
+        try
+        {
+            return _device.TryDrawStencil(mask, transform, paint);
+        }
+        catch (Exception ex) when (!Unrecoverable.Is(ex))
+        {
+            Report(ex);
+            return true;
         }
     }
 

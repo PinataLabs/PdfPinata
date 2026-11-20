@@ -34,7 +34,7 @@ internal sealed partial class ContentInterpreter
                 break;
 
             case "/Image":
-                DrawImage(PageImages.ReadXObject(xObject, name, _resources, _device, _sink));
+                DrawImage(PageImages.ReadXObject(xObject, name, _resources, _device.Device, _sink));
                 break;
 
             default:
@@ -96,7 +96,7 @@ internal sealed partial class ContentInterpreter
                 _sink.Report(PageRenderProblem.InvalidValue, name, "The form has no /BBox of four numbers. It is drawn without being clipped to one.");
             }
 
-            RunStream(content, _resources.ForForm(form), _sink.Stream + name);
+            RunStream(content, _resources.ForForm(form), _sink.Stream + name, transform);
         }
         finally
         {
@@ -166,8 +166,8 @@ internal sealed partial class ContentInterpreter
         if (membership == null)
             return;
 
-        _optionalContent ??= OptionalContent.Of(_document);
-        if (_optionalContent.Hides(membership))
+        _context.OptionalContent ??= OptionalContent.Of(_context.Document);
+        if (_context.OptionalContent.Hides(membership))
         {
             _sink.Report(PageRenderProblem.UnsupportedFeature, "/OC",
                 "Optional content is not applied yet. Content of a group that is switched off is drawn.");
@@ -213,7 +213,7 @@ internal sealed partial class ContentInterpreter
     private void DrawInlineImage(COperator op)
     {
         if (op is CInlineImage image)
-            DrawImage(PageImages.ReadInline(image, _resources, _device, _sink));
+            DrawImage(PageImages.ReadInline(image, _resources, _device.Device, _sink));
     }
 
     /// <summary>
