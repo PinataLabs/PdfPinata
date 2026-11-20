@@ -156,7 +156,10 @@ PdfPinata ─────────────┬── PdfPinata.Skia       
                           │      └── PdfPinata.ImageSharp4.Tests  (links its tests out of PdfPinata.Test)
                           ├── PdfPinata.HarfBuzz     (HarfBuzzSharp; shaping, any backend)
                           ├── PdfPinata.Signing      (CMS signing; net8.0;net10.0;net11.0 only)
-                          └── PdfPinata.EInvoice     (Factur-X / ZUGFeRD; no dependency at all)
+                          ├── PdfPinata.EInvoice     (Factur-X / ZUGFeRD; no dependency at all)
+                          └── PdfPinata.Rendering.Skia  (SkiaSharp; draws existing pages, needs no backend)
+                                 ▲
+                                 └── PdfPinata.Rendering.Skia.Tests  (against Ghostscript; no backend)
    ▲       ▲
    │       └── PinataLayout.DocumentObjectModel ── PinataLayout.Rendering ── PdfPinata.Charting
    │              ▲                                                              ▲
@@ -168,7 +171,7 @@ PdfPinata ─────────────┬── PdfPinata.Skia       
            └── SampleApp  (the demonstration CLI; net8.0 alone, so both test legs can reference it)
 ```
 
-Six test projects, and which one a new test belongs in is worth a moment. `PdfPinata.Test`
+Seven test projects, and which one a new test belongs in is worth a moment. `PdfPinata.Test`
 is the broad one and the default; it runs the ImageSharp backend on 2.1.x.
 `PdfPinata.ImageSharp4.Tests` exists because **one project resolves one ImageSharp version**: it
 holds no tests of its own beyond a few for 4.x alone, and compiles the backend's test files from
@@ -242,6 +245,19 @@ from `wwwroot/fonts`. `PdfPinata.Test` links its `SampleDocument.cs` and `Encryp
 them in `Samples/BlazorWasmSampleTests.cs`. `src/SampleBlazorWasm.SmokeTest` is **not** in the
 solution: a Playwright console app that serves the published `wwwroot` and checks the download, with
 the sample's element ids and page count written out in it — change one, change the other.
+
+`PdfPinata.Rendering.Skia` draws a page that already exists onto an `SKCanvas`, picture, bitmap or
+encoded image: `page.Render(canvas, options)` and `ToSKPicture`, `ToSKBitmap` and `ToImage` over it.
+It is thin. The core's `Pdf.Rendering` interpreter does the PDF work, and `SkiaPageDevice` is a
+`PageDevice` that sets each call's matrix on the canvas and draws. It references the core and
+SkiaSharp alone, **not `PdfPinata.Skia`**, which is the backend for *writing*, and rendering needs
+no backend registered. It is packable but **not in `PACKAGES`** until it draws the SampleApp demos
+and the conformance corpus within tolerance (#378), so it builds and tests in CI and ships nowhere.
+`PdfPinata.Rendering.Skia.Tests` compares each page with Ghostscript's rasterization of the same
+saved bytes at the same resolution, through `Helpers/Fidelity`: two explicit tolerances per test,
+and the three PNGs under `TestResults/rendering-fidelity` when one is exceeded. DeviceCMYK is checked
+by pixel there instead, because Ghostscript converts it through an ICC profile and page rendering
+does not. `docs/specs/page-rendering.md` is the design.
 
 **The demos are also the documentation website's code.** `docs-website/` is a Docusaurus site
 (pnpm, Node 22) published to GitHub Pages by `.github/workflows/docs.yml`; `docs-website/README.md`
@@ -713,7 +729,7 @@ workflows, which install the SDK `global.json` names — uses it, and `LangVersi
 C# 15 on every leg. `PdfPinata.Signing`'s net11.0 `System.Security.Cryptography.Pkcs` is `11.0.0`,
 so no stable package depends on a prerelease one. Like `-f net8.0`, a
 solution-wide `-f net11.0` fails with NETSDK1005, because the net10.0-only projects have no such
-leg; run the five multi-targeted test projects one by one.
+leg; run the six multi-targeted test projects one by one.
 
 ## Tests
 

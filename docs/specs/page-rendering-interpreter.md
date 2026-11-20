@@ -245,7 +245,7 @@ None of these edits `ContentInterpreter`.
 | #373 TrueType | `EmbeddedTrueTypeGlyphSource`, for `/FontFile2`. Built: see the next section | The first branch of `BuiltInGlyphSources.Select` |
 | #374 standard 14 | A class derived from `PageGlyphSource` that reads `RequiredSeams.FontResolver` in `GetOutline` and nowhere else, and answers AFM widths from `TryGetAdvance`, which is asked for invisible text too and so reads no seam. Its outlines come from the resolved face's `OpenTypeFontface.Glyphs`, through `TrueTypeOutlinePaths.ToPagePath`, and a code's glyph through `GlyphNames` and `TrueTypeGlyphs.CharacterMap`, all as the next section sets out | The last branch of `BuiltInGlyphSources.Select` |
 | #375 images | The bodies of `PageImages.ReadXObject` and `ReadInline`, which answer a `PageImage` or report and answer null | `PageImages.cs` |
-| #376 Skia | A class derived from `PageDevice` | Its own package: `PageView.Of`, then `PageRendering.Render` |
+| #376 Skia | `SkiaPageDevice`, derived from `PageDevice`; done | Its own package: `PageView.Of`, then `PageRendering.Render` |
 
 **The font rows hold for a font whose glyphs are outlines, set along x in codes of a fixed
 length**: TrueType, CFF, Type 1 and the standard 14. Three kinds of font are not that, and each
