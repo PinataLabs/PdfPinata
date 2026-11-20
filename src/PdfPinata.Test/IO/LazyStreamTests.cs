@@ -209,6 +209,7 @@ public class LazyStreamTests
     [Arguments("/Length 12")]
     [Arguments("/Length 99999999")]
     [Arguments("/Length 5 0 R")]
+    [Arguments("/Length 9223372036854775807")]
     public void AStreamIsCopiedWholeWhateverItSaysOfItsLength(string lengthEntry)
     {
         var pdf = PagesOfImages(1, SeveralChunks, lengthEntry: lengthEntry);
@@ -221,6 +222,77 @@ public class LazyStreamTests
         var image = ImageOf(saved.Pages[0]);
         image.Stream.Value.Should().HaveCount(SeveralChunks).And.OnlyContain(data => data == SplicedPdf.Filler);
         image.Elements.GetInteger("/Length").Should().Be(SeveralChunks);
+    }
+
+    [Test]
+    public void ARightLengthIsBelievedHoweverMuchWhiteSpaceFollowsIt()
+    {
+        // Looking for the keyword instead would find the one the content shows, and end the stream there.
+        const string content = "BT /F1 12 Tf 20 100 Td (endstream) Tj ET";
+        var pdf = new SplicedPdf();
+        pdf.Object(1, "<< /Type /Catalog /Pages 2 0 R >>");
+        pdf.Object(2, "<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
+        pdf.Object(3, SplicedPdf.PageDictionary(0));
+        pdf.Object(4, "<< /Length " + content.Length + " >>stream\n" + content + "\t \r\n          \n\nendstream");
+        pdf.ClassicTable(firstId: 0, count: 5, trailer: "/Size 5 /Root 1 0 R");
+        var bytes = pdf.ToBytes();
+
+        foreach (var mode in new[] { Lazy, PdfDocumentOpenMode.Import })
+        {
+            using var document = PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(bytes), mode);
+            Encoding.Latin1.GetString(PageContent.Of(document.Pages[0])).Should().Be(content, "{0} reads it", mode);
+        }
+
+        ShouldBeTakenOutTheSameLazilyAsForImport(bytes);
+    }
+
+    // ----- Where it is saved -----------------------------------------------------------------------
+
+    [Test]
+    public void SavingIntoTheStreamASourceReadsFromIsRefusedBeforeAnythingIsWritten()
+    {
+        var bytes = PagesOfImages(1, SeveralChunks).ToBytes();
+        var stream = new MemoryStream();
+        stream.Write(bytes);
+        stream.Position = 0;
+        using var source = Open(stream);
+        var target = new PdfDocument();
+        target.AddPage(source.Pages[0]);
+        stream.Position = 0;
+
+        var save = () => target.Save(stream);
+
+        save.Should().Throw<InvalidOperationException>().WithMessage("*PdfDocumentOpenMode.Lazy*");
+        stream.ToArray().Should().Equal(bytes);
+        var saved = Saved.Open(Saved.Bytes(target), PdfDocumentOpenMode.Import);
+        ImageOf(saved.Pages[0]).Stream.Value.Should().HaveCount(SeveralChunks)
+            .And.OnlyContain(data => data == SplicedPdf.Filler);
+    }
+
+    [Test]
+    public void SavingOverTheFileASourceReadsFromIsRefusedBeforeItIsOpened()
+    {
+        var bytes = PagesOfImages(1, SeveralChunks).ToBytes();
+        var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".pdf");
+        File.WriteAllBytes(path, bytes);
+        try
+        {
+            using (var source = PdfPinata.Pdf.IO.PdfReader.Open(path, Lazy))
+            {
+                var target = new PdfDocument();
+                target.AddPage(source.Pages[0]);
+
+                var save = () => target.Save(path);
+
+                save.Should().Throw<InvalidOperationException>().WithMessage("*PdfDocumentOpenMode.Lazy*");
+            }
+
+            File.ReadAllBytes(path).Should().Equal(bytes);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
     }
 
     // ----- The order of things ---------------------------------------------------------------------
