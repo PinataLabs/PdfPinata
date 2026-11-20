@@ -128,8 +128,10 @@ public static class PdfSplitter
     /// The PDF to take pages from. It must be able to seek, and is read from but not closed.
     /// </param>
     /// <param name="output">
-    /// Where to write. It is not closed, and is rewound to its start once written, as
-    /// <see cref="PdfDocument.Save(Stream)"/> leaves it.
+    /// Where to write. It is written from where it stands and is not truncated, as
+    /// <see cref="PdfDocument.Save(Stream)"/> writes, so pass an empty stream: bytes already beyond
+    /// the end of what is written stay there. It is not closed, and is rewound to its start once
+    /// written.
     /// </param>
     /// <param name="firstPage">The first page to take, counted from 1.</param>
     /// <param name="pageCount">How many pages to take; at least one.</param>
@@ -157,8 +159,10 @@ public static class PdfSplitter
     /// The PDF to take pages from. It must be able to seek, and is read from but not closed.
     /// </param>
     /// <param name="output">
-    /// Where to write. It is not closed, and is rewound to its start once written, as
-    /// <see cref="PdfDocument.Save(Stream)"/> leaves it.
+    /// Where to write. It is written from where it stands and is not truncated, as
+    /// <see cref="PdfDocument.Save(Stream)"/> writes, so pass an empty stream: bytes already beyond
+    /// the end of what is written stay there. It is not closed, and is rewound to its start once
+    /// written.
     /// </param>
     /// <param name="pageNumbers">The pages to take, counted from 1; at least one.</param>
     /// <exception cref="ArgumentException">
@@ -190,8 +194,9 @@ public static class PdfSplitter
     /// <param name="pagesPerFile">How many pages each part holds; at least one.</param>
     /// <param name="outputForPart">
     /// Answers the stream to write a part to, given the part's number counted from 1: part 1 holds
-    /// pages 1 to <paramref name="pagesPerFile"/>. The stream stays the caller's: it is not closed,
-    /// and is rewound to its start once written, as <see cref="PdfDocument.Save(Stream)"/> leaves it.
+    /// pages 1 to <paramref name="pagesPerFile"/>. The stream stays the caller's. It is written from
+    /// where it stands and is not truncated, as <see cref="PdfDocument.Save(Stream)"/> writes, so
+    /// answer an empty one. It is not closed, and is rewound to its start once written.
     /// </param>
     /// <returns>How many parts were written; 0 for a document with no pages.</returns>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="pagesPerFile"/> is less than 1.</exception>
