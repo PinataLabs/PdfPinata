@@ -12,7 +12,9 @@ namespace PdfPinata.Pdf.Rendering;
 /// A simple font states <c>/Widths</c> from <c>/FirstChar</c> on, and its descriptor's
 /// <c>/MissingWidth</c> for a code outside them. A composite font states <c>/W</c> and
 /// <c>/DW</c> on its descendant, by CID. Both are in thousandths of text space, which is divided
-/// out here.
+/// out here. <b>A Type 3 font is the exception</b>: its widths are in glyph space, and its
+/// <c>/FontMatrix</c> takes them to text space (ISO 32000-1 9.6.5). A font made by TeX commonly
+/// has a matrix of a thousandth, and a bitmap font as commonly has not.
 /// </remarks>
 internal sealed class FontWidths
 {
@@ -52,7 +54,8 @@ internal sealed class FontWidths
         if (descriptor != null && PdfItemValues.TryGetNumber(descriptor.Elements["/MissingWidth"], out var width))
             missing = width;
 
-        var widths = new FontWidths(stated != null, missing / 1000);
+        var toTextSpace = TextSpaceUnitOf(font);
+        var widths = new FontWidths(stated != null, missing * toTextSpace);
         if (stated == null)
             return widths;
 
@@ -60,10 +63,31 @@ internal sealed class FontWidths
         for (var index = 0; index < stated.Elements.Count && index < 256; index++)
         {
             if (PdfItemValues.TryGetNumber(stated.Elements[index], out var value))
-                widths._widths[first + index] = value / 1000;
+                widths._widths[first + index] = value * toTextSpace;
         }
 
         return widths;
+    }
+
+    /// <summary>
+    /// What one unit of a simple font's widths comes to in text space: a thousandth, or for a
+    /// Type 3 font the horizontal scale of its <c>/FontMatrix</c>.
+    /// </summary>
+    /// <remarks>
+    /// Only the matrix's first number is read. Text is set along x, and a Type 3 font whose
+    /// matrix turns an advance along x into one along y is not one any producer writes.
+    /// </remarks>
+    private static double TextSpaceUnitOf(PdfDictionary font)
+    {
+        const double thousandth = 0.001;
+        if (font.Elements.GetNameOrEmpty("/Subtype") != "/Type3")
+            return thousandth;
+
+        var matrix = font.Elements.GetArray("/FontMatrix");
+        return matrix != null && matrix.Elements.Count == 6
+                              && PdfItemValues.TryGetNumber(matrix.Elements[0], out var scale) && double.IsFinite(scale)
+            ? scale
+            : thousandth;
     }
 
     private static FontWidths Composite(PdfDictionary descendant)

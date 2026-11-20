@@ -25,6 +25,8 @@ internal sealed partial class ContentInterpreter
             return;
         }
 
+        ReportIfHidden(xObject.Elements.GetDictionary("/OC"));
+
         switch (xObject.Elements.GetNameOrEmpty("/Subtype"))
         {
             case "/Form":
@@ -71,11 +73,14 @@ internal sealed partial class ContentInterpreter
         var depth = _states.Depth;
         try
         {
-            if (!PdfContentStreams.TryGetContent(form, out var content))
+            var content = ContentOf(form);
+            if (content == null)
             {
                 _sink.Report(PageRenderProblem.UnreadableContent, name, "The form's content could not be decoded, and nothing of it is drawn.");
                 return;
             }
+
+            ReportGroupThatIsNotComposed(form);
 
             _states.Push();
             State.Ctm = transform;
@@ -97,6 +102,75 @@ internal sealed partial class ContentInterpreter
         {
             _states.PopTo(depth);
             _forms.Leave(form);
+        }
+    }
+
+    /// <summary>
+    /// A form's content, decoded and parsed the first time the form is drawn in this render and
+    /// kept for the rest of it. Null where it cannot be decoded.
+    /// </summary>
+    /// <remarks>
+    /// Forms that each draw the next twice reach the last of them thousands of times, well
+    /// inside the limits of <see cref="FormVisits"/>, and reading its stream again each time is
+    /// what made such a page slow.
+    /// </remarks>
+    private ParsedContent ContentOf(PdfDictionary form)
+    {
+        var key = ReferenceIdentity.KeyOf(form);
+        if (!_formContent.TryGetValue(key, out var content))
+        {
+            content = PdfContentStreams.TryGetContent(form, out var bytes) ? ParsedContent.Of(bytes) : null;
+            _formContent[key] = content;
+        }
+
+        return content;
+    }
+
+    /// <summary>
+    /// Says when a form that is a transparency group is drawn as something a group is not.
+    /// </summary>
+    /// <remarks>
+    /// A group is drawn on its own with every alpha at 1 and then laid on the page once, at the
+    /// alpha in force where it is drawn (ISO 32000-1 11.6.6). Here its content is drawn straight
+    /// onto the page, each piece at that alpha, so two pieces that overlap show through one
+    /// another where the group would not. With both alphas at 1 the two come to the same thing
+    /// and nothing is reported, unless the group is a knockout group, which never does.
+    /// </remarks>
+    private void ReportGroupThatIsNotComposed(PdfDictionary form)
+    {
+        var group = form.Elements.GetDictionary("/Group");
+        if (group == null || group.Elements.GetNameOrEmpty("/S") != "/Transparency")
+            return;
+
+        var knocksOut = PdfItemValues.TryGetBoolean(group.Elements["/K"], out var knockout) && knockout;
+        if (State.FillAlpha < 1 || State.StrokeAlpha < 1 || knocksOut)
+        {
+            _sink.Report(PageRenderProblem.UnsupportedFeature, "/Group",
+                "Transparency groups are not composed yet. What the form draws is drawn piece by piece, each at the alpha the group is drawn at.");
+        }
+    }
+
+    /// <summary><c>BDC</c>, which is looked at only where it puts content in an optional content group.</summary>
+    private void BeginMarkedContent(COperator op)
+    {
+        if (Operands.NameFromEnd(op, 1) == "/OC" && Operands.NameFromEnd(op, 0) is { } name)
+            ReportIfHidden(_resources.Lookup("/Properties", name));
+    }
+
+    /// <summary>
+    /// Says when content is drawn that belongs to optional content the document switches off.
+    /// </summary>
+    /// <param name="membership">What an <c>/OC</c> names, or null where there is none.</param>
+    private void ReportIfHidden(PdfDictionary membership)
+    {
+        if (membership == null)
+            return;
+
+        _optionalContent ??= OptionalContent.Of(_document);
+        if (_optionalContent.Hides(membership))
+        {
+            _sink.Report(PageRenderProblem.UnsupportedFeature, "/OC",
+                "Optional content is not applied yet. Content of a group that is switched off is drawn.");
         }
     }
 

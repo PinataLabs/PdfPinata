@@ -113,6 +113,38 @@ public class PageViewTests
     }
 
     [Test]
+    [Arguments(0, 200.0, 120.0, 50.0, 80.0, 150.0, 20.0)]
+    [Arguments(90, 120.0, 200.0, 50.0, 20.0, 150.0, 80.0)]
+    [Arguments(180, 200.0, 120.0, 150.0, 20.0, 50.0, 80.0)]
+    [Arguments(270, 120.0, 200.0, 150.0, 80.0, 50.0, 20.0)]
+    public void ATurnACropBoxOffTheOriginAUserUnitAScaleAndARegionAllApplyTogether(int rotate, double width,
+        double height, double topLeftX, double topLeftY, double bottomRightX, double bottomRightY)
+    {
+        // A crop box of 100 by 60 whose corner is at (50, 20), in units of two points.
+        var page = Page(p =>
+        {
+            p.CropBox = new PdfRectangle(new XPoint(50, 20), new XPoint(150, 80));
+            p.Elements.SetInteger("/Rotate", rotate);
+            p.Elements.SetReal("/UserUnit", 2);
+        });
+
+        // The corners of the crop box that are displayed top left and bottom right, in the
+        // page's own coordinates, which a turn moves round the box.
+        var whole = PageView.Of(page);
+        whole.DisplayedSize.Should().Be(new XSize(width, height));
+        Rounded(Map(whole, topLeftX, topLeftY)).Should().Be(new XPoint(0, 0));
+        Rounded(Map(whole, bottomRightX, bottomRightY)).Should().Be(new XPoint(width, height));
+
+        // A region 10 points in from the displayed top left, at two device units to the point.
+        var region = PageView.Of(page, PageBox.Crop, 2, new XRect(10, 10, 50, 50));
+        Rounded(Map(region, topLeftX, topLeftY)).Should().Be(new XPoint(-20, -20));
+        Rounded(Map(region, bottomRightX, bottomRightY)).Should().Be(new XPoint(2 * width - 20, 2 * height - 20));
+        (region.PixelWidth, region.PixelHeight).Should().Be((100, 100));
+    }
+
+    private static XPoint Rounded(XPoint point) => new(Math.Round(point.X, 6), Math.Round(point.Y, 6));
+
+    [Test]
     public void TheSizeInPixelsIsRoundedUp()
     {
         var view = PageView.Of(Page(), scale: 0.333);

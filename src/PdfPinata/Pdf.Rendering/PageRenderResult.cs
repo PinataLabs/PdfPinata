@@ -136,7 +136,9 @@ public enum PageRenderProblem
     UnsupportedImage,
 
     /// <summary>
-    /// Something recognised and not drawn yet: a shading, a pattern, a blend mode, a soft mask.
+    /// Something recognised and not drawn yet, or not drawn as it should be: a shading, a
+    /// pattern, a blend mode, a soft mask, a transparency group drawn at an alpha, or content
+    /// of an optional content group that is switched off, which is drawn all the same.
     /// </summary>
     UnsupportedFeature,
 

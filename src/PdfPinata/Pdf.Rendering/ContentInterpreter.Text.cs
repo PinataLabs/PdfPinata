@@ -24,6 +24,12 @@ internal sealed class TextObject
 // Text state, text positioning and text showing.
 internal sealed partial class ContentInterpreter
 {
+    // The line state last taken to a glyph's space, so that a run of glyphs set at one size
+    // shares one.
+    private PageStroke _glyphStrokeOf;
+    private PageStroke _glyphStroke;
+    private double _glyphStrokeScale;
+
     /// <summary><c>BT</c>.</summary>
     private void BeginText()
     {
@@ -303,12 +309,61 @@ internal sealed partial class ContentInterpreter
         if (mode is TextRenderMode.Stroke or TextRenderMode.FillStroke or TextRenderMode.StrokeClip
             or TextRenderMode.FillStrokeClip)
         {
-            // The line width is a length in user space and the outline is not, so the outline
-            // is taken to user space first and one matrix then governs both.
-            _device.Stroke(outline.Transformed(glyphToUser), state.Ctm, state.Stroke, state.StrokePaint);
+            StrokeGlyph(outline, glyphToUser, glyphToDevice);
         }
 
         if (mode >= TextRenderMode.FillClip)
             (text.Clip ??= new PagePathBuilder()).Append(outline, glyphToDevice);
+    }
+
+    /// <summary>
+    /// Strokes a glyph's outline. The line width is a length in user space and the outline is in
+    /// its own, so one of the two has to be taken to the other.
+    /// </summary>
+    /// <remarks>
+    /// Where the outline's space is user space scaled the same in every direction, which is all
+    /// text not stretched by <c>Tz</c> or by a text matrix that scales x and y differently, the
+    /// line state is taken to the outline's space: a pen that is a circle in one is a circle
+    /// in the other. The outline is then handed over as it is, the instance this glyph always
+    /// has, as a filled glyph is. Elsewhere the pen is an ellipse in the outline's space, which
+    /// a <see cref="PageStroke"/> cannot say, so the outline is copied into user space and is
+    /// not an instance a device has seen before.
+    /// </remarks>
+    private void StrokeGlyph(PagePath outline, XMatrix glyphToUser, XMatrix glyphToDevice)
+    {
+        var state = State;
+        if (TryGetUniformScale(glyphToUser, out var scale))
+        {
+            if (!ReferenceEquals(_glyphStrokeOf, state.Stroke) || _glyphStrokeScale != scale)
+            {
+                _glyphStrokeOf = state.Stroke;
+                _glyphStrokeScale = scale;
+                _glyphStroke = state.Stroke.InUnitsOf(scale);
+            }
+
+            if (_glyphStroke != null)
+            {
+                _device.Stroke(outline, glyphToDevice, _glyphStroke, state.StrokePaint);
+                return;
+            }
+        }
+
+        _device.Stroke(outline.Transformed(glyphToUser), state.Ctm, state.Stroke, state.StrokePaint);
+    }
+
+    /// <summary>
+    /// Whether a matrix scales every direction by the same amount, turned or mirrored or not,
+    /// and by how much.
+    /// </summary>
+    private static bool TryGetUniformScale(XMatrix matrix, out double scale)
+    {
+        // The images of the two axes: the same length, and at right angles.
+        var x = matrix.M11 * matrix.M11 + matrix.M12 * matrix.M12;
+        var y = matrix.M21 * matrix.M21 + matrix.M22 * matrix.M22;
+        var across = matrix.M11 * matrix.M21 + matrix.M12 * matrix.M22;
+        var tolerance = Math.Max(x, y) * 1e-9;
+
+        scale = Math.Sqrt(x);
+        return scale > 0 && double.IsFinite(scale) && Math.Abs(x - y) <= tolerance && Math.Abs(across) <= tolerance;
     }
 }

@@ -43,6 +43,46 @@ public class GraphicsStateTests
     }
 
     [Test]
+    public void ACurveFromTheCurrentPointStartsWhereThePointWasPlacedAndNotWhereTheNewTransformPutsIt()
+    {
+        var drawn = Drawn.Page("10 0 m 2 0 0 2 0 0 cm 10 10 20 10 v S");
+
+        // The current point was placed before the transform changed and is the first control
+        // point as it stands. The other two are placed by the new transform.
+        drawn.Device.Strokes.Single().DevicePath.Should().Be("M10,100 C10,100 20,80 40,80");
+    }
+
+    [Test]
+    public void ARectangleAddedAfterTheTransformChangesIsPlacedByTheNewTransform()
+    {
+        var drawn = Drawn.Page("0 0 5 5 re 2 0 0 2 50 0 cm 0 0 5 5 re f");
+
+        drawn.Device.Fills.Single().DevicePath.Should().Be(
+            "M0,100 L5,100 L5,95 L0,95 Z M50,100 L60,100 L60,90 L50,90 Z");
+    }
+
+    [Test]
+    public void APathPaintedUnderTheTransformItBeganUnderIsHandedOverAsItWasWritten()
+    {
+        var drawn = Drawn.Page("2 0 0 2 0 0 cm 1 1 m q 3 0 0 3 0 0 cm 1 1 l Q 5 5 l S");
+
+        // Only the point added under another transform is rewritten: the others are the
+        // content's own numbers, exactly.
+        var stroke = drawn.Device.Strokes.Single();
+        stroke.Path.Points.ToArray().Should().Equal(new XPoint(1, 1), new XPoint(3, 3), new XPoint(5, 5));
+        stroke.Transform.M11.Should().Be(2);
+    }
+
+    [Test]
+    public void APathBegunUnderATransformWithNoInverseIsStillPainted()
+    {
+        var drawn = Drawn.Page("q 0 0 0 0 0 0 cm 0 0 m Q 10 0 l 10 10 l S");
+
+        drawn.Device.Strokes.Should().ContainSingle();
+        drawn.Result.IsComplete.Should().BeTrue();
+    }
+
+    [Test]
     public void RestoringPutsBackTheTransformTheColourAndTheLineState()
     {
         var drawn = Drawn.Page("q 1 0 0 1 50 0 cm 1 0 0 rg 5 w 0 0 5 5 re B Q 0 0 5 5 re B");

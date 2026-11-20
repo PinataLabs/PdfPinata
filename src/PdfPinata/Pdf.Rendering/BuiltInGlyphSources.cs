@@ -1,12 +1,39 @@
 namespace PdfPinata.Pdf.Rendering;
 
 /// <summary>
-/// Chooses where a font dictionary's glyph outlines come from. A new kind of font is a new
-/// <see cref="PageGlyphSource"/> and a branch here, and nothing in the interpreter.
+/// Chooses where a font dictionary's glyph outlines come from.
 /// </summary>
 /// <remarks>
+/// <para>
 /// The order of the branches is the rule: a font program embedded in the file is used before a
 /// standard 14 font's name is looked at, because a file that embeds one means it.
+/// </para>
+/// <para>
+/// <b>A font whose glyphs are outlines, set along x in codes of a fixed length, is a new
+/// <see cref="PageGlyphSource"/> and a branch here, and nothing in the interpreter.</b> That is
+/// TrueType, CFF, Type 1 and the standard 14. Three kinds of font are not that, and each needs
+/// more than a source:
+/// </para>
+/// <list type="bullet">
+/// <item><description>
+/// <b>Type 3.</b> A glyph is a content stream of the font's <c>/CharProcs</c>, with its own
+/// resources, drawn under <c>/FontMatrix</c>, and it may set its own colour (<c>d0</c>) or
+/// take the text's (<c>d1</c>). It is not an outline, so <c>DrawGlyph</c> has to run it as it
+/// runs a form. Only its advance is read today, by <see cref="FontWidths"/>.
+/// </description></item>
+/// <item><description>
+/// <b>A CMap other than <c>Identity-H</c>.</b> Its codespace ranges give codes of one to four
+/// bytes in one string, so <c>ShowString</c> has to split a string by the CMap, where it now
+/// takes <see cref="RenderFont.BytesPerCode"/> at a time, and map each code to a CID. Word
+/// spacing follows the split: it is added after a code of the single byte 32 and after no
+/// longer code, which is a question about each code and not about the font.
+/// </description></item>
+/// <item><description>
+/// <b>Vertical writing.</b> A glyph advances down the page by <c>/W2</c> and <c>/DW2</c> and
+/// is placed by a position vector, so <see cref="FontWidths"/>, <c>ShowString</c>'s advance and
+/// the direction a <c>TJ</c> adjustment moves in all change.
+/// </description></item>
+/// </list>
 /// </remarks>
 internal static class BuiltInGlyphSources
 {

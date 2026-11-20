@@ -19,6 +19,8 @@ separate issues, and each has one place here to plug into. The last section name
 | 10 | Images (#375) | plug-in point only |
 | 11 | CMaps other than `Identity-H`, and vertical writing | deliberately not done |
 | 12 | A limit on the operators of one page | deliberately not done |
+| 13 | Type 3 fonts (their advances are read; their glyphs are not drawn) | advance only |
+| 14 | Transparency groups (#383) and optional content (#386) | reported, not applied |
 
 ---
 
@@ -90,12 +92,18 @@ pending clip, the text object) is put aside while a form runs and put back after
 
 The CTM starts as `PageView.Transform`. There is no second matrix to remember to apply.
 
-A path is kept in user space as it is written and painted under the transform in force at the
-painting operator, which is the one the pen is measured in. A point is placed by the transform in
-force when it is added, so where `cm` or `Q` changes the transform in the middle of a path, which
-is not allowed and is still found in files, the points already in the path are rewritten in the
-new user space and land where they did. `W` and `W*` are remembered and applied after the painting operator that follows,
-which is the order ISO 32000-1 8.5.4 gives.
+A path is painted in the user space of the transform in force at the painting operator, which is
+the one the pen is measured in. A point is placed by the transform in force when it is added, so
+where `cm` or `Q` changes the transform in the middle of a path, which is not allowed and is still
+found in files, the points before the change stay where they were. `PathInProgress` keeps the
+points in the user space the path began in: a point added under another transform is taken to that
+space as it is added, and the whole path is taken to the painting operator's space once, when it
+is painted. **Each point is mapped at most twice, however often the transform changes.** The first
+version rewrote every point already in the path at each change, so 40,000 `q cm l Q` inside one
+path, which is 2.5 KB compressed, took most of a minute. A path painted under the transform it
+began under, which is every well-formed one, is handed over as the content wrote it. `W` and `W*`
+are remembered and applied after the painting operator that follows, which is the order
+ISO 32000-1 8.5.4 gives.
 
 **Text is laid out here, not in a device and not in a font.** A shown string is split into codes,
 one byte for a simple font and two for a composite one. Each code advances by the PDF's own width,
@@ -103,13 +111,24 @@ then character spacing, word spacing after the single byte 32 and nothing else, 
 scaling. The widths are `/Widths` from `/FirstChar` with the descriptor's `/MissingWidth`, or the
 descendant's `/W` and `/DW`. A font program's own advances are never read.
 
+Those widths are thousandths of text space, with one exception. **A Type 3 font's `/Widths` are in
+glyph space, and its `/FontMatrix` takes them to text space** (ISO 32000-1 9.6.5): 50 under a
+matrix of a hundredth is half an em. A Type 3 glyph is not drawn yet, but its advance is read
+now, because a page from TeX sets Type 3 beside other fonts and everything after a Type 3 run
+is placed by it.
+
 The clip modes gather glyph outlines in device space and narrow the clip to them all when the text
 object ends. **The clip is narrowed only where at least one glyph had an outline.** A text object
 that set a clip mode and showed nothing, or whose font cannot be drawn, would otherwise clip away
 the rest of the page.
 
-A stroked glyph is the one place an outline is copied: the line width is a length in user space and
-the outline is not, so the outline is taken to user space and one matrix then governs both.
+A stroked glyph's line width is a length in user space and its outline is not, so one of the two
+has to be taken to the other. Where the outline's space is user space scaled the same in every
+direction, the line state goes to the outline: the width, the dashes and the phase are divided by
+the scale, and the device is handed the glyph's own shared `PagePath` under the glyph's matrix, as
+it is for a fill. That is all text not stretched by `Tz` or by a text matrix that scales x and y
+differently. For such stretched text the pen is an ellipse in the outline's space, which a
+`PageStroke` cannot say, so the outline is copied into user space and that path is not shared.
 
 ## Reading content that is broken
 
@@ -151,12 +170,38 @@ so the clip to the page's box, the clip a text object ends with and the restores
 are covered as well as the operators are. It also remembers which saves the device made, and a
 `Restore` reaches the device only where the `Save` it matches did.
 
+**A page written as several streams is drawn from those that can be read.** One stream of a
+`/Contents` array that cannot be decoded is left out and reported as `UnreadableContent`, with the
+count, and the others are drawn. `PdfContentStreams.TryGetReadablePageContent` does this for
+rendering alone: the text extractor and the image placement reader still give up the whole page
+through `TryGetPageContent`, because a reader that answers half of what a page says has answered
+wrongly without saying so.
+
+**Two things are reported that are drawn wrongly and not left out**, as `UnsupportedFeature`, the
+way `/BM` and `/SMask` are, so that `IsComplete` is false for a page a viewer would show
+differently:
+
+- A form with `/Group /S /Transparency` drawn where `/ca` or `/CA` is below 1, or whose group is a
+  knockout group (`/K true`). A group is drawn on its own and laid on the page once at that alpha;
+  here each piece of it is drawn at that alpha, so pieces that overlap show through each other.
+  With both alphas at 1 and no knockout the two are the same picture and nothing is reported,
+  because a producer such as cairo makes every form a group. Subject `/Group`. #383 composes them.
+- Content in `/OC … BDC`, or an XObject with an `/OC` entry, whose optional content group is off
+  in the catalog's default configuration (`/OCProperties /D`: `/BaseState`, `/ON`, `/OFF`), or
+  whose membership dictionary evaluates off by its `/VE` expression or else its `/P` policy over
+  `/OCGs`. The content is drawn. Subject `/OC`. `OptionalContent` answers the question and hides
+  nothing; #386 applies it.
+
 A page that ends with states still saved is not reported. Many real pages do, nothing was left out,
 and the states are restored on the device all the same. A `Q` with nothing saved is reported.
 
 Three limits keep a malformed page from running away, and each is reported as `LimitReached`: a form
 is entered at most once at a time, 32 deep and 4096 times in all; `q` is only counted past 256 saved
-states; and the 64 faults above. A fourth is silent: a composite font's `/W` gives widths to four
+states; and the 64 faults above. **A form's content is decoded and parsed once in a render**, the
+first time it is drawn, and kept by the form's reference until the render ends: twelve forms that
+each draw the next twice reach the last some two thousand times inside those limits, and reading
+its stream again each time is what such a page cost. Its faults are still reported each time it
+is drawn. A fourth is silent: a composite font's `/W` gives widths to four
 times as many CIDs as there are and is then read no further, because a `/W` that gives the whole
 range one width, run after run, took minutes to read.
 
@@ -194,6 +239,22 @@ None of these edits `ContentInterpreter`.
 | #374 standard 14 | A class derived from `PageGlyphSource` that reads `RequiredSeams.FontResolver` in `GetOutline` and nowhere else, and answers AFM widths from `TryGetAdvance`, which is asked for invisible text too and so reads no seam | The last branch of `BuiltInGlyphSources.Select` |
 | #375 images | The bodies of `PageImages.ReadXObject` and `ReadInline`, which answer a `PageImage` or report and answer null | `PageImages.cs` |
 | #376 Skia | A class derived from `PageDevice` | Its own package: `PageView.Of`, then `PageRendering.Render` |
+
+**The font rows hold for a font whose glyphs are outlines, set along x in codes of a fixed
+length**: TrueType, CFF, Type 1 and the standard 14. Three kinds of font are not that, and each
+edits the interpreter as well as adding a source:
+
+- **Type 3.** A glyph is a content stream of `/CharProcs` with its own resources, drawn under
+  `/FontMatrix`, that sets its own colour (`d0`) or takes the text's (`d1`). It is not an outline,
+  so `DrawGlyph` has to run it as it runs a form, under the same limits.
+- **A CMap other than `Identity-H`.** Its codespace ranges give codes of one to four bytes in one
+  string. `ShowString` has to split a string by the CMap, where it takes `RenderFont.BytesPerCode`
+  at a time, and map each code to a CID. The word-spacing rule goes with it: `Tw` is added after a
+  code that is the single byte 32 and after no longer code, which becomes a question about each
+  code and not about the font.
+- **Vertical writing.** A glyph advances down the page by `/W2` and `/DW2` and is placed by a
+  position vector, so `FontWidths`, the advance in `ShowString` and the direction a `TJ`
+  adjustment moves in all change.
 
 A `PageGlyphSource` is asked for an outline by the character code of a simple font or the CID of a
 composite one, and answers it in text space before the type size is applied, where a glyph one em

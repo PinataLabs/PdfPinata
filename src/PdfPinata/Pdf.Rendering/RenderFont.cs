@@ -179,28 +179,14 @@ internal sealed class RenderFont
 /// </remarks>
 internal sealed class RenderFontCache
 {
-    private readonly Dictionary<object, RenderFont> _fonts = new(ByReference.Instance);
+    private readonly Dictionary<object, RenderFont> _fonts = new(ReferenceIdentity.Instance);
 
     /// <summary>The font for a font dictionary, read the first time it is asked for. Never null.</summary>
     internal RenderFont For(PdfDictionary font, Func<PdfDictionary, PageGlyphSource> custom)
     {
-        var key = (object)font.Reference ?? font;
+        var key = ReferenceIdentity.KeyOf(font);
         if (!_fonts.TryGetValue(key, out var renderFont))
             _fonts[key] = renderFont = RenderFont.From(font, custom);
         return renderFont;
-    }
-
-    /// <summary>
-    /// Compares keys by which object they are. <c>ReferenceEqualityComparer</c> does the same and
-    /// is not in netstandard2.1.
-    /// </summary>
-    private sealed class ByReference : IEqualityComparer<object>
-    {
-        internal static readonly ByReference Instance = new();
-
-        bool IEqualityComparer<object>.Equals(object x, object y) => ReferenceEquals(x, y);
-
-        int IEqualityComparer<object>.GetHashCode(object obj) =>
-            System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(obj);
     }
 }

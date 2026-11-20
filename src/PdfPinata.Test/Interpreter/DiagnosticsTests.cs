@@ -242,6 +242,96 @@ public class DiagnosticsTests
     }
 
     [Test, Timeout(30_000)]
+    public async Task OneStreamOfSeveralThatCannotBeDecodedIsReportedAndTheOthersAreDrawn()
+    {
+        var drawn = await Interruptibly.Run(() =>
+        {
+            var page = Drawn.PageOf("1 0 0 rg 0 0 5 5 re f");
+            var broken = page.Contents.AppendContent();
+            broken.CreateStream([1, 2, 3, 4, 5, 6, 7, 8]);
+            broken.Elements.SetName("/Filter", "/FlateDecode");
+            page.Contents.AppendContent().CreateStream(Encoding.Latin1.GetBytes("0 0 1 rg 0 0 5 5 re f"));
+
+            var device = new RecordingDevice();
+            return (Result: PageRendering.Render(page, device), Device: device);
+        });
+
+        drawn.Device.Body.Should().Equal(Square + "rgb(1,0,0)", Square + "rgb(0,0,1)");
+        var diagnostic = drawn.Result.Diagnostics.Single();
+        diagnostic.Problem.Should().Be(PageRenderProblem.UnreadableContent);
+        diagnostic.Message.Should().StartWith("1 of the streams");
+        drawn.Result.IsComplete.Should().BeFalse();
+    }
+
+    [Test, Timeout(20_000)]
+    [Arguments("q 2 0 0 2 0 0 cm 1 1 l Q ")]
+    [Arguments("2 0 0 2 0 0 cm 1 1 l 0.5 0 0 0.5 0 0 cm ")]
+    public async Task ATransformChangedThroughoutOnePathIsDrawnInTimeByItsLength(string repeated)
+    {
+        // 40,000 changes of transform inside one open path. Rewriting the path at each change
+        // took most of a minute; it is now a fraction of a second, and the timeout is the test.
+        const int Repeats = 40_000;
+        var content = new StringBuilder("0 0 m ");
+        for (var index = 0; index < Repeats; index++)
+            content.Append(repeated);
+        content.Append('S');
+
+        var drawn = await Page(content.ToString());
+
+        var stroke = drawn.Device.Strokes.Single();
+        stroke.Path.Verbs.Length.Should().Be(Repeats + 1);
+        stroke.DevicePath.Should().StartWith("M0,100 L2,98 L2,98").And.EndWith("L2,98");
+        drawn.Result.IsComplete.Should().BeTrue();
+    }
+
+    [Test, Timeout(20_000)]
+    public async Task AFormReachedThousandsOfTimesThroughOtherFormsIsReadOnce()
+    {
+        // Twelve forms, each drawing the next twice, reach the last of them some two thousand
+        // times before the limit on forms is met. Its stream is long to read and draws nothing,
+        // so what this takes is what reading it takes: most of a minute read every time.
+        var drawn = await Page("/L0 Do", (document, resources) =>
+        {
+            var last = new StringBuilder();
+            for (var index = 0; index < 20_000; index++)
+                last.Append("0 0 1 1 ");
+
+            var next = Drawn.Form(document, last.ToString());
+            for (var level = 0; level < 12; level++)
+            {
+                var form = Drawn.Form(document, "/N Do /N Do");
+                var own = new PdfDictionary(document);
+                form.Elements["/Resources"] = own;
+                Drawn.Add(document, own, "/XObject", "/N", next);
+                next = form;
+            }
+
+            Drawn.Add(document, resources, "/XObject", "/L0", next);
+        });
+
+        drawn.Problems.Should().Equal("LimitReached /N");
+        // The page saves once, and each of the 4096 forms that may be entered once more.
+        drawn.Device.Calls.Count(call => call.Kind == "save").Should().Be(4096 + 1);
+    }
+
+    [Test, Timeout(30_000)]
+    [Arguments(1)]
+    [Arguments(3)]
+    public async Task AFormReadOnceReportsItsFaultsEachTimeItIsDrawn(int times)
+    {
+        var once = await Page("/Fm1 Do", WithBrokenForm);
+        var drawn = await Page(string.Concat(Enumerable.Repeat("/Fm1 Do ", times)), WithBrokenForm);
+
+        drawn.Device.Fills.Should().HaveCount(times);
+        var diagnostic = drawn.Result.Diagnostics.Single();
+        diagnostic.Problem.Should().Be(PageRenderProblem.UnreadableContent);
+        diagnostic.Occurrences.Should().Be(times * once.Result.Diagnostics.Single().Occurrences);
+
+        static void WithBrokenForm(PdfDocument document, PdfDictionary resources) =>
+            Drawn.Add(document, resources, "/XObject", "/Fm1", Drawn.Form(document, "0 0 5 5 re f } 1 w"));
+    }
+
+    [Test, Timeout(30_000)]
     public async Task APageOfNothingButSavesCostsACounterAndStillBalances()
     {
         var drawn = await Page(string.Concat(Enumerable.Repeat("q ", 100_000)) + "0 0 5 5 re f");

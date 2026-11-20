@@ -48,10 +48,18 @@ internal sealed partial class ContentInterpreter
     private readonly StateStack _states;
     private readonly FormVisits _forms = new();
 
+    // Each form's content as it was read the first time it was drawn, or null where it could
+    // not be decoded. A form drawn a thousand times on a page is decoded and parsed once.
+    private readonly Dictionary<object, ParsedContent> _formContent = new(ReferenceIdentity.Instance);
+
+    // Read from the document the first time content asks about a group.
+    private PdfDocument _document;
+    private OptionalContent _optionalContent;
+
     // What belongs to the content stream being drawn. A form XObject has its own of each, and
     // RunStream puts the caller's back when the form ends.
     private ResourceScope _resources;
-    private PagePathBuilder _path = new();
+    private PathInProgress _path = new();
     private XFillMode? _pendingClip;
     private TextObject _text;
     private int _compatibilityDepth;
@@ -94,14 +102,21 @@ internal sealed partial class ContentInterpreter
                     "The page states no box with any area. It is drawn as a US Letter page.");
             }
 
-            if (!PdfContentStreams.TryGetPageContent(page, out var content))
+            _document = page.Owner;
+            if (!PdfContentStreams.TryGetReadablePageContent(page, out var content, out var unreadable))
             {
                 _sink.Report(PageRenderProblem.UnreadableContent, "page",
                     "The page's content could not be decoded, and nothing of it is drawn.");
                 return;
             }
 
-            RunStream(content, ResourceScope.OfPage(page), "page");
+            if (unreadable > 0)
+            {
+                _sink.Report(PageRenderProblem.UnreadableContent, "page",
+                    $"{unreadable} of the streams the page's content is written in could not be decoded. What the others say is drawn.");
+            }
+
+            RunStream(ParsedContent.Of(content), ResourceScope.OfPage(page), "page");
         }
         finally
         {
@@ -114,15 +129,15 @@ internal sealed partial class ContentInterpreter
     /// leaves unrestored is restored when it ends, so a stream cannot leave anything on the stack
     /// of whatever drew it, and a <c>Q</c> in it cannot reach past where it began.
     /// </summary>
-    private void RunStream(byte[] content, ResourceScope resources, string streamName)
+    private void RunStream(ParsedContent content, ResourceScope resources, string streamName)
     {
-        var faults = new List<ContentFault>();
-        var sequence = ContentReader.ReadPastFaults(content, faults, MaximumFaults, out var leftUnread);
+        var faults = content.Faults;
+        var sequence = content.Sequence;
 
         var outer = (_resources, _path, _pendingClip, _text, _compatibilityDepth, _floor, _uncountedSaves,
             _sink.Stream, _sink.OperatorIndex, _sink.Operator);
         _resources = resources;
-        _path = new PagePathBuilder();
+        _path = new PathInProgress();
         _pendingClip = null;
         _text = null;
         _compatibilityDepth = 0;
@@ -150,7 +165,7 @@ internal sealed partial class ContentInterpreter
             _sink.OperatorIndex = sequence.Count;
             _sink.Operator = null;
             ReportFaults(faults, ref nextFault, int.MaxValue);
-            if (leftUnread)
+            if (content.LeftUnread)
             {
                 _sink.Report(PageRenderProblem.LimitReached, streamName,
                     "Too much of the content stream could not be read. What follows the last fault is not drawn.");
@@ -165,6 +180,34 @@ internal sealed partial class ContentInterpreter
             _states.PopTo(_floor);
             (_resources, _path, _pendingClip, _text, _compatibilityDepth, _floor, _uncountedSaves,
                 _sink.Stream, _sink.OperatorIndex, _sink.Operator) = outer;
+        }
+    }
+
+    /// <summary>
+    /// A content stream as the parser read it: its operators, and the faults read past on the way.
+    /// Nothing that draws it changes it, so one reading serves every time a form is drawn.
+    /// </summary>
+    private sealed class ParsedContent
+    {
+        private ParsedContent(CSequence sequence, List<ContentFault> faults, bool leftUnread)
+        {
+            Sequence = sequence;
+            Faults = faults;
+            LeftUnread = leftUnread;
+        }
+
+        internal CSequence Sequence { get; }
+
+        internal List<ContentFault> Faults { get; }
+
+        /// <summary>Whether the reading stopped at <see cref="MaximumFaults"/>, short of the end.</summary>
+        internal bool LeftUnread { get; }
+
+        internal static ParsedContent Of(byte[] content)
+        {
+            var faults = new List<ContentFault>();
+            var sequence = ContentReader.ReadPastFaults(content, faults, MaximumFaults, out var leftUnread);
+            return new ParsedContent(sequence, faults, leftUnread);
         }
     }
 
@@ -287,10 +330,12 @@ internal sealed partial class ContentInterpreter
                 _sink.Report(PageRenderProblem.UnsupportedFeature, "sh", "Shadings are not drawn yet.");
                 break;
 
+            case OpCodeName.BDC: BeginMarkedContent(op); break;
+
             case OpCodeName.BX: _compatibilityDepth++; break;
             case OpCodeName.EX: _compatibilityDepth = Math.Max(0, _compatibilityDepth - 1); break;
 
-            // Everything else says nothing about what is drawn: marked content, the rendering
+            // Everything else says nothing about what is drawn: the rest of marked content, the rendering
             // intent and the flatness, the glyph metrics of a Type 3 font, and the pseudo-operator
             // the parser makes of a dictionary written in the content.
         }
@@ -326,31 +371,7 @@ internal sealed partial class ContentInterpreter
             return;
         }
 
-        var before = State.Ctm;
         _states.PopTo(_states.Depth - 1);
-        KeepPathInPlace(before);
-    }
-
-    /// <summary>
-    /// Keeps a path that is being built where it is when the transform changes under it.
-    /// </summary>
-    /// <remarks>
-    /// A point is placed by the transform in force when it is added, and a transform changed
-    /// later moves the pen and not the points before it. The path is kept in user space and
-    /// painted under the transform in force at the painting operator, so the points already in
-    /// it are rewritten in the new user space, where they land on the device as they did. A
-    /// transform changed in the middle of a path is not allowed and still found in files.
-    /// </remarks>
-    private void KeepPathInPlace(XMatrix before)
-    {
-        var after = State.Ctm;
-        if (!_path.HasCurrentPoint || before == after || !after.HasInverse)
-            return;
-
-        after.Invert();
-        var rewrite = XMatrix.Multiply(before, after);
-        if (IsFinite(rewrite))
-            _path.Transform(rewrite);
     }
 
     /// <summary><c>cm</c>.</summary>
@@ -367,9 +388,7 @@ internal sealed partial class ContentInterpreter
             return;
         }
 
-        var before = State.Ctm;
         State.Ctm = ctm;
-        KeepPathInPlace(before);
     }
 
     /// <summary><c>w</c>.</summary>

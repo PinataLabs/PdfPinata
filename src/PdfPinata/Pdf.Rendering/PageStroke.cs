@@ -75,6 +75,21 @@ public sealed class PageStroke
     internal PageStroke WithMiterLimit(double miterLimit) => new(Width, LineCap, LineJoin, miterLimit, _dashPattern, DashPhase);
 
     /// <summary>
+    /// The same line measured in a unit that is <paramref name="unit"/> of this one's long: the
+    /// width, the dashes and the phase each divided by it. Null where a length is then too
+    /// large to be a number.
+    /// </summary>
+    internal PageStroke InUnitsOf(double unit)
+    {
+        var width = Width / unit;
+        var phase = DashPhase / unit;
+        var pattern = _dashPattern.Length == 0 ? _dashPattern : Array.ConvertAll(_dashPattern, length => length / unit);
+        return double.IsFinite(width) && double.IsFinite(phase) && Array.TrueForAll(pattern, double.IsFinite)
+            ? new PageStroke(width, LineCap, LineJoin, MiterLimit, pattern, phase)
+            : null;
+    }
+
+    /// <summary>
     /// The same line with another dash. A pattern with an odd number of lengths is doubled, and
     /// one that is empty or all zeros is a solid line.
     /// </summary>

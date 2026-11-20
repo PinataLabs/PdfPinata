@@ -12,7 +12,7 @@ internal sealed partial class ContentInterpreter
     {
         Span<double> p = stackalloc double[2];
         if (Read(op, p))
-            _path.MoveTo(p[0], p[1]);
+            _path.MoveTo(State.Ctm, p[0], p[1]);
     }
 
     /// <summary><c>l</c>.</summary>
@@ -20,7 +20,7 @@ internal sealed partial class ContentInterpreter
     {
         Span<double> p = stackalloc double[2];
         if (Read(op, p) && HasCurrentPoint(op))
-            _path.LineTo(p[0], p[1]);
+            _path.LineTo(State.Ctm, p[0], p[1]);
     }
 
     /// <summary><c>c</c>.</summary>
@@ -28,7 +28,7 @@ internal sealed partial class ContentInterpreter
     {
         Span<double> p = stackalloc double[6];
         if (Read(op, p) && HasCurrentPoint(op))
-            _path.CubicTo(p[0], p[1], p[2], p[3], p[4], p[5]);
+            _path.CubicTo(State.Ctm, p[0], p[1], p[2], p[3], p[4], p[5]);
     }
 
     /// <summary><c>v</c>: the current point is the first control point.</summary>
@@ -36,7 +36,7 @@ internal sealed partial class ContentInterpreter
     {
         Span<double> p = stackalloc double[4];
         if (Read(op, p) && HasCurrentPoint(op))
-            _path.CubicTo(_path.CurrentPoint.X, _path.CurrentPoint.Y, p[0], p[1], p[2], p[3]);
+            _path.CubicFromCurrentPoint(State.Ctm, p[0], p[1], p[2], p[3]);
     }
 
     /// <summary><c>y</c>: the point the curve ends at is the second control point.</summary>
@@ -44,7 +44,7 @@ internal sealed partial class ContentInterpreter
     {
         Span<double> p = stackalloc double[4];
         if (Read(op, p) && HasCurrentPoint(op))
-            _path.CubicTo(p[0], p[1], p[2], p[3], p[2], p[3]);
+            _path.CubicTo(State.Ctm, p[0], p[1], p[2], p[3], p[2], p[3]);
     }
 
     /// <summary><c>re</c>.</summary>
@@ -52,7 +52,7 @@ internal sealed partial class ContentInterpreter
     {
         Span<double> p = stackalloc double[4];
         if (Read(op, p))
-            _path.AddRectangle(p[0], p[1], p[2], p[3]);
+            _path.AddRectangle(State.Ctm, p[0], p[1], p[2], p[3]);
     }
 
     /// <summary>
@@ -75,9 +75,9 @@ internal sealed partial class ContentInterpreter
     /// not at the <c>W</c> (ISO 32000-1 8.5.4). Both are then forgotten.
     /// </summary>
     /// <remarks>
-    /// The path is kept in user space as it is written and painted under the transform in force
-    /// at the painting operator, so that the pen a stroke is drawn with is measured in the same
-    /// space as the path.
+    /// The path is painted in the user space of the transform in force at the painting operator,
+    /// so that the pen a stroke is drawn with is measured in the same space as the path.
+    /// <see cref="PathInProgress"/> says how it gets there.
     /// </remarks>
     /// <param name="fill">The rule to fill by, or null not to fill.</param>
     /// <param name="stroke">Whether to stroke.</param>
@@ -87,9 +87,9 @@ internal sealed partial class ContentInterpreter
         if (close)
             _path.Close();
 
-        var path = _path.ToPath();
+        var path = _path.ToPath(State.Ctm);
         var clip = _pendingClip;
-        _path = new PagePathBuilder();
+        _path = new PathInProgress();
         _pendingClip = null;
 
         if (!path.IsEmpty)

@@ -306,13 +306,94 @@ public class TextTests
     [Test]
     public void AStrokedGlyphIsStrokedWithALineMeasuredInUserSpace()
     {
-        var stroke = Text("2 0 0 2 0 0 cm 3 w 0 0 1 RG BT /F1 10 Tf 1 Tr 20 20 Td (A) Tj ET").Device.Strokes.Single();
+        var stroke = Text("2 0 0 2 0 0 cm 3 w [6 3] 1.5 d 0 0 1 RG BT /F1 10 Tf 1 Tr 20 20 Td (A) Tj ET").Device.Strokes.Single();
 
+        // The outline is in its own space, a tenth of user space at this type size, and the
+        // line state is taken there with it: 3 in user space is 0.3 of the outline's.
         stroke.DevicePath.Should().Be("M40,60 L60,60 L60,40 L40,40 Z");
-        stroke.Stroke.Width.Should().Be(3);
-        stroke.Transform.M11.Should().Be(2, "the outline is taken to user space, so the transform that scales it scales the line too");
+        stroke.Stroke.Width.Should().BeApproximately(0.3, 1e-12);
+        stroke.Stroke.DashPattern.Should().HaveCount(2);
+        stroke.Stroke.DashPattern[0].Should().BeApproximately(0.6, 1e-12);
+        stroke.Stroke.DashPattern[1].Should().BeApproximately(0.3, 1e-12);
+        stroke.Stroke.DashPhase.Should().BeApproximately(0.15, 1e-12);
+        (stroke.Stroke.Width * stroke.Transform.M11).Should().BeApproximately(6, 1e-9, "3 wide in a user space drawn at twice the size");
         stroke.Paint.Should().Be(new PagePaint(0, 0, 1));
+    }
+
+    [Test]
+    public void AStrokedGlyphIsHandedOverAsTheSamePathAsWhenItIsFilled()
+    {
+        var drawn = Text("BT /F1 10 Tf 2 Tr (AA) Tj 1 Tr /F1 20 Tf 0 1 -1 0 50 50 Tm (A) Tj ET");
+
+        // Set at two sizes and turned a quarter: the outline's space is user space scaled the
+        // same in every direction each time, so the outline itself never has to change.
+        var strokes = drawn.Device.Strokes.ToArray();
+        strokes.Should().HaveCount(3);
+        strokes.Should().OnlyContain(stroke => stroke.Path.IsShared);
+        strokes.Should().OnlyContain(stroke => ReferenceEquals(stroke.Path, drawn.Device.Fills.First().Path));
+        strokes[1].Stroke.Should().BeSameAs(strokes[0].Stroke, "glyphs set at one size share one line state");
+        strokes[2].Stroke.Width.Should().BeApproximately(0.05, 1e-12);
+    }
+
+    [Test]
+    public void AStrokedGlyphStretchedByTzIsCopiedIntoUserSpaceBecauseItsPenIsNoLongerRound()
+    {
+        var stroke = Text("3 w BT /F1 10 Tf 50 Tz 1 Tr 20 20 Td (A) Tj ET").Device.Strokes.Single();
+
+        stroke.DevicePath.Should().Be("M20,80 L25,80 L25,70 L20,70 Z");
+        stroke.Stroke.Width.Should().Be(3);
+        stroke.Transform.M11.Should().Be(1, "the outline is in user space, so the transform is the page's");
         stroke.Path.IsShared.Should().BeFalse();
+    }
+
+    [Test]
+    public void AType3FontsWidthsAreInGlyphSpaceAndAreTakenToTextSpaceByItsFontMatrix()
+    {
+        // ISO 32000-1 9.6.5. A width of 50 under a matrix of a hundredth is half an em, which
+        // is 5 at 10 points and not the 0.5 that reading it as thousandths makes it.
+        var drawn = Text("BT /T3 10 Tf (A) Tj /F1 10 Tf (A) Tj ET", more: (document, resources) =>
+        {
+            var font = new PdfDictionary(document);
+            font.Elements.SetName("/Type", "/Font");
+            font.Elements.SetName("/Subtype", "/Type3");
+            font.Elements.SetInteger("/FirstChar", 65);
+            font.Elements.SetInteger("/LastChar", 65);
+            font.Elements["/Widths"] = new PdfArray(document, new PdfReal(50));
+            font.Elements["/FontMatrix"] = new PdfArray(document, new PdfReal(0.01), new PdfReal(0), new PdfReal(0),
+                new PdfReal(0.01), new PdfReal(0), new PdfReal(0));
+            Drawn.Add(document, resources, "/Font", "/T3", font);
+        });
+
+        Origins(drawn).Should().Equal(new XPoint(0, 100), new XPoint(5, 100));
+    }
+
+    [Test]
+    public void AType3FontWithNoFontMatrixHasItsWidthsReadAsThousandths()
+    {
+        var drawn = Text("BT /T3 10 Tf (A) Tj /F1 10 Tf (A) Tj ET", more: (document, resources) =>
+        {
+            var font = TestFonts.Simple(document, 65, 500);
+            font.Elements.SetName("/Subtype", "/Type3");
+            Drawn.Add(document, resources, "/Font", "/T3", font);
+        });
+
+        Origins(drawn).Should().Equal(new XPoint(0, 100), new XPoint(5, 100));
+    }
+
+    [Test]
+    public void ACodeOutsideTheWidthsAdvancesByTheDescriptorsMissingWidth()
+    {
+        // B is before /FirstChar, so it advances by /MissingWidth: 3 at 10 points. A is 6.
+        var drawn = Drawn.Page("BT /F2 10 Tf (BAA) Tj ET", (document, resources) =>
+        {
+            var font = TestFonts.Simple(document, 65, 600);
+            var descriptor = new PdfDictionary(document);
+            descriptor.Elements.SetReal("/MissingWidth", 300);
+            font.Elements["/FontDescriptor"] = descriptor;
+            Drawn.Add(document, resources, "/Font", "/F2", font);
+        }, _ => new SquareGlyphs());
+
+        Origins(drawn).Should().Equal(new XPoint(0, 100), new XPoint(3, 100), new XPoint(9, 100));
     }
 
     [Test]

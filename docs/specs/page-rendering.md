@@ -23,12 +23,12 @@ the other items is added.
 | 8 | Diagnostics instead of exceptions | done |
 | 9 | `PdfPage.UserUnit` | v1 |
 | 10 | CFF (`/FontFile3`) and Type 1 (`/FontFile`) font programs | deferred |
-| 11 | Type 3 fonts | deferred |
+| 11 | Type 3 fonts | deferred; their advances are read (#371) |
 | 12 | Shadings (`sh`, shading patterns) and tiling patterns | deferred |
-| 13 | Blend modes, transparency groups, soft-mask groups | deferred |
+| 13 | Blend modes, transparency groups, soft-mask groups | deferred; reported where they change what is drawn |
 | 14 | Separation, DeviceN, Lab, and ICC colour management | deferred |
 | 15 | CCITTFax, JBIG2 and JPX images | deferred |
-| 16 | Optional content | deferred |
+| 16 | Optional content | deferred; content of a group that is off is drawn and reported |
 | 17 | Annotation appearances, and the option to draw them | deferred |
 | 18 | `PdfTextExtractor` and `PdfImagePlacementReader` on the new interpreter | follow-up |
 | 19 | A `RenderPage` demo in SampleApp and on the docs site | follow-up |
@@ -126,7 +126,8 @@ and chooses each glyph by the PDF's rules rather than the font's alone:
 - composite fonts: the CMap, then `/CIDToGIDMap` (`/Identity` or a stream).
 
 Glyphs are positioned by the PDF's `/Widths` or `/W`, never by the font's own advances, because the
-PDF's numbers are the ones its producer laid the text out with.
+PDF's numbers are the ones its producer laid the text out with. A Type 3 font's `/Widths` are in
+glyph space and go through its `/FontMatrix`; every other font's are thousandths of text space.
 
 The text extractor (`FontInfo`) ignores `/Encoding` today and reads a font with no `/ToUnicode` as
 Latin-1. The encoding code written here is what item 18 gives it.

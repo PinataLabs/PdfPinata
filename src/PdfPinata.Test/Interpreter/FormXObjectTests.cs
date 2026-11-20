@@ -1,8 +1,11 @@
+using System;
 using System.Linq;
+using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Rendering;
+using PdfPinata.Test.Helpers;
 using TUnit.Core;
 
 namespace PdfPinata.Test.Interpreter;
@@ -92,11 +95,13 @@ public class FormXObjectTests
         drawn.Device.Fills.Should().ContainSingle();
     }
 
-    [Test]
-    public void AFormThatDrawsItselfIsDrawnOnceAndReported()
+    // On a thread of its own and under a timeout: a guard that stopped guarding would recurse
+    // until the stack ran out, which ends the test host and fails no test.
+    [Test, Timeout(30_000)]
+    public async Task AFormThatDrawsItselfIsDrawnOnceAndReported()
     {
-        var drawn = Drawn.Page("/Fm1 Do", (document, resources) =>
-            Drawn.Add(document, resources, "/XObject", "/Fm1", Drawn.Form(document, "0 0 5 5 re f /Fm1 Do")));
+        var drawn = await Interruptibly.Run(() => Drawn.Page("/Fm1 Do", (document, resources) =>
+            Drawn.Add(document, resources, "/XObject", "/Fm1", Drawn.Form(document, "0 0 5 5 re f /Fm1 Do"))));
 
         drawn.Device.Fills.Should().ContainSingle();
         drawn.Problems.Should().Equal("LimitReached /Fm1");
@@ -128,6 +133,199 @@ public class FormXObjectTests
 
         drawn.Device.Fills.Should().ContainSingle();
         drawn.Problems.Should().Equal("InvalidValue /Fm1");
+    }
+
+    private static Drawn GroupDrawnUnder(string state, Action<PdfDictionary> group = null) =>
+        Drawn.Page("/GS1 gs /Fm1 Do", (document, resources) =>
+        {
+            var parameters = new PdfDictionary(document);
+            foreach (var entry in state.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+                parameters.Elements.SetReal(entry.Split('=')[0], double.Parse(entry.Split('=')[1], System.Globalization.CultureInfo.InvariantCulture));
+            Drawn.Add(document, resources, "/ExtGState", "/GS1", parameters);
+
+            var form = Drawn.Form(document, "0 0 50 50 re f 25 25 50 50 re f");
+            var transparency = new PdfDictionary(document);
+            transparency.Elements.SetName("/S", "/Transparency");
+            group?.Invoke(transparency);
+            form.Elements["/Group"] = transparency;
+            Drawn.Add(document, resources, "/XObject", "/Fm1", form);
+        });
+
+    [Test]
+    [Arguments("/ca=0.5")]
+    [Arguments("/CA=0.5")]
+    public void ATransparencyGroupDrawnAtAnAlphaIsReportedBecauseItIsDrawnPieceByPiece(string state)
+    {
+        var drawn = GroupDrawnUnder(state);
+
+        // Two fills that overlap, each at the alpha, where a group is one thing at the alpha.
+        drawn.Device.Fills.Should().HaveCount(2);
+        drawn.Problems.Should().Equal("UnsupportedFeature /Group");
+        drawn.Result.IsComplete.Should().BeFalse();
+    }
+
+    [Test]
+    public void ATransparencyGroupDrawnWithNoAlphaIsDrawnAsAGroupWouldBeAndIsNotReported()
+    {
+        var drawn = GroupDrawnUnder("/ca=1 /CA=1");
+
+        drawn.Device.Fills.Should().HaveCount(2);
+        drawn.Result.IsComplete.Should().BeTrue();
+    }
+
+    [Test]
+    public void AKnockoutGroupIsReportedWhateverTheAlpha()
+    {
+        var drawn = GroupDrawnUnder("/ca=1", group => group.Elements.SetBoolean("/K", true));
+
+        drawn.Problems.Should().Equal("UnsupportedFeature /Group");
+    }
+
+    /// <summary>
+    /// A page whose content is in the optional content group <c>/L1</c>, with a second group
+    /// <c>/L2</c> beside it, in a document whose default configuration is <paramref name="configure"/>d.
+    /// </summary>
+    private static Drawn Layered(string content, Action<PdfDocument, PdfDictionary, PdfDictionary, PdfDictionary> configure,
+        Action<PdfDocument, PdfDictionary, PdfDictionary, PdfDictionary> more = null) =>
+        Drawn.Page(content, (document, resources) =>
+        {
+            var first = Group(document);
+            var second = Group(document);
+            Drawn.Add(document, resources, "/Properties", "/L1", first);
+            Drawn.Add(document, resources, "/Properties", "/L2", second);
+
+            var configuration = new PdfDictionary(document);
+            configure(document, configuration, first, second);
+            var properties = new PdfDictionary(document);
+            properties.Elements["/OCGs"] = new PdfArray(document, first.Reference, second.Reference);
+            properties.Elements["/D"] = configuration;
+            document.Internals.Catalog.Elements["/OCProperties"] = properties;
+            more?.Invoke(document, resources, first, second);
+        });
+
+    private static PdfDictionary Group(PdfDocument document)
+    {
+        var group = new PdfDictionary(document);
+        group.Elements.SetName("/Type", "/OCG");
+        document.Internals.AddObject(group);
+        return group;
+    }
+
+    private const string InFirstGroup = "/OC /L1 BDC 0 0 5 5 re f EMC";
+
+    [Test]
+    public void ContentOfAGroupTheDocumentSwitchesOffIsDrawnAndReported()
+    {
+        var drawn = Layered(InFirstGroup, (document, configuration, first, _) =>
+            configuration.Elements["/OFF"] = new PdfArray(document, first.Reference));
+
+        drawn.Device.Fills.Should().ContainSingle("optional content is not applied yet");
+        drawn.Problems.Should().Equal("UnsupportedFeature /OC");
+        drawn.Result.IsComplete.Should().BeFalse();
+    }
+
+    [Test]
+    public void ContentOfAGroupThatIsOnIsNotReported()
+    {
+        var drawn = Layered(InFirstGroup, (document, configuration, _, second) =>
+            configuration.Elements["/OFF"] = new PdfArray(document, second.Reference));
+
+        drawn.Device.Fills.Should().ContainSingle();
+        drawn.Result.IsComplete.Should().BeTrue();
+    }
+
+    [Test]
+    public void WhereEveryGroupStartsOffOnlyTheGroupsListedAreOn()
+    {
+        var on = Layered(InFirstGroup, (document, configuration, first, _) =>
+        {
+            configuration.Elements.SetName("/BaseState", "/OFF");
+            configuration.Elements["/ON"] = new PdfArray(document, first.Reference);
+        });
+        var off = Layered(InFirstGroup, (_, configuration, _, _) => configuration.Elements.SetName("/BaseState", "/OFF"));
+
+        on.Result.IsComplete.Should().BeTrue();
+        off.Problems.Should().Equal("UnsupportedFeature /OC");
+    }
+
+    [Test]
+    [Arguments(null, "/L1", true)]
+    [Arguments(null, "/L1 /L2", false)]
+    [Arguments("/AnyOn", "/L1 /L2", false)]
+    [Arguments("/AllOn", "/L1 /L2", true)]
+    [Arguments("/AnyOff", "/L1 /L2", false)]
+    [Arguments("/AnyOff", "/L2", true)]
+    [Arguments("/AllOff", "/L1", false)]
+    [Arguments("/AllOff", "/L1 /L2", true)]
+    public void AMembershipDictionaryIsOffByItsPolicyOverItsGroups(string policy, string groups, bool reported)
+    {
+        // The first group is off and the second is on.
+        var drawn = Layered("/OC /M BDC 0 0 5 5 re f EMC",
+            (document, configuration, first, _) => configuration.Elements["/OFF"] = new PdfArray(document, first.Reference),
+            (document, resources, first, second) =>
+            {
+                var membership = new PdfDictionary(document);
+                membership.Elements.SetName("/Type", "/OCMD");
+                membership.Elements["/OCGs"] = new PdfArray(document,
+                    groups.Split(' ').Select(name => (PdfItem)(name == "/L1" ? first : second).Reference).ToArray());
+                if (policy != null)
+                    membership.Elements.SetName("/P", policy);
+                Drawn.Add(document, resources, "/Properties", "/M", membership);
+            });
+
+        drawn.Result.IsComplete.Should().Be(!reported);
+    }
+
+    [Test]
+    [Arguments("/Not", false, false)]
+    [Arguments("/Not", true, true)]
+    [Arguments("/And", false, true)]
+    [Arguments("/Or", false, false)]
+    public void AMembershipDictionaryWithAVisibilityExpressionIsOffByTheExpression(string operation, bool ofTheGroupThatIsOn,
+        bool reported)
+    {
+        // The first group is off and the second is on. The policy says visible, and is not used.
+        var drawn = Layered("/OC /M BDC 0 0 5 5 re f EMC",
+            (document, configuration, first, _) => configuration.Elements["/OFF"] = new PdfArray(document, first.Reference),
+            (document, resources, first, second) =>
+            {
+                var membership = new PdfDictionary(document);
+                membership.Elements.SetName("/Type", "/OCMD");
+                membership.Elements["/OCGs"] = second.Reference;
+                membership.Elements["/VE"] = operation == "/Not"
+                    ? new PdfArray(document, new PdfName("/Not"), (ofTheGroupThatIsOn ? second : first).Reference)
+                    : new PdfArray(document, new PdfName(operation), first.Reference,
+                        new PdfArray(document, new PdfName("/Not"), new PdfArray(document, new PdfName("/Not"), second.Reference)));
+                Drawn.Add(document, resources, "/Properties", "/M", membership);
+            });
+
+        drawn.Result.IsComplete.Should().Be(!reported);
+    }
+
+    [Test]
+    public void AFormThatBelongsToAGroupSwitchedOffIsDrawnAndReported()
+    {
+        var drawn = Layered("/Fm1 Do",
+            (document, configuration, first, _) => configuration.Elements["/OFF"] = new PdfArray(document, first.Reference),
+            (document, resources, first, _) =>
+            {
+                var form = Drawn.Form(document, "0 0 5 5 re f");
+                form.Elements["/OC"] = first.Reference;
+                Drawn.Add(document, resources, "/XObject", "/Fm1", form);
+            });
+
+        drawn.Device.Fills.Should().ContainSingle();
+        drawn.Problems.Should().Equal("UnsupportedFeature /OC");
+    }
+
+    [Test]
+    public void MarkedContentInADocumentWithNoOptionalContentIsNotReported()
+    {
+        var drawn = Drawn.Page("/OC /L1 BDC /Span << /ActualText (a) >> BDC 0 0 5 5 re f EMC EMC", (document, resources) =>
+            Drawn.Add(document, resources, "/Properties", "/L1", Group(document)));
+
+        drawn.Device.Fills.Should().ContainSingle();
+        drawn.Result.IsComplete.Should().BeTrue();
     }
 
     [Test]
