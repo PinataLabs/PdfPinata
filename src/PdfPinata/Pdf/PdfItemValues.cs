@@ -50,7 +50,7 @@ internal static class PdfItemValues
 
     internal static bool TryGetInteger(PdfItem item, out int value)
     {
-        if (TryGetWholeNumber(item, out var whole) && whole is >= int.MinValue and <= int.MaxValue)
+        if (TryGetLong(item, out var whole) && whole is >= int.MinValue and <= int.MaxValue)
         {
             value = (int)whole;
             return true;
@@ -73,7 +73,7 @@ internal static class PdfItemValues
                 return true;
 
             default:
-                var isWhole = TryGetWholeNumber(item, out var whole);
+                var isWhole = TryGetLong(item, out var whole);
                 value = whole;
                 return isWhole;
         }
@@ -123,7 +123,7 @@ internal static class PdfItemValues
     /// <summary>
     /// An integer of any of the three widths an integer is read or written in.
     /// </summary>
-    private static bool TryGetWholeNumber(PdfItem item, out long value)
+    internal static bool TryGetLong(PdfItem item, out long value)
     {
         switch (PdfReference.Dereference(item))
         {

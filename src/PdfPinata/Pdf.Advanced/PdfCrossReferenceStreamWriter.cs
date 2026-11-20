@@ -16,18 +16,6 @@ namespace PdfPinata.Pdf.Advanced;
 internal static class PdfCrossReferenceStreamWriter
 {
     /// <summary>
-    /// The widths of the three fields of an entry, as they go in <c>/W</c>.
-    /// </summary>
-    /// <remarks>
-    /// Four bytes for the second field caps the file at 4 GB and an object stream at four billion
-    /// members, neither of which is reachable in practice; two for the third leaves room for the
-    /// largest generation number a PDF may have. Computing the narrowest widths that fit would save
-    /// a few bytes per object and cost the clarity of a fixed layout — the entries are compressed
-    /// afterwards anyway, and repeated leading zeroes are exactly what a compressor is good at.
-    /// </remarks>
-    private static readonly int[] FieldWidths = [1, 4, 2];
-
-    /// <summary>
     /// Writes the body of the document, then the cross-reference stream that indexes it, and
     /// answers the offset the <c>startxref</c> at the end of the file has to name.
     /// </summary>
@@ -87,7 +75,6 @@ internal static class PdfCrossReferenceStreamWriter
         CopyTrailerElements(document._trailer, xrefStream);
         xrefStream.Elements.SetName(PdfCrossReferenceStream.Keys.Type, "/XRef");
         xrefStream.Elements.SetInteger(PdfCrossReferenceStream.Keys.Size, size);
-        SetFieldWidths(document, xrefStream);
 
         // /Index is omitted deliberately. Its default is [0 Size], and PrepareForSave renumbers the
         // objects from 1 with no gaps, so that default is exactly right and saying so again would
@@ -168,7 +155,6 @@ internal static class PdfCrossReferenceStreamWriter
         // before int.MaxValue.
         xrefStream.Elements.SetInteger(PdfCrossReferenceStream.Keys.Prev, checked((int)previousStartXref));
 
-        SetFieldWidths(document, xrefStream);
         SetEntries(document, xrefStream, entries);
 
         // Never encrypted, for the reason WriteBody gives.
@@ -224,34 +210,54 @@ internal static class PdfCrossReferenceStreamWriter
             entries[iref.ObjectNumber] = new PdfCrossReferenceStream.CrossReferenceStreamEntry
             {
                 Type = 2,
-                Field2 = (uint)placement.ObjectStreamNumber,
+                Field2 = placement.ObjectStreamNumber,
                 Field3 = (uint)placement.Index
             };
         }
     }
 
-    private static void SetFieldWidths(PdfDocument document, PdfCrossReferenceStream xrefStream)
-    {
-        var widths = new PdfArray(document);
-        foreach (var width in FieldWidths)
-            widths.Elements.Add(new PdfInteger(width));
-        xrefStream.Elements[PdfCrossReferenceStream.Keys.W] = widths;
-    }
-
     /// <summary>
-    /// Encodes the entries as the stream's data, compressed unless the document says not to.
+    /// Writes <c>/W</c> and encodes the entries in those widths as the stream's data, compressed
+    /// unless the document says not to.
     /// </summary>
+    /// <remarks>
+    /// Two bytes for the third field leave room for the largest generation number a PDF may have.
+    /// The second field takes four bytes, or as many more as the largest offset needs: an object
+    /// written past 4 GiB would otherwise be indexed at its offset modulo 4 GiB. Four is kept as the
+    /// floor rather than the narrowest width that fits, so every file small enough for it is
+    /// written as it always was; the entries are compressed anyway, and leading zeroes are what a
+    /// compressor is good at.
+    /// </remarks>
     private static void SetEntries(PdfDocument document, PdfCrossReferenceStream xrefStream,
         PdfCrossReferenceStream.CrossReferenceStreamEntry[] entries)
     {
-        xrefStream.SetStreamContent(Encode(entries), compress: !document.Options.NoCompression);
+        int[] widths = [1, SecondFieldWidth(entries), 2];
+
+        var w = new PdfArray(document);
+        foreach (var width in widths)
+            w.Elements.Add(new PdfInteger(width));
+        xrefStream.Elements[PdfCrossReferenceStream.Keys.W] = w;
+
+        xrefStream.SetStreamContent(Encode(entries, widths), compress: !document.Options.NoCompression);
+    }
+
+    private static int SecondFieldWidth(PdfCrossReferenceStream.CrossReferenceStreamEntry[] entries)
+    {
+        var largest = 0L;
+        foreach (var entry in entries)
+            largest = System.Math.Max(largest, entry.Field2);
+
+        var width = 4;
+        while (width < 8 && largest >> (width * 8) != 0)
+            width++;
+        return width;
     }
 
     private static PdfCrossReferenceStream.CrossReferenceStreamEntry InUse(PdfReference iref) =>
         new()
         {
             Type = 1,
-            Field2 = (uint)iref.Position,
+            Field2 = iref.Position,
             Field3 = (uint)iref.GenerationNumber
         };
 
@@ -280,17 +286,17 @@ internal static class PdfCrossReferenceStreamWriter
     /// <summary>
     /// Lays the entries out as the fixed-width big-endian rows the stream is made of.
     /// </summary>
-    private static byte[] Encode(PdfCrossReferenceStream.CrossReferenceStreamEntry[] entries)
+    private static byte[] Encode(PdfCrossReferenceStream.CrossReferenceStreamEntry[] entries, int[] widths)
     {
-        var rowLength = FieldWidths[0] + FieldWidths[1] + FieldWidths[2];
+        var rowLength = widths[0] + widths[1] + widths[2];
         var bytes = new byte[entries.Length * rowLength];
 
         var at = 0;
         foreach (var entry in entries)
         {
-            at = WriteField(bytes, at, entry.Type, FieldWidths[0]);
-            at = WriteField(bytes, at, (ulong)entry.Field2, FieldWidths[1]);
-            at = WriteField(bytes, at, entry.Field3, FieldWidths[2]);
+            at = WriteField(bytes, at, entry.Type, widths[0]);
+            at = WriteField(bytes, at, (ulong)entry.Field2, widths[1]);
+            at = WriteField(bytes, at, entry.Field3, widths[2]);
         }
 
         return bytes;

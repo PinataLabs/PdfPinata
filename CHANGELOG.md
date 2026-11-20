@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### PDF Reader & Writer
+
+#### Fixed
+
+- **A document saved with a cross-reference stream indexes objects past 4 GiB correctly.** The offset field in `/W` was a fixed 4 bytes and each offset was cut to 32 bits, so an object written at or beyond 4 GiB was indexed at its offset modulo 4 GiB. The file was saved without any error, and could not be read back. The field now widens to as many bytes as the largest offset needs, up to 8. A file under 4 GiB keeps `/W [1 4 2]` and is written byte for byte as before. (#366)
+- **A file whose `/Prev` or `/XRefStm` names a position past 2 GiB opens.** Both were read as 32-bit integers, so opening a multi-revision or hybrid-reference file whose earlier sections lie past 2 GiB threw an `InvalidCastException`. (#366)
+
 ## [0.6.0] - 2026-11-15
 
 ### API & Packaging

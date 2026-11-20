@@ -9,7 +9,7 @@ investigation turned up. All three are tracked the same way, because what a read
 first is the same in each case: is this the code as it stands, or the code as somebody hoped it
 would be?
 
-**51 done · 5 in progress · 10 not started · 66 total.**
+**51 done · 5 in progress · 11 not started · 67 total.**
 
 Read the relevant spec before extending that feature area.
 
@@ -92,6 +92,7 @@ Written, argued, and not yet acted on.
 - [ ] [conformance-preconditions.md](conformance-preconditions.md) — a conformance claim that refuses at the point of the claim rather than at save.
 - [ ] [dom-property-seams.md](dom-property-seams.md) — the DOM's remaining property seams driven off the value descriptor. Sequenced behind `generated-serialization.md`.
 - [ ] [font-seam-contracts.md](font-seam-contracts.md) — stating the lifecycle each of the five global font seams promises.
+- [ ] [lazy-reading-and-page-extraction.md](lazy-reading-and-page-extraction.md) — `PdfDocumentOpenMode.Lazy` and `PdfSplitter`: pages taken out of a multi-gigabyte file in memory that grows with the output, not the file (#366). Five PRs, in order.
 - [ ] [layout-api-decision.md](layout-api-decision.md) — **a decision note, not a proposal** (G8). Build a constraint-solver layout model, or make the flow model pleasanter? The largest strategic call in the gap analysis, and unmade. Nothing should be built here until it is answered.
 - [ ] [legacy-collections-migration.md](legacy-collections-migration.md) — `ArrayList` and `Hashtable` replaced by generic collections. Still 19 files using one and 7 the other; `ParagraphFormatInfo.lineInfos` still boxes a struct per line of every paragraph.
 - [ ] [open-mode-enforcement.md](open-mode-enforcement.md) — `PdfDocumentOpenMode` enforced where it is named. `CanModify` is still hardcoded `true`; twelve guarded operations at seven places are waiting on it.
