@@ -76,7 +76,8 @@ internal sealed partial class ContentInterpreter
     /// </summary>
     /// <remarks>
     /// The path is painted in the user space of the transform in force at the painting operator,
-    /// so that the pen a stroke is drawn with is measured in the same space as the path.
+    /// so that the pen a stroke is drawn with is measured in the same space as the path. Where
+    /// that transform has no inverse, it is painted in the space its points were placed in.
     /// <see cref="PathInProgress"/> says how it gets there.
     /// </remarks>
     /// <param name="fill">The rule to fill by, or null not to fill.</param>
@@ -87,7 +88,7 @@ internal sealed partial class ContentInterpreter
         if (close)
             _path.Close();
 
-        var path = _path.ToPath(State.Ctm);
+        var (path, transform) = _path.ToPath(State.Ctm);
         var clip = _pendingClip;
         _path = new PathInProgress();
         _pendingClip = null;
@@ -95,13 +96,13 @@ internal sealed partial class ContentInterpreter
         if (!path.IsEmpty)
         {
             if (fill != null)
-                _device.Fill(path, State.Ctm, fill.Value, State.FillPaint);
+                _device.Fill(path, transform, fill.Value, State.FillPaint);
             if (stroke)
-                _device.Stroke(path, State.Ctm, State.Stroke, State.StrokePaint);
+                _device.Stroke(path, transform, State.Stroke, State.StrokePaint);
         }
 
         // A clip to a path with nothing in it leaves nothing to draw in, which is what it says.
         if (clip != null)
-            _device.Clip(path, State.Ctm, clip.Value);
+            _device.Clip(path, transform, clip.Value);
     }
 }

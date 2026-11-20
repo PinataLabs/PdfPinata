@@ -85,7 +85,7 @@ internal sealed class OptionalContent
     private bool Evaluate(PdfDictionary membership)
     {
         if (membership.Elements.GetNameOrEmpty("/Type") != "/OCMD")
-            return !IsOn(membership);
+            return IsGroup(membership) && StateOf(membership) == false;
 
         // A visibility expression, where there is one, is used and the policy is not.
         if (membership.Elements.GetArray("/VE") is { } expression)
@@ -93,42 +93,61 @@ internal sealed class OptionalContent
             _operandsLeft = MaximumExpressionOperands;
             _unreadable = false;
             var visible = IsVisible(expression, 0);
-            return !_unreadable && !visible;
+            return !_unreadable && visible == false;
         }
 
-        var groups = new List<PdfDictionary>();
+        var states = new List<bool>();
         if (membership.Elements.GetArray("/OCGs") is { } several)
         {
             for (var index = 0; index < several.Elements.Count; index++)
             {
-                if (several.Elements.GetDictionary(index) is { } group)
-                    groups.Add(group);
+                if (several.Elements.GetDictionary(index) is { } group && !Add(group))
+                    return false;
             }
         }
-        else if (membership.Elements.GetDictionary("/OCGs") is { } single)
+        else if (membership.Elements.GetDictionary("/OCGs") is { } single && !Add(single))
         {
-            groups.Add(single);
+            return false;
         }
 
-        // A membership dictionary that names no group hides nothing.
-        if (groups.Count == 0)
+        // A membership dictionary none of whose groups counts has no effect on visibility, as
+        // one that names no group has none (ISO 32000-1 Table 99).
+        if (states.Count == 0)
             return false;
 
         return membership.Elements.GetNameOrEmpty("/P") switch
         {
-            "/AllOn" => !groups.TrueForAll(IsOn),
-            "/AnyOff" => groups.TrueForAll(IsOn),
-            "/AllOff" => groups.Exists(IsOn),
-            _ => !groups.Exists(IsOn)
+            "/AllOn" => states.Contains(false),
+            "/AnyOff" => !states.Contains(false),
+            "/AllOff" => states.Contains(true),
+            _ => !states.Contains(true)
         };
+
+        // A dictionary that is not a group makes the whole membership visible, as it does an
+        // expression.
+        bool Add(PdfDictionary group)
+        {
+            if (!IsGroup(group))
+                return false;
+
+            if (StateOf(group) is { } on)
+                states.Add(on);
+            return true;
+        }
     }
 
+    /// <summary>A group is typed <c>/OCG</c>, or not typed at all.</summary>
+    private static bool IsGroup(PdfDictionary dictionary) =>
+        dictionary.Elements.GetNameOrEmpty("/Type") is "/OCG" or "";
+
     /// <summary>
-    /// Whether a group is on. One with no intent the configuration names has no effect on
-    /// visibility (ISO 32000-1 8.11.2.3), and so is on.
+    /// Whether a group is on, or null where it has no effect on visibility: one with no intent
+    /// the configuration names (ISO 32000-1 8.11.2.3). Such a group is left out of a policy and
+    /// an expression, rather than read as on, which a <c>/Not</c> or <c>/AllOff</c> would turn
+    /// to hidden.
     /// </summary>
-    private bool IsOn(PdfDictionary group) =>
-        !Counts(group) || _exceptions.Contains(ReferenceIdentity.KeyOf(group)) == _offUnlessListed;
+    private bool? StateOf(PdfDictionary group) =>
+        Counts(group) ? _exceptions.Contains(ReferenceIdentity.KeyOf(group)) == _offUnlessListed : null;
 
     private bool Counts(PdfDictionary group)
     {
@@ -179,7 +198,12 @@ internal sealed class OptionalContent
     /// <c>/Not</c> over one, each a group or a further expression. Where any part of it is not
     /// that, or lies past the depth or the operands read, the whole expression is visible.
     /// </summary>
-    private bool IsVisible(PdfArray expression, int depth)
+    /// <returns>
+    /// Whether it is visible, or null where none of its groups has an effect on visibility. An
+    /// operation over operands that all have none has none either, and so neither does an
+    /// expression over it, up to the membership, which is then visible as one naming no group is.
+    /// </returns>
+    private bool? IsVisible(PdfArray expression, int depth)
     {
         if (depth >= MaximumExpressionDepth || expression.Elements.Count < 2
                                             || !PdfItemValues.TryGetName(expression.Elements[0], out var operation))
@@ -196,20 +220,20 @@ internal sealed class OptionalContent
         // Every operand is read, because one that cannot be read anywhere makes the expression
         // visible whatever the others answer.
         var all = operation == "/And";
-        var result = all;
+        bool? result = null;
         for (var index = 1; index < expression.Elements.Count; index++)
         {
             var visible = IsVisible(expression.Elements[index], depth);
             if (_unreadable)
-                return true;
-            if (visible != all)
-                result = !all;
+                return null;
+            if (visible is { } answer)
+                result = all ? (result ?? true) && answer : (result ?? false) || answer;
         }
 
         return result;
     }
 
-    private bool IsVisible(PdfItem operand, int depth)
+    private bool? IsVisible(PdfItem operand, int depth)
     {
         if (_operandsLeft <= 0)
             return Unreadable();
@@ -218,14 +242,14 @@ internal sealed class OptionalContent
         return PdfReference.Dereference(operand) switch
         {
             PdfArray nested => IsVisible(nested, depth + 1),
-            PdfDictionary group when group.Elements.GetNameOrEmpty("/Type") is "/OCG" or "" => IsOn(group),
+            PdfDictionary group when IsGroup(group) => StateOf(group),
             _ => Unreadable()
         };
     }
 
-    private bool Unreadable()
+    private bool? Unreadable()
     {
         _unreadable = true;
-        return true;
+        return null;
     }
 }

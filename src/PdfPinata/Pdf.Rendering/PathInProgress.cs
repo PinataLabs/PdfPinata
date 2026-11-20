@@ -23,8 +23,13 @@ namespace PdfPinata.Pdf.Rendering;
 /// <para>
 /// A transform with no inverse has no user space to take a point back to. While the base is one,
 /// points are kept as they are written, which is right for as long as the transform stays. When
-/// it changes, the points are re-based once: onto the new transform where it has an inverse, and
-/// otherwise onto device space. Either base has an inverse, so it is never re-based again.
+/// a point is added under another, the points are re-based once: onto the new transform where it
+/// has an inverse, and otherwise onto device space. Either base has an inverse, so it is never
+/// re-based again.
+/// </para>
+/// <para>
+/// A path painted under a transform with no inverse is handed over in the base's user space with
+/// the base, rather than flattened through a transform that placed none of its points.
 /// </para>
 /// </remarks>
 internal sealed class PathInProgress
@@ -94,22 +99,29 @@ internal sealed class PathInProgress
 
     /// <summary>
     /// The path, in the user space of the transform it is painted under: the one a stroke's pen
-    /// is measured in.
+    /// is measured in. It changes nothing, and the path can go on being built.
     /// </summary>
-    internal PagePath ToPath(XMatrix ctm)
+    /// <returns>
+    /// The path and the transform to paint it under: the one in force where it has an inverse,
+    /// and otherwise the base, which puts every point where it was placed. A transform with no
+    /// inverse at the painting operator would flatten points it did not place.
+    /// </returns>
+    internal (PagePath Path, XMatrix Transform) ToPath(XMatrix ctm)
     {
-        if (_hasBegun && ctm != _base && !_baseHasInverse && ctm.HasInverse)
-            Rebase(ctm);
-
         var path = _builder.ToPath();
-        if (path.IsEmpty || ctm == _base || !ctm.HasInverse)
-            return path;
+        if (path.IsEmpty || ctm == _base)
+            return (path, ctm);
 
-        // Under a transform with no inverse everything lands on one line or one point wherever
-        // it is, so the path is handed over as it stands.
-        ctm.Invert();
-        var toPaintedSpace = XMatrix.Multiply(_base, ctm);
-        return IsFinite(toPaintedSpace) ? path.Transformed(toPaintedSpace) : path;
+        if (ctm.HasInverse)
+        {
+            var inverse = ctm;
+            inverse.Invert();
+            var toPaintedSpace = XMatrix.Multiply(_base, inverse);
+            if (IsFinite(toPaintedSpace))
+                return (path.Transformed(toPaintedSpace), ctm);
+        }
+
+        return (path, _base);
     }
 
     /// <summary>Where a point written under a transform belongs in the base's user space.</summary>

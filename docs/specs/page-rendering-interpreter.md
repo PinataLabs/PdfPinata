@@ -106,12 +106,17 @@ began under, which is every well-formed one, is handed over as the content wrote
 
 A transform with no inverse, such as `1 0 0 0 0 0 cm`, has no user space to take a point back to.
 A path begun under one keeps its points as written for as long as that transform stays, and when
-the transform changes they are **re-based once**: onto the new transform where it has an inverse,
+a point is added under another they are **re-based once**: onto the new transform where it has an inverse,
 and onto device space where it does not either. Either base has an inverse, so the path is never
 re-based again and the cost stays linear. So `q 1 0 0 0 0 0 cm 0 0 m 10 10 l Q 20 20 l S` draws
 the first two points flattened onto one line and the third where the restored transform puts it.
 The first fix round kept the points as written for the whole path and then mapped every one of them
-through the singular transform, which flattened the third point too (#400). `W` and `W*`
+through the singular transform, which flattened the third point too (#400). A path painted under
+a transform with no inverse is handed to the device in the space its points were placed in, with
+the transform of that space, so `0 0 m 10 0 l 10 10 l h 1 0 0 0 0 0 cm f` fills the triangle its
+points make rather than a line. Its stroke's pen is then measured in that space too, where the
+flattening transform would have flattened the pen as well. `PathInProgress.ToPath` changes nothing
+and can be asked again. `W` and `W*`
 are remembered and applied after the painting operator that follows, which is the order
 ISO 32000-1 8.5.4 gives.
 
@@ -202,9 +207,14 @@ differently:
   `/OCGs`. The content is drawn. Subject `/OC`. A group counts only where one of its `/Intent`
   names, `/View` where it has none, is among the configuration's `/Intent`, which is also `/View`
   where `/D` has none and takes in every intent where it names `/All`. A group that does not count
-  has no effect on visibility (ISO 32000-1 8.11.2.3 and 8.11.4.3) and is read as on. A `/VE` is
-  read 32 deep and 1,024 operands long. An operand that is a dictionary with a `/Type` other than
-  `/OCG` cannot be read, and an expression any part of which cannot be read, or lies
+  has no effect on visibility (ISO 32000-1 8.11.2.3 and 8.11.4.3), so it is left out of `/OCGs` and
+  of a `/VE`, rather than read as on: read as on, `/AllOff`, `/AnyOff` or `/Not` over it would
+  turn it to hidden. A membership with no group left has no effect, as Table 99 says of one whose
+  `/OCGs` names none, and an `/And`, `/Or` or `/Not` none of whose operands has an effect has none
+  either. So a configuration `/Intent` of `[]` makes everything visible, which is what 8.11.2.3
+  asks. A dictionary whose `/Type` is neither `/OCG` nor absent is not a group, wherever it is
+  named: by `/OC`, in `/OCGs` or as a `/VE` operand, it makes the membership visible as a whole.
+  A `/VE` is read 32 deep and 1,024 operands long. An expression any part of which cannot be read, or lies
   past either limit, is visible as a whole: a `/Not` over it does not turn it round, so
   `[/Not [/Xor …]]` is visible. Every operand is read for that reason, rather than stopping at the
   first that decides. `OptionalContent` answers once per membership for one render, keyed by
