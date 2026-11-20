@@ -15,6 +15,10 @@ PdfPinata is a partial port of PdfSharp.Xamarin for .NET Core Additionally Migra
     <summary>PdfSharp for .NET Core</summary>
     <IsTrimmable>true</IsTrimmable>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <!-- The page rendering seam in Pdf.Rendering is [Experimental("PPEXP001")], and the compiler
+         reports a use of an experimental type wherever it is, this assembly included. The
+         interpreter is that use. A consumer of the package is still told. -->
+    <NoWarn>$(NoWarn);PPEXP001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

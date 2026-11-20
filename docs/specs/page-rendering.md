@@ -7,26 +7,28 @@ drawing it onto a SkiaSharp canvas, in a new package, `PdfPinata.Rendering.Skia`
 [BobLd/PdfPig.Rendering.Skia](https://github.com/BobLd/PdfPig.Rendering.Skia) is the model for the
 Skia surface. The rest of this note explains why ours is not as thin as that one.
 
-None of it is built yet. The table is the plan.
+The table is the plan. Items 1, 2 and 8 are built (#371), and `page-rendering-interpreter.md` sets
+them out as they were built: what crosses the seam, how broken content is read, and where each of
+the other items is added.
 
 | item | what | status |
 |---|---|---|
-| 1 | Content-stream interpreter and device seam, in the core | v1 |
-| 2 | Graphics state, paths, clipping, Form XObjects | v1 |
+| 1 | Content-stream interpreter and device seam, in the core | done |
+| 2 | Graphics state, paths, clipping, Form XObjects | done |
 | 3 | DeviceGray, DeviceRGB, DeviceCMYK, Indexed, ICCBased by `/N` | v1 |
 | 4 | Embedded TrueType font programs | v1 |
 | 5 | Standard 14 fonts through `FontResolver`, with AFM widths | v1 |
 | 6 | Image XObjects and inline images, masks and soft masks, DCT through `SKCodec` | v1 |
 | 7 | `PdfPinata.Rendering.Skia`: canvas, picture, bitmap, encoded image | v1 |
-| 8 | Diagnostics instead of exceptions | v1 |
+| 8 | Diagnostics instead of exceptions | done |
 | 9 | `PdfPage.UserUnit` | v1 |
 | 10 | CFF (`/FontFile3`) and Type 1 (`/FontFile`) font programs | deferred |
-| 11 | Type 3 fonts | deferred |
+| 11 | Type 3 fonts | deferred; their advances are read (#371) |
 | 12 | Shadings (`sh`, shading patterns) and tiling patterns | deferred |
-| 13 | Blend modes, transparency groups, soft-mask groups | deferred |
+| 13 | Blend modes, transparency groups, soft-mask groups | deferred; reported where they change what is drawn |
 | 14 | Separation, DeviceN, Lab, and ICC colour management | deferred |
 | 15 | CCITTFax, JBIG2 and JPX images | deferred |
-| 16 | Optional content | deferred |
+| 16 | Optional content | deferred; content of a group that is off is drawn and reported |
 | 17 | Annotation appearances, and the option to draw them | deferred |
 | 18 | `PdfTextExtractor` and `PdfImagePlacementReader` on the new interpreter | follow-up |
 | 19 | A `RenderPage` demo in SampleApp and on the docs site | follow-up |
@@ -73,14 +75,23 @@ The interpreter resolves everything that is PDF and hands the device only what i
   limit and dash), in a colour and an alpha;
 - a path to intersect the clip with;
 - a glyph, **as an outline path**, never as text: the interpreter has already chosen the glyph,
-  positioned it with the PDF's widths and applied the text render mode;
-- an image as decoded samples with a transform, and its mask;
-- save and restore.
+  positioned it with the PDF's widths and applied the text render mode. So a glyph is a fill, a
+  stroke or a clip like any other path, and the seam has no member for one. Its path is the same
+  instance each time that glyph is drawn, which is what a device caches on;
+- an image as decoded samples with a transform, every mask already applied to them;
+- save and restore, of the clip, which is the only state a device keeps.
+
+**Every call carries its own transform**, from the coordinates of what it is handed to device
+space. A device that kept the CTM would have had to keep it the way the interpreter does, and two
+devices would have come to disagree. Carrying it also lets a stroke be drawn under the matrix, so
+a pen under a transform that scales x and y differently keeps its shape.
 
 The seam is public, because this repository has no `InternalsVisibleTo` and the Skia package must
 implement it. It is marked `[Experimental("PPEXP001")]`, because it will grow when shadings,
-patterns and transparency groups arrive (items 12 and 13), and changing an interface breaks every
-implementer. PolySharp supplies the attribute on netstandard2.1. The Skia package's own entry points
+patterns and transparency groups arrive (items 12 and 13). It is an abstract class, `PageDevice`,
+and not an interface, so that what is added later is a `virtual` member whose base body says the
+device cannot draw it, and a device written before it still compiles. An interface could only do
+that with a default member, which the netstandard2.1 runtime kept for Unity does not take. PolySharp supplies the attribute on netstandard2.1. The Skia package's own entry points
 are not experimental.
 
 ## Items 2 and 3 — graphics state and colour
@@ -115,7 +126,8 @@ and chooses each glyph by the PDF's rules rather than the font's alone:
 - composite fonts: the CMap, then `/CIDToGIDMap` (`/Identity` or a stream).
 
 Glyphs are positioned by the PDF's `/Widths` or `/W`, never by the font's own advances, because the
-PDF's numbers are the ones its producer laid the text out with.
+PDF's numbers are the ones its producer laid the text out with. A Type 3 font's `/Widths` are in
+glyph space and go through its `/FontMatrix`; every other font's are thousandths of text space.
 
 The text extractor (`FontInfo`) ignores `/Encoding` today and reads a font with no `/ToUnicode` as
 Latin-1. The encoding code written here is what item 18 gives it.
@@ -152,7 +164,9 @@ The core decodes an image XObject or inline image into one neutral sample buffer
 - `/Mask`, as a stencil or a colour-key array, and `/SMask`.
 
 DCT is the one filter decoded outside the core, by `SKCodec` in the Skia package, because the core
-carries no imaging dependency. CCITTFax, JBIG2 and JPX are item 15. An image the renderer cannot
+carries no imaging dependency. The device decodes it *for* the core, through
+`PageDevice.DecodeImage`, and hands the samples back, so the `/Decode` array and the masks are
+applied in one place and a device draws only finished samples. CCITTFax, JBIG2 and JPX are item 15. An image the renderer cannot
 decode is skipped and reported.
 
 ## Item 7 — the Skia surface
@@ -162,6 +176,10 @@ The primitive draws a page onto a canvas the caller owns:
 ```csharp
 PageRenderResult Render(this PdfPage page, SKCanvas canvas, PageRenderOptions? options = null);
 ```
+
+It is itself thin: `PageView.Of`, in the core, works out where the page lands from the box,
+`/Rotate`, `/UserUnit`, the scale and the region, and `PageRendering.Render` draws it onto the
+package's `PageDevice`.
 
 Everything else is a thin layer over it: `ToSKPicture`, `ToSKBitmap`, and `ToImage(stream, format)`
 for PNG or JPEG. Each has a `PdfDocument` overload taking a page index. The caller owns the lifetime
@@ -200,6 +218,10 @@ undecodable image is **skipped**, and the reason is recorded on `PageRenderResul
 the same reasoning as `DocumentRenderer.ImageFailed` in `image-failure-reporting.md`: carry on, but
 do not lose the reason. The one exception is an unset seam that is needed (item 5). That is a
 configuration error rather than a defect in the file, and it should not be hidden in a list.
+
+`PageRenderResult` is in the core and is not experimental, because the Skia package's own entry
+points return it. It holds one entry for each different problem and counts the times it was met,
+and keeps at most 256 entries, so a hostile page costs a bounded amount of memory to describe.
 
 ## Item 9 — `/UserUnit`
 

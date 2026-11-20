@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFrameworks>net8.0;net10.0;net11.0</TargetFrameworks>
     <IsPackable>false</IsPackable>
+    <!-- The page rendering seam is experimental, and its tests are what use it. -->
+    <NoWarn>$(NoWarn);PPEXP001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

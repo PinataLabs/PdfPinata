@@ -618,9 +618,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// </remarks>
     private PdfRectangle EffectiveBox(string key)
     {
-        var media = StatedBox(InheritablePageKeys.MediaBox);
-        if (media != null)
-            media = LowerLeftFirst(MediaBoxIsTurnedWhenWritten ? TurnedOver(media) : media);
+        var media = WrittenMediaBox();
 
         var box = StatedBox(key);
         if (box == null && key != InheritablePageKeys.CropBox)
@@ -638,6 +636,19 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         var x2 = Math.Min(box.X2, media.X2);
         var y2 = Math.Min(box.Y2, media.Y2);
         return x1 <= x2 && y1 <= y2 ? new PdfRectangle(x1, y1, x2, y2) : new PdfRectangle();
+    }
+
+    /// <summary>
+    /// The media box as a reader finds it in the file, its lower left corner first, or the empty
+    /// rectangle when the page states none. Page rendering draws this for the media box, where
+    /// <see cref="MediaBox"/> answers the box as it is held before a landscape page is written.
+    /// </summary>
+    internal PdfRectangle EffectiveMediaBox => WrittenMediaBox() ?? new PdfRectangle();
+
+    private PdfRectangle WrittenMediaBox()
+    {
+        var media = StatedBox(InheritablePageKeys.MediaBox);
+        return media == null ? null : LowerLeftFirst(MediaBoxIsTurnedWhenWritten ? TurnedOver(media) : media);
     }
 
     private static PdfRectangle LowerLeftFirst(PdfRectangle box) =>

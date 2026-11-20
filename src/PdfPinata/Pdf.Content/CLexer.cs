@@ -62,6 +62,18 @@ public class CLexer
     }
 
     /// <summary>
+    /// Whether a string keeps its bytes, one character per byte, when it opens with a UTF-16 byte
+    /// order mark, where it is otherwise decoded to the text those bytes spell.
+    /// </summary>
+    /// <remarks>
+    /// Decoding is right for a string that is text, such as an <c>/ActualText</c>. A string shown
+    /// by <c>Tj</c> is character codes, and a composite font whose first code is 0xFEFF opens with
+    /// the same two bytes. Page rendering sets this, because the decoded text cannot be turned
+    /// back into the bytes: a little-endian mark and an odd byte at the end are both lost.
+    /// </remarks>
+    internal bool KeepStringBytes { get; set; }
+
+    /// <summary>
     /// Reads the next token and returns its type.
     /// </summary>
     public CSymbol ScanNextToken()
@@ -811,6 +823,9 @@ public class CLexer
     /// </param>
     private CSymbol DecodeLiteralString(bool terminated)
     {
+        if (KeepStringBytes)
+            return CSymbol.String;
+
         // The reference only names the big-endian byte order mark, but Adobe Reader also accepts
         // the little-endian one - the document lexer does too, and a byte-swapped string here
         // should read the same text it does there.
@@ -917,7 +932,7 @@ public class CLexer
     private CSymbol DecodeHexString()
     {
         var chars = _token.ToString();
-        if (chars.Length <= 2 || !CharacterScanning.StartsWithUtf16BigEndianMark(chars.AsSpan()))
+        if (KeepStringBytes || chars.Length <= 2 || !CharacterScanning.StartsWithUtf16BigEndianMark(chars.AsSpan()))
             return CSymbol.HexString;
 
         // A Unicode hex string missing half of its last character is short of the low byte
