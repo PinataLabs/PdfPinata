@@ -59,6 +59,32 @@ public class JpegDecodeTests
         Decode([]).Should().BeNull();
     }
 
+    // The header says 20000 by 20000, which is 400 million samples, over the 2^28 a page image may
+    // have; the data after it is a real 16 by 8 JPEG, so it is the header alone that is refused.
+    [Test]
+    public void AJpegWhoseHeaderClaimsTooManySamplesIsNotDecoded()
+    {
+        var bytes = Jpeg(new SKColor(200, 30, 60));
+        var frame = FrameOf(bytes);
+        bytes[frame + 5] = 20000 >> 8;
+        bytes[frame + 6] = 20000 & 0xFF;
+        bytes[frame + 7] = 20000 >> 8;
+        bytes[frame + 8] = 20000 & 0xFF;
+
+        Decode(bytes).Should().BeNull();
+    }
+
+    private static int FrameOf(byte[] jpeg)
+    {
+        for (var i = 0; i + 9 < jpeg.Length; i++)
+        {
+            if (jpeg[i] == 0xFF && jpeg[i + 1] is >= 0xC0 and <= 0xC2)
+                return i;
+        }
+
+        throw new InvalidOperationException("The JPEG has no frame header.");
+    }
+
     private static PageImage Decode(byte[] data)
     {
         using var bitmap = new SKBitmap(1, 1);

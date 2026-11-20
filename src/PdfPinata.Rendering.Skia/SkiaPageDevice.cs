@@ -34,6 +34,10 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
     private readonly SKPaint _paint;
     private readonly Dictionary<PagePath, SKPath> _sharedPaths = [];
 
+    // The most samples one image may have, as the core limits one, so that a JPEG whose header
+    // claims a vast size is refused before its pixels are allocated.
+    private const long MaximumSamples = 1L << 28;
+
     /// <summary>Initializes a device over a canvas.</summary>
     /// <param name="canvas">What to draw onto. Its current matrix is where the page's device space begins.</param>
     /// <param name="antiAlias">Whether fills, strokes, clips and images are drawn with smoothed edges.</param>
@@ -144,7 +148,7 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
             return null;
 
         var size = decoder.Info;
-        if (size.Width < 1 || size.Height < 1 || (long)size.Width * size.Height * 4 > int.MaxValue)
+        if (size.Width < 1 || size.Height < 1 || (long)size.Width * size.Height > MaximumSamples)
             return null;
 
         var info = new SKImageInfo(size.Width, size.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul);

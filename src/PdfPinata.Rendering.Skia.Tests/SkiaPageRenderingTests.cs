@@ -228,10 +228,38 @@ public class SkiaPageRenderingTests
     }
 
     [Test]
+    public void ARegionIsClippedOnACanvasLargerThanIt()
+    {
+        var page = Page("1 0 0 rg 0 0 200 150 re f");
+        using var bitmap = new SKBitmap(300, 300);
+        using var canvas = new SKCanvas(bitmap);
+        canvas.Clear(SKColors.Gray);
+
+        page.Render(canvas, new PageRenderOptions { Region = new XRect(0, 0, 50, 50) });
+
+        bitmap.GetPixel(25, 25).Should().Be(SKColors.Red);
+        bitmap.GetPixel(100, 100).Should().Be(SKColors.Gray, "the page's red reaches no further than the region");
+    }
+
+    [Test]
+    [Arguments(-1)]
+    [Arguments(101)]
+    public void AQualityOutsideZeroToOneHundredIsRefused(int quality)
+    {
+        using var stream = new MemoryStream();
+
+        var act = () => Page("").ToImage(stream, SKEncodedImageFormat.Jpeg, quality);
+
+        act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("quality");
+        stream.Length.Should().Be(0);
+    }
+
+    [Test]
     public void AGlyphDrawnAgainIsPaintedAgain()
     {
-        // Each glyph is the same shared outline: a square 0.8 em wide, painted three times, then
-        // used as a clip, with the cached path of the fill taken up again with another fill rule.
+        // Each glyph is the same shared outline: a square 0.8 em wide, painted three times. Then
+        // one is used as a clip, which is not the shared instance but a new path the clip builds
+        // from it, and the red fill shows through that.
         var page = Page("0 0 1 rg BT /F1 40 Tf 10 100 Td (AAA) Tj ET " +
                         "BT 7 Tr /F1 40 Tf 10 20 Td (A) Tj ET 1 0 0 rg 0 0 200 80 re f",
             (document, added) => Font(document, added));

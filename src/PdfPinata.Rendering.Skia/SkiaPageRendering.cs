@@ -137,8 +137,8 @@ public static class SkiaPageRendering
     /// <returns>What was left out of the page, and why.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="page"/> or <paramref name="stream"/> is null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// The scale is not a positive finite number, the box is not a box, or the bitmap would be too
-    /// large to allocate.
+    /// The quality is not from 0 to 100, the scale is not a positive finite number, the box is not
+    /// a box, or the bitmap would be too large to allocate.
     /// </exception>
     /// <exception cref="ArgumentException">The region has no area.</exception>
     /// <exception cref="NotSupportedException">SkiaSharp cannot encode <paramref name="format"/>.</exception>
@@ -149,6 +149,8 @@ public static class SkiaPageRendering
         int quality = 100, PageRenderOptions options = null)
     {
         ArgumentNullException.ThrowIfNull(stream);
+        ArgumentOutOfRangeException.ThrowIfLessThan(quality, 0);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(quality, 100);
         using var bitmap = ToSKBitmap(page, options, out var result);
         if (!bitmap.Encode(stream, format, quality))
             throw new NotSupportedException($"SkiaSharp cannot encode an image as {format}.");
@@ -163,7 +165,9 @@ public static class SkiaPageRendering
     /// <param name="format">The format to encode in.</param>
     /// <param name="quality">From 0 to 100, for a format that loses detail.</param>
     /// <param name="options">How to render it, or null for the defaults.</param>
-    /// <exception cref="ArgumentOutOfRangeException"><paramref name="pageIndex"/> names no page of the document.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="pageIndex"/> names no page of the document, or the quality is not from 0 to 100.
+    /// </exception>
     public static PageRenderResult ToImage(this PdfDocument document, int pageIndex, Stream stream,
         SKEncodedImageFormat format, int quality = 100, PageRenderOptions options = null) =>
         PageOf(document, pageIndex).ToImage(stream, format, quality, options);

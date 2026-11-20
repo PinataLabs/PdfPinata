@@ -41,6 +41,28 @@ public class SkiaPageDeviceImageTests
     }
 
     [Test]
+    public void ASampleWithPartialAlphaIsCompositedAsIfItsColourWereNotMultipliedByIt()
+    {
+        // Straight alpha: red at 128 over white is half red and half white, (255, 127, 127).
+        using var bitmap = Draw(PageImage.FromRgba32(1, 1, new byte[] { 255, 0, 0, 128 }), new PagePaint(0, 0, 0));
+
+        bitmap.GetPixel(5, 5).Red.Should().BeCloseTo(255, 2);
+        bitmap.GetPixel(5, 5).Green.Should().BeCloseTo(127, 2);
+        bitmap.GetPixel(5, 5).Blue.Should().BeCloseTo(127, 2);
+    }
+
+    [Test]
+    public void ASampleWithPartialAlphaIsFurtherMultipliedByThePaintsAlpha()
+    {
+        // The alpha is 128/255 times 0.5, about 0.251: 200 * 0.251 + 255 * 0.749 is 241, and so on.
+        using var bitmap = Draw(PageImage.FromRgba32(1, 1, new byte[] { 200, 100, 0, 128 }), new PagePaint(0, 0, 0, 0.5));
+
+        bitmap.GetPixel(5, 5).Red.Should().BeCloseTo(241, 3);
+        bitmap.GetPixel(5, 5).Green.Should().BeCloseTo(216, 3);
+        bitmap.GetPixel(5, 5).Blue.Should().BeCloseTo(191, 3);
+    }
+
+    [Test]
     public void AStencilIsPaintedInThePaintsColourWhereItIsCovered()
     {
         using var bitmap = Draw(PageImage.FromAlpha8(2, 1, new byte[] { 255, 0 }), new PagePaint(0, 0, 1));

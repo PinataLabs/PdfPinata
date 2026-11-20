@@ -729,7 +729,7 @@ workflows, which install the SDK `global.json` names — uses it, and `LangVersi
 C# 15 on every leg. `PdfPinata.Signing`'s net11.0 `System.Security.Cryptography.Pkcs` is `11.0.0`,
 so no stable package depends on a prerelease one. Like `-f net8.0`, a
 solution-wide `-f net11.0` fails with NETSDK1005, because the net10.0-only projects have no such
-leg; run the five multi-targeted test projects one by one.
+leg; run the six multi-targeted test projects one by one.
 
 ## Tests
 

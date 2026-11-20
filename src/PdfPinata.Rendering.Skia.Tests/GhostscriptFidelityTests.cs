@@ -126,4 +126,14 @@ public class GhostscriptFidelityTests
                 "0.8 0.4 0 rg " + Circle + "f 4 w 0 0 0.5 RG 0 0 m 200 150 l S"),
             nameof(ARegionAtAScale), new PageRenderOptions { Scale = 3, Region = new XRect(40, 30, 90, 60) })
             .ShouldBeWithin(meanChannelDifference: 0.6, shareOverThreshold: 0.001);
+
+    // Every /Rotate matrix is symmetric, so only a cm that turns or skews content tells a matrix
+    // from its transpose.
+    [Test]
+    public void ContentTurnedAndSkewedByCm() =>
+        Fidelity.Of(HandWritten.Page(
+                "q 0.866 0.5 -0.5 0.866 100 20 cm 1 0 0 rg 0 0 80 30 re f 4 w 0 0 1 RG 0 40 m 70 40 l S Q " +
+                "q 1 0 0.4 1 10 90 cm 0 0.6 0 rg 0 0 50 40 re f Q"),
+            nameof(ContentTurnedAndSkewedByCm), new PageRenderOptions { Scale = 2 })
+            .ShouldBeWithin(meanChannelDifference: 0.8, shareOverThreshold: 0.005);
 }
