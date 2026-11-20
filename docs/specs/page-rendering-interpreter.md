@@ -342,7 +342,8 @@ read is reported as `MissingGlyph` against each glyph shown in it, with the reas
     `cmap` alone.** In the Unicode or (1,0) `cmap` the code means another character: WinAnsi's 0x80
     is the euro, and a font without one has Adieresis at Mac 0x80. pdf.js and MuPDF draw nothing
     there, and so does this, with a `MissingGlyph`.
-  - A font program with no `cmap` at all is taken to number its glyphs by the codes.
+  - A font program with no `cmap` table at all is taken to number its glyphs by the codes. One whose
+    `cmap` has only subtables this does not read, such as format 2, is not.
   - A subtable that is malformed for a code is passed over for the next. Only where none has a
     glyph is the fault the reason reported.
 
@@ -377,6 +378,11 @@ decoded again each time it is drawn and handed over unshared, so a device does n
 it costs time, about 7 ms for each such glyph of 65,535 points, and not memory. The other way, to
 report the glyph and skip it, would leave text out of a real font whose glyphs are many and large,
 and the budget, about 20 MB, is far past what a page of CJK text keeps.
+
+**A text object clips to at most 4,194,304 points of glyph outline.** A glyph shown in a clip mode
+is copied into the clip in device space, each time it is shown, so sharing the outline does not
+bound the clip: 60,000 shows of one glyph of 65,535 points would be four billion points. Past the
+limit a glyph is left out of the clip, and `LimitReached` is reported once for the text object.
 
 ## What was deliberately left out
 

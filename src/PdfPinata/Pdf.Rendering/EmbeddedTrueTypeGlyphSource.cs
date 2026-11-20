@@ -162,6 +162,7 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
         private readonly TrueTypeCharacterMap _symbol;
         private readonly TrueTypeCharacterMap _macintosh;
         private readonly bool _hasNoCharacterMap;
+        private readonly bool _hasNoUsableCharacterMap;
         private readonly int[] _chosen = new int[256];
         private string _unreadableSubtable;
         private bool _subtableFailed;
@@ -197,7 +198,8 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
             _unicode = glyphs.CharacterMap(3, 1) ?? glyphs.CharacterMap(0, 3) ?? _fullUnicode;
             _symbol = glyphs.CharacterMap(3, 0);
             _macintosh = glyphs.CharacterMap(1, 0);
-            _hasNoCharacterMap = _unicode == null && _symbol == null && _macintosh == null;
+            _hasNoUsableCharacterMap = _unicode == null && _symbol == null && _macintosh == null;
+            _hasNoCharacterMap = !glyphs.HasCharacterMaps;
 
             Array.Fill(_chosen, NotChosen);
         }
@@ -214,7 +216,7 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
             {
                 _subtableFailed = false;
                 var glyph = Choose(code);
-                if (glyph == 0 && code == 0 && NotdefDrawsSomething())
+                if (glyph == 0 && code == 0 && _differences[0] != ".notdef" && NotdefDrawsSomething())
                     _chosen[code] = 0;
                 else
                     _chosen[code] = glyph != 0 ? glyph : _subtableFailed ? Unreadable : -1;
@@ -233,7 +235,7 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
             if (_byCode)
             {
                 glyph = ByCode(code);
-                if (glyph == 0 && (_symbolic || _hasNoCharacterMap))
+                if (glyph == 0 && (_symbolic || _hasNoUsableCharacterMap))
                     glyph = ByName(code, out _);
             }
             else

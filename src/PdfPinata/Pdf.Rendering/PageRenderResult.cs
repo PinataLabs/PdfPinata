@@ -116,7 +116,8 @@ public enum PageRenderProblem
 
     /// <summary>
     /// A limit that keeps a malformed page from running away was reached: a form XObject drawing
-    /// itself, forms nested too deep, too many states saved, or too many faults in one stream.
+    /// itself, forms nested too deep, too many states saved, too many faults in one stream, or
+    /// too many points of glyph outline in one text object's clip.
     /// </summary>
     LimitReached,
 

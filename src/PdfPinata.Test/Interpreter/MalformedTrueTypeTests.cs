@@ -192,6 +192,30 @@ public class MalformedTrueTypeTests
         GC.KeepAlive(page);
     }
 
+    [Test, Timeout(120000), NotInParallel]
+    public async Task TextThatClipsToOneGlyphOfManyPointsManyTimesClipsToNoMoreThanALimit()
+    {
+        // Each glyph shown in a clip mode is copied into the clip. 60,000 of one glyph of 65,535
+        // points would be four billion points from 240 KB of text.
+        const int cids = 60000;
+        var builder = new TrueTypeFontBuilder();
+        builder.Add(Dense);
+        var program = builder.Build();
+        var shown = string.Concat(Enumerable.Repeat("0001", cids));
+
+        var page = Drawn.PageOf($"BT /F1 10 Tf 7 Tr <{shown}> Tj ET 0 0 5 5 re f",
+            (document, resources) => Drawn.Add(document, resources, "/Font", "/F1", EmbeddedFonts.Composite(document, program)));
+        var device = new PathCountingDevice();
+
+        var (result, retained) = await Interruptibly.Run(() => Retained(() => PageRendering.Render(page, device)));
+
+        result.Diagnostics.Should().ContainSingle().Which.Problem.Should().Be(PageRenderProblem.LimitReached);
+        device.LargestClip.Should().BeInRange(1, 1 << 22);
+        device.Fills.Should().Be(1, "the rectangle after the text is drawn");
+        retained.Should().BeLessThan(64L << 20);
+        GC.KeepAlive(page);
+    }
+
     /// <summary>
     /// One glyph of 65,535 points in a few hundred bytes: every flag repeated, every coordinate
     /// the same as the last.
@@ -215,10 +239,12 @@ public class MalformedTrueTypeTests
         public int Fills { get; private set; }
         public int UnsharedFills { get; private set; }
         public int SharedPaths => _shared.Count;
+        public int LargestClip { get; private set; }
 
         public override void Save() { }
         public override void Restore() { }
-        public override void Clip(PagePath path, XMatrix transform, XFillMode fillMode) { }
+        public override void Clip(PagePath path, XMatrix transform, XFillMode fillMode) =>
+            LargestClip = Math.Max(LargestClip, path.Points.Length);
         public override void Stroke(PagePath path, XMatrix transform, PageStroke stroke, PagePaint paint) { }
         public override void DrawImage(PageImage image, XMatrix transform, PagePaint paint) { }
 

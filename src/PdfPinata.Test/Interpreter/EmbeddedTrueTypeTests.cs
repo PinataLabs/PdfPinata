@@ -240,6 +240,36 @@ public class EmbeddedTrueTypeTests
     }
 
     [Test]
+    public void CodeZeroThatDifferencesNameNotdefDrawsNothingThoughGlyphZeroHasContours()
+    {
+        var builder = new TrueTypeFontBuilder();
+        var a = builder.AddBar(100);
+        builder.Map(3, 0, new Dictionary<int, int> { [0xF041] = a });
+
+        var drawn = Drawn.Page("BT /F1 10 Tf <0041> Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Simple(document, builder.Build(), 4,
+                Differences(document, null, 0, "/.notdef"))));
+
+        Widths(drawn).Should().Equal(0.1);
+        drawn.Problems.Should().Equal("MissingGlyph /F1");
+    }
+
+    [Test]
+    public void AFontWhoseCmapHasNoSubtableThatIsReadDoesNotDrawTheGlyphNumberedByTheCode()
+    {
+        // Format 2 is not read. A font with a cmap was not numbered by its codes.
+        var builder = new TrueTypeFontBuilder();
+        builder.AddBar(100);
+        builder.Map(3, 1, [0, 2, 0, 6, 0, 0]);
+
+        var drawn = Drawn.Page("BT /F1 10 Tf <01> Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Simple(document, builder.Build(), 4, null)));
+
+        drawn.Device.Fills.Should().BeEmpty();
+        drawn.Problems.Should().Equal("MissingGlyph /F1");
+    }
+
+    [Test]
     public void AMalformedCmapSubtableDoesNotStopTheNextFromBeingAsked()
     {
         // The (3,1) subtable says it has 0x7FFF segments and holds none, so every lookup in it

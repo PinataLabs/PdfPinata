@@ -19,6 +19,16 @@ internal sealed class TextObject
     /// until one is. The clip is narrowed to them all together when the text object ends.
     /// </summary>
     internal PagePathBuilder Clip;
+
+    /// <summary>The points of the glyph outlines in <see cref="Clip"/>.</summary>
+    internal long ClipPoints;
+
+    /// <summary>
+    /// The most points of glyph outline one text object clips to, about 64 MB. Each glyph shown
+    /// in a clip mode is copied into the clip, so a few bytes of text showing one glyph of 65,536
+    /// points tens of thousands of times would otherwise be billions of points.
+    /// </summary>
+    internal const long MaximumClipPoints = 1 << 22;
 }
 
 // Text state, text positioning and text showing.
@@ -336,7 +346,29 @@ internal sealed partial class ContentInterpreter
         }
 
         if (mode >= TextRenderMode.FillClip)
-            (text.Clip ??= new PagePathBuilder()).Append(outline, glyphToDevice);
+            AddToClip(text, outline, glyphToDevice);
+    }
+
+    /// <summary>
+    /// Adds a glyph to the text object's clip, unless that would take it past
+    /// <see cref="TextObject.MaximumClipPoints"/>, which is reported once for the text object and
+    /// leaves that glyph and those after it out of the clip.
+    /// </summary>
+    private void AddToClip(TextObject text, PagePath outline, XMatrix glyphToDevice)
+    {
+        if (text.ClipPoints < 0)
+            return;
+
+        if (outline.Points.Length > TextObject.MaximumClipPoints - text.ClipPoints)
+        {
+            text.ClipPoints = -1;
+            _sink.Report(PageRenderProblem.LimitReached, "Tr",
+                "The glyphs a text object clips to have too many points. Those after the limit are left out of the clip.");
+            return;
+        }
+
+        text.ClipPoints += outline.Points.Length;
+        (text.Clip ??= new PagePathBuilder()).Append(outline, glyphToDevice);
     }
 
     /// <summary>
