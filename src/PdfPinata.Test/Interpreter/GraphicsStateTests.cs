@@ -76,10 +76,28 @@ public class GraphicsStateTests
     [Test]
     public void APathBegunUnderATransformWithNoInverseIsStillPainted()
     {
-        var drawn = Drawn.Page("q 0 0 0 0 0 0 cm 0 0 m Q 10 0 l 10 10 l S");
+        var drawn = Drawn.Page("q 1 0 0 0 0 0 cm 0 0 m 10 10 l Q 20 20 l S");
 
-        drawn.Device.Strokes.Should().ContainSingle();
+        // The points under the flattening transform land on one line, and the last is placed
+        // by the transform restored before it.
+        drawn.Device.Strokes.Single().ToString().Should().Be("stroke M0,100 L10,100 L20,80 rgb(0,0,0)");
         drawn.Result.IsComplete.Should().BeTrue();
+    }
+
+    [Test]
+    public void APathBegunUnderTwoTransformsWithNoInverseIsPaintedWhereTheyPutIt()
+    {
+        var drawn = Drawn.Page("q 1 0 0 0 0 0 cm 0 0 m 10 10 l Q q 0 0 0 1 0 0 cm 20 20 l Q 30 30 l S");
+
+        drawn.Device.Strokes.Single().ToString().Should().Be("stroke M0,100 L10,100 L0,80 L30,70 rgb(0,0,0)");
+    }
+
+    [Test]
+    public void APathPaintedUnderTheTransformWithNoInverseItWasBuiltUnderIsHandedOverAsWritten()
+    {
+        var drawn = Drawn.Page("1 0 0 0 0 0 cm 0 0 m 10 10 l S");
+
+        drawn.Device.Strokes.Single().Path.Points.ToArray().Should().Equal(new XPoint(0, 0), new XPoint(10, 10));
     }
 
     [Test]
