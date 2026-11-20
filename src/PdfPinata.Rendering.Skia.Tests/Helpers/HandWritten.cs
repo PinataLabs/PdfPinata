@@ -34,6 +34,36 @@ internal static class HandWritten
         entries(state);
         document.Internals.AddObject(state);
 
+        Resource(document, page, "/ExtGState", name, state);
+    }
+
+    /// <summary>
+    /// An object of the document whose entries are written as PDF text, such as
+    /// <c>("/Coords", "[0 0 100 0]")</c>, or are other objects, which are referred to.
+    /// </summary>
+    public static PdfDictionary Object(PdfDocument document, params (string Key, object Value)[] entries)
+    {
+        var dictionary = new PdfDictionary(document);
+        foreach (var (key, value) in entries)
+            dictionary.Elements[key] = value is PdfDictionary other ? other.Reference : new PdfLiteral((string)value);
+        document.Internals.AddObject(dictionary);
+        return dictionary;
+    }
+
+    /// <summary>As <see cref="Object"/>, with a stream: a pattern's cell, or a function's samples or program.</summary>
+    public static PdfDictionary Stream(PdfDocument document, string content, params (string Key, object Value)[] entries)
+    {
+        var dictionary = Object(document, entries);
+        dictionary.CreateStream(Encoding.Latin1.GetBytes(content));
+        return dictionary;
+    }
+
+    /// <summary>
+    /// Puts something in a category of the page's resources, such as <c>/Shading</c>, under a name:
+    /// an object of the document, which is referred to, or anything else as it is.
+    /// </summary>
+    public static void Resource(PdfDocument document, PdfPage page, string category, string name, PdfItem value)
+    {
         var resources = page.Elements.GetDictionary("/Resources");
         if (resources == null)
         {
@@ -41,9 +71,9 @@ internal static class HandWritten
             page.Elements["/Resources"] = resources;
         }
 
-        var states = resources.Elements.GetDictionary("/ExtGState");
-        if (states == null)
-            resources.Elements["/ExtGState"] = states = new PdfDictionary(document);
-        states.Elements[name] = state.Reference;
+        var entries = resources.Elements.GetDictionary(category);
+        if (entries == null)
+            resources.Elements[category] = entries = new PdfDictionary(document);
+        entries.Elements[name] = value is PdfObject { Reference: not null } indirect ? indirect.Reference : value;
     }
 }
