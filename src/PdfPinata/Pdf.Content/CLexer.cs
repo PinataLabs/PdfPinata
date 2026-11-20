@@ -202,37 +202,85 @@ public class CLexer
     /// content when there is none.
     /// </summary>
     /// <remarks>
-    /// The entries are read as tokens, so that a string holding the letters <c>ID</c> is not taken
-    /// for the end of them. A string or dictionary left unclosed reads on to the end of the content,
-    /// though, past the <c>ID</c> and every operator after the image. When the tokens run out before
-    /// an <c>ID</c>, the entries end at the first <c>ID</c> standing on its own in the bytes instead,
-    /// and the reader goes back to it.
+    /// Each <c>ID</c> standing on its own in the bytes is a candidate, and the entries before one are
+    /// read as tokens, up to it and no further. The first candidate they end on is the image's, so
+    /// a string holding the letters <c>ID</c> is not taken for the end of the entries. Tokens are
+    /// never read past a candidate, because a string or dictionary left unclosed would read on to
+    /// the end of the content, past every operator after the image, and do it again for each image
+    /// after it. When none of the first few candidates is reached by the tokens, the entries are
+    /// malformed, and end at the first candidate after the token left open.
     /// </remarks>
     private bool ScanToImageData(int dictionaryStart, out int dictionaryEnd, out bool ascii85)
     {
+        Span<int> candidates = stackalloc int[MaximumIDCandidates];
+        var count = 0;
+        var openTokenStart = dictionaryStart;
+        for (var from = dictionaryStart; count < MaximumIDCandidates; count++)
+        {
+            var id = FirstStandaloneID(from);
+            if (id < 0)
+                break;
+
+            candidates[count] = id;
+            if (EntriesBefore(dictionaryStart, id + 2).TryScanToID(out var idStart, out var lastTokenStart, out ascii85))
+            {
+                dictionaryEnd = dictionaryStart + idStart;
+                MoveTo(dictionaryEnd + 2);
+                return true;
+            }
+            openTokenStart = dictionaryStart + lastTokenStart;
+            from = id + 2;
+        }
+
+        if (count == 0)
+        {
+            dictionaryEnd = ContLength;
+            ascii85 = false;
+            MoveTo(ContLength);
+            return false;
+        }
+
+        dictionaryEnd = candidates[count - 1];
+        foreach (var candidate in candidates[..count])
+        {
+            if (candidate >= openTokenStart)
+            {
+                dictionaryEnd = candidate;
+                break;
+            }
+        }
+        EntriesBefore(dictionaryStart, dictionaryEnd).TryScanToID(out _, out _, out ascii85);
+        MoveTo(dictionaryEnd + 2);
+        return true;
+    }
+
+    /// <summary>How many candidates for an inline image's <c>ID</c> are tried before giving up.</summary>
+    private const int MaximumIDCandidates = 4;
+
+    /// <summary>A lexer over the content from one index up to another, and nothing after.</summary>
+    private CLexer EntriesBefore(int start, int end) => new(_content.AsSpan(start, end - start).ToArray());
+
+    /// <summary>
+    /// Reads tokens until one is the operator <c>ID</c>, and says where it begins, where the last
+    /// token read begins, and whether a name of the ASCII85 filter came before it.
+    /// </summary>
+    private bool TryScanToID(out int idStart, out int lastTokenStart, out bool ascii85)
+    {
+        idStart = -1;
+        lastTokenStart = 0;
         // HACK: Is image ASCII85 decoded?
-        var ascii85Name = -1;
+        ascii85 = false;
         while (ScanNextToken() != CSymbol.Eof)
         {
-            if (ascii85Name < 0 && NamesAscii85Filter())
-                ascii85Name = _tokenStart;
-
+            lastTokenStart = _tokenStart;
+            ascii85 |= NamesAscii85Filter();
             if (Symbol == CSymbol.Operator && Token == "ID")
             {
-                dictionaryEnd = _tokenStart;
-                ascii85 = ascii85Name >= 0;
+                idStart = _tokenStart;
                 return true;
             }
         }
-
-        var id = FirstStandaloneID(dictionaryStart);
-        dictionaryEnd = id < 0 ? ContLength : id;
-        ascii85 = ascii85Name >= 0 && ascii85Name < dictionaryEnd;
-        if (id < 0)
-            return false;
-
-        MoveTo(id + 2);
-        return true;
+        return false;
     }
 
     /// <summary>

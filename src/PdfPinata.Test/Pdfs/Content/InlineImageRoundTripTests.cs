@@ -167,6 +167,30 @@ public class InlineImageRoundTripTests
             .Should().Equal("a", "b");
     }
 
+    [Test, Timeout(5000)]
+    public async Task AnIDInsideAStringThatClosesDoesNotEndTheEntriesBeforeAnUnclosedOne()
+    {
+        var sequence = await Interruptibly.Run(() =>
+            Read("BI /W 1 /H 1 /X ( ID EI ) /Y (unclosed ID a EI 0 0 10 10 re f"));
+
+        sequence.Select(item => ((COperator)item).Name).Should().Equal("BI", "re", "f");
+        var image = sequence[0].Should().BeOfType<CInlineImage>().Subject;
+        image.ImageDictionary.Should().Be("/W 1 /H 1 /X ( ID EI ) /Y (unclosed");
+        Encoding.Latin1.GetString(image.Data).Should().Be("a");
+    }
+
+    [Test, Timeout(5000)]
+    public async Task ManyInlineImagesWithUnclosedStringsAreEachReadOnlyAsFarAsTheirOwnEnd()
+    {
+        const int images = 20_000;
+        var content = string.Concat(Enumerable.Repeat("BI /W 1 /H 1 /X (unclosed ID a EI ", images)) + "0 0 10 10 re f";
+
+        var sequence = await Interruptibly.Run(() => Read(content));
+
+        sequence.OfType<CInlineImage>().Should().HaveCount(images);
+        sequence.Select(item => ((COperator)item).Name).TakeLast(2).Should().Equal("re", "f");
+    }
+
     [Test]
     public void AStringThatClosesKeepsAnIDInsideItAsText()
     {
