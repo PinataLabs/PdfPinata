@@ -2121,14 +2121,15 @@ internal sealed class Parser
     /// the object itself, its trailer, or the dictionary of a cross-reference stream.
     /// </summary>
     /// <remarks>
-    /// Each is read by a call inside the one reading what holds it, so this bounds the depth of
-    /// the stack, and an object past it is refused as malformed. The stack ran out between four and
-    /// five thousand on the main thread of a Windows process, and a thread can be started with
-    /// less. Nesting in real files is shallow, because what goes deep is held together by
-    /// references, which are not nesting: a structure tree, an outline, a page tree. qpdf stops
-    /// at 499.
+    /// Each is read by a call inside the one reading what holds it, and an encrypted document is
+    /// then decrypted by a walk that recurses in the same way, so this bounds the depth of the
+    /// stack, and an object past it is refused as malformed. Measured on a thread of 256 KB, a
+    /// level costs about 390 bytes to parse and 475 to decrypt, so this many take about 95 KB of
+    /// it. docs/specs/document-nesting-limit.md has the measurements. Nesting in real files is
+    /// shallow, because what goes deep is held together by references, which are not nesting: a
+    /// structure tree, an outline, a page tree.
     /// </remarks>
-    internal const int MaximumNesting = 500;
+    internal const int MaximumNesting = 200;
 
     // How many more arrays and dictionaries may be opened inside the ones being read.
     // ReadDictionary(string, int) sets a bound of its own.

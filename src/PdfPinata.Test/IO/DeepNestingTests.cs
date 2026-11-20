@@ -161,7 +161,56 @@ public class DeepNestingTests
 
         var saving = () => Interruptibly.Run(() => SavedWithDeep(depth, PdfCrossReferenceFormat.Classic));
 
-        await saving.Should().ThrowAsync<InvalidOperationException>().WithMessage("*nested deeper*");
+        await saving.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("The document cannot be saved. Object * has arrays and dictionaries nested deeper*");
+    }
+
+    [Test, Timeout(10_000)]
+    public async Task AnObjectBuiltDeeperThanCanBeReadLeavesTheFileItWasToBeSavedOverUntouched()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"{nameof(DeepNestingTests)}-{Guid.NewGuid():N}.pdf");
+        byte[] before = [.. "%PDF-1.7 what was there before"u8];
+        await File.WriteAllBytesAsync(path, before);
+        try
+        {
+            var document = WithDeep(ParserProbe.MaximumNesting + 2, PdfCrossReferenceFormat.Classic);
+
+            var saving = () => Interruptibly.Run(() => document.Save(path));
+
+            await saving.Should().ThrowAsync<InvalidOperationException>().WithMessage("*cannot be saved*");
+            (await File.ReadAllBytesAsync(path)).Should().Equal(before);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Test, Timeout(30_000)]
+    [Arguments(PdfDocumentOpenMode.Modify)]
+    [Arguments(PdfDocumentOpenMode.Import)]
+    [Arguments(PdfDocumentOpenMode.ReadOnly)]
+    [Arguments(PdfDocumentOpenMode.Append)]
+    public async Task AnEncryptedObjectAsDeepAsMayBeReadOpensOnAThreadOf256Kilobytes(PdfDocumentOpenMode mode)
+    {
+        // Opening an encrypted document parses each object and then decrypts it, by two walks that
+        // each recurse once per level. Both have to fit a small stack at the limit. Overflowing it
+        // ends the test host rather than failing this test, and the run then exits non-zero.
+        var depth = ParserProbe.MaximumNesting + 1;
+        var pdf = SavedEncryptedWithDeep(depth);
+
+        var read = await Interruptibly.Run(() =>
+        {
+            using var document = Reader.Open(new MemoryStream(pdf), "owner", mode);
+            var catalog = document.Internals.Catalog;
+            var dictionaries = catalog.Elements.GetObject("/Deep");
+            return (Arrays: DepthOf(catalog.Elements.GetObject("/DeepArrays")),
+                Dictionaries: DepthOf(dictionaries), Bottom: BottomOf(dictionaries));
+        }, maxStackSize: 256 * 1024);
+
+        read.Arrays.Should().Be(depth);
+        read.Dictionaries.Should().Be(depth);
+        read.Bottom.Should().BeOfType<PdfString>().Which.Value.Should().Be("secret");
     }
 
     /// <summary>
@@ -278,6 +327,17 @@ public class DeepNestingTests
     /// </summary>
     private static byte[] SavedWithDeep(int depth, PdfCrossReferenceFormat format)
     {
+        var saved = new MemoryStream();
+        WithDeep(depth, format).Save(saved);
+        return saved.ToArray();
+    }
+
+    /// <summary>
+    ///   A document of one page whose catalog names an array, built in code, with
+    ///   <paramref name="depth"/> arrays one inside the next counting itself.
+    /// </summary>
+    private static PdfDocument WithDeep(int depth, PdfCrossReferenceFormat format)
+    {
         var document = new PdfDocument();
         document.AddPage();
         document.Options.CrossReferenceFormat = format;
@@ -287,9 +347,48 @@ public class DeepNestingTests
             deep = new PdfArray(document, deep);
         document.Internals.AddObject(deep);
         document.Internals.Catalog.Elements["/Deep"] = deep.Reference;
+        return document;
+    }
+
+    /// <summary>
+    ///   A document of one page, encrypted with the owner password "owner", whose catalog names
+    ///   <paramref name="depth"/> dictionaries one inside the next as <c>/Deep</c> and as many
+    ///   arrays as <c>/DeepArrays</c>, each with the string "secret" at the bottom.
+    /// </summary>
+    private static byte[] SavedEncryptedWithDeep(int depth)
+    {
+        var document = new PdfDocument();
+        document.AddPage();
+
+        PdfItem dictionaries = new PdfString("secret");
+        for (var level = 0; level < depth; level++)
+        {
+            var dictionary = new PdfDictionary(document);
+            dictionary.Elements["/A"] = dictionaries;
+            dictionaries = dictionary;
+        }
+        var arrays = new PdfArray(document, new PdfString("secret"));
+        for (var level = 1; level < depth; level++)
+            arrays = new PdfArray(document, arrays);
+
+        document.Internals.AddObject((PdfDictionary)dictionaries);
+        document.Internals.AddObject(arrays);
+        document.Internals.Catalog.Elements["/Deep"] = ((PdfDictionary)dictionaries).Reference;
+        document.Internals.Catalog.Elements["/DeepArrays"] = arrays.Reference;
+        document.SecuritySettings.OwnerPassword = "owner";
 
         var saved = new MemoryStream();
         document.Save(saved);
         return saved.ToArray();
+    }
+
+    /// <summary>
+    ///   What lies at the bottom of the dictionaries one inside the next under <c>/A</c>.
+    /// </summary>
+    private static PdfItem BottomOf(PdfItem item)
+    {
+        while (item is PdfDictionary dictionary)
+            item = dictionary.Elements["/A"];
+        return item;
     }
 }
