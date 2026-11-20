@@ -238,7 +238,7 @@ public sealed class PdfString : PdfItem
                 (flags & ~PdfStringFlags.EncodingMask) | PdfStringFlags.Unicode);
         }
 
-        if (CharacterScanning.StartsWithUtf16LittleEndianMark(value))
+        if (IsLittleEndianPlaintext(value, flags))
         {
             return new PdfString(DecodeLittleEndian(value),
                 (flags & ~PdfStringFlags.EncodingMask) | PdfStringFlags.Unicode | PdfStringFlags.LittleEndianMark);
@@ -257,6 +257,17 @@ public sealed class PdfString : PdfItem
     /// so that they are written as they were read rather than as UTF-16BE.
     /// </summary>
     internal bool IsLittleEndian => IsLittleEndianMark(Flags);
+
+    /// <summary>
+    /// Whether decrypted bytes are a little endian text string that writes back exactly. A hex
+    /// string is never one, because the lexer reads FF FE as text only in a literal. An odd
+    /// length is not one either: its last character would gain a zero high byte, and the
+    /// string would come back from a save a byte longer than it went in.
+    /// </summary>
+    internal static bool IsLittleEndianPlaintext(byte[] value, PdfStringFlags flags) =>
+        (flags & PdfStringFlags.HexLiteral) == 0
+        && value.Length % 2 == 0
+        && CharacterScanning.StartsWithUtf16LittleEndianMark(value);
 
     internal static bool IsLittleEndianMark(PdfStringFlags flags) =>
         (flags & PdfStringFlags.LittleEndianMark) != 0

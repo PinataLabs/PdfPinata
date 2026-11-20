@@ -98,7 +98,8 @@ public sealed class PdfStringObject : PdfObject
     public PdfStringEncoding Encoding
     {
         get => (PdfStringEncoding)(_flags & PdfStringFlags.EncodingMask);
-        set => _flags = (_flags & ~PdfStringFlags.EncodingMask) | ((PdfStringFlags)value & PdfStringFlags.EncodingMask);
+        set => _flags = (_flags & ~(PdfStringFlags.EncodingMask | PdfStringFlags.LittleEndianMark))
+                        | ((PdfStringFlags)value & PdfStringFlags.EncodingMask);
     }
 
     /// <summary>
@@ -120,7 +121,12 @@ public sealed class PdfStringObject : PdfObject
     public string Value
     {
         get => _value ?? "";
-        set => _value = value ?? "";
+        set
+        {
+            // Only a string written back unchanged keeps the byte order it was read in.
+            _value = value ?? "";
+            _flags &= ~PdfStringFlags.LittleEndianMark;
+        }
     }
     private string _value;
 
@@ -160,7 +166,7 @@ public sealed class PdfStringObject : PdfObject
                 return;
             }
 
-            if (CharacterScanning.StartsWithUtf16LittleEndianMark(value))
+            if (PdfString.IsLittleEndianPlaintext(value, _flags))
             {
                 _value = PdfString.DecodeLittleEndian(value);
                 _flags = (_flags & ~PdfStringFlags.EncodingMask) | PdfStringFlags.Unicode | PdfStringFlags.LittleEndianMark;
