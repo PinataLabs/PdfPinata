@@ -383,6 +383,25 @@ public class LazyOpenModeTests
     }
 
     [Test]
+    public void AnObjectWhoseReadFailedIsReadAgainRatherThanAnsweredHalfRead()
+    {
+        var bytes = ThreePages(BeyondTheHeader).ToBytes();
+        var content = SplicedPdf.ContentId(1);
+        var data = Encoding.Latin1.GetString(bytes).IndexOf(SplicedPdf.ContentOfPage(1), StringComparison.Ordinal);
+        var stream = new FailingOnceStream(bytes, data);
+        using var document = Open(stream);
+        var page = document.Pages[1];
+        stream.Armed = true;
+
+        var firstRead = () => PageContent.Of(page);
+
+        firstRead.Should().Throw<IOException>();
+        stream.HasFailed.Should().BeTrue();
+        Encoding.Latin1.GetString(PageContent.Of(page)).Should().Be(SplicedPdf.ContentOfPage(1),
+            $"object {content} 0 must be read again once the source can be read");
+    }
+
+    [Test]
     public void TheCallersStreamIsLeftOpenWhenTheDocumentIsDisposed()
     {
         var stream = new MemoryStream(ThreePages().ToBytes());
@@ -594,6 +613,31 @@ public class LazyOpenModeTests
     }
 
     /// <summary>A stream that reads forwards and cannot be asked where it is.</summary>
+    /// <summary>Once armed, fails the first read that reaches <paramref name="at" />, and reads normally after it.</summary>
+    private sealed class FailingOnceStream(byte[] bytes, long at) : MemoryStream(bytes, writable: false)
+    {
+        internal bool Armed { get; set; }
+
+        internal bool HasFailed { get; private set; }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            if (Armed && !HasFailed && Position <= at && at < Position + count)
+            {
+                HasFailed = true;
+                throw new IOException("The source could not be read.");
+            }
+
+            return base.Read(buffer, offset, count);
+        }
+
+        public override int ReadByte()
+        {
+            var buffer = new byte[1];
+            return Read(buffer, 0, 1) == 1 ? buffer[0] : -1;
+        }
+    }
+
     private sealed class ForwardOnlyStream(byte[] bytes) : Stream
     {
         private readonly MemoryStream _inner = new(bytes);
