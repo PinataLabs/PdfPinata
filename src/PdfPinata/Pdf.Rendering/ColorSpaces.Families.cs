@@ -80,10 +80,10 @@ internal static partial class ColorSpaces
         switch (lookup)
         {
             case PdfString text:
-                return text.EncryptionValue;
+                return BytesOf(text.EncryptionValue, text.Encoding == PdfStringEncoding.Unicode);
 
             case PdfStringObject textObject:
-                return textObject.EncryptionValue;
+                return BytesOf(textObject.EncryptionValue, textObject.Encoding == PdfStringEncoding.Unicode);
 
             case PdfDictionary stream when PdfContentStreams.TryGetContent(stream, out var content):
                 return content;
@@ -92,6 +92,13 @@ internal static partial class ColorSpaces
                 return null;
         }
     }
+
+    /// <summary>
+    /// The lexer takes a leading FE FF off a string and calls it Unicode, which is right for text
+    /// and wrong for a palette whose first entry starts with those bytes, so it is put back.
+    /// </summary>
+    private static byte[] BytesOf(byte[] value, bool unicode) =>
+        unicode ? [0xFE, 0xFF, .. value] : value;
 
     private static RenderColorSpace ResolveIccBased(PdfArray array, DiagnosticSink sink, List<PdfItem> open)
     {
