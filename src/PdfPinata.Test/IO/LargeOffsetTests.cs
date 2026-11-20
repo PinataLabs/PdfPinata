@@ -90,7 +90,7 @@ public class LargeOffsetTests
     public void AnXRefStmBeyondTwoGigabytesIsRead()
     {
         // ISO 32000-1 7.5.8.4: object 7 is free in the classic table and lives in object stream 5,
-        // which only the cross-reference stream /XRefStm names says.
+        // and only the cross-reference stream /XRefStm names says so.
         var pdf = new Tail();
         pdf.OnePage(Content, resources: "/Resources << /ExtGState << /GS1 7 0 R >> >>");
 
@@ -107,10 +107,11 @@ public class LargeOffsetTests
         var document = Opened(pdf);
 
         document.PageCount.Should().Be(1);
-        document.Pages[0].Elements.GetDictionary("/Resources")?
+        var graphicsState = document.Pages[0].Elements.GetDictionary("/Resources")?
             .Elements.GetDictionary("/ExtGState")?
-            .Elements.GetDictionary("/GS1")?
-            .Elements.GetReal("/CA").Should().Be(0.5);
+            .Elements.GetDictionary("/GS1");
+        graphicsState.Should().NotBeNull("object 7 is found only through the stream");
+        graphicsState!.Elements.GetReal("/CA").Should().Be(0.5);
     }
 
     // ----- Writing -------------------------------------------------------------------------------
