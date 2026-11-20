@@ -23,6 +23,9 @@ internal sealed class DeferredStreamBytes
         Length = length;
     }
 
+    /// <summary>What the data is read from.</summary>
+    internal LazyObjectSource Source => _source;
+
     /// <summary>The object the stream is in the source document, which is what an error names.</summary>
     internal PdfObjectID ObjectID { get; }
 

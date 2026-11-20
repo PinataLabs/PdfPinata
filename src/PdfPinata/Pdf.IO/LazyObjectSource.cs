@@ -349,6 +349,13 @@ internal sealed class LazyObjectSource : IDisposable
             : new ObjectDisposedException(message, inner);
     }
 
+    /// <summary>Whether this reads from <paramref name="stream"/>.</summary>
+    internal bool ReadsFrom(Stream stream) => ReferenceEquals(_stream, stream);
+
+    /// <summary>Whether this reads from the file at <paramref name="fullPath"/>.</summary>
+    internal bool ReadsFromFile(string fullPath) =>
+        _document.FullPath.Length > 0 && string.Equals(_document.FullPath, fullPath, StringComparison.Ordinal);
+
     /// <summary>What an error calls the document: its file, when it was opened from one.</summary>
     private string SourceName =>
         _document.FullPath.Length > 0 ? $"the document '{_document.FullPath}'" : "a document opened from a stream";

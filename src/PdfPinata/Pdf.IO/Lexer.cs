@@ -357,6 +357,29 @@ public class Lexer
     }
 
     /// <summary>
+    /// Gets the position of the first byte at or after <paramref name="from"/> that is not white
+    /// space, or the length of the file when only white space follows. Read a small chunk at a
+    /// time, however much white space there is, and the lexer is left wherever the search ended.
+    /// </summary>
+    internal long SkipWhiteSpace(long from)
+    {
+        var buffer = new byte[64];
+        PdfStream.Position = from;
+        for (var start = from; ; )
+        {
+            var read = PdfPinata.Internal.StreamHelper.ReadUpTo(PdfStream, buffer, 0, buffer.Length);
+            for (var index = 0; index < read; index++)
+            {
+                if (!IsWhiteSpace((char)buffer[index]))
+                    return start + index;
+            }
+            if (read == 0)
+                return start;
+            start += read;
+        }
+    }
+
+    /// <summary>
     /// Scans a comment line.
     /// </summary>
     public Symbol ScanComment()

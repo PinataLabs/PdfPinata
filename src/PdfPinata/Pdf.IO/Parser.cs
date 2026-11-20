@@ -426,10 +426,10 @@ internal sealed class Parser
         var length = DeclaredStreamLength(dict);
         var start = _lexer.MoveToStartOfStream();
 
-        var end = start + length;
-        if (length >= 0 && end <= _lexer.PdfLength && EndOfStreamFollows(end))
+        // Compared before adding: a length near long.MaxValue added to the start wraps negative.
+        if (length >= 0 && length <= _lexer.PdfLength - start && EndOfStreamFollows(start + length))
         {
-            _lexer.Position = end;
+            _lexer.Position = start + length;
             ReadSymbol(Symbol.EndStream);
         }
         else
@@ -461,14 +461,15 @@ internal sealed class Parser
 
     /// <summary>
     ///   Whether "endstream" is the next thing in the file at <paramref name="position"/>, after
-    ///   any white space. Read as bytes and not as a token, because a wrong length lands in the
-    ///   middle of the data, where a token can be as long as the stream.
+    ///   any amount of white space, as the eager reader's token scan finds it. Read as bytes and
+    ///   not as a token, because a wrong length lands in the middle of the data, where a token
+    ///   can be as long as the stream.
     /// </summary>
     private bool EndOfStreamFollows(long position)
     {
-        var count = (int)Math.Min(EndOfStream.Length + 8, _lexer.PdfLength - position);
-        return _lexer.ReadRawString(position, count).TrimStart('\0', '\t', '\n', '\f', '\r', ' ')
-            .StartsWith(EndOfStream, StringComparison.Ordinal);
+        var keyword = _lexer.SkipWhiteSpace(position);
+        return EndOfStream.Length <= _lexer.PdfLength - keyword
+            && _lexer.ReadRawString(keyword, EndOfStream.Length) == EndOfStream;
     }
 
     /// <summary>
