@@ -118,4 +118,105 @@ public class LexerHugeNumberTests
             ((PdfReal)rect.Elements[2]).Value.Should().BeApproximately(1.2345678901234568e38, 1e24);
         });
     }
+
+    [Test, Timeout(5000)]
+    [Arguments("-")]
+    [Arguments("+")]
+    [Arguments(".")]
+    [Arguments("-.")]
+    public async Task ALoneSignOrPeriodReadsAsZeroAndDoesNotThrow(string text)
+    {
+        await Interruptibly.Run(() =>
+        {
+            var lexer = CreateLexer(text + " ");
+
+            lexer.ScanNextToken().Should().Be(Symbol.Real);
+
+            lexer.TokenToReal.Should().Be(0);
+        });
+    }
+
+    [Test, Timeout(5000)]
+    public async Task ASignFollowedByASignReadsAsTwoNumbersAndDoesNotThrow()
+    {
+        await Interruptibly.Run(() =>
+        {
+            var lexer = CreateLexer("--1 ");
+
+            lexer.ScanNextToken().Should().Be(Symbol.Real);
+            lexer.TokenToReal.Should().Be(0);
+            lexer.ScanNextToken().Should().Be(Symbol.Integer);
+            lexer.TokenToInteger.Should().Be(-1);
+        });
+    }
+
+    [Test, Timeout(5000)]
+    public async Task AWriterNeverPutsAnInfiniteOrNotANumberRealInAFile()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        page.Elements["/PdfPinataHigh"] = new PdfRealObject(document, double.PositiveInfinity);
+        page.Elements["/PdfPinataLow"] = new PdfRealObject(document, double.NegativeInfinity);
+        page.Elements["/PdfPinataNotANumber"] = new PdfRealObject(document, double.NaN);
+        using var saved = new MemoryStream();
+        document.Save(saved, false);
+
+        await Interruptibly.Run(() =>
+        {
+            var text = Encoding.Latin1.GetString(saved.ToArray());
+            text.Should().NotContain("Infinity").And.NotContain("NaN");
+            using var ms = new MemoryStream(saved.ToArray());
+            var reread = PdfPinata.Pdf.IO.PdfReader.Open(ms, PdfDocumentOpenMode.Import);
+            reread.Pages.Count.Should().Be(1);
+        });
+    }
+
+    [Test, Timeout(20000)]
+    [Arguments("positive", false)]
+    [Arguments("negative", false)]
+    [Arguments("real", false)]
+    [Arguments("positive", true)]
+    [Arguments("negative", true)]
+    [Arguments("real", true)]
+    public async Task ANumberOfFourHundredDigitsSurvivesASaveAndAReopen(string shape, bool incremental)
+    {
+        var digits = shape switch
+        {
+            "negative" => "-" + FourHundredDigits,
+            "real" => FourHundredDigits + ".5",
+            _ => FourHundredDigits,
+        };
+        var placeholder = "[0 0 " + new string('1', digits.Length) + " 792]";
+        var source = new PdfDocument();
+        source.AddPage().Elements["/PdfPinataHuge"] = new PdfLiteral(placeholder);
+        using var first = new MemoryStream();
+        source.Save(first, false);
+        var original = Encoding.Latin1.GetString(first.ToArray()).Replace(placeholder, "[0 0 " + digits + " 792]");
+        var expected = digits.StartsWith('-') ? -float.MaxValue : float.MaxValue;
+
+        await Interruptibly.Run(() =>
+        {
+            using var input = new MemoryStream(Encoding.Latin1.GetBytes(original));
+            var document = PdfPinata.Pdf.IO.PdfReader.Open(input, incremental ? PdfDocumentOpenMode.Append : PdfDocumentOpenMode.Modify);
+            using var output = new MemoryStream();
+            if (incremental)
+            {
+                document.Info.Title = "second revision";
+                document.Pages[0].Elements.SetName("/PdfPinataTouched", "/Yes");
+                document.SaveIncremental(output);
+            }
+            else
+            {
+                document.Save(output, false);
+            }
+
+            var text = Encoding.Latin1.GetString(output.ToArray());
+            text.Should().NotContain("Infinity");
+
+            using var again = new MemoryStream(output.ToArray());
+            var reread = PdfPinata.Pdf.IO.PdfReader.Open(again, PdfDocumentOpenMode.Import);
+            var rect = (PdfArray)reread.Pages[0].Elements["/PdfPinataHuge"]!;
+            ((PdfReal)rect.Elements[2]).Value.Should().Be(expected);
+        });
+    }
 }

@@ -85,7 +85,7 @@ public class WriterTokenTests
     }
 
     [Test]
-    public void ARealTooLargeForAPdfIsStillReadFromAFile()
+    public void ARealTooLargeForAPdfIsReadFromAFileAsTheLargestOne()
     {
         var digits = "1" + new string('0', 39) + ".5";
         var bytes = RawPdf.Build([
@@ -96,7 +96,7 @@ public class WriterTokenTests
 
         var document = Saved.Open(bytes);
 
-        document.Pages[0].Elements.GetReal("/Huge").Should().BeGreaterThanOrEqualTo(1e39);
+        document.Pages[0].Elements.GetReal("/Huge").Should().Be(float.MaxValue);
     }
 
     [Test]

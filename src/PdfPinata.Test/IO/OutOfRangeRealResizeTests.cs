@@ -9,9 +9,9 @@ using TUnit.Core;
 namespace PdfPinata.Test.IO;
 
 /// <summary>
-///   A real read from a file is kept even when it is beyond the range a PDF real may have, and the
+///   A real read from a file beyond the range a PDF real may have is held to the largest one, and the
 ///   code that rebuilds such a number afterwards - moving it with a resized page, or writing an
-///   annotation's geometry back - keeps it too, rather than refusing what the parser accepted.
+///   annotation's geometry back - keeps it, rather than refusing what the parser accepted.
 ///   Issue #336.
 /// </summary>
 public class OutOfRangeRealResizeTests
@@ -77,7 +77,7 @@ public class OutOfRangeRealResizeTests
         var move = () => line.Start = new XPoint(5, 5);
 
         move.Should().NotThrow();
-        line.End.X.Should().BeGreaterThanOrEqualTo(1e39);
+        line.End.X.Should().Be(float.MaxValue);
     }
 
     [Test]

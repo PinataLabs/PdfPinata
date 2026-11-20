@@ -540,7 +540,7 @@ public class CLexer
                 // precision of a double - which is what a writer of PDF puts out for a
                 // rotation - would otherwise be read as a slightly different matrix, or run
                 // off the end of a table of powers of ten trying.
-                _tokenAsReal = double.Parse(_token.ToString(), CultureInfo.InvariantCulture);
+                _tokenAsReal = Lexer.ParseReal(_token.ToString());
             }
             else
             {
@@ -556,7 +556,7 @@ public class CLexer
             // which the check below would otherwise degrade to a real anyway, but out of range
             // for the accumulator itself. _tokenAsLong is left unset: nothing reads it once the
             // symbol is Real.
-            _tokenAsReal = double.Parse(_token.ToString(), CultureInfo.InvariantCulture);
+            _tokenAsReal = Lexer.ParseReal(_token.ToString());
             return CSymbol.Real;
         }
 
@@ -1056,7 +1056,7 @@ public class CLexer
         {
             // ReSharper disable once CompareOfFloatsByEqualityOperator
             #pragma warning disable S1244 // Exact on purpose: asserts the same text parses to the same value both ways.
-            Debug.Assert(_tokenAsReal == double.Parse(_token.ToString(), CultureInfo.InvariantCulture));
+            Debug.Assert(_tokenAsReal == Lexer.ParseReal(_token.ToString()));
             #pragma warning restore S1244
             return _tokenAsReal;
         }
