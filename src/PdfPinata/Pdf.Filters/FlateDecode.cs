@@ -27,6 +27,7 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System;
 using System.IO;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
@@ -82,12 +83,23 @@ public class FlateDecode : Filter
         var msInput = new MemoryStream(data);
         var msOutput = new MemoryStream();
 
+        var limit = parms?.Limit;
+        var cap = limit?.MaximumLength ?? long.MaxValue;
         var iis = new InflaterInputStream(msInput, new Inflater(false));
         int cbRead;
         var abResult = new byte[32768];
         do
         {
-            cbRead = iis.Read(abResult, 0, abResult.Length);
+            var want = (int)Math.Min(abResult.Length, cap - msOutput.Length);
+            if (want == 0)
+            {
+                // At the cap: one more byte read says whether the stream really ended here.
+                if (iis.Read(abResult, 0, 1) > 0)
+                    limit.Truncated = true;
+                break;
+            }
+
+            cbRead = iis.Read(abResult, 0, want);
             if (cbRead > 0)
                 msOutput.Write(abResult, 0, cbRead);
         }

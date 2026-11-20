@@ -149,7 +149,16 @@ public static class Filtering
     /// given its <c>/DecodeParms</c> entry; or null when a filter is not one this library applies,
     /// or the parameters cannot be told apart by filter.
     /// </summary>
-    public static byte[] Decode(byte[] data, PdfItem filterItem, PdfItem decodeParms)
+    public static byte[] Decode(byte[] data, PdfItem filterItem, PdfItem decodeParms) =>
+        Decode(data, filterItem, decodeParms, null);
+
+    /// <summary>
+    /// Decodes the data as <see cref="Decode(byte[], PdfItem, PdfItem)"/> does, with no filter
+    /// producing more than <paramref name="limit"/> allows. Where one is cut off,
+    /// <see cref="DecodeLimit.Truncated"/> says so and the result is the start of what the stream
+    /// holds. The cap applies to each filter of a chain in turn, not to the chain's total.
+    /// </summary>
+    public static byte[] Decode(byte[] data, PdfItem filterItem, PdfItem decodeParms, DecodeLimit limit)
     {
         // Either entry, and any element of either, may be an indirect object, and a filter with
         // default parameters has null in its place in a parameter array (ISO 32000-1 Table 5).
@@ -159,14 +168,14 @@ public static class Filtering
         if (filterItem is PdfName)
         {
             return ParametersForEach(1, decodeParms) is [var parms and (null or PdfDictionary)]
-                ? GetFilter(filterItem.ToString())?.Decode(data, parms as PdfDictionary)
+                ? GetFilter(filterItem.ToString())?.Decode(data, parms as PdfDictionary, limit)
                 : null;
         }
 
         if (filterItem is PdfArray filters)
         {
             return ParametersForEach(filters.Elements.Count, decodeParms) is { } each
-                ? DecodeWithEach(data, filters, each)
+                ? DecodeWithEach(data, filters, each, limit)
                 : null;
         }
 
@@ -206,10 +215,10 @@ public static class Filtering
     /// <summary>
     /// Decodes the data with each filter of an array in turn, each with its own parameters.
     /// </summary>
-    private static byte[] DecodeWithEach(byte[] data, PdfArray filters, PdfItem[] parameters)
+    private static byte[] DecodeWithEach(byte[] data, PdfArray filters, PdfItem[] parameters, DecodeLimit limit)
     {
         for (var idx = 0; idx < filters.Elements.Count; idx++)
-            data = Decode(data, filters.Elements[idx], parameters[idx]);
+            data = Decode(data, filters.Elements[idx], parameters[idx], limit);
         return data;
     }
 

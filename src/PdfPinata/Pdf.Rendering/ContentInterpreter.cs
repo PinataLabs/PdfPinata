@@ -40,6 +40,17 @@ internal sealed partial class ContentInterpreter
     /// </summary>
     internal const int MaximumFaults = 64;
 
+    /// <summary>
+    /// How many bytes of content a render inflates, across the page's streams and every form's.
+    /// Flate compresses a page's operators at ten to one or twenty to one, so this is hundreds of
+    /// megabytes of compressed content for a legitimate page, well past the largest map or
+    /// drawing seen; and it is not the bound on parsing it, which is what costs more per byte.
+    /// What a stream inflates to beyond it is not read, and is reported.
+    /// </summary>
+    internal const long MaximumContentLength = 128L * 1024 * 1024;
+
+    private long _contentBytesLeft = MaximumContentLength;
+
     private readonly GuardedDevice _device;
     private readonly PageView _view;
     private readonly RenderFontCache _fonts;
@@ -103,7 +114,8 @@ internal sealed partial class ContentInterpreter
             }
 
             _document = page.Owner;
-            if (!PdfContentStreams.TryGetReadablePageContent(page, out var content, out var unreadable))
+            if (!PdfContentStreams.TryGetReadablePageContent(page, _contentBytesLeft, out var content,
+                    out var unreadable, out var truncated))
             {
                 _sink.Report(PageRenderProblem.UnreadableContent, "page",
                     "The page's content could not be decoded, and nothing of it is drawn.");
@@ -114,6 +126,13 @@ internal sealed partial class ContentInterpreter
             {
                 _sink.Report(PageRenderProblem.UnreadableContent, "page",
                     $"{unreadable} of the streams the page's content is written in could not be decoded. What the others say is drawn.");
+            }
+
+            _contentBytesLeft -= content.Length;
+            if (truncated)
+            {
+                _sink.Report(PageRenderProblem.UnreadableContent, "page",
+                    $"The page's content inflates to more than {MaximumContentLength} bytes. Only the start of it is drawn.");
             }
 
             RunStream(ParsedContent.Of(content), ResourceScope.OfPage(page), "page");

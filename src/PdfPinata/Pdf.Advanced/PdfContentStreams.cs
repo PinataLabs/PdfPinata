@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using PdfPinata.Internal;
+using PdfPinata.Pdf.Filters;
 
 namespace PdfPinata.Pdf.Advanced;
 
@@ -51,22 +52,46 @@ internal static class PdfContentStreams
     /// page being drawn is better drawn in part, with the part left out reported.
     /// </remarks>
     /// <param name="page">The page.</param>
+    /// <param name="maximumLength">
+    /// The most bytes of content to inflate, across all of the page's streams. A page whose
+    /// filters would produce more is drawn from the start of it.
+    /// </param>
     /// <param name="content">The streams that could be read, as one.</param>
     /// <param name="unreadable">How many of several streams could not be read.</param>
+    /// <param name="truncated">Whether the cap cut the content short, or left a stream out.</param>
     /// <returns>False where the page is written as one stream and it cannot be read.</returns>
-    internal static bool TryGetReadablePageContent(PdfPage page, out byte[] content, out int unreadable)
+    internal static bool TryGetReadablePageContent(PdfPage page, long maximumLength, out byte[] content,
+        out int unreadable, out bool truncated)
     {
         unreadable = 0;
+        truncated = false;
         if (PdfReference.Dereference(page.Elements[PdfPage.Keys.Contents]) is not PdfArray streams)
-            return TryGetPageContent(page, out content);
+        {
+            return TryGetContent(PdfReference.Dereference(page.Elements[PdfPage.Keys.Contents]) as PdfDictionary,
+                maximumLength, out content, out truncated);
+        }
 
         var parts = new List<byte[]>();
+        var remaining = maximumLength;
         for (var idx = 0; idx < streams.Elements.Count; idx++)
         {
-            if (TryGetStream(streams, idx, out var stream) && TryGetContent(stream, out var part))
+            if (remaining <= 0)
+            {
+                truncated = true;
+                break;
+            }
+
+            if (TryGetStream(streams, idx, out var stream)
+                && TryGetContent(stream, remaining, out var part, out var cut))
+            {
                 parts.Add(part);
+                remaining -= part.Length + 1;
+                truncated |= cut;
+            }
             else
+            {
                 unreadable++;
+            }
         }
 
         content = Join(parts);
@@ -117,15 +142,27 @@ internal static class PdfContentStreams
     /// <summary>
     /// The content of a single stream, with its filters undone.
     /// </summary>
-    internal static bool TryGetContent(PdfDictionary stream, out byte[] content)
+    internal static bool TryGetContent(PdfDictionary stream, out byte[] content) =>
+        TryGetContent(stream, long.MaxValue, out content, out _);
+
+    /// <summary>
+    /// The content of a single stream, with its filters undone, at most
+    /// <paramref name="maximumLength"/> bytes of it; <paramref name="truncated"/> says whether
+    /// it was cut there.
+    /// </summary>
+    internal static bool TryGetContent(PdfDictionary stream, long maximumLength, out byte[] content,
+        out bool truncated)
     {
         content = null;
+        truncated = false;
         if (stream == null || stream.Stream == null)
             return false;
 
         try
         {
-            content = stream.Stream.UnfilteredValue;
+            var limit = maximumLength == long.MaxValue ? null : new DecodeLimit(maximumLength);
+            content = stream.Stream.GetUnfilteredValue(limit);
+            truncated = limit is { Truncated: true };
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
         {

@@ -166,7 +166,28 @@ The core decodes an image XObject or inline image into one neutral sample buffer
 DCT is the one filter decoded outside the core, by `SKCodec` in the Skia package, because the core
 carries no imaging dependency. The device decodes it *for* the core, through
 `PageDevice.DecodeImage`, and hands the samples back, so the `/Decode` array and the masks are
-applied in one place and a device draws only finished samples. CCITTFax, JBIG2 and JPX are item 15. An image the renderer cannot
+applied in one place and a device draws only finished samples.
+
+**An image is inflated to a cap, because Flate does not say how big it will be.** A few kilobytes
+can expand to gigabytes, and bounding the image by its `/Width` and `/Height` before decoding does
+nothing if the filter has already inflated the whole stream. `DecodeLimit` (#398) is the cap: a
+filter handed one stops at `MaximumLength` bytes and sets `Truncated` if the stream had more, and
+one handed none behaves as it always did. For an image the cap is the sample bytes the dictionary
+declares, `ceil(Width * Components * BitsPerComponent / 8) * Height`, plus a small allowance. The cap
+counts what Flate or LZW itself produces, before a predictor is undone, so with a PNG predictor the
+allowance must include the one filter-type byte in front of each row. An image that was cut short
+is not drawn as if whole: it is reported. `PageImages` does not pass the limit yet, because #375
+rewrites it; that change makes `FilterParms(decodeParms, limit)` the way each filter of an image's
+chain is called, and checks `Truncated` afterwards.
+
+**Content streams have a cap too**, `ContentInterpreter.MaximumContentLength`, 128 MiB of inflated
+content shared by the page's streams and every form drawn in a render. Flate squeezes operators
+about ten to one, so a legitimate page reaches it only with over ten megabytes of compressed
+content, and the largest maps and drawings seen are a few tens of megabytes inflated. The cost per
+byte is what sets it low: parsing 128 MiB of operators already builds a graph several times that
+size, so a higher cap would only move the exhaustion from the inflater to the parser. A stream cut by
+it is drawn as far as it goes and reported as `UnreadableContent`. ASCIIHex, ASCII85 and RunLength
+are not capped: each expands its input by a fixed factor, at most 64 to one for RunLength. CCITTFax, JBIG2 and JPX are item 15. An image the renderer cannot
 decode is skipped and reported.
 
 ## Item 7 — the Skia surface
