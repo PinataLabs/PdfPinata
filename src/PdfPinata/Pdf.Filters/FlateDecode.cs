@@ -106,6 +106,8 @@ public class FlateDecode : Filter
         while (cbRead > 0);
         iis.Close();
         msOutput.Flush();
+        if (limit != null)
+            limit.Produced += msOutput.Length;
         if (msOutput.Length < 0)
             return null;
 

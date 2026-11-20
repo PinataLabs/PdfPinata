@@ -115,20 +115,20 @@ internal sealed partial class ContentInterpreter
 
             _document = page.Owner;
             if (!PdfContentStreams.TryGetReadablePageContent(page, _contentBytesLeft, out var content,
-                    out var unreadable, out var truncated))
+                    out var unreadable, out var truncated, out var charged))
             {
                 _sink.Report(PageRenderProblem.UnreadableContent, "page",
                     "The page's content could not be decoded, and nothing of it is drawn.");
                 return;
             }
 
+            _contentBytesLeft -= charged;
             if (unreadable > 0)
             {
                 _sink.Report(PageRenderProblem.UnreadableContent, "page",
                     $"{unreadable} of the streams the page's content is written in could not be decoded. What the others say is drawn.");
             }
 
-            _contentBytesLeft -= content.Length;
             if (truncated)
             {
                 _sink.Report(PageRenderProblem.UnreadableContent, "page",

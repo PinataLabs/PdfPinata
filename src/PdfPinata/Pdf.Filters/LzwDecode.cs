@@ -79,6 +79,9 @@ public class LzwDecode : Filter
             _limit.Truncated = true;
         }
 
+        if (_limit != null)
+            _limit.Produced += outputStream.Length;
+
         if (outputStream.Length < 0)
             return null;
 

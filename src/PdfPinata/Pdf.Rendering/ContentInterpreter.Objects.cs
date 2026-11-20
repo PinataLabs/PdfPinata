@@ -119,9 +119,11 @@ internal sealed partial class ContentInterpreter
         var key = ReferenceIdentity.KeyOf(form);
         if (!_formContent.TryGetValue(key, out var content))
         {
-            if (PdfContentStreams.TryGetContent(form, Math.Max(0, _contentBytesLeft), out var bytes, out var truncated))
+            var readable = PdfContentStreams.TryGetContent(form, Math.Max(0, _contentBytesLeft), out var bytes,
+                out var truncated, out var charge);
+            _contentBytesLeft -= charge;
+            if (readable)
             {
-                _contentBytesLeft -= bytes.Length;
                 if (truncated)
                 {
                     _sink.Report(PageRenderProblem.UnreadableContent, "form",

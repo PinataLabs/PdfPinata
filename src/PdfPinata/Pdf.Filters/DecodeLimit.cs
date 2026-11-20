@@ -35,4 +35,11 @@ public sealed class DecodeLimit
     /// decoded bytes are the start of the stream and not all of it.
     /// </summary>
     public bool Truncated { get; internal set; }
+
+    /// <summary>
+    /// How many bytes Flate and LZW filters have produced under this limit, whether or not the
+    /// result survived what came after, such as a predictor that left out a part row or one that
+    /// threw. This is what the decode cost, and what a budget shared by several streams charges.
+    /// </summary>
+    public long Produced { get; internal set; }
 }
