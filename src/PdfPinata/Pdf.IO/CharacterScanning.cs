@@ -192,4 +192,10 @@ internal static class CharacterScanning
     /// </summary>
     public static bool StartsWithUtf16LittleEndianMark(StringBuilder bytes) =>
         bytes.Length >= 2 && bytes[0] == '\xFF' && bytes[1] == '\xFE';
+
+    /// <summary>
+    /// Indicates whether the bytes open with FF FE, the UTF-16LE byte order mark.
+    /// </summary>
+    public static bool StartsWithUtf16LittleEndianMark(ReadOnlySpan<byte> bytes) =>
+        bytes.Length >= 2 && bytes[0] == 0xFF && bytes[1] == 0xFE;
 }
