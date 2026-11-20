@@ -25,6 +25,7 @@ public class PageUserUnitTests
     [Arguments(2.0)]
     [Arguments(0.5)]
     [Arguments(75000.0)]
+    [Arguments(0.000001)]
     public void ComesBackAsWrittenFromAReopenedDocument(double unit)
     {
         var page = ReopenedPageWith(p => p.UserUnit = unit);
@@ -61,6 +62,7 @@ public class PageUserUnitTests
     [Test]
     [Arguments(0.0)]
     [Arguments(-1.5)]
+    [Arguments(0.0000001)]
     [Arguments(double.NaN)]
     [Arguments(double.PositiveInfinity)]
     public void RefusesToWriteAValueThatIsNotFiniteAndPositive(double value)
@@ -70,6 +72,19 @@ public class PageUserUnitTests
         var setting = () => page.UserUnit = value;
 
         setting.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Test]
+    public void SavingAPageWithAUserUnitRaisesTheDocumentToPdf16()
+    {
+        using var document = new PdfDocument();
+        document.AddPage().UserUnit = 2;
+
+        using var stream = new MemoryStream();
+        document.Save(stream, false);
+
+        PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(stream.ToArray()), PdfDocumentOpenMode.Import)
+            .Version.Should().BeGreaterThanOrEqualTo(16);
     }
 
     private static PdfPage ReopenedPageWith(Action<PdfPage> change)

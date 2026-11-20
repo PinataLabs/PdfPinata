@@ -724,13 +724,16 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         }
     }
 
+    private const double MinimumUserUnit = 0.000001;
+
     /// <summary>
     /// Gets or sets the /UserUnit entry of the PDF page: the size of one default user space unit, in
     /// multiples of 1/72 inch. It is 1 when the page has no entry. An entry that is zero, negative,
     /// not a number, infinite or not a number type at all reads as 1 rather than refusing the page,
     /// because the entry is meant to be positive and a viewer shows such a page at its stored size.
     /// The entry is not inherited from the page tree. Setting it writes /UserUnit on the page,
-    /// and throws <see cref="ArgumentOutOfRangeException"/> for a value that is not finite and above zero.
+    /// and throws <see cref="ArgumentOutOfRangeException"/> for a value that is not finite or is below 0.000001,
+    /// the smallest the file keeps apart from zero. Saving a page that has the entry raises the document to PDF 1.6.
     /// </summary>
     public double UserUnit
     {
@@ -739,8 +742,8 @@ public sealed class PdfPage : PdfDictionary, IContentStream
             : 1;
         set
         {
-            if (!double.IsFinite(value) || value <= 0)
-                throw new ArgumentOutOfRangeException(nameof(value), value, "UserUnit must be finite and greater than zero.");
+            if (!double.IsFinite(value) || value < MinimumUserUnit)
+                throw new ArgumentOutOfRangeException(nameof(value), value, "UserUnit must be finite and at least 0.000001.");
             _elements.SetReal(Keys.UserUnit, value);
         }
     }
@@ -1394,6 +1397,10 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         RenderContent?.PdfRenderer?.Close();
 
         RemoveEmptyContentStreams();
+
+        // /UserUnit arrives in PDF 1.6, so saving a page that has one raises the document to it.
+        if (_elements.ContainsKey(Keys.UserUnit))
+            PdfVersionRequirements.Require(Owner, 16);
 
         _sheet.WriteBoxesIfTrimmed();
     }

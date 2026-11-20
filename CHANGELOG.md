@@ -12,7 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Added
 
-- **`PdfPage.UserUnit` reads and writes a page's `/UserUnit`.** `PdfPage.Keys.UserUnit` was defined and nothing read it. The property is the size of one default user space unit in 1/72 inch, and is 1 when the page has no entry. A zero, negative, non-finite or non-numeric entry also reads as 1, and the setter refuses such a value. (#377)
+- **`PdfPage.UserUnit` reads and writes a page's `/UserUnit`.** `PdfPage.Keys.UserUnit` was defined and nothing read it. The property is the size of one default user space unit in 1/72 inch, and is 1 when the page has no entry. A zero, negative, non-finite or non-numeric entry also reads as 1, and the setter refuses such a value, or one below 0.000001, which the file could not keep. Saving a page with the entry raises the document to PDF 1.6. (#377)
 
 #### Changed
 
