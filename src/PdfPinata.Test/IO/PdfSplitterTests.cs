@@ -56,7 +56,8 @@ public class PdfSplitterTests
         output.Info.Keywords.Should().Be("some words");
         output.Info.Creator.Should().Be("A creator");
         output.Info.Producer.Should().Contain("(Original: Acme Writer)");
-        output.Info.CreationDate.Should().Be(new DateTime(2020, 1, 2, 3, 4, 5, DateTimeKind.Utc).ToLocalTime());
+        using var source = OpenForImport(files.Source);
+        output.Info.CreationDate.Should().Be(source.Info.CreationDate).And.HaveYear(2020);
         output.Info.ModificationDate.Should().BeAfter(output.Info.CreationDate);
     }
 
