@@ -206,6 +206,8 @@ internal static class PageImages
             if (!PdfItemValues.IsNull(image.Elements["/Decode"]))
                 Report(PageRenderProblem.InvalidValue, "The image's /Decode is not two numbers for each component, and is not applied.");
 
+            // A /Decode that failed part way has filled some of the array, which the default replaces whole.
+            decode = new double[components * 2];
             for (var component = 0; component < components; component++)
                 decode[component * 2 + 1] = isIndexed ? (1 << bits) - 1 : 1;
             return decode;
@@ -289,6 +291,10 @@ internal static class PageImages
                 switch (name)
                 {
                     case "/DCTDecode" or "/DCT" when index == filters.Length - 1:
+                        // The device is handed the JPEG alone, so a /ColorTransform that overrides
+                        // the one the JPEG implies cannot reach it.
+                        if (parameters[index] is PdfDictionary dct && !PdfItemValues.IsNull(dct.Elements["/ColorTransform"]))
+                            Report(PageRenderProblem.UnsupportedFeature, what + "'s /ColorTransform is not applied. The JPEG is decoded as its own markers say.");
                         isJpeg = true;
                         return true;
 
@@ -417,12 +423,8 @@ internal static class PageImages
         /// </summary>
         private byte[] ReadJpeg(PdfDictionary image, byte[] jpeg, int components, ref int width, ref int height)
         {
-            var decoded = device.DecodeImage(PageImageCodec.Jpeg, jpeg);
-            if (decoded == null || decoded.Format != PageImageFormat.Rgba32)
-            {
-                Report(PageRenderProblem.UnsupportedImage, "The image is a JPEG, and the device did not decode it.");
+            if (DecodeJpeg(jpeg, "The image") is not { } decoded)
                 return null;
-            }
 
             width = decoded.Width;
             height = decoded.Height;
@@ -469,6 +471,30 @@ internal static class PageImages
             }
 
             return rgba;
+        }
+
+        /// <summary>
+        /// A JPEG as the device decodes it, or null when it did not or answered more samples than
+        /// <see cref="MaximumSamples"/>: the size inside a JPEG need not be the size its dictionary
+        /// was checked by.
+        /// </summary>
+        private PageImage DecodeJpeg(byte[] jpeg, string what)
+        {
+            var decoded = device.DecodeImage(PageImageCodec.Jpeg, jpeg);
+            if (decoded == null || decoded.Format != PageImageFormat.Rgba32)
+            {
+                Report(PageRenderProblem.UnsupportedImage, what + " is a JPEG, and the device did not decode it.");
+                return null;
+            }
+
+            if ((long)decoded.Width * decoded.Height > MaximumSamples)
+            {
+                Report(PageRenderProblem.LimitReached,
+                    $"{what} is a JPEG of {decoded.Width} by {decoded.Height} samples, more than the {MaximumSamples} drawn.");
+                return null;
+            }
+
+            return decoded;
         }
 
         private static bool IsDefault(double[] decode)
@@ -568,12 +594,8 @@ internal static class PageImages
             ImageSamples samples;
             if (isJpeg)
             {
-                var decoded = device.DecodeImage(PageImageCodec.Jpeg, data);
-                if (decoded == null || decoded.Format != PageImageFormat.Rgba32)
-                {
-                    Report(PageRenderProblem.UnsupportedImage, "The /SMask is a JPEG, and the device did not decode it. The image is drawn without it.");
+                if (DecodeJpeg(data, "The /SMask") is not { } decoded)
                     return null;
-                }
 
                 // Gray, as a soft mask is: its red is the sample, and the other three are skipped.
                 width = decoded.Width;

@@ -107,6 +107,19 @@ public class ImageTests
         drawn.Problems.Should().Equal("InvalidValue /Im1");
     }
 
+    [Test]
+    public async Task ADecodeThatFailsPartWayLeavesNothingOfItBehind()
+    {
+        var drawn = await Interruptibly.Run(() => Drawn.Page(DrawIm1, Resources([0, 255], (document, entries) =>
+        {
+            Set(entries, ("/Width", 2), ("/Height", 1), ("/ColorSpace", "/DeviceGray"), ("/BitsPerComponent", 8));
+            entries.Elements["/Decode"] = new PdfArray(document, new global::PdfPinata.Pdf.PdfInteger(1), new PdfName("/Bad"));
+        })));
+
+        Gray(drawn.Device.Images.Single().Image).Should().Equal(0, 255);
+        drawn.Problems.Should().Equal("InvalidValue /Im1");
+    }
+
     // ----- Stencil masks ---------------------------------------------------------------------------
 
     [Test]
@@ -324,6 +337,24 @@ public class ImageTests
 
         device.Images.Single().Image.Data.ToArray().Should().Equal(255, 155, 0, 50, 0, 255, 255, 200);
         result.Diagnostics.Should().BeEmpty();
+    }
+
+    [Test]
+    public void AJpegsColorTransformIsReportedBecauseTheDeviceIsHandedTheJpegAlone()
+    {
+        var device = new RecordingDevice { Jpeg = _ => PageImage.FromRgba32(1, 1, new byte[] { 1, 2, 3, 255 }) };
+
+        var result = PageRendering.Render(Drawn.PageOf(DrawIm1, Resources([0xFF], (document, entries) =>
+        {
+            Set(entries, ("/Width", 1), ("/Height", 1), ("/ColorSpace", "/DeviceRGB"), ("/BitsPerComponent", 8),
+                ("/Filter", "/DCTDecode"));
+            var parameters = new PdfDictionary(document);
+            Set(parameters, ("/ColorTransform", 0));
+            entries.Elements["/DecodeParms"] = parameters;
+        })), device);
+
+        device.Images.Single().Image.Data.ToArray().Should().Equal(1, 2, 3, 255);
+        result.Diagnostics.Select(d => d.Problem + " " + d.Subject).Should().Equal("UnsupportedFeature /Im1");
     }
 
     [Test]
