@@ -32,7 +32,26 @@ internal static class HandWritten
         var state = new PdfDictionary(document);
         state.Elements.SetName("/Type", "/ExtGState");
         entries(state);
-        document.Internals.AddObject(state);
+        Resource(document, page, "/ExtGState", name, state);
+    }
+
+    /// <summary>
+    /// An image XObject named <paramref name="name"/> in the page's resources, holding
+    /// <paramref name="data"/> as it is: its <c>/Filter</c> is among the entries.
+    /// </summary>
+    public static void Image(PdfDocument document, PdfPage page, string name, byte[] data, Action<PdfDictionary> entries)
+    {
+        var image = new PdfDictionary(document);
+        image.Elements.SetName("/Type", "/XObject");
+        image.Elements.SetName("/Subtype", "/Image");
+        image.CreateStream(data);
+        entries(image);
+        Resource(document, page, "/XObject", name, image);
+    }
+
+    private static void Resource(PdfDocument document, PdfPage page, string category, string name, PdfDictionary value)
+    {
+        document.Internals.AddObject(value);
 
         var resources = page.Elements.GetDictionary("/Resources");
         if (resources == null)
@@ -41,9 +60,9 @@ internal static class HandWritten
             page.Elements["/Resources"] = resources;
         }
 
-        var states = resources.Elements.GetDictionary("/ExtGState");
-        if (states == null)
-            resources.Elements["/ExtGState"] = states = new PdfDictionary(document);
-        states.Elements[name] = state.Reference;
+        var named = resources.Elements.GetDictionary(category);
+        if (named == null)
+            resources.Elements[category] = named = new PdfDictionary(document);
+        named.Elements[name] = value.Reference;
     }
 }

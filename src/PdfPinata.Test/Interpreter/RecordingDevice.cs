@@ -31,6 +31,11 @@ internal sealed class RecordingDevice : PageDevice
 
     public IEnumerable<Call> Clips => Calls.Where(call => call.Kind == "clip").Skip(1);
 
+    public IEnumerable<Call> Images => Calls.Where(call => call.Kind == "image");
+
+    /// <summary>Answers <see cref="DecodeImage"/> for a JPEG, or null for a device that cannot decode one.</summary>
+    public Func<ReadOnlyMemory<byte>, PageImage> Jpeg { get; init; }
+
     public override void Save() => Calls.Add(new Call("save"));
 
     public override void Restore() => Calls.Add(new Call("restore"));
@@ -45,7 +50,10 @@ internal sealed class RecordingDevice : PageDevice
         Calls.Add(new Call("stroke") { Path = path, Transform = transform, Stroke = stroke, Paint = paint });
 
     public override void DrawImage(PageImage image, XMatrix transform, PagePaint paint) =>
-        Calls.Add(new Call("image") { Transform = transform, Paint = paint });
+        Calls.Add(new Call("image") { Image = image, Transform = transform, Paint = paint });
+
+    public override PageImage DecodeImage(PageImageCodec codec, ReadOnlyMemory<byte> data) =>
+        codec == PageImageCodec.Jpeg ? Jpeg?.Invoke(data) : null;
 
     internal sealed class Call(string kind)
     {
@@ -55,6 +63,7 @@ internal sealed class RecordingDevice : PageDevice
         public XFillMode FillMode { get; init; }
         public PagePaint Paint { get; init; }
         public PageStroke Stroke { get; init; }
+        public PageImage Image { get; init; }
 
         /// <summary>Where the origin of the path's own coordinates lands on the device.</summary>
         public XPoint Origin => Transform.Transform(new XPoint(0, 0));

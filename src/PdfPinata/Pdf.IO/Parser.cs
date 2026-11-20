@@ -786,6 +786,22 @@ internal sealed class Parser
         return array;
     }
 
+    /// <summary>
+    /// The entries of a dictionary written as text without its angle brackets, as an inline
+    /// image's are between <c>BI</c> and <c>ID</c>. It belongs to no document, so a reference in
+    /// it cannot be read, and throws. So does an array or a dictionary nested more than
+    /// <paramref name="maximumDepth"/> deep inside it, because each is read by a call inside the
+    /// one that reads what holds it.
+    /// </summary>
+    internal static PdfDictionary ReadDictionary(string entries, int maximumDepth)
+    {
+        var parser = new Parser(null, new MemoryStream(PdfEncoders.RawEncoding.GetBytes("<<" + entries + "\n>>")))
+        {
+            _openingsLeft = maximumDepth
+        };
+        return parser.ScanNextToken() == Symbol.BeginDictionary ? parser.ReadDictionary(null, false) : null;
+    }
+
     internal PdfDictionary ReadDictionary(PdfDictionary dict, bool includeReferences)
     {
         Debug.Assert(Symbol == Symbol.BeginDictionary);
@@ -829,11 +845,13 @@ internal sealed class Parser
     /// dictionary or an array or as an indirect object of its own. A byte order mark makes it
     /// UTF-16 and angle brackets a hex literal; anything else is raw, a character to a byte.
     /// </summary>
-    private static PdfStringFlags StringFlagsFor(Symbol symbol)
+    private PdfStringFlags StringFlagsFor(Symbol symbol)
     {
         return symbol switch
         {
-            Symbol.UnicodeString => PdfStringFlags.Unicode,
+            Symbol.UnicodeString => _lexer.TokenIsLittleEndian
+                ? PdfStringFlags.Unicode | PdfStringFlags.LittleEndianMark
+                : PdfStringFlags.Unicode,
             Symbol.HexString => PdfStringFlags.HexLiteral,
             Symbol.UnicodeHexString => PdfStringFlags.Unicode | PdfStringFlags.HexLiteral,
             _ => PdfStringFlags.RawEncoding
@@ -862,14 +880,18 @@ internal sealed class Parser
                     break;
 
                 case Symbol.BeginArray:
+                    Open();
                     var array = new PdfArray(_document);
                     ReadArray(array, false);
+                    _openingsLeft++;
                     _stack.Shift(array);
                     break;
 
                 case Symbol.BeginDictionary:
+                    Open();
                     var dict = new PdfDictionary(_document);
                     ReadDictionary(dict, false);
+                    _openingsLeft++;
                     _stack.Shift(dict);
                     break;
 
@@ -2081,6 +2103,16 @@ internal sealed class Parser
     private readonly PdfDocument _document;
     private readonly Lexer _lexer;
     private readonly ShiftStack _stack;
+
+    // How many more arrays and dictionaries may be opened inside the ones being read. A document
+    // is read without a bound; ReadDictionary(string, int) sets one.
+    private int _openingsLeft = int.MaxValue;
+
+    private void Open()
+    {
+        if (--_openingsLeft < 0)
+            ParserDiagnostics.ThrowParserException("Arrays and dictionaries are nested deeper than they may be here.");
+    }
 
     /// <summary>
     /// The streams whose length is being worked out, which an indirect /Length may not lead back to.
