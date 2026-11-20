@@ -454,7 +454,10 @@ public class Lexer
 
         if (AppendDigitsAndPeriod(ch))
             return Symbol.Real;
-        var l = long.Parse(_token.ToString(), CultureInfo.InvariantCulture);
+        // An integer too large for a long - a stray run of digits in a /Rect, or in the garbage
+        // after a stream - is read as a real, as pdf.js and MuPDF read it. Never an exception.
+        if (!long.TryParse(_token.ToString(), NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var l))
+            return Symbol.Real;
         if (l is >= int.MinValue and <= int.MaxValue)
             return Symbol.Integer;
         // ReSharper disable ConditionIsAlwaysTrueOrFalse
