@@ -55,8 +55,8 @@ never as text", and it does: as a `Fill`, a `Stroke` or part of a `Clip`. The in
 text render mode into those, so the clip modes need nothing from a device that paths do not already
 need. A glyph's `PagePath` is the same instance each time that glyph of that font is drawn, and says
 so with `IsShared`, which is what a device caches its own path against. That holds for the first
-1,048,576 points of outline a document's fonts keep; a glyph past that is handed over unshared, each
-time anew.
+18 MiB of outline a document's fonts keep, about a million points; a glyph past that is handed over
+unshared, each time anew.
 
 **It is a class and not an interface**, so that shadings, patterns, blend modes and transparency
 groups can arrive as `virtual` members whose base body says the device cannot draw them.
@@ -426,7 +426,8 @@ static TrueTypeGlyphs Read(byte[] fontProgram);      // InvalidDataException: no
 int UnitsPerEm { get; }                               // from head; 16 to 16384, else 2048
 int GlyphCount { get; }                               // maxp's count, or fewer where loca has room for fewer
 TrueTypeOutline GetOutline(int glyph);                // null: no such glyph; Empty: no contours; throws InvalidDataException
-TrueTypeCharacterMap CharacterMap(int platform, int encoding);   // formats 0, 4, 6 and 12, or null
+TrueTypeCharacterMap CharacterMap(int platform, int encoding);   // formats 0, 4, 6 and 12, or null; the same instance each time
+long HeldBytes { get; }                               // the most this can come to hold; it does not change
 bool HasCharacterMaps { get; }
 int GlyphNamed(string name);                          // from post formats 1 and 2, or -1
 ```
@@ -485,7 +486,8 @@ read is reported as `MissingGlyph` against each glyph shown in it, with the reas
   - A font program with no `cmap` table at all is taken to number its glyphs by the codes. One whose
     `cmap` has only subtables this does not read, such as format 2, is not.
   - A subtable that is malformed for a code is passed over for the next. Only where none has a
-    glyph is the fault the reason reported.
+    glyph is the fault the reason reported. A format 12 subtable whose groups are out of order is
+    malformed for every code, and so is a format 4 subtable of more than 256 segments that are.
 
 **A nonsymbolic font with no `/Encoding` is read by code, not in StandardEncoding.** ISO 32000-1
 9.6.6.1 gives such a font StandardEncoding, which makes 0x27 quoteright and 0xE9 Oslash. pdf.js and
@@ -501,49 +503,131 @@ where glyph 0 has contours. pdf.js does both, because some files keep a real gly
 `GlyphNames` reads `Fonts/GlyphNameTables.g.cs`, which `tools/GlyphNameTableGenerator` writes from
 the checked-in Adobe Glyph List. It is the core's one map from glyph names to characters.
 
-### Caching
+### What is kept, and the bound on it
 
-The source belongs to the `RenderFont` that `RenderFontCache` keeps for each font dictionary, keyed
-by its reference, so a font program is decoded once per document while the font is kept, and each
-glyph's `PagePath` once per font. Two font dictionaries that share one `/FontFile2` stream decode it
-twice.
+**The rule: whatever page rendering reads from a font and keeps is kept in the document's
+`RenderFontCache`, under the PDF object it was read from, and charged in bytes to a budget for the
+whole document.** A `RenderFont` and a glyph source keep references to the document's own objects
+and a few numbers, and nothing that grows.
 
-**Outlines are kept by glyph, not by code.** A source numbers the glyph of a code through the
-internal `PageGlyphSource.GlyphOf`, and `RenderFont` keeps one outline for each number, so the CIDs
-a `/CIDToGIDMap` sends to one glyph share one path. A source of the caller's own numbers each code as
-its own glyph.
+Three rounds of budgets, one for each cache that was known of, each left a structure that grew with
+the number of font dictionaries and was charged to nothing: outlines for each code, then outlines
+for each font, then `/W2` read into each font. A font dictionary costs about 150 bytes of file, so
+whatever a font dictionary holds is multiplied by thousands in a file of kilobytes. The rule
+removes the place such a structure could be, and `FontMemoryTests.AFontAndItsGlyphSourceKeepNothingThatGrows`
+fails the build when a field of any other type is added to those classes.
 
-**What fonts hold is bounded for the document, not for each font.** Alternate `loca` entries can
-all point at one glyph's data, and a glyph may have 65,536 points: kept once for each code, a
-716-byte font program and 60,000 CIDs would have been about 62 GiB of outline. A budget for each
-font stopped that and nothing more, because a Type 0 font dictionary over a shared descendant
-costs about 150 bytes of file: 256 of them held 4.3 GiB, and 512 in an 89 KB file threw
-`OutOfMemoryException`. So `RenderFontCache` holds three bounds:
+The rule has two halves, and each does a different job:
 
-- **Outlines, within a page.** At most 1,048,576 points, about 17 MiB, for all fonts together. A
-  glyph that would take the document past it is decoded again each time it is drawn and handed
-  over unshared, so a device does not keep it either: it costs time, about 7 ms for each such
-  glyph of 65,535 points, and not memory. The 512 fonts above now render, holding 16 glyphs.
-- **Font programs, at any time.** At most 64 MiB of decoded font program for all fonts together,
-  room for two CJK fonts embedded whole beside a page of Latin text. Past it, the programs of the
-  fonts least recently selected are let go of and read again if they are asked for. A program
-  costs a font dictionary nothing to name, and a few kilobytes of Flate can decode to megabytes.
-- **Fonts, between pages.** Where outlines or programs are over half their budget when a page
-  begins, the fonts least recently selected are forgotten whole, until both are under it. A long
-  render of a document whose every page has subsets of its own stays bounded, and each new page
-  has room to keep its own glyphs.
+- **Kept under the object it was read from.** Font dictionaries that share a `/FontFile2` stream, a
+  descendant, a `/W` or `/W2` array or a `/CIDToGIDMap` stream share one copy of what was read from
+  it, and a font program shared by 64 font dictionaries is decoded once.
+- **Charged to the document's budget.** Sharing alone is no bound: a `/W` array of three numbers is
+  20 bytes of file as an object of its own, and reads to half a megabyte, so a file of fonts that
+  share nothing would still hold what its font dictionaries multiply. Everything read is charged,
+  and what does not fit is let go of.
 
-Two designs were weighed for the outline bound. **A total budget alone**, past which outlines are
-unshared, holds memory flat, but once early pages fill it every later page draws every glyph
-unshared, decoding each one each time it is drawn, for the rest of the document. **Eviction
-alone**, least recently used by font, keeps sharing, but an outline let go of during a page is
-decoded again as a new shared path, and a device keeps one path of its own for each shared one it
-is handed until the render ends: a page that cycled fonts past the budget would grow the device
-without bound, and the Skia device keeps an `SKPath` for each. So each is used where the other
-fails: the total within a page, where the device's cache lives, and eviction between pages, where
-no font is in use and no device holds a path. Programs can be let go of at any time because
-dropping one changes no path a device has been handed. The other way, to report a glyph past the
-budget and skip it, would leave text out of a real font whose glyphs are many and large.
+There are two budgets, because what is kept is of two kinds:
+
+- **Data that can be read again, 144 MiB**: font programs, `/CIDToGIDMap` streams, widths, vertical
+  metrics and a simple font's glyph choices. Past the budget the data least recently used is let
+  go of, at any time, and read again if it is asked for. That changes nothing a device has been
+  handed. It is room for two font programs of the largest size read, their names, and the widths
+  and maps that go with them.
+- **Glyph outlines, 18 MiB**: what 1,048,576 points cost, at sixteen bytes and a verb each. Each
+  outline is charged 96 bytes for its entry as well as its points, so an empty glyph is not free.
+  None is let go of during a page. A glyph past the budget is decoded each time it is drawn and
+  handed over unshared, so a device does not keep it either: it costs time, about 7 ms for a glyph
+  of 65,535 points, and not memory. Between pages, where outlines are over half the budget, those
+  of the font programs least recently drawn from are forgotten.
+
+They are not one budget. Outlines cannot be let go of during a page, so a page that filled a shared
+budget with them would leave no room to hold a font program from one glyph to the next.
+
+**Outlines are kept by glyph of the font program, not by code or by font dictionary.** A source
+numbers the glyph of a code through the internal `PageGlyphSource.GlyphOf` and names what the glyph
+is a glyph of through `OutlineOwner`, which for an embedded font is its `/FontFile2` stream. So the
+CIDs a `/CIDToGIDMap` sends to one glyph share one path, and so do the font dictionaries over one
+font program. A source of the caller's own is its own owner and numbers each code as its own glyph.
+
+**A font program of more than 64 MiB is not read.** A TrueType font has at most 65,535 glyphs.
+The largest there are, CJK fonts embedded whole, run to 20 or 30 MB, and at the far end to about
+50; the limit allows a kilobyte for every glyph a font can have. A stream that decodes to more is
+reported as `MissingGlyph`, with the limit, against each glyph shown in it. The limit is under half
+the data budget so that two of the largest can be held together.
+
+**A page reads at most 1 GiB of font program.** Letting go of a font program and reading it again
+costs its whole decoding, so a page that selects three fonts of 63 MiB in turn decodes 63 MiB at
+each selection, a fifth of a second for 15 bytes of content. Past the allowance a font program that would
+have to be read is not, and its glyphs are reported with the reason. Fonts still held go on
+drawing. The next page has an allowance of its own, and nothing is kept of the refusal.
+
+**Widths are a table, not a dictionary.** `/Widths`, `/W` and `/W2` are each read into a
+`WidthTable`, one array of doubles as long as the highest code given a number: at most 0.5 MiB for
+a `/W` and 1.5 MiB for a `/W2`, however the array is written. `FontWidths` and `VerticalMetrics`
+hold the default and the array, and ask the cache for the table at each code.
+
+#### Every field, and what covers it
+
+*(a)* means of a fixed size and held once for the object of the file it stands for. *(b)* means
+charged to one of the two budgets.
+
+| held by | field | what it is | covered by |
+|---|---|---|---|
+| `RenderFontCache` | `_fonts` | one `RenderFont` for each font dictionary selected | (a): each is of a fixed size, smaller than the dictionary it stands for. Past 4096 they are all forgotten as a page begins |
+| | `_data`, `_recent` | the data kept and its order of use | (b): each entry charged what it holds and 192 bytes |
+| | `_outlines` | the outlines kept, by owner and glyph | (b): each outline charged its points and 96 bytes, each owner 192 bytes |
+| | `_dataBytes`, `_outlineBytes`, `_programBytesRead`, `_clock` | four numbers | fixed |
+| `RenderFont` | `_cache`, `Source` | the cache, and the glyph source | references |
+| | `_widths`, `_vertical` | `FontWidths` and `VerticalMetrics`, below | (a) |
+| | `IsComposite`, `UnsupportedReason`, `EncodingNote` | a flag and two messages | fixed |
+| `FontWidths` | `_simpleFont`, `_w` | the font dictionary or the `/W` array, the document's own | references |
+| | `_defaultWidth`, `_stated` | a number and a flag | fixed |
+| `VerticalMetrics` | `_w2`, `_defaultY`, `_defaultAdvance` | the `/W2` array and two numbers | references, fixed |
+| `EmbeddedTrueTypeGlyphSource` | `_cache`, `_font`, `_descendant`, `_fontFile` | the cache and the document's own dictionaries | references |
+| data: `FontProgram` | `Glyphs`, `Unreadable` | the decoded program, or why it cannot be read | (b), under the `/FontFile2` stream |
+| data: `TrueTypeGlyphs` | `_data` | the font program's bytes | (b): `HeldBytes` |
+| | `_tables` | the table directory | (b): 96 bytes a table in `HeldBytes` |
+| | `_postNames` | the `post` names, read when a glyph is asked for by name | (b): counted in `HeldBytes` before they are read, as no more names than glyphs and no more characters than `post` has bytes |
+| | `_characterMaps` | one `TrueTypeCharacterMap` for each of the seven subtables asked for | (b): counted in `HeldBytes`. A subtable holds four numbers and the program's own bytes |
+| data: `CidToGidMap` | `_map` | the first 131,072 bytes of the stream, which is all a CID can reach | (b), under the stream |
+| data: `WidthTable` | `_values` | the numbers of `/Widths`, `/W` or `/W2` | (b), under the font dictionary or the array |
+| data: `SimpleFontGlyphs` | `_differences`, `_chosen`, the flags | 256 names, 256 glyph numbers | (b), under the font dictionary. It holds no font program: one is handed to it for each choice |
+
+**So no structure that grows with the number of font dictionaries is uncharged.** What a font
+dictionary adds to memory is its `RenderFont`, its source, its `FontWidths` and its
+`VerticalMetrics`: about 300 bytes, all fields above, none a collection. Everything else is an
+entry of `_data` or `_outlines`.
+
+What the rule does not cover, because it is not kept for a font:
+
+- **The decoding itself.** `/FontFile2` is decoded under a `DecodeLimit` of 64 MiB and
+  `/CIDToGIDMap` under one of 131,072 bytes, so a stream of kilobytes that inflates to gigabytes
+  stops there.
+- **What one call uses and lets go of**: a table being read, a glyph being decoded, each bounded by
+  the 65,536 CIDs or points there can be.
+- **A caller's own `PageGlyphSource`**, which holds what its author makes it hold. Its outlines are
+  charged like any other.
+
+#### What was weighed
+
+For outlines, **a total budget alone**, past which outlines are unshared, holds memory flat, but
+once early pages fill it every later page draws every glyph unshared, decoding each one each time
+it is drawn, for the rest of the document. **Eviction alone** keeps sharing, but an outline let go
+of during a page is decoded again as a new shared path, and a device keeps one path of its own for
+each shared one it is handed until the render ends: a page that cycled fonts past the budget would
+grow the device without bound, and the Skia device keeps an `SKPath` for each. So each is used
+where the other fails: the total within a page, where the device's cache lives, and eviction
+between pages, where no device holds a path. The other way, to report a glyph past the budget and
+skip it, would leave text out of a real font whose glyphs are many and large.
+
+For a format 12 `cmap` subtable whose groups are out of order, **refusing it** against **sorting
+the groups once**. Sorting builds twelve bytes for each group that would have to be charged and
+kept in step with the program, for a subtable the format forbids and FreeType refuses. So it is
+refused: the next subtable is tried, and where none has the glyph the reason is reported. A format
+4 subtable out of order is one FreeType does read, in turn, so it is read in turn here where it
+has at most 256 segments, and refused past that. Both formats are searched by halves where they
+are in order, and whether they are is found once for a font program, in one pass.
 
 **A text object clips to at most 4,194,304 points of glyph outline.** A glyph shown in a clip mode
 is copied into the clip in device space, each time it is shown, so sharing the outline does not

@@ -138,7 +138,9 @@ The text extractor (`FontInfo`) ignores `/Encoding` today and reads a font with 
 Latin-1. `GlyphNames`, written here, is what item 18 gives it: glyph name to character, and the
 characters of WinAnsiEncoding, MacRomanEncoding and StandardEncoding.
 
-Parsed font programs are cached **per document**, keyed by the font dictionary's object reference.
+Parsed font programs are cached **per document**, keyed by the `/FontFile2` stream, and held with
+everything else read from a font to one budget for the document:
+`page-rendering-interpreter.md` has the rule.
 
 ## Item 5 — standard 14 fonts
 

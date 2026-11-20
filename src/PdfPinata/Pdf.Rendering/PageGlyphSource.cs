@@ -14,11 +14,12 @@ namespace PdfPinata.Pdf.Rendering;
 /// </para>
 /// <para>
 /// Each glyph is asked for once and the answer kept, so a source need not cache, and the path a
-/// device is handed for a glyph is the same instance every time. That holds for the first
-/// 1,048,576 points of outline a document's fonts draw. Past that, a glyph not yet kept is asked
-/// for each time it is drawn and handed over with <see cref="PagePath.IsShared"/> false, so a font
-/// program of a few hundred bytes cannot hold gigabytes of outline. Between pages, the fonts least
-/// recently used are forgotten, and their sources made again when a later page selects them.
+/// device is handed for a glyph is the same instance every time. That holds for about the first
+/// million points of outline a document's fonts draw, 18 MiB with what keeping each glyph costs.
+/// Past that, a glyph not yet kept is asked for each time it is drawn and handed over with
+/// <see cref="PagePath.IsShared"/> false, so a font program of a few hundred bytes cannot hold
+/// gigabytes of outline. Between pages, the outlines least recently drawn are forgotten where
+/// they are over half of that, and asked for again when a later page draws them.
 /// </para>
 /// <para>
 /// A source is made when a font is selected and may be made for text that is never drawn, such as
@@ -75,14 +76,9 @@ public abstract class PageGlyphSource
     internal virtual PagePath OutlineOfGlyph(int glyph) => GetOutline(glyph);
 
     /// <summary>
-    /// About how many bytes of font program the source holds now, which a document's fonts are
-    /// bounded by together. This base holds none that page rendering can account for.
+    /// What the glyphs <see cref="GlyphOf"/> numbers are glyphs of. Outlines are kept under it, so
+    /// sources that answer the same thing here share them: every font dictionary over one font
+    /// program draws one set of paths. This base is its own, and shares with no other source.
     /// </summary>
-    internal virtual long HeldBytes => 0;
-
-    /// <summary>
-    /// Lets go of the font program, to be read again the next time a glyph is asked for. The
-    /// answers the source gives do not change.
-    /// </summary>
-    internal virtual void Release() { }
+    internal virtual object OutlineOwner => this;
 }

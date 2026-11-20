@@ -21,8 +21,15 @@ namespace PdfPinata.Fonts.OpenType;
 /// Nothing here hints. A glyph is its outline as designed, in font units, y upwards.
 /// </para>
 /// <para>
-/// An instance may be read from several threads. The one thing it reads late, the <c>post</c>
-/// names, is built whole before it is kept, so two threads asking first at once each build it.
+/// An instance may be read from several threads. Of the two things it reads late, the <c>post</c>
+/// names are built whole before they are kept, so two threads asking first at once each build
+/// them, and the <c>cmap</c> subtables are found under a lock.
+/// </para>
+/// <para>
+/// <b>What an instance keeps is the font program and what <see cref="HeldBytes"/> counts</b>: the
+/// table directory, the <c>post</c> names once they are asked for, and one small object for each
+/// <c>cmap</c> subtable asked for. Whoever holds many of these bounds them by that number.
+/// Nothing else is built from the font program and kept.
 /// </para>
 /// </remarks>
 internal sealed class TrueTypeGlyphs
@@ -48,7 +55,17 @@ internal sealed class TrueTypeGlyphs
     private readonly TableRange _glyf;
     private readonly TableRange _loca;
     private readonly bool _longOffsets;
+    private readonly Dictionary<int, TrueTypeCharacterMap> _characterMaps = new();
     private Dictionary<string, int> _postNames;
+
+    /// <summary>What one entry of the table directory or of the <c>post</c> names is taken to cost, with its string.</summary>
+    private const int EntryBytes = 96;
+
+    /// <summary>
+    /// How many names a <c>post</c> table can use past the standard 258: a glyph's name is a
+    /// 16-bit index. A table may list any number more, which no glyph can be given.
+    /// </summary>
+    private const int MaximumExtraNames = 0x10000 - 258;
 
     private TrueTypeGlyphs(byte[] data, Dictionary<string, TableRange> tables, int unitsPerEm, bool longOffsets, int glyphCount)
     {
@@ -59,6 +76,17 @@ internal sealed class TrueTypeGlyphs
         _longOffsets = longOffsets;
         UnitsPerEm = unitsPerEm;
         GlyphCount = glyphCount;
+
+        // No more names are kept than there are glyphs, or than the standard 258 and those post
+        // has room to index, nor more characters than post has bytes.
+        long postNames = 0;
+        if (tables.TryGetValue(TableTagNames.Post, out var post))
+        {
+            postNames = (long)EntryBytes * Math.Min(glyphCount, Math.Max(258, post.Length / 2))
+                        + 2L * Math.Min(post.Length, MaximumExtraNames * 255);
+        }
+
+        HeldBytes = data.Length + (long)EntryBytes * (tables.Count + 8) + postNames;
     }
 
     /// <summary>The font units in one em, from <c>head</c>: what an outline is divided by to be one em wide.</summary>
@@ -72,6 +100,13 @@ internal sealed class TrueTypeGlyphs
 
     /// <summary>How many bytes the font program is.</summary>
     public int Length => _data.Length;
+
+    /// <summary>
+    /// The most bytes this can come to hold: the font program, the table directory, and the
+    /// <c>post</c> names, which are read only when a glyph is asked for by name. It is counted
+    /// before they are read and does not change, so whoever charges for it charges once.
+    /// </summary>
+    public long HeldBytes { get; }
 
     /// <summary>Reads the table directory and the tables an outline needs.</summary>
     /// <param name="data">A TrueType font program. It is kept, not copied.</param>
@@ -167,6 +202,19 @@ internal sealed class TrueTypeGlyphs
     /// <param name="encoding">The platform's encoding: with Windows, 0 symbol, 1 Unicode BMP, 10 full Unicode.</param>
     public TrueTypeCharacterMap CharacterMap(int platform, int encoding)
     {
+        // Kept, because a subtable finds out once whether it can be searched by halves, and a
+        // caller asks for the same few subtables for each font dictionary over this program.
+        var key = platform << 16 | encoding & 0xFFFF;
+        lock (_characterMaps)
+        {
+            if (!_characterMaps.TryGetValue(key, out var map))
+                _characterMaps[key] = map = FindCharacterMap(platform, encoding);
+            return map;
+        }
+    }
+
+    private TrueTypeCharacterMap FindCharacterMap(int platform, int encoding)
+    {
         if (!_tables.TryGetValue(TableTagNames.CMap, out var cmap))
             return null;
 
@@ -236,10 +284,11 @@ internal sealed class TrueTypeGlyphs
 
         // The names past the standard 258, each a length byte and that many bytes of ASCII.
         var extra = new List<string>();
-        while (reader.TryReadByte(out var length) && reader.TryReadAscii(length, out var extraName))
+        while (extra.Count < MaximumExtraNames && reader.TryReadByte(out var length) && reader.TryReadAscii(length, out var extraName))
             extra.Add(extraName);
 
-        for (var glyph = 0; glyph < count; glyph++)
+        // A name given to a glyph the font has not names nothing.
+        for (var glyph = 0; glyph < Math.Min(count, GlyphCount); glyph++)
         {
             var index = indices[glyph];
             var glyphName = index < 258 ? GlyphNames.MacStandardName(index)

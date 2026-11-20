@@ -547,20 +547,16 @@ public class EmbeddedTrueTypeTests
     }
 
     [Test]
-    [Arguments(3u, false)]
-    [Arguments(4u, false)]
-    [Arguments(0xFFFFFFFFu, false)]
-    [Arguments(3u, true)]
-    public void AFormat12CmapFindsEveryGroupWhateverCountItStatesAndInWhateverOrder(uint statedGroups, bool reversed)
+    [Arguments(3u)]
+    [Arguments(4u)]
+    [Arguments(0xFFFFFFFFu)]
+    public void AFormat12CmapFindsEveryGroupWhateverCountItStates(uint statedGroups)
     {
         var builder = new TrueTypeFontBuilder();
         var a = builder.AddBar(100);
         var b = builder.AddBar(200);
         var c = builder.AddBar(300);
-        (uint Start, int Glyph)[] groups = [(0x41, a), (0x42, b), (0x43, c)];
-        if (reversed)
-            Array.Reverse(groups);
-        builder.Map(3, 10, Format12Groups(statedGroups, groups));
+        builder.Map(3, 10, Format12Groups(statedGroups, [(0x41, a), (0x42, b), (0x43, c)]));
 
         var drawn = Drawn.Page("BT /F1 10 Tf (ABC) Tj ET", (document, resources) =>
             Drawn.Add(document, resources, "/Font", "/F1", Simple(document, builder.Build(), 32, new PdfName("/WinAnsiEncoding"))));
@@ -569,8 +565,69 @@ public class EmbeddedTrueTypeTests
         drawn.Problems.Should().BeEmpty();
     }
 
+    [Test]
+    public void AFormat12CmapWhoseGroupsAreOutOfOrderIsRefusedAndTheNextSubtableIsRead()
+    {
+        // FreeType refuses such a subtable, and searching one group by group for each code took
+        // 48 seconds for a file of 95 KB. The (3,1) subtable beside it still finds B.
+        var builder = new TrueTypeFontBuilder();
+        var a = builder.AddBar(100);
+        var b = builder.AddBar(200);
+        var c = builder.AddBar(300);
+        builder.Map(3, 10, Format12Groups(3, [(0x43, c), (0x42, b), (0x41, a)]));
+        builder.Map(3, 1, new Dictionary<int, int> { [0x42] = b });
+
+        var drawn = Drawn.Page("BT /F1 10 Tf (ABC) Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Simple(document, builder.Build(), 32, new PdfName("/WinAnsiEncoding"))));
+
+        Widths(drawn).Should().Equal(0.2);
+        var missing = drawn.Result.Diagnostics.Should().ContainSingle().Subject;
+        missing.Problem.Should().Be(PageRenderProblem.MissingGlyph);
+        missing.Message.Should().Contain("out of order");
+    }
+
+    [Test]
+    public void AFormat4CmapWhoseSegmentsAreOutOfOrderIsStillSearchedWhereItIsSmall()
+    {
+        // FreeType searches such a subtable in turn, and a subset a broken producer wrote has few
+        // segments. The first segment that ends at or after a code is the one read for it.
+        var builder = new TrueTypeFontBuilder();
+        var a = builder.AddBar(100);
+        var b = builder.AddBar(200);
+        builder.Map(3, 1, Format4Segments([(0x42, b), (0x41, a), (0xFFFF, 0)]));
+
+        var drawn = Drawn.Page("BT /F1 10 Tf (AB) Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Simple(document, builder.Build(), 32, new PdfName("/WinAnsiEncoding"))));
+
+        Widths(drawn).Should().Equal(new[] { 0.2 }, "A is passed over at the segment for B, which ends after it and starts after it");
+    }
+
+    /// <summary>A format 4 subtable of segments of one character each, in the order given.</summary>
+    internal static byte[] Format4Segments((int Character, int Glyph)[] segments)
+    {
+        var count = segments.Length;
+        var subtable = new byte[16 + 8 * count];
+        Put(0, 4);
+        Put(2, subtable.Length);
+        Put(6, 2 * count);
+        for (var s = 0; s < count; s++)
+        {
+            Put(14 + 2 * s, segments[s].Character);
+            Put(16 + 2 * count + 2 * s, segments[s].Character);
+            Put(16 + 4 * count + 2 * s, segments[s].Character == 0xFFFF ? 1 : segments[s].Glyph - segments[s].Character);
+        }
+
+        return subtable;
+
+        void Put(int at, int value)
+        {
+            subtable[at] = (byte)(value >> 8);
+            subtable[at + 1] = (byte)value;
+        }
+    }
+
     /// <summary>A format 12 subtable of groups of one character each, stating a count of its own.</summary>
-    private static byte[] Format12Groups(uint statedGroups, (uint Start, int Glyph)[] groups)
+    internal static byte[] Format12Groups(uint statedGroups, (uint Start, int Glyph)[] groups)
     {
         var subtable = new byte[16 + 12 * groups.Length];
         subtable[1] = 12;

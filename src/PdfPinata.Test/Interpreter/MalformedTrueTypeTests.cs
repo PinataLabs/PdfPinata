@@ -200,7 +200,8 @@ public class MalformedTrueTypeTests
     public async Task FontDictionariesSharingOneFontProgramKeepNoMoreOutlineTogetherThanTheDocumentsBudget()
     {
         // 64 Type 0 fonts over one descendant, each drawing 16 glyphs of 65,535 points. Each font
-        // dictionary is about 150 bytes of file; kept for each font, the outlines were 1 GiB.
+        // dictionary is about 150 bytes of file; kept for each font, the outlines were 1 GiB. They
+        // are kept under the font program, so every dictionary over it draws the same 16 paths.
         const int fonts = 64;
         var builder = new TrueTypeFontBuilder();
         for (var i = 0; i < 16; i++)
@@ -231,10 +232,10 @@ public class MalformedTrueTypeTests
         var (result, retained) = await Interruptibly.Run(() => Retained(() => PageRendering.Render(page, device)));
 
         result.Diagnostics.Should().BeEmpty();
-        device.Fills.Should().Be(16 * fonts, "every glyph is drawn, kept or not");
-        device.SharedPaths.Should().Be(16, "the document keeps 1,048,576 points, which is 16 of these glyphs, for all its fonts");
-        device.UnsharedFills.Should().Be(16 * (fonts - 1));
-        retained.Should().BeLessThan(48L << 20, "the budget is about 17 MiB of outline");
+        device.Fills.Should().Be(16 * fonts);
+        device.SharedPaths.Should().Be(16, "an outline belongs to the font program, whichever font dictionary names it");
+        device.UnsharedFills.Should().Be(0);
+        retained.Should().BeLessThan(48L << 20, "the budget is 18 MiB of outline");
         GC.KeepAlive(page);
     }
 
@@ -242,16 +243,16 @@ public class MalformedTrueTypeTests
     public async Task ALongRenderForgetsTheFontsOfEarlierPagesSoEachPageKeepsItsGlyphsAndMemoryStaysBounded()
     {
         // Each page has a font of its own, as a document of per-page subsets does, whose program
-        // decodes to 2 MiB and whose 16 glyphs fill the document's outline budget. Kept for the
-        // document's life, 48 of them were 48 programs and 768 glyphs of 65,535 points.
-        const int pages = 48;
+        // decodes to 3 MiB and whose 16 glyphs fill the document's outline budget. Kept for the
+        // document's life, 80 of them were 240 MiB of program and 1280 glyphs of 65,535 points.
+        const int pages = 80;
         var document = new PdfDocument();
         for (var p = 0; p < pages; p++)
         {
             var builder = new TrueTypeFontBuilder();
             for (var i = 0; i < 16; i++)
                 builder.Add(Dense);
-            var padded = new byte[(2 << 20) + p];
+            var padded = new byte[(3 << 20) + p];
             builder.Build().CopyTo(padded, 0);
 
             var page = document.AddPage();
@@ -280,16 +281,16 @@ public class MalformedTrueTypeTests
         });
 
         sharedOnEachPage.Should().HaveCount(pages).And.OnlyContain(count => count == 16);
-        retained.Should().BeLessThan(64L << 20, "the fonts of earlier pages are let go of");
+        retained.Should().BeLessThan(176L << 20, "the document keeps 144 MiB of font program and 18 MiB of outline");
         GC.KeepAlive(document);
     }
 
     [Test, Timeout(300000), NotInParallel]
     public async Task TheFontProgramsOfOnePageAreHeldNoMoreThanTheDocumentsBudgetTogether()
     {
-        // 32 fonts on one page, each a program that decodes to 4 MiB from a few kilobytes: 128 MiB
-        // held, where the document holds 64 MiB of font program and reads one again if asked.
-        const int fonts = 32;
+        // 60 fonts on one page, each a program that decodes to 4 MiB from a few kilobytes: 240 MiB
+        // held, where the document holds 144 MiB of font program and reads one again if asked.
+        const int fonts = 60;
         var content = new StringBuilder("BT ");
         for (var k = 0; k < fonts; k++)
             content.Append($"/F{k} 1 Tf <0001> Tj ");
@@ -315,12 +316,12 @@ public class MalformedTrueTypeTests
         result.Diagnostics.Should().BeEmpty();
         device.Fills.Select(fill => Math.Round(Bounds(fill.Path).Width, 9)).Should().Equal(
             Enumerable.Range(0, fonts).Select(k => (100 + k) / 1000.0).Append(0.1), "the first font is read again for the last glyph");
-        retained.Should().BeLessThan(96L << 20, "32 programs of 4 MiB are 128 MiB");
+        retained.Should().BeLessThan(176L << 20, "60 programs of 4 MiB are 240 MiB");
         GC.KeepAlive(page);
     }
 
     /// <summary>Compresses a composite font's program, so the document holds kilobytes of what decodes to megabytes.</summary>
-    private static void Deflated(PdfDictionary font)
+    internal static void Deflated(PdfDictionary font)
     {
         var descendant = (PdfDictionary)((PdfReference)font.Elements.GetArray("/DescendantFonts").Elements[0]).Value;
         var descriptor = (PdfDictionary)((PdfReference)descendant.Elements["/FontDescriptor"]).Value;
@@ -360,11 +361,11 @@ public class MalformedTrueTypeTests
     /// One glyph of 65,535 points in a few hundred bytes: every flag repeated, every coordinate
     /// the same as the last.
     /// </summary>
-    private static byte[] Dense =>
+    internal static byte[] Dense =>
         [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFE, 0, 0, ..Enumerable.Range(0, 257).SelectMany(_ => new byte[] { 0x39, 0xFF })];
 
     /// <summary>What a render returns, and how much more memory is live after it than before.</summary>
-    private static (PageRenderResult Result, long Retained) Retained(Func<PageRenderResult> render)
+    internal static (PageRenderResult Result, long Retained) Retained(Func<PageRenderResult> render)
     {
         var before = GC.GetTotalMemory(true);
         var result = render();
@@ -372,7 +373,7 @@ public class MalformedTrueTypeTests
     }
 
     /// <summary>A device that keeps no path but those a font shares, and counts what it is handed.</summary>
-    private sealed class PathCountingDevice : PageDevice
+    internal sealed class PathCountingDevice : PageDevice
     {
         private readonly HashSet<PagePath> _shared = new(ReferenceEqualityComparer.Instance);
 

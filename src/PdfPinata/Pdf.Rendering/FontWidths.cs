@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using PdfPinata.Pdf.Advanced;
 
 namespace PdfPinata.Pdf.Rendering;
@@ -9,64 +8,86 @@ namespace PdfPinata.Pdf.Rendering;
 /// program: the PDF's numbers are the ones its producer laid the text out with.
 /// </summary>
 /// <remarks>
+/// <para>
 /// A simple font states <c>/Widths</c> from <c>/FirstChar</c> on, and its descriptor's
 /// <c>/MissingWidth</c> for a code outside them. A composite font states <c>/W</c> and
 /// <c>/DW</c> on its descendant, by CID. Both are in thousandths of text space, which is divided
 /// out here. <b>A Type 3 font is the exception</b>: its widths are in glyph space, and its
 /// <c>/FontMatrix</c> takes them to text space (ISO 32000-1 9.6.5). A font made by TeX commonly
 /// has a matrix of a thousandth, and a bitmap font as commonly has not.
+/// </para>
+/// <para>
+/// <b>This holds the default width and where the others are stated, and not the widths.</b> A
+/// <c>/W</c> array of three numbers gives 65,536 CIDs a width, and read into each font dictionary
+/// that names it, 1024 dictionaries in 159 KB of file held 2 GiB. The widths are read into a
+/// <see cref="WidthTable"/> that the <see cref="RenderFontCache"/> keeps under the array, or
+/// under the simple font's dictionary, so they are read once for all the fonts that share it
+/// and are charged to the document's budget.
+/// </para>
 /// </remarks>
 internal sealed class FontWidths
 {
-    private readonly Dictionary<int, double> _widths = new();
+    private readonly PdfDictionary _simpleFont;
+    private readonly PdfArray _w;
     private readonly double _defaultWidth;
     private readonly bool _stated;
 
-    private FontWidths(bool stated, double defaultWidth)
+    private FontWidths(bool stated, double defaultWidth, PdfDictionary simpleFont, PdfArray w)
     {
         _stated = stated;
         _defaultWidth = defaultWidth;
+        _simpleFont = simpleFont;
+        _w = w;
     }
 
-    /// <summary>The widths a font dictionary states.</summary>
+    /// <summary>Where a font dictionary states its widths. Reads none of them.</summary>
     /// <param name="font">The font dictionary a <c>Tf</c> names.</param>
     /// <param name="descendant">The descendant of a composite font, or null for a simple one.</param>
-    internal static FontWidths From(PdfDictionary font, PdfDictionary descendant) =>
-        descendant == null ? Simple(font) : Composite(descendant);
-
-    /// <summary>
-    /// The advance of a code in text space, where 1 is one em, or null when the font dictionary
-    /// states no widths at all, as a standard 14 font need not.
-    /// </summary>
-    internal double? Of(int code)
+    internal static FontWidths Of(PdfDictionary font, PdfDictionary descendant)
     {
-        if (!_stated)
-            return null;
+        if (descendant != null)
+        {
+            var defaultWidth = PdfItemValues.TryGetNumber(descendant.Elements["/DW"], out var stated) ? stated : 1000;
+            return new FontWidths(true, defaultWidth / 1000, null, descendant.Elements.GetArray("/W"));
+        }
 
-        return _widths.TryGetValue(code, out var width) ? width : _defaultWidth;
-    }
-
-    private static FontWidths Simple(PdfDictionary font)
-    {
-        var stated = font.Elements.GetArray("/Widths");
         var missing = 0.0;
         var descriptor = font.Elements.GetDictionary("/FontDescriptor");
         if (descriptor != null && PdfItemValues.TryGetNumber(descriptor.Elements["/MissingWidth"], out var width))
             missing = width;
 
-        var toTextSpace = TextSpaceUnitOf(font);
-        var widths = new FontWidths(stated != null, missing * toTextSpace);
-        if (stated == null)
-            return widths;
+        var hasWidths = font.Elements.GetArray("/Widths") != null;
+        return new FontWidths(hasWidths, missing * TextSpaceUnitOf(font), hasWidths ? font : null, null);
+    }
 
+    /// <summary>
+    /// The advance of a code in text space, where 1 is one em, or null when the font dictionary
+    /// states no widths at all, as a standard 14 font need not.
+    /// </summary>
+    internal double? Of(int code, RenderFontCache cache)
+    {
+        if (!_stated)
+            return null;
+
+        var table = _simpleFont != null ? cache.Data(FontDataKind.SimpleWidths, _simpleFont, static (font, _) => ReadSimple(font))
+            : _w != null ? cache.Data(FontDataKind.CidWidths, _w, static (w, _) => ReadComposite(w))
+            : null;
+        return table != null && table.TryGet(code, 0, out var width) ? width : _defaultWidth;
+    }
+
+    private static WidthTable ReadSimple(PdfDictionary font)
+    {
+        var stated = font.Elements.GetArray("/Widths");
+        var toTextSpace = TextSpaceUnitOf(font);
+        var widths = new WidthTable.Builder(1, 256);
         TryGetCid(font.Elements["/FirstChar"], out var first);
         for (var index = 0; index < stated.Elements.Count && index < 256; index++)
         {
             if (PdfItemValues.TryGetNumber(stated.Elements[index], out var value))
-                widths._widths[first + index] = value * toTextSpace;
+                widths.Set((long)first + index, 0, value * toTextSpace);
         }
 
-        return widths;
+        return widths.ToTable();
     }
 
     /// <summary>
@@ -90,14 +111,9 @@ internal sealed class FontWidths
             : thousandth;
     }
 
-    private static FontWidths Composite(PdfDictionary descendant)
+    private static WidthTable ReadComposite(PdfArray w)
     {
-        var defaultWidth = PdfItemValues.TryGetNumber(descendant.Elements["/DW"], out var stated) ? stated : 1000;
-        var widths = new FontWidths(true, defaultWidth / 1000);
-
-        var w = descendant.Elements.GetArray("/W");
-        if (w == null)
-            return widths;
+        var widths = new WidthTable.Builder(1, MaximumCid + 1);
 
         // Every CID can be given a width a few times over and no more. A /W that goes on giving
         // the whole range one width, run after run, would otherwise take minutes to read, and
@@ -116,7 +132,7 @@ internal sealed class FontWidths
                 for (var index = 0; index < individually.Elements.Count && index <= MaximumCid && budget > 0; index++, budget--)
                 {
                     if (PdfItemValues.TryGetNumber(individually.Elements[index], out var value))
-                        widths.Set((long)first + index, value / 1000);
+                        widths.Set((long)first + index, 0, value / 1000);
                 }
 
                 at += 2;
@@ -133,12 +149,12 @@ internal sealed class FontWidths
             // an int round and never finish, and the run is held to the CIDs there can be, so a
             // malformed one that claims millions fills in none past them.
             for (long cid = first; cid <= last && cid <= MaximumCid && budget > 0; cid++, budget--)
-                widths.Set(cid, shared / 1000);
+                widths.Set(cid, 0, shared / 1000);
 
             at += 3;
         }
 
-        return widths;
+        return widths.ToTable();
     }
 
     /// <summary>The largest CID a two-byte code can name.</summary>
@@ -155,11 +171,66 @@ internal sealed class FontWidths
         cid = isNumber ? (int)Math.Max(-1, Math.Min(number, MaximumCid + 1)) : 0;
         return isNumber;
     }
+}
 
-    private void Set(long cid, double width)
+/// <summary>
+/// The numbers a <c>/Widths</c>, <c>/W</c> or <c>/W2</c> array gives each code or CID: one array
+/// of doubles, as long as the highest code given any, and a NaN where one is given none.
+/// </summary>
+/// <remarks>
+/// At most 65,536 codes of one or three numbers, so half a megabyte for a <c>/W</c> and a megabyte
+/// and a half for a <c>/W2</c> however the array is written, where a dictionary of them was 2 MiB
+/// and 3 MiB.
+/// </remarks>
+internal sealed class WidthTable : IFontData
+{
+    private readonly double[] _values;
+    private readonly int _each;
+
+    private WidthTable(double[] values, int each)
     {
-        if (cid is >= 0 and <= MaximumCid)
-            _widths[(int)cid] = width;
+        _values = values;
+        _each = each;
+    }
+
+    public long HeldBytes => 64 + 8L * _values.Length;
+
+    /// <summary>One of the numbers stated for a code, where the code is given any.</summary>
+    /// <param name="code">The code or CID.</param>
+    /// <param name="which">Which of its numbers.</param>
+    /// <param name="value">The number.</param>
+    internal bool TryGet(int code, int which, out double value)
+    {
+        var at = (long)code * _each + which;
+        value = code >= 0 && at < _values.Length ? _values[at] : double.NaN;
+        return !double.IsNaN(value);
+    }
+
+    /// <summary>Gathers a table. A number that is not one, a NaN, is as good as not stated.</summary>
+    /// <param name="each">How many numbers each code has.</param>
+    /// <param name="codes">How many codes there can be.</param>
+    internal sealed class Builder(int each, int codes)
+    {
+        private readonly double[] _values = Filled(each * codes);
+        private int _used;
+
+        internal void Set(long code, int which, double value)
+        {
+            if (code < 0 || code >= codes)
+                return;
+
+            _values[code * each + which] = value;
+            _used = Math.Max(_used, ((int)code + 1) * each);
+        }
+
+        internal WidthTable ToTable() => new(_values.AsSpan(0, _used).ToArray(), each);
+
+        private static double[] Filled(int length)
+        {
+            var values = new double[length];
+            Array.Fill(values, double.NaN);
+            return values;
+        }
     }
 }
 
@@ -168,24 +239,32 @@ internal sealed class FontWidths
 /// <c>/DW2</c> on its descendant, by ISO 32000-1 9.7.4.3. Like the widths, never from the font program.
 /// </summary>
 /// <remarks>
+/// <para>
 /// A glyph is placed with its position vector, (vx, vy), on the pen, and the pen then moves down by
 /// the vertical advance. Where <c>/W2</c> gives a CID nothing, vx is half its horizontal width and
 /// vy and the advance are <c>/DW2</c>'s, which is [880 -1000] where it is not stated.
+/// </para>
+/// <para>
+/// Like <see cref="FontWidths"/>, this holds the defaults and the <c>/W2</c> array, and what the
+/// array says is read into a <see cref="WidthTable"/> the <see cref="RenderFontCache"/> keeps
+/// under it.
+/// </para>
 /// </remarks>
 internal sealed class VerticalMetrics
 {
-    private readonly Dictionary<int, (double Advance, double X, double Y)> _metrics = new();
+    private readonly PdfArray _w2;
     private readonly double _defaultY;
     private readonly double _defaultAdvance;
 
-    private VerticalMetrics(double defaultY, double defaultAdvance)
+    private VerticalMetrics(double defaultY, double defaultAdvance, PdfArray w2)
     {
         _defaultY = defaultY;
         _defaultAdvance = defaultAdvance;
+        _w2 = w2;
     }
 
-    /// <summary>The vertical metrics a descendant font states.</summary>
-    internal static VerticalMetrics From(PdfDictionary descendant)
+    /// <summary>Where a descendant font states its vertical metrics. Reads none but the defaults.</summary>
+    internal static VerticalMetrics Of(PdfDictionary descendant)
     {
         double defaultY = 880, defaultAdvance = -1000;
         var dw2 = descendant.Elements.GetArray("/DW2");
@@ -196,10 +275,31 @@ internal sealed class VerticalMetrics
             (defaultY, defaultAdvance) = (y, advance);
         }
 
-        var metrics = new VerticalMetrics(defaultY / 1000, defaultAdvance / 1000);
-        var w2 = descendant.Elements.GetArray("/W2");
-        if (w2 == null)
-            return metrics;
+        return new VerticalMetrics(defaultY / 1000, defaultAdvance / 1000, descendant.Elements.GetArray("/W2"));
+    }
+
+    /// <summary>
+    /// The vertical advance, negative for down the page, and the position vector of a CID, all in
+    /// text space before the type size is applied.
+    /// </summary>
+    /// <param name="cid">The CID.</param>
+    /// <param name="horizontalWidth">The CID's horizontal width, half of which is vx where nothing else says.</param>
+    /// <param name="cache">What keeps what <c>/W2</c> says.</param>
+    internal (double Advance, double X, double Y) Of(int cid, double horizontalWidth, RenderFontCache cache)
+    {
+        if (_w2 != null)
+        {
+            var table = cache.Data(FontDataKind.VerticalMetrics, _w2, static (w2, _) => Read(w2));
+            if (table.TryGet(cid, 0, out var advance) && table.TryGet(cid, 1, out var x) && table.TryGet(cid, 2, out var y))
+                return (advance, x, y);
+        }
+
+        return (_defaultAdvance, horizontalWidth / 2, _defaultY);
+    }
+
+    private static WidthTable Read(PdfArray w2)
+    {
+        var metrics = new WidthTable.Builder(3, FontWidths.MaximumCid + 1);
 
         // The same two forms as /W, each width a triple: c [w1y vx vy …] gives each of a run of
         // CIDs its own, and cFirst cLast w1y vx vy gives a run of them one. Bounded as /W is.
@@ -212,7 +312,11 @@ internal sealed class VerticalMetrics
             if (PdfReference.Dereference(w2.Elements[at + 1]) is PdfArray individually)
             {
                 for (var index = 0; index + 2 < individually.Elements.Count && budget > 0; index += 3, budget--)
-                    metrics.Set((long)first + index / 3, individually, index);
+                {
+                    if (TryGetTriple(individually, index, out var own))
+                        Set(metrics, (long)first + index / 3, own);
+                }
+
                 at += 2;
                 continue;
             }
@@ -220,33 +324,37 @@ internal sealed class VerticalMetrics
             if (at + 4 >= w2.Elements.Count || !FontWidths.TryGetCid(w2.Elements[at + 1], out var last))
                 break;
 
-            for (long cid = first; cid <= last && cid <= FontWidths.MaximumCid && budget > 0; cid++, budget--)
-                metrics.Set(cid, w2, at + 2);
+            if (TryGetTriple(w2, at + 2, out var shared))
+            {
+                for (long cid = first; cid <= last && cid <= FontWidths.MaximumCid && budget > 0; cid++, budget--)
+                    Set(metrics, cid, shared);
+            }
+
             at += 5;
         }
 
-        return metrics;
+        return metrics.ToTable();
     }
 
-    /// <summary>
-    /// The vertical advance, negative for down the page, and the position vector of a CID, all in
-    /// text space before the type size is applied.
-    /// </summary>
-    /// <param name="cid">The CID.</param>
-    /// <param name="horizontalWidth">The CID's horizontal width, half of which is vx where nothing else says.</param>
-    internal (double Advance, double X, double Y) Of(int cid, double horizontalWidth) =>
-        _metrics.TryGetValue(cid, out var stated) ? stated : (_defaultAdvance, horizontalWidth / 2, _defaultY);
-
-    private void Set(long cid, PdfArray numbers, int from)
+    /// <summary>The vertical advance and the position vector written at three places of an array, in text space.</summary>
+    private static bool TryGetTriple(PdfArray numbers, int from, out (double Advance, double X, double Y) triple)
     {
-        if (cid is < 0 or > FontWidths.MaximumCid
-            || !PdfItemValues.TryGetNumber(numbers.Elements[from], out var advance)
+        triple = default;
+        if (!PdfItemValues.TryGetNumber(numbers.Elements[from], out var advance)
             || !PdfItemValues.TryGetNumber(numbers.Elements[from + 1], out var x)
             || !PdfItemValues.TryGetNumber(numbers.Elements[from + 2], out var y))
         {
-            return;
+            return false;
         }
 
-        _metrics[(int)cid] = (advance / 1000, x / 1000, y / 1000);
+        triple = (advance / 1000, x / 1000, y / 1000);
+        return true;
+    }
+
+    private static void Set(WidthTable.Builder metrics, long cid, (double Advance, double X, double Y) triple)
+    {
+        metrics.Set(cid, 0, triple.Advance);
+        metrics.Set(cid, 1, triple.X);
+        metrics.Set(cid, 2, triple.Y);
     }
 }

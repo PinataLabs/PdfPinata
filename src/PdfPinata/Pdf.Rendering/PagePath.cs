@@ -77,6 +77,9 @@ public sealed class PagePath
     /// </remarks>
     public bool IsShared { get; }
 
+    /// <summary>About how many bytes the path holds: its points and verbs, and the three objects they are.</summary>
+    internal long HeldBytes => IsEmpty ? 0 : 96 + 16L * _points.Length + _verbs.Length;
+
     /// <summary>The same verbs and points, as an instance that says it is handed over again.</summary>
     internal PagePath Shared() => IsShared || IsEmpty ? this : new PagePath(_verbs, _points, true);
 

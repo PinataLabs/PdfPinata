@@ -40,13 +40,14 @@ internal static class BuiltInGlyphSources
     /// <summary>The source for a font, or null where this version has none.</summary>
     /// <param name="font">The font dictionary a <c>Tf</c> names: for a composite font, the Type 0 dictionary.</param>
     /// <param name="descendant">The descendant of a composite font, or null for a simple one.</param>
+    /// <param name="cache">What a source keeps everything it reads from the font in.</param>
     /// <param name="why">Why there is no source, where there is none. It is what the font is reported with.</param>
     /// <remarks>
     /// This must not read a seam, and nor may the constructor of what it answers. It is called
     /// when a font is selected, and a page that selects Helvetica only to show invisible text
     /// has to render with no font resolver set.
     /// </remarks>
-    internal static PageGlyphSource Select(PdfDictionary font, PdfDictionary descendant, out string why)
+    internal static PageGlyphSource Select(PdfDictionary font, PdfDictionary descendant, RenderFontCache cache, out string why)
     {
         if (font.Elements.GetNameOrEmpty("/Subtype") == "/Type3")
         {
@@ -59,7 +60,7 @@ internal static class BuiltInGlyphSources
         if (fontFile2 != null)
         {
             why = null;
-            return new EmbeddedTrueTypeGlyphSource(font, descendant, descriptor, fontFile2);
+            return new EmbeddedTrueTypeGlyphSource(font, descendant, fontFile2, cache);
         }
 
         if (descriptor?.Elements.GetDictionary("/FontFile3") != null
