@@ -54,7 +54,7 @@ public class ContentLimitTests
         return page;
     }
 
-    [Test, Timeout(120_000), NotInParallel("LargeAllocation")]
+    [Test, Timeout(120_000), NotInParallel]
     public async Task ContentThatInflatesPastTheCapIsReportedAsCutShort()
     {
         // A predictor row wider than the cap leaves nothing to parse, so the test measures the
@@ -92,7 +92,7 @@ public class ContentLimitTests
         result.IsComplete.Should().BeTrue();
     }
 
-    [Test, Timeout(120_000), NotInParallel("LargeAllocation")]
+    [Test, Timeout(120_000), NotInParallel]
     public async Task WhatAPredictorThrowsAwayStillCountsAgainstTheBudgetTheStreamsShare()
     {
         // Each stream inflates to the whole budget and a predictor with one row wider than that
