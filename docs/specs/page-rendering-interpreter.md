@@ -16,7 +16,7 @@ separate issues, and each has one place here to plug into. The last section name
 | 7 | DeviceGray, DeviceRGB and DeviceCMYK | done |
 | 8 | Indexed and ICCBased colour (#372) | plug-in point only |
 | 9 | Glyph outlines (#373, #374) | plug-in point only |
-| 10 | Images (#375) | plug-in point only |
+| 10 | Images (#375) | done, but CCITTFax, JBIG2 and JPX (#385) |
 | 11 | CMaps other than `Identity-H`, and vertical writing | deliberately not done |
 | 12 | A limit on the operators of one page | deliberately not done |
 | 13 | Type 3 fonts (their advances are read; their glyphs are not drawn) | advance only |
@@ -81,7 +81,9 @@ in step.
   crossing the seam with its masks beside it, would have made every device compose a soft mask
   for that one case. What comes back is RGB and not the JPEG's own components, because a codec
   turns a CMYK or an Adobe-inverted JPEG to RGB itself and `SKCodec` has no way to hand back
-  the four inks. So a `/Decode` array on a JPEG is the codec's to honour, not the core's.
+  the four inks. So the core applies a JPEG's `/Decode` array and colour key to that RGB only
+  where the RGB is the image's own components: a JPEG of one component or of three. On a JPEG of
+  four they are reported and not applied.
 
 ## The interpreter
 
@@ -218,6 +220,53 @@ A page that states no box with any area is drawn as US Letter, which is what vie
 and reported. A box that is asked for and has no area, such as a crop box that misses the media
 box, is the media box.
 
+## Images
+
+`PageImages` turns an image XObject or an inline image into a `PageImage`, or reports why it
+cannot and answers null. Both kinds take one path: an inline image's dictionary is read by the
+document parser and every abbreviation in it, of a key, a device space, `/Indexed` or a filter, is
+written out in full first, so the colour spaces never see one. An inline image may name a space of
+the `/ColorSpace` resources, and so may an XObject.
+
+**The samples are read where they lie.** `ImageSamples` reads one component at a time from the
+unfiltered bytes: 1, 2, 4, 8 or 16 bits, high bits first, each row from a byte of its own. Each
+sample goes through `/Decode` to the number it stands for and through the space's `ToRgb`. An
+indexed image's default `/Decode` is 0 to 2^bits − 1, so the number an Indexed space is handed
+is the index itself. A space of one component and up to 8 bits has at most 256 colours, and they
+are worked out once.
+
+**Data that stops short is drawn as far as it goes**: a sample past the end reads as 0, and the
+image is reported. Data of less than half the image is refused, so that a few bytes cannot stand
+for an image of any size the limit allows.
+
+An inline image's dictionary may open at most 256 arrays, dictionaries and hex strings, counted
+in every byte of it, strings and comments included. The parser reads a nested array by a nested
+call, and a count that skipped strings could be fooled by text the lexer reads another way. Data a filter fails on is not drawn at all, because the filters throw rather
+than hand back what they had decoded.
+
+**An image is refused before anything is decoded when it has more than 2^28 samples.** Its RGBA is
+then 1 GiB, which a page of A0 scanned at 400 dots to the inch stays under. A `/Width` and
+`/Height` are a few bytes, and past this they ask for more memory than any page warrants, and
+soon for more than one .NET array holds.
+
+The masks:
+
+- `/ImageMask` answers `Alpha8`, 255 where a sample decodes to 0, which the interpreter paints in
+  the fill colour.
+- A `/Mask` that is an image is the same stencil, multiplied into the image's alpha.
+- A `/Mask` that is an array is a colour key, compared with each sample as it is written, before
+  `/Decode`.
+- An `/SMask` is the alpha itself and overrides a `/Mask`. Its `/Matte` is taken back out of the
+  colours, in RGB: exact for a device space of one or three components, close for the rest.
+- A mask of another size than the image is stretched over it, taking the nearest of its samples.
+  A mask that cannot be read is reported, and the image is drawn without it.
+
+**DCT is the one filter the core does not undo.** The filters before it are undone, and the JPEG
+that is left is handed to `PageDevice.DecodeImage`; one followed by another filter is reported,
+because what a JPEG decoder answers is not bytes a filter reads. The JPEG's own size is the image's
+size. An image in a space this version cannot resolve is reported and not drawn, rather than drawn
+as a block of fallback colour.
+
 ## Fonts are kept on the document
 
 `PdfDocument.RenderFontCache` holds one `RenderFont` for each font dictionary, keyed by the
@@ -238,7 +287,7 @@ None of these edits `ContentInterpreter`.
 | #372 colour | Classes derived from `RenderColorSpace`: `ComponentCount`, `ToRgb`, and `InitialColor` where it is not all zeros | `ColorSpaces.Resolve`, the branch on an array's family |
 | #373 TrueType | A class derived from `PageGlyphSource` for `/FontFile2` | The first branch of `BuiltInGlyphSources.Select` |
 | #374 standard 14 | A class derived from `PageGlyphSource` that reads `RequiredSeams.FontResolver` in `GetOutline` and nowhere else, and answers AFM widths from `TryGetAdvance`, which is asked for invisible text too and so reads no seam | The last branch of `BuiltInGlyphSources.Select` |
-| #375 images | The bodies of `PageImages.ReadXObject` and `ReadInline`, which answer a `PageImage` or report and answer null | `PageImages.cs` |
+| #375 images | The bodies of `PageImages.ReadXObject` and `ReadInline`, which answer a `PageImage` or report and answer null. Done: see Images | `PageImages.cs` |
 | #376 Skia | A class derived from `PageDevice` | Its own package: `PageView.Of`, then `PageRendering.Render` |
 
 **The font rows hold for a font whose glyphs are outlines, set along x in codes of a fixed
@@ -282,6 +331,11 @@ page is slow before it is endless.
 **The unset seam has no test here.** Nothing in this unit reads a seam, and a test cannot throw the
 internal exception that carries one. The first glyph source that reads the font resolver (#374)
 brings the test with it.
+
+**A bound on what a filter inflates to.** The limit on samples is checked before decoding, but
+`FlateDecode` inflates the whole stream whatever the image needs, so a small stream that inflates
+to gigabytes is still inflated. Bounding it belongs in the filter, where every stream would gain.
+`/Interpolate` is not applied.
 
 **Moving the extraction walkers onto this interpreter** stays the follow-up `page-rendering.md` makes
 it (item 18). `FormVisits` here repeats the limits of the text extractor's own until then.

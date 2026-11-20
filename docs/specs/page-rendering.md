@@ -167,7 +167,7 @@ DCT is the one filter decoded outside the core, by `SKCodec` in the Skia package
 carries no imaging dependency. The device decodes it *for* the core, through
 `PageDevice.DecodeImage`, and hands the samples back, so the `/Decode` array and the masks are
 applied in one place and a device draws only finished samples. CCITTFax, JBIG2 and JPX are item 15. An image the renderer cannot
-decode is skipped and reported.
+decode is skipped and reported. `page-rendering-interpreter.md` says how it was built (#375).
 
 ## Item 7 — the Skia surface
 

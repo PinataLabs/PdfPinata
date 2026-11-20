@@ -786,6 +786,17 @@ internal sealed class Parser
         return array;
     }
 
+    /// <summary>
+    /// The entries of a dictionary written as text without its angle brackets, as an inline
+    /// image's are between <c>BI</c> and <c>ID</c>. It belongs to no document, so a reference in
+    /// it cannot be read, and throws.
+    /// </summary>
+    internal static PdfDictionary ReadDictionary(string entries)
+    {
+        var parser = new Parser(null, new MemoryStream(PdfEncoders.RawEncoding.GetBytes("<<" + entries + "\n>>")));
+        return parser.ScanNextToken() == Symbol.BeginDictionary ? parser.ReadDictionary(null, false) : null;
+    }
+
     internal PdfDictionary ReadDictionary(PdfDictionary dict, bool includeReferences)
     {
         Debug.Assert(Symbol == Symbol.BeginDictionary);
