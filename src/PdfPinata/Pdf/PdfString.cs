@@ -103,6 +103,10 @@ internal enum PdfStringFlags
     Unicode = 0x06,
     EncodingMask = 0x0F,
 
+    // A Unicode string whose bytes opened FF FE, which the lexer reads as UTF-16LE and writes
+    // back the way it came. Without it the byte order is lost: Unicode alone means FE FF.
+    LittleEndianMark = 0x40,
+
     HexLiteral = 0x80
     // ReSharper restore InconsistentNaming
 }
@@ -220,11 +224,24 @@ public sealed class PdfString : PdfItem
     /// </remarks>
     internal static PdfString FromEncryptionValue(byte[] value, PdfStringFlags flags)
     {
+        if ((flags & PdfStringFlags.LittleEndianMark) != 0)
+        {
+            // The lexer took the ciphertext's first two bytes for a mark. They said nothing about
+            // the plaintext, so the guess is withdrawn and the plaintext decides.
+            flags &= ~(PdfStringFlags.LittleEndianMark | PdfStringFlags.EncodingMask);
+        }
+
         if (CharacterScanning.StartsWithUtf16BigEndianMark(value))
         {
             return new PdfString(
                 PdfEncoders.RawUnicodeEncoding.GetString(value, 2, value.Length - 2),
                 (flags & ~PdfStringFlags.EncodingMask) | PdfStringFlags.Unicode);
+        }
+
+        if (IsLittleEndianPlaintext(value, flags))
+        {
+            return new PdfString(DecodeLittleEndian(value),
+                (flags & ~PdfStringFlags.EncodingMask) | PdfStringFlags.Unicode | PdfStringFlags.LittleEndianMark);
         }
 
         var encoding = (PdfStringEncoding)(flags & PdfStringFlags.EncodingMask);
@@ -235,8 +252,60 @@ public sealed class PdfString : PdfItem
         };
     }
 
+    /// <summary>
+    /// Whether the bytes of this string open with FF FE and take their characters low byte first,
+    /// so that they are written as they were read rather than as UTF-16BE.
+    /// </summary>
+    internal bool IsLittleEndian => IsLittleEndianMark(Flags);
+
+    /// <summary>
+    /// Whether decrypted bytes are a little endian text string that writes back exactly. A hex
+    /// string is never one, because the lexer reads FF FE as text only in a literal. An odd
+    /// length is not one either: its last character would gain a zero high byte, and the
+    /// string would come back from a save a byte longer than it went in.
+    /// </summary>
+    internal static bool IsLittleEndianPlaintext(byte[] value, PdfStringFlags flags) =>
+        (flags & PdfStringFlags.HexLiteral) == 0
+        && value.Length % 2 == 0
+        && CharacterScanning.StartsWithUtf16LittleEndianMark(value);
+
+    internal static bool IsLittleEndianMark(PdfStringFlags flags) =>
+        (flags & PdfStringFlags.LittleEndianMark) != 0
+        && (flags & PdfStringFlags.EncodingMask) == PdfStringFlags.Unicode;
+
+    /// <summary>
+    /// The characters of bytes that open with FF FE. A last character short of its high byte takes a
+    /// zero for it, as the lexer does.
+    /// </summary>
+    internal static string DecodeLittleEndian(byte[] value)
+    {
+        var characters = new char[(value.Length - 1) / 2];
+        for (var i = 0; i < characters.Length; i++)
+        {
+            var high = 3 + 2 * i < value.Length ? value[3 + 2 * i] : 0;
+            characters[i] = (char)(256 * high + value[2 + 2 * i]);
+        }
+        return new string(characters);
+    }
+
+    /// <summary>The bytes of a string read as UTF-16LE, byte order mark first.</summary>
+    internal static byte[] LittleEndianBytes(string value)
+    {
+        var bytes = new byte[2 + 2 * value.Length];
+        bytes[0] = 0xFF;
+        bytes[1] = 0xFE;
+        for (var i = 0; i < value.Length; i++)
+        {
+            bytes[2 + 2 * i] = (byte)value[i];
+            bytes[3 + 2 * i] = (byte)(value[i] >> 8);
+        }
+        return bytes;
+    }
+
     private byte[] GetBytesFromEncoding()
     {
+        if (IsLittleEndian)
+            return LittleEndianBytes(_value);
         var encoding = (PdfStringEncoding)(Flags & PdfStringFlags.EncodingMask);
         return encoding switch
         {

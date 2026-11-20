@@ -98,11 +98,21 @@ public abstract class PageDevice
 
     /// <summary>
     /// Decodes image data this library has no decoder for, because it carries no imaging
-    /// dependency. What it answers is colour already: a codec turns a CMYK or an Adobe-inverted
-    /// JPEG to RGB itself. The library applies the image's masks to that, so what
-    /// <see cref="DrawImage"/> is handed is always finished samples, whichever way they were
-    /// decoded.
+    /// dependency. What it answers is colour already: a codec turns a CMYK JPEG to RGB itself. The
+    /// library applies the image's masks to that, so what <see cref="DrawImage"/> is handed is
+    /// always finished samples, whichever way they were decoded.
     /// </summary>
+    /// <remarks>
+    /// <b>A JPEG's colours are answered with any Adobe inversion already undone.</b> A JPEG of four
+    /// components with an Adobe <c>APP14</c> marker stores its inks inverted, as Photoshop writes
+    /// them, and a codec such as SkiaSharp's or libjpeg's reads them back the right way round. A
+    /// PDF that embeds such a JPEG says <c>/Decode [1 0 1 0 1 0 1 0]</c> to do the same, so that
+    /// <c>/Decode</c> is taken as already applied. Where the marker and that <c>/Decode</c> do not
+    /// come together, or the <c>/Decode</c> is anything else, the device's RGB cannot be what the
+    /// file says, and the image is drawn as the device answers it and reported as
+    /// <see cref="PageRenderProblem.UnsupportedFeature"/>. A device must therefore not leave the
+    /// inversion in.
+    /// </remarks>
     /// <param name="codec">What <paramref name="data"/> is encoded as.</param>
     /// <param name="data">The encoded bytes, a complete file of that format.</param>
     /// <returns>

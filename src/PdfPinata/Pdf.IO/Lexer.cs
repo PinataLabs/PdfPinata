@@ -653,12 +653,19 @@ public class Lexer
     }
 
     /// <summary>
+    /// Whether the literal string last scanned opened FF FE, so that its characters were read low
+    /// byte first. The symbol is <see cref="Symbol.UnicodeString"/> either way.
+    /// </summary>
+    internal bool TokenIsLittleEndian { get; private set; }
+
+    /// <summary>
     /// Decodes the bytes <see cref="ScanLiteralStringBytes"/> has gathered in the token as UTF-16
     /// when they open with a byte order mark, and says which kind of string they turned out to be.
     /// UTF-16BE Unicode strings start with U+FEFF. There can be empty strings with UTF-16BE prefix.
     /// </summary>
     private Symbol DecodeLiteralString()
     {
+        TokenIsLittleEndian = false;
         if (CharacterScanning.StartsWithUtf16BigEndianMark(_token))
         {
             DecodeUtf16Token(bigEndian: true);
@@ -668,6 +675,7 @@ public class Lexer
         if (CharacterScanning.StartsWithUtf16LittleEndianMark(_token))
         {
             DecodeUtf16Token(bigEndian: false);
+            TokenIsLittleEndian = true;
             return Symbol.UnicodeString;
         }
         return Symbol.String;
