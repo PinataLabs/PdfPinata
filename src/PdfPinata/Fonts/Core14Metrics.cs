@@ -25,8 +25,11 @@ internal static class Core14Metrics
     /// write for them. A subset prefix (<c>ABCDEF+</c>) and spaces are ignored, case is ignored, and
     /// <c>Arial</c> is Helvetica, <c>TimesNewRoman</c> is Times and <c>CourierNew</c> is Courier,
     /// each with <c>,Bold</c>, <c>,Italic</c>, <c>,BoldItalic</c>, <c>-Bold</c>, <c>MT</c> and
-    /// <c>PS</c> forms. A name that carries something this does not recognise, such as
-    /// <c>Arial-Black</c> or <c>ArialNarrow</c>, is not one of the 14: its widths are not theirs.
+    /// <c>PS</c> forms. <c>HelveticaLTStd</c> is Helvetica, and <c>SymbolMT</c> and the styled
+    /// <c>Symbol,Bold</c> forms are Symbol: Symbol has no bold or italic face, so a viewer simulates
+    /// one over Symbol's own widths. A name that carries something this does not recognise, such as
+    /// <c>Arial-Black</c>, <c>ArialNarrow</c> or <c>ArialUnicodeMS</c>, is not one of the 14: its
+    /// widths are not theirs.
     /// </summary>
     public static bool TryResolve(string baseFont, out Core14Font font)
     {
@@ -143,7 +146,9 @@ internal static class Core14Metrics
     {
         ("timesnewroman", "Times"),
         ("couriernew", "Courier"),
+        ("helveticaltstd", "Helvetica"),
         ("helvetica", "Helvetica"),
+        ("symbol", "Symbol"),
         ("courier", "Courier"),
         ("arial", "Helvetica"),
         ("times", "Times"),
@@ -186,6 +191,11 @@ internal static class Core14Metrics
                 italic = true;
                 i += 7;
             }
+            else if (tail.StartsWith("obl", StringComparison.Ordinal))
+            {
+                italic = true;
+                i += 3;
+            }
             else if (tail.StartsWith("regular", StringComparison.Ordinal))
                 i += 7;
             else if (tail.StartsWith("roman", StringComparison.Ordinal))
@@ -204,6 +214,7 @@ internal static class Core14Metrics
         font = family switch
         {
             "Helvetica" => bold ? (italic ? Core14Font.HelveticaBoldOblique : Core14Font.HelveticaBold) : (italic ? Core14Font.HelveticaOblique : Core14Font.Helvetica),
+            "Symbol" => Core14Font.Symbol,
             "Courier" => bold ? (italic ? Core14Font.CourierBoldOblique : Core14Font.CourierBold) : (italic ? Core14Font.CourierOblique : Core14Font.Courier),
             _ => bold ? (italic ? Core14Font.TimesBoldItalic : Core14Font.TimesBold) : (italic ? Core14Font.TimesItalic : Core14Font.TimesRoman),
         };

@@ -3,7 +3,14 @@
 //   Do not edit by hand. Regenerate with:
 //     dotnet run --project tools/Core14MetricsGenerator
 //
-//   Copyright (c) 1985, 1987, 1989, 1990, 1997 Adobe Systems Incorporated. All Rights Reserved.
+//   The notices the AFM files carry, each kept as written:
+//     Copyright (c) 1985, 1987, 1988, 1989, 1997 Adobe Systems Incorporated. All Rights Reserved.ITC Zapf Dingbats is a registered trademark of International Typeface Corporation.
+//     Copyright (c) 1985, 1987, 1989, 1990, 1993, 1997 Adobe Systems Incorporated.  All Rights Reserved.Times is a trademark of Linotype-Hell AG and/or its subsidiaries.
+//     Copyright (c) 1985, 1987, 1989, 1990, 1997 Adobe Systems Incorporated.  All Rights Reserved.Helvetica is a trademark of Linotype-Hell AG and/or its subsidiaries.
+//     Copyright (c) 1985, 1987, 1989, 1990, 1997 Adobe Systems Incorporated. All rights reserved.
+//     Copyright (c) 1989, 1990, 1991, 1992, 1993, 1997 Adobe Systems Incorporated.  All Rights Reserved.
+//     Copyright (c) 1989, 1990, 1991, 1993, 1997 Adobe Systems Incorporated.  All Rights Reserved.
+//
 //   The advance widths and encodings below are taken from the 14 PostScript AFM files that
 //   Adobe distributes with the notice kept beside them in tools/Core14MetricsGenerator/afm/MustRead.html,
 //   which permits them to be used, copied and distributed for any purpose and without charge

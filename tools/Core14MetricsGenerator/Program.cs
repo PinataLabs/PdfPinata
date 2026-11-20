@@ -84,7 +84,10 @@ sb.Append("//   Generated from Adobe's Core14 AFM files by tools/Core14MetricsGe
 sb.Append("//   Do not edit by hand. Regenerate with:\n");
 sb.Append("//     dotnet run --project tools/Core14MetricsGenerator\n");
 sb.Append("//\n");
-sb.Append("//   Copyright (c) 1985, 1987, 1989, 1990, 1997 Adobe Systems Incorporated. All Rights Reserved.\n");
+sb.Append("//   The notices the AFM files carry, each kept as written:\n");
+foreach (var notice in fonts.Select(f => f.Notice).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal))
+    sb.Append("//     ").Append(notice).Append('\n');
+sb.Append("//\n");
 sb.Append("//   The advance widths and encodings below are taken from the 14 PostScript AFM files that\n");
 sb.Append("//   Adobe distributes with the notice kept beside them in tools/Core14MetricsGenerator/afm/MustRead.html,\n");
 sb.Append("//   which permits them to be used, copied and distributed for any purpose and without charge\n");
@@ -192,12 +195,15 @@ static IEnumerable<string> Chunks(string s, int size)
 static AfmFont ReadAfm(string path)
 {
     string name = null;
+    string notice = null;
     var glyphs = new List<AfmGlyph>();
     foreach (var raw in File.ReadLines(path))
     {
         var line = raw.Trim();
         if (line.StartsWith("FontName ", StringComparison.Ordinal))
             name = line.Substring("FontName ".Length).Trim();
+        else if (line.StartsWith("Notice ", StringComparison.Ordinal))
+            notice = line.Substring("Notice ".Length).Trim();
         else if (line.StartsWith("C ", StringComparison.Ordinal) || line.StartsWith("CH ", StringComparison.Ordinal))
         {
             var code = -1;
@@ -222,7 +228,9 @@ static AfmFont ReadAfm(string path)
 
     if (name == null)
         throw new InvalidOperationException($"{path} has no FontName.");
-    return new AfmFont(name, glyphs);
+    if (notice == null)
+        throw new InvalidOperationException($"{path} has no Notice.");
+    return new AfmFont(name, notice, glyphs);
 }
 
 static string Argument(string[] args, string name)
@@ -263,4 +271,4 @@ static void Write(string path, string text)
 
 record AfmGlyph(int Code, int Width, string Name);
 
-record AfmFont(string Name, List<AfmGlyph> Glyphs);
+record AfmFont(string Name, string Notice, List<AfmGlyph> Glyphs);

@@ -131,6 +131,18 @@ public class Core14MetricsTests
     [Arguments("CourierNewPS-BoldItalicMT", "CourierBoldOblique")]
     [Arguments("ABCDEF+Helvetica", "Helvetica")]
     [Arguments("helvetica-bold", "HelveticaBold")]
+    [Arguments("Symbol,Bold", "Symbol")]
+    [Arguments("Symbol,Italic", "Symbol")]
+    [Arguments("Symbol,BoldItalic", "Symbol")]
+    [Arguments("Symbol-Bold", "Symbol")]
+    [Arguments("Symbol-Italic", "Symbol")]
+    [Arguments("Symbol-BoldItalic", "Symbol")]
+    [Arguments("SymbolMT", "Symbol")]
+    [Arguments("ABCDEF+SymbolMT", "Symbol")]
+    [Arguments("HelveticaLTStd-Roman", "Helvetica")]
+    [Arguments("HelveticaLTStd-Bold", "HelveticaBold")]
+    [Arguments("HelveticaLTStd-Obl", "HelveticaOblique")]
+    [Arguments("HelveticaLTStd-BoldObl", "HelveticaBoldOblique")]
     public void AnAliasResolvesToOneOfThe14(string baseFont, string expected)
     {
         Core14Metrics.TryResolve(baseFont, out var font).Should().BeTrue();
@@ -143,7 +155,10 @@ public class Core14MetricsTests
     [Arguments("Arial-Black")]
     [Arguments("ArialNarrow")]
     [Arguments("Calibri")]
-    [Arguments("Symbol,Bold")]
+    [Arguments("ArialUnicodeMS")]
+    [Arguments("ArialBlack")]
+    [Arguments("HelveticaLTStd-Light")]
+    [Arguments("SymbolSet")]
     [Arguments("Wingdings")]
     public void ANameThatIsNotOneOfThe14DoesNotResolve(string baseFont)
     {
