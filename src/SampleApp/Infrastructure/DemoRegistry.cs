@@ -36,6 +36,7 @@ public static class DemoRegistry
         new PageResizeDemo(),
         new BleedDemo(),
         new AssembleDemo(),
+        new SplitDemo(),
         new ImpositionDemo(),
         new ProtectDemo(),
         new SigningDemo(),
