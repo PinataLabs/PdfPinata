@@ -55,11 +55,11 @@ internal static class BuiltInGlyphSources
         }
 
         var descriptor = (descendant ?? font).Elements.GetDictionary("/FontDescriptor");
-        if (descriptor?.Elements.GetDictionary("/FontFile2") != null)
+        var fontFile2 = descriptor?.Elements.GetDictionary("/FontFile2");
+        if (fontFile2 != null)
         {
-            // An embedded TrueType font program is read here.
-            why = "Embedded TrueType font programs are not read yet.";
-            return null;
+            why = null;
+            return new EmbeddedTrueTypeGlyphSource(font, descendant, descriptor, fontFile2);
         }
 
         if (descriptor?.Elements.GetDictionary("/FontFile3") != null

@@ -133,6 +133,15 @@ internal sealed class OpenTypeFontface
     /// </remarks>
     public bool IsPostscriptOutlines => FontTechnology == FontTechnology.PostscriptOutlines;
 
+    /// <summary>
+    /// The face's glyph outlines and the tables that find a glyph, read from its bytes on first
+    /// asking. This is how page rendering draws a face the font resolver serves.
+    /// </summary>
+    /// <exception cref="System.IO.InvalidDataException">
+    /// The face has PostScript outlines, or lacks a table a TrueType outline needs.
+    /// </exception>
+    internal TrueTypeGlyphs Glyphs => field ??= TrueTypeGlyphs.Read(FontSource.Bytes);
+
     internal OffsetTable _offsetTable;
 
     /// <summary>

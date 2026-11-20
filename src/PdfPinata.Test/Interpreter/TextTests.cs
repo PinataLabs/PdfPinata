@@ -456,7 +456,6 @@ public class TextTests
     }
 
     [Test]
-    [Arguments("/FontFile2", "TrueType")]
     [Arguments("/FontFile3", "CFF")]
     [Arguments("/FontFile", "Type 1")]
     public void AFontWithAFontProgramThatIsNotReadYetSaysWhichKindItIs(string key, string kind)
