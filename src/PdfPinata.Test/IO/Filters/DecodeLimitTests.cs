@@ -266,6 +266,186 @@ public class DecodeLimitTests
         allocated.Should().BeLessThan(16L * Megabyte, "RunLength builds no more than the cap");
     }
 
+    /// <summary>
+    /// What a chain of filters decodes to under the limit, and what decoding it allocated on its
+    /// own thread: the input is built before, so only the decode is counted.
+    /// </summary>
+    private static Task<(byte[] Decoded, long Allocated)> DecodedUnder(DecodeLimit limit, byte[] encoded, params string[] filters)
+    {
+        PdfItem chain = filters.Length == 1 ? new PdfName(filters[0]) : Chain(new PdfDocument(), filters);
+        return Interruptibly.Run(() =>
+        {
+            var before = GC.GetAllocatedBytesForCurrentThread();
+            var bytes = Filtering.Decode(encoded, chain, null, limit);
+            return (bytes, GC.GetAllocatedBytesForCurrentThread() - before);
+        });
+    }
+
+    private static byte[] Repeated(string text, long count)
+    {
+        var bytes = new byte[text.Length * count];
+        for (long at = 0; at < bytes.Length; at++)
+            bytes[at] = (byte)text[(int)(at % text.Length)];
+        return bytes;
+    }
+
+    /// <summary>RunLength pairs of 0x81 and a space, each 128 spaces: 64 times what it is written in.</summary>
+    private static byte[] SpaceRuns(long pairs) => Repeated("\u0081 ", pairs);
+
+    /// <summary>
+    /// PDF LZW with the default <c>/EarlyChange</c> of 1, growing its codes from 9 to 12 bits and
+    /// clearing the table before it fills, so that a repetitive stream compresses as a writer's would.
+    /// </summary>
+    private static byte[] Lzw(byte[] data)
+    {
+        var output = new MemoryStream();
+        long buffer = 0;
+        var bits = 0;
+        var width = 9;
+
+        void Emit(int code)
+        {
+            buffer = (buffer << width) | (uint)code;
+            bits += width;
+            while (bits >= 8)
+            {
+                output.WriteByte((byte)(buffer >> (bits - 8)));
+                bits -= 8;
+                buffer &= (1L << bits) - 1;
+            }
+        }
+
+        var table = new System.Collections.Generic.Dictionary<int, int>();
+        var next = 258;
+        Emit(256);
+        var prefix = -1;
+        foreach (var symbol in data)
+        {
+            if (prefix < 0)
+            {
+                prefix = symbol;
+                continue;
+            }
+
+            if (table.TryGetValue(prefix << 8 | symbol, out var found))
+            {
+                prefix = found;
+                continue;
+            }
+
+            Emit(prefix);
+            table[prefix << 8 | symbol] = next++;
+            width = next switch { 512 => 10, 1024 => 11, 2048 => 12, _ => width };
+            if (next >= 4094)
+            {
+                Emit(256);
+                table.Clear();
+                next = 258;
+                width = 9;
+            }
+
+            prefix = symbol;
+        }
+
+        if (prefix >= 0)
+            Emit(prefix);
+        Emit(257);
+        if (bits > 0)
+            output.WriteByte((byte)(buffer << (8 - bits)));
+        return output.ToArray();
+    }
+
+    [Test, Timeout(60_000), NotInParallel]
+    public async Task AnAscii85StreamOfZsIsHeldToTheCapWhileItIsBuilt()
+    {
+        // Each z is four zeros: 256 MiB of them.
+        var bomb = Encoding.ASCII.GetBytes(new string('z', 64 * Megabyte) + "~>");
+        var limit = new DecodeLimit(Megabyte);
+
+        var (decoded, allocated) = await DecodedUnder(limit, bomb, "/ASCII85Decode");
+
+        decoded.Should().HaveCount(Megabyte);
+        decoded.Should().OnlyContain(b => b == 0);
+        limit.Truncated.Should().BeTrue();
+        allocated.Should().BeLessThan(16L * Megabyte, "ASCII85 builds no more than the cap");
+    }
+
+    [Test, Timeout(60_000), NotInParallel]
+    public async Task AnAsciiHexStreamIsHeldToTheCapWhileItIsBuilt()
+    {
+        var bomb = Repeated("41", 32L * Megabyte);
+        var limit = new DecodeLimit(Megabyte);
+
+        var (decoded, allocated) = await DecodedUnder(limit, bomb, "/ASCIIHexDecode");
+
+        decoded.Should().HaveCount(Megabyte);
+        decoded.Should().OnlyContain(b => b == (byte)'A');
+        limit.Truncated.Should().BeTrue();
+        allocated.Should().BeLessThan(16L * Megabyte, "ASCIIHex builds no more than the cap");
+    }
+
+    [Test, Timeout(60_000), NotInParallel]
+    public async Task ARunLengthStreamAloneIsHeldToTheCapWhileItIsBuilt()
+    {
+        // 512 MiB of spaces.
+        var bomb = SpaceRuns(4L * Megabyte);
+        var limit = new DecodeLimit(Megabyte);
+
+        var (decoded, allocated) = await DecodedUnder(limit, bomb, "/RunLengthDecode");
+
+        decoded.Should().HaveCount(Megabyte);
+        decoded.Should().OnlyContain(b => b == (byte)' ');
+        limit.Truncated.Should().BeTrue();
+        allocated.Should().BeLessThan(16L * Megabyte, "RunLength builds no more than the cap");
+    }
+
+    [Test, Timeout(60_000), NotInParallel]
+    public async Task ARunLengthStreamBehindLzwIsHeldToTheCapWhileItIsBuilt()
+    {
+        // 16 MiB of runs, two gigabytes of spaces, in well under a megabyte of LZW.
+        var bomb = Lzw(SpaceRuns(8L * Megabyte));
+        bomb.Length.Should().BeLessThan(Megabyte);
+        var limit = new DecodeLimit(Megabyte);
+
+        var (decoded, allocated) = await DecodedUnder(limit, bomb, "/LZWDecode", "/RunLengthDecode");
+
+        decoded.Should().HaveCount(Megabyte);
+        decoded.Should().OnlyContain(b => b == (byte)' ');
+        limit.Truncated.Should().BeTrue();
+        allocated.Should().BeLessThan(16L * Megabyte, "neither filter builds more than the cap");
+    }
+
+    [Test, Timeout(60_000), NotInParallel]
+    public async Task ARunLengthStreamBehindFlateBehindAscii85IsHeldToTheCapWhileItIsBuilt()
+    {
+        var bomb = Filtering.ASCII85Decode.Encode(Deflated(31L * Megabyte, i => i % 2 == 0 ? (byte)0x81 : (byte)' '));
+        bomb.Length.Should().BeLessThan(Megabyte);
+        var limit = new DecodeLimit(Megabyte);
+
+        var (decoded, allocated) = await DecodedUnder(limit, bomb, "/ASCII85Decode", "/FlateDecode", "/RunLengthDecode");
+
+        decoded.Should().HaveCount(Megabyte);
+        decoded.Should().OnlyContain(b => b == (byte)' ');
+        limit.Truncated.Should().BeTrue();
+        allocated.Should().BeLessThan(16L * Megabyte, "no filter of the three builds more than the cap");
+    }
+
+    [Test, Timeout(60_000), NotInParallel]
+    public async Task AnAscii85StreamBehindFlateIsHeldToTheCapWhileItIsBuilt()
+    {
+        // 256 MiB of z, which is a gigabyte of zeros.
+        var bomb = Deflated(256L * Megabyte, _ => (byte)'z');
+        bomb.Length.Should().BeLessThan(Megabyte);
+        var limit = new DecodeLimit(Megabyte);
+
+        var (decoded, allocated) = await DecodedUnder(limit, bomb, "/FlateDecode", "/ASCII85Decode");
+
+        decoded.Should().HaveCount(Megabyte);
+        decoded.Should().OnlyContain(b => b == 0);
+        limit.Truncated.Should().BeTrue();
+        allocated.Should().BeLessThan(16L * Megabyte, "neither filter builds more than the cap");
+    }
+
     [Test]
     public async Task ARunLengthStreamIsCutAtTheCapInsideARunAndNotWhenItEndsThere()
     {
@@ -381,6 +561,20 @@ public class DecodeLimitTests
         decoded.Should().NotBeEmpty();
         decoded.Length.Should().BeLessThanOrEqualTo(50_000);
         decoded.Should().Equal(payload.Take(decoded.Length));
+    }
+
+    [Test, Timeout(60_000)]
+    public async Task AnAscii85StreamCutByAnEarlierFilterGivesTheWholeGroupsBeforeTheCut()
+    {
+        var payload = Counting(1000);
+        var encoded = Deflated(Filtering.ASCII85Decode.Encode(payload));
+        // 503 characters of ASCII85: a hundred groups, and three of the next one.
+        var limit = new DecodeLimit(503);
+
+        var (decoded, _) = await DecodedUnder(limit, encoded, "/FlateDecode", "/ASCII85Decode");
+
+        limit.Truncated.Should().BeTrue();
+        decoded.Should().Equal(payload.Take(400), "a group cut part way is left out, not read as the last one");
     }
 
     [Test]

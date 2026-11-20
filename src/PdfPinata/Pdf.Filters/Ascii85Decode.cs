@@ -137,12 +137,23 @@ public class Ascii85Decode : Filter
     {
         ArgumentNullException.ThrowIfNull(data);
 
-        var length = CompactSignificantCharacters(data, out var zCount);
+        // An earlier filter of the chain stopped at the cap, so this one has the start of its
+        // stream: no end marker, and perhaps a group cut part way, which is left out rather than
+        // read as if it were the last. The limit already says the data was cut.
+        var limit = parms?.Limit;
+        var inputWasCut = limit is { Truncated: true };
+        var length = CompactSignificantCharacters(data, inputWasCut, out var zCount);
 
         var nonZero = length - zCount;
         var byteCount = 4 * (zCount + nonZero / 5); // full 4 byte blocks
 
         var remainder = nonZero % 5;
+        if (inputWasCut)
+        {
+            length -= remainder;
+            remainder = 0;
+        }
+
         if (remainder == 1)
             throw new InvalidOperationException("Illegal character.");
 
@@ -152,7 +163,6 @@ public class Ascii85Decode : Filter
         // Four bytes to one z is as much as the input can grow, and a limit holds the output to
         // its cap: the groups past it are not decoded, and the array is not made larger than the
         // cap and the four bytes a group written across it needs.
-        var limit = parms?.Limit;
         var stopAt = int.MaxValue;
         var capacity = byteCount;
         if (limit != null && byteCount > limit.MaximumLength)
@@ -178,9 +188,9 @@ public class Ascii85Decode : Filter
     /// <summary>
     /// Moves the characters that carry data - the digits and z - to the front of the array, in
     /// place, dropping everything else, and answers how many there are. Stops at the end marker
-    /// and refuses data that has none.
+    /// and refuses data that has none, unless the data was cut short before it reached one.
     /// </summary>
-    private static int CompactSignificantCharacters(byte[] data, out int zCount)
+    private static int CompactSignificantCharacters(byte[] data, bool inputWasCut, out int zCount)
     {
         zCount = 0;
         var idxOut = 0;
@@ -210,6 +220,8 @@ public class Ascii85Decode : Filter
         }
 
         // The loop ended without reaching the end marker.
+        if (inputWasCut)
+            return idxOut;
         throw new ArgumentException("Illegal character.", nameof(data));
     }
 
