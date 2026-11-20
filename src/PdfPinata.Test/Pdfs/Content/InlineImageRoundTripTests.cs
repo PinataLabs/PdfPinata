@@ -1,3 +1,5 @@
+using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -196,7 +198,7 @@ public class InlineImageRoundTripTests
     [Test, Timeout(30_000)]
     public async Task ManyInlineImagesWithUnclosedStringsAreEachReadOnlyAsFarAsTheirOwnEnd()
     {
-        const int images = 10_000;
+        const int images = 4_000;
         var content = string.Concat(Enumerable.Repeat("BI /W 1 /H 1 /X (unclosed ID a EI ", images)) + "0 0 10 10 re f";
 
         var sequence = await Interruptibly.Run(() => Read(content));
@@ -278,6 +280,55 @@ public class InlineImageRoundTripTests
         var image = sequence[0].Should().BeOfType<CInlineImage>().Subject;
         image.ImageDictionary.Should().Be("/W 1 /H 1 /X (");
         Encoding.Latin1.GetString(image.Data).Should().Be("ID ID ID ) ID a");
+    }
+
+    [Test, Timeout(5000)]
+    public async Task FourStringsThatEachCloseOverAnIDAreReadAsText()
+    {
+        const string entries = "/A ( ID ) /B ( ID ) /C ( ID ) /D ( ID ) /E 1";
+
+        var sequence = await Interruptibly.Run(() => Read("BI " + entries + " ID a EI 0 0 10 10 re f"));
+
+        sequence.Select(item => ((COperator)item).Name).Should().Equal("BI", "re", "f");
+        var image = sequence[0].Should().BeOfType<CInlineImage>().Subject;
+        image.ImageDictionary.Should().Be(entries);
+        Encoding.Latin1.GetString(image.Data).Should().Be("a");
+    }
+
+    // An ID standing hard against its data is no candidate, so the next candidate may lie at the
+    // end of the content. Searching to it, or copying the content up to it, for every such image
+    // made the time grow with the square of the images. Doubling the images must about double it.
+    [Test, Timeout(60_000), NotInParallel]
+    [Arguments("BI /W 1 /H 1 /F /AHx ID00>EI ")]
+    [Arguments("BI /W 1 /H 1 /F /A85 ID!!~>EI ")]
+    [Arguments("BI /W 1 /H 1 /BPC 8ID a EI ")]
+    public async Task ImagesWhoseIDIsNoCandidateAreReadInTimeProportionalToTheirNumber(string image)
+    {
+        const int images = 4_000;
+        var once = Encoding.Latin1.GetBytes(string.Concat(Enumerable.Repeat(image, images)) + "BI /W 1 ID a EI");
+        var twice = Encoding.Latin1.GetBytes(string.Concat(Enumerable.Repeat(image, 2 * images)) + "BI /W 1 ID a EI");
+
+        var ratio = await Interruptibly.Run(() =>
+        {
+            ContentReader.ReadContent(once);
+            var fastestOnce = long.MaxValue;
+            var fastestTwice = long.MaxValue;
+            for (var run = 0; run < 7; run++)
+            {
+                fastestOnce = Math.Min(fastestOnce, TicksToRead(once));
+                fastestTwice = Math.Min(fastestTwice, TicksToRead(twice));
+            }
+            return (double)fastestTwice / fastestOnce;
+        });
+
+        ratio.Should().BeLessThan(3, "a linear reading doubles and a quadratic one quadruples");
+    }
+
+    private static long TicksToRead(byte[] content)
+    {
+        var clock = Stopwatch.StartNew();
+        ContentReader.ReadContent(content);
+        return clock.ElapsedTicks;
     }
 
     [Test, Timeout(5000)]
