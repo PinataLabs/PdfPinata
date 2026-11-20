@@ -32,6 +32,10 @@ internal sealed partial class ContentInterpreter
         // A form that states no resources of its own is read against the page's.
         _resources = ResourceScope.OfPage(page);
         var depth = _states.Depth;
+
+        // The page's content is done with its budget of forms, which it may have spent whole, and
+        // an annotation is not left undrawn for that. The annotations have one of their own.
+        _forms = new FormVisits();
         var count = annotations.Elements.Count;
         for (var index = 0; index < count; index++)
         {
@@ -60,13 +64,40 @@ internal sealed partial class ContentInterpreter
         && Math.Abs(_view.Transform.M11 - 1) < 1e-9 && Math.Abs(_view.Transform.M22 + 1) < 1e-9
         && Math.Abs(_view.Transform.M12) < 1e-9 && Math.Abs(_view.Transform.M21) < 1e-9;
 
+    /// <summary>
+    /// <c>/F</c>, which is an integer. A real that is a whole number is read as one, as a viewer
+    /// reads it, so that <c>2.0</c> still hides.
+    /// </summary>
+    private static int? FlagsOf(PdfDictionary annotation)
+    {
+        var item = annotation.Elements["/F"];
+        if (PdfItemValues.TryGetInteger(item, out var stated))
+            return stated;
+
+        if (PdfItemValues.TryGetNumber(item, out var real) && real == Math.Floor(real) && real is >= int.MinValue and <= int.MaxValue)
+            return (int)real;
+
+        return null;
+    }
+
+    private bool NeedsAppearances()
+    {
+        if (_needAppearancesReported
+            || _document?.Internals.Catalog.Elements.GetDictionary("/AcroForm") is not { } form
+            || !PdfItemValues.TryGetBoolean(form.Elements["/NeedAppearances"], out var needed) || !needed)
+            return false;
+
+        _needAppearancesReported = true;
+        return true;
+    }
+
     private void DrawAnnotation(PdfDictionary annotation)
     {
         // A popup is the window a viewer opens beside a note, not something drawn on the page.
         if (annotation.Elements.GetNameOrEmpty("/Subtype") == "/Popup")
             return;
 
-        int? flags = PdfItemValues.TryGetInteger(annotation.Elements["/F"], out var stated) ? stated : null;
+        int? flags = FlagsOf(annotation);
         if (flags is { } shown && (shown & (HiddenFlag | NoViewFlag)) != 0)
             return;
 
@@ -81,6 +112,19 @@ internal sealed partial class ContentInterpreter
         }
 
         ReportIfHidden(annotation.Elements.GetDictionary("/OC"));
+        ReportIfHidden(appearance.Elements.GetDictionary("/OC"));
+
+        if (PdfItemValues.TryGetNumber(annotation.Elements["/CA"], out var opacity) && opacity < 1)
+        {
+            _sink.Report(PageRenderProblem.UnsupportedFeature, "/CA",
+                "The annotation's opacity is not applied yet. Its appearance is drawn opaque.");
+        }
+
+        if (annotation.Elements.GetNameOrEmpty("/Subtype") == "/Widget" && NeedsAppearances())
+        {
+            _sink.Report(PageRenderProblem.UnsupportedFeature, "/NeedAppearances",
+                "The form asks for its appearances to be made again, which this does not do. The widget is drawn from the appearance it has.");
+        }
 
         var rectangle = PdfPageResizer.RectangleOf(annotation, "/Rect");
         if (rectangle == null || !double.IsFinite(rectangle.X1 + rectangle.Y1 + rectangle.X2 + rectangle.Y2))

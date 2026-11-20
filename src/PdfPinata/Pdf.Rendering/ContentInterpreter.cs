@@ -52,7 +52,8 @@ internal sealed partial class ContentInterpreter
     private readonly Func<PdfDictionary, PageGlyphSource> _glyphSources;
     private readonly DiagnosticSink _sink = new();
     private readonly StateStack _states;
-    private readonly FormVisits _forms = new();
+    private FormVisits _forms = new();
+    private bool _needAppearancesReported;
 
     // Each form's content as it was read the first time it was drawn, or null where it could
     // not be decoded. A form drawn a thousand times on a page is decoded and parsed once.

@@ -148,7 +148,8 @@ entry of `/Annots` that has an appearance is drawn through the Form XObject path
 12.5.5). They are drawn in the order listed, each from the graphics state the page began in and
 under the clip of the page's box, whatever the content left set or clipped to: the page's save is undone and begun again, so a `W n` outside a `q` in the content does not cut the annotations. The appearance is `/AP /N`, or,
 where that is a dictionary of states, the stream `/AS` names. A dictionary of states with no `/AS`
-or one that names no state draws nothing, which is what a check box with no state does. An `/AP`, `/N` or state entry that is present and is not a stream is reported as `InvalidValue`, and an absent one is not.
+or one that names no state draws nothing. That follows Ghostscript and the PDF reference; pdf.js
+instead draws a check box with no `/AS` from its field's value, and this does not. An `/AP`, `/N` or state entry that is present and is not a stream is reported as `InvalidValue`, and an absent one is not.
 
 The box is mapped on to the rectangle by the algorithm of 12.5.5: `/BBox` is taken through
 `/Matrix`, and the rectangle that encloses the result is scaled and moved on to `/Rect`. The
@@ -157,9 +158,22 @@ clip to `/BBox` as it does for a `Do`. A `/Rect` with no area draws nothing and 
 appearance whose box has no area once the matrix is applied, one with no `/BBox`, and a `/Rect`
 that is not four finite numbers are reported as `InvalidValue`, as is a bad `/Matrix`. The form's
 own resources are used, and the page's where it has none. An appearance that draws itself is
-stopped by `FormVisits`, as any form is, and its entries count against the same limits.
+stopped by `FormVisits`, as any form is. The annotations have a `FormVisits` of their own, begun
+when the content is done, so a page whose content entered 4096 forms still has its annotations
+drawn. It has the content's limit of 4096 and no more: a page with more than that many
+appearance-bearing annotations is outside real use, and the limit is what bounds the work a file
+can ask for. Past it the rest are reported once as `LimitReached`.
 
 **The no-zoom and no-rotate flags (bits 4 and 5) are not applied.** The appearance is drawn scaled and turned with the page, and where the view is not at 1 to 1 and upright an annotation carrying either is reported as `UnsupportedFeature`.
+
+`/F` is read as an integer, and a real with no fractional part (`2.0`) is read as the integer it
+equals, as viewers do, so a hidden annotation written that way is still hidden.
+
+**`/NeedAppearances` is not applied.** Viewers disagree on a form that sets it: pdf.js makes the
+appearances again, PDFium discards the stored ones, and Ghostscript draws them. The stored
+appearance of a `/Widget` is drawn, and when the catalog's `/AcroForm /NeedAppearances` is true
+and a widget is drawn the render is reported once as `UnsupportedFeature` on `/NeedAppearances`,
+so its result is not complete.
 
 **Not drawn:** a hidden annotation (`/F` bit 2), one with the no-view flag (bit 6), and a
 `/Popup`. The invisible flag (bit 1) only matters for annotations of a type the viewer does not
@@ -168,8 +182,12 @@ screen rendering, and a print mode that kept only annotations with bit 3 set was
 no caller has asked for it. A widget with no `/AP` is not drawn. `/MK` is not consulted: a reader
 shows an appearance in place of one built from it.
 
-Annotation transparency (`/CA`), blend modes and the annotation's own `/OC` are handled as for any
-form: `/OC` is reported where the group is off and not applied.
+**Transparency is not applied to an annotation.** An annotation's `/CA` below 1 is reported as
+`UnsupportedFeature` on `/CA`, and the appearance is drawn opaque. Blend modes are handled as for any form.
+
+**Optional content is reported, not applied.** An `/OC` on the annotation and an `/OC` on its
+appearance stream are each reported as `UnsupportedFeature` where the group is switched off, as a
+`Do` of the same form would report its own, and the appearance is drawn all the same.
 
 ## Reading content that is broken
 

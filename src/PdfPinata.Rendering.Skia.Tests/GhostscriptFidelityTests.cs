@@ -192,8 +192,11 @@ public class GhostscriptFidelityTests
         var line = new PdfPinata.Pdf.Annotations.PdfLineAnnotation { Color = XColors.Green, BorderWidth = 3 };
         line.SetLine(new XPoint(10, 70), new XPoint(190, 50));
         page.Annotations.Add(line);
+        // Measured at 0.56 and 0.0049, all of it one pixel along the edges of strokes, where Ghostscript
+        // snaps a stroke to the pixel grid and Skia anti-aliases it. Turning the annotations off
+        // measures 13.9, so the limits sit at about twice the noise and a fifteenth of that.
         Fidelity.Of(document, nameof(ShapeAnnotationsThisLibraryWrote), new PageRenderOptions { Scale = 2 })
-            .ShouldBeWithin(meanChannelDifference: 0.8, shareOverThreshold: 0.005);
+            .ShouldBeWithin(meanChannelDifference: 1.0, shareOverThreshold: 0.01);
     }
 
     // Red as Photoshop writes a CMYK JPEG: an Adobe marker and every ink stored inverted, with the

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
@@ -371,5 +372,123 @@ public class AnnotationTests
 
         device.Fills.Should().ContainSingle();
         result.Diagnostics.Should().ContainSingle(d => d.Problem == PageRenderProblem.UnsupportedFeature && d.Subject == "/F");
+    }
+
+    private static PdfDictionary OffGroup(PdfDocument document)
+    {
+        var group = new PdfDictionary(document);
+        document.Internals.AddObject(group);
+        group.Elements.SetName("/Type", "/OCG");
+        var configuration = new PdfDictionary(document);
+        configuration.Elements["/OFF"] = new PdfArray(document, group.Reference);
+        var properties = new PdfDictionary(document);
+        properties.Elements["/OCGs"] = new PdfArray(document, group.Reference);
+        properties.Elements["/D"] = configuration;
+        document.Internals.Catalog.Elements["/OCProperties"] = properties;
+        return group;
+    }
+
+    [Test]
+    public void AnAppearanceStreamInAGroupSwitchedOffIsReported()
+    {
+        var page = Drawn.PageOf("");
+        var form = Drawn.Form(page.Owner, "0 0 100 100 re f");
+        form.Elements["/OC"] = OffGroup(page.Owner).Reference;
+        Annotation(page.Owner, page, "/Square", Reference(form));
+
+        var (device, result) = Render(page);
+
+        device.Fills.Should().ContainSingle();
+        result.Diagnostics.Should().ContainSingle(d => d.Problem == PageRenderProblem.UnsupportedFeature && d.Subject == "/OC");
+    }
+
+    [Test]
+    public void AWidgetUnderNeedAppearancesIsDrawnAndReportedOnce()
+    {
+        var page = Drawn.PageOf("");
+        var document = page.Owner;
+        var acroForm = new PdfDictionary(document);
+        acroForm.Elements["/NeedAppearances"] = new PdfBoolean(true);
+        document.Internals.Catalog.Elements["/AcroForm"] = acroForm;
+        var form = Drawn.Form(document, "0 0 100 100 re f");
+        Annotation(document, page, "/Widget", Reference(form));
+        Annotation(document, page, "/Widget", Reference(form), [10, 10, 20, 20]);
+
+        var (device, result) = Render(page);
+
+        device.Fills.Should().HaveCount(2);
+        result.IsComplete.Should().BeFalse();
+        result.Diagnostics.Should().ContainSingle(d => d.Problem == PageRenderProblem.UnsupportedFeature && d.Subject == "/NeedAppearances");
+    }
+
+    [Test]
+    public void AnAnnotationThatIsNotAWidgetIsNotReportedForNeedAppearances()
+    {
+        var page = Drawn.PageOf("");
+        var acroForm = new PdfDictionary(page.Owner);
+        acroForm.Elements["/NeedAppearances"] = new PdfBoolean(true);
+        page.Owner.Internals.Catalog.Elements["/AcroForm"] = acroForm;
+        Annotation(page.Owner, page, "/Square", Reference(Drawn.Form(page.Owner, "0 0 100 100 re f")));
+
+        Render(page).Result.IsComplete.Should().BeTrue();
+    }
+
+    [Test]
+    public void AnOpacityBelowOneIsReportedAndNotApplied()
+    {
+        var page = PageWithSquare("", "0 0 100 100 re f", out _, (_, _, a) => a.Elements["/CA"] = new PdfReal(0.5));
+
+        var (device, result) = Render(page);
+
+        device.Fills.Should().ContainSingle();
+        result.Diagnostics.Should().ContainSingle(d => d.Problem == PageRenderProblem.UnsupportedFeature && d.Subject == "/CA");
+    }
+
+    [Test]
+    public void AnOpacityOfOneIsNotReported()
+    {
+        var page = PageWithSquare("", "0 0 100 100 re f", out _, (_, _, a) => a.Elements["/CA"] = new PdfReal(1));
+
+        Render(page).Result.IsComplete.Should().BeTrue();
+    }
+
+    [Test]
+    public void FlagsStatedAsAWholeRealStillHide()
+    {
+        var page = PageWithSquare("", "0 0 100 100 re f", out _, (_, _, a) => a.Elements["/F"] = new PdfReal(2.0));
+
+        Render(page).Device.Fills.Should().BeEmpty();
+    }
+
+    // The content draws one form 5000 times, past the 4096 a page may enter, and its own budget is
+    // spent. The annotation is drawn all the same.
+    [Test]
+    public void ContentThatSpentItsBudgetOfFormsStillHasItsAnnotationsDrawn()
+    {
+        var content = string.Concat(Enumerable.Repeat("/Fm1 Do ", 5000));
+        var page = Drawn.PageOf(content, (document, resources) =>
+            Drawn.Add(document, resources, "/XObject", "/Fm1", Drawn.Form(document, "0 0 1 1 re f")));
+        Annotation(page.Owner, page, "/Square", Reference(Drawn.Form(page.Owner, "0 0 100 100 re f")));
+
+        var (device, result) = Render(page);
+
+        result.Diagnostics.Should().Contain(d => d.Problem == PageRenderProblem.LimitReached && d.Subject == "/Fm1");
+        device.Fills.Should().HaveCount(4096 + 1);
+    }
+
+    [Test, Timeout(30_000)]
+    public async Task TenThousandAnnotationsAreDrawnToTheirOwnBudgetAndNoFurther()
+    {
+        var (device, result) = await Interruptibly.Run(() =>
+        {
+            var page = Drawn.PageOf("");
+            var form = Reference(Drawn.Form(page.Owner, "0 0 100 100 re f"));
+            for (var i = 0; i < 10_000; i++)
+                Annotation(page.Owner, page, "/Square", form);
+            return Render(page);
+        });
+
+        device.Fills.Should().HaveCount(4096);
+        result.Diagnostics.Should().Contain(d => d.Problem == PageRenderProblem.LimitReached);
     }
 }
