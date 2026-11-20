@@ -261,6 +261,14 @@ internal class PdfWriter
     /// </summary>
     public void WriteBeginObject(PdfObject obj)
     {
+        // Only an object built in code can get here deeper than this, and it is refused because
+        // the parser would refuse the file it made.
+        if (_stack.Count > Parser.MaximumNesting)
+        {
+            throw new InvalidOperationException(
+                $"Arrays and dictionaries are nested deeper than the {Parser.MaximumNesting} a document is read with.");
+        }
+
         var indirect = obj.IsIndirect;
         if (indirect && !OmitIndirectFraming)
         {

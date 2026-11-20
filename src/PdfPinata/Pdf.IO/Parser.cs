@@ -880,16 +880,28 @@ internal sealed class Parser
                 case Symbol.BeginArray:
                     Open();
                     var array = new PdfArray(_document);
-                    ReadArray(array, false);
-                    _openingsLeft++;
+                    try
+                    {
+                        ReadArray(array, false);
+                    }
+                    finally
+                    {
+                        _openingsLeft++;
+                    }
                     _stack.Shift(array);
                     break;
 
                 case Symbol.BeginDictionary:
                     Open();
                     var dict = new PdfDictionary(_document);
-                    ReadDictionary(dict, false);
-                    _openingsLeft++;
+                    try
+                    {
+                        ReadDictionary(dict, false);
+                    }
+                    finally
+                    {
+                        _openingsLeft++;
+                    }
                     _stack.Shift(dict);
                     break;
 
@@ -2102,14 +2114,29 @@ internal sealed class Parser
     private readonly Lexer _lexer;
     private readonly ShiftStack _stack;
 
-    // How many more arrays and dictionaries may be opened inside the ones being read. A document
-    // is read without a bound; ReadDictionary(string, int) sets one.
-    private int _openingsLeft = int.MaxValue;
+    /// <summary>
+    /// How many arrays and dictionaries a document may nest inside the one being read, which is
+    /// the object itself, its trailer, or the dictionary of a cross-reference stream.
+    /// </summary>
+    /// <remarks>
+    /// Each is read by a call inside the one reading what holds it, so this bounds the depth of
+    /// the stack, and an object past it is refused as malformed. The stack ran out between four and
+    /// five thousand on the main thread of a Windows process, and a thread can be started with
+    /// less. Nesting in real files is shallow, because what goes deep is held together by
+    /// references, which are not nesting: a structure tree, an outline, a page tree. qpdf stops
+    /// at 499.
+    /// </remarks>
+    internal const int MaximumNesting = 500;
+
+    // How many more arrays and dictionaries may be opened inside the ones being read.
+    // ReadDictionary(string, int) sets a bound of its own.
+    private int _openingsLeft = MaximumNesting;
 
     private void Open()
     {
-        if (--_openingsLeft < 0)
+        if (_openingsLeft == 0)
             ParserDiagnostics.ThrowParserException("Arrays and dictionaries are nested deeper than they may be here.");
+        _openingsLeft--;
     }
 
     /// <summary>
