@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### PDF Reader & Writer
 
+#### Changed
+
+- **Importing a page copies no other page of its document.** A link's `/Dest`, a go-to action's `/D` and an annotation's `/P` name a page, whose `/Parent` is the page tree, and the import followed them: taking one page out of a document cloned every page and every page's resources into the target, and the save then threw the copies away. The copy now stops at any page or page tree node, known by its `/Type` or, where a writer left that out, by its place in the page tree. A reference to a page already imported from the same document points at its copy, and a reference to any other page becomes `null`. Links keep their destinations as before: a destination whose page is imported too still goes to it once the document is saved, and an annotation's `/P` names the page it is on. The saved file is the same size as before. (#366)
+
 #### Fixed
 
 - **A document saved with a cross-reference stream indexes objects past 4 GiB correctly.** The offset field in `/W` was a fixed 4 bytes and each offset was cut to 32 bits, so an object written at or beyond 4 GiB was indexed at its offset modulo 4 GiB. The file was saved without any error, and could not be read back. The field now widens to as many bytes as the largest offset needs, up to 8. A file under 4 GiB keeps `/W [1 4 2]` and is written byte for byte as before. (#366)

@@ -265,7 +265,20 @@ public class PdfInternals
     /// </summary>
     public PdfObject[] GetClosure(PdfObject obj, int depth)
     {
-        var references = _document._irefTable.TransitiveClosure(obj, depth);
+        return Closure(obj, _document._irefTable.TransitiveClosure(obj, depth));
+    }
+
+    /// <summary>
+    /// Returns an array containing the specified object as first element follows by its transitive
+    /// closure, which stops at every object <paramref name="isBoundary"/> answers true for.
+    /// </summary>
+    internal PdfObject[] GetClosure(PdfObject obj, Func<PdfObject, bool> isBoundary)
+    {
+        return Closure(obj, _document._irefTable.TransitiveClosure(obj, isBoundary));
+    }
+
+    private static PdfObject[] Closure(PdfObject obj, PdfReference[] references)
+    {
         var count = references.Length + 1;
         var objects = new PdfObject[count];
         objects[0] = obj;
