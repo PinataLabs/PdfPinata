@@ -9,7 +9,7 @@ into one, splitting one file into several, and assembling a new document from ch
 that you can reorder, duplicate and remove pages, and make the result smaller.
 
 All of this is in the core `PdfPinata` package. The one rule to learn first: **a page can only be
-copied out of a document that was opened in `PdfDocumentOpenMode.Import` mode.** A document you
+copied out of a document that was opened in `PdfDocumentOpenMode.Import` or `Lazy` mode.** A document you
 created in memory, or opened in `Modify` mode, cannot give its pages away. Save it and open it again
 in `Import` mode, as every example below does.
 
@@ -98,6 +98,10 @@ for (int index = 0; index < input.PageCount; index++)
 }
 ```
 
+To take a range of pages, a list of pages, or parts of a fixed size out of a file in one call, use
+`PdfSplitter`. It reads the source lazily, so it works on files too large to hold in memory. See
+[Split and extract large files](./large-files.md).
+
 ## Make the result smaller
 
 Merging and splitting can leave a document heavier than it needs to be. Two methods remove the
@@ -140,9 +144,9 @@ come with it. See [Forms, stamps and imposition](../drawing/forms-stamps-and-imp
 - **Use the page that `AddPage` returns.** When the page comes from another document, the return
   value is a new object, and the page you passed in still belongs to the source. The source was
   opened in `Import` mode, so you cannot draw on its pages.
-- **`Import` mode is the only mode pages leave.** Copying from a document opened any other way
-  throws "A PDF document must be opened with PdfDocumentOpenMode.Import to import pages from it."
-  A document opened in `Import` mode cannot itself be changed or saved. See
+- **Pages leave only `Import` and `Lazy` documents.** Copying from a document opened any other way
+  throws "a PDF document must be opened with PdfDocumentOpenMode.Import or PdfDocumentOpenMode.Lazy
+  to import pages from it." A document opened in either mode cannot itself be changed or saved. See
   [Opening documents](./opening-documents.md).
 - **Only the page is copied, not the document around it.** Bookmarks, the structure tree that makes
   a document accessible, the interactive form, page labels and the document information are not

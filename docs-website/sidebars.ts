@@ -57,6 +57,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'existing-pdfs/opening-documents',
         'existing-pdfs/merge-split-and-assemble',
+        'existing-pdfs/large-files',
         'existing-pdfs/page-resizing-and-bleed',
         'existing-pdfs/text-extraction',
         'existing-pdfs/reading-content-streams',

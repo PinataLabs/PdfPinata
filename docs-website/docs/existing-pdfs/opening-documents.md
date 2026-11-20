@@ -21,7 +21,8 @@ using PdfDocument document = PdfReader.Open("report.pdf", PdfDocumentOpenMode.Mo
 ```
 
 `Open` reads the whole file into memory before it returns. When you pass a path, it also closes the
-file, so you can save back to the same path afterwards.
+file, so you can save back to the same path afterwards. `Lazy` mode is the exception: it reads each
+object when you first ask for it, and keeps the file open until you dispose the document.
 
 You can also open a `Stream`. The stream must support seeking, because the reader starts at the end
 of the file. To read from a network stream or an upload, copy it into a `MemoryStream` first. After
@@ -41,6 +42,7 @@ The overloads of `Open` that take no mode open the document in `Modify` mode.
 | `Import` | Copy pages out of the document into another one. Nothing else: you cannot change it or save it. | Merge and split documents. |
 | `ReadOnly` | Read everything. Change nothing. | Inspect a file, extract text or images. |
 | `Append` | Everything `Modify` permits, and `SaveIncremental`. | Change a signed document, or keep every earlier version of a file. |
+| `Lazy` | What `Import` permits, reading each object only when you ask for it. | Take pages out of, or read the page count of, a file too large to hold in memory. |
 
 The modes differ in more than permission:
 
@@ -50,8 +52,10 @@ The modes differ in more than permission:
 - `Append` keeps the numbers and also holds the original bytes in memory for as long as the
   document is open. A 200 MB file opened in this mode holds 200 MB. See
   [Incremental saving](./incremental-saving.md).
+- `Lazy` reads nothing but the cross-reference table when it opens the file, and needs the file or
+  stream until the document is disposed. See [Split and extract large files](./large-files.md).
 
-Pages can only move from a document opened in `Import` mode. A page of a document you created with
+Pages can only move from a document opened in `Import` or `Lazy` mode. A page of a document you created with
 `new PdfDocument()`, or opened in `Modify` mode, cannot be added to another document. Save it and
 open it again in `Import` mode. [Merge, split and assemble](./merge-split-and-assemble.md) shows how.
 
@@ -75,8 +79,8 @@ These operations need `Modify` or `Append`:
 - `Save`.
 
 Two refusals have their own messages. Copying a page from a document that was not opened in
-`Import` mode throws "A PDF document must be opened with PdfDocumentOpenMode.Import to import pages
-from it." `SaveIncremental` on a document that was not opened in `Append` mode says why only that
+`Import` or `Lazy` mode throws "a PDF document must be opened with PdfDocumentOpenMode.Import or
+PdfDocumentOpenMode.Lazy to import pages from it." `SaveIncremental` on a document that was not opened in `Append` mode says why only that
 mode keeps what an incremental save needs.
 
 To ask before you try, read `document.IsReadOnly`. It is `false` only for `Modify` and `Append`.

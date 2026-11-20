@@ -396,7 +396,7 @@ public class LazyStreamTests
     ///   filler, behind a classic table. The object after the last image is that length as a
     ///   number, for a <paramref name="lengthEntry" /> that names it.
     /// </summary>
-    private static SplicedPdf PagesOfImages(int count, long imageLength, long origin = 0, string lengthEntry = null)
+    internal static SplicedPdf PagesOfImages(int count, long imageLength, long origin = 0, string lengthEntry = null)
     {
         var pdf = new SplicedPdf(origin);
         var kids = string.Join(" ", Enumerable.Range(0, count).Select(index => PageId(index) + " 0 R"));
