@@ -171,7 +171,7 @@ public class CLexer
     public CSymbol ScanInlineImage()
     {
         var dictionaryStart = CurrentCharIndex;
-        var foundData = ScanToImageData(out var dictionaryEnd, out var ascii85);
+        var foundData = ScanToImageData(dictionaryStart, out var dictionaryEnd, out var ascii85);
         InlineImageDictionary = RawText(dictionaryStart, dictionaryEnd).Trim(WhiteSpaceCharacters);
 
         var dataStart = foundData ? StartOfImageData(dictionaryEnd) : ContLength;
@@ -201,23 +201,67 @@ public class CLexer
     /// there was one. Where the entries end is where the <c>ID</c> begins, or the end of the
     /// content when there is none.
     /// </summary>
-    private bool ScanToImageData(out int dictionaryEnd, out bool ascii85)
+    /// <remarks>
+    /// The entries are read as tokens, so that a string holding the letters <c>ID</c> is not taken
+    /// for the end of them. A string or dictionary left unclosed reads on to the end of the content,
+    /// though, past the <c>ID</c> and every operator after the image. When the tokens run out before
+    /// an <c>ID</c>, the entries end at the first <c>ID</c> standing on its own in the bytes instead,
+    /// and the reader goes back to it.
+    /// </remarks>
+    private bool ScanToImageData(int dictionaryStart, out int dictionaryEnd, out bool ascii85)
     {
-        dictionaryEnd = ContLength;
-        ascii85 = false;
+        // HACK: Is image ASCII85 decoded?
+        var ascii85Name = -1;
         while (ScanNextToken() != CSymbol.Eof)
         {
-            // HACK: Is image ASCII85 decoded?
-            if (!ascii85 && NamesAscii85Filter())
-                ascii85 = true;
+            if (ascii85Name < 0 && NamesAscii85Filter())
+                ascii85Name = _tokenStart;
 
             if (Symbol == CSymbol.Operator && Token == "ID")
             {
                 dictionaryEnd = _tokenStart;
+                ascii85 = ascii85Name >= 0;
                 return true;
             }
         }
-        return false;
+
+        var id = FirstStandaloneID(dictionaryStart);
+        dictionaryEnd = id < 0 ? ContLength : id;
+        ascii85 = ascii85Name >= 0 && ascii85Name < dictionaryEnd;
+        if (id < 0)
+            return false;
+
+        MoveTo(id + 2);
+        return true;
+    }
+
+    /// <summary>
+    /// Where the first <c>ID</c> at or after an index begins that is not part of a longer word or a
+    /// name: white space or a delimiter other than <c>/</c> before it, and white space or the end of
+    /// the content after it. -1 when there is none.
+    /// </summary>
+    private int FirstStandaloneID(int start)
+    {
+        for (var idx = Math.Max(start, 1); idx + 1 < ContLength; idx++)
+        {
+            if (_content[idx] != 'I' || _content[idx + 1] != 'D')
+                continue;
+
+            var before = (char)_content[idx - 1];
+            var separatedBefore = IsWhiteSpace(before) || (IsDelimiter(before) && before != '/');
+            var separatedAfter = idx + 2 == ContLength || IsWhiteSpace((char)_content[idx + 2]);
+            if (separatedBefore && separatedAfter)
+                return idx;
+        }
+        return -1;
+    }
+
+    /// <summary>Stands the reader on the byte at an index, or at the end of the content.</summary>
+    private void MoveTo(int index)
+    {
+        _charIndex = index;
+        _nextChar = ReadNextRawByte();
+        ScanNextChar();
     }
 
     private bool NamesAscii85Filter() => Symbol == CSymbol.Name && (Token is "/ASCII85Decode" or "/A85");
