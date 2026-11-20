@@ -98,10 +98,20 @@ where `cm` or `Q` changes the transform in the middle of a path, which is not al
 found in files, the points before the change stay where they were. `PathInProgress` keeps the
 points in the user space the path began in: a point added under another transform is taken to that
 space as it is added, and the whole path is taken to the painting operator's space once, when it
-is painted. **Each point is mapped at most twice, however often the transform changes.** The first
+is painted. **Each point is mapped at most three times, however often the transform changes**:
+as it is added, once if the path is re-based, and when it is painted. The first
 version rewrote every point already in the path at each change, so 40,000 `q cm l Q` inside one
 path, which is 2.5 KB compressed, took most of a minute. A path painted under the transform it
-began under, which is every well-formed one, is handed over as the content wrote it. `W` and `W*`
+began under, which is every well-formed one, is handed over as the content wrote it.
+
+A transform with no inverse, such as `1 0 0 0 0 0 cm`, has no user space to take a point back to.
+A path begun under one keeps its points as written for as long as that transform stays, and when
+the transform changes they are **re-based once**: onto the new transform where it has an inverse,
+and onto device space where it does not either. Either base has an inverse, so the path is never
+re-based again and the cost stays linear. So `q 1 0 0 0 0 0 cm 0 0 m 10 10 l Q 20 20 l S` draws
+the first two points flattened onto one line and the third where the restored transform puts it.
+The first fix round kept the points as written for the whole path and then mapped every one of them
+through the singular transform, which flattened the third point too (#400). `W` and `W*`
 are remembered and applied after the painting operator that follows, which is the order
 ISO 32000-1 8.5.4 gives.
 
@@ -189,9 +199,16 @@ differently:
 - Content in `/OC … BDC`, or an XObject with an `/OC` entry, whose optional content group is off
   in the catalog's default configuration (`/OCProperties /D`: `/BaseState`, `/ON`, `/OFF`), or
   whose membership dictionary evaluates off by its `/VE` expression or else its `/P` policy over
-  `/OCGs`. The content is drawn. Subject `/OC`. A `/VE` is read 32 deep and 1,024 operands long,
-  and what lies past either is taken to be visible, because an expression may name itself. `OptionalContent` answers the question and hides
-  nothing; #386 applies it.
+  `/OCGs`. The content is drawn. Subject `/OC`. A group counts only where one of its `/Intent`
+  names, `/View` where it has none, is among the configuration's `/Intent`, which is also `/View`
+  where `/D` has none and takes in every intent where it names `/All`. A group that does not count
+  has no effect on visibility (ISO 32000-1 8.11.2.3 and 8.11.4.3) and is read as on. A `/VE` is
+  read 32 deep and 1,024 operands long, and an expression any part of which cannot be read, or lies
+  past either limit, is visible as a whole: a `/Not` over it does not turn it round, so
+  `[/Not [/Xor …]]` is visible. Every operand is read for that reason, rather than stopping at the
+  first that decides. `OptionalContent` answers once per membership for one render, keyed by
+  `ReferenceIdentity`, because a page may name one membership thousands of times and each answer
+  may cost the whole operand budget. It answers the question and hides nothing; #386 applies it.
 
 A page that ends with states still saved is not reported. Many real pages do, nothing was left out,
 and the states are restored on the device all the same. A `Q` with nothing saved is reported.
