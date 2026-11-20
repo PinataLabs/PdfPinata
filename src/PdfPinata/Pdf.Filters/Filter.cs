@@ -56,8 +56,8 @@ public class FilterParms
     }
 
     /// <summary>
-    /// Gets the cap on the filter's output, or null for none. Only filters that can expand
-    /// without bound, FlateDecode and LZWDecode, read it.
+    /// Gets the cap on the filter's output, or null for none. FlateDecode, LZWDecode,
+    /// RunLengthDecode, ASCII85Decode and ASCIIHexDecode read it.
     /// </summary>
     public DecodeLimit Limit { get; }
 }

@@ -149,10 +149,29 @@ public class Ascii85Decode : Filter
         if (remainder != 0)
             byteCount += remainder - 1;
 
-        var output = new byte[byteCount];
+        // Four bytes to one z is as much as the input can grow, and a limit holds the output to
+        // its cap: the groups past it are not decoded, and the array is not made larger than the
+        // cap and the four bytes a group written across it needs.
+        var limit = parms?.Limit;
+        var stopAt = int.MaxValue;
+        var capacity = byteCount;
+        if (limit != null && byteCount > limit.MaximumLength)
+        {
+            stopAt = (int)limit.MaximumLength;
+            capacity = (int)Math.Min(byteCount, (long)stopAt + 4);
+            limit.Truncated = true;
+        }
 
-        var (idx, idxOut) = DecodeWholeGroups(data, length, output);
-        DecodeTrailingGroup(data, idx, output, idxOut, remainder);
+        var output = new byte[capacity];
+
+        var (idx, idxOut) = DecodeWholeGroups(data, length, output, stopAt);
+        if (idxOut < stopAt)
+            DecodeTrailingGroup(data, idx, output, idxOut, remainder);
+
+        if (output.Length > stopAt)
+            Array.Resize(ref output, stopAt);
+        if (limit != null)
+            limit.Produced += output.Length;
         return output;
     }
 
@@ -224,13 +243,14 @@ public class Ascii85Decode : Filter
 
     /// <summary>
     /// Decodes every z and every whole group of five, and answers where the trailing partial group
-    /// begins in the input and where its bytes go in the output.
+    /// begins in the input and where its bytes go in the output. It stops once the output reaches
+    /// <paramref name="stopAt"/> bytes.
     /// </summary>
-    private static (int Idx, int IdxOut) DecodeWholeGroups(byte[] data, int length, byte[] output)
+    private static (int Idx, int IdxOut) DecodeWholeGroups(byte[] data, int length, byte[] output, int stopAt)
     {
         var idxOut = 0;
         var idx = 0;
-        while (idx < length)
+        while (idx < length && idxOut < stopAt)
         {
             if ((char)data[idx] == 'z')
             {

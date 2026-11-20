@@ -71,8 +71,10 @@ public class AsciiHexDecode : Filter
     {
         ArgumentNullException.ThrowIfNull(data);
 
-        // Two digits to a byte, so half the input rounded up is as many bytes as there can be.
-        var bytes = new byte[(data.Length + 1) / 2];
+        // Two digits to a byte, so half the input rounded up is as many bytes as there can be,
+        // and a limit may make it fewer.
+        var limit = parms?.Limit;
+        var bytes = new byte[(int)Math.Min((data.Length + 1) / 2, limit?.MaximumLength ?? long.MaxValue)];
         var count = 0;
         var hi = -1;
         foreach (var ch in data)
@@ -90,6 +92,13 @@ public class AsciiHexDecode : Filter
                 continue;
             }
 
+            if (count == bytes.Length)
+            {
+                limit.Truncated = true;
+                hi = -1;
+                break;
+            }
+
             bytes[count++] = (byte)(hi << 4 | digit);
             hi = -1;
         }
@@ -98,7 +107,15 @@ public class AsciiHexDecode : Filter
         // digits, it shall behave as if a 0 (zero) followed the last digit." Data that ends
         // without a marker is read the same way.
         if (hi >= 0)
-            bytes[count++] = (byte)(hi << 4);
+        {
+            if (count == bytes.Length)
+                limit.Truncated = true;
+            else
+                bytes[count++] = (byte)(hi << 4);
+        }
+
+        if (limit != null)
+            limit.Produced += count;
 
         if (count < bytes.Length)
             Array.Resize(ref bytes, count);

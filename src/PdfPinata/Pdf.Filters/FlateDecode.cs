@@ -29,6 +29,7 @@
 
 using System;
 using System.IO;
+using ICSharpCode.SharpZipLib;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 
@@ -88,22 +89,33 @@ public class FlateDecode : Filter
         var iis = new InflaterInputStream(msInput, new Inflater(false));
         int cbRead;
         var abResult = new byte[32768];
-        do
+        var inputWasCut = limit is { Truncated: true };
+        try
         {
-            var want = (int)Math.Min(abResult.Length, cap - msOutput.Length);
-            if (want == 0)
+            do
             {
-                // At the cap: one more byte read says whether the stream really ended here.
-                if (limit != null && iis.Read(abResult, 0, 1) > 0)
-                    limit.Truncated = true;
-                break;
-            }
+                var want = (int)Math.Min(abResult.Length, cap - msOutput.Length);
+                if (want == 0)
+                {
+                    // At the cap: one more byte read says whether the stream really ended here.
+                    if (limit != null && iis.Read(abResult, 0, 1) > 0)
+                        limit.Truncated = true;
+                    break;
+                }
 
-            cbRead = iis.Read(abResult, 0, want);
-            if (cbRead > 0)
-                msOutput.Write(abResult, 0, cbRead);
+                cbRead = iis.Read(abResult, 0, want);
+                if (cbRead > 0)
+                    msOutput.Write(abResult, 0, cbRead);
+            }
+            while (cbRead > 0);
         }
-        while (cbRead > 0);
+        catch (SharpZipBaseException) when (inputWasCut)
+        {
+            // An earlier filter of the chain was stopped at the cap, so this one was given the start
+            // of its stream and ran out. What it inflated is the start of the content, and the limit
+            // already says the content was cut. Without a limit this throws, as it always did.
+        }
+
         iis.Close();
         msOutput.Flush();
         if (limit != null)
@@ -114,7 +126,7 @@ public class FlateDecode : Filter
         // No parameters at all is not an error: it is what DecodeToString passes, and it says
         // the same thing as parameters with no predictor in them.
         return parms?.DecodeParms != null
-            ? StreamDecoder.Decode(msOutput.ToArray(), parms.DecodeParms)
+            ? StreamDecoder.Decode(msOutput.ToArray(), parms.DecodeParms, limit)
             : msOutput.ToArray();
     }
 }

@@ -88,7 +88,7 @@ public class LzwDecode : Filter
         // No parameters at all is not an error: it is what DecodeToString passes, and it says
         // the same thing as parameters with no predictor in them.
         return parms?.DecodeParms != null
-            ? StreamDecoder.Decode(outputStream.ToArray(), parms.DecodeParms)
+            ? StreamDecoder.Decode(outputStream.ToArray(), parms.DecodeParms, _limit)
             : outputStream.ToArray();
     }
 

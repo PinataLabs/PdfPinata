@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
@@ -225,5 +226,176 @@ public class DecodeLimitTests
 
         decoded.Should().Equal(data);
         limit.Truncated.Should().BeFalse();
+    }
+
+    private static PdfArray Chain(PdfDocument document, params string[] filters)
+    {
+        var chain = new PdfArray(document);
+        foreach (var filter in filters)
+            chain.Elements.Add(new PdfName(filter));
+        return chain;
+    }
+
+    private static PdfDictionary Predictor(PdfDocument document, int predictor, int columns)
+    {
+        var parms = new PdfDictionary(document);
+        parms.Elements.SetInteger("/Predictor", predictor);
+        parms.Elements.SetInteger("/Columns", columns);
+        return parms;
+    }
+
+    [Test, Timeout(60_000)]
+    public async Task ARunLengthStreamBehindFlateIsHeldToTheCapWhileItIsBuilt()
+    {
+        // Pairs of 0x81 and a space, 128 spaces each: 31 MiB of them is two gigabytes of spaces.
+        var bomb = Deflated(31L * Megabyte, i => i % 2 == 0 ? (byte)0x81 : (byte)' ');
+        bomb.Length.Should().BeLessThan(Megabyte);
+        var limit = new DecodeLimit(Megabyte);
+        var chain = Chain(new PdfDocument(), "/FlateDecode", "/RunLengthDecode");
+
+        var (decoded, allocated) = await Interruptibly.Run(() =>
+        {
+            var before = GC.GetAllocatedBytesForCurrentThread();
+            var bytes = Filtering.Decode(bomb, chain, null, limit);
+            return (bytes, GC.GetAllocatedBytesForCurrentThread() - before);
+        });
+
+        decoded.Should().HaveCount(Megabyte);
+        decoded.Should().OnlyContain(b => b == (byte)' ');
+        limit.Truncated.Should().BeTrue();
+        allocated.Should().BeLessThan(16L * Megabyte, "RunLength builds no more than the cap");
+    }
+
+    [Test]
+    public async Task ARunLengthStreamIsCutAtTheCapInsideARunAndNotWhenItEndsThere()
+    {
+        byte[] Stream() => [0x81, (byte)'a', 1, (byte)'x', (byte)'y', 128];
+        var cut = new DecodeLimit(129);
+        var exact = new DecodeLimit(130);
+
+        var (partial, whole) = await Interruptibly.Run(() => (
+            Filtering.RunLengthDecode.Decode(Stream(), new FilterParms(null, cut)),
+            Filtering.RunLengthDecode.Decode(Stream(), new FilterParms(null, exact))));
+
+        partial.Should().Equal(Enumerable.Repeat((byte)'a', 128).Append((byte)'x'));
+        cut.Truncated.Should().BeTrue();
+        whole.Should().HaveCount(130);
+        exact.Truncated.Should().BeFalse();
+    }
+
+    [Test]
+    public async Task AnAscii85StreamOfZsIsCutAtTheCapAndAWholeOneIsNot()
+    {
+        byte[] Zeros() => Encoding.ASCII.GetBytes(new string('z', 1000) + "~>");
+        byte[] HelloWorld() => Encoding.ASCII.GetBytes("87cURD]i,\"Ebo7~>");
+        var zeros = new DecodeLimit(98);
+        var hello = new DecodeLimit(5);
+        var whole = new DecodeLimit(11);
+
+        var (zeroed, five, all) = await Interruptibly.Run(() => (
+            Filtering.ASCII85Decode.Decode(Zeros(), new FilterParms(null, zeros)),
+            Filtering.ASCII85Decode.Decode(HelloWorld(), new FilterParms(null, hello)),
+            Filtering.ASCII85Decode.Decode(HelloWorld(), new FilterParms(null, whole))));
+
+        zeroed.Should().Equal(new byte[98]);
+        zeros.Truncated.Should().BeTrue();
+        Encoding.ASCII.GetString(five).Should().Be("Hello");
+        hello.Truncated.Should().BeTrue();
+        Encoding.ASCII.GetString(all).Should().Be("Hello World");
+        whole.Truncated.Should().BeFalse();
+    }
+
+    [Test]
+    public async Task AnAsciiHexStreamIsCutAtTheCapAndAWholeOneIsNot()
+    {
+        byte[] Hex(string text) => Encoding.ASCII.GetBytes(text);
+        var three = new DecodeLimit(3);
+        var five = new DecodeLimit(5);
+        var oddTail = new DecodeLimit(2);
+
+        var (cut, whole, tail) = await Interruptibly.Run(() => (
+            Filtering.ASCIIHexDecode.Decode(Hex("48656C6C6F>"), new FilterParms(null, three)),
+            Filtering.ASCIIHexDecode.Decode(Hex("48656C6C6F>"), new FilterParms(null, five)),
+            Filtering.ASCIIHexDecode.Decode(Hex("4865 6>"), new FilterParms(null, oddTail))));
+
+        Encoding.ASCII.GetString(cut).Should().Be("Hel");
+        three.Truncated.Should().BeTrue();
+        Encoding.ASCII.GetString(whole).Should().Be("Hello");
+        five.Truncated.Should().BeFalse();
+        tail.Should().Equal(0x48, 0x65);
+        oddTail.Truncated.Should().BeTrue();
+    }
+
+    [Test, Timeout(60_000)]
+    public async Task ATiffPredictorDropsAPartRowWhereTheCapCutTheStream()
+    {
+        // Three rows of three samples as differences; the cap lands inside the third.
+        var rows = new byte[] { 1, 1, 1, 2, 2, 2, 3, 3, 3 };
+        var parms = Predictor(new PdfDocument(), 2, 3);
+        var limit = new DecodeLimit(7);
+
+        var decoded = await Interruptibly.Run(() =>
+            Filtering.FlateDecode.Decode(Deflated(rows), new FilterParms(parms, limit)));
+
+        decoded.Should().Equal(1, 2, 3, 2, 4, 6);
+        limit.Truncated.Should().BeTrue();
+    }
+
+    [Test, Timeout(60_000)]
+    public async Task ATiffPredictorWithNoLimitStillLeavesAPartRowAsItWas()
+    {
+        var parms = Predictor(new PdfDocument(), 2, 3);
+
+        var decoded = await Interruptibly.Run(() =>
+            Filtering.FlateDecode.Decode(Deflated(new byte[] { 1, 1, 1, 2, 2 }), new FilterParms(parms)));
+
+        decoded.Should().Equal(1, 2, 3, 2, 2);
+    }
+
+    [Test, Timeout(60_000)]
+    public async Task APngPredictorDropsAPartRowWithNoLimit()
+    {
+        var parms = Predictor(new PdfDocument(), 15, 3);
+        var rows = new byte[] { 0, 1, 2, 3, 0, 4, 5 };
+
+        var decoded = await Interruptibly.Run(() =>
+            Filtering.FlateDecode.Decode(Deflated(rows), new FilterParms(parms)));
+
+        decoded.Should().Equal(1, 2, 3);
+    }
+
+    [Test, Timeout(60_000)]
+    public async Task AFlateStreamInsideACutFlateStreamReturnsWhatItInflatedAndSaysItWasCut()
+    {
+        var random = new Random(3);
+        var payload = new byte[200_000];
+        random.NextBytes(payload);
+        var inner = Deflated(payload);
+        var twice = Deflated(inner);
+        var limit = new DecodeLimit(50_000);
+        var chain = Chain(new PdfDocument(), "/FlateDecode", "/FlateDecode");
+
+        var decoded = await Interruptibly.Run(() => Filtering.Decode(twice, chain, null, limit));
+
+        limit.Truncated.Should().BeTrue();
+        decoded.Should().NotBeEmpty();
+        decoded.Length.Should().BeLessThanOrEqualTo(50_000);
+        decoded.Should().Equal(payload.Take(decoded.Length));
+    }
+
+    [Test]
+    public void AFlateStreamThatIsCutShortStillThrowsWhenNoEarlierFilterWasCapped()
+    {
+        var random = new Random(3);
+        var payload = new byte[20_000];
+        random.NextBytes(payload);
+        var deflated = Deflated(payload);
+        var cutShort = deflated[..(deflated.Length / 2)];
+
+        var plain = () => Filtering.FlateDecode.Decode(cutShort, (FilterParms)null);
+        var limited = () => Filtering.FlateDecode.Decode(cutShort, new FilterParms(null, new DecodeLimit(1_000_000)));
+
+        plain.Should().Throw<Exception>();
+        limited.Should().Throw<Exception>("a limit alone does not make a damaged stream readable");
     }
 }

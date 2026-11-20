@@ -74,12 +74,18 @@ public class RunLengthDecode : Filter
     /// rather than throwing: a literal run cut short keeps the bytes that are there, and a repeat
     /// missing its byte adds nothing.
     /// </para>
+    /// <para>
+    /// A run of 128 bytes is two bytes of input, so the output is held to the cap of
+    /// <see cref="FilterParms.Limit"/> while it is built, not afterwards.
+    /// </para>
     /// </summary>
     public override byte[] Decode(byte[] data, FilterParms parms)
     {
         ArgumentNullException.ThrowIfNull(data);
 
-        using var output = new MemoryStream(data.Length * 2);
+        var limit = parms?.Limit;
+        var cap = limit?.MaximumLength ?? long.MaxValue;
+        using var output = new MemoryStream(limit == null ? data.Length * 2 : (int)Math.Min(data.Length * 2L, cap));
         var idx = 0;
         while (idx < data.Length)
         {
@@ -90,15 +96,33 @@ public class RunLengthDecode : Filter
             if (length < EndOfData)
             {
                 var count = Math.Min(length + 1, data.Length - idx);
-                output.Write(data, idx, count);
+                var take = (int)Math.Min(count, cap - output.Length);
+                output.Write(data, idx, take);
+                if (take < count)
+                {
+                    limit.Truncated = true;
+                    break;
+                }
+
                 idx += count;
                 continue;
             }
 
             if (idx >= data.Length)
                 break;
-            WriteRepeated(output, data[idx++], 257 - length);
+
+            var repeats = 257 - length;
+            var room = (int)Math.Min(repeats, cap - output.Length);
+            WriteRepeated(output, data[idx++], room);
+            if (room < repeats)
+            {
+                limit.Truncated = true;
+                break;
+            }
         }
+
+        if (limit != null)
+            limit.Produced += output.Length;
         return output.ToArray();
     }
 

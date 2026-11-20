@@ -156,7 +156,8 @@ public static class Filtering
     /// Decodes the data as <see cref="Decode(byte[], PdfItem, PdfItem)"/> does, with no filter
     /// producing more than <paramref name="limit"/> allows. Where one is cut off,
     /// <see cref="DecodeLimit.Truncated"/> says so and the result is the start of what the stream
-    /// holds. The cap applies to each filter of a chain in turn, not to the chain's total.
+    /// holds. The cap applies to each filter of a chain in turn, not to the chain's total, and so a chain
+    /// never returns more than it.
     /// </summary>
     public static byte[] Decode(byte[] data, PdfItem filterItem, PdfItem decodeParms, DecodeLimit limit)
     {
@@ -168,7 +169,7 @@ public static class Filtering
         if (filterItem is PdfName)
         {
             return ParametersForEach(1, decodeParms) is [var parms and (null or PdfDictionary)]
-                ? GetFilter(filterItem.ToString())?.Decode(data, parms as PdfDictionary, limit)
+                ? CapTo(GetFilter(filterItem.ToString())?.Decode(data, parms as PdfDictionary, limit), limit)
                 : null;
         }
 
@@ -210,6 +211,20 @@ public static class Filtering
             return each;
 
         return Array.TrueForAll(each, parms => parms is null) ? new PdfItem[count] : null;
+    }
+
+    /// <summary>
+    /// What a filter returned, cut to the limit. A filter reads the limit itself so that it need not
+    /// build what it would throw away; this is for one that does not, such as a filter derived
+    /// outside this library, so that no filter in a chain hands the next more than the cap.
+    /// </summary>
+    private static byte[] CapTo(byte[] decoded, DecodeLimit limit)
+    {
+        if (decoded == null || limit == null || decoded.Length <= limit.MaximumLength)
+            return decoded;
+
+        limit.Truncated = true;
+        return decoded[..(int)limit.MaximumLength];
     }
 
     /// <summary>
