@@ -140,6 +140,14 @@ internal sealed class LazyObjectSource : IDisposable
                     ? _parser.ReadObject(null, reference.ObjectID, false, false)
                     : ReadCompressedObject(reference);
             }
+            catch
+            {
+                // The parser files a dictionary under its reference before reading its stream, so a
+                // read that fails part-way would otherwise leave the half-read object to be answered
+                // from then on as if it were whole.
+                reference.SetObject(null);
+                throw;
+            }
             finally
             {
                 if (waiting != null)
