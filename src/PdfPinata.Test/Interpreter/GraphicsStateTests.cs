@@ -22,6 +22,27 @@ public class GraphicsStateTests
     }
 
     [Test]
+    public void ATransformChangedInTheMiddleOfAPathMovesThePenAndNotThePointsBeforeIt()
+    {
+        var drawn = Drawn.Page("0 0 m 10 0 l 2 0 0 2 50 0 cm 10 0 l 4 w S");
+
+        // The first two points stay where they were placed. The third is placed by the new
+        // transform, and the line is as wide as the new transform makes it.
+        var stroke = drawn.Device.Strokes.Single();
+        stroke.DevicePath.Should().Be("M0,100 L10,100 L70,100");
+        stroke.Transform.M11.Should().Be(2);
+        stroke.Stroke.Width.Should().Be(4);
+    }
+
+    [Test]
+    public void ARestoreInTheMiddleOfAPathLeavesItsPointsWhereTheyWere()
+    {
+        var drawn = Drawn.Page("q 1 0 0 1 50 0 cm 0 0 m 10 0 l Q 10 10 l S");
+
+        drawn.Device.Strokes.Single().DevicePath.Should().Be("M50,100 L60,100 L10,90");
+    }
+
+    [Test]
     public void RestoringPutsBackTheTransformTheColourAndTheLineState()
     {
         var drawn = Drawn.Page("q 1 0 0 1 50 0 cm 1 0 0 rg 5 w 0 0 5 5 re B Q 0 0 5 5 re B");

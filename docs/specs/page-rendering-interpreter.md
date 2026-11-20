@@ -91,7 +91,10 @@ pending clip, the text object) is put aside while a form runs and put back after
 The CTM starts as `PageView.Transform`. There is no second matrix to remember to apply.
 
 A path is kept in user space as it is written and painted under the transform in force at the
-painting operator. `W` and `W*` are remembered and applied after the painting operator that follows,
+painting operator, which is the one the pen is measured in. A point is placed by the transform in
+force when it is added, so where `cm` or `Q` changes the transform in the middle of a path, which
+is not allowed and is still found in files, the points already in the path are rewritten in the
+new user space and land where they did. `W` and `W*` are remembered and applied after the painting operator that follows,
 which is the order ISO 32000-1 8.5.4 gives.
 
 **Text is laid out here, not in a device and not in a font.** A shown string is split into codes,
@@ -206,6 +209,12 @@ text with no font file, and so that a caller can supply a kind of font this libr
 which is what `Identity-H` says and what this library writes. Any other CMap is read the same way
 and reported, and `Identity-V` is set horizontally and reported. Reading CMaps belongs with choosing
 glyphs (#373).
+
+**A true union of the glyphs a text object clips to.** The glyphs are one path clipped by nonzero
+winding, which is their union where their contours wind the same way. Two glyphs that overlap and
+wind opposite ways, as a glyph does over its own mirror image under a later `Tm`, cancel where they
+overlap. A union needs path operations the core does not have and a device does, so it waits for a
+page that needs it.
 
 **A limit on the operators of a page.** Forms are bounded and the file's size bounds the rest, so a
 page is slow before it is endless.

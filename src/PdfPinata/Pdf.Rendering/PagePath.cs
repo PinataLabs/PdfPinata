@@ -245,6 +245,19 @@ public sealed class PagePathBuilder
     }
 
     /// <summary>
+    /// Maps every point drawn so far through a matrix, the point the next line starts from
+    /// among them.
+    /// </summary>
+    internal void Transform(XMatrix matrix)
+    {
+        for (var index = 0; index < _points.Count; index++)
+            _points[index] = matrix.Transform(_points[index]);
+
+        _figureStart = matrix.Transform(_figureStart);
+        _current = matrix.Transform(_current);
+    }
+
+    /// <summary>
     /// The path built so far. The builder can go on being added to, and what is added later is
     /// not in the path this answered.
     /// </summary>

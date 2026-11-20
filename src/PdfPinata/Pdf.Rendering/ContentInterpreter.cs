@@ -326,7 +326,31 @@ internal sealed partial class ContentInterpreter
             return;
         }
 
+        var before = State.Ctm;
         _states.PopTo(_states.Depth - 1);
+        KeepPathInPlace(before);
+    }
+
+    /// <summary>
+    /// Keeps a path that is being built where it is when the transform changes under it.
+    /// </summary>
+    /// <remarks>
+    /// A point is placed by the transform in force when it is added, and a transform changed
+    /// later moves the pen and not the points before it. The path is kept in user space and
+    /// painted under the transform in force at the painting operator, so the points already in
+    /// it are rewritten in the new user space, where they land on the device as they did. A
+    /// transform changed in the middle of a path is not allowed and still found in files.
+    /// </remarks>
+    private void KeepPathInPlace(XMatrix before)
+    {
+        var after = State.Ctm;
+        if (!_path.HasCurrentPoint || before == after || !after.HasInverse)
+            return;
+
+        after.Invert();
+        var rewrite = XMatrix.Multiply(before, after);
+        if (IsFinite(rewrite))
+            _path.Transform(rewrite);
     }
 
     /// <summary><c>cm</c>.</summary>
@@ -343,7 +367,9 @@ internal sealed partial class ContentInterpreter
             return;
         }
 
+        var before = State.Ctm;
         State.Ctm = ctm;
+        KeepPathInPlace(before);
     }
 
     /// <summary><c>w</c>.</summary>
