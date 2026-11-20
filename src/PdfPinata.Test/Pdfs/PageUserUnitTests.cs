@@ -25,7 +25,7 @@ public class PageUserUnitTests
     [Arguments(2.0)]
     [Arguments(0.5)]
     [Arguments(75000.0)]
-    [Arguments(0.000001)]
+    [Arguments(0.0000001)]
     public void ComesBackAsWrittenFromAReopenedDocument(double unit)
     {
         var page = ReopenedPageWith(p => p.UserUnit = unit);
@@ -62,7 +62,7 @@ public class PageUserUnitTests
     [Test]
     [Arguments(0.0)]
     [Arguments(-1.5)]
-    [Arguments(0.0000001)]
+    [Arguments(0.00000005)]
     [Arguments(double.NaN)]
     [Arguments(double.PositiveInfinity)]
     public void RefusesToWriteAValueThatIsNotFiniteAndPositive(double value)
@@ -85,6 +85,32 @@ public class PageUserUnitTests
 
         PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(stream.ToArray()), PdfDocumentOpenMode.Import)
             .Version.Should().BeGreaterThanOrEqualTo(16);
+    }
+
+    [Test]
+    public void SavingAPageWithoutAUserUnitKeepsThePdf14Default()
+    {
+        using var document = new PdfDocument();
+        _ = document.AddPage();
+
+        using var stream = new MemoryStream();
+        document.Save(stream, false);
+
+        PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(stream.ToArray()), PdfDocumentOpenMode.Import)
+            .Version.Should().Be(14);
+    }
+
+    [Test]
+    public void ThePdfA1ClaimIsRefusedAtSaveWhenAPageHasAUserUnit()
+    {
+        using var document = new PdfDocument();
+        document.Info.Title = "User unit";
+        document.AddPage().UserUnit = 2;
+        document.ClaimConformance(PdfAConformance.PdfA1B);
+
+        var saving = () => document.Save(new MemoryStream(), false);
+
+        saving.Should().Throw<InvalidOperationException>().WithMessage("*PDF/A-1 is defined against PDF 1.4*PDF 1.6*");
     }
 
     private static PdfPage ReopenedPageWith(Action<PdfPage> change)

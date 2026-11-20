@@ -724,7 +724,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         }
     }
 
-    private const double MinimumUserUnit = 0.000001;
+    private const double MinimumUserUnit = 0.0000001;
 
     /// <summary>
     /// Gets or sets the /UserUnit entry of the PDF page: the size of one default user space unit, in
@@ -732,8 +732,8 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// not a number, infinite or not a number type at all reads as 1 rather than refusing the page,
     /// because the entry is meant to be positive and a viewer shows such a page at its stored size.
     /// The entry is not inherited from the page tree. Setting it writes /UserUnit on the page,
-    /// and throws <see cref="ArgumentOutOfRangeException"/> for a value that is not finite or is below 0.000001,
-    /// the smallest the file keeps apart from zero. Saving a page that has the entry raises the document to PDF 1.6.
+    /// and throws <see cref="ArgumentOutOfRangeException"/> for a value that is not finite or is below 0.0000001,
+    /// the smallest the file keeps apart from zero (it writes seven decimal places). Saving a page that has the entry raises the document to PDF 1.6.
     /// </summary>
     public double UserUnit
     {
@@ -743,7 +743,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         set
         {
             if (!double.IsFinite(value) || value < MinimumUserUnit)
-                throw new ArgumentOutOfRangeException(nameof(value), value, "UserUnit must be finite and at least 0.000001.");
+                throw new ArgumentOutOfRangeException(nameof(value), value, "UserUnit must be finite and at least 0.0000001.");
             _elements.SetReal(Keys.UserUnit, value);
         }
     }
