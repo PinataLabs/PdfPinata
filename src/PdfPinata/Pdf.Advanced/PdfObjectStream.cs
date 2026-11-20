@@ -91,6 +91,12 @@ public class PdfObjectStream : PdfDictionary
     }
 
     /// <summary>
+    /// The object number this stream's header gives the object at <paramref name="index"/>, or -1
+    /// when it holds no such object.
+    /// </summary>
+    internal int ObjectNumberAt(int index) => index >= 0 && index < _header.Length ? _header[index][0] : -1;
+
+    /// <summary>
     /// Reads the compressed object with the specified index.
     /// </summary>
     internal PdfReference ReadCompressedObject(int index)
