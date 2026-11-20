@@ -96,23 +96,9 @@ internal sealed class OptionalContent
             return !_unreadable && visible == false;
         }
 
-        var states = new List<bool>();
-        if (membership.Elements.GetArray("/OCGs") is { } several)
-        {
-            for (var index = 0; index < several.Elements.Count; index++)
-            {
-                if (several.Elements.GetDictionary(index) is { } group && !Add(group))
-                    return false;
-            }
-        }
-        else if (membership.Elements.GetDictionary("/OCGs") is { } single && !Add(single))
-        {
-            return false;
-        }
-
         // A membership dictionary none of whose groups counts has no effect on visibility, as
         // one that names no group has none (ISO 32000-1 Table 99).
-        if (states.Count == 0)
+        if (StatesOf(membership) is not { Count: > 0 } states)
             return false;
 
         return membership.Elements.GetNameOrEmpty("/P") switch
@@ -122,18 +108,40 @@ internal sealed class OptionalContent
             "/AllOff" => states.Contains(true),
             _ => !states.Contains(true)
         };
+    }
 
-        // A dictionary that is not a group makes the whole membership visible, as it does an
-        // expression.
-        bool Add(PdfDictionary group)
+    /// <summary>
+    /// The states of the groups in a membership's <c>/OCGs</c> that count, or null where one of
+    /// them is a dictionary that is not a group, which makes the whole membership visible as it
+    /// does an expression.
+    /// </summary>
+    private List<bool> StatesOf(PdfDictionary membership)
+    {
+        var groups = new List<PdfDictionary>();
+        if (membership.Elements.GetArray("/OCGs") is { } several)
+        {
+            for (var index = 0; index < several.Elements.Count; index++)
+            {
+                if (several.Elements.GetDictionary(index) is { } group)
+                    groups.Add(group);
+            }
+        }
+        else if (membership.Elements.GetDictionary("/OCGs") is { } single)
+        {
+            groups.Add(single);
+        }
+
+        var states = new List<bool>();
+        foreach (var group in groups)
         {
             if (!IsGroup(group))
-                return false;
+                return null;
 
             if (StateOf(group) is { } on)
                 states.Add(on);
-            return true;
         }
+
+        return states;
     }
 
     /// <summary>A group is typed <c>/OCG</c>, or not typed at all.</summary>
