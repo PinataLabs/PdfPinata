@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <!--
+      Deliberately outside PdfPinata.slnx. This runs by hand when the checked-in AFM files or the
+      table layout change, has no business in the build or in CI, and what it produces is checked in.
+    -->
+  </PropertyGroup>
+
+</Project>
