@@ -21,6 +21,11 @@ internal sealed class SplicedPdf
     private readonly Dictionary<int, long> _positions = new();
     private readonly Dictionary<int, long> _ends = new();
     private readonly Dictionary<int, (int Stream, int Index)> _compressed = new();
+    private readonly Dictionary<int, (long Start, long End)> _data = new();
+
+    // What was written before the text still in _pdf, and how long it is.
+    private readonly List<SplicedStream.Part> _written = [];
+    private long _writtenLength;
 
     /// <param name="origin">
     ///   Where the first byte after the comment lies. Left out, there is no comment to speak of
@@ -28,7 +33,7 @@ internal sealed class SplicedPdf
     /// </param>
     internal SplicedPdf(long origin = 0) => _origin = origin == 0 ? Head.Length : origin;
 
-    internal long Here => _origin + _pdf.Length;
+    internal long Here => _origin + _writtenLength + _pdf.Length;
 
     internal long PositionOf(int id) => _positions[id];
 
@@ -64,6 +69,35 @@ internal sealed class SplicedPdf
         _pdf.Append(text).Append('\n');
         _ends[id] = Here;
     }
+
+    /// <summary>The byte the data of a <see cref="StreamOfFiller" /> is made of.</summary>
+    internal const byte Filler = (byte)'B';
+
+    /// <summary>
+    ///   A stream whose data is <paramref name="length" /> bytes of <see cref="Filler" />, which
+    ///   <see cref="SplicedStream" /> serves without holding them: an image of any size.
+    /// </summary>
+    /// <param name="lengthEntry">What the dictionary says of its length; left out, the truth.</param>
+    internal void StreamOfFiller(int id, long length, string entries = "", string lengthEntry = null)
+    {
+        _positions[id] = Here;
+        _pdf.Append(id).Append(" 0 obj\n<< ").Append(entries).Append(' ')
+            .Append(lengthEntry ?? "/Length " + length).Append(" >>stream\n");
+
+        _written.Add(SplicedStream.Part.Of(TailBytes()));
+        _writtenLength += _pdf.Length;
+        _pdf.Clear();
+
+        _data[id] = (Here, Here + length);
+        _written.Add(SplicedStream.Part.Run(length, Filler));
+        _writtenLength += length;
+
+        _pdf.Append("\nendstream\nendobj\n");
+        _ends[id] = Here;
+    }
+
+    /// <summary>The bytes of the data of the <see cref="StreamOfFiller" /> numbered <paramref name="id" />.</summary>
+    internal (long Start, long End) DataOf(int id) => _data[id];
 
     internal static string Stream(string content, string entries = "") =>
         "<< " + entries + " /Length " + content.Length + " >>stream\n" + content + "\nendstream";
@@ -192,7 +226,11 @@ internal sealed class SplicedPdf
 
     internal byte[] TailBytes() => Encoding.Latin1.GetBytes(_pdf.ToString());
 
-    internal SplicedStream ToStream() => new(Head, _origin - Head.Length, (byte)'A', TailBytes());
+    internal SplicedStream ToStream() => new(
+    [
+        SplicedStream.Part.Of(Head), SplicedStream.Part.Run(_origin - Head.Length, (byte)'A'),
+        .. _written, SplicedStream.Part.Of(TailBytes())
+    ]);
 
     /// <summary>The whole document as bytes, for one whose comment is short enough to hold.</summary>
     internal byte[] ToBytes()
