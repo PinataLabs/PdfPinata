@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### PDF Reader & Writer
 
+#### Added
+
+- **A page's content can be interpreted onto a device.** `PageRendering.Render(page, device)`, in the new `PdfPinata.Pdf.Rendering` namespace, reads an existing page's content and draws it onto a `PageDevice`: filled and stroked paths, clips and glyph outlines, each with the transform that places it. It keeps the graphics-state stack, follows Form XObjects, applies the line state and the alpha of `/ExtGState`, and lays text out by the PDF's own widths in all eight text render modes. `PageView.Of` works out where the page lands from its box, `/Rotate`, `/UserUnit`, a scale and a region. Content that cannot be drawn is skipped and listed in the `PageRenderResult`, and nothing about the file throws. This is the first part of page rendering (#370) and draws no page in full yet: it resolves DeviceGray, DeviceRGB and DeviceCMYK, and reports every font and every image as not drawn. The seam is marked `[Experimental("PPEXP001")]` and will change. (#371)
+
 #### Changed
 
 - **Importing a page copies no other page of its document.** A link's `/Dest`, a go-to action's `/D` and an annotation's `/P` name a page, whose `/Parent` is the page tree, and the import followed them: taking one page out of a document cloned every page and every page's resources into the target, and the save then threw the copies away. The copy now stops at any page or page tree node, known by its `/Type` or, where a writer left that out, by its place in the page tree. A reference to a page already imported from the same document points at its copy, and a reference to any other page becomes `null`. Links keep their destinations as before: a destination whose page is imported too still goes to it once the document is saved, and an annotation's `/P` names the page it is on. The saved file is the same size as before. (#366)
