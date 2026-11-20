@@ -203,44 +203,52 @@ public class CLexer
     /// content when there is none.
     /// </summary>
     /// <remarks>
-    /// Each <c>ID</c> standing on its own in the bytes is a candidate, and the entries before one are
-    /// read as tokens, up to it and no further. The first candidate they end on is the image's, so
-    /// a string holding the letters <c>ID</c> is not taken for the end of the entries. Tokens are
-    /// never read past a candidate, because a string or dictionary left unclosed would read on to
-    /// the end of the content, past every operator after the image, and do it again for each image
-    /// after it. A candidate inside a comment is passed over to the end of the comment's line, which
-    /// is where a comment ends. When none of the first few other candidates is reached by the tokens,
-    /// the entries are malformed, and end at the first candidate after the token left open.
+    /// <para>
+    /// The <c>ID</c> is the first operator the entries' tokens reach, as it always was, and may
+    /// stand hard against what follows it: ASCII data needs no white space after it (ISO 32000-1
+    /// 8.9.7). What changes is how far the tokens are read at a time. An <c>ID</c> between white
+    /// space or a delimiter and white space is a candidate, and the tokens are read up to each
+    /// candidate in turn and no further, because a string or dictionary left unclosed would read on
+    /// to the end of the content, past every operator after the image, and do it again for each
+    /// image after it. Once there are no candidates left, the tokens are read to the end.
+    /// </para>
+    /// <para>
+    /// Each read starts where the last one left a token open, or where the comment it ended in
+    /// ends, so a comment costs nothing more to pass over. A token left open across the first
+    /// <see cref="MaximumIDCandidates"/> candidates makes the entries malformed, and they end at
+    /// the first candidate after that token begins.
+    /// </para>
     /// </remarks>
     private bool ScanToImageData(int dictionaryStart, out int dictionaryEnd, out bool ascii85)
     {
         Span<int> candidates = stackalloc int[MaximumIDCandidates];
         var count = 0;
-        var openTokenStart = dictionaryStart;
-        var from = dictionaryStart;
-        for (var windows = 0; count < MaximumIDCandidates && windows < MaximumIDWindows; windows++)
+        var readFrom = dictionaryStart;
+        var searchFrom = dictionaryStart;
+        ascii85 = false;
+        while (count < MaximumIDCandidates)
         {
-            var id = FirstStandaloneID(from);
-            if (id < 0)
-                break;
-
-            var window = EntriesBefore(dictionaryStart, id + 2);
-            if (window.TryScanToID(out var idStart, out var lastTokenStart, out ascii85))
+            var id = FirstStandaloneID(searchFrom);
+            var entries = Entries(readFrom, id < 0 ? ContLength : id + 2);
+            if (TryScanEntriesToID(entries, readFrom, out var idStart, out var lastTokenStart, ref ascii85))
             {
-                dictionaryEnd = dictionaryStart + idStart;
+                dictionaryEnd = readFrom + idStart;
                 MoveTo(dictionaryEnd + 2);
                 return true;
             }
 
-            if (window._endedInComment)
+            if (id < 0)
+                break;
+
+            if (entries._endedInComment)
             {
-                from = EndOfLine(id + 2);
+                readFrom = searchFrom = EndOfComment(id + 2);
                 continue;
             }
 
             candidates[count++] = id;
-            openTokenStart = dictionaryStart + lastTokenStart;
-            from = id + 2;
+            readFrom += lastTokenStart;
+            searchFrom = id + 2;
         }
 
         if (count == 0)
@@ -254,31 +262,30 @@ public class CLexer
         dictionaryEnd = candidates[count - 1];
         foreach (var candidate in candidates[..count])
         {
-            if (candidate >= openTokenStart)
+            if (candidate >= readFrom)
             {
                 dictionaryEnd = candidate;
                 break;
             }
         }
-        EntriesBefore(dictionaryStart, dictionaryEnd).TryScanToID(out _, out _, out ascii85);
+        ascii85 = false;
+        TryScanEntriesToID(Entries(dictionaryStart, dictionaryEnd), dictionaryStart, out _, out _, ref ascii85);
         MoveTo(dictionaryEnd + 2);
         return true;
     }
 
     /// <summary>
     /// How many candidates for an inline image's <c>ID</c> a token is left open across before the
-    /// entries are taken to be malformed.
+    /// entries are taken to be malformed. Each costs one more read of the entries from the token
+    /// left open, so this bounds what one image costs whatever its entries hold.
     /// </summary>
     private const int MaximumIDCandidates = 4;
 
     /// <summary>
-    /// How many times the entries of one inline image are read, comments included, which bounds what
-    /// one image costs whatever its entries hold.
+    /// Where a comment holding an index ends: its first CR or LF at or after it, where
+    /// <see cref="ScanComment"/> stops too.
     /// </summary>
-    private const int MaximumIDWindows = 16;
-
-    /// <summary>Where the line holding an index ends: its first CR or LF at or after it.</summary>
-    private int EndOfLine(int index)
+    private int EndOfComment(int index)
     {
         while (index < ContLength && _content[index] != Chars.CR && _content[index] != Chars.LF)
             index++;
@@ -286,21 +293,38 @@ public class CLexer
     }
 
     /// <summary>A lexer over the content from one index up to another, and nothing after.</summary>
-    private CLexer EntriesBefore(int start, int end) => new(_content.AsSpan(start, end - start).ToArray());
+    private CLexer Entries(int start, int end) => new(_content.AsSpan(start, end - start).ToArray());
+
+    /// <summary>
+    /// <see cref="TryScanToID"/> on a lexer over the content from an index. A fault it meets
+    /// leaves this lexer standing where it was met, so that it is recorded once, where reading the
+    /// whole content would have met it, rather than met again when reading goes on from here.
+    /// </summary>
+    private bool TryScanEntriesToID(CLexer entries, int start, out int idStart, out int lastTokenStart, ref bool ascii85)
+    {
+        try
+        {
+            return entries.TryScanToID(out idStart, out lastTokenStart, ref ascii85);
+        }
+        catch
+        {
+            MoveTo(start + entries.CurrentCharIndex);
+            throw;
+        }
+    }
 
     /// <summary>
     /// Reads tokens until one is the operator <c>ID</c>, and says where it begins, where the last
     /// token read begins, and whether a name of the ASCII85 filter came before it.
     /// </summary>
-    private bool TryScanToID(out int idStart, out int lastTokenStart, out bool ascii85)
+    private bool TryScanToID(out int idStart, out int lastTokenStart, ref bool ascii85)
     {
         idStart = -1;
         lastTokenStart = 0;
-        // HACK: Is image ASCII85 decoded?
-        ascii85 = false;
         while (ScanNextToken() != CSymbol.Eof)
         {
             lastTokenStart = _tokenStart;
+            // HACK: Is image ASCII85 decoded?
             ascii85 |= NamesAscii85Filter();
             if (Symbol == CSymbol.Operator && Token == "ID")
             {
