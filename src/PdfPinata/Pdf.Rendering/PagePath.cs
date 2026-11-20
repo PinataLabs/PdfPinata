@@ -244,6 +244,16 @@ public sealed class PagePathBuilder
         }
     }
 
+    /// <summary>Maps every point added so far through a matrix, where the builder keeps them.</summary>
+    internal void TransformInPlace(XMatrix matrix)
+    {
+        for (var index = 0; index < _points.Count; index++)
+            _points[index] = matrix.Transform(_points[index]);
+
+        _figureStart = matrix.Transform(_figureStart);
+        _current = matrix.Transform(_current);
+    }
+
     /// <summary>
     /// The path built so far. The builder can go on being added to, and what is added later is
     /// not in the path this answered.
