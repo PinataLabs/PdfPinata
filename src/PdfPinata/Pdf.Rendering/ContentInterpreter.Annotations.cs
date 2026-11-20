@@ -74,7 +74,9 @@ internal sealed partial class ContentInterpreter
         if (PdfItemValues.TryGetInteger(item, out var stated))
             return stated;
 
+#pragma warning disable S1244 // Exact on purpose: /F is accepted as a real only when it is a whole number.
         if (PdfItemValues.TryGetNumber(item, out var real) && real == Math.Floor(real) && real is >= int.MinValue and <= int.MaxValue)
+#pragma warning restore S1244
             return (int)real;
 
         return null;
