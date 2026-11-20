@@ -163,12 +163,15 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
     /// </summary>
     internal void Finish()
     {
+        // Neither swap asserts that the entry it found has a value. Asking a reference of a
+        // lazy document for its value reads the object, so an assertion that asks would read the
+        // catalog in a Debug build and not in a Release one.
+
         // /Root
         var iref = _document._trailer.Elements[Keys.Root] as PdfReference;
         if (iref is { Value: null })
         {
             iref = _document._irefTable[iref.ObjectID];
-            Debug.Assert(iref.Value != null);
             _document._trailer.Elements[Keys.Root] = iref;
         }
 
@@ -177,7 +180,6 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
         if (iref is { Value: null })
         {
             iref = _document._irefTable[iref.ObjectID];
-            Debug.Assert(iref.Value != null);
             _document._trailer.Elements[Keys.Info] = iref;
         }
 
