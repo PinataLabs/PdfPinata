@@ -257,6 +257,7 @@ public class AnnotationTests
 
         device.Fills.Should().ContainSingle("only the last annotation is well formed");
         result.Diagnostics.Select(d => d.Problem).Should().OnlyContain(p => p == PageRenderProblem.InvalidValue);
+        result.Diagnostics.Select(d => d.Subject).Should().Contain(["/N", "/Rect", "/AP"], "each kind of fault is said");
         device.Calls.Count(c => c.Kind == "save").Should().Be(device.Calls.Count(c => c.Kind == "restore"));
     }
 
@@ -340,5 +341,35 @@ public class AnnotationTests
         var corners = Corners(yellow[0]);
         corners.Min(p => p.X).Should().BeApproximately(60, 0.01);
         corners.Max(p => p.X).Should().BeApproximately(260, 0.01);
+    }
+
+    [Test]
+    public void AClipTheContentLeftInForceDoesNotClipTheAnnotations()
+    {
+        var page = PageWithSquare("0 0 10 10 re W n", "0 0 100 100 re f", out _);
+
+        var (device, _) = Render(page);
+
+        device.Fills.Should().ContainSingle();
+        var clips = device.Calls.TakeWhile(c => c != device.Fills.Single()).Where(c => c.Kind is "clip" or "save" or "restore").Select(c => c.Kind).ToArray();
+        // The page's clip and the content's are undone before the annotation is begun again.
+        clips.Should().ContainInOrder("save", "clip", "restore", "save", "clip");
+        device.Calls.Count(c => c.Kind == "save").Should().Be(device.Calls.Count(c => c.Kind == "restore"));
+    }
+
+    [Test]
+    [Arguments(8)]
+    [Arguments(16)]
+    public void NoZoomAndNoRotateAreReportedOnlyWhereTheyWouldChangeWhatIsDrawn(int flag)
+    {
+        var upright = PageWithSquare("", "0 0 100 100 re f", out _, (_, _, a) => a.Elements.SetInteger("/F", flag));
+        Render(upright).Result.IsComplete.Should().BeTrue();
+
+        var turned = PageWithSquare("", "0 0 100 100 re f", out _, (_, _, a) => a.Elements.SetInteger("/F", flag));
+        turned.Rotate = 90;
+        var (device, result) = Render(turned);
+
+        device.Fills.Should().ContainSingle();
+        result.Diagnostics.Should().ContainSingle(d => d.Problem == PageRenderProblem.UnsupportedFeature && d.Subject == "/F");
     }
 }

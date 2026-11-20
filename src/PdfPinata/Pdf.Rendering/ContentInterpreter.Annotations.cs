@@ -7,6 +7,8 @@ namespace PdfPinata.Pdf.Rendering;
 // The normal appearances of a page's annotations (ISO 32000-1 12.5.5).
 internal sealed partial class ContentInterpreter
 {
+    private const int NoZoomFlag = 1 << 3;
+    private const int NoRotateFlag = 1 << 4;
     private const int HiddenFlag = 1 << 1;
     private const int NoViewFlag = 1 << 5;
 
@@ -18,6 +20,14 @@ internal sealed partial class ContentInterpreter
     {
         if (PdfReference.Dereference(page.Elements["/Annots"]) is not PdfArray annotations)
             return;
+
+        if (annotations.Elements.Count == 0)
+            return;
+
+        // What the content set or clipped to outside a q is not what annotations start from, so the
+        // page is begun again, in the state it was first in.
+        _states.PopTo(0);
+        BeginPage();
 
         // A form that states no resources of its own is read against the page's.
         _resources = ResourceScope.OfPage(page);
@@ -45,19 +55,30 @@ internal sealed partial class ContentInterpreter
         }
     }
 
+    // Drawn at 1 to 1 and not turned: what NoZoom and NoRotate ask for is already what is drawn.
+    private bool IsUpright => _view.Scale == 1
+        && Math.Abs(_view.Transform.M11 - 1) < 1e-9 && Math.Abs(_view.Transform.M22 + 1) < 1e-9
+        && _view.Transform.M12 == 0 && _view.Transform.M21 == 0;
+
     private void DrawAnnotation(PdfDictionary annotation)
     {
         // A popup is the window a viewer opens beside a note, not something drawn on the page.
         if (annotation.Elements.GetNameOrEmpty("/Subtype") == "/Popup")
             return;
 
-        if (PdfItemValues.TryGetInteger(annotation.Elements["/F"], out var flags)
-            && (flags & (HiddenFlag | NoViewFlag)) != 0)
+        int? flags = PdfItemValues.TryGetInteger(annotation.Elements["/F"], out var stated) ? stated : null;
+        if (flags is { } shown && (shown & (HiddenFlag | NoViewFlag)) != 0)
             return;
 
         var appearance = NormalAppearanceOf(annotation);
         if (appearance == null)
             return;
+
+        if (flags is { } kept && (kept & (NoZoomFlag | NoRotateFlag)) != 0 && !IsUpright)
+        {
+            _sink.Report(PageRenderProblem.UnsupportedFeature, "/F",
+                "The no-zoom and no-rotate flags are not applied yet. The appearance is drawn scaled and turned with the page.");
+        }
 
         ReportIfHidden(annotation.Elements.GetDictionary("/OC"));
 
@@ -124,22 +145,43 @@ internal sealed partial class ContentInterpreter
 
     /// <summary>
     /// The form <c>/AP /N</c> names: the stream itself, or the one of a dictionary of states that
-    /// <c>/AS</c> picks. Null where there is none, which draws nothing.
+    /// <c>/AS</c> picks. Null where there is none, which draws nothing, and where there is one that
+    /// is not a stream, which is also reported.
     /// </summary>
-    private static PdfDictionary NormalAppearanceOf(PdfDictionary annotation)
+    private PdfDictionary NormalAppearanceOf(PdfDictionary annotation)
     {
-        var normal = annotation.Elements.GetDictionary("/AP")?.Elements.GetDictionary("/N");
-        if (normal == null)
+        var appearances = PdfReference.Dereference(annotation.Elements["/AP"]);
+        if (PdfItemValues.IsNull(appearances))
             return null;
 
-        if (normal.Stream != null)
-            return normal;
+        if (appearances is not PdfDictionary dictionary)
+            return NotAStream("/AP");
+
+        var normal = PdfReference.Dereference(dictionary.Elements["/N"]);
+        if (PdfItemValues.IsNull(normal))
+            return null;
+
+        if (normal is not PdfDictionary form)
+            return NotAStream("/N");
+
+        if (form.Stream != null)
+            return form;
 
         var state = annotation.Elements.GetNameOrEmpty("/AS");
         if (state.Length == 0)
             return null;
 
-        var chosen = normal.Elements.GetDictionary(state);
-        return chosen?.Stream != null ? chosen : null;
+        var chosen = PdfReference.Dereference(form.Elements[state]);
+        if (PdfItemValues.IsNull(chosen))
+            return null;
+
+        return chosen is PdfDictionary { Stream: not null } stream ? stream : NotAStream("/AS");
+    }
+
+    private PdfDictionary NotAStream(string subject)
+    {
+        _sink.Report(PageRenderProblem.InvalidValue, subject,
+            "The annotation's appearance is not a form XObject. It is not drawn.");
+        return null;
     }
 }

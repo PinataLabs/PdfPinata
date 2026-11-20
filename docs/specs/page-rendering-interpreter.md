@@ -135,9 +135,9 @@ differently. For such stretched text the pen is an ellipse in the outline's spac
 After the page's content, and unless `PageRendering.Render` was told `annotations: false`, each
 entry of `/Annots` that has an appearance is drawn through the Form XObject path (ISO 32000-1
 12.5.5). They are drawn in the order listed, each from the graphics state the page began in and
-under the clip of the page's box, whatever the content left set. The appearance is `/AP /N`, or,
+under the clip of the page's box, whatever the content left set or clipped to: the page's save is undone and begun again, so a `W n` outside a `q` in the content does not cut the annotations. The appearance is `/AP /N`, or,
 where that is a dictionary of states, the stream `/AS` names. A dictionary of states with no `/AS`
-or one that names no state draws nothing, which is what a check box with no state does.
+or one that names no state draws nothing, which is what a check box with no state does. An `/AP`, `/N` or state entry that is present and is not a stream is reported as `InvalidValue`, and an absent one is not.
 
 The box is mapped on to the rectangle by the algorithm of 12.5.5: `/BBox` is taken through
 `/Matrix`, and the rectangle that encloses the result is scaled and moved on to `/Rect`. The
@@ -147,6 +147,8 @@ appearance whose box has no area once the matrix is applied, one with no `/BBox`
 that is not four finite numbers are reported as `InvalidValue`, as is a bad `/Matrix`. The form's
 own resources are used, and the page's where it has none. An appearance that draws itself is
 stopped by `FormVisits`, as any form is, and its entries count against the same limits.
+
+**The no-zoom and no-rotate flags (bits 4 and 5) are not applied.** The appearance is drawn scaled and turned with the page, and where the view is not at 1 to 1 and upright an annotation carrying either is reported as `UnsupportedFeature`.
 
 **Not drawn:** a hidden annotation (`/F` bit 2), one with the no-view flag (bit 6), and a
 `/Popup`. The invisible flag (bit 1) only matters for annotations of a type the viewer does not

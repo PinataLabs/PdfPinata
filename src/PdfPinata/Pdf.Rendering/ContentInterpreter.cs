@@ -90,11 +90,7 @@ internal sealed partial class ContentInterpreter
     {
         try
         {
-            _states.Push();
-
-            var box = new PagePathBuilder();
-            box.AddRectangle(_view.Box.X, _view.Box.Y, _view.Box.Width, _view.Box.Height);
-            _device.Clip(box.ToPath(), _view.Transform, XFillMode.Winding);
+            BeginPage();
 
             if (_view.BoxIsAssumed)
             {
@@ -116,10 +112,7 @@ internal sealed partial class ContentInterpreter
                         $"{unreadable} of the streams the page's content is written in could not be decoded. What the others say is drawn.");
                 }
 
-                // What the content sets outside a q is not what annotations start from.
-                var initial = State.Copy();
                 RunStream(ParsedContent.Of(content), ResourceScope.OfPage(page), "page");
-                _states.Replace(initial);
             }
 
             if (includeAnnotations)
@@ -129,6 +122,16 @@ internal sealed partial class ContentInterpreter
         {
             _states.PopTo(0);
         }
+    }
+
+    /// <summary>Saves the device's state and clips to the box the view draws.</summary>
+    private void BeginPage()
+    {
+        _states.Push();
+
+        var box = new PagePathBuilder();
+        box.AddRectangle(_view.Box.X, _view.Box.Y, _view.Box.Width, _view.Box.Height);
+        _device.Clip(box.ToPath(), _view.Transform, XFillMode.Winding);
     }
 
     /// <summary>
