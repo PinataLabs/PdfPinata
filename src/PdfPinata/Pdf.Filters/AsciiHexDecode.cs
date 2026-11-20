@@ -73,8 +73,9 @@ public class AsciiHexDecode : Filter
 
         // Two digits to a byte, so half the input rounded up is as many bytes as there can be,
         // and a limit may make it fewer.
-        var limit = parms?.Limit;
-        var bytes = new byte[(int)Math.Min((data.Length + 1) / 2, limit?.MaximumLength ?? long.MaxValue)];
+        var supplied = parms?.Limit;
+        var limit = supplied ?? new DecodeLimit(long.MaxValue);
+        var bytes = new byte[(int)Math.Min((data.Length + 1) / 2, limit.MaximumLength)];
         var count = 0;
         var hi = -1;
         foreach (var ch in data)
@@ -114,8 +115,8 @@ public class AsciiHexDecode : Filter
                 bytes[count++] = (byte)(hi << 4);
         }
 
-        if (limit != null)
-            limit.Produced += count;
+        if (supplied != null)
+            supplied.Produced += count;
 
         if (count < bytes.Length)
             Array.Resize(ref bytes, count);

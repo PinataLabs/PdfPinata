@@ -83,9 +83,10 @@ public class RunLengthDecode : Filter
     {
         ArgumentNullException.ThrowIfNull(data);
 
-        var limit = parms?.Limit;
-        var cap = limit?.MaximumLength ?? long.MaxValue;
-        using var output = new MemoryStream(limit == null ? data.Length * 2 : (int)Math.Min(data.Length * 2L, cap));
+        var supplied = parms?.Limit;
+        var limit = supplied ?? new DecodeLimit(long.MaxValue);
+        var cap = limit.MaximumLength;
+        using var output = new MemoryStream(supplied == null ? data.Length * 2 : (int)Math.Min(data.Length * 2L, cap));
         var idx = 0;
         while (idx < data.Length)
         {
@@ -121,8 +122,8 @@ public class RunLengthDecode : Filter
             }
         }
 
-        if (limit != null)
-            limit.Produced += output.Length;
+        if (supplied != null)
+            supplied.Produced += output.Length;
         return output.ToArray();
     }
 
