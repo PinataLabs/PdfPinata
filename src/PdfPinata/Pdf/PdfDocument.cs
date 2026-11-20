@@ -1283,6 +1283,14 @@ public sealed class PdfDocument : PdfObject, IDisposable
     private PdfFontTable _fontTable;
 
     /// <summary>
+    /// The fonts page rendering has read from this document, kept so that each is read once
+    /// however many pages are rendered.
+    /// </summary>
+    internal Rendering.RenderFontCache RenderFontCache => _renderFontCache ??= new Rendering.RenderFontCache();
+
+    private Rendering.RenderFontCache _renderFontCache;
+
+    /// <summary>
     /// Gets the document image table that holds all images used in the current document.
     /// </summary>
     internal PdfImageTable ImageTable
