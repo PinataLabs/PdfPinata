@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using PdfPinata.Pdf.Advanced;
 
 namespace PdfPinata.Pdf.Rendering;
@@ -6,7 +7,7 @@ namespace PdfPinata.Pdf.Rendering;
 /// Turns what content names as a colour space into a <see cref="RenderColorSpace"/>. A new kind
 /// of colour space is added here and nowhere in the interpreter.
 /// </summary>
-internal static class ColorSpaces
+internal static partial class ColorSpaces
 {
     internal static readonly RenderColorSpace DeviceGray = new DeviceGrayColorSpace();
     internal static readonly RenderColorSpace DeviceRgb = new DeviceRgbColorSpace();
@@ -33,7 +34,7 @@ internal static class ColorSpaces
             return null;
         }
 
-        return Resolve(definition, sink);
+        return ResolveNested(definition, sink, []);
     }
 
     /// <summary>
@@ -44,7 +45,16 @@ internal static class ColorSpaces
     /// The space. Never null: a definition this version cannot resolve is reported and answered
     /// as an <see cref="UnsupportedColorSpace"/>.
     /// </returns>
-    internal static RenderColorSpace Resolve(PdfItem definition, DiagnosticSink sink)
+    internal static RenderColorSpace Resolve(PdfItem definition, DiagnosticSink sink) =>
+        ResolveNested(definition, sink, []);
+
+    /// <param name="definition">The definition.</param>
+    /// <param name="sink">Where a problem is reported.</param>
+    /// <param name="open">
+    /// The arrays being resolved, outermost first: an Indexed space resolves its base and an
+    /// ICCBased one its alternate, so a definition that names itself would otherwise never end.
+    /// </param>
+    private static RenderColorSpace ResolveNested(PdfItem definition, DiagnosticSink sink, List<PdfItem> open)
     {
         definition = PdfReference.Dereference(definition);
         if (PdfItemValues.TryGetName(definition, out var name))
@@ -58,10 +68,23 @@ internal static class ColorSpaces
             return new UnsupportedColorSpace(-1, Fallback);
         }
 
-        // Indexed and ICCBased are resolved here once they are read: Indexed through its base
-        // space, ICCBased through its /Alternate or the device space its /N names. Either
-        // resolves another definition, so it needs a guard against one that names itself.
-        return DeviceSpace(family) ?? Unsupported(family, ComponentCountOf(family, array), sink);
+        if (open.Count >= MaximumNesting || open.Exists(item => ReferenceEquals(item, array)))
+        {
+            sink.Report(PageRenderProblem.InvalidValue, family,
+                "A colour space is defined in terms of itself, or nested too deeply to follow. It is drawn in black.");
+            return new UnsupportedColorSpace(ComponentCountOf(family, array), Fallback);
+        }
+
+        open.Add(array);
+        try
+        {
+            return ResolveFamily(family, array, sink, open) ?? DeviceSpace(family)
+                   ?? Unsupported(family, ComponentCountOf(family, array), sink);
+        }
+        finally
+        {
+            open.RemoveAt(open.Count - 1);
+        }
     }
 
     private static RenderColorSpace DeviceSpace(string name) => name switch
