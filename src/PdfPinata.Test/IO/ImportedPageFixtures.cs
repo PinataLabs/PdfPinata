@@ -22,6 +22,20 @@ internal static class ImportedPageFixtures
     /// </summary>
     internal static byte[] LinkedPagesDocument(params string[] annotations)
     {
+        return PagesDocument("/Type/Page", annotations);
+    }
+
+    /// <summary>
+    ///   The same three pages with no <c>/Type</c>, which ISO 32000-1 requires of a page and some
+    ///   writers leave out anyway. Only the page tree says what they are.
+    /// </summary>
+    internal static byte[] UntypedPagesDocument(params string[] annotations)
+    {
+        return PagesDocument("", annotations);
+    }
+
+    private static byte[] PagesDocument(string type, string[] annotations)
+    {
         var references = Enumerable.Range(FirstAnnotation, annotations.Length)
             .Select(number => number + " 0 R");
 
@@ -29,10 +43,10 @@ internal static class ImportedPageFixtures
         {
             "<</Type/Catalog/Pages 2 0 R>>",
             "<</Type/Pages/Kids[3 0 R 4 0 R 5 0 R]/Count 3>>",
-            Page("/Resources<</XObject<</Im0 6 0 R>>>>/Contents 9 0 R" +
+            Page(type, "/Resources<</XObject<</Im0 6 0 R>>>>/Contents 9 0 R" +
                  "/Annots[" + string.Join(" ", references) + "]"),
-            Page("/Resources<</XObject<</Im1 7 0 R>>>>/Contents 10 0 R"),
-            Page("/Resources<</XObject<</Im2 8 0 R>>>>/Contents 11 0 R"),
+            Page(type, "/Resources<</XObject<</Im1 7 0 R>>>>/Contents 10 0 R"),
+            Page(type, "/Resources<</XObject<</Im2 8 0 R>>>>/Contents 11 0 R"),
             Image(),
             Image(),
             Image(),
@@ -66,9 +80,9 @@ internal static class ImportedPageFixtures
         return "<</Type/Annot/Subtype/Text/Rect[20 20 30 30]/Contents(a note)>>";
     }
 
-    private static string Page(string entries)
+    private static string Page(string type, string entries)
     {
-        return "<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]" + entries + ">>";
+        return "<<" + type + "/Parent 2 0 R/MediaBox[0 0 200 200]" + entries + ">>";
     }
 
     private static string Image()
