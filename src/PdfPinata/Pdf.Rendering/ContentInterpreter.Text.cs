@@ -334,7 +334,7 @@ internal sealed partial class ContentInterpreter
         var state = State;
         if (TryGetUniformScale(glyphToUser, out var scale))
         {
-            if (!ReferenceEquals(_glyphStrokeOf, state.Stroke) || _glyphStrokeScale != scale)
+            if (!ReferenceEquals(_glyphStrokeOf, state.Stroke) || !_glyphStrokeScale.Equals(scale))
             {
                 _glyphStrokeOf = state.Stroke;
                 _glyphStrokeScale = scale;

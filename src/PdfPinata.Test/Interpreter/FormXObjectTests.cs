@@ -302,6 +302,31 @@ public class FormXObjectTests
         drawn.Result.IsComplete.Should().Be(!reported);
     }
 
+    [Test, Timeout(30_000)]
+    public async Task AVisibilityExpressionThatNamesItselfTwiceIsReadToALimitAndNoFurther()
+    {
+        // [/And self self]: every level asks about two more, and nothing ever answers false,
+        // so read to its depth alone this is two to the thirty-second questions.
+        var drawn = await Interruptibly.Run(() => Layered("/OC /M BDC 0 0 5 5 re f EMC",
+            (_, _, _, _) => { },
+            (document, resources, _, _) =>
+            {
+                var expression = new PdfArray(document);
+                document.Internals.AddObject(expression);
+                expression.Elements.Add(new PdfName("/And"));
+                expression.Elements.Add(expression.Reference);
+                expression.Elements.Add(expression.Reference);
+
+                var membership = new PdfDictionary(document);
+                membership.Elements.SetName("/Type", "/OCMD");
+                membership.Elements["/VE"] = expression.Reference;
+                Drawn.Add(document, resources, "/Properties", "/M", membership);
+            }));
+
+        drawn.Device.Fills.Should().ContainSingle();
+        drawn.Result.IsComplete.Should().BeTrue("an expression that cannot be read to its end is taken to be visible");
+    }
+
     [Test]
     public void AFormThatBelongsToAGroupSwitchedOffIsDrawnAndReported()
     {

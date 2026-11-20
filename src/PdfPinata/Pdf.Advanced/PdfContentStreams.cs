@@ -63,7 +63,7 @@ internal static class PdfContentStreams
         var parts = new List<byte[]>();
         for (var idx = 0; idx < streams.Elements.Count; idx++)
         {
-            if (TryGetContent(streams.Elements.GetDictionary(idx), out var part))
+            if (TryGetStream(streams, idx, out var stream) && TryGetContent(stream, out var part))
                 parts.Add(part);
             else
                 unreadable++;
@@ -71,6 +71,25 @@ internal static class PdfContentStreams
 
         content = Join(parts);
         return true;
+    }
+
+    /// <summary>
+    /// One of the streams a page is written in. A document opened to read its objects as they
+    /// are asked for reads the stream here, and a stream that cannot be read is one that cannot
+    /// be drawn, not a page that cannot.
+    /// </summary>
+    private static bool TryGetStream(PdfArray streams, int index, out PdfDictionary stream)
+    {
+        try
+        {
+            stream = streams.Elements.GetDictionary(index);
+            return stream != null;
+        }
+        catch (Exception ex) when (!Unrecoverable.Is(ex))
+        {
+            stream = null;
+            return false;
+        }
     }
 
     /// <summary>

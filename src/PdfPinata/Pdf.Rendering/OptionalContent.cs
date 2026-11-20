@@ -19,6 +19,15 @@ internal sealed class OptionalContent
     /// </summary>
     private const int MaximumExpressionDepth = 32;
 
+    /// <summary>
+    /// How many operands of one visibility expression are looked at. An expression may name the
+    /// same array twice, or itself, so the depth alone lets a few bytes ask for two to the
+    /// thirty-second operands. Past this many the rest are taken to be visible.
+    /// </summary>
+    private const int MaximumExpressionOperands = 1024;
+
+    private int _operandsLeft;
+
     // The groups /D lists against its base state: those in /OFF, or where every group starts
     // off, those in /ON.
     private readonly HashSet<object> _exceptions = new(ReferenceIdentity.Instance);
@@ -51,7 +60,10 @@ internal sealed class OptionalContent
 
         // A visibility expression, where there is one, is used and the policy is not.
         if (membership.Elements.GetArray("/VE") is { } expression)
+        {
+            _operandsLeft = MaximumExpressionOperands;
             return !IsVisible(expression, 0);
+        }
 
         var groups = new List<PdfDictionary>();
         if (membership.Elements.GetArray("/OCGs") is { } several)
@@ -111,10 +123,17 @@ internal sealed class OptionalContent
         return all;
     }
 
-    private bool IsVisible(PdfItem operand, int depth) => PdfReference.Dereference(operand) switch
+    private bool IsVisible(PdfItem operand, int depth)
     {
-        PdfArray nested => IsVisible(nested, depth + 1),
-        PdfDictionary group => IsOn(group),
-        _ => true
-    };
+        if (_operandsLeft <= 0)
+            return true;
+
+        _operandsLeft--;
+        return PdfReference.Dereference(operand) switch
+        {
+            PdfArray nested => IsVisible(nested, depth + 1),
+            PdfDictionary group => IsOn(group),
+            _ => true
+        };
+    }
 }

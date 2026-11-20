@@ -189,7 +189,8 @@ differently:
 - Content in `/OC … BDC`, or an XObject with an `/OC` entry, whose optional content group is off
   in the catalog's default configuration (`/OCProperties /D`: `/BaseState`, `/ON`, `/OFF`), or
   whose membership dictionary evaluates off by its `/VE` expression or else its `/P` policy over
-  `/OCGs`. The content is drawn. Subject `/OC`. `OptionalContent` answers the question and hides
+  `/OCGs`. The content is drawn. Subject `/OC`. A `/VE` is read 32 deep and 1,024 operands long,
+  and what lies past either is taken to be visible, because an expression may name itself. `OptionalContent` answers the question and hides
   nothing; #386 applies it.
 
 A page that ends with states still saved is not reported. Many real pages do, nothing was left out,
