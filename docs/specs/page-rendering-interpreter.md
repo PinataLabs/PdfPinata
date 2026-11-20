@@ -75,9 +75,11 @@ in step.
   which is what repeating it means, and one that is all zeros is a solid line.
 - `PageImage` is finished samples: `Rgba32`, or `Alpha8` for a stencil mask that is painted in the
   paint's colour. **A device never draws encoded data.** It decodes a JPEG *for* the core, through
-  `DecodeImage`, and the core applies the `/Decode` array and the masks to what comes back. The
-  other way round, a JPEG crossing the seam with its masks beside it, would have made every device
-  compose a soft mask for that one case.
+  `DecodeImage`, and the core applies the masks to what comes back. The other way round, a JPEG
+  crossing the seam with its masks beside it, would have made every device compose a soft mask
+  for that one case. What comes back is RGB and not the JPEG's own components, because a codec
+  turns a CMYK or an Adobe-inverted JPEG to RGB itself and `SKCodec` has no way to hand back
+  the four inks. So a `/Decode` array on a JPEG is the codec's to honour, not the core's.
 
 ## The interpreter
 
@@ -115,7 +117,14 @@ the reading carries on. The faults are handed back with the position each was me
 interpreter reports each in the order of the content. After 64 faults the rest of the stream is
 left unread, because each costs an exception.
 
-A name that is no operator is one of those faults, and is not reported between `BX` and `EX`.
+A name that is no operator is one of those faults, and is not reported between `BX` and `EX`. It
+is content written for a newer reader far more often than it is damage, so it does not count
+towards the 64 and has an allowance sixteen times as large.
+
+**Arrays may be written 32 deep inside one another and no deeper.** `CParser` reads each array by
+a call inside the one that reads the array it is in, and a stack overflow cannot be caught: content
+of nothing but opening brackets ended the process. The limit is in `ParseArray`, so it holds for
+`ReadContent` as well, which now throws a `ContentReaderException` where it ran out of stack.
 
 `CLexer.KeepStringBytes` keeps a string's bytes where the lexer would decode it as UTF-16. A string
 shown by `Tj` is character codes, and a composite font whose first code is 0xFEFF opens with the
@@ -128,17 +137,25 @@ same two bytes as a byte order mark.
 are kept and the rest are counted in `OmittedDiagnostics`, so a page that repeats one bad operator a
 million times costs one entry, and one that names a million missing resources costs 256 and a count.
 
-Every operator is run inside a guard that records whatever it throws as `OperatorFailed`. That
-includes an exception from the device. **Two things pass the guard**: being out of memory, and
-`UnsetSeamException`, which carries the exception of a seam that is needed and unset.
-`PageRendering.Render` throws the seam's own exception in its place.
+Every operator is run inside a guard that records whatever it throws as `OperatorFailed`. **Two
+things pass the guard**: being out of memory, and `UnsetSeamException`, which carries the exception
+of a seam that is needed and unset. `PageRendering.Render` throws the seam's own exception in its
+place.
+
+What a device throws is caught nearer than that. The interpreter calls the caller's device through
+`GuardedDevice`, which records the exception against the operator being drawn and goes no further,
+so the clip to the page's box, the clip a text object ends with and the restores a render ends with
+are covered as well as the operators are. It also remembers which saves the device made, and a
+`Restore` reaches the device only where the `Save` it matches did.
 
 A page that ends with states still saved is not reported. Many real pages do, nothing was left out,
 and the states are restored on the device all the same. A `Q` with nothing saved is reported.
 
 Three limits keep a malformed page from running away, and each is reported as `LimitReached`: a form
 is entered at most once at a time, 32 deep and 4096 times in all; `q` is only counted past 256 saved
-states; and the 64 faults above.
+states; and the 64 faults above. A fourth is silent: a composite font's `/W` gives widths to four
+times as many CIDs as there are and is then read no further, because a `/W` that gives the whole
+range one width, run after run, took minutes to read.
 
 ## Page geometry
 
@@ -147,6 +164,10 @@ states; and the 64 faults above.
 interpreter starts from and the size in pixels of a bitmap that holds the region. The interpreter
 clips to the box before it draws anything. Clipping to the region is the device's caller's, because
 a region is a rectangle of the device and a canvas already has one.
+
+A page that states no box with any area is drawn as US Letter, which is what viewers take it to be,
+and reported. A box that is asked for and has no area, such as a crop box that misses the media
+box, is the media box.
 
 `/UserUnit` is read from the key, because `PdfPage.UserUnit` (#377) is being added separately.
 
@@ -169,7 +190,7 @@ None of these edits `ContentInterpreter`.
 |---|---|---|
 | #372 colour | Classes derived from `RenderColorSpace`: `ComponentCount`, `ToRgb`, and `InitialColor` where it is not all zeros | `ColorSpaces.Resolve`, the branch on an array's family |
 | #373 TrueType | A class derived from `PageGlyphSource` for `/FontFile2` | The first branch of `BuiltInGlyphSources.Select` |
-| #374 standard 14 | A class derived from `PageGlyphSource` that reads `RequiredSeams.FontResolver` in `GetOutline` and answers AFM widths from `TryGetAdvance` | The last branch of `BuiltInGlyphSources.Select` |
+| #374 standard 14 | A class derived from `PageGlyphSource` that reads `RequiredSeams.FontResolver` in `GetOutline` and nowhere else, and answers AFM widths from `TryGetAdvance`, which is asked for invisible text too and so reads no seam | The last branch of `BuiltInGlyphSources.Select` |
 | #375 images | The bodies of `PageImages.ReadXObject` and `ReadInline`, which answer a `PageImage` or report and answer null | `PageImages.cs` |
 | #376 Skia | A class derived from `PageDevice` | Its own package: `PageView.Of`, then `PageRendering.Render` |
 

@@ -24,6 +24,12 @@ internal sealed class DiagnosticSink
     /// <summary>The position of the operator being drawn, among those of <see cref="Stream"/>.</summary>
     internal int OperatorIndex { get; set; }
 
+    /// <summary>
+    /// The name of the operator being drawn, or null where none is: before the first of a stream
+    /// and after the last.
+    /// </summary>
+    internal string Operator { get; set; }
+
     /// <summary>Records a problem met at the operator being drawn.</summary>
     /// <param name="problem">What sort of problem.</param>
     /// <param name="subject">What it is about. With <paramref name="problem"/>, what makes two reports one entry.</param>

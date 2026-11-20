@@ -34,14 +34,22 @@ public enum PageBox
 [Experimental("PPEXP001")]
 public sealed class PageView
 {
-    private PageView(XMatrix transform, XRect box, XRect region, XSize displayedSize, double scale)
+    private PageView(XMatrix transform, XRect box, XRect region, XSize displayedSize, double scale,
+        bool boxIsAssumed)
     {
         Transform = transform;
         Box = box;
         Region = region;
         DisplayedSize = displayedSize;
         Scale = scale;
+        BoxIsAssumed = boxIsAssumed;
     }
+
+    /// <summary>
+    /// Whether the page states no box with any area, so that <see cref="Box"/> is the one
+    /// assumed for it. Page rendering reports it.
+    /// </summary>
+    internal bool BoxIsAssumed { get; }
 
     /// <summary>
     /// Maps the page's default user space to device space. Page rendering starts every page from
@@ -99,7 +107,8 @@ public sealed class PageView
     /// <exception cref="ArgumentException"><paramref name="region"/> has no area.</exception>
     /// <remarks>
     /// Those are the caller's mistakes. Nothing about the file throws: a box the page states
-    /// badly falls back as the effective boxes do, a <c>/Rotate</c> that is not a quarter turn is
+    /// badly falls back as the effective boxes do, a page that states no box with any area is
+    /// taken to be US Letter, as viewers take it, a <c>/Rotate</c> that is not a quarter turn is
     /// no turn, and a <c>/UserUnit</c> that is not a positive number is 1.
     /// </remarks>
     public static PageView Of(PdfPage page, PageBox box = PageBox.Crop, double scale = 1, XRect? region = null)
@@ -109,6 +118,10 @@ public sealed class PageView
             throw new ArgumentOutOfRangeException(nameof(scale), scale, "The scale is a positive finite number.");
 
         var rectangle = BoxOf(page, box);
+        var boxIsAssumed = !HasArea(rectangle);
+        if (boxIsAssumed)
+            rectangle = new XRect(0, 0, 612, 792);
+
         var userUnit = UserUnitOf(page);
         var width = rectangle.Width * userUnit;
         var height = rectangle.Height * userUnit;
@@ -116,7 +129,7 @@ public sealed class PageView
         var displayed = turn is 90 or 270 ? new XSize(height, width) : new XSize(width, height);
 
         var drawn = region ?? new XRect(0, 0, displayed.Width, displayed.Height);
-        if (!(drawn.Width > 0) || !(drawn.Height > 0) || double.IsInfinity(drawn.Width) || double.IsInfinity(drawn.Height))
+        if (!HasArea(drawn))
             throw new ArgumentException("The region to draw has no area.", nameof(region));
 
         // The box's corner to the origin and user units to points, with y turned downwards.
@@ -134,8 +147,12 @@ public sealed class PageView
         });
 
         transform = XMatrix.Multiply(transform, new XMatrix(scale, 0, 0, scale, -drawn.X * scale, -drawn.Y * scale));
-        return new PageView(transform, rectangle, drawn, displayed, scale);
+        return new PageView(transform, rectangle, drawn, displayed, scale, boxIsAssumed);
     }
+
+    private static bool HasArea(XRect rectangle) =>
+        rectangle.Width > 0 && rectangle.Height > 0 && double.IsFinite(rectangle.Width + rectangle.Height
+                                                                      + rectangle.X + rectangle.Y);
 
     private static XRect BoxOf(PdfPage page, PageBox box)
     {
@@ -148,6 +165,10 @@ public sealed class PageView
             PageBox.Art => page.EffectiveArtBox,
             _ => throw new ArgumentOutOfRangeException(nameof(box), box, "Not a page box.")
         };
+
+        // A box the page does not state is the media box, where that has any area.
+        if (rectangle.IsEmpty)
+            rectangle = page.EffectiveMediaBox;
 
         var x1 = Math.Min(rectangle.X1, rectangle.X2);
         var y1 = Math.Min(rectangle.Y1, rectangle.Y2);

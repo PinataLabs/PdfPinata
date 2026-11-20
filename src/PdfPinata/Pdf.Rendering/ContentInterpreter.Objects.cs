@@ -53,12 +53,14 @@ internal sealed partial class ContentInterpreter
             return;
         }
 
-        if (!PdfContentStreams.TryGetContent(form, out var content))
+        var transform = XMatrix.Multiply(matrix, State.Ctm);
+        if (!IsFinite(transform))
         {
-            _sink.Report(PageRenderProblem.UnreadableContent, name, "The form's content could not be decoded, and nothing of it is drawn.");
+            _sink.Report(PageRenderProblem.InvalidValue, name, "The form's /Matrix is too large to draw under. The form is not drawn.");
             return;
         }
 
+        // Asked before the content is decoded, so that a form drawn past the limit costs nothing.
         if (!_forms.TryEnter(form))
         {
             _sink.Report(PageRenderProblem.LimitReached, name,
@@ -69,8 +71,14 @@ internal sealed partial class ContentInterpreter
         var depth = _states.Depth;
         try
         {
+            if (!PdfContentStreams.TryGetContent(form, out var content))
+            {
+                _sink.Report(PageRenderProblem.UnreadableContent, name, "The form's content could not be decoded, and nothing of it is drawn.");
+                return;
+            }
+
             _states.Push();
-            State.Ctm = XMatrix.Multiply(matrix, State.Ctm);
+            State.Ctm = transform;
 
             if (TryReadBox(form, out var box))
             {
@@ -145,7 +153,9 @@ internal sealed partial class ContentInterpreter
 
         // Sample coordinates, rows from the top, to the unit square with y upwards.
         var samplesToUser = new XMatrix(1.0 / image.Width, 0, 0, -1.0 / image.Height, 0, 1);
-        _device.DrawImage(image, XMatrix.Multiply(samplesToUser, State.Ctm), State.FillPaint);
+        var transform = XMatrix.Multiply(samplesToUser, State.Ctm);
+        if (IsFinite(transform))
+            _device.DrawImage(image, transform, State.FillPaint);
     }
 
     /// <summary><c>gs</c>.</summary>

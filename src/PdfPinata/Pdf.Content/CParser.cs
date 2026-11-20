@@ -91,6 +91,7 @@ public sealed class CParser
     /// How many faults are met before the rest of the stream is left unread. Each costs an
     /// exception, so a stream made of nothing but faults would otherwise take minutes to read.
     /// </param>
+    /// <param name="leftUnread">Whether the reading stopped at that limit, short of the end.</param>
     /// <remarks>
     /// <para>
     /// <see cref="ReadContent"/> throws at the first fault and loses every operator of the stream,
@@ -105,10 +106,12 @@ public sealed class CParser
     /// further on than the one before and the reading ends.
     /// </para>
     /// </remarks>
-    internal CSequence ReadContentPastFaults(List<ContentFault> faults, int maximumFaults)
+    internal CSequence ReadContentPastFaults(List<ContentFault> faults, int maximumFaults, out bool leftUnread)
     {
         var sequence = new CSequence();
         var lastFaultPosition = -1;
+        var unknownOperators = 0;
+        leftUnread = false;
         while (true)
         {
             try
@@ -124,8 +127,17 @@ public sealed class CParser
                 var unknownOperator = ex is KeyNotFoundException ? _lexer.Token : null;
                 var message = unknownOperator == null ? ex.Message : "'" + unknownOperator + "' is not an operator.";
                 faults.Add(new ContentFault(sequence.Count, message, unknownOperator));
-                if (faults.Count >= maximumFaults)
+                if (unknownOperator != null)
+                    unknownOperators++;
+
+                // A name that is no operator is content written for a newer reader, between BX
+                // and EX, far more often than it is damage, so it is allowed many more times.
+                if (faults.Count - unknownOperators >= maximumFaults
+                    || unknownOperators >= maximumFaults * UnknownOperatorsToAFault)
+                {
+                    leftUnread = true;
                     return sequence;
+                }
 
                 if (_lexer.Position <= lastFaultPosition)
                     _lexer.ScanNextChar();
@@ -238,7 +250,22 @@ public sealed class CParser
         if (_operands.Count != 0)
             ContentReaderDiagnostics.ThrowContentReaderException("Array within array...");
 
-        ParseObject(array, CSymbol.EndArray);
+        // Each array is read by a call inside the one that reads the array it is in, and a
+        // stack overflow cannot be caught: content of nothing but opening brackets would end
+        // the process. No operator takes an array inside an array, so the limit costs nothing.
+        if (_arrayDepth >= MaximumArrayDepth)
+            ContentReaderDiagnostics.ThrowContentReaderException("Arrays are nested too deep.");
+
+        _arrayDepth++;
+        try
+        {
+            ParseObject(array, CSymbol.EndArray);
+        }
+        finally
+        {
+            _arrayDepth--;
+        }
+
         array.Add(_operands);
         _operands.Clear();
         _operands.Add((CObject)array);
@@ -291,6 +318,13 @@ public sealed class CParser
         return _lexer.ScanNextToken();
     }
 
+    /// <summary>How deep arrays may be written inside one another before reading stops.</summary>
+    private const int MaximumArrayDepth = 32;
+
+    /// <summary>How many names that are no operator are read past for each other fault allowed.</summary>
+    private const int UnknownOperatorsToAFault = 16;
+
+    private int _arrayDepth;
     private readonly CSequence _operands = [];
     private readonly CLexer _lexer;
 }

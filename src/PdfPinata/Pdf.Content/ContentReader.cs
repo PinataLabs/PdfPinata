@@ -68,10 +68,12 @@ public static class ContentReader
     /// <param name="content">The content.</param>
     /// <param name="faults">Receives one entry for each place the reading failed.</param>
     /// <param name="maximumFaults">How many faults are met before the rest is left unread.</param>
-    internal static CSequence ReadPastFaults(byte[] content, List<ContentFault> faults, int maximumFaults)
+    /// <param name="leftUnread">Whether the reading stopped at that limit, short of the end.</param>
+    internal static CSequence ReadPastFaults(byte[] content, List<ContentFault> faults, int maximumFaults,
+        out bool leftUnread)
     {
         var lexer = new CLexer(content) { KeepStringBytes = true };
-        return new CParser(lexer).ReadContentPastFaults(faults, maximumFaults);
+        return new CParser(lexer).ReadContentPastFaults(faults, maximumFaults, out leftUnread);
     }
 
     /// <summary>

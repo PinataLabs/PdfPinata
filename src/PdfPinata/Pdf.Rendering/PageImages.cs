@@ -12,9 +12,9 @@ namespace PdfPinata.Pdf.Rendering;
 /// which the interpreter paints in the fill colour, and otherwise
 /// <see cref="PageImageFormat.Rgba32"/> with the colour space, the <c>/Decode</c> array, the
 /// <c>/Mask</c> and the <c>/SMask</c> applied. A <c>/DCTDecode</c> stream is handed to
-/// <see cref="PageDevice.DecodeImage"/>, because this library carries no imaging dependency, and
-/// what the device answers goes through the same masks as any other image. An image's colour
-/// space is resolved through <see cref="ColorSpaces.Resolve"/>.
+/// <see cref="PageDevice.DecodeImage"/>, because this library carries no imaging dependency. What
+/// the device answers is RGB already, and goes through the same masks as any other image. An
+/// image's colour space is resolved through <see cref="ColorSpaces.Resolve"/>.
 /// </remarks>
 internal static class PageImages
 {

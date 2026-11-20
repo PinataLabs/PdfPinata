@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
+using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Rendering;
 using PdfPinata.Test.Helpers;
 using TUnit.Core;
@@ -121,6 +122,90 @@ public class DiagnosticsTests
 
         drawn.Device.Body.Should().Equal(Square + "rgb(0,0,0)");
         drawn.Problems.Should().Equal("UnreadableContent page", "LimitReached page");
+    }
+
+    [Test, Timeout(30_000)]
+    public async Task ManyNamesThatAreNoOperatorBetweenBxAndExAreAllReadPast()
+    {
+        var drawn = await Page("BX " + string.Concat(Enumerable.Repeat("1 newer ", 500)) + "EX 0 0 5 5 re f");
+
+        drawn.Device.Body.Should().Equal(Square + "rgb(0,0,0)");
+        drawn.Result.IsComplete.Should().BeTrue();
+    }
+
+    [Test, Timeout(30_000)]
+    public async Task ContentOfNothingButOpeningBracketsIsGivenUpOnAndDoesNotEndTheProcess()
+    {
+        var brackets = new string('[', 200_000);
+
+        var drawn = await Page("0 0 5 5 re f " + brackets);
+
+        drawn.Device.Body.Should().Equal(Square + "rgb(0,0,0)");
+        drawn.Problems.Should().Equal("UnreadableContent page", "LimitReached page");
+
+        // The same content read the way everything else reads it is refused, not run out of stack on.
+        await Interruptibly.Run(() => FluentActions
+            .Invoking(() => ContentReader.ReadContent(Encoding.ASCII.GetBytes(brackets)))
+            .Should().Throw<ContentReaderException>());
+    }
+
+    [Test, Timeout(30_000)]
+    public async Task AWidthTableThatGivesEveryCidAWidthOverAndOverIsReadInBoundedTime()
+    {
+        var drawn = await Interruptibly.Run(() => Drawn.Page("BT /F1 10 Tf 20 50 Td <00010002> Tj ET",
+            (document, resources) =>
+            {
+                var runs = Enumerable.Repeat(new object[] { 0, 65535, 500 }, 100_000).SelectMany(run => run).ToArray();
+                Drawn.Add(document, resources, "/Font", "/F1", TestFonts.Composite(document, "/Identity-H", 1000, runs));
+            }, _ => new SquareGlyphs()));
+
+        drawn.Device.Fills.Select(fill => Math.Round(fill.Origin.X, 6)).Should().Equal(20, 25);
+    }
+
+    [Test, Timeout(30_000)]
+    public async Task APageThatStatesNoBoxIsDrawnAsLetterAndSaysSo()
+    {
+        var (result, device) = await Interruptibly.Run(() =>
+        {
+            var page = Drawn.PageOf("0 0 5 5 re f");
+            page.Elements.Remove("/MediaBox");
+            var recording = new RecordingDevice();
+            return (PageRendering.Render(page, recording), recording);
+        });
+
+        device.Lines.Should().Equal(
+            "save",
+            "clip nonzero M0,792 L612,792 L612,0 L0,0 Z",
+            "fill nonzero M0,792 L5,792 L5,787 L0,787 Z rgb(0,0,0)",
+            "restore");
+        result.Diagnostics.Single().ToString().Should().StartWith("InvalidValue page at page operator 0");
+    }
+
+    [Test, Timeout(30_000)]
+    public async Task ACropBoxThatMissesTheMediaBoxLeavesTheMediaBoxToBeDrawn()
+    {
+        var view = await Interruptibly.Run(() =>
+        {
+            var page = Drawn.PageOf("");
+            page.CropBox = new PdfRectangle(new XPoint(500, 500), new XPoint(600, 600));
+            return PageView.Of(page);
+        });
+
+        view.Box.Should().Be(new XRect(0, 0, 200, 100));
+    }
+
+    [Test, Timeout(30_000)]
+    public async Task AFormWhoseMatrixIsTooLargeToDrawUnderIsNotDrawn()
+    {
+        var drawn = await Page("1" + new string('0', 200) + " 0 0 1 0 0 cm /Fm1 Do", (document, resources) =>
+        {
+            var form = Drawn.Form(document, "0 0 5 5 re f");
+            form.Elements.SetMatrix("/Matrix", new XMatrix(1e200, 0, 0, 1, 0, 0));
+            Drawn.Add(document, resources, "/XObject", "/Fm1", form);
+        });
+
+        drawn.Device.Body.Should().BeEmpty();
+        drawn.Problems.Should().Equal("InvalidValue /Fm1");
     }
 
     [Test, Timeout(30_000)]
@@ -272,6 +357,57 @@ public class DiagnosticsTests
         });
 
         counts.Should().Be(400);
+    }
+
+    [Test, Timeout(30_000)]
+    public async Task ADeviceThatThrowsAtEverythingStillLetsThePageBeReadToItsEnd()
+    {
+        var device = new ThrowingAtEverything();
+        var result = await Interruptibly.Run(() => PageRendering.Render(
+            Drawn.PageOf("q 0 0 5 5 re W f Q BT /F1 10 Tf 7 Tr (A) Tj", (document, resources) =>
+                Drawn.Add(document, resources, "/Font", "/F1", TestFonts.Simple(document, 65, 600))),
+            device, glyphSources: _ => new SquareGlyphs()));
+
+        result.Diagnostics.Should().OnlyContain(d => d.Problem == PageRenderProblem.OperatorFailed);
+        result.Diagnostics.Select(d => d.Subject).Should().Equal("page", "q", "f");
+        device.Restores.Should().Be(0, "a save the device threw at is not one to restore");
+    }
+
+    [Test, Timeout(30_000)]
+    public async Task ARestoreReachesTheDeviceOnlyWhereTheSaveItMatchesDid()
+    {
+        var device = new ThrowingAtEverything { SavesThatSucceed = 1 };
+        await Interruptibly.Run(() => PageRendering.Render(Drawn.PageOf("q q Q Q"), device));
+
+        device.Saves.Should().Be(3);
+        device.Restores.Should().Be(1);
+    }
+
+    private sealed class ThrowingAtEverything : PageDevice
+    {
+        public int SavesThatSucceed { get; init; }
+        public int Saves { get; private set; }
+        public int Restores { get; private set; }
+
+        public override void Save()
+        {
+            if (++Saves > SavesThatSucceed)
+                throw new InvalidOperationException("No.");
+        }
+
+        public override void Restore() => Restores++;
+
+        public override void Clip(PagePath path, XMatrix transform, XFillMode fillMode) =>
+            throw new InvalidOperationException("No.");
+
+        public override void Fill(PagePath path, XMatrix transform, XFillMode fillMode, PagePaint paint) =>
+            throw new InvalidOperationException("No.");
+
+        public override void Stroke(PagePath path, XMatrix transform, PageStroke stroke, PagePaint paint) =>
+            throw new InvalidOperationException("No.");
+
+        public override void DrawImage(PageImage image, XMatrix transform, PagePaint paint) =>
+            throw new InvalidOperationException("No.");
     }
 
     private sealed class ThrowingOnFill : PageDevice

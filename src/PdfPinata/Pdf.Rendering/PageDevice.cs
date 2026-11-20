@@ -40,9 +40,10 @@ namespace PdfPinata.Pdf.Rendering;
 /// which the netstandard2.1 runtime this library keeps for Unity does not take.
 /// </para>
 /// <para>
-/// A device is never called from two threads at once, and an exception it throws is recorded
-/// against the operator being drawn rather than passed on, like any other reason an operator
-/// could not be carried out.
+/// A device is never called from two threads at once. An exception it throws is recorded as
+/// <see cref="PageRenderProblem.OperatorFailed"/> against the operator being drawn and is not
+/// passed on, like any other reason an operator could not be carried out. A <see cref="Save"/>
+/// that throws is not matched by a <see cref="Restore"/>.
 /// </para>
 /// </remarks>
 [Experimental("PPEXP001")]
@@ -96,9 +97,10 @@ public abstract class PageDevice
 
     /// <summary>
     /// Decodes image data this library has no decoder for, because it carries no imaging
-    /// dependency. Everything else about an image is done by the library, to what this answers:
-    /// the <c>/Decode</c> array, the masks and the soft mask. So what <see cref="DrawImage"/> is
-    /// handed is always finished samples, whichever way they were decoded.
+    /// dependency. What it answers is colour already: a codec turns a CMYK or an Adobe-inverted
+    /// JPEG to RGB itself. The library applies the image's masks to that, so what
+    /// <see cref="DrawImage"/> is handed is always finished samples, whichever way they were
+    /// decoded.
     /// </summary>
     /// <param name="codec">What <paramref name="data"/> is encoded as.</param>
     /// <param name="data">The encoded bytes, a complete file of that format.</param>

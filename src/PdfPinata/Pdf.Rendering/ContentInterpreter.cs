@@ -61,11 +61,11 @@ internal sealed partial class ContentInterpreter
     internal ContentInterpreter(PageDevice device, PageView view, RenderFontCache fonts,
         Func<PdfDictionary, PageGlyphSource> glyphSources)
     {
-        _device = device;
+        _device = new GuardedDevice(device, _sink);
         _view = view;
         _fonts = fonts;
         _glyphSources = glyphSources;
-        _states = new StateStack(device, new GraphicsState { Ctm = view.Transform });
+        _states = new StateStack(_device, new GraphicsState { Ctm = view.Transform });
     }
 
     private GraphicsState State => _states.Current;
@@ -87,6 +87,12 @@ internal sealed partial class ContentInterpreter
             var box = new PagePathBuilder();
             box.AddRectangle(_view.Box.X, _view.Box.Y, _view.Box.Width, _view.Box.Height);
             _device.Clip(box.ToPath(), _view.Transform, XFillMode.Winding);
+
+            if (_view.BoxIsAssumed)
+            {
+                _sink.Report(PageRenderProblem.InvalidValue, "page",
+                    "The page states no box with any area. It is drawn as a US Letter page.");
+            }
 
             if (!PdfContentStreams.TryGetPageContent(page, out var content))
             {
@@ -111,10 +117,10 @@ internal sealed partial class ContentInterpreter
     private void RunStream(byte[] content, ResourceScope resources, string streamName)
     {
         var faults = new List<ContentFault>();
-        var sequence = ContentReader.ReadPastFaults(content, faults, MaximumFaults);
+        var sequence = ContentReader.ReadPastFaults(content, faults, MaximumFaults, out var leftUnread);
 
         var outer = (_resources, _path, _pendingClip, _text, _compatibilityDepth, _floor, _uncountedSaves,
-            _sink.Stream, _sink.OperatorIndex);
+            _sink.Stream, _sink.OperatorIndex, _sink.Operator);
         _resources = resources;
         _path = new PagePathBuilder();
         _pendingClip = null;
@@ -123,6 +129,7 @@ internal sealed partial class ContentInterpreter
         _floor = _states.Depth;
         _uncountedSaves = 0;
         _sink.Stream = streamName;
+        _sink.Operator = null;
 
         try
         {
@@ -133,13 +140,17 @@ internal sealed partial class ContentInterpreter
             {
                 _sink.OperatorIndex = index;
                 ReportFaults(faults, ref nextFault, index);
-                if (sequence[index] is COperator op)
-                    ExecuteGuarded(op);
+                if (sequence[index] is not COperator op)
+                    continue;
+
+                _sink.Operator = op.Name;
+                ExecuteGuarded(op);
             }
 
             _sink.OperatorIndex = sequence.Count;
+            _sink.Operator = null;
             ReportFaults(faults, ref nextFault, int.MaxValue);
-            if (faults.Count >= MaximumFaults)
+            if (leftUnread)
             {
                 _sink.Report(PageRenderProblem.LimitReached, streamName,
                     "Too much of the content stream could not be read. What follows the last fault is not drawn.");
@@ -153,7 +164,7 @@ internal sealed partial class ContentInterpreter
         {
             _states.PopTo(_floor);
             (_resources, _path, _pendingClip, _text, _compatibilityDepth, _floor, _uncountedSaves,
-                _sink.Stream, _sink.OperatorIndex) = outer;
+                _sink.Stream, _sink.OperatorIndex, _sink.Operator) = outer;
         }
     }
 
@@ -183,7 +194,8 @@ internal sealed partial class ContentInterpreter
     /// Draws one operator, and records whatever it throws against it rather than passing it on:
     /// a malformed file may make an operator fail in a way none of its own checks foresaw, and
     /// the page is still drawn but for that operator. Two things are passed on: being out of
-    /// memory, which says nothing about the file, and <see cref="UnsetSeamException"/>.
+    /// memory, which says nothing about the file, and <see cref="UnsetSeamException"/>. What the
+    /// device throws never gets this far: <see cref="GuardedDevice"/> has recorded it.
     /// </summary>
     private void ExecuteGuarded(COperator op)
     {

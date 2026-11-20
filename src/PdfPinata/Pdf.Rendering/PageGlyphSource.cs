@@ -18,8 +18,9 @@ namespace PdfPinata.Pdf.Rendering;
 /// </para>
 /// <para>
 /// A source is made when a font is selected and may be made for text that is never drawn, such as
-/// the invisible text under a scanned page. So making one reads no seam: a source that needs
-/// <c>GlobalFontSettings.FontResolver</c> reads it in <see cref="GetOutline"/>.
+/// the invisible text under a scanned page. So making one reads no seam, and nor does
+/// <see cref="TryGetAdvance"/>, which is asked for invisible text too: a source that needs
+/// <c>GlobalFontSettings.FontResolver</c> reads it in <see cref="GetOutline"/> and nowhere else.
 /// </para>
 /// </remarks>
 [Experimental("PPEXP001")]

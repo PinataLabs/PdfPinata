@@ -75,16 +75,21 @@ internal sealed class FontWidths
         if (w == null)
             return widths;
 
+        // Every CID can be given a width a few times over and no more. A /W that goes on giving
+        // the whole range one width, run after run, would otherwise take minutes to read, and
+        // what it says after this many is not what any producer wrote.
+        var budget = 4 * (MaximumCid + 1);
+
         // Two forms at once: c [w1 w2 …] gives each of a run of CIDs its own width, and
         // cFirst cLast w gives a run of them one width.
-        for (var at = 0; at + 1 < w.Elements.Count;)
+        for (var at = 0; at + 1 < w.Elements.Count && budget > 0;)
         {
             if (!TryGetCid(w.Elements[at], out var first))
                 break;
 
             if (PdfReference.Dereference(w.Elements[at + 1]) is PdfArray individually)
             {
-                for (var index = 0; index < individually.Elements.Count && index <= MaximumCid; index++)
+                for (var index = 0; index < individually.Elements.Count && index <= MaximumCid && budget > 0; index++, budget--)
                 {
                     if (PdfItemValues.TryGetNumber(individually.Elements[index], out var value))
                         widths.Set((long)first + index, value / 1000);
@@ -103,7 +108,7 @@ internal sealed class FontWidths
             // The counter is a long, because a run that ends at the largest integer would wrap
             // an int round and never finish, and the run is held to the CIDs there can be, so a
             // malformed one that claims millions fills in none past them.
-            for (long cid = first; cid <= last && cid <= MaximumCid; cid++)
+            for (long cid = first; cid <= last && cid <= MaximumCid && budget > 0; cid++, budget--)
                 widths.Set(cid, shared / 1000);
 
             at += 3;
