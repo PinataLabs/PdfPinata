@@ -94,7 +94,7 @@ public class FlateDecode : Filter
             if (want == 0)
             {
                 // At the cap: one more byte read says whether the stream really ended here.
-                if (iis.Read(abResult, 0, 1) > 0)
+                if (limit != null && iis.Read(abResult, 0, 1) > 0)
                     limit.Truncated = true;
                 break;
             }
