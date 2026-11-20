@@ -213,6 +213,48 @@ prove that, because ILLink analyses only the code the sample reaches and the sam
 nothing. The proof is the core's `EnableTrimAnalyzer`, which checks every member at build time, and
 the same analyzers that `IsAotCompatible` turns on in the Skia package.
 
+### As built (#376)
+
+`SkiaPageDevice` is the `PageDevice`. It is public and experimental, as the seam is, so that a
+caller can pass it to `PageRendering.Render` with glyph sources of their own; the entry points above
+are not experimental. Five decisions are worth knowing.
+
+- **Each call's transform is put on the canvas after the matrix the canvas had when the device was
+  made.** A caller who translated or scaled their canvas finds the page drawn under that. `Render`
+  puts the canvas's matrix, clip and save stack back as it found them.
+- **The background and the clip are whole pixels**: `PageView.PixelWidth` by `PixelHeight`, not the
+  region's exact size times the scale. Otherwise the last column and row of a bitmap would be half
+  painted and blend with whatever the canvas held.
+- **A glyph's `SKPath` is kept for the device's life**, which is one render, keyed by the shared
+  `PagePath` instance. Any other path is built for the call that draws it and freed after it.
+- **Images are sampled linearly with mipmaps when anti-aliasing is on**, and by nearest sample when
+  it is off. `/Interpolate` is not read yet.
+- **`ToSKPicture` and `ToSKBitmap` return no `PageRenderResult`.** `ToImage` returns one, because it
+  has nothing else to return. A caller who needs the diagnostics of a picture or a bitmap renders
+  onto a canvas of their own with `Render`.
+
+What the comparison with Ghostscript measured when it was written, at 144 DPI unless the test
+says otherwise:
+
+| test | mean channel difference | share of pixels over 64 |
+|---|---|---|
+| fills in DeviceRGB and DeviceGray | 0.267 | 0 |
+| caps, joins and a hairline | 1.088 | 0.0055 |
+| dashes | 0.867 | 0.0119 |
+| curves under an uneven scale | 0.364 | 0.0020 |
+| nonzero and even-odd fills | 0.157 | 0 |
+| nested and restored clips | 0.488 | 0.0040 |
+| constant alpha | 0.095 | 0 |
+| `/Rotate` 90, 180 and 270 | 0.293, 0.209, 0.298 | 0.0003, 0, 0.0004 |
+| a region at 216 DPI | 0.305 | 0.0004 |
+
+What is left is almost all anti-aliasing, with two exceptions. A hairline that lies on a boundary
+between two rows of pixels is one light row to Ghostscript and two middle-grey rows to Skia. A dash
+of no length that falls exactly on the end of a path is a dot to Ghostscript and nothing to Skia.
+DeviceCMYK is not compared at all: Ghostscript converts it through an ICC profile and page
+rendering does not, so a test checks the colours it paints instead. Text and images join the
+comparison when their issues (#373, #374, #375) land.
+
 ## Item 8 — diagnostics, not exceptions
 
 Real files are often slightly broken, and a renderer that throws on the first bad operator is no

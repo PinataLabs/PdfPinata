@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0;net11.0</TargetFrameworks>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>PdfPinata.Rendering.Skia.Tests</RootNamespace>
+    <!-- The device is experimental, and the JPEG test calls it directly. -->
+    <NoWarn>$(NoWarn);PPEXP001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AwesomeAssertions" Version="9.6.0" />
+    <PackageReference Include="coverlet.MTP" Version="10.1.0" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CrashDump" Version="2.5.3" />
+    <PackageReference Include="Microsoft.Testing.Extensions.HangDump" Version="2.5.3" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="2.5.3" />
+    <PackageReference Include="TUnit.Engine" Version="1.84.0" />
+    <!-- What every page here is compared with: Ghostscript's rasterization, read through Magick.NET. -->
+    <PackageReference Include="Ghostscript.NativeAssets" Version="10.8.0" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.17.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.156.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.macOS" Version="4.156.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="4.156.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- No backend: rendering a page needs none, and a test that found one registered would not show it. -->
+    <ProjectReference Include="..\PdfPinata\PdfPinata.csproj" />
+    <ProjectReference Include="..\PdfPinata.Rendering.Skia\PdfPinata.Rendering.Skia.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Asked by the module initializer whether this is the coverage controller; see the file. -->
+    <Compile Include="..\PdfPinata.Test\Helpers\CoverageController.cs" Link="Helpers\Linked\CoverageController.cs" />
+    <!-- One Ghostscript a process, so each test that rasterizes runs alone; see the file. -->
+    <Compile Include="..\PdfPinata.Test\Helpers\RasterizingAttribute.cs" Link="Helpers\Linked\RasterizingAttribute.cs" />
+    <!-- Every page is saved and read back before it is drawn, which is where a reader meets it. -->
+    <Compile Include="..\PdfPinata.Test\Helpers\Saved.cs" Link="Helpers\Linked\Saved.cs" />
+  </ItemGroup>
+
+</Project>
