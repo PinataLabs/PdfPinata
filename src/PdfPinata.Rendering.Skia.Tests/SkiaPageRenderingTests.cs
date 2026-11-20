@@ -76,6 +76,35 @@ public class SkiaPageRenderingTests
     }
 
     [Test]
+    public void AnnotationAppearancesAreDrawnUnlessTheOptionSaysNot()
+    {
+        var document = HandWritten.Page("", page: (doc, added) =>
+        {
+            var form = new PdfDictionary(doc);
+            doc.Internals.AddObject(form);
+            form.Elements.SetName("/Subtype", "/Form");
+            form.Elements["/BBox"] = new PdfRectangle(new XPoint(0, 0), new XPoint(10, 10));
+            form.CreateStream(System.Text.Encoding.Latin1.GetBytes("0 0 1 rg 0 0 10 10 re f"));
+            var annotation = new PdfDictionary(doc);
+            doc.Internals.AddObject(annotation);
+            annotation.Elements.SetName("/Subtype", "/Stamp");
+            annotation.Elements["/Rect"] = new PdfRectangle(new XPoint(0, 100), new XPoint(50, 150));
+            var appearance = new PdfDictionary(doc);
+            appearance.Elements["/N"] = form.Reference;
+            annotation.Elements["/AP"] = appearance;
+            var annotations = new PdfArray(doc);
+            annotations.Elements.Add(annotation.Reference);
+            added.Elements["/Annots"] = annotations;
+        });
+
+        using var with = document.ToSKBitmap(0);
+        using var without = document.ToSKBitmap(0, new PageRenderOptions { Annotations = false });
+
+        with.GetPixel(25, 25).Should().Be(SKColors.Blue);
+        without.GetPixel(25, 25).Should().Be(SKColors.White);
+    }
+
+    [Test]
     public void TheBackgroundIsWhiteUnlessItIsSaid()
     {
         using var bitmap = Page("").ToSKBitmap();
