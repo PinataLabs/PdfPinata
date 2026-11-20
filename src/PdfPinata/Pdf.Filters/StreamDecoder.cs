@@ -32,6 +32,7 @@ internal static class StreamDecoder
         if (predictor == 2)
         {
             EnsureValidBitsPerComponent(bpc);
+            EnsureRowFits(colors, bpc, columns);
             return UndoTiffPredictor(data, colors, bpc, columns);
         }
 
@@ -40,6 +41,7 @@ internal static class StreamDecoder
             throw new PdfReaderException("Invalid predictor " + predictor);
 
         EnsureValidBitsPerComponent(bpc);
+        EnsureRowFits(colors, bpc, columns);
         return UndoPngPredictor(data, colors, bpc, columns);
     }
 
@@ -57,6 +59,17 @@ internal static class StreamDecoder
     {
         if (bpc is not (1 or 2 or 4 or 8 or 16))
             throw new PdfReaderException("Invalid number of bits per component");
+    }
+
+    /// <summary>
+    /// A row's size in bits has to fit an <see cref="int"/>, which the sample arithmetic below is
+    /// done in. Left to wrap, the product reached zero or went negative, and a zero stride made
+    /// the TIFF predictor loop forever.
+    /// </summary>
+    private static void EnsureRowFits(int colors, int bpc, int columns)
+    {
+        if ((long)colors * bpc * columns > int.MaxValue - 7)
+            throw new PdfReaderException("Invalid predictor parameters: a row is too large");
     }
 
     /// <summary>

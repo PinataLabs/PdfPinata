@@ -1,5 +1,7 @@
-using System;
+﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
+using PdfPinata.Test.Helpers;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Filters;
@@ -307,5 +309,58 @@ public class PredictorTests
         var act = () => Unpredict(predicted, Parms(12, 1, 8, 4));
 
         act.Should().Throw<PdfReaderException>().WithMessage("*Png-Predictor*");
+    }
+
+    // ----- parameters that overflow a row's size -------------------------------------------------
+
+    [Test, Timeout(10000)]
+    [Arguments(2, 268435456, 16, 1)]
+    [Arguments(2, 1, 16, 268435456)]
+    [Arguments(2, 65536, 8, 65536)]
+    [Arguments(12, 268435456, 16, 1)]
+    [Arguments(12, 1, 8, int.MaxValue)]
+    [Arguments(15, 65536, 16, 65536)]
+    public async Task ARowWhoseSizeOverflowsAnIntIsRefusedRatherThanWrappedToZero(
+        int predictor, int colors, int bitsPerComponent, int columns)
+    {
+        // 268435456 colours of sixteen bits wrapped to a stride of 0, and the TIFF predictor never
+        // advanced past the first row. The PNG one got a negative stride and threw by accident.
+        var act = async () => await Interruptibly.Run(() =>
+            Unpredict([1, 2, 3, 4], Parms(predictor, colors, bitsPerComponent, columns)));
+
+        (await act.Should().ThrowAsync<PdfReaderException>()).WithMessage("*predictor*");
+    }
+
+    [Test, Timeout(10000)]
+    [Arguments(2)]
+    [Arguments(12)]
+    public async Task AParameterThatIsNotPositiveFallsBackToItsDefaultInsteadOfHanging(int predictor)
+    {
+        var parms = Parms(predictor, 0, 0, 0);
+        parms.Elements.SetInteger("/Colors", -5);
+        parms.Elements.SetInteger("/Columns", 0);
+        parms.Elements.SetInteger("/BitsPerComponent", -1);
+
+        var result = await Interruptibly.Run(() => Unpredict([0, 1, 2, 3], parms));
+
+        result.Should().NotBeNull();
+    }
+
+    [Test, Timeout(10000)]
+    public async Task AWholeFileWhoseCrossReferenceStreamOverflowsTheRowSizeIsRefusedNotHung()
+    {
+        var entries = new byte[] { 0, 0, 0, 255 };
+        var compressed = Filtering.FlateDecode.Encode(entries);
+        var head = "%PDF-1.5\n1 0 obj\n<< /Type /XRef /Size 1 /W [1 2 1] /Filter /FlateDecode "
+                   + "/DecodeParms << /Predictor 2 /Colors 268435456 /BitsPerComponent 16 >> /Length "
+                   + compressed.Length + " >>\nstream\n";
+        var tail = "\nendstream\nendobj\nstartxref\n9\n%%EOF\n";
+        var file = System.Text.Encoding.Latin1.GetBytes(head)
+            .Concat(compressed).Concat(System.Text.Encoding.Latin1.GetBytes(tail)).ToArray();
+
+        var act = async () => await Interruptibly.Run(() =>
+            PdfPinata.Pdf.IO.PdfReader.Open(new System.IO.MemoryStream(file), PdfDocumentOpenMode.Modify).PageCount);
+
+        await act.Should().ThrowAsync<Exception>();
     }
 }
