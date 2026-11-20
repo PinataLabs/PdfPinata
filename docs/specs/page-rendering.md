@@ -24,7 +24,7 @@ the other items is added.
 | 9 | `PdfPage.UserUnit` | v1 |
 | 10 | CFF (`/FontFile3`) and Type 1 (`/FontFile`) font programs | deferred |
 | 11 | Type 3 fonts | deferred; their advances are read (#371) |
-| 12 | Shadings (`sh`, shading patterns) and tiling patterns | deferred |
+| 12 | Shadings (`sh`, shading patterns) and tiling patterns | done (#382); `page-rendering-interpreter.md` has the seam |
 | 13 | Blend modes, transparency groups, soft-mask groups | deferred; reported where they change what is drawn |
 | 14 | Separation, DeviceN, Lab, and ICC colour management | deferred |
 | 15 | CCITTFax, JBIG2 and JPX images | deferred |
@@ -87,8 +87,8 @@ devices would have come to disagree. Carrying it also lets a stroke be drawn und
 a pen under a transform that scales x and y differently keeps its shape.
 
 The seam is public, because this repository has no `InternalsVisibleTo` and the Skia package must
-implement it. It is marked `[Experimental("PPEXP001")]`, because it will grow when shadings,
-patterns and transparency groups arrive (items 12 and 13). It is an abstract class, `PageDevice`,
+implement it. It is marked `[Experimental("PPEXP001")]`, because it grew when shadings and
+patterns arrived (item 12) and will grow again for transparency groups (item 13). It is an abstract class, `PageDevice`,
 and not an interface, so that what is added later is a `virtual` member whose base body says the
 device cannot draw it, and a device written before it still compiles. An interface could only do
 that with a default member, which the netstandard2.1 runtime kept for Unity does not take. PolySharp supplies the attribute on netstandard2.1. The Skia package's own entry points
@@ -298,12 +298,13 @@ draws the SampleApp demos and the conformance corpus within tolerance. Until the
 
 ## What was deliberately left out of v1
 
-Items 10 to 17 are not oversights. Each is a separate issue, and each is a large piece of work on
+Items 10 to 17, but for item 12, which has since been done, are not oversights. Each is a separate issue, and each is a large piece of work on
 its own:
 
 - **CFF and Type 1** need parsers of their own. CFF is the more urgent, because every OpenType face
   with PostScript outlines embeds as `/FontFile3`, which this library's own writer produces.
-- **Shadings, patterns and transparency groups** are why the device seam is experimental.
+- **Transparency groups** are why the device seam is still experimental. Shadings and patterns
+  were the other reason, and have arrived as three `virtual` members (#382).
 - **ICC colour management** means choosing a CMS. Skia has none for CMYK.
 - **JPX and JBIG2** each need a codec that SkiaSharp does not have.
 

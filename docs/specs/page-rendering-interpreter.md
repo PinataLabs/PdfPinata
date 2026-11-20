@@ -21,12 +21,14 @@ separate issues, and each has one place here to plug into. The last section name
 | 12 | A limit on the operators of one page | deliberately not done |
 | 13 | Type 3 fonts (their advances are read; their glyphs are not drawn) | advance only |
 | 14 | Transparency groups (#383) and optional content (#386) | reported, not applied |
+| 15 | Shadings and patterns (#382): `sh`, shading patterns, tiling patterns, PDF functions | done |
 
 ---
 
 ## The device
 
-`PageDevice` is an abstract class with six abstract members and one virtual one:
+`PageDevice` is an abstract class with six abstract members and four virtual ones. The three
+`Try…` members are set out under [Shadings and patterns](#shadings-and-patterns):
 
 ```csharp
 void Save();
@@ -36,6 +38,9 @@ void Fill(PagePath path, XMatrix transform, XFillMode fillMode, PagePaint paint)
 void Stroke(PagePath path, XMatrix transform, PageStroke stroke, PagePaint paint);
 void DrawImage(PageImage image, XMatrix transform, PagePaint paint);
 virtual PageImage DecodeImage(PageImageCodec codec, ReadOnlyMemory<byte> data);   // null: cannot
+virtual bool TryFill(PagePath path, XMatrix transform, XFillMode fillMode, PageShaderPaint paint);    // false: cannot
+virtual bool TryStroke(PagePath path, XMatrix transform, PageStroke stroke, PageShaderPaint paint);
+virtual bool TryDrawStencil(PageImage mask, XMatrix transform, PageShaderPaint paint);
 ```
 
 **Every call carries its own transform, from the coordinates of what it is handed straight to
@@ -58,7 +63,8 @@ so with `IsShared`, which is what a device caches its own path against.
 
 **It is a class and not an interface**, so that shadings, patterns, blend modes and transparency
 groups can arrive as `virtual` members whose base body says the device cannot draw them.
-`DecodeImage` is the first of that kind. An interface could only do that with a default member, which
+`DecodeImage` was the first of that kind, and the three `Try…` members for shadings and patterns
+are the next. An interface could only do that with a default member, which
 the netstandard2.1 runtime kept for Unity does not take.
 
 The line cap, the line join and the fill rule are `XLineCap`, `XLineJoin` and `XFillMode`. They
@@ -129,6 +135,145 @@ the scale, and the device is handed the glyph's own shared `PagePath` under the 
 it is for a fill. That is all text not stretched by `Tz` or by a text matrix that scales x and y
 differently. For such stretched text the pen is an ellipse in the outline's space, which a
 `PageStroke` cannot say, so the outline is copied into user space and that path is not shared.
+
+## Shadings and patterns
+
+**A shading or a pattern is something to paint with, not something to draw.** It crosses the seam
+as a `PageShader` inside a `PageShaderPaint`, and the three operations that take a paint each have
+a twin that takes one: `TryFill`, `TryStroke` and `TryDrawStencil`. That covers every use. A path
+filled or stroked in a pattern is the first two. A glyph is a path, so it is the same two, and its
+outline is still the shared instance. A stencil mask painted in a pattern is the third. `sh` is a
+fill of everything the interpreter draws into, under whatever the clip leaves, so it needs no
+member of its own.
+
+**The shader has its own transform, and it is not the path's.** `PageShaderPaint` holds the
+shader, a transform from the shader's coordinates straight to device space, and the alpha. A
+pattern's `/Matrix` is over the default space of the content stream that names it: the page's
+space, or the space a form began in. It is not over what `cm` has made of that space since. So
+the interpreter keeps the space each stream began in beside its resources, and a pattern's
+transform is its matrix followed by that. For `sh` it is the transform in force. A device is
+handed two transforms and has no rule to remember.
+
+**The device learns no PDF.** These are all resolved in the core, and none reaches a device:
+`/Function`, `/Domain`, `/ColorSpace`, `/BBox`, `/Background` as an entry, a pattern's `/Matrix`,
+`/PaintType`, `/XStep`, `/YStep` and the shading type number.
+
+| shader | what it is |
+|---|---|
+| `PageAxialShading` | Type 2. `Start`, `End`, `Stops`, `ExtendStart`, `ExtendEnd`, `Background`. |
+| `PageRadialShading` | Type 3. Two centres and two radii, and the same four as an axial shading. |
+| `PageMeshShading` | Types 1 and 4 to 7. `Points`, three a triangle. `Colors`, three bytes a point. `Bounds`, `Background`. |
+| `PageTiling` | A tiling pattern. `Cell`, a `PagePicture`. `Tile`, the rectangle that repeats. |
+
+The hierarchy is closed: the constructors are internal. `PageShader.IsShared` says the instance
+is handed over each time the content paints with the same shading or pattern, as
+`PagePath.IsShared` does for a glyph, and a device keeps what it builds from one.
+
+**Stops.** A gradient's function, its `/Domain` and its colour space are in its stops. The first
+is at 0 and the last at 1. There is a stop at each end, and one either side of every place the
+function may jump or turn a corner: a stitching function's `/Bounds`, and the samples of a table.
+Two stops at one offset are a hard edge. Between those, a stretch is halved wherever the colour
+at its quarters and its middle is more than one part in 255 off the straight line, eight times
+at most. A gradient has at most 256 stops. So an exponential function of exponent 1 is two stops,
+and a stitching of three such that each jump to the next is six.
+
+**Extension is per end.** `ExtendStart` and `ExtendEnd` are separate, and where an end is not
+extended the shader is transparent beyond it. Skia extends both ends or neither, so the Skia
+device gives an end that is not extended a second, transparent stop where its first is. A radial
+shading needs more. Two circles of it may pass through one point, a PDF paints the later of them
+that it paints at all, and Skia paints the later whether or not it lies past an end. So where an
+end is not extended the Skia device lays the gradient over itself run backwards.
+
+**`/BBox` and `/Background`.** The core lowers a shading's `/BBox` to a save, a clip and a restore
+round the call. `/Background` is a property of the shader a pattern paints with, and null in the
+shader `sh` paints with, which ignores it. It is on the shader and not painted first by the core,
+because under an alpha below 1 a background painted on its own shows through the shading. The
+Skia device composes the two into one shader, so the alpha applies once. Both are clipped to
+`/BBox`, which is what Ghostscript does.
+
+**Meshes.** A patch of type 6 or 7 is cut 8 by 8 and each cell into two triangles. A type 6
+patch's four inner control points are worked out from its edges. A type 1 shading is its function
+on a grid of 64 by 64 over `/Domain`, under `/Matrix`. Colours are blended in RGB, and are 8 bits
+a channel. Where a mesh has a `/Function`, a vertex carries the function's input. The input runs
+in a straight line across a triangle, so the triangle is cut along the lines where the input is
+that of one of the function's stops. A hard edge of the function is then a hard edge across the
+triangle.
+
+**A tiling cell is recorded by the core.** `ContentInterpreter.Record` runs a content stream
+through an interpreter of its own onto an internal `PictureRecorder`, and answers a `PagePicture`:
+device calls, kept, in the pattern's own coordinates. `PagePicture.Replay(device, transform)` makes
+them again. The nested interpreter has its own device, state stack and surface, so `sh` in a cell
+fills the cell. It shares a `RenderContext` with the render it is part of: the diagnostics, the
+fonts, the limits on content that draws content, the content already parsed and the shaders
+already read. Recording in the core means a device holds no handle the core has to manage, and a
+test reads a cell with no imaging dependency. A transparency group (#383) is content of the same
+kind and is meant to be recorded by the same function.
+
+**A device repeats one rectangle.** `PageTiling.Tile` is the cell's `/BBox` corner with the steps
+as its size. A negative step tiles as its size does. Where a step is shorter than the cell, the
+neighbouring cells that reach into the tile are replayed into the picture, and the whole is
+clipped to the tile. So a device needs no notion of overlap.
+
+**An uncoloured pattern's colour is in the picture.** The cell is recorded from a graphics state
+whose colours are the tint, and every operator that sets a colour is passed over. One recording
+is kept for each colour a pattern is painted in.
+
+**A pattern colour space** is `/Pattern` or `[/Pattern base]`, as a `PatternColorSpace`. Selecting
+it sets the pattern that paints nothing, which is not reported. A pattern name the resources lack
+paints nothing and is `MissingResource`.
+
+### A device written before these
+
+It overrides none of the three, and the base answers false. `PaintRouter`, which is the one place
+a paint becomes a device call, then reports `UnsupportedFeature`, with the subject `sh` or
+`/Pattern`, and calls the solid `Fill`, `Stroke` or `DrawImage` in one colour that stands for the
+shader. For a gradient that is the mean of its stops. For a mesh it is the mean of its corners.
+For an uncoloured tiling it is the tint, and for a coloured one the mean of the colours its cell
+paints with. A device may also answer false for one kind of shader and true for the others.
+`PagePicture.Replay` does the same for a shader call the device answers false to, and answers
+false itself.
+
+### Limits
+
+Each is reported once, as `LimitReached` unless it says otherwise, and what could be read is
+drawn.
+
+| input | limit | past it |
+|---|---|---|
+| Sampled function table | 16 MiB by `/Size`, outputs and `/BitsPerSample`, asked before the stream is decoded. 8 inputs. | The function is not read. A stream shorter than its `/Size` is `InvalidValue`. |
+| Function nesting | 8 deep. A function made of itself is caught by its reference. 32 inputs or outputs. | The function is not read. |
+| Calculator program | 64 KiB, braces 32 deep, a stack of 100. | Not read. A program that runs off its stack at run time answers zeros and is not reported. |
+| Gradient stops | 256 | Never more are made. |
+| Mesh | 262,144 triangles | Reading stops and what was read is drawn. A lattice whose rows are longer than its data is `InvalidValue`. |
+| Cells and forms | Counted together by `FormVisits`: once at a time, 32 deep, 4,096 in all. | The pattern paints nothing. This is what stops a cell that paints with its own pattern. |
+| One picture | 65,536 device calls | The rest of the cell is not recorded, but for the restores that keep it in balance. |
+| Overlapping cells | 16 copies in one tile | Each tile is drawn from one cell. |
+| Tile size on the device | A step of a quarter of a pixel | The pattern is painted as one colour. Not asked inside a cell, whose size on the device is not known there. |
+| `/XStep`, `/YStep`, `/BBox` | A step of zero, or a box with no area | `InvalidValue`. The pattern paints nothing. |
+| Shader transform | Not finite, or with no area | `InvalidValue`. Nothing is painted. |
+| Shaders kept | 1,024 shadings and 1,024 patterns, 32 colours of one uncoloured pattern | The shader is read again each time, and `IsShared` is false. Not reported. |
+
+The calculator language has no loop and no procedure call. `if` and `ifelse` are compiled to
+jumps forwards, so one evaluation runs each instruction at most once.
+
+### What was left out
+
+- **`/Order 3` in a sampled function** is read as 1. A cubic spline between samples is not computed.
+- **A shading pattern's `/ExtGState`** is not applied. It is reported, subject `/ExtGState`.
+- **Exact patch colours.** A patch is a grid of flat triangles, so its colours are bilinear
+  between its corners across each cell and not across the curved surface. The cut is always 8 by 8,
+  whatever the patch's size on the device.
+- **Colour interpolation in the shading's own space.** Stops and mesh colours are blended in RGB.
+- **A tile-by-tile fallback** for a device that draws no shaders. Such a device paints a tiling
+  pattern in one colour.
+- **Stencil masks in a pattern are not reached yet**, because images are not decoded (#375). The
+  route and the Skia device's `TryDrawStencil` are in place and tested with a mask handed to the
+  device directly.
+- **Public constructors for the shader types.** A device's own tests take a shader from a render.
+- **A sharp tile under a turned matrix, in the Skia device.** Skia repeats a picture of one tile,
+  drawn once at the device's resolution, and resamples it where the pattern's matrix turns it. Its
+  edges are then soft. Drawing each tile as paths instead leaves seams between tiles that are
+  meant to join, so it was not done.
 
 ## Reading content that is broken
 
@@ -240,6 +385,7 @@ None of these edits `ContentInterpreter`.
 | #374 standard 14 | A class derived from `PageGlyphSource` that reads `RequiredSeams.FontResolver` in `GetOutline` and nowhere else, and answers AFM widths from `TryGetAdvance`, which is asked for invisible text too and so reads no seam | The last branch of `BuiltInGlyphSources.Select` |
 | #375 images | The bodies of `PageImages.ReadXObject` and `ReadInline`, which answer a `PageImage` or report and answer null | `PageImages.cs` |
 | #376 Skia | `SkiaPageDevice`, derived from `PageDevice`; done | Its own package: `PageView.Of`, then `PageRendering.Render` |
+| #383 groups | A form recorded apart and laid down once | `ContentInterpreter.Record`, which a tiling cell already uses, and a `virtual` member for the composition |
 
 **The font rows hold for a font whose glyphs are outlines, set along x in codes of a fixed
 length**: TrueType, CFF, Type 1 and the standard 14. Three kinds of font are not that, and each
