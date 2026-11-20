@@ -263,14 +263,16 @@ public class DiagnosticsTests
         drawn.Result.IsComplete.Should().BeFalse();
     }
 
-    [Test, Timeout(20_000)]
+    [Test, Timeout(300_000)]
     [Arguments("q 2 0 0 2 0 0 cm 1 1 l Q ")]
     [Arguments("2 0 0 2 0 0 cm 1 1 l 0.5 0 0 0.5 0 0 cm ")]
     public async Task ATransformChangedThroughoutOnePathIsDrawnInTimeByItsLength(string repeated)
     {
-        // 40,000 changes of transform inside one open path. Rewriting the path at each change
-        // took most of a minute; it is now a fraction of a second, and the timeout is the test.
-        const int Repeats = 40_000;
+        // 160,000 changes of transform inside one open path, and the timeout is the test.
+        // Rewriting the path at each change took a minute at 40,000 and grows by the square, so
+        // about sixteen minutes here; it is now two seconds. The margin is wide on both sides
+        // because a shared runner can be many times slower than a desk.
+        const int Repeats = 160_000;
         var content = new StringBuilder("0 0 m ");
         for (var index = 0; index < Repeats; index++)
             content.Append(repeated);
