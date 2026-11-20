@@ -179,15 +179,14 @@ RunLength, ASCII85 and ASCIIHex, because a chain such as `[/FlateDecode /RunLeng
 only as bounded as its last filter: RunLength turns two bytes into 128. `Filtering.Decode` also
 cuts what any one filter returns to the cap, so the bound does not rest on each filter keeping to
 it. For an image the cap is the sample bytes the dictionary
-declares, `ceil(Width * Components * BitsPerComponent / 8) * Height`, plus a small allowance. The cap
-counts what Flate or LZW itself produces, before a predictor is undone, so with a PNG predictor the
-allowance must include the one filter-type byte in front of each row. An image that was cut short
-is not drawn as if whole: it is reported. Cut-short data is read as far as it goes: a PNG or
-TIFF predictor drops a final part row rather than returning pixels it could not undo, and a Flate
-filter that is handed the cut-short output of an earlier one returns what it could inflate rather
-than throwing. Guidance for #403: when the cap is set to an image's expected sample bytes,
-`Truncated` means the stream had *more* than expected, and an image that is short shows as output
-shorter than expected with `Truncated` false. Check both.
+declares, `ceil(Width * Components * BitsPerComponent / 8) * Height`. The cap counts what Flate or
+LZW itself produces, before a predictor is undone, so with a PNG predictor it includes the one
+filter-type byte in front of each row. Cut-short data is read as far as it goes: a PNG or TIFF
+predictor drops a final part row rather than returning pixels it could not undo, and a Flate or
+ASCII85 filter that is handed the cut-short output of an earlier one returns what it could decode
+rather than throwing. With the cap set to an image's sample bytes, `Truncated` means the stream had
+*more* than the image needs, and an image that is short shows as output shorter than its sample
+bytes with `Truncated` false.
 
 `PageImages` holds each filter of an image's chain to a limit of its own. The filter that produces
 the samples stops at the sample bytes, plus each row's tag byte under a PNG predictor, counted in
