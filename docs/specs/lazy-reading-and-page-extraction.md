@@ -4,7 +4,7 @@
 ten pages out of a 6.7 GB image-heavy PDF without holding 6.7 GB. Today that cannot be done in any
 open mode, because every one of them reads the whole file before `PdfReader.Open` returns.
 
-Items 1 to 4 are built. Item 5 is a proposal.
+All five items are built.
 
 | item | what | status |
 |---|---|---|
@@ -12,7 +12,7 @@ Items 1 to 4 are built. Item 5 is a proposal.
 | 2 | The import closure stops at page boundaries | done (#369) |
 | 3 | `PdfDocumentOpenMode.Lazy`: objects resolved on first access | done |
 | 4 | Lazy streams, copied raw and in chunks by `PdfWriter` | done |
-| 5 | `PdfSplitter`, a SampleApp demo and a docs page | not started |
+| 5 | `PdfSplitter`, a SampleApp demo and a docs page | done |
 
 Each item is one PR, in that order, and each can be verified on its own.
 
@@ -614,30 +614,85 @@ the same pages of the source.
 
 ## Item 5 — `PdfSplitter`
 
-A thin static class over `Lazy` and `PdfPages.Add`:
+A thin static class over `Lazy` and `PdfPages.Add`, in `PdfPinata.Pdf.IO` beside `PdfReader`,
+because what it does is open a file and write files, and a caller who splits one already has that
+`using` for `PdfReader` and `PdfDocumentOpenMode`:
 
 ```csharp
-PdfSplitter.ExtractPages(string sourcePath, string outputPath, int firstPage, int pageCount)
-PdfSplitter.ExtractPages(string sourcePath, string outputPath, IEnumerable<int> pageNumbers)
-PdfSplitter.Split(string sourcePath, int pagesPerFile, Func<int, string> outputPathForPart)
+void PdfSplitter.ExtractPages(string sourcePath, string outputPath, int firstPage, int pageCount)
+void PdfSplitter.ExtractPages(string sourcePath, string outputPath, IEnumerable<int> pageNumbers)
+int  PdfSplitter.Split(string sourcePath, int pagesPerFile, Func<int, string> outputPathForPart)
+
+void PdfSplitter.ExtractPages(Stream source, Stream output, int firstPage, int pageCount)
+void PdfSplitter.ExtractPages(Stream source, Stream output, IEnumerable<int> pageNumbers)
+int  PdfSplitter.Split(Stream source, int pagesPerFile, Func<int, Stream> outputForPart)
 ```
 
-- **Page numbers are 1-based**, as a reader shows them.
-- **Each path overload has a stream overload.** A source stream must be seekable.
-- **An existing output file is overwritten.**
-- **The output's `/Info` is copied from the source's:** title, author and so on.
-- **No other document-level structure is copied:** no outlines, forms or structure tree. These are
-  the same limits as importing a page by hand
+- **Page numbers are 1-based**, as a reader shows them, and **so are part numbers**: part 1 holds
+  pages 1 to `pagesPerFile`. Two counting conventions in one call would be the bug.
+- **A page named twice is written twice**, as a print range would. Importing the same page twice
+  shares what it reaches through the imported-object table, so the second copy costs a page
+  dictionary: page 1 of the 6.7 GB file is 2 672 085 bytes alone and 2 672 648 twice.
+- **Every page is checked before anything is written.** A page outside the document is an
+  `ArgumentOutOfRangeException` naming the page and the page count; for a range, the first page it
+  misses. An empty list is an `ArgumentException`, a `pageCount` or `pagesPerFile` below 1 an
+  `ArgumentOutOfRangeException`. So a refused call leaves an existing output as it was.
+- **An output path that is the source is refused**, before the source is opened. The source is read
+  while the output is written, and opening the output empties it. Windows would refuse the open,
+  because a `Lazy` document keeps its file; Linux would not.
+- **Streams are the caller's.** The source must seek, as `Lazy` already requires, and is not
+  closed. An output is written, rewound and left open, as `PdfDocument.Save(Stream)` leaves it.
+- **An existing output file is overwritten**, by `PdfDocument.Save(string)`.
+- **`/Info`.** The title, author, subject, keywords, creator, producer and creation date are copied
+  when they are direct strings. `/ModDate` is the time of writing, and the producer becomes
+  "PdfPinata … (Original: …)" through the stamp every save applies. That is what opening the source
+  with `Modify`, deleting the other pages and saving would give, which is the rule: the output is a
+  changed copy of the source, not a new document.
+- **No other document-level structure is copied:** no outlines, forms, structure tree or page
+  labels. These are the same limits as importing a page by hand
   (`docs/specs/import-size-and-annotations.md`, "Not in scope").
 - **`Split` opens the source once** and writes each part in turn. It saves and disposes one target
-  before it starts the next, so peak memory is one part's worth.
+  before it builds the next, so peak memory is one part's worth plus what the source has read. It
+  **returns the number of parts**, 0 for a document with no pages. The caller knows the paths,
+  because it chose them, but not how many parts a file it has not opened will make.
+- **Encrypted sources** are refused by `Lazy`, with the `PdfReaderException` that names `Import`.
+  `PdfSplitter` takes no password.
 
-**Also shipped with item 5:** a SampleApp demo that splits a small embedded PDF, with `docs:begin`
-markers for the documentation site, and a docs page on the site that presents the feature.
+**The demo.** `Split` builds ten pages in memory and takes a range, a list and parts of four out of
+them, and does the same once by hand through `Lazy`. Its markers `extract-range`, `extract-list`,
+`split` and `by-hand` are what `docs-website/docs/existing-pdfs/large-files.md` shows, and that page
+is where `Lazy` is documented for users: when to choose it over `Import`, the source's lifetime and
+the save order.
 
-**Acceptance.** This is a manual run of the 6.7 GB file: take its first ten pages and confirm the
-peak managed heap stays under about 64 MB. Alongside it there is a test that is skipped when the
-file is absent and reads its path from an environment variable. The file is never committed.
+### Verification
+
+`PdfSplitterTests`, over `SplicedPdf` documents:
+
+- A range, and a list out of order with a repeat, are written as the source's pages, compared by
+  their content.
+- `/Info` is copied, the producer names the source's, and the output is dated after it.
+- An existing output is overwritten; the source file is closed afterwards.
+- `Split` of seven pages by three writes 3, 3 and 1, asks for parts 1, 2 and 3, and returns 3.
+- Each stream overload writes the same pages and leaves its streams open.
+- Every refusal above, and a refused call leaves an existing output as it was.
+- **Memory.** Taking two pages out of a `SplicedPdf` of 8 GiB with 1 GiB images allocates under
+  1 MB, within 10% of taking them out of one of 4 GiB with 16 MiB images. Splitting either in two
+  allocates under 2 MB.
+- **The real file**, when `PDFPINATA_LARGE_PDF` names it: its first ten pages allocate under 64 MB
+  and reopen as ten pages. The test is skipped otherwise; the file is never committed.
+
+**On the 6.7 GB file,** from a Release console app on .NET 10, the managed heap sampled every 2 ms:
+
+| | time | peak managed heap | peak working set | allocated |
+|---|---|---|---|---|
+| `ExtractPages(src, out, 1, 10)`, three runs | 226, 301, 246 ms | 21.4 MB | 53.7 MB | 35.3 MB |
+| `Split(src, 100, …)` | 14.8 s | 26.9 MB | 66.8 MB | 95.2 MB |
+
+The ten pages are 67 849 529 bytes. The split wrote eight parts, seven of 100 pages and one of 14,
+from 122 MB to 1.1 GB and 6 747 197 280 bytes in all, 50 MB more than the source because each part
+carries its own fonts. Parts 2 and 8 reopen as 100 and 14 pages in both `Lazy` and `Import`. Most of
+what extraction allocates is counting the pages, which item 3 measured at 31 MB; the split's
+allocations grow with the page dictionaries each part imports, and its heap does not.
 
 ---
 
