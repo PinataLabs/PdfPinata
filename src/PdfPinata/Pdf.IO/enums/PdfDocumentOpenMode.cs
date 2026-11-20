@@ -116,9 +116,19 @@ public enum PdfDocumentOpenMode
     /// <para>
     /// <b>What is read, and when.</b> Asking for the page count, or for any page, reads every node
     /// of the page tree and every page dictionary, and no content stream, image or font. An object
-    /// read once is kept for the document's lifetime, <b>its stream data with it</b>: reading a
-    /// page's content, or importing a page, holds every stream that page reaches. Memory therefore
-    /// grows with what has been touched. A stream longer than 2 GiB cannot be read.
+    /// read once is kept for the document's lifetime, <b>and a stream's data is not read with
+    /// it</b>: the data stays in the file until <see cref="PdfDictionary.PdfStream.Value"/> is
+    /// asked for, which reads it and keeps it. Importing a page reads none. Saving the document
+    /// the page was imported into copies each stream from this document's source to the output a
+    /// chunk at a time, as it is in the file, so a stream is never held and may be longer than
+    /// 2 GiB. <see cref="PdfDictionary.PdfStream.Value"/> on one that long throws an
+    /// <see cref="System.InvalidOperationException"/>.
+    /// </para>
+    /// <para>
+    /// <b>Save before disposing.</b> A document that pages were imported into reads their streams
+    /// from this one when it is saved. Saving it after this document is disposed, or after the
+    /// stream this one reads from is closed, throws an <see cref="System.ObjectDisposedException"/>
+    /// that names this document and the object.
     /// </para>
     /// <para>
     /// <b>What it refuses.</b> An encrypted document, which has to be opened with

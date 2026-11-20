@@ -226,6 +226,8 @@ public sealed class PdfDocument : PdfObject, IDisposable
         // Before the file is opened, because opening it empties it: a save refused afterwards, over
         // the file the document was read from, would leave neither document behind.
         EnsureCanSave();
+        var fullPath = Path.GetFullPath(path);
+        EnsureNoLazySourceReadsFrom(source => source.ReadsFromFile(fullPath), $"the file '{fullPath}'");
 
         using Stream stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
         Save(stream);
@@ -237,6 +239,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     public void Save(Stream stream, bool closeStream)
     {
         EnsureCanSave();
+        EnsureNoLazySourceReadsFrom(source => source.ReadsFrom(stream), "the stream");
 
         var buffer = BufferForSavingInPlace(stream);
         PdfWriter writer = null;
@@ -267,6 +270,30 @@ public sealed class PdfDocument : PdfObject, IDisposable
         var check = CanSave();
         if (!check.CanSave)
             throw new PdfPinataException(check.Reason);
+    }
+
+    /// <summary>
+    /// Refuses, before anything is written, a save over what a document opened with
+    /// <see cref="PdfDocumentOpenMode.Lazy"/> still reads data of this one from.
+    /// </summary>
+    /// <remarks>
+    /// The data is copied from that source while the save writes, so the two would share one
+    /// position and one set of bytes. Buffering, as <see cref="BufferForSavingInPlace"/> does for
+    /// a document saved over its own source, would make this save right and leave the source
+    /// reading the new file at the old file's offsets.
+    /// </remarks>
+    private void EnsureNoLazySourceReadsFrom(Func<LazyObjectSource, bool> readsFromTheOutput, string output)
+    {
+        foreach (var reference in _irefTable.AllReferences)
+        {
+            if (reference.ValueIfRead is PdfDictionary { Stream.Unread: { } unread } && readsFromTheOutput(unread.Source))
+            {
+                throw new InvalidOperationException(
+                    $"Cannot save into {output} a document opened with PdfDocumentOpenMode.Lazy reads from: the data "
+                    + $"of its object {unread.ObjectID} is still there, and is copied from it as this document is written. "
+                    + "Save somewhere else.");
+            }
+        }
     }
 
     /// <summary>

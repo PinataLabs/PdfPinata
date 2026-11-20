@@ -293,11 +293,17 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         if (_stream == null)
             return;
 
-        var length = _stream.Length;
-        if (Elements[PdfStream.Keys.Length] is PdfInteger declared && declared.Value == length)
+        var length = _stream.LongLength;
+        var declared = Elements[PdfStream.Keys.Length] switch
+        {
+            PdfInteger integer => integer.Value,
+            PdfLong integer => integer.Value,
+            _ => -1
+        };
+        if (declared == length)
             return;
 
-        Elements.SetInteger(PdfStream.Keys.Length, length);
+        Elements[PdfStream.Keys.Length] = length <= int.MaxValue ? new PdfInteger((int)length) : new PdfLong(length);
     }
 
     /// <summary>
@@ -1381,7 +1387,18 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         }
 
         /// <summary>
-        /// Clones this stream by creating a deep copy.
+        /// A stream whose data is still in the file of a document opened with
+        /// <see cref="PdfDocumentOpenMode.Lazy"/>, and is read from there when it is asked for.
+        /// </summary>
+        internal PdfStream(DeferredStreamBytes unread, PdfDictionary owner)
+            : this(owner)
+        {
+            Unread = unread;
+        }
+
+        /// <summary>
+        /// Clones this stream by creating a deep copy. Data that has not been read from the file
+        /// is not read for it: the clone reads it from the same file when it is asked for.
         /// </summary>
         public PdfStream Clone()
         {
@@ -1429,7 +1446,36 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// <summary>
         /// Gets the length of the stream, i.e. the actual number of bytes in the stream.
         /// </summary>
-        public int Length => _value != null ? _value.Length : 0;
+        /// <exception cref="InvalidOperationException">
+        /// The stream is one of a document opened with <see cref="PdfDocumentOpenMode.Lazy"/> whose
+        /// data has not been read, and it is longer than an <see cref="int"/> can say.
+        /// </exception>
+        public int Length
+        {
+            get
+            {
+                var length = LongLength;
+                if (length > int.MaxValue)
+                {
+                    throw new InvalidOperationException(
+                        $"The stream of object {Unread.ObjectID} is {length} bytes long, which is more than Length can say.");
+                }
+                return (int)length;
+            }
+        }
+
+        /// <summary>
+        /// The number of bytes in the stream, which for data still in the file can be more than an
+        /// array holds.
+        /// </summary>
+        internal long LongLength => Unread?.Length ?? _value?.Length ?? 0;
+
+        /// <summary>
+        /// Where the data is in the file it has not been read from yet, or null once it has been
+        /// read or replaced. The writer copies such data from the file to the output without
+        /// holding it.
+        /// </summary>
+        internal DeferredStreamBytes Unread { get; private set; }
 
         /// <summary>
         /// Get or sets the bytes of the stream as they are, i.e. if one or more filters exist the bytes are
@@ -1437,10 +1483,19 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public byte[] Value
         {
-            get => _value;
+            get
+            {
+                if (Unread != null)
+                {
+                    _value = Unread.Read();
+                    Unread = null;
+                }
+                return _value;
+            }
             set
             {
                 ArgumentNullException.ThrowIfNull(value);
+                Unread = null;
                 _value = value;
                 _ownerDictionary.Elements.SetInteger(Keys.Length, value.Length);
             }
@@ -1455,13 +1510,14 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             get
             {
                 byte[] bytes = null;
-                if (_value != null)
+                var value = Value;
+                if (value != null)
                 {
                     var filter = _ownerDictionary.Elements[Keys.Filter];
                     if (filter != null)
                     {
                         var decodeParms = _ownerDictionary.Elements[Keys.DecodeParms];
-                        bytes = Filtering.Decode(_value, filter, decodeParms);
+                        bytes = Filtering.Decode(value, filter, decodeParms);
                         if (bytes == null)
                         {
                             var message = $"«Cannot decode filter '{filter}'»";
@@ -1470,8 +1526,8 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                     }
                     else
                     {
-                        bytes = new byte[_value.Length];
-                        _value.CopyTo(bytes, 0);
+                        bytes = new byte[value.Length];
+                        value.CopyTo(bytes, 0);
                     }
                 }
                 return bytes ?? [];
@@ -1535,16 +1591,17 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public bool TryUnfilter()
         {
-            if (_value == null)
-                return true;
-
             var filter = _ownerDictionary.Elements[Keys.Filter];
             if (filter == null)
                 return true;
 
+            var value = Value;
+            if (value == null)
+                return true;
+
             var decodeParms = _ownerDictionary.Elements[Keys.DecodeParms];
             // PDFsharp can only uncompress streams that are compressed with the ZIP or LZH algorithm.
-            var bytes = Filtering.Decode(_value, filter, decodeParms);
+            var bytes = Filtering.Decode(value, filter, decodeParms);
             if (bytes != null)
             {
                 _ownerDictionary.Elements.Remove(Keys.Filter);
@@ -1564,13 +1621,14 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public void Zip()
         {
-            if (_value == null)
-                return;
-
             if (_ownerDictionary.Elements.ContainsKey(Keys.Filter))
                 return;
 
-            SetContent(_value, compress: true);
+            var value = Value;
+            if (value == null)
+                return;
+
+            SetContent(value, compress: true);
         }
 
         /// <summary>
@@ -1607,6 +1665,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             else
                 elements.Remove(Keys.Filter);
 
+            Unread = null;
             _value = deflated ?? plain;
             elements.SetInteger(Keys.Length, _value.Length);
         }
@@ -1616,7 +1675,13 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public override string ToString()
         {
-            if (_value == null)
+            // A debugger asks for this of every stream it shows, and reading the data to answer
+            // would read it from the source, or throw once the source is disposed.
+            if (Unread != null)
+                return $"«{Unread.Length} bytes not read from object {Unread.ObjectID}»";
+
+            var value = _value;
+            if (value == null)
                 return "«null»";
 
             string stream;
@@ -1624,7 +1689,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             if (filter != null)
             {
                 var decodeParms = _ownerDictionary.Elements[Keys.DecodeParms];
-                var bytes = Filtering.Decode(_value, filter, decodeParms);
+                var bytes = Filtering.Decode(value, filter, decodeParms);
                 if (bytes != null)
                     stream = PdfEncoders.RawEncoding.GetString(bytes, 0, bytes.Length);
                 else
@@ -1632,7 +1697,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             }
             else
             {
-                stream = PdfEncoders.RawEncoding.GetString(_value, 0, _value.Length);
+                stream = PdfEncoders.RawEncoding.GetString(value, 0, value.Length);
             }
 
             return stream;

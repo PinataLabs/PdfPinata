@@ -404,16 +404,8 @@ internal class PdfWriter
         }
         else
         {
-            var bytes = value.Stream.Value;
-            if (bytes.Length != 0)
+            if (WriteStreamData(value.Stream))
             {
-                if (SecurityHandler != null)
-                {
-                    bytes = (byte[])bytes.Clone();
-                    bytes = SecurityHandler.EncryptBytes(bytes);
-                }
-                Write(bytes);
-
                 // Unconditionally, even when the data already ends with one. /Length counts the
                 // data and nothing else, and ISO 32000-1 7.3.8.1 puts this end-of-line marker
                 // *after* those bytes, outside the count — so a validator finds the data by taking
@@ -426,6 +418,36 @@ internal class PdfWriter
             }
         }
         WriteRaw("endstream\n");
+    }
+
+    /// <summary>
+    /// Writes the data of a stream, and answers whether there was any.
+    /// </summary>
+    /// <remarks>
+    /// Data a document opened with <see cref="PdfDocumentOpenMode.Lazy"/> has left in its file
+    /// goes from that file to the output a chunk at a time, as it is: under the filters it has,
+    /// and without the stream ever holding it. Only encrypting it needs it in memory, and then
+    /// for as long as it takes to write.
+    /// </remarks>
+    private bool WriteStreamData(PdfDictionary.PdfStream stream)
+    {
+        if (stream.LongLength == 0)
+            return false;
+
+        if (stream.Unread is { } unread)
+        {
+            if (SecurityHandler == null)
+                unread.CopyTo(_stream);
+            else
+                Write(SecurityHandler.EncryptBytes(unread.Read()));
+            return true;
+        }
+
+        var bytes = stream.Value;
+        if (SecurityHandler != null)
+            bytes = SecurityHandler.EncryptBytes((byte[])bytes.Clone());
+        Write(bytes);
+        return true;
     }
 
     public void WriteRaw(string rawString)
