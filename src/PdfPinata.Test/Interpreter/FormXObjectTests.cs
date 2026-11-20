@@ -382,4 +382,15 @@ public class FormXObjectTests
         drawn.Device.Fills.Should().ContainSingle();
         drawn.Problems.Should().Equal("UnsupportedImage BI");
     }
+
+    [Test, Timeout(5000)]
+    [Arguments("(unclosed")]
+    [Arguments("<<")]
+    public async Task AnInlineImageWithAnUnclosedEntryLeavesWhatFollowsItToBeDrawn(string unclosed)
+    {
+        var drawn = await Interruptibly.Run(() =>
+            Drawn.Page($"BI /W 1 /H 1 /BPC 8 /CS /G /X {unclosed} ID ÿ\nEI 0 0 10 10 re f"));
+
+        drawn.Device.Fills.Should().ContainSingle();
+    }
 }

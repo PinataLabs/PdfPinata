@@ -140,6 +140,43 @@ public class InlineImageRoundTripTests
         Encoding.Latin1.GetString(image.Data).Should().Be(data);
     }
 
+    [Test, Timeout(5000)]
+    [Arguments("(unclosed")]
+    [Arguments("<<")]
+    [Arguments("<</Predictor 1")]
+    [Arguments("<00ff")]
+    public async Task AnUnclosedStringOrDictionaryEndsAtTheIDAndWhatFollowsTheImageIsRead(string unclosed)
+    {
+        var sequence = await Interruptibly.Run(() =>
+            Read($"BI /W 1 /H 1 /BPC 8 /CS /G /X {unclosed} ID ÿ EI 0 0 10 10 re f"));
+
+        sequence.Select(item => ((COperator)item).Name).Should().Equal("BI", "re", "f");
+        var image = sequence[0].Should().BeOfType<CInlineImage>().Subject;
+        image.ImageDictionary.Should().Be($"/W 1 /H 1 /BPC 8 /CS /G /X {unclosed}");
+        image.Data.Should().Equal(0xff);
+    }
+
+    [Test, Timeout(5000)]
+    public async Task AnUnclosedStringDoesNotReachIntoTheNextInlineImage()
+    {
+        var sequence = await Interruptibly.Run(() =>
+            Read("BI /W 1 /H 1 /X (unclosed ID a EI BI /W 1 /H 1 ID b EI 0 0 10 10 re f"));
+
+        sequence.Select(item => ((COperator)item).Name).Should().Equal("BI", "BI", "re", "f");
+        sequence.OfType<CInlineImage>().Select(image => Encoding.Latin1.GetString(image.Data))
+            .Should().Equal("a", "b");
+    }
+
+    [Test]
+    public void AStringThatClosesKeepsAnIDInsideItAsText()
+    {
+        var sequence = Read("BI /W 1 /H 1 /X (an ID inside) ID a EI");
+
+        var image = sequence.Should().ContainSingle().Subject.Should().BeOfType<CInlineImage>().Subject;
+        image.ImageDictionary.Should().Be("/W 1 /H 1 /X (an ID inside)");
+        Encoding.Latin1.GetString(image.Data).Should().Be("a");
+    }
+
     private static CSequence Read(string content) => ContentReader.ReadContent(Encoding.Latin1.GetBytes(content));
 
     private static string RoundTripOf(string content) => Encoding.Latin1.GetString(Read(content).ToContent());
