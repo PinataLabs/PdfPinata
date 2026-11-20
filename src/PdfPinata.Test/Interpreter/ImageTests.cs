@@ -548,8 +548,7 @@ public class ImageTests
     [Test]
     public void AnAbbreviatedIndexedSpaceIsResolvedAsIndexed()
     {
-        var drawn = Drawn.Page("BI /W 2 /H 1 /CS [/I /RGB 1 <FF000000FF00>] /BPC 8 ID  
-EI");
+        var drawn = Drawn.Page("BI /W 2 /H 1 /CS [/I /RGB 1 <FF000000FF00>] /BPC 8 ID \u0001\u0000\nEI");
 
         drawn.Problems.Should().BeEmpty();
         drawn.Device.Images.Single().Image.Data.ToArray().Should().Equal(0, 255, 0, 255, 255, 0, 0, 255);
@@ -564,8 +563,7 @@ EI");
     public void AnIndexedInlineImageDrawsItsPaletteAtEveryBitDepth(int bits, byte[] row, int[] indexes)
     {
         var content = Encoding.Latin1.GetBytes($"BI /W {indexes.Length} /H 1 /CS [/I /RGB 3 <FF000000FF000000FFFFFF00>] /BPC {bits} ID ")
-            .Concat(row).Concat(Encoding.Latin1.GetBytes("
-EI")).ToArray();
+            .Concat(row).Concat(Encoding.Latin1.GetBytes("\nEI")).ToArray();
 
         var drawn = Drawn.Page(content);
 
