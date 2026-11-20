@@ -38,4 +38,8 @@
     <Compile Include="..\PdfPinata.Test\Helpers\Saved.cs" Link="Helpers\Linked\Saved.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\**" LogicalName="Assets/%(Filename)%(Extension)" />
+  </ItemGroup>
+
 </Project>

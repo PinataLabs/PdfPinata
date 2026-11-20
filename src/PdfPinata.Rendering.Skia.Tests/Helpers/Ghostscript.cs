@@ -41,12 +41,18 @@ internal static class Ghostscript
     /// <summary>
     /// The first page of a PDF, rasterized at <paramref name="dpi"/> onto white, as RGB bytes.
     /// </summary>
+    /// <remarks>
+    /// The colour space is asked for. Left to itself, ImageMagick rasterizes a page that paints in
+    /// CMYK with Ghostscript's CMYK device, and its inks would then be read here as red, green and
+    /// blue.
+    /// </remarks>
     public static Raster Rasterize(byte[] pdf, double dpi)
     {
         var settings = new MagickReadSettings
         {
             Density = new Density(dpi, dpi),
             BackgroundColor = MagickColors.White,
+            ColorSpace = ColorSpace.sRGB,
             FrameIndex = 0,
             FrameCount = 1
         };
