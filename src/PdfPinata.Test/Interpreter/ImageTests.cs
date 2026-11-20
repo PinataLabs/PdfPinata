@@ -172,6 +172,57 @@ public class ImageTests
         Alpha(image).Should().Equal(255, 255, 0, 0, 255, 255, 0, 0);
     }
 
+    // A scan split into layers: a coarse colour image under a fine mask of the text.
+    [Test]
+    public void AStencilMaskFinerThanItsImageKeepsItsDetail()
+    {
+        var image = DrawnImage([100, 200], (document, entries) =>
+        {
+            Set(entries, ("/Width", 2), ("/Height", 1), ("/ColorSpace", "/DeviceGray"), ("/BitsPerComponent", 8));
+            entries.Elements["/Mask"] = Stream(document, [0b0101_0101], ("/Width", 8), ("/Height", 1),
+                ("/ImageMask", true), ("/BitsPerComponent", 1)).Reference;
+        });
+
+        image.Width.Should().Be(8);
+        image.Height.Should().Be(1);
+        Alpha(image).Should().Equal(255, 0, 255, 0, 255, 0, 255, 0);
+        Gray(image).Should().Equal(100, 100, 100, 100, 200, 200, 200, 200);
+    }
+
+    [Test]
+    public void ASoftMaskFinerThanItsImageKeepsItsDetail()
+    {
+        var image = DrawnImage([10, 20, 30, 40], (document, entries) =>
+        {
+            Set(entries, ("/Width", 2), ("/Height", 2), ("/ColorSpace", "/DeviceGray"), ("/BitsPerComponent", 8));
+            entries.Elements["/SMask"] = Stream(document, Enumerable.Range(1, 16).Select(alpha => (byte)alpha).ToArray(),
+                ("/Width", 4), ("/Height", 4), ("/ColorSpace", "/DeviceGray"), ("/BitsPerComponent", 8)).Reference;
+        });
+
+        image.Width.Should().Be(4);
+        image.Height.Should().Be(4);
+        Alpha(image).Should().Equal(Enumerable.Range(1, 16).Select(alpha => (byte)alpha));
+        Gray(image).Should().Equal(10, 10, 20, 20, 10, 10, 20, 20, 30, 30, 40, 40, 30, 30, 40, 40);
+    }
+
+    // The image is 4 by 1 and the mask 1 by 2: finer across and coarser down, so each keeps what it
+    // has more of.
+    [Test]
+    public void AMaskFinerOneWayAndCoarserTheOtherKeepsTheDetailOfBoth()
+    {
+        var image = DrawnImage([10, 20, 30, 40], (document, entries) =>
+        {
+            Set(entries, ("/Width", 4), ("/Height", 1), ("/ColorSpace", "/DeviceGray"), ("/BitsPerComponent", 8));
+            entries.Elements["/Mask"] = Stream(document, [0b0000_0000, 0b1000_0000], ("/Width", 1), ("/Height", 2),
+                ("/ImageMask", true), ("/BitsPerComponent", 1)).Reference;
+        });
+
+        image.Width.Should().Be(4);
+        image.Height.Should().Be(2);
+        Alpha(image).Should().Equal(255, 255, 255, 255, 0, 0, 0, 0);
+        Gray(image).Should().Equal(10, 20, 30, 40, 10, 20, 30, 40);
+    }
+
     [Test]
     public void AColourKeyHidesTheSamplesInsideItsRanges()
     {
@@ -357,6 +408,60 @@ public class ImageTests
         result.Diagnostics.Select(d => d.Problem + " " + d.Subject).Should().Equal("UnsupportedFeature /Im1");
     }
 
+    // The device's convention: a JPEG of four components is answered with any Adobe inversion
+    // undone, so Photoshop's CMYK JPEG, with the /Decode a PDF needs to invert it back, is exact.
+    [Test]
+    public void ACmykJpegWithAnAdobeMarkerAndAnInvertingDecodeIsDrawnAsTheDeviceAnswersIt()
+    {
+        var drawn = DrawnCmykJpeg(adobeMarker: true, decode: [1, 0, 1, 0, 1, 0, 1, 0]);
+
+        drawn.Device.Images.Single().Image.Data.ToArray().Should().Equal(0, 255, 255, 255);
+        drawn.Problems.Should().BeEmpty();
+    }
+
+    [Test]
+    public void ACmykJpegWithNeitherAnAdobeMarkerNorAnInvertingDecodeIsDrawnAsTheDeviceAnswersIt()
+    {
+        var drawn = DrawnCmykJpeg(adobeMarker: false, decode: null);
+
+        drawn.Device.Images.Single().Image.Data.ToArray().Should().Equal(0, 255, 255, 255);
+        drawn.Problems.Should().BeEmpty();
+    }
+
+    // Ghostscript draws this file near-black, reading the inverted inks as they are stored, and
+    // the device's codec answers cyan.
+    [Test]
+    [Arguments(null)]
+    [Arguments(new[] { 0, 1, 0, 1, 0, 1, 0, 1 })]
+    public void ACmykJpegWithAnAdobeMarkerAndTheDefaultDecodeIsReported(int[] decode)
+    {
+        var drawn = DrawnCmykJpeg(adobeMarker: true, decode);
+
+        drawn.Device.Images.Should().ContainSingle();
+        drawn.Problems.Should().Equal("UnsupportedFeature /Im1");
+        drawn.Result.Diagnostics.Single().Message.Should().Contain("Adobe marker");
+    }
+
+    [Test]
+    public void ACmykJpegWithAnInvertingDecodeAndNoAdobeMarkerIsReported()
+    {
+        var drawn = DrawnCmykJpeg(adobeMarker: false, decode: [1, 0, 1, 0, 1, 0, 1, 0]);
+
+        drawn.Device.Images.Should().ContainSingle();
+        drawn.Problems.Should().Equal("UnsupportedFeature /Im1");
+        drawn.Result.Diagnostics.Single().Message.Should().Contain("no Adobe marker");
+    }
+
+    [Test]
+    public void ACmykJpegWithAnyOtherDecodeIsReportedAndNotApplied()
+    {
+        var drawn = DrawnCmykJpeg(adobeMarker: true, decode: [0, 1, 1, 0, 0, 1, 0, 1]);
+
+        drawn.Device.Images.Single().Image.Data.ToArray().Should().Equal(0, 255, 255, 255);
+        drawn.Problems.Should().Equal("UnsupportedFeature /Im1");
+        drawn.Result.Diagnostics.Single().Message.Should().Contain("is not applied");
+    }
+
     [Test]
     public void AJpegTheDeviceCannotDecodeIsReported()
     {
@@ -440,6 +545,137 @@ public class ImageTests
         var drawn = Drawn.Page("BI /W 1 /H 1 /CS [/I /RGB 1 <FF000000FF00>] /BPC 8 ID \u0001\nEI");
 
         drawn.Problems.Should().Contain("UnsupportedColorSpace /Indexed");
+    }
+
+    // ----- Drawn again ------------------------------------------------------------------------------
+
+    [Test]
+    public void AnImageDrawnManyTimesIsDecodedOnce()
+    {
+        var decoded = 0;
+        var device = new RecordingDevice
+        {
+            Jpeg = _ =>
+            {
+                decoded++;
+                return PageImage.FromRgba32(1, 1, new byte[] { 1, 2, 3, 255 });
+            }
+        };
+
+        PageRendering.Render(Drawn.PageOf(string.Concat(Enumerable.Repeat("/Im1 Do ", 5)), Resources([0xFF],
+            ("/Width", 1), ("/Height", 1), ("/ColorSpace", "/DeviceRGB"), ("/BitsPerComponent", 8),
+            ("/Filter", "/DCTDecode"))), device);
+
+        decoded.Should().Be(1);
+        device.Images.Should().HaveCount(5);
+    }
+
+    [Test]
+    public void AnImageTheDeviceCannotDecodeIsAskedAboutOnce()
+    {
+        var asked = 0;
+        var device = new RecordingDevice
+        {
+            Jpeg = _ =>
+            {
+                asked++;
+                return null;
+            }
+        };
+
+        var result = PageRendering.Render(Drawn.PageOf("/Im1 Do /Im1 Do /Im1 Do", Resources([0xFF],
+            ("/Width", 1), ("/Height", 1), ("/ColorSpace", "/DeviceRGB"), ("/BitsPerComponent", 8),
+            ("/Filter", "/DCTDecode"))), device);
+
+        asked.Should().Be(1);
+        device.Images.Should().BeEmpty();
+        result.Diagnostics.Select(d => d.Problem + " " + d.Subject).Should().Equal("UnsupportedImage /Im1");
+    }
+
+    // What is kept is the stencil's coverage. The colour is the fill colour of each draw.
+    [Test]
+    public void AStencilMaskDrawnInTwoColoursIsPaintedInEach()
+    {
+        var drawn = Drawn.Page("1 0 0 rg /Im1 Do 0 0 1 rg /Im1 Do", Resources([0b1010_0000],
+            ("/Width", 4), ("/Height", 1), ("/ImageMask", true)));
+
+        var images = drawn.Device.Images.ToArray();
+        images.Should().HaveCount(2);
+        images[0].Image.Data.ToArray().Should().Equal(0, 255, 0, 255);
+        images[1].Image.Data.ToArray().Should().Equal(0, 255, 0, 255);
+        (images[0].Paint.Red, images[0].Paint.Blue).Should().Be((1, 0));
+        (images[1].Paint.Red, images[1].Paint.Blue).Should().Be((0, 1));
+    }
+
+    // ----- The dictionary --------------------------------------------------------------------------
+
+    [Test]
+    public void AWholeSizeWrittenAsARealIsRead()
+    {
+        var image = DrawnImage([10, 20], ("/Width", 2.0), ("/Height", 1.0), ("/ColorSpace", "/DeviceGray"),
+            ("/BitsPerComponent", 8));
+
+        Gray(image).Should().Equal(10, 20);
+    }
+
+    [Test, Timeout(30_000)]
+    public async Task ASizeThatIsNotWholeIsReported()
+    {
+        var drawn = await Draw([10, 20], ("/Width", 2.5), ("/Height", 1), ("/ColorSpace", "/DeviceGray"),
+            ("/BitsPerComponent", 8));
+
+        drawn.Device.Images.Should().BeEmpty();
+        drawn.Problems.Should().Equal("InvalidValue /Im1");
+    }
+
+    // A palette written as a binary literal string is any bytes, and [ and < are two of them. The
+    // dictionary is read and the image reaches its colour space, which is Indexed and resolved by
+    // #372; the same string under a key of no meaning is read and the image drawn.
+    [Test]
+    [Arguments("/CS [/I /RGB 255 (", ")]")]
+    [Arguments("/CS /G /X (", ")")]
+    public void AnInlineStringFullOfBracketBytesIsRead(string before, string after)
+    {
+        var palette = Enumerable.Range(0, 256).SelectMany(index => new[] { (byte)'<', (byte)'[', (byte)index }).ToArray();
+        var content = Encoding.Latin1.GetBytes("BI /W 2 /H 1 /BPC 8 " + before).Concat(Escaped(palette))
+            .Concat(Encoding.Latin1.GetBytes(after + " ID ")).Concat(new byte[] { 0, 255 })
+            .Concat(Encoding.Latin1.GetBytes("\nEI")).ToArray();
+
+        var drawn = Drawn.Page(content);
+
+        if (before.Contains("/I "))
+            drawn.Problems.Should().Contain("UnsupportedColorSpace /Indexed").And.NotContain("InvalidValue BI");
+        else
+            Gray(drawn.Device.Images.Single().Image).Should().Equal(0, 255);
+    }
+
+    [Test]
+    public void AnInlineImageNestedAsDeepAsItMayBeIsDrawn()
+    {
+        var drawn = Drawn.Page("BI /W 1 /H 1 /CS /G /BPC 8 /X " + new string('[', 32) + new string(']', 32) + " ID \u0007\nEI");
+
+        Gray(drawn.Device.Images.Single().Image).Should().Equal(7);
+        drawn.Problems.Should().BeEmpty();
+    }
+
+    [Test, Timeout(30_000)]
+    public async Task AnInlineImageNestedDeeperThanItMayBeIsRefused()
+    {
+        var content = "BI /W 1 /H 1 /CS /G /BPC 8 /X " + new string('[', 33) + new string(']', 33) + " ID \u0007\nEI";
+
+        var drawn = await Interruptibly.Run(() => Drawn.Page(content));
+
+        drawn.Device.Images.Should().BeEmpty();
+        drawn.Problems.Should().Equal("InvalidValue BI");
+    }
+
+    // Many strings side by side are not nested, however many there are.
+    [Test]
+    public void AnInlineImageWithManyHexStringsInOneArrayIsDrawn()
+    {
+        var drawn = Drawn.Page("BI /W 1 /H 1 /BPC 8 /CS /G /X [" + string.Concat(Enumerable.Repeat("<00>", 1000)) + "] ID \u0007\nEI");
+
+        Gray(drawn.Device.Images.Single().Image).Should().Equal(7);
     }
 
     // ----- Malformed and hostile images --------------------------------------------------------
@@ -585,7 +821,7 @@ public class ImageTests
     [Arguments("/X <(> ")]
     [Arguments("/X <%> ")]
     [Arguments("/X <]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]> ")]
-    public async Task OpeningsHiddenBehindAStringAreCountedAllTheSame(string hiding)
+    public async Task NestingAfterTextTheLexerMightReadAsAStringIsRefusedAllTheSame(string hiding)
     {
         var content = "BI /W 1 /H 1 /CS /G /BPC 8 " + hiding + "/DP " + new string('[', 100_000) + " ID \u0000\nEI";
 
@@ -678,12 +914,38 @@ public class ImageTests
     private static PdfItem Item(object value) => value switch
     {
         int integer => new global::PdfPinata.Pdf.PdfInteger(integer),
+        double real => new PdfReal(real),
         bool boolean => new PdfBoolean(boolean),
         string name => new PdfName(name),
         int[] numbers => new PdfArray(null, numbers.Select(number => (PdfItem)new global::PdfPinata.Pdf.PdfInteger(number)).ToArray()),
         string[] names => new PdfArray(null, names.Select(name => (PdfItem)new PdfName(name)).ToArray()),
         _ => throw new ArgumentException("No PDF item for " + value)
     };
+
+    /// <summary>
+    /// A CMYK JPEG drawn by a device that answers it as cyan. The JPEG is the markers up to its
+    /// first scan and no data, which is all the core reads of it.
+    /// </summary>
+    private static Drawn DrawnCmykJpeg(bool adobeMarker, int[] decode)
+    {
+        byte[] app0 = [0xFF, 0xE0, 0x00, 0x10, .. "JFIF"u8, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0];
+        byte[] app14 = adobeMarker ? [0xFF, 0xEE, 0x00, 0x0E, .. "Adobe"u8, 0, 100, 0, 0, 0, 0, 2] : [];
+        byte[] jpeg = [0xFF, 0xD8, .. app0, .. app14, 0xFF, 0xDA, 0x00, 0x02, 0xFF, 0xD9];
+        var device = new RecordingDevice { Jpeg = _ => PageImage.FromRgba32(1, 1, new byte[] { 0, 255, 255, 255 }) };
+
+        var result = PageRendering.Render(Drawn.PageOf(DrawIm1, Resources(jpeg, (_, image) =>
+        {
+            Set(image, ("/Width", 1), ("/Height", 1), ("/ColorSpace", "/DeviceCMYK"), ("/BitsPerComponent", 8),
+                ("/Filter", "/DCTDecode"));
+            if (decode != null)
+                Set(image, ("/Decode", decode));
+        })), device);
+        return new Drawn(result, device);
+    }
+
+    /// <summary>Bytes as the inside of a literal string: each as it is, but for the three a string escapes.</summary>
+    private static byte[] Escaped(byte[] bytes) =>
+        bytes.SelectMany(b => b is (byte)'(' or (byte)')' or (byte)'\\' ? new[] { (byte)'\\', b } : new[] { b }).ToArray();
 
     /// <summary>The red of every sample, which is the gray of a gray image.</summary>
     private static byte[] Gray(PageImage image) => Channel(image, 0);

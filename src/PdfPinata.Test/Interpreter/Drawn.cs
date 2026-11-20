@@ -16,7 +16,7 @@ namespace PdfPinata.Test.Interpreter;
 /// </remarks>
 internal sealed class Drawn
 {
-    private Drawn(PageRenderResult result, RecordingDevice device)
+    internal Drawn(PageRenderResult result, RecordingDevice device)
     {
         Result = result;
         Device = device;

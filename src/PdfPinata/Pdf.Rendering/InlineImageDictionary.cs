@@ -16,23 +16,20 @@ namespace PdfPinata.Pdf.Rendering;
 internal static class InlineImageDictionary
 {
     /// <summary>
-    /// How many arrays, dictionaries and hex strings an inline image's dictionary may open. The
-    /// document parser reads each array and dictionary by a call inside the one that reads what
-    /// holds it, so this bounds the depth of its stack. An image needs a handful, and an indexed
-    /// palette written as a literal string may add a few brackets of its own.
+    /// How deep arrays and dictionaries may be nested inside an inline image's dictionary. The
+    /// document parser reads each by a call inside the one that reads what holds it, so this
+    /// bounds the depth of its stack. An image needs two: a <c>/DecodeParms</c> array of
+    /// dictionaries.
     /// </summary>
-    private const int MaximumOpenings = 256;
+    private const int MaximumDepth = 32;
 
     /// <summary>The entries with every abbreviation written out, or null when the text is no dictionary.</summary>
     internal static PdfDictionary Read(string entries)
     {
-        if (OpensTooMany(entries))
-            return null;
-
         PdfDictionary written;
         try
         {
-            written = Parser.ReadDictionary(entries);
+            written = Parser.ReadDictionary(entries, MaximumDepth);
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
         {
@@ -129,21 +126,4 @@ internal static class InlineImageDictionary
         "/DCT" => "/DCTDecode",
         _ => name
     };
-
-    /// <summary>
-    /// Whether the text opens more arrays and dictionaries than <see cref="MaximumOpenings"/>,
-    /// strings and comments included. However the lexer reads them, nothing can be nested deeper
-    /// than it is opened, and counting every opening leaves no way to hide one from the count.
-    /// </summary>
-    private static bool OpensTooMany(string text)
-    {
-        var openings = 0;
-        for (var at = 0; at < text.Length; at++)
-        {
-            if ((text[at] == '[' || text[at] == '<') && ++openings > MaximumOpenings)
-                return true;
-        }
-
-        return false;
-    }
 }

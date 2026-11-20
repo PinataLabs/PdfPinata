@@ -113,19 +113,14 @@ internal static class PageImages
                     ColourKeyOf(image, samples.Components));
             }
 
-            if (rgba == null)
-                return null;
-
-            ApplyMask(image, rgba, width, height, space);
-            return PageImage.FromRgba32(width, height, rgba);
+            return rgba == null ? null : Masked(image, rgba, width, height, space);
         }
 
         // ----- The dictionary ------------------------------------------------------------------
 
         private bool TryReadSize(PdfDictionary image, string what, out int width, out int height)
         {
-            if (!PdfItemValues.TryGetInteger(image.Elements["/Width"], out width) || width < 1
-                || !PdfItemValues.TryGetInteger(image.Elements["/Height"], out height) || height < 1)
+            if (!TryGetCount(image.Elements["/Width"], out width) || !TryGetCount(image.Elements["/Height"], out height))
             {
                 Report(PageRenderProblem.InvalidValue, what + " has no /Width and /Height of at least 1.");
                 width = height = 0;
@@ -139,6 +134,22 @@ internal static class PageImages
                 return false;
             }
 
+            return true;
+        }
+
+        /// <summary>
+        /// A size of at least 1, which may be written as a real if it is whole: <c>2.0</c> is 2.
+        /// </summary>
+        private static bool TryGetCount(PdfItem item, out int count)
+        {
+            count = 0;
+#pragma warning disable S1244 // Exact on purpose: a size is whole or it is no size.
+            if (!PdfItemValues.TryGetNumber(item, out var number) || number < 1 || number > int.MaxValue
+                || Math.Floor(number) != number)
+                return false;
+#pragma warning restore S1244
+
+            count = (int)number;
             return true;
         }
 
@@ -431,16 +442,17 @@ internal static class PageImages
             var rgba = decoded.Data.ToArray();
 
             var decode = new double[components * 2];
-            var hasDecode = TryReadNumbers(image.Elements["/Decode"], decode) && !IsDefault(decode);
+            var isRead = TryReadNumbers(image.Elements["/Decode"], decode);
+            if (!isRead && !PdfItemValues.IsNull(image.Elements["/Decode"]))
+                Report(PageRenderProblem.InvalidValue, "The image's /Decode is not two numbers for each component, and is not applied.");
+
             if (components is not (1 or 3))
             {
-                if (hasDecode || PdfReference.Dereference(image.Elements["/Mask"]) is PdfArray)
-                    Report(PageRenderProblem.UnsupportedFeature, "The /Decode or colour key of a JPEG of four components is not applied, because the device answers its RGB.");
+                ReportWhereFourComponentsDiffer(jpeg, isRead ? decode : null, PdfReference.Dereference(image.Elements["/Mask"]) is PdfArray);
                 return rgba;
             }
 
-            if (!hasDecode && !PdfItemValues.IsNull(image.Elements["/Decode"]) && !TryReadNumbers(image.Elements["/Decode"], decode))
-                Report(PageRenderProblem.InvalidValue, "The image's /Decode is not two numbers for each component, and is not applied.");
+            var hasDecode = isRead && !IsDefault(decode);
 
             var colourKey = ColourKeyOf(image, components);
 
@@ -497,12 +509,86 @@ internal static class PageImages
             return decoded;
         }
 
-        private static bool IsDefault(double[] decode)
+        /// <summary>
+        /// Reports where what a device answers for a JPEG of four components, whose inks it has
+        /// turned to RGB already, cannot be what the image's <c>/Decode</c> and colour key say.
+        /// </summary>
+        /// <remarks>
+        /// A codec reads an Adobe marker as saying the inks are stored inverted, as Photoshop
+        /// stores them, and undoes that (<see cref="PageDevice.DecodeImage"/>). A PDF reads the
+        /// samples as they are stored, so a file that embeds such a JPEG says
+        /// <c>/Decode [1 0 1 0 1 0 1 0]</c> to invert them back, and the device's answer is then
+        /// exactly what the file means. Where only one of the two is there, the device's answer is
+        /// the inverse of it, and any other <c>/Decode</c> cannot be applied to RGB at all.
+        /// </remarks>
+        /// <param name="jpeg">The JPEG, for its markers.</param>
+        /// <param name="decode">The <c>/Decode</c> array, or null where it is the default.</param>
+        /// <param name="hasColourKey">Whether the image's <c>/Mask</c> is a colour key.</param>
+        private void ReportWhereFourComponentsDiffer(byte[] jpeg, double[] decode, bool hasColourKey)
+        {
+            if (hasColourKey)
+                Report(PageRenderProblem.UnsupportedFeature, "The colour key of a JPEG of four components is not applied, because the device answers its RGB.");
+
+            var isInverted = decode != null && IsInverted(decode);
+            if (decode != null && !isInverted && !IsDefault(decode))
+            {
+                Report(PageRenderProblem.UnsupportedFeature, "The /Decode of a JPEG of four components is not applied, because the device answers its RGB.");
+                return;
+            }
+
+            var hasAdobeMarker = HasAdobeMarker(jpeg);
+            if (hasAdobeMarker && !isInverted)
+                Report(PageRenderProblem.UnsupportedFeature, "The JPEG of four components has an Adobe marker and no /Decode that inverts it. The device undoes the inversion the marker stands for, and the file does not, so its inks are drawn the inverse of what the file says.");
+            else if (!hasAdobeMarker && isInverted)
+                Report(PageRenderProblem.UnsupportedFeature, "The JPEG of four components has a /Decode that inverts it and no Adobe marker. The device answers the inks as they are stored, so they are drawn the inverse of what the file says.");
+        }
+
+        /// <summary>
+        /// Whether a JPEG has an Adobe <c>APP14</c> marker among those before its first scan. Each
+        /// marker is stepped over by its length, so this reads a few bytes of each and no data.
+        /// </summary>
+        private static bool HasAdobeMarker(ReadOnlySpan<byte> jpeg)
+        {
+            if (jpeg.Length < 2 || jpeg[0] != 0xFF || jpeg[1] != 0xD8)
+                return false;
+
+            var at = 2;
+            while (at + 4 <= jpeg.Length && jpeg[at] == 0xFF)
+            {
+                var marker = jpeg[at + 1];
+                if (marker == 0xFF)
+                {
+                    // A fill byte before the marker.
+                    at++;
+                    continue;
+                }
+
+                if (marker is 0xDA or 0xD9)
+                    return false;
+
+                var length = (jpeg[at + 2] << 8) | jpeg[at + 3];
+                if (length < 2)
+                    return false;
+
+                if (marker == 0xEE && length >= 7 && at + 9 <= jpeg.Length && jpeg.Slice(at + 4, 5).SequenceEqual("Adobe"u8))
+                    return true;
+
+                at += 2 + length;
+            }
+
+            return false;
+        }
+
+        private static bool IsDefault(double[] decode) => IsEach(decode, 0, 1);
+
+        private static bool IsInverted(double[] decode) => IsEach(decode, 1, 0);
+
+        private static bool IsEach(double[] decode, int minimum, int maximum)
         {
             for (var index = 0; index < decode.Length; index++)
             {
 #pragma warning disable S1244 // Exact on purpose: only the numbers 0 and 1 written out are the default.
-                if (decode[index] != index % 2)
+                if (decode[index] != (index % 2 == 0 ? minimum : maximum))
                     return false;
 #pragma warning restore S1244
             }
@@ -513,33 +599,56 @@ internal static class PageImages
         // ----- Masks ---------------------------------------------------------------------------
 
         /// <summary>
-        /// Applies an <c>/SMask</c> or, where there is none, a <c>/Mask</c> that is a stencil: each
-        /// made the size of the image and multiplied into its alpha. A mask that cannot be read is
-        /// reported, and the image is drawn without it.
+        /// The image with an <c>/SMask</c> or, where there is none, a <c>/Mask</c> that is a stencil
+        /// multiplied into its alpha. A mask that cannot be read is reported, and the image is drawn
+        /// without it.
         /// </summary>
-        private void ApplyMask(PdfDictionary image, byte[] rgba, int width, int height, RenderColorSpace space)
+        /// <remarks>
+        /// Where the mask is finer than the image, the image is scaled up to the mask by the nearest
+        /// of its samples, so that the mask keeps its own detail. A scan split into layers puts a
+        /// coarse colour image under a fine mask of the text, and thinning the mask to the image's
+        /// size would draw the text as blocks. A mask coarser than the image is stretched over it.
+        /// Neither grows the image past <see cref="MaximumSamples"/>: beyond it, the mask is made
+        /// the size of the image.
+        /// </remarks>
+        private PageImage Masked(PdfDictionary image, byte[] rgba, int width, int height, RenderColorSpace space)
         {
-            if (PdfReference.Dereference(image.Elements["/SMask"]) is PdfDictionary softMask)
+            var softMask = PdfReference.Dereference(image.Elements["/SMask"]) as PdfDictionary;
+            int maskWidth = 0, maskHeight = 0;
+            byte[] alpha;
+            if (softMask != null)
             {
-                if (ReadSoftMask(softMask, out var maskWidth, out var maskHeight) is not { } alpha)
-                    return;
-
-                MultiplyAlpha(rgba, Resample(alpha, maskWidth, maskHeight, width, height));
-                if (ReadMatte(softMask, space) is { } matte)
-                    Unmatte(rgba, matte);
-                return;
+                alpha = ReadSoftMask(softMask, out maskWidth, out maskHeight);
+            }
+            else if (PdfReference.Dereference(image.Elements["/Mask"]) is PdfDictionary stencil)
+            {
+                alpha = DataOf(stencil, "The /Mask") is { } encoded
+                        && TryReadSize(stencil, "The /Mask", out maskWidth, out maskHeight)
+                        && TryUnfilter(stencil, encoded, "The /Mask", out var data, out var isJpeg)
+                    ? ReadStencil(stencil, data, isJpeg, maskWidth, maskHeight, "The /Mask")
+                    : null;
+            }
+            else
+            {
+                return PageImage.FromRgba32(width, height, rgba);
             }
 
-            if (PdfReference.Dereference(image.Elements["/Mask"]) is PdfDictionary stencil)
-            {
-                if (DataOf(stencil, "The /Mask") is not { } encoded
-                    || !TryReadSize(stencil, "The /Mask", out var maskWidth, out var maskHeight)
-                    || !TryUnfilter(stencil, encoded, "The /Mask", out var data, out var isJpeg)
-                    || ReadStencil(stencil, data, isJpeg, maskWidth, maskHeight, "The /Mask") is not { } coverage)
-                    return;
+            if (alpha == null)
+                return PageImage.FromRgba32(width, height, rgba);
 
-                MultiplyAlpha(rgba, Resample(coverage, maskWidth, maskHeight, width, height));
+            var drawnWidth = Math.Max(width, maskWidth);
+            var drawnHeight = Math.Max(height, maskHeight);
+            if ((long)drawnWidth * drawnHeight > MaximumSamples)
+            {
+                drawnWidth = width;
+                drawnHeight = height;
             }
+
+            rgba = Resample(rgba, width, height, drawnWidth, drawnHeight, 4);
+            MultiplyAlpha(rgba, Resample(alpha, maskWidth, maskHeight, drawnWidth, drawnHeight, 1));
+            if (softMask != null && ReadMatte(softMask, space) is { } matte)
+                Unmatte(rgba, matte);
+            return PageImage.FromRgba32(drawnWidth, drawnHeight, rgba);
         }
 
         /// <summary>
@@ -664,20 +773,25 @@ internal static class PageImages
         }
 
         /// <summary>
-        /// A mask made the size of the image: the nearest of its samples to each of the image's.
+        /// Samples of <paramref name="size"/> bytes each made another size: the nearest of them to
+        /// each sample of the new size.
         /// </summary>
-        private static byte[] Resample(byte[] mask, int maskWidth, int maskHeight, int width, int height)
+        private static byte[] Resample(byte[] samples, int width, int height, int toWidth, int toHeight, int size)
         {
-            if (maskWidth == width && maskHeight == height)
-                return mask;
+            if (width == toWidth && height == toHeight)
+                return samples;
 
-            var resampled = new byte[(long)width * height];
+            var resampled = new byte[(long)toWidth * toHeight * size];
             var at = 0L;
-            for (var y = 0; y < height; y++)
+            for (var y = 0; y < toHeight; y++)
             {
-                var row = (long)((y + 0.5) * maskHeight / height) * maskWidth;
-                for (var x = 0; x < width; x++)
-                    resampled[at++] = mask[row + (long)((x + 0.5) * maskWidth / width)];
+                var row = (long)((y + 0.5) * height / toHeight) * width;
+                for (var x = 0; x < toWidth; x++)
+                {
+                    var from = (row + (long)((x + 0.5) * width / toWidth)) * size;
+                    for (var index = 0; index < size; index++)
+                        resampled[at++] = samples[from + index];
+                }
             }
 
             return resampled;

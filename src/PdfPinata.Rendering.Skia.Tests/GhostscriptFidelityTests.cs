@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Rendering.Skia.Tests.Helpers;
@@ -18,8 +20,7 @@ namespace PdfPinata.Rendering.Skia.Tests;
 /// DeviceCMYK is not compared here. Ghostscript converts it to RGB through an ICC profile, and page
 /// rendering converts it by the formula ISO 32000-1 10.3.5 gives, with no colour management, so
 /// the two differ by design; <c>SkiaPageRenderingTests</c> checks the colours it paints instead.
-/// Text and images are not here yet, because the glyph sources and the image decoding they need
-/// are other issues.
+/// Text is not here yet, because the glyph sources it needs are other issues.
 /// </remarks>
 [Rasterizing]
 public class GhostscriptFidelityTests
@@ -136,4 +137,39 @@ public class GhostscriptFidelityTests
                 "q 1 0 0.4 1 10 90 cm 0 0.6 0 rg 0 0 50 40 re f Q"),
             nameof(ContentTurnedAndSkewedByCm), new PageRenderOptions { Scale = 2 })
             .ShouldBeWithin(meanChannelDifference: 0.8, shareOverThreshold: 0.005);
+
+    // Red as Photoshop writes a CMYK JPEG: an Adobe marker and every ink stored inverted, with the
+    // /Decode a PDF needs to invert them back. SkiaSharp's codec undoes the inversion itself, which
+    // is the convention DecodeImage states. What remains is the conversion to RGB: Ghostscript's
+    // goes through an ICC profile and draws (237, 28, 36), and the codec's is a formula and draws
+    // (255, 0, 0), a mean of 27 and nothing over the threshold. Drawn the wrong way round, the page
+    // would be near black to one of them and every pixel over it.
+    [Test]
+    public void AnAdobeCmykJpegWithTheDecodeThatInvertsIt()
+    {
+        var document = HandWritten.Page("q 40 0 0 40 0 0 cm /Im1 Do Q", 40, 40, (document, page) =>
+            HandWritten.Image(document, page, "/Im1", Asset("adobe-cmyk-red.jpg"), image =>
+            {
+                image.Elements.SetInteger("/Width", 8);
+                image.Elements.SetInteger("/Height", 8);
+                image.Elements.SetName("/ColorSpace", "/DeviceCMYK");
+                image.Elements.SetInteger("/BitsPerComponent", 8);
+                image.Elements.SetName("/Filter", "/DCTDecode");
+                image.Elements["/Decode"] = new PdfArray(document, new PdfInteger(1), new PdfInteger(0),
+                    new PdfInteger(1), new PdfInteger(0), new PdfInteger(1), new PdfInteger(0),
+                    new PdfInteger(1), new PdfInteger(0));
+            }));
+
+        Fidelity.Of(document, nameof(AnAdobeCmykJpegWithTheDecodeThatInvertsIt))
+            .ShouldBeWithin(meanChannelDifference: 28, shareOverThreshold: 0);
+    }
+
+    private static byte[] Asset(string name)
+    {
+        using var stream = typeof(GhostscriptFidelityTests).Assembly.GetManifestResourceStream("Assets/" + name)
+                           ?? throw new InvalidOperationException("No embedded asset " + name + ".");
+        using var copy = new MemoryStream();
+        stream.CopyTo(copy);
+        return copy.ToArray();
+    }
 }

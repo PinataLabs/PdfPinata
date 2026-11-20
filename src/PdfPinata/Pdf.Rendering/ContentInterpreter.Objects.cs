@@ -34,7 +34,7 @@ internal sealed partial class ContentInterpreter
                 break;
 
             case "/Image":
-                DrawImage(PageImages.ReadXObject(xObject, name, _resources, _device, _sink));
+                DrawImage(ImageOf(xObject, name));
                 break;
 
             default:
@@ -124,6 +124,41 @@ internal sealed partial class ContentInterpreter
         }
 
         return content;
+    }
+
+    /// <summary>
+    /// An image XObject's samples, decoded the first time it is drawn in this render and kept for
+    /// the rest of it. Null where it cannot be decoded, which is reported the first time.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// A page that draws one image many times, as a tiled background does, decodes it once. A few
+    /// kilobytes of Flate can stand for an image of 2^28 samples, which costs seconds and a
+    /// gigabyte to decode, so decoding it again for each <c>Do</c> is a cost the file chooses. A
+    /// stencil mask is kept too: what is decoded is its coverage, and the colour it is painted in
+    /// is the fill colour at each draw.
+    /// </para>
+    /// <para>
+    /// The samples kept are bounded by <see cref="MaximumImageBytesKept"/>, so that a page of many
+    /// large images drawn once each does not hold all of them to the end of the render. One that
+    /// does not fit is decoded at each draw, as every image was before.
+    /// </para>
+    /// </remarks>
+    private PageImage ImageOf(PdfDictionary image, string name)
+    {
+        var key = ReferenceIdentity.KeyOf(image);
+        if (_images.TryGetValue(key, out var samples))
+            return samples;
+
+        samples = PageImages.ReadXObject(image, name, _resources, _device, _sink);
+        var bytes = samples?.Data.Length ?? 0;
+        if (_imageBytesKept + bytes <= MaximumImageBytesKept)
+        {
+            _images[key] = samples;
+            _imageBytesKept += bytes;
+        }
+
+        return samples;
     }
 
     /// <summary>

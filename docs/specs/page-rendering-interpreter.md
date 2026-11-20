@@ -80,10 +80,19 @@ in step.
   `DecodeImage`, and the core applies the masks to what comes back. The other way round, a JPEG
   crossing the seam with its masks beside it, would have made every device compose a soft mask
   for that one case. What comes back is RGB and not the JPEG's own components, because a codec
-  turns a CMYK or an Adobe-inverted JPEG to RGB itself and `SKCodec` has no way to hand back
-  the four inks. So the core applies a JPEG's `/Decode` array and colour key to that RGB only
-  where the RGB is the image's own components: a JPEG of one component or of three. On a JPEG of
-  four they are reported and not applied.
+  turns a CMYK JPEG to RGB itself and `SKCodec` has no way to hand back the four inks. So the
+  core applies a JPEG's `/Decode` array and colour key to that RGB only where the RGB is the
+  image's own components: a JPEG of one component or of three.
+- **A JPEG's colours come back with any Adobe inversion undone.** That is the codec's convention,
+  and `DecodeImage` states it. A JPEG of four components with an Adobe `APP14` marker stores its
+  inks inverted, as Photoshop writes them. A PDF reads the samples as they are stored, so a file
+  embedding such a JPEG says `/Decode [1 0 1 0 1 0 1 0]` to invert them back, and SkiaSharp
+  decodes a cyan one to `rgb(1,255,255)`, which is what Ghostscript draws for that file. The core
+  therefore takes that `/Decode` as applied already. It reads the JPEG's markers up to its first
+  scan, stepping over each by its length, and reports `UnsupportedFeature` where the two do not
+  come together: the marker with the default `/Decode`, which Ghostscript draws near-black and the
+  device cyan, or the inverting `/Decode` with no marker. Any other `/Decode`, and a colour key,
+  on a JPEG of four components is reported and not applied.
 
 ## The interpreter
 
@@ -239,10 +248,24 @@ are worked out once.
 image is reported. Data of less than half the image is refused, so that a few bytes cannot stand
 for an image of any size the limit allows.
 
-An inline image's dictionary may open at most 256 arrays, dictionaries and hex strings, counted
-in every byte of it, strings and comments included. The parser reads a nested array by a nested
-call, and a count that skipped strings could be fooled by text the lexer reads another way. Data a filter fails on is not drawn at all, because the filters throw rather
-than hand back what they had decoded.
+An inline image's dictionary may nest arrays and dictionaries at most 32 deep. The document parser
+reads a nested array by a nested call, so `Parser.ReadDictionary(string, int)` counts the depth
+where it recurses and throws past it, and the image is reported. Counting the brackets in the text
+instead would refuse a palette written as a binary literal string, whose bytes `0x5B` and `0x3C`
+are ordinary colours, and a count that skipped strings could be fooled by text the lexer reads
+another way. The bound is only on this path: a document is read as before. Data a filter fails on
+is not drawn at all, because the filters throw rather than hand back what they had decoded.
+
+**Each image XObject is decoded once a render.** The interpreter keeps what `PageImages` answers,
+keyed by the XObject's reference through `ReferenceIdentity`, so a page that draws one image a
+hundred times decodes it once. A failure is kept too, and reported the first time. A stencil
+mask is kept like any other image, because what is decoded is its coverage and the fill colour
+is applied at each draw. What is kept is bounded at 1 GiB of samples, one image of the largest
+size; an image that does not fit is decoded at each draw, as before. Five draws of a 16 KB Flate
+stream that inflates to a 1-bit image of 2^28 samples took 11.9 s and allocated 5.2 GiB in a
+Release build, and take 2.5 s and 1 GiB now, which is one draw's. Inline images are not kept.
+Drawing many distinct large images is still paid for once each, so the bound on what a filter
+inflates to, below, is what limits that.
 
 **An image is refused before anything is decoded when it has more than 2^28 samples.** Its RGBA is
 then 1 GiB, which a page of A0 scanned at 400 dots to the inch stays under. A `/Width` and
@@ -258,8 +281,12 @@ The masks:
   `/Decode`.
 - An `/SMask` is the alpha itself and overrides a `/Mask`. Its `/Matte` is taken back out of the
   colours, in RGB: exact for a device space of one or three components, close for the rest.
-- A mask of another size than the image is stretched over it, taking the nearest of its samples.
-  A mask that cannot be read is reported, and the image is drawn without it.
+- A mask finer than the image, in either direction, does not lose its detail: the image is scaled
+  up to the mask's size by the nearest of its samples, and the mask is applied at its own size. A
+  scan split into layers puts a coarse colour image under a fine mask of the text, and thinning
+  the mask to the image would draw the text as blocks. A mask coarser than the image is stretched
+  over it. Neither grows the image past 2^28 samples; past that the mask is made the image's
+  size. A mask that cannot be read is reported, and the image is drawn without it.
 
 **DCT is the one filter the core does not undo.** The filters before it are undone, and the JPEG
 that is left is handed to `PageDevice.DecodeImage`; one followed by another filter is reported,
@@ -335,6 +362,13 @@ brings the test with it.
 **A bound on what a filter inflates to.** The limit on samples is checked before decoding, but
 `FlateDecode` inflates the whole stream whatever the image needs, so a small stream that inflates
 to gigabytes is still inflated. Bounding it belongs in the filter, where every stream would gain.
+TODO: PR #406 adds `DecodeLimit`, a cap on Flate output. Once it merges, `PageImages.TryApply`
+passes `FilterParms(decodeParms, new DecodeLimit(expectedSampleBytes))`, plus one byte a row where
+a PNG predictor is in force, and treats `Truncated` as data that stops short.
+
+**Flate data with a missing or wrong Adler-32 is not drawn.** The inflater throws on the
+checksum after it has inflated everything, and the image is reported and dropped whole. Drawing
+what was inflated is #409.
 `/Interpolate` is not applied.
 
 **Moving the extraction walkers onto this interpreter** stays the follow-up `page-rendering.md` makes
