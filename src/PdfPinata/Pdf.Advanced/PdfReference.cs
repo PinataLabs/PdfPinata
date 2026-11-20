@@ -125,9 +125,16 @@ public sealed class PdfReference : PdfItem
     /// <summary>
     /// Gets or sets the referenced PdfObject.
     /// </summary>
+    /// <remarks>
+    /// In a document opened with <see cref="PdfDocumentOpenMode.Lazy"/> the object is read from the
+    /// source the first time this is asked for, so the getter can throw what reading throws: an
+    /// <see cref="System.IO.IOException"/>, a <see cref="PdfReaderException"/> for an object that
+    /// cannot be parsed, or an <see cref="ObjectDisposedException"/> once the document has been
+    /// disposed. In every other mode it answers what the reference holds.
+    /// </remarks>
     public PdfObject Value
     {
-        get => _value;
+        get => _value ?? Document?._lazySource?.Resolve(this);
         set
         {
             Debug.Assert(value != null, "The value of a PdfReference must never be null.");
@@ -146,6 +153,12 @@ public sealed class PdfReference : PdfItem
     /// reads every shape of that null as one.
     /// </summary>
     internal static PdfItem Dereference(PdfItem item) => item is PdfReference reference ? reference.Value : item;
+
+    /// <summary>
+    /// The object if it has been read, and null if it has not: what <see cref="Value"/> answers
+    /// without reading anything.
+    /// </summary>
+    internal PdfObject ValueIfRead => _value;
 
     /// <summary>
     /// Hack for dead objects.

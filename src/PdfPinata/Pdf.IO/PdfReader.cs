@@ -266,18 +266,19 @@ public static class PdfReader
     /// </summary>
     public static PdfDocument Open(string path, string password, PdfDocumentOpenMode openmode, PdfPasswordProvider provider, PdfReadAccuracy accuracy)
     {
-        PdfDocument document;
+        PdfDocument document = null;
         Stream stream = null;
         try
         {
             stream = new FileStream(path, FileMode.Open, FileAccess.Read);
-            document = Open(stream, password, openmode, provider, accuracy);
+            document = Open(stream, password, openmode, provider, accuracy, ownsStream: true);
             document?.FullPath = Path.GetFullPath(path);
         }
         finally
         {
-            stream?.Dispose();
-
+            // A lazy document goes on reading from the file, and closes it when it is disposed.
+            if (document?._lazySource == null)
+                stream?.Dispose();
         }
         return document;
     }
@@ -373,8 +374,34 @@ public static class PdfReader
     /// <summary>
     /// Opens an existing PDF document.
     /// </summary>
+    /// <remarks>
+    /// The stream is the caller's and is left open. A document opened with
+    /// <see cref="PdfDocumentOpenMode.Lazy"/> reads from it for as long as it lives, so it has to
+    /// be able to seek and has to stay open until the document is disposed; in every other mode
+    /// it is finished with when this returns.
+    /// </remarks>
+    /// <exception cref="ArgumentException">
+    /// The mode is <see cref="PdfDocumentOpenMode.Lazy"/> and the stream cannot seek.
+    /// </exception>
     public static PdfDocument Open(Stream stream, string password, PdfDocumentOpenMode openmode, PdfPasswordProvider passwordProvider, PdfReadAccuracy accuracy)
     {
+        return Open(stream, password, openmode, passwordProvider, accuracy, ownsStream: false);
+    }
+
+    /// <summary>
+    /// Opens an existing PDF document from a stream that is the caller's, or is the document's to
+    /// close when <paramref name="ownsStream"/> is set and the document goes on reading from it.
+    /// </summary>
+    private static PdfDocument Open(Stream stream, string password, PdfDocumentOpenMode openmode,
+        PdfPasswordProvider passwordProvider, PdfReadAccuracy accuracy, bool ownsStream)
+    {
+        var lazy = openmode == PdfDocumentOpenMode.Lazy;
+
+        // Refused here rather than by the lexer, which asks the stream for its length and fails
+        // with whatever the stream throws.
+        if (lazy && !stream.CanSeek)
+            throw new ArgumentException(PSSR.LazyNeedsASeekableStream, nameof(stream));
+
         var lexer = new Lexer(stream);
         var document = new PdfDocument(lexer);
         document._state |= DocumentState.Imported;
@@ -386,7 +413,15 @@ public static class PdfReader
             throw new InvalidOperationException(PSSR.InvalidPdf);
 
         var parser = new Parser(document);
+        if (lazy)
+            parser.DeferEntryChecks(accuracy);
         ReadTrailers(document, parser, accuracy);
+
+        if (lazy)
+        {
+            ReadLazily(document, parser, stream, ownsStream);
+            return document;
+        }
 
         // A password given for a document that is not encrypted is ignored.
         var xrefEncrypt = document._trailer.Elements[PdfTrailer.Keys.Encrypt] as PdfReference;
@@ -450,6 +485,30 @@ public static class PdfReader
 
         Debug.Assert(document._irefTable.IsUnderConstruction);
         document._irefTable.IsUnderConstruction = false;
+    }
+
+    /// <summary>
+    /// Leaves every object of a document whose cross-reference sections have been read to be read
+    /// when it is asked for.
+    /// </summary>
+    /// <remarks>
+    /// Everything the eager modes do from here on reads the whole file: listing what each object
+    /// stream holds, parsing every compressed object and then every other. None of it is done.
+    /// The one thing ReadIndirectObjects did besides reading, recording the largest object number,
+    /// is done by <see cref="LazyObjectSource"/> from the table.
+    /// </remarks>
+    private static void ReadLazily(PdfDocument document, Parser parser, Stream stream, bool ownsStream)
+    {
+        // Any /Encrypt that is not null, a dictionary written into the trailer as much as a
+        // reference to one. Decrypting means decoding every string and stream as it is read,
+        // which is what reading lazily is there to avoid.
+        if (document._trailer.Elements[PdfTrailer.Keys.Encrypt] is not (null or PdfNull))
+            throw new PdfReaderException(PSSR.LazyCannotReadEncrypted);
+
+        // Before the source is made: the trailer's stand-in /Root and /Info are told from the
+        // table's own by having no value, and once the source is there asking reads the object.
+        document._trailer.Finish();
+        document._lazySource = new LazyObjectSource(document, parser, stream, ownsStream);
     }
 
     /// <summary>
