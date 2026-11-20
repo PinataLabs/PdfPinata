@@ -18,7 +18,8 @@ namespace PdfPinata.Test.IO;
 /// <remarks>
 ///   Nothing here is gigabytes in memory or on disk. Each file is a short head, a comment of one
 ///   repeated byte served by <see cref="SplicedStream" />, and a tail holding the real objects, so
-///   every position written into the tail is counted from where the tail begins.
+///   every position written into the tail is counted from where the tail begins;
+///   <see cref="SplicedPdf" /> does the counting.
 /// </remarks>
 public class LargeOffsetTests
 {
@@ -34,7 +35,7 @@ public class LargeOffsetTests
     [Test]
     public void ObjectsAndAClassicTableBeyondFourGigabytesAreRead()
     {
-        var pdf = new Tail();
+        var pdf = new SplicedPdf(Origin);
         pdf.OnePage(Content);
         pdf.ClassicTable(firstId: 0, count: 5, trailer: "/Size 5 /Root 1 0 R");
 
@@ -47,15 +48,15 @@ public class LargeOffsetTests
     [Test]
     public void ObjectsBeyondFourGigabytesIndexedByACrossReferenceStreamAreRead()
     {
-        var pdf = new Tail();
+        var pdf = new SplicedPdf(Origin);
         pdf.OnePage(Content);
 
         // Five bytes for the offset, one for the generation; the stream's own entry is its last.
-        var entries = new StringBuilder(Row(0, 0, 0));
+        var entries = new StringBuilder(SplicedPdf.Row(0, 0, 0));
         for (var id = 1; id <= 4; id++)
-            entries.Append(Row(1, pdf.PositionOf(id), 0));
+            entries.Append(SplicedPdf.Row(1, pdf.PositionOf(id), 0));
         var startxref = pdf.Here;
-        entries.Append(Row(1, startxref, 0));
+        entries.Append(SplicedPdf.Row(1, startxref, 0));
 
         pdf.Object(5, "<< /Type /XRef /Size 6 /W [1 5 1] /Root 1 0 R /Length " + entries.Length +
                       " >>stream\n" + entries + "\nendstream");
@@ -72,11 +73,11 @@ public class LargeOffsetTests
     {
         // The second revision replaces the content and nothing else, so the page itself is found
         // only by following /Prev back to the first.
-        var pdf = new Tail();
+        var pdf = new SplicedPdf(Origin);
         pdf.OnePage(Content);
         var first = pdf.ClassicTable(firstId: 0, count: 5, trailer: "/Size 5 /Root 1 0 R");
 
-        pdf.Object(4, Stream(RevisedContent));
+        pdf.Object(4, SplicedPdf.Stream(RevisedContent));
         pdf.ClassicTable(firstId: 4, count: 1, trailer: "/Size 5 /Root 1 0 R /Prev " + first);
         first.Should().BeGreaterThan(int.MaxValue);
 
@@ -91,7 +92,7 @@ public class LargeOffsetTests
     {
         // ISO 32000-1 7.5.8.4: object 7 is free in the classic table and lives in object stream 5,
         // and only the cross-reference stream /XRefStm names says so.
-        var pdf = new Tail();
+        var pdf = new SplicedPdf(Origin);
         pdf.OnePage(Content, resources: "/Resources << /ExtGState << /GS1 7 0 R >> >>");
 
         var packed = "7 0\n<< /Type /ExtGState /CA 0.5 >>";
@@ -131,7 +132,7 @@ public class LargeOffsetTests
             "an offset past 4 GiB takes five bytes, and no more than it needs");
 
         var document = PdfPinata.Pdf.IO.PdfReader.Open(
-            new SplicedStream(Head, Origin - Head.Length - 1, (byte)'A', [(byte)'\n', .. bytes]),
+            new SplicedStream(SplicedPdf.Head, Origin - SplicedPdf.Head.Length - 1, (byte)'A', [(byte)'\n', .. bytes]),
             PdfDocumentOpenMode.Import);
 
         document.PageCount.Should().Be(1);
@@ -148,10 +149,7 @@ public class LargeOffsetTests
 
     // ----- The documents -------------------------------------------------------------------------
 
-    /// <summary>What precedes the comment: a header, then the "%" the comment opens with.</summary>
-    private static readonly byte[] Head = Encoding.Latin1.GetBytes("%PDF-1.7\n%");
-
-    private static PdfDocument Opened(Tail pdf) =>
+    private static PdfDocument Opened(SplicedPdf pdf) =>
         PdfPinata.Pdf.IO.PdfReader.Open(pdf.ToStream(), PdfDocumentOpenMode.Import);
 
     private static PdfDocument Reopened(byte[] bytes) =>
@@ -167,72 +165,6 @@ public class LargeOffsetTests
         var gfx = XGraphics.FromPdfPage(document.AddPage());
         gfx.DrawRectangle(XBrushes.Blue, 20, 20, 100, 40);
         return document;
-    }
-
-    private static string Stream(string content) =>
-        "<< /Length " + content.Length + " >>stream\n" + content + "\nendstream";
-
-    /// <summary>One cross-reference stream row of the widths [1 5 1], as one character per byte.</summary>
-    private static string Row(int type, long field2, int field3)
-    {
-        var row = new StringBuilder().Append((char)type);
-        for (var shift = 4; shift >= 0; shift--)
-            row.Append((char)((field2 >> (shift * 8)) & 0xFF));
-        return row.Append((char)field3).ToString();
-    }
-
-    /// <summary>
-    ///   The real objects of a file, written after <see cref="Head" /> and a comment that ends where
-    ///   the tail begins, at <see cref="Origin" />.
-    /// </summary>
-    private sealed class Tail
-    {
-        // The newline ends the comment the head opened; the tail's own content begins after it.
-        private readonly StringBuilder _pdf = new("\n");
-        private readonly Dictionary<int, long> _positions = new();
-
-        internal long Here => Origin + _pdf.Length;
-
-        internal long PositionOf(int id) => _positions[id];
-
-        internal void Append(string text) => _pdf.Append(text);
-
-        internal void Object(int id, string body)
-        {
-            _positions[id] = Here;
-            _pdf.Append(id).Append(" 0 obj\n").Append(body).Append("\nendobj\n");
-        }
-
-        /// <summary>Objects 1 to 4: a catalog, a page tree, a page, and the page's content.</summary>
-        internal void OnePage(string content, string resources = "")
-        {
-            Object(1, "<< /Type /Catalog /Pages 2 0 R >>");
-            Object(2, "<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
-            Object(3, "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Contents 4 0 R " + resources + " >>");
-            Object(4, LargeOffsetTests.Stream(content));
-        }
-
-        /// <summary>
-        ///   A classic section of one subsection, its trailer and the startxref naming it, and
-        ///   answers where it begins. Object 0 is the free list's head; <paramref name="free" />
-        ///   are marked free in subsections of their own.
-        /// </summary>
-        internal long ClassicTable(int firstId, int count, string trailer, int[] free = null)
-        {
-            var start = Here;
-            _pdf.Append("xref\n").Append(firstId).Append(' ').Append(count).Append('\n');
-            for (var id = firstId; id < firstId + count; id++)
-                _pdf.Append(id == 0 ? "0000000000 65535 f \n" : _positions[id].ToString("D10") + " 00000 n \n");
-            foreach (var id in free ?? [])
-                _pdf.Append(id).Append(" 1\n0000000000 65535 f \n");
-
-            _pdf.Append("trailer\n<< ").Append(trailer).Append(" >>\n");
-            _pdf.Append("startxref\n").Append(start).Append("\n%%EOF\n");
-            return start;
-        }
-
-        internal SplicedStream ToStream() =>
-            new(Head, Origin - Head.Length, (byte)'A', Encoding.Latin1.GetBytes(_pdf.ToString()));
     }
 
     /// <summary>
