@@ -32,6 +32,15 @@ internal sealed class LazyObjectSource : IDisposable
     /// </summary>
     private const int DecodedObjectStreamsKept = 4;
 
+    /// <summary>
+    /// How much of a stream is copied to the output at a time. Under the 85,000 bytes at which an
+    /// array goes to the large object heap.
+    /// </summary>
+    private const int CopyChunk = 80 * 1024;
+
+    /// <summary>The longest array the runtime makes of bytes.</summary>
+    private const int LongestArray = 0x7FFFFFC7;
+
     private readonly PdfDocument _document;
     private readonly Parser _parser;
     private readonly Stream _stream;
@@ -50,6 +59,7 @@ internal sealed class LazyObjectSource : IDisposable
     private readonly HashSet<PdfObjectID> _resolving = [];
 
     private readonly object _lock = new();
+    private byte[] _copyBuffer;
     private bool _disposed;
 
     /// <summary>
@@ -62,6 +72,7 @@ internal sealed class LazyObjectSource : IDisposable
         _parser = parser;
         _stream = stream;
         _ownsStream = ownsStream;
+        parser.DeferStreamsTo = this;
 
         IndexCompressedObjects();
 
@@ -233,6 +244,114 @@ internal sealed class LazyObjectSource : IDisposable
             reference.SetObject(held);
         }
     }
+
+    /// <summary>
+    /// Reads the data of a stream that was left in the file into an array.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The stream is longer than an array can be.</exception>
+    /// <exception cref="ObjectDisposedException">The document, or the stream it reads from, was disposed.</exception>
+    internal byte[] ReadStreamBytes(DeferredStreamBytes bytes)
+    {
+        if (bytes.Length > LongestArray)
+        {
+            throw new InvalidOperationException(
+                $"The stream of object {bytes.ObjectID} is {bytes.Length} bytes long, which is more than an array "
+                + "holds, so its data cannot be read as one. Saving a document the object was imported into copies "
+                + "the data without reading it into memory.");
+        }
+
+        var data = new byte[bytes.Length];
+        lock (_lock)
+        {
+            ReadFromTheSource(bytes, () => Fill(bytes, 0, data, data.Length));
+        }
+        return data;
+    }
+
+    /// <summary>
+    /// Copies the data of a stream that was left in the file to <paramref name="output"/>, a chunk
+    /// at a time and as it is in the file, so that it costs the same however long the stream is.
+    /// </summary>
+    /// <exception cref="ObjectDisposedException">The document, or the stream it reads from, was disposed.</exception>
+    internal void CopyStreamBytes(DeferredStreamBytes bytes, Stream output)
+    {
+        lock (_lock)
+        {
+            _copyBuffer ??= new byte[CopyChunk];
+            ReadFromTheSource(bytes, () =>
+            {
+                for (long copied = 0; copied < bytes.Length;)
+                {
+                    var count = (int)Math.Min(bytes.Length - copied, CopyChunk);
+                    Fill(bytes, copied, _copyBuffer, count);
+                    output.Write(_copyBuffer, 0, count);
+                    copied += count;
+                }
+            });
+        }
+    }
+
+    /// <summary>
+    /// Runs <paramref name="read"/>, which moves the source, and leaves the parser where it was
+    /// if it is in the middle of an object.
+    /// </summary>
+    private void ReadFromTheSource(DeferredStreamBytes bytes, Action read)
+    {
+        if (_disposed)
+            throw SourceIsGone(bytes, null);
+
+        var waiting = _resolving.Count > 0 ? _parser.SaveState() : null;
+        try
+        {
+            read();
+        }
+        finally
+        {
+            if (waiting != null)
+                _parser.RestoreState(waiting);
+        }
+    }
+
+    /// <summary>
+    /// Reads <paramref name="count"/> bytes of the data, beginning <paramref name="from"/> bytes
+    /// into it, into <paramref name="buffer"/>.
+    /// </summary>
+    private void Fill(DeferredStreamBytes bytes, long from, byte[] buffer, int count)
+    {
+        int read;
+        try
+        {
+            _stream.Position = bytes.Offset + from;
+            read = PdfPinata.Internal.StreamHelper.ReadUpTo(_stream, buffer, 0, count);
+        }
+        catch (ObjectDisposedException closed)
+        {
+            // The caller's own stream, closed while the document that reads from it was not.
+            throw SourceIsGone(bytes, closed);
+        }
+
+        if (read == count)
+            return;
+
+        throw new PdfReaderException(
+            $"The stream of object {bytes.ObjectID} was {bytes.Length} bytes at offset {bytes.Offset} when "
+            + $"{SourceName} was opened, and the file now ends before them.");
+    }
+
+    private ObjectDisposedException SourceIsGone(DeferredStreamBytes bytes, Exception inner)
+    {
+        var message = $"The stream of object {bytes.ObjectID} is read from {SourceName} when it is first needed, and "
+                      + "that document was disposed, or its stream closed, before then. A document opened with "
+                      + "PdfDocumentOpenMode.Lazy has to stay open until every document its pages were imported "
+                      + "into has been saved.";
+        return inner == null
+            ? new ObjectDisposedException(nameof(PdfDocument), message)
+            : new ObjectDisposedException(message, inner);
+    }
+
+    /// <summary>What an error calls the document: its file, when it was opened from one.</summary>
+    private string SourceName =>
+        _document.FullPath.Length > 0 ? $"the document '{_document.FullPath}'" : "a document opened from a stream";
 
     /// <summary>
     /// Closes the source if the document opened it. Objects already read keep answering; one that

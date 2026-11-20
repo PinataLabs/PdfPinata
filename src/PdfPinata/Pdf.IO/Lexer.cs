@@ -323,6 +323,40 @@ public class Lexer
     }
 
     /// <summary>
+    /// Gets the position of the first occurrence of the marker at or after <paramref name="from"/>,
+    /// or -1 when the rest of the file does not contain it. The file is read a chunk at a time, as
+    /// <see cref="FindLastMarker"/> reads it, and the lexer is left wherever the search ended: the
+    /// caller sets <see cref="Position"/> before scanning on.
+    /// </summary>
+    internal long FindMarker(string marker, long from)
+    {
+        Debug.Assert(marker.Length is > 0 and < BackwardScanChunkSize);
+
+        var pattern = PdfEncoders.RawEncoding.GetBytes(marker);
+        var overlap = pattern.Length - 1;
+        var buffer = new byte[BackwardScanChunkSize + overlap];
+
+        // What is kept from one chunk to the next is the end of it a marker could have begun in.
+        var kept = 0;
+        var start = from;
+        PdfStream.Position = from;
+        while (true)
+        {
+            var read = PdfPinata.Internal.StreamHelper.ReadUpTo(PdfStream, buffer, kept, buffer.Length - kept);
+            var filled = kept + read;
+            var idx = buffer.AsSpan(0, filled).IndexOf(pattern.AsSpan());
+            if (idx >= 0)
+                return start + idx;
+            if (read == 0)
+                return -1;
+
+            kept = Math.Min(overlap, filled);
+            buffer.AsSpan(filled - kept, kept).CopyTo(buffer);
+            start += filled - kept;
+        }
+    }
+
+    /// <summary>
     /// Scans a comment line.
     /// </summary>
     public Symbol ScanComment()

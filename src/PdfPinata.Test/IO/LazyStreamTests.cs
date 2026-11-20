@@ -72,15 +72,16 @@ public class LazyStreamTests
     [Test]
     public void ReadingAStreamsDictionaryReadsNoneOfItsData()
     {
-        var pdf = PagesOfImages(1, Megabyte);
+        // The second page's, because every mode reads the first kilobyte of a file for its header.
+        var pdf = PagesOfImages(2, Megabyte);
         var stream = new RecordingStream(pdf.ToStream());
         using var document = Open(stream);
 
-        var image = ImageOf(document.Pages[0]);
+        var image = ImageOf(document.Pages[1]);
 
         image.Elements.GetInteger("/Width").Should().Be(1);
         image.Stream.Length.Should().Be((int)Megabyte);
-        stream.HasRead(pdf.DataOf(ImageId(0))).Should().BeFalse();
+        stream.HasRead(pdf.DataOf(ImageId(1))).Should().BeFalse();
     }
 
     [Test]

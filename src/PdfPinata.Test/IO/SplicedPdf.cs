@@ -96,8 +96,12 @@ internal sealed class SplicedPdf
         _ends[id] = Here;
     }
 
-    /// <summary>The bytes of the data of the <see cref="StreamOfFiller" /> numbered <paramref name="id" />.</summary>
-    internal (long Start, long End) DataOf(int id) => _data[id];
+    /// <summary>
+    ///   The data of the <see cref="StreamOfFiller" /> numbered <paramref name="id" /> that only
+    ///   reading the data reaches. Its first two bytes are left out, as <see cref="BodyOf" />
+    ///   leaves them out: reading the keyword before the data reads them too.
+    /// </summary>
+    internal (long Start, long End) DataOf(int id) => (_data[id].Start + 2, _data[id].End);
 
     internal static string Stream(string content, string entries = "") =>
         "<< " + entries + " /Length " + content.Length + " >>stream\n" + content + "\nendstream";

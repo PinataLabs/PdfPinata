@@ -4,14 +4,14 @@
 ten pages out of a 6.7 GB image-heavy PDF without holding 6.7 GB. Today that cannot be done in any
 open mode, because every one of them reads the whole file before `PdfReader.Open` returns.
 
-Items 1 and 3 are built. The rest is a proposal.
+Items 1 to 4 are built. Item 5 is a proposal.
 
 | item | what | status |
 |---|---|---|
 | 1 | 64-bit offsets through the lexer, the cross-reference reader and the writer | done (#367) |
 | 2 | The import closure stops at page boundaries | done (#369) |
 | 3 | `PdfDocumentOpenMode.Lazy`: objects resolved on first access | done |
-| 4 | Lazy streams, copied raw and in chunks by `PdfWriter` | not started |
+| 4 | Lazy streams, copied raw and in chunks by `PdfWriter` | done |
 | 5 | `PdfSplitter`, a SampleApp demo and a docs page | not started |
 
 Each item is one PR, in that order, and each can be verified on its own.
@@ -504,15 +504,113 @@ document and the object it could not read. There is no fallback that loads every
 when the source is disposed. That would turn a mistake about ordering into a memory blow-up long
 after its cause. `PdfSplitter` gets the order right for its callers.
 
-**Verification:**
+### The data shape
 
-- On the `SplicedStream` file over 4 GB, with the extracted pages placed beyond 2³², extracting
-  pages gives the right pages, compared object by object with the same pages taken eagerly from a
-  small file.
-- The same extraction from a 4 GB and an 8 GB virtual file allocates totals within 10% of each
-  other. That shows memory does not grow with the file.
-- A chunked copy writes bytes identical to what `.Value` returns.
-- Disposing the source before `Save` throws, with the message naming the source and the object.
+`PdfStream` holds one of two things: its bytes, or a `DeferredStreamBytes` saying where they are.
+
+| state | `_value` | `_unread` |
+|---|---|---|
+| in memory, as in every other mode | the bytes | null |
+| still in the file | null | source, object, offset, length |
+| no data yet (`CreateStream` not called) | null | null |
+
+`DeferredStreamBytes` (`Pdf.IO/DeferredStreamBytes.cs`) is immutable: the `LazyObjectSource`, the
+object's ID in the source, a `long` offset and a `long` length. It names no owning document, which
+is what lets a clone share it.
+
+- **`Value`** reads the bytes through the source, keeps them and drops the `DeferredStreamBytes`.
+  `UnfilteredValue`, `TryUnfilter`, `Zip` and `ToString` go through `Value`. The setter and
+  `SetContent` drop it too.
+- **`Length`** answers the deferred length without reading. `LongLength` is the internal form the
+  writer and `/Length` use. `Length` throws for a deferred stream over `int.MaxValue`.
+- **`Clone`** is `MemberwiseClone`, so the clone has the same `DeferredStreamBytes`.
+- **`PdfWriter.WriteStream`** asks the stream for `Unread`. When there is one it calls
+  `CopyTo(output)`, and the stream stays deferred, so a second save copies again.
+- **`PdfDictionary.DeclareStreamLength`** writes `/Length` as a `PdfLong` over `int.MaxValue`.
+
+**Reading is the source's job.** `LazyObjectSource.ReadStreamBytes` and `CopyStreamBytes` run under
+the lock every resolution runs under, because they move the same stream. When an object is being
+resolved at the time, the parser's state is saved and put back, as it is for a nested resolution.
+The copy uses one 80 KB buffer the source keeps.
+
+**Parsing.** The source gives its parser to itself (`Parser.DeferStreamsTo`). With that set,
+`ReadStreamData` calls `DeferStreamData`:
+
+1. The declared length is read, through its reference if it has one. `PdfInteger`, `PdfUInteger`
+   and `PdfLong` are all accepted, so a length over 2 GiB is.
+2. It is believed when `endstream` follows that many bytes, after white space. This reads 17 bytes
+   and not a token, because a wrong length lands in the data, where a token can be as long as the
+   stream.
+3. Otherwise `Lexer.FindMarker` looks for `endstream` from the start of the data, 64 KB at a time,
+   and the end-of-line before it is left out. No keyword is a `PdfReaderException`.
+4. `/Length` is replaced by the direct number, as the eager reader replaces an indirect one.
+
+Every other parser has no `DeferStreamsTo` and reads as before. That includes the one reading the
+cross-reference sections during `Open`, and the one each `PdfObjectStream` builds over its bytes.
+
+**Errors.** After the source is disposed, both methods throw `ObjectDisposedException`. An
+`ObjectDisposedException` from the caller's own stream is rethrown as the same. The message names
+the source's path, or says it was opened from a stream, and the object. A file that has become
+shorter is a `PdfReaderException`.
+
+### What touches stream bytes on the way from source to output
+
+| where | what it does | in a `Lazy` import |
+|---|---|---|
+| `PdfPages.ImportExternalPage`, `CloneElement` | `Clone` of page entries | No bytes. |
+| `PdfObject.ImportClosure`, `DeepCopyClosure` | `Clone` of every object reached | Copies the `DeferredStreamBytes`. |
+| `PdfObject.FixUpObject`, `PdfImportedObjectTable` | references only | No bytes. |
+| `PdfAnnotations.FixImportedAnnotation`, `DetachImportedDestinations` | dictionaries only | No bytes. |
+| `PdfDocument.PrepareForSave`, `PdfCatalog`, `PdfPages` | page tree and fonts of the target | No bytes. |
+| `PdfPage.RemoveEmptyContentStreams` | `Stream.Length == 0`, for a page whose `Contents` was read | Reads the length, not the data. |
+| `PdfCrossReferenceTable.Compact`, `Renumber` | references only | No bytes. |
+| `PdfObjectStreamWriter.MayBeCompressed` | `Stream != null` | No bytes. |
+| `PdfDictionary.WriteObject`, `DeclareStreamLength` | `/Length` from `LongLength` | No bytes. |
+| `PdfWriter.WriteStream` | writes the data | Chunked copy. With a security handler, one stream is read, encrypted and written at a time, and is not kept. |
+| `PdfContent` (constructor, `WriteObject`) | unfilters, and deflates on save | Reads the stream. Only when the caller asks for `page.Contents` or draws on the page. |
+| `PdfResourceDeduplicator` (`Options.DeduplicateResources`) | compares `Stream.Value` | Reads every stream it compares. Opt-in. |
+| `PdfDocument.ConsolidateImages` | hashes `Stream.Value` | Reads every image. Opt-in. |
+| `PdfDocument.PruneUnusedResources` | decodes content streams | Reads content streams, not images. Opt-in. |
+| `PdfFormXObject` (importing a page as a form) | joins content streams | Reads the content streams. Not the page import path. |
+
+Nothing on the save path compresses or re-filters a stream it did not make. `PdfContent` is the
+one class that deflates on save, and an imported page's content is a plain dictionary until the
+caller makes it one.
+
+### Verification
+
+`LazyStreamTests`. The large documents are `SplicedPdf`s whose images are runs of one byte
+(`StreamOfFiller`), saved to a `RunCollapsingStream`, which keeps a run as its length and can be
+read back.
+
+- **Memory.** Three pages placed beyond 2³² are taken out of a 4 GiB file with 16 MiB images and an
+  8 GiB file with 1 GiB images. The second allocates under 1 MB, within 10% of the first, and reads
+  each image from the source once. The output is opened again and has three pages.
+- **Laziness.** Reading a stream's dictionary, and importing its page, read none of its data.
+  `Value` reads it once.
+- **Bytes.** A stream of 300 007 scrambled bytes is written as `Value` answers it, with its
+  `/Filter`. The same into an encrypted document. Three test assets and a document with a JPEG and
+  a PNG are saved the same from `Lazy` as from `Import`, object by object, and their images keep
+  their filters and their bytes.
+- **Over 2 GiB.** A 3 GiB stream is copied, its `/Length` is a `PdfLong`, and `Value` throws.
+- **`/Length`.** Indirect, missing, too short, past the end of the file and naming the stream
+  itself all copy the whole stream. A 256 MiB stream with no `/Length` is measured in under 1 MB.
+- **Order.** Saving after the source is disposed throws for a path and for a stream, and after the
+  caller closes the stream. A stream read before the dispose is still saved.
+- **Threads.** Sixteen streams read at once are each their own.
+
+**On the 6.7 GB file,** in a Release build: the first ten pages are 67 849 697 bytes. Taking them
+out reads 67 941 217 bytes of the source and took 326 ms and 195 ms in two runs. The managed heap
+peaked at 19.8 MB in the higher of them, sampled every 2 ms, and the working set at 54 MB. 36 MB is allocated in all; item 3
+measured 31 MB for counting the pages. Ghostscript renders the first three pages of the output to the same pixels as
+the same pages of the source.
+
+### Not done
+
+- A save that fails because the source is gone has already written part of the output.
+- A target saved with encryption holds one stream at a time, so a stream over 2 GiB cannot be
+  written encrypted.
+- `Import` is not lazy. A stream read by any other mode is in memory, as before.
 
 ## Item 5 — `PdfSplitter`
 
