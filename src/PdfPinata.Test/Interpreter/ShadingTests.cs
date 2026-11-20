@@ -178,6 +178,34 @@ public class ShadingTests
         shaders[1].Background.Should().Be(new PagePaint(0, 1, 0));
     }
 
+    // The inline image is a stencil four samples wide, 0110, the byte '`': a sample of 0 is painted.
+    private const string Stencil = "q 40 0 0 10 20 30 cm BI /W 4 /H 1 /IM true ID ` EI Q";
+
+    [Test]
+    public void AStencilMaskIsPaintedWithAShadingPatternThroughTheStencilCall()
+    {
+        var drawn = WithShading("/Pattern cs /P0 scn " + Stencil);
+
+        var call = drawn.Device.Images.Single();
+        call.Image.Format.Should().Be(PageImageFormat.Alpha8);
+        call.Image.Data.ToArray().Should().Equal(255, 0, 0, 255);
+        call.ShaderAs<PageAxialShading>().End.Should().Be(new XPoint(100, 0));
+        call.Shader!.Value.Transform.Should().Be(new XMatrix(1, 0, 0, -1, 20, 100));
+        call.At(0, 0).Should().Be(new XPoint(20, 60));
+        drawn.Problems.Should().BeEmpty();
+    }
+
+    [Test]
+    public void AStencilMaskIsPaintedInTheMeanColourOnADeviceThatDrawsNoShaders()
+    {
+        var drawn = WithShading("/Pattern cs /P0 scn " + Stencil, drawsShaders: false);
+
+        var call = drawn.Device.Images.Single();
+        call.Image.Data.ToArray().Should().Equal(255, 0, 0, 255);
+        call.Paint.Should().Be(new PagePaint(0.5, 0, 0.5));
+        drawn.Problems.Should().Equal("UnsupportedFeature /Pattern");
+    }
+
     [Test]
     public void APatternSpaceStartsAtThePatternThatPaintsNothing()
     {
