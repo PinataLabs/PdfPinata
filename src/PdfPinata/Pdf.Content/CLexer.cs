@@ -88,6 +88,7 @@ public class CLexer
 
             // Eat comments, the parser doesn't handle them
             ScanComment();
+            _endedInComment = _currChar == Chars.EOF;
         }
     }
 
@@ -207,27 +208,37 @@ public class CLexer
     /// a string holding the letters <c>ID</c> is not taken for the end of the entries. Tokens are
     /// never read past a candidate, because a string or dictionary left unclosed would read on to
     /// the end of the content, past every operator after the image, and do it again for each image
-    /// after it. When none of the first few candidates is reached by the tokens, the entries are
-    /// malformed, and end at the first candidate after the token left open.
+    /// after it. A candidate inside a comment is passed over to the end of the comment's line, which
+    /// is where a comment ends. When none of the first few other candidates is reached by the tokens,
+    /// the entries are malformed, and end at the first candidate after the token left open.
     /// </remarks>
     private bool ScanToImageData(int dictionaryStart, out int dictionaryEnd, out bool ascii85)
     {
         Span<int> candidates = stackalloc int[MaximumIDCandidates];
         var count = 0;
         var openTokenStart = dictionaryStart;
-        for (var from = dictionaryStart; count < MaximumIDCandidates; count++)
+        var from = dictionaryStart;
+        for (var windows = 0; count < MaximumIDCandidates && windows < MaximumIDWindows; windows++)
         {
             var id = FirstStandaloneID(from);
             if (id < 0)
                 break;
 
-            candidates[count] = id;
-            if (EntriesBefore(dictionaryStart, id + 2).TryScanToID(out var idStart, out var lastTokenStart, out ascii85))
+            var window = EntriesBefore(dictionaryStart, id + 2);
+            if (window.TryScanToID(out var idStart, out var lastTokenStart, out ascii85))
             {
                 dictionaryEnd = dictionaryStart + idStart;
                 MoveTo(dictionaryEnd + 2);
                 return true;
             }
+
+            if (window._endedInComment)
+            {
+                from = EndOfLine(id + 2);
+                continue;
+            }
+
+            candidates[count++] = id;
             openTokenStart = dictionaryStart + lastTokenStart;
             from = id + 2;
         }
@@ -254,8 +265,25 @@ public class CLexer
         return true;
     }
 
-    /// <summary>How many candidates for an inline image's <c>ID</c> are tried before giving up.</summary>
+    /// <summary>
+    /// How many candidates for an inline image's <c>ID</c> a token is left open across before the
+    /// entries are taken to be malformed.
+    /// </summary>
     private const int MaximumIDCandidates = 4;
+
+    /// <summary>
+    /// How many times the entries of one inline image are read, comments included, which bounds what
+    /// one image costs whatever its entries hold.
+    /// </summary>
+    private const int MaximumIDWindows = 16;
+
+    /// <summary>Where the line holding an index ends: its first CR or LF at or after it.</summary>
+    private int EndOfLine(int index)
+    {
+        while (index < ContLength && _content[index] != Chars.CR && _content[index] != Chars.LF)
+            index++;
+        return index;
+    }
 
     /// <summary>A lexer over the content from one index up to another, and nothing after.</summary>
     private CLexer EntriesBefore(int start, int end) => new(_content.AsSpan(start, end - start).ToArray());
@@ -1224,6 +1252,8 @@ public class CLexer
     private readonly StringBuilder _token = new();
     // Where in the content the token last scanned by ScanNextToken begins.
     private int _tokenStart;
+    // Whether the content ended inside a comment ScanNextToken was stepping over.
+    private bool _endedInComment;
     private long _tokenAsLong;
     private double _tokenAsReal;
 }

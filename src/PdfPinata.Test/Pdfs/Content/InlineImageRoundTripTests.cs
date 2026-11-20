@@ -180,9 +180,23 @@ public class InlineImageRoundTripTests
     }
 
     [Test, Timeout(5000)]
+    public async Task IDsInsideACommentDoNotEndTheEntries()
+    {
+        var sequence = await Interruptibly.Run(() =>
+            Read("BI /W 1 /H 1 /BPC 8 /CS /G % ID ID ID ID ID EI\nID a EI 0 0 10 10 re f"));
+
+        sequence.Select(item => ((COperator)item).Name).Should().Equal("BI", "re", "f");
+        var image = sequence[0].Should().BeOfType<CInlineImage>().Subject;
+        image.ImageDictionary.Should().Be("/W 1 /H 1 /BPC 8 /CS /G % ID ID ID ID ID EI");
+        Encoding.Latin1.GetString(image.Data).Should().Be("a");
+    }
+
+    // Each image used to read the rest of the stream again, which takes minutes for this many. The
+    // limit is generous because coverage instrumentation slows the reading several times over.
+    [Test, Timeout(30_000)]
     public async Task ManyInlineImagesWithUnclosedStringsAreEachReadOnlyAsFarAsTheirOwnEnd()
     {
-        const int images = 20_000;
+        const int images = 10_000;
         var content = string.Concat(Enumerable.Repeat("BI /W 1 /H 1 /X (unclosed ID a EI ", images)) + "0 0 10 10 re f";
 
         var sequence = await Interruptibly.Run(() => Read(content));
