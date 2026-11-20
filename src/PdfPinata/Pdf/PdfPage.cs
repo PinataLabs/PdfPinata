@@ -725,6 +725,27 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     }
 
     /// <summary>
+    /// Gets or sets the /UserUnit entry of the PDF page: the size of one default user space unit, in
+    /// multiples of 1/72 inch. It is 1 when the page has no entry. An entry that is zero, negative,
+    /// not a number, infinite or not a number type at all reads as 1 rather than refusing the page,
+    /// because the entry is meant to be positive and a viewer shows such a page at its stored size.
+    /// The entry is not inherited from the page tree. Setting it writes /UserUnit on the page,
+    /// and throws <see cref="ArgumentOutOfRangeException"/> for a value that is not finite and above zero.
+    /// </summary>
+    public double UserUnit
+    {
+        get => PdfItemValues.TryGetNumber(_elements[Keys.UserUnit], out var unit) && double.IsFinite(unit) && unit > 0
+            ? unit
+            : 1;
+        set
+        {
+            if (!double.IsFinite(value) || value <= 0)
+                throw new ArgumentOutOfRangeException(nameof(value), value, "UserUnit must be finite and greater than zero.");
+            _elements.SetReal(Keys.UserUnit, value);
+        }
+    }
+
+    /// <summary>
     /// The /Rotate entry of a page dictionary as a whole number of degrees, or 0 when it states none.
     /// </summary>
     /// <remarks>
