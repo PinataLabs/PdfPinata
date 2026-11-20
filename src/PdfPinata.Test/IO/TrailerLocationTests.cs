@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Test.Helpers;
 using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
@@ -123,40 +124,5 @@ public class TrailerLocationTests
                 (byte)'A',
                 Encoding.Latin1.GetBytes("\n%%EOF\n"));
         }
-    }
-
-    /// <summary>
-    ///   Passes every read through and remembers the largest one, which is what says whether the
-    ///   file was read a buffer at a time or all at once.
-    /// </summary>
-    private sealed class RecordingStream : Stream
-    {
-        private readonly Stream _inner;
-
-        internal RecordingStream(Stream inner) => _inner = inner;
-
-        internal int LargestRead { get; private set; }
-
-        public override bool CanRead => _inner.CanRead;
-        public override bool CanSeek => _inner.CanSeek;
-        public override bool CanWrite => false;
-        public override long Length => _inner.Length;
-
-        public override long Position
-        {
-            get => _inner.Position;
-            set => _inner.Position = value;
-        }
-
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            LargestRead = Math.Max(LargestRead, count);
-            return _inner.Read(buffer, offset, count);
-        }
-
-        public override long Seek(long offset, SeekOrigin origin) => _inner.Seek(offset, origin);
-        public override void Flush() { }
-        public override void SetLength(long value) => throw new NotSupportedException();
-        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
     }
 }

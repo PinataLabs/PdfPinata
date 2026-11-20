@@ -504,8 +504,8 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// </summary>
     private PdfPage ImportExternalPage(PdfPage importPage, AnnotationCopyingType annotationCopying = AnnotationCopyingType.ShallowCopy)
     {
-        if (importPage.Owner._openMode != PdfDocumentOpenMode.Import)
-            throw new InvalidOperationException("A PDF document must be opened with PdfDocumentOpenMode.Import to import pages from it.");
+        if (importPage.Owner._openMode is not (PdfDocumentOpenMode.Import or PdfDocumentOpenMode.Lazy))
+            throw new InvalidOperationException(PSSR.CannotImportFrom(importPage.Owner._openMode));
 
         var page = new PdfPage(_document);
 

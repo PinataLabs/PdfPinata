@@ -120,6 +120,25 @@ internal sealed class Parser
     /// </remarks>
     internal long StartXref { get; private set; }
 
+    /// <summary>
+    /// Stops <see cref="ReadTrailer"/> seeking to every object to check the entry that names it,
+    /// and has each entry checked when its object is read instead.
+    /// </summary>
+    /// <remarks>
+    /// A classic table entry is otherwise checked against the header of the object it points at,
+    /// and a type 1 entry of a cross-reference stream is filed under the numbers that header
+    /// gives. Either is a seek per object, across the whole file, before a document opens - which
+    /// is the one thing a document that reads its objects as they are asked for may not do. With
+    /// this set an entry is filed under what its section says, and
+    /// <see cref="ReadObject(PdfObject, PdfObjectID, bool, bool)"/> compares the header it reads
+    /// with that.
+    /// </remarks>
+    internal void DeferEntryChecks(PdfReadAccuracy accuracy) => _deferredEntryChecks = accuracy;
+
+    /// <summary>The accuracy entries are checked to as their objects are read, or null when
+    /// they were checked as the sections were.</summary>
+    private PdfReadAccuracy? _deferredEntryChecks;
+
     /// <summary>ISO 32000-1 Table C.1: at most 8,388,607 indirect objects, so /Size is at most one more.</summary>
     private const int MaximumSize = 8_388_608;
 
@@ -190,11 +209,65 @@ internal sealed class Parser
     /// </summary>
     private void ReadObjectHeader(PdfObjectID objectID)
     {
-        MoveToObject(objectID);
+        var position = MoveToObject(objectID);
+        if (_deferredEntryChecks is { } accuracy)
+        {
+            CheckObjectHeader(objectID, position, accuracy);
+            return;
+        }
+
         // The header's own numbers are read past and not used; see ReadObject.
         ReadInteger();
         ReadInteger();
         ReadSymbol(Symbol.Obj);
+    }
+
+    /// <summary>
+    /// Reads the header of an indirect object whose cross-reference entry nothing has checked
+    /// yet, and holds it to what the entry said.
+    /// </summary>
+    /// <remarks>
+    /// This is <see cref="VerifiedXRefTableId"/> at the other end: the same three outcomes, met
+    /// when the object is asked for rather than when the file is opened. An entry that points at
+    /// no object is refused. A header naming another object is refused under Strict and read
+    /// under the entry's number otherwise, as <see cref="ReadObject(PdfObject, PdfObjectID, bool, bool)"/>
+    /// reads it for the eager modes. The one difference is a table whose numbers are off by one.
+    /// The eager reader repairs it by filing the entry under the number the header gives, which
+    /// is a change to the table; by now other entries have been read through the table as it
+    /// stands, so the object is refused under either accuracy rather than read under a number it
+    /// does not have.
+    /// </remarks>
+    private void CheckObjectHeader(PdfObjectID objectID, long position, PdfReadAccuracy accuracy)
+    {
+        int number;
+        int generation;
+        try
+        {
+            number = ReadInteger();
+            generation = ReadInteger();
+            if (_lexer.ScanNextToken() != Symbol.Obj)
+                ParserDiagnostics.HandleUnexpectedToken(_lexer.Token);
+        }
+        catch (Exception ex) when (!Unrecoverable.Is(ex))
+        {
+            throw new PdfReaderException(
+                $"Object {objectID} is not at position {position}, where the cross-reference table says it is.", ex);
+        }
+
+        if (number == objectID.ObjectNumber && generation == objectID.GenerationNumber)
+            return;
+
+        var found = $"Object {objectID} is not at position {position}, where the cross-reference table says it is: "
+                    + $"the object there is {number} {generation}.";
+        if (generation == objectID.GenerationNumber && objectID.ObjectNumber == number + 1)
+        {
+            throw new PdfReaderException(
+                found + " The numbers of the table are off by one, which is repaired only when the whole file "
+                      + "is read; open the document with PdfDocumentOpenMode.Import.");
+        }
+
+        if (accuracy == PdfReadAccuracy.Strict)
+            throw new PdfReaderException(found);
     }
 
     /// <summary>
@@ -565,6 +638,12 @@ internal sealed class Parser
         // Objects inside an object stream have no position in the file. When such an object has not
         // been read yet there is no way to reach it from here.
         if (iref is { Position: < 0 })
+            return null;
+
+        // In a lazy document asking for the value above is what read the object. One that still
+        // is not an integer has been read and is something else, or is this very stream, which
+        // answers null while it is being read; reading it here would read it a second time.
+        if (_document?._lazySource != null)
             return null;
 
         // A stream whose length is the stream itself, or another stream whose length is the
@@ -1346,7 +1425,7 @@ internal sealed class Parser
             if (token != "n")
                 continue;
 
-            var idToUse = VerifiedXRefTableId(position, id, generation, accuracy);
+            var idToUse = _deferredEntryChecks == null ? VerifiedXRefTableId(position, id, generation, accuracy) : id;
 
             // Even it is restricted, an object can exists in more than one subsection.
             // (PDF Reference Implementation Notes 15).
@@ -1663,7 +1742,11 @@ internal sealed class Parser
                 // A byte offset, and so as wide as the file: a file past 2 GiB has
                 // offsets an int cannot hold (implementation note 21 in Appendix H).
                 var position = item.Field2;
-                var objectID = ReadObjectNumber(position);
+                if (_deferredEntryChecks != null && item.ObjectNumber < 1)
+                    break;
+                var objectID = _deferredEntryChecks == null
+                    ? ReadObjectNumber(position)
+                    : new PdfObjectID(item.ObjectNumber, (int)item.Field3);
                 if (objectID.GenerationNumber != item.Field3)
                 {
                     // The object found there is the one read; the entry's generation is only what
@@ -1872,7 +1955,7 @@ internal sealed class Parser
     private static bool TryParseField(string date, int start, int length, out int value) =>
         int.TryParse(date.AsSpan(start, length), NumberStyles.Integer, NumberFormatInfo.CurrentInfo, out value);
 
-    private ParserState SaveState()
+    internal ParserState SaveState()
     {
         return new ParserState
         {
@@ -1881,13 +1964,13 @@ internal sealed class Parser
         };
     }
 
-    private void RestoreState(ParserState state)
+    internal void RestoreState(ParserState state)
     {
         _lexer.Position = state.Position;
         _lexer.Symbol = state.Symbol;
     }
 
-    private class ParserState
+    internal sealed class ParserState
     {
         public long Position;
         public Symbol Symbol;

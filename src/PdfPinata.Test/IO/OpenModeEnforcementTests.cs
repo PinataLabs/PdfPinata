@@ -115,7 +115,8 @@ public class OpenModeEnforcementTests
     private static readonly PdfDocumentOpenMode[] NotModifiable =
     [
         PdfDocumentOpenMode.ReadOnly,
-        PdfDocumentOpenMode.Import
+        PdfDocumentOpenMode.Import,
+        PdfDocumentOpenMode.Lazy
     ];
 
     public static IEnumerable<(PdfDocumentOpenMode, string)> RefusedCells() => Cells(NotModifiable);
@@ -183,6 +184,7 @@ public class OpenModeEnforcementTests
     [Arguments(PdfDocumentOpenMode.Append)]
     [Arguments(PdfDocumentOpenMode.ReadOnly)]
     [Arguments(PdfDocumentOpenMode.Import)]
+    [Arguments(PdfDocumentOpenMode.Lazy)]
     public void CloseIsAllowedInEveryMode(PdfDocumentOpenMode mode)
     {
         var document = OpenedWith(mode);
@@ -200,6 +202,7 @@ public class OpenModeEnforcementTests
     [Arguments(PdfDocumentOpenMode.Modify)]
     [Arguments(PdfDocumentOpenMode.ReadOnly)]
     [Arguments(PdfDocumentOpenMode.Import)]
+    [Arguments(PdfDocumentOpenMode.Lazy)]
     public void OnlyAppendCanBeSavedIncrementally(PdfDocumentOpenMode mode)
     {
         var document = OpenedWith(mode);
@@ -243,6 +246,7 @@ public class OpenModeEnforcementTests
     [Test]
     [Arguments(PdfDocumentOpenMode.ReadOnly)]
     [Arguments(PdfDocumentOpenMode.Import)]
+    [Arguments(PdfDocumentOpenMode.Lazy)]
     public void AModeThatCannotModifyStillReads(PdfDocumentOpenMode mode)
     {
         var document = OpenedWith(mode);
@@ -255,13 +259,15 @@ public class OpenModeEnforcementTests
     }
 
     /// <summary>
-    ///   Extraction is what Import is for, and it is the one mode that permits it. The page comes
-    ///   out; what may not happen is a change to the document it came out of.
+    ///   Extraction is what Import and Lazy are for, and they are the modes that permit it. The
+    ///   page comes out; what may not happen is a change to the document it came out of.
     /// </summary>
     [Test]
-    public void ImportExtractsPagesIntoADocumentThatMayBeChanged()
+    [Arguments(PdfDocumentOpenMode.Import)]
+    [Arguments(PdfDocumentOpenMode.Lazy)]
+    public void ImportExtractsPagesIntoADocumentThatMayBeChanged(PdfDocumentOpenMode mode)
     {
-        var source = OpenedWith(PdfDocumentOpenMode.Import);
+        var source = OpenedWith(mode);
         var target = new PdfDocument();
 
         _ = target.AddPage(source.Pages[0]);

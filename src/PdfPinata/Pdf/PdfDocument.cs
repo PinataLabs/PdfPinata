@@ -119,13 +119,8 @@ public sealed class PdfDocument : PdfObject, IDisposable
 
     private void Dispose(bool disposing)
     {
-        if (_state != DocumentState.Disposed)
-        {
-            if (disposing)
-            {
-                // Dispose managed resources.
-            }
-        }
+        if (disposing)
+            _lazySource?.Dispose();
 
         _state = DocumentState.Disposed;
     }
@@ -1447,7 +1442,8 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// <para>
     /// Unlike <see cref="AddPage(PdfPage, AnnotationCopyingType)"/> this always copies, so the
     /// return value never aliases the argument. A page this document already owns is rejected.
-    /// The source document must be opened with <see cref="PdfDocumentOpenMode.Import"/>.
+    /// The source document must be opened with <see cref="PdfDocumentOpenMode.Import"/> or
+    /// <see cref="PdfDocumentOpenMode.Lazy"/>.
     /// </para>
     /// </summary>
     /// <param name="index">The position to place the imported copy at.</param>
@@ -1585,6 +1581,12 @@ public sealed class PdfDocument : PdfObject, IDisposable
 
     // Imported Document
     internal Lexer _lexer;
+
+    /// <summary>
+    /// What a document opened with <see cref="PdfDocumentOpenMode.Lazy"/> reads its objects from,
+    /// and null in every other mode.
+    /// </summary>
+    internal LazyObjectSource _lazySource;
 
     internal DateTime _creation;
 
