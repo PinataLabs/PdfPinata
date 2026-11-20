@@ -56,9 +56,9 @@ internal sealed partial class ContentInterpreter
     }
 
     // Drawn at 1 to 1 and not turned: what NoZoom and NoRotate ask for is already what is drawn.
-    private bool IsUpright => _view.Scale == 1
+    private bool IsUpright => Math.Abs(_view.Scale - 1) < 1e-9
         && Math.Abs(_view.Transform.M11 - 1) < 1e-9 && Math.Abs(_view.Transform.M22 + 1) < 1e-9
-        && _view.Transform.M12 == 0 && _view.Transform.M21 == 0;
+        && Math.Abs(_view.Transform.M12) < 1e-9 && Math.Abs(_view.Transform.M21) < 1e-9;
 
     private void DrawAnnotation(PdfDictionary annotation)
     {
