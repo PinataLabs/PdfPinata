@@ -46,6 +46,12 @@ internal sealed partial class ContentInterpreter
     /// </summary>
     internal const int MaximumFaults = 64;
 
+    /// <summary>
+    /// How many bytes of decoded images one render keeps to draw again: 1 GiB, which is one image
+    /// of <see cref="PageImages.MaximumSamples"/>.
+    /// </summary>
+    internal const long MaximumImageBytesKept = PageImages.MaximumSamples * 4;
+
     private readonly RenderContext _context;
     private readonly PaintRouter _device;
     private readonly PageView _view;

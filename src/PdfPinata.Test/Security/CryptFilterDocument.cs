@@ -63,6 +63,12 @@ internal sealed class CryptFilterDocument
 
     public string Title { get; init; } = "Plain or not";
 
+    /// <summary>The bytes of the title before encryption, in place of <see cref="Title"/>.</summary>
+    public byte[] TitleBytes { get; init; }
+
+    /// <summary>Whether the title is written as a literal string rather than as a hex string.</summary>
+    public bool LiteralTitle { get; init; }
+
     private static readonly byte[] Id = Enumerable.Range(0, 16).Select(i => (byte)(i * 17)).ToArray();
     private static readonly byte[] InitializationVector = Enumerable.Range(0, 16).Select(i => (byte)(0xA0 + i)).ToArray();
     private const int Permissions = -4;
@@ -97,9 +103,8 @@ internal sealed class CryptFilterDocument
         var metadata = MetadataUnderStdCF ? Encrypt(MetadataObject, Metadata)
             : EncryptMetadata && !PlainMetadata ? EncryptStream(MetadataObject, Metadata) : Metadata;
         var content = EncryptStream(5, Content);
-        var title = StringFilter is "/Identity" or null
-            ? Encoding.ASCII.GetBytes(Title)
-            : Encrypt(6, Encoding.ASCII.GetBytes(Title));
+        var plainTitle = TitleBytes ?? Encoding.ASCII.GetBytes(Title);
+        var title = StringFilter is "/Identity" or null ? plainTitle : Encrypt(6, plainTitle);
 
         var encryptMetadata = EncryptMetadata ? "" : " /EncryptMetadata false";
 
@@ -110,7 +115,7 @@ internal sealed class CryptFilterDocument
             Ascii("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Contents 5 0 R >>"),
             Stream($"/Type /Metadata /Subtype /XML{MetadataEntries}", metadata),
             Stream("", content),
-            Ascii($"<< /Title <{Hex(title)}> >>"),
+            Ascii($"<< /Title {(LiteralTitle ? Octal(title) : $"<{Hex(title)}>")} >>"),
             Ascii($"<< /Filter /Standard {Handler()} /CF << /StdCF << /CFM {Method} /AuthEvent /DocOpen " +
                   $"/Length {FileKey.Length} >> >>{Entry("/StmF", StreamFilter)}{Entry("/StrF", StringFilter)} " +
                   $"/P {Permissions}{encryptMetadata} >>")
@@ -181,4 +186,7 @@ internal sealed class CryptFilterDocument
     private static byte[] Ascii(string text) => Encoding.ASCII.GetBytes(text);
 
     private static string Hex(byte[] bytes) => Convert.ToHexString(bytes);
+
+    private static string Octal(byte[] bytes) =>
+        "(" + string.Concat(bytes.Select(b => "\\" + Convert.ToString(b, 8).PadLeft(3, '0'))) + ")";
 }

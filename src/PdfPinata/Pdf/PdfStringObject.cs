@@ -98,7 +98,8 @@ public sealed class PdfStringObject : PdfObject
     public PdfStringEncoding Encoding
     {
         get => (PdfStringEncoding)(_flags & PdfStringFlags.EncodingMask);
-        set => _flags = (_flags & ~PdfStringFlags.EncodingMask) | ((PdfStringFlags)value & PdfStringFlags.EncodingMask);
+        set => _flags = (_flags & ~(PdfStringFlags.EncodingMask | PdfStringFlags.LittleEndianMark))
+                        | ((PdfStringFlags)value & PdfStringFlags.EncodingMask);
     }
 
     /// <summary>
@@ -111,13 +112,21 @@ public sealed class PdfStringObject : PdfObject
     }
     private PdfStringFlags _flags;
 
+    /// <summary>Whether the bytes open with FF FE and take their characters low byte first.</summary>
+    internal bool IsLittleEndian => PdfString.IsLittleEndianMark(_flags);
+
     /// <summary>
     /// Gets or sets the value as string
     /// </summary>
     public string Value
     {
         get => _value ?? "";
-        set => _value = value ?? "";
+        set
+        {
+            // Only a string written back unchanged keeps the byte order it was read in.
+            _value = value ?? "";
+            _flags &= ~PdfStringFlags.LittleEndianMark;
+        }
     }
     private string _value;
 
@@ -137,6 +146,8 @@ public sealed class PdfStringObject : PdfObject
         {
             if (_value == null)
                 return [];
+            if (PdfString.IsLittleEndianMark(_flags))
+                return PdfString.LittleEndianBytes(_value);
             return Encoding == PdfStringEncoding.Unicode
                 ? PdfEncoders.RawUnicodeEncoding.GetBytes(_value)
                 : PdfEncoders.RawEncoding.GetBytes(_value);
@@ -144,11 +155,21 @@ public sealed class PdfStringObject : PdfObject
         set
         {
             // As in PdfString: the byte order mark is inside the encrypted bytes, so it is only
-            // after decrypting that a string can be seen to be UTF-16BE.
+            // after decrypting that a string can be seen to be UTF-16BE. A little endian reading
+            // came from the ciphertext and says nothing about what it decrypts to, so it is dropped.
+            if ((_flags & PdfStringFlags.LittleEndianMark) != 0)
+                _flags &= ~(PdfStringFlags.LittleEndianMark | PdfStringFlags.EncodingMask);
             if (CharacterScanning.StartsWithUtf16BigEndianMark(value))
             {
                 _value = PdfEncoders.RawUnicodeEncoding.GetString(value, 2, value.Length - 2);
                 Encoding = PdfStringEncoding.Unicode;
+                return;
+            }
+
+            if (PdfString.IsLittleEndianPlaintext(value, _flags))
+            {
+                _value = PdfString.DecodeLittleEndian(value);
+                _flags = (_flags & ~PdfStringFlags.EncodingMask) | PdfStringFlags.Unicode | PdfStringFlags.LittleEndianMark;
                 return;
             }
 

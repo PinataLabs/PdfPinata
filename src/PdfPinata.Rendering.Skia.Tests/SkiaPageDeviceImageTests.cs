@@ -7,8 +7,8 @@ using TUnit.Core;
 namespace PdfPinata.Rendering.Skia.Tests;
 
 /// <summary>
-/// Images handed to the device directly, because page rendering decodes none yet: each sample is
-/// drawn 10 pixels square, without smoothing, onto white.
+/// Images handed to the device directly, so that what is tested is the device's drawing and not
+/// the core's decoding: each sample is drawn 10 pixels square, without smoothing, onto white.
 /// </summary>
 public class SkiaPageDeviceImageTests
 {

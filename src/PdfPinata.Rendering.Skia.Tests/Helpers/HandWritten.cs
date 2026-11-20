@@ -33,8 +33,22 @@ internal static class HandWritten
         state.Elements.SetName("/Type", "/ExtGState");
         entries(state);
         document.Internals.AddObject(state);
-
         Resource(document, page, "/ExtGState", name, state);
+    }
+
+    /// <summary>
+    /// An image XObject named <paramref name="name"/> in the page's resources, holding
+    /// <paramref name="data"/> as it is: its <c>/Filter</c> is among the entries.
+    /// </summary>
+    public static void Image(PdfDocument document, PdfPage page, string name, byte[] data, Action<PdfDictionary> entries)
+    {
+        var image = new PdfDictionary(document);
+        image.Elements.SetName("/Type", "/XObject");
+        image.Elements.SetName("/Subtype", "/Image");
+        image.CreateStream(data);
+        entries(image);
+        document.Internals.AddObject(image);
+        Resource(document, page, "/XObject", name, image);
     }
 
     /// <summary>

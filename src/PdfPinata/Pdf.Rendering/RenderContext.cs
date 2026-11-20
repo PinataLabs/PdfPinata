@@ -49,6 +49,15 @@ internal sealed class RenderContext
     /// </summary>
     internal Dictionary<object, ContentInterpreter.ParsedContent> FormContent { get; } = new(ReferenceIdentity.Instance);
 
+    /// <summary>
+    /// Each image XObject's samples as they were decoded the first time it was drawn, or null where
+    /// they could not be. See <c>ContentInterpreter.ImageOf</c>.
+    /// </summary>
+    internal Dictionary<object, PageImage> Images { get; } = new(ReferenceIdentity.Instance);
+
+    /// <summary>How many bytes of samples <see cref="Images"/> holds.</summary>
+    internal long ImageBytesKept { get; set; }
+
     internal PdfDocument Document { get; set; }
 
     /// <summary>Read from the document the first time content asks about a group.</summary>
