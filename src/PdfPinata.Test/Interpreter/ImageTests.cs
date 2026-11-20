@@ -594,13 +594,55 @@ public class ImageTests
         Gray(Drawn.Page(content).Device.Images.Single().Image).Should().Equal(10, 20, 15, 25);
     }
 
+    private static readonly byte[] Palette = [255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 0];
+
+    private static readonly byte[][] PaletteColours =
+    [
+        [255, 0, 0, 255], [0, 255, 0, 255], [0, 0, 255, 255], [255, 255, 0, 255]
+    ];
+
     [Test]
     public void AnAbbreviatedIndexedSpaceIsResolvedAsIndexed()
     {
-        // Indexed is resolved by #372. Until then the image is reported under the family's full name.
-        var drawn = Drawn.Page("BI /W 1 /H 1 /CS [/I /RGB 1 <FF000000FF00>] /BPC 8 ID \u0001\nEI");
+        var drawn = Drawn.Page("BI /W 2 /H 1 /CS [/I /RGB 1 <FF000000FF00>] /BPC 8 ID \u0001\u0000\nEI");
 
-        drawn.Problems.Should().Contain("UnsupportedColorSpace /Indexed");
+        drawn.Problems.Should().BeEmpty();
+        drawn.Device.Images.Single().Image.Data.ToArray().Should().Equal(0, 255, 0, 255, 255, 0, 0, 255);
+    }
+
+    // The samples are indexes, and the default /Decode keeps them whole: 0 to 2^bits - 1.
+    [Test]
+    [Arguments(1, new byte[] { 0x60 }, new[] { 0, 1, 1, 0 })]
+    [Arguments(2, new byte[] { 0x1B }, new[] { 0, 1, 2, 3 })]
+    [Arguments(4, new byte[] { 0x30, 0x20 }, new[] { 3, 0, 2 })]
+    [Arguments(8, new byte[] { 3, 2, 1, 0 }, new[] { 3, 2, 1, 0 })]
+    public void AnIndexedInlineImageDrawsItsPaletteAtEveryBitDepth(int bits, byte[] row, int[] indexes)
+    {
+        var content = Encoding.Latin1.GetBytes($"BI /W {indexes.Length} /H 1 /CS [/I /RGB 3 <FF000000FF000000FFFFFF00>] /BPC {bits} ID ")
+            .Concat(row).Concat(Encoding.Latin1.GetBytes("\nEI")).ToArray();
+
+        var drawn = Drawn.Page(content);
+
+        drawn.Problems.Should().BeEmpty();
+        drawn.Device.Images.Single().Image.Data.ToArray().Should().Equal(indexes.SelectMany(i => PaletteColours[i]));
+    }
+
+    [Test]
+    [Arguments(1, new byte[] { 0x60 }, new[] { 0, 1, 1, 0 })]
+    [Arguments(2, new byte[] { 0x1B }, new[] { 0, 1, 2, 3 })]
+    [Arguments(4, new byte[] { 0x30, 0x20 }, new[] { 3, 0, 2 })]
+    [Arguments(8, new byte[] { 3, 2, 1, 0 }, new[] { 3, 2, 1, 0 })]
+    public void AnIndexedImageXObjectDrawsItsPaletteAtEveryBitDepth(int bits, byte[] row, int[] indexes)
+    {
+        var image = DrawnImage(row, (document, dictionary) =>
+        {
+            Set(dictionary, ("/Width", indexes.Length), ("/Height", 1), ("/BitsPerComponent", bits));
+            dictionary.Elements["/ColorSpace"] = new PdfArray(document,
+                new PdfName("/Indexed"), new PdfName("/DeviceRGB"), new global::PdfPinata.Pdf.PdfInteger(3),
+                new PdfString(Encoding.Latin1.GetString(Palette) + "ÿÿ ", PdfStringEncoding.RawEncoding));
+        });
+
+        image.Data.ToArray().Should().Equal(indexes.SelectMany(i => PaletteColours[i]));
     }
 
     // ----- Drawn again ------------------------------------------------------------------------------
@@ -760,8 +802,8 @@ public class ImageTests
     }
 
     // A palette written as a binary literal string is any bytes, and [ and < are two of them. The
-    // dictionary is read and the image reaches its colour space, which is Indexed and resolved by
-    // #372; the same string under a key of no meaning is read and the image drawn.
+    // dictionary is read and the image is drawn through the palette; the same string under a key of
+    // no meaning is read and the image drawn.
     [Test]
     [Arguments("/CS [/I /RGB 255 (", ")]")]
     [Arguments("/CS /G /X (", ")")]
@@ -775,7 +817,10 @@ public class ImageTests
         var drawn = Drawn.Page(content);
 
         if (before.Contains("/I "))
-            drawn.Problems.Should().Contain("UnsupportedColorSpace /Indexed").And.NotContain("InvalidValue BI");
+        {
+            drawn.Problems.Should().BeEmpty();
+            drawn.Device.Images.Single().Image.Data.ToArray().Should().Equal(60, 91, 0, 255, 60, 91, 255, 255);
+        }
         else
             Gray(drawn.Device.Images.Single().Image).Should().Equal(0, 255);
     }

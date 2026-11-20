@@ -107,6 +107,9 @@ Colour reaches the device as RGB:
   to choose one.
 - ICCBased uses its `/Alternate`, or a device space chosen from `/N`. The profile is not applied.
 - Indexed looks up its base space.
+- CalGray and CalRGB are DeviceGray and DeviceRGB, with no white point, gamma or matrix applied,
+  which is what ICCBased gets too. Nothing is reported. Separation, DeviceN, Lab and Pattern are
+  reported and drawn in black until their sub-issue lands.
 
 Real ICC handling is item 14.
 
