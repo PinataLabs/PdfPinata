@@ -366,13 +366,35 @@ public class FormXObjectTests
         drawn.Result.IsComplete.Should().BeTrue("an expression with a part that cannot be read is visible");
     }
 
-    [Test, Timeout(30_000)]
-    public async Task ANotOverAnExpressionPastTheBudgetIsVisible()
+    /// <summary>
+    /// An <c>/And</c> over the level below twice, <paramref name="levels"/> deep over the group
+    /// that is on: two to the power of one more than that, less two, operands to read.
+    /// </summary>
+    private static PdfItem Doubling(PdfDocument document, PdfDictionary group, int levels)
     {
-        // [/Not [/And self self]]: the inner expression is read to its limit, and what cannot be
-        // read to its end is visible whatever stands over it.
-        var drawn = await Interruptibly.Run(() => WithExpression("/OC /M BDC 0 0 5 5 re f EMC", (document, _, _) =>
+        PdfItem level = group.Reference;
+        for (var depth = 0; depth < levels; depth++)
         {
+            var expression = Expression(document, new PdfName("/And"), level, level);
+            document.Internals.AddObject(expression);
+            level = expression.Reference;
+        }
+
+        return level;
+    }
+
+    [Test, Timeout(30_000)]
+    [Arguments("deeper than the limit")]
+    [Arguments("longer than the operand budget")]
+    public async Task ANotOverAnExpressionPastALimitIsVisible(string past)
+    {
+        // [/Not [/And self self]] is never read to its end, and [/Not <ten doublings>] asks for
+        // 2,046 operands. What cannot be read to its end is visible whatever stands over it.
+        var drawn = await Interruptibly.Run(() => WithExpression("/OC /M BDC 0 0 5 5 re f EMC", (document, _, second) =>
+        {
+            if (past == "longer than the operand budget")
+                return Expression(document, new PdfName("/Not"), Doubling(document, second, 10));
+
             var inner = new PdfArray(document);
             document.Internals.AddObject(inner);
             inner.Elements.Add(new PdfName("/And"));
@@ -393,19 +415,11 @@ public class FormXObjectTests
         // time it is read. Against as many runs in a plain group, which costs nothing to ask about.
         var runs = string.Concat(Enumerable.Repeat("/OC /M BDC EMC ", 40_000));
         Drawn Plain() => Layered(runs.Replace("/M", "/L1"), (_, _, _, _) => { });
-        Drawn Doubling() => Layered(runs, (_, _, _, _) => { }, (document, resources, _, second) =>
+        Drawn Doubled() => Layered(runs, (_, _, _, _) => { }, (document, resources, _, second) =>
         {
-            PdfItem level = second.Reference;
-            for (var depth = 0; depth < 9; depth++)
-            {
-                var expression = Expression(document, new PdfName("/And"), level, level);
-                document.Internals.AddObject(expression);
-                level = expression.Reference;
-            }
-
             var membership = new PdfDictionary(document);
             membership.Elements.SetName("/Type", "/OCMD");
-            membership.Elements["/VE"] = level;
+            membership.Elements["/VE"] = Doubling(document, second, 9);
             Drawn.Add(document, resources, "/Properties", "/M", membership);
         });
 
@@ -423,7 +437,7 @@ public class FormXObjectTests
             return fastest;
         }
 
-        var (plain, doubling) = await Interruptibly.Run(() => (Fastest(Plain), Fastest(Doubling)));
+        var (plain, doubling) = await Interruptibly.Run(() => (Fastest(Plain), Fastest(Doubled)));
 
         doubling.Should().BeLessThan(plain * 2, $"the expression is read once, not once a run, and a plain group took {plain}");
     }
