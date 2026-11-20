@@ -217,7 +217,7 @@ public abstract class PdfObject : PdfItem
     internal static PdfObject DeepCopyClosure(PdfDocument owner, PdfObject externalObject)
     {
         // Get transitive closure.
-        var elements = externalObject.Owner.Internals.GetClosure(externalObject);
+        var elements = externalObject.Owner.Internals.GetClosure(externalObject, IsPageOf(externalObject.Owner));
         var count = elements.Length;
         // 1st loop. Replace all objects by their clones.
         var iot = new PdfImportedObjectTable(owner, externalObject.Owner);
@@ -258,6 +258,23 @@ public abstract class PdfObject : PdfItem
         return elements[0];
     }
 
+    /// <summary>
+    /// Whether an object of <paramref name="external"/> is one of its pages or page tree nodes,
+    /// which an imported closure does not follow into. An annotation's /P, a link's /Dest and a
+    /// go-to action's /D all name a page, whose /Parent is the page tree, so following them copies
+    /// every page of the document. A page is known by its /Type or, since some writers leave that
+    /// out, by its /Parent: reading the page tree flattens it, so the /Parent of every page is the
+    /// root of the tree.
+    /// </summary>
+    private static Func<PdfObject, bool> IsPageOf(PdfDocument external)
+    {
+        var pageTree = external.Pages.ObjectID;
+        return obj => obj is PdfDictionary dictionary
+                      && (dictionary.Elements.GetName(PdfPage.Keys.Type) is "/Page" or "/Pages"
+                          || dictionary.Elements[PdfPage.Keys.Parent] is PdfReference parent
+                          && parent.ObjectID == pageTree);
+    }
+
     ///// <summary>
     ///// Imports an object and its transitive closure to the specified document.
     ///// </summary>
@@ -272,7 +289,7 @@ public abstract class PdfObject : PdfItem
             "The ExternalDocument of the importedObjectTable does not belong to the owner of object to be imported.");
 
         // Get transitive closure of external object.
-        var elements = externalObject.Owner.Internals.GetClosure(externalObject);
+        var elements = externalObject.Owner.Internals.GetClosure(externalObject, IsPageOf(externalObject.Owner));
         var count = elements.Length;
         // 1st loop. Already imported objects are reused and new ones are cloned.
         for (var idx = 0; idx < count; idx++)
@@ -407,10 +424,10 @@ public abstract class PdfObject : PdfItem
     }
 
     /// <summary>
-    /// Fixes up one element of a dictionary or an array. Answers the reference to put in its place
+    /// Fixes up one element of a dictionary or an array. Answers the item to put in its place
     /// when it is a reference into the external document, and null when it stays as it is.
     /// </summary>
-    private static PdfReference FixUpItem(PdfImportedObjectTable iot, PdfDocument owner, PdfItem item)
+    private static PdfItem FixUpItem(PdfImportedObjectTable iot, PdfDocument owner, PdfItem item)
     {
         if (item is PdfReference iref)
         {
@@ -427,9 +444,14 @@ public abstract class PdfObject : PdfItem
             // object of the transitive closure has been cloned into the owner, either by
             // the first loop of DeepCopyClosure or ImportClosure or by an earlier import
             // through the same table, and iot maps its external ID to the clone's entry in
-            // the owner's cross-reference table. The referenced object is part of that
-            // closure, so the lookup always finds it, and the reference it answers belongs
-            // to the owner, usually under a different number.
+            // the owner's cross-reference table. The reference it answers belongs to the
+            // owner, usually under a different number.
+            // The one exception is a page, where the closure stops: the table holds it only
+            // once it was imported as a page. Any other becomes null rather than going
+            // missing, because FixImportedAnnotation rewrites /P only where it is present.
+            if (!iot.Contains(iref.ObjectID))
+                return PdfNull.Value;
+
             var newXRef = iot[iref.ObjectID];
             Debug.Assert(newXRef != null);
             Debug.Assert(newXRef.Document == owner);

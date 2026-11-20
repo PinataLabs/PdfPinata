@@ -310,9 +310,19 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
     /// </summary>
     public PdfReference[] TransitiveClosure(PdfObject pdfObject, int depth)
     {
+        return TransitiveClosure(pdfObject, isBoundary: null);
+    }
+
+    /// <summary>
+    /// Calculates the transitive closure of the specified PdfObject, leaving out every object
+    /// <paramref name="isBoundary"/> answers true for and whatever is reachable only through one.
+    /// The object given is never itself a boundary.
+    /// </summary>
+    internal PdfReference[] TransitiveClosure(PdfObject pdfObject, Func<PdfObject, bool> isBoundary)
+    {
         var objects = new Dictionary<PdfItem, object>();
         _overflow = new Dictionary<PdfItem, object>();
-        TransitiveClosureImplementation(objects, pdfObject);
+        TransitiveClosureImplementation(objects, pdfObject, isBoundary);
         TryAgain:
         if (_overflow.Count > 0)
         {
@@ -322,7 +332,7 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
             foreach (var item in array)
             {
                 var obj = (PdfObject)item;
-                TransitiveClosureImplementation(objects, obj);
+                TransitiveClosureImplementation(objects, obj, isBoundary);
             }
 
             goto TryAgain;
@@ -339,7 +349,7 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
     private Dictionary<PdfItem, object> _overflow = new();
 
     private void TransitiveClosureImplementation(Dictionary<PdfItem, object> objects,
-        PdfObject pdfObject /*, ref int depth*/)
+        PdfObject pdfObject, Func<PdfObject, bool> isBoundary)
     {
         try
         {
@@ -358,9 +368,9 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
             foreach (PdfItem item in enumerable)
             {
                 if (item is PdfReference iref)
-                    AddReferenceToClosure(objects, iref);
+                    AddReferenceToClosure(objects, iref, isBoundary);
                 else if (item is PdfObject pdfObject28 and (PdfDictionary or PdfArray))
-                    TransitiveClosureImplementation(objects, pdfObject28 /*, ref depth*/);
+                    TransitiveClosureImplementation(objects, pdfObject28, isBoundary);
             }
         }
         finally
@@ -390,7 +400,8 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
     /// Adds the object a reference leads to, and everything it leads to in turn, unless it is in
     /// the closure already or is unreachable.
     /// </summary>
-    private void AddReferenceToClosure(Dictionary<PdfItem, object> objects, PdfReference iref)
+    private void AddReferenceToClosure(Dictionary<PdfItem, object> objects, PdfReference iref,
+        Func<PdfObject, bool> isBoundary)
     {
         if (!ReferenceEquals(iref.Document, _document))
             Debug.WriteLine($"Bad iref: {iref.ObjectID.ToString()}");
@@ -415,9 +426,12 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
         }
 
         Debug.Assert(ReferenceEquals(iref.Document, _document));
+        if (isBoundary != null && isBoundary(value))
+            return;
+
         objects.Add(iref, null);
         if (value is PdfArray or PdfDictionary)
-            TransitiveClosureImplementation(objects, value /*, ref depth*/);
+            TransitiveClosureImplementation(objects, value, isBoundary);
     }
 
     /// <summary>

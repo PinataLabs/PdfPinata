@@ -9,7 +9,7 @@ This is a proposal. Nothing in it has been built.
 | item | what | status |
 |---|---|---|
 | 1 | 64-bit offsets through the lexer, the cross-reference reader and the writer | not started |
-| 2 | The import closure stops at page boundaries | not started |
+| 2 | The import closure stops at page boundaries | done (`import-closure-stops-at-pages`) |
 | 3 | `PdfDocumentOpenMode.Lazy`: objects resolved on first access | not started |
 | 4 | Lazy streams, copied raw and in chunks by `PdfWriter` | not started |
 | 5 | `PdfSplitter`, a SampleApp demo and a docs page | not started |
