@@ -208,11 +208,43 @@ public class TextTests
     public void ACMapThatIsNotReadYetIsReportedAndTheTextIsStillSet()
     {
         var drawn = Drawn.Page("BT /F1 10 Tf <0001> Tj ET", (document, resources) =>
-            Drawn.Add(document, resources, "/Font", "/F1", TestFonts.Composite(document, "/Identity-V", 1000)),
+            Drawn.Add(document, resources, "/Font", "/F1", TestFonts.Composite(document, "/UniJIS-UCS2-H", 1000)),
             _ => new SquareGlyphs());
 
         drawn.Device.Fills.Should().ContainSingle();
         drawn.Problems.Should().Equal("UnsupportedFeature /F1");
+    }
+
+    [Test]
+    public void IdentityVSetsEachGlyphWithItsPositionVectorOnThePenAndMovesThePenDown()
+    {
+        // Nothing in /W2 or /DW2: each glyph is placed half its width, 0.5, to the left of the
+        // pen and 0.88 below it, and the pen moves down one em.
+        var drawn = Drawn.Page("BT /F1 10 Tf 50 50 Td <00010002> Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", TestFonts.Composite(document, "/Identity-V", 1000)),
+            _ => new SquareGlyphs());
+
+        drawn.Device.Fills.Select(fill => fill.Origin).Should().Equal(new XPoint(45, 58.8), new XPoint(45, 68.8));
+        drawn.Problems.Should().BeEmpty();
+    }
+
+    [Test]
+    public void IdentityVTakesEachCidsAdvanceAndPositionVectorFromW2AndCloseUpFromTJ()
+    {
+        var drawn = Drawn.Page("BT /F1 10 Tf 50 50 Td 2 Tc [<0001> 500 <0002>] TJ ET", (document, resources) =>
+        {
+            var font = TestFonts.Composite(document, "/Identity-V", 1000);
+            var descendant = (PdfDictionary)font.Elements.GetArray("/DescendantFonts").Elements.GetObject(0);
+            descendant.Elements["/W2"] = new PdfArray(document, new PdfReal(1),
+                new PdfArray(document, new PdfReal(-500), new PdfReal(300), new PdfReal(700)));
+            descendant.Elements["/DW2"] = new PdfArray(document, new PdfReal(800), new PdfReal(-900));
+            Drawn.Add(document, resources, "/Font", "/F1", font);
+        }, _ => new SquareGlyphs());
+
+        // CID 1 sits at (50 - 3, 50 - 7). The pen moves by its advance of -5 plus the 2 of
+        // character spacing, to 47, as ISO 32000-1 9.4.4 adds them, then down 5 for the 500 in the
+        // array. CID 2 then takes /DW2: half its width across, and 8 below the pen at 42.
+        drawn.Device.Fills.Select(fill => fill.Origin).Should().Equal(new XPoint(47, 57), new XPoint(45, 66));
     }
 
     [Test]

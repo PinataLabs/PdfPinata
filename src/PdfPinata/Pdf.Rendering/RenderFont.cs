@@ -17,12 +17,14 @@ namespace PdfPinata.Pdf.Rendering;
 internal sealed class RenderFont
 {
     private readonly FontWidths _widths;
+    private readonly VerticalMetrics _vertical;
     private readonly Dictionary<int, PagePath> _outlines = new();
 
-    private RenderFont(bool isComposite, FontWidths widths)
+    private RenderFont(bool isComposite, FontWidths widths, VerticalMetrics vertical)
     {
         IsComposite = isComposite;
         _widths = widths;
+        _vertical = vertical;
     }
 
     /// <summary>Whether this is a Type 0 font, whose codes are two bytes and name CIDs.</summary>
@@ -30,6 +32,12 @@ internal sealed class RenderFont
 
     /// <summary>How many bytes of a shown string make one code.</summary>
     internal int BytesPerCode => IsComposite ? 2 : 1;
+
+    /// <summary>
+    /// Whether the text is set in vertical writing, down the page: a composite font whose CMap is
+    /// <c>Identity-V</c>.
+    /// </summary>
+    internal bool IsVertical => _vertical != null;
 
     /// <summary>
     /// Where the outlines come from, or null where this version has no source for the font, in
@@ -58,8 +66,11 @@ internal sealed class RenderFont
             : null;
 
         // A composite font with no descendant states no widths, and every CID takes the default.
-        var renderFont = new RenderFont(isComposite,
-            FontWidths.From(font, isComposite ? descendant ?? new PdfDictionary() : null));
+        var metricsOf = isComposite ? descendant ?? new PdfDictionary() : null;
+        var vertical = isComposite && PdfItemValues.TryGetName(font.Elements["/Encoding"], out var cmap) && cmap == "/Identity-V"
+            ? VerticalMetrics.From(metricsOf)
+            : null;
+        var renderFont = new RenderFont(isComposite, FontWidths.From(font, metricsOf), vertical);
         if (isComposite)
             renderFont.EncodingNote = EncodingNoteOf(font);
 
@@ -101,6 +112,13 @@ internal sealed class RenderFont
             return 0;
         }
     }
+
+    /// <summary>
+    /// How a code of a font in vertical writing is placed and advanced, in text space before the
+    /// type size is applied: the advance, negative for down the page, and the position vector that
+    /// is put on the pen. Asked only where <see cref="IsVertical"/>.
+    /// </summary>
+    internal (double Advance, double X, double Y) VerticalMetricsOf(int code) => _vertical.Of(code, WidthOf(code));
 
     /// <summary>
     /// The outline of a code's glyph: the same instance every time, empty for a glyph that draws
@@ -147,18 +165,15 @@ internal sealed class RenderFont
 
     /// <summary>
     /// A composite font's codes are read as two bytes that are the CID, which is what
-    /// <c>Identity-H</c> says and what this library writes. Any other CMap is read the same way
-    /// until CMaps are, and vertical writing is set horizontally.
+    /// <c>Identity-H</c> and <c>Identity-V</c> say and what this library writes. Any other CMap,
+    /// named or embedded, is read the same way until CMaps are, and is set horizontally.
     /// </summary>
     private static string EncodingNoteOf(PdfDictionary font)
     {
         PdfItemValues.TryGetName(font.Elements["/Encoding"], out var encoding);
-        return encoding switch
-        {
-            "/Identity-H" => null,
-            "/Identity-V" => "Vertical writing is not set yet. The text is set horizontally.",
-            _ => "The font's CMap is not read yet. Its codes are read as two bytes that are the CID."
-        };
+        return encoding is "/Identity-H" or "/Identity-V"
+            ? null
+            : "The font's CMap is not read yet. Its codes are read as two bytes that are the CID.";
     }
 }
 

@@ -142,14 +142,14 @@ internal sealed class FontWidths
     }
 
     /// <summary>The largest CID a two-byte code can name.</summary>
-    private const int MaximumCid = 0xFFFF;
+    internal const int MaximumCid = 0xFFFF;
 
     /// <summary>
     /// Reads a CID, which a file may write as a real such as <c>1.0</c>. One out of range is
     /// held to the range, so that a run that begins or ends outside it still covers what of it
     /// lies inside.
     /// </summary>
-    private static bool TryGetCid(PdfItem item, out int cid)
+    internal static bool TryGetCid(PdfItem item, out int cid)
     {
         var isNumber = PdfItemValues.TryGetNumber(item, out var number) && !double.IsNaN(number);
         cid = isNumber ? (int)Math.Max(-1, Math.Min(number, MaximumCid + 1)) : 0;
@@ -160,5 +160,93 @@ internal sealed class FontWidths
     {
         if (cid is >= 0 and <= MaximumCid)
             _widths[(int)cid] = width;
+    }
+}
+
+/// <summary>
+/// How a composite font in vertical writing places and advances each CID: <c>/W2</c> and
+/// <c>/DW2</c> on its descendant, by ISO 32000-1 9.7.4.3. Like the widths, never from the font program.
+/// </summary>
+/// <remarks>
+/// A glyph is placed with its position vector, (vx, vy), on the pen, and the pen then moves down by
+/// the vertical advance. Where <c>/W2</c> gives a CID nothing, vx is half its horizontal width and
+/// vy and the advance are <c>/DW2</c>'s, which is [880 -1000] where it is not stated.
+/// </remarks>
+internal sealed class VerticalMetrics
+{
+    private readonly Dictionary<int, (double Advance, double X, double Y)> _metrics = new();
+    private readonly double _defaultY;
+    private readonly double _defaultAdvance;
+
+    private VerticalMetrics(double defaultY, double defaultAdvance)
+    {
+        _defaultY = defaultY;
+        _defaultAdvance = defaultAdvance;
+    }
+
+    /// <summary>The vertical metrics a descendant font states.</summary>
+    internal static VerticalMetrics From(PdfDictionary descendant)
+    {
+        double defaultY = 880, defaultAdvance = -1000;
+        var dw2 = descendant.Elements.GetArray("/DW2");
+        if (dw2 != null && dw2.Elements.Count >= 2
+                        && PdfItemValues.TryGetNumber(dw2.Elements[0], out var y)
+                        && PdfItemValues.TryGetNumber(dw2.Elements[1], out var advance))
+        {
+            (defaultY, defaultAdvance) = (y, advance);
+        }
+
+        var metrics = new VerticalMetrics(defaultY / 1000, defaultAdvance / 1000);
+        var w2 = descendant.Elements.GetArray("/W2");
+        if (w2 == null)
+            return metrics;
+
+        // The same two forms as /W, each width a triple: c [w1y vx vy …] gives each of a run of
+        // CIDs its own, and cFirst cLast w1y vx vy gives a run of them one. Bounded as /W is.
+        var budget = 4 * (FontWidths.MaximumCid + 1);
+        for (var at = 0; at + 1 < w2.Elements.Count && budget > 0;)
+        {
+            if (!FontWidths.TryGetCid(w2.Elements[at], out var first))
+                break;
+
+            if (PdfReference.Dereference(w2.Elements[at + 1]) is PdfArray individually)
+            {
+                for (var index = 0; index + 2 < individually.Elements.Count && budget > 0; index += 3, budget--)
+                    metrics.Set((long)first + index / 3, individually, index);
+                at += 2;
+                continue;
+            }
+
+            if (at + 4 >= w2.Elements.Count || !FontWidths.TryGetCid(w2.Elements[at + 1], out var last))
+                break;
+
+            for (long cid = first; cid <= last && cid <= FontWidths.MaximumCid && budget > 0; cid++, budget--)
+                metrics.Set(cid, w2, at + 2);
+            at += 5;
+        }
+
+        return metrics;
+    }
+
+    /// <summary>
+    /// The vertical advance, negative for down the page, and the position vector of a CID, all in
+    /// text space before the type size is applied.
+    /// </summary>
+    /// <param name="cid">The CID.</param>
+    /// <param name="horizontalWidth">The CID's horizontal width, half of which is vx where nothing else says.</param>
+    internal (double Advance, double X, double Y) Of(int cid, double horizontalWidth) =>
+        _metrics.TryGetValue(cid, out var stated) ? stated : (_defaultAdvance, horizontalWidth / 2, _defaultY);
+
+    private void Set(long cid, PdfArray numbers, int from)
+    {
+        if (cid is < 0 or > FontWidths.MaximumCid
+            || !PdfItemValues.TryGetNumber(numbers.Elements[from], out var advance)
+            || !PdfItemValues.TryGetNumber(numbers.Elements[from + 1], out var x)
+            || !PdfItemValues.TryGetNumber(numbers.Elements[from + 2], out var y))
+        {
+            return;
+        }
+
+        _metrics[(int)cid] = (advance / 1000, x / 1000, y / 1000);
     }
 }
