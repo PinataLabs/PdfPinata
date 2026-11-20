@@ -324,6 +324,43 @@ public class EmbeddedTrueTypeTests
     }
 
     [Test]
+    public void ANameBeyondTheBasicMultilingualPlaneIsFoundInTheFullUnicodeCmap()
+    {
+        var builder = new TrueTypeFontBuilder();
+        var letter = builder.AddBar(100);
+        var emoji = builder.AddBar(200);
+        builder.Map(3, 1, new Dictionary<int, int> { [0x41] = letter })
+            .Map(3, 10, new Dictionary<int, int> { [0x41] = letter, [0x1F600] = emoji });
+
+        var drawn = Drawn.Page("BT /F1 10 Tf (AB) Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Simple(document, builder.Build(), 32,
+                Differences(document, null, 66, "/u1F600"))));
+
+        Widths(drawn).Should().Equal(0.1, 0.2);
+    }
+
+    [Test]
+    public void ACmapSubtableIsReadNoFurtherThanTheLengthItStates()
+    {
+        var builder = new TrueTypeFontBuilder();
+        var a = builder.AddBar(100);
+        builder.AddBar(200);
+        builder.AddBar(300);
+        builder.AddBar(400);
+
+        // Format 6 says it maps 0x41 and 0x42, and states the length of one entry. The entry for
+        // 0x42 would be the next subtable's first two bytes: its format, 4, which is the 400 bar.
+        byte[] truncated = [0, 6, 0, 12, 0, 0, 0, 0x41, 0, 2, 0, (byte)a];
+        builder.Map(3, 0, truncated).Map(3, 1, new Dictionary<int, int> { [0x43] = a });
+
+        var drawn = Drawn.Page("BT /F1 10 Tf (AB) Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Simple(document, builder.Build(), 4, null)));
+
+        Widths(drawn).Should().Equal(0.1);
+        drawn.Problems.Should().Equal("MissingGlyph /F1");
+    }
+
+    [Test]
     public void TextThisLibraryWritesInAnIdentityHSubsetIsDrawnBackGlyphForGlyph()
     {
         var document = new PdfDocument();

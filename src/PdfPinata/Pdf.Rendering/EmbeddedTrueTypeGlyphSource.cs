@@ -126,6 +126,7 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
         private readonly string _baseEncoding;
         private readonly string[] _differences = new string[256];
         private readonly TrueTypeCharacterMap _unicode;
+        private readonly TrueTypeCharacterMap _fullUnicode;
         private readonly TrueTypeCharacterMap _symbol;
         private readonly TrueTypeCharacterMap _macintosh;
         private readonly bool _hasNoCharacterMap;
@@ -155,8 +156,10 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
             if (_baseEncoding == null && !_symbolic)
                 _baseEncoding = "/StandardEncoding";
 
-            _unicode = glyphs.CharacterMap(3, 1) ?? glyphs.CharacterMap(3, 10) ?? glyphs.CharacterMap(0, 3)
-                ?? glyphs.CharacterMap(0, 4);
+            // A font may map the basic multilingual plane in one subtable and every character in
+            // another. Both are kept, because a name such as u1F600 is only in the second.
+            _fullUnicode = glyphs.CharacterMap(3, 10) ?? glyphs.CharacterMap(0, 4) ?? glyphs.CharacterMap(0, 6);
+            _unicode = glyphs.CharacterMap(3, 1) ?? glyphs.CharacterMap(0, 3) ?? _fullUnicode;
             _symbol = glyphs.CharacterMap(3, 0);
             _macintosh = glyphs.CharacterMap(1, 0);
             _hasNoCharacterMap = _unicode == null && _symbol == null && _macintosh == null;
@@ -197,6 +200,8 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
             var character = name != null ? GlyphNames.CharacterOf(name) : GlyphNames.CharacterOf(_baseEncoding, code);
 
             var glyph = character > 0 && _unicode != null ? _unicode.GlyphOf(character) : 0;
+            if (glyph == 0 && character > 0 && _fullUnicode != null && _fullUnicode != _unicode)
+                glyph = _fullUnicode.GlyphOf(character);
             if (glyph == 0 && name != null)
                 glyph = Math.Max(0, _glyphs.GlyphNamed(name));
             if (glyph == 0 && name == null)

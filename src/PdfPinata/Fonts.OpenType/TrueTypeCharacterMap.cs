@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 namespace PdfPinata.Fonts.OpenType;
@@ -25,13 +26,34 @@ internal sealed class TrueTypeCharacterMap
         _format = format;
     }
 
-    /// <summary>The subtable at an offset, or null where its format is not one of those read.</summary>
+    /// <summary>
+    /// The subtable at an offset, or null where its format is not one of those read. A lookup
+    /// reads no further than the length the subtable states, and never past <paramref name="end"/>,
+    /// the end of the <c>cmap</c> table, so a broken subtable cannot read its neighbour's bytes.
+    /// </summary>
     internal static TrueTypeCharacterMap At(byte[] data, int offset, int end)
     {
         var reader = new BigEndianReader(data, offset, end);
         if (!reader.TryReadUInt16(out var format) || format is not (0 or 4 or 6 or 12))
             return null;
-        return new TrueTypeCharacterMap(data, offset, end, format);
+
+        // Formats 0, 4 and 6 state their length in 16 bits after the format, and 12 in 32 bits
+        // after a reserved field.
+        uint length;
+        if (format == 12)
+        {
+            if (!reader.TryReadUInt16(out _) || !reader.TryReadUInt32(out length))
+                return null;
+        }
+        else
+        {
+            if (!reader.TryReadUInt16(out var shortLength))
+                return null;
+            length = shortLength;
+        }
+
+        var subtableEnd = (int)Math.Min((long)end, (long)offset + length);
+        return new TrueTypeCharacterMap(data, offset, subtableEnd, format);
     }
 
     /// <summary>The glyph a code maps to, or 0, the missing glyph, where it maps to none.</summary>

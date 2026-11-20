@@ -19,7 +19,7 @@ namespace PdfPinata.Test.Interpreter;
 internal sealed class TrueTypeFontBuilder
 {
     private readonly List<byte[]> _glyphs = [];
-    private readonly List<(int Platform, int Encoding, Dictionary<int, int> Map)> _cmaps = [];
+    private readonly List<(int Platform, int Encoding, byte[] Subtable)> _cmaps = [];
     private string[] _postNames;
 
     public TrueTypeFontBuilder()
@@ -129,10 +129,17 @@ internal sealed class TrueTypeFontBuilder
         return glyph.ToArray();
     }
 
-    /// <summary>Maps characters or codes to glyphs in a <c>cmap</c> subtable of format 4, or format 0 for (1,0).</summary>
-    public TrueTypeFontBuilder Map(int platform, int encoding, Dictionary<int, int> map)
+    /// <summary>
+    /// Maps characters or codes to glyphs in a <c>cmap</c> subtable: format 0 for (1,0), format 12
+    /// for (3,10), and format 4 for anything else.
+    /// </summary>
+    public TrueTypeFontBuilder Map(int platform, int encoding, Dictionary<int, int> map) =>
+        Map(platform, encoding, platform == 1 ? Format0(map) : encoding == 10 ? Format12(map) : Format4(map));
+
+    /// <summary>Adds a <c>cmap</c> subtable written by hand, for one that is broken.</summary>
+    public TrueTypeFontBuilder Map(int platform, int encoding, byte[] subtable)
     {
-        _cmaps.Add((platform, encoding, map));
+        _cmaps.Add((platform, encoding, subtable));
         return this;
     }
 
@@ -218,7 +225,7 @@ internal sealed class TrueTypeFontBuilder
 
     private byte[] Cmap()
     {
-        var subtables = _cmaps.Select(cmap => cmap.Platform == 1 ? Format0(cmap.Map) : Format4(cmap.Map)).ToList();
+        var subtables = _cmaps.Select(cmap => cmap.Subtable).ToList();
         var cmap = new BigEndian();
         cmap.UInt16(0).UInt16(_cmaps.Count);
         var offset = 4 + 8 * _cmaps.Count;
@@ -238,6 +245,15 @@ internal sealed class TrueTypeFontBuilder
         var table = new BigEndian().UInt16(0).UInt16(262).UInt16(0);
         for (var code = 0; code < 256; code++)
             table.Bytes((byte)(map.TryGetValue(code, out var glyph) ? glyph : 0));
+        return table.ToArray();
+    }
+
+    /// <summary>One group for each character.</summary>
+    private static byte[] Format12(Dictionary<int, int> map)
+    {
+        var table = new BigEndian().UInt16(12).UInt16(0).UInt32((uint)(16 + 12 * map.Count)).UInt32(0).UInt32((uint)map.Count);
+        foreach (var (character, glyph) in map.OrderBy(entry => entry.Key))
+            table.UInt32((uint)character).UInt32((uint)character).UInt32((uint)glyph);
         return table.ToArray();
     }
 
