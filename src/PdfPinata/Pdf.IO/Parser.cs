@@ -373,6 +373,12 @@ internal sealed class Parser
     /// </summary>
     private void ReadStreamData(PdfDictionary dict, long startOfStream)
     {
+        if (DeferStreamsTo != null)
+        {
+            DeferStreamData(dict);
+            return;
+        }
+
         var bytes = TheStreamTheDictionaryDescribes(dict, startOfStream);
         if (bytes == null)
         {
@@ -394,6 +400,101 @@ internal sealed class Parser
             if (!TryReadStreamUpToEndOfStream(dict, startOfStream))
                 throw;
         }
+    }
+
+    /// <summary>
+    ///   The source of a document opened with <see cref="PdfDocumentOpenMode.Lazy"/>, which this
+    ///   parser reads objects for. Set, the data of a stream is left in the file and the stream
+    ///   is given where it is; null, as it is for every other parser, the data is read.
+    /// </summary>
+    internal LazyObjectSource DeferStreamsTo { get; set; }
+
+    /// <summary>
+    ///   Finds where the data of a stream begins and ends without reading it, gives the dictionary
+    ///   a stream that reads it from the file when it is asked for, and leaves the lexer behind
+    ///   the "endstream" after it.
+    /// </summary>
+    /// <remarks>
+    ///   The length the dictionary gives is believed when "endstream" follows that many bytes.
+    ///   Otherwise the keyword is looked for, as the eager reader looks for it
+    ///   (docs/specs/wrong-stream-length.md), a chunk of the file at a time.
+    /// </remarks>
+    private void DeferStreamData(PdfDictionary dict)
+    {
+        // Before the lexer is moved: an indirect length is read by this parser, which comes back
+        // to where it stands now.
+        var length = DeclaredStreamLength(dict);
+        var start = _lexer.MoveToStartOfStream();
+
+        // Compared before adding: a length near long.MaxValue added to the start wraps negative.
+        if (length >= 0 && length <= _lexer.PdfLength - start && EndOfStreamFollows(start + length))
+        {
+            _lexer.Position = start + length;
+            ReadSymbol(Symbol.EndStream);
+        }
+        else
+        {
+            var keyword = _lexer.FindMarker(EndOfStream, start);
+            if (keyword < 0)
+            {
+                throw new PdfReaderException(
+                    $"The stream of object {dict.ObjectID} does not say how long it is, or says something the "
+                    + "file does not hold, and no \"endstream\" follows it to say where it ends.");
+            }
+
+            // The end-of-line before the keyword belongs to the file and not to the stream.
+            var before = _lexer.ReadRawString(Math.Max(start, keyword - 2), (int)Math.Min(2, keyword - start));
+            var endOfLine = before.EndsWith("\r\n", StringComparison.Ordinal) ? 2
+                : before.EndsWith('\n') || before.EndsWith('\r') ? 1
+                : 0;
+            length = keyword - endOfLine - start;
+            _lexer.Position = keyword + EndOfStream.Length;
+        }
+
+        dict.Elements[PdfDictionary.PdfStream.Keys.Length] =
+            length <= int.MaxValue ? new PdfInteger((int)length) : new PdfLong(length);
+        dict.Stream = new PdfDictionary.PdfStream(
+            new DeferredStreamBytes(DeferStreamsTo, dict.ObjectID, start, length), dict);
+    }
+
+    private const string EndOfStream = "endstream";
+
+    /// <summary>
+    ///   Whether "endstream" is the next thing in the file at <paramref name="position"/>, after
+    ///   any amount of white space, as the eager reader's token scan finds it. Read as bytes and
+    ///   not as a token, because a wrong length lands in the middle of the data, where a token
+    ///   can be as long as the stream.
+    /// </summary>
+    private bool EndOfStreamFollows(long position)
+    {
+        var keyword = _lexer.SkipWhiteSpace(position);
+        return EndOfStream.Length <= _lexer.PdfLength - keyword
+            && _lexer.ReadRawString(keyword, EndOfStream.Length) == EndOfStream;
+    }
+
+    /// <summary>
+    ///   The length a stream's dictionary gives, directly or through an object of its own, or -1
+    ///   when it gives none that can be read.
+    /// </summary>
+    private long DeclaredStreamLength(PdfDictionary dict)
+    {
+        var declared = dict.Elements[PdfDictionary.PdfStream.Keys.Length];
+        if (declared is PdfReference reference)
+        {
+            // A length that is this very stream answers null while the stream is being read.
+            declared = reference.Value ?? _document._irefTable[reference.ObjectID]?.Value;
+        }
+
+        return declared switch
+        {
+            PdfInteger integer => integer.Value,
+            PdfUInteger integer => integer.Value,
+            PdfLong integer => integer.Value,
+            PdfIntegerObject integer => integer.Value,
+            PdfUIntegerObject integer => integer.Value,
+            PdfLongObject integer => integer.Value,
+            _ => -1
+        };
     }
 
     /// <summary>
