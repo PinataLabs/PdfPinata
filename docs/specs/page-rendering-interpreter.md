@@ -125,8 +125,10 @@ The first fix round kept the points as written for the whole path and then mappe
 through the singular transform, which flattened the third point too (#400). A path painted under
 a transform with no inverse is handed to the device in the space its points were placed in, with
 the transform of that space, so `0 0 m 10 0 l 10 10 l h 1 0 0 0 0 0 cm f` fills the triangle its
-points make rather than a line. Its stroke's pen is then measured in that space too, where the
-flattening transform would have flattened the pen as well. `PathInProgress.ToPath` changes nothing
+points make rather than a line. **A stroke painted under such a transform paints nothing**, and
+reports nothing: a pen is a width in user space and the transform leaves it none, which is what
+Ghostscript and pdf.js draw, so `10 w 20 50 m 80 50 l 1 0 0 0 0 0 cm S` leaves the page blank.
+The fill and clip of the same path stand, and `B` still fills. `PathInProgress.ToPath` changes nothing
 and can be asked again. `W` and `W*`
 are remembered and applied after the painting operator that follows, which is the order
 ISO 32000-1 8.5.4 gives.

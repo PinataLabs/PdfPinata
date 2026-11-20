@@ -77,8 +77,8 @@ internal sealed partial class ContentInterpreter
     /// <remarks>
     /// The path is painted in the user space of the transform in force at the painting operator,
     /// so that the pen a stroke is drawn with is measured in the same space as the path. Where
-    /// that transform has no inverse, it is painted in the space its points were placed in.
-    /// <see cref="PathInProgress"/> says how it gets there.
+    /// that transform has no inverse, it is filled and clipped in the space its points were placed
+    /// in, and not stroked at all. <see cref="PathInProgress"/> says how it gets there.
     /// </remarks>
     /// <param name="fill">The rule to fill by, or null not to fill.</param>
     /// <param name="stroke">Whether to stroke.</param>
@@ -97,7 +97,9 @@ internal sealed partial class ContentInterpreter
         {
             if (fill != null)
                 _device.Fill(path, transform, fill.Value, State.FillPaint);
-            if (stroke)
+            // A pen is a width in user space, and a transform with no inverse leaves it none: the
+            // stroke paints nothing, as in Ghostscript and pdf.js, while the fill and clip stand.
+            if (stroke && State.Ctm.HasInverse)
                 _device.Stroke(path, transform, State.Stroke, State.StrokePaint);
         }
 
