@@ -17,9 +17,11 @@ namespace PdfPinata.Rendering.Skia.Tests;
 /// Ghostscript's comes from sampling each pixel 4 by 4, and Skia's from the coverage it computes.
 /// Where more remains, the test says what it is.
 ///
-/// DeviceCMYK is not compared here. Ghostscript converts it to RGB through an ICC profile, and page
-/// rendering converts it by the formula ISO 32000-1 10.3.5 gives, with no colour management, so
-/// the two differ by design; <c>SkiaPageRenderingTests</c> checks the colours it paints instead.
+/// DeviceCMYK fills are not compared here. Ghostscript converts them to RGB through an ICC profile,
+/// and page rendering converts them by the formula ISO 32000-1 10.3.5 gives, with no colour
+/// management, so the two differ by design; <c>SkiaPageRenderingTests</c> checks the colours it
+/// paints instead. A CMYK JPEG is compared, with a tolerance wide enough for that difference and
+/// narrow enough that an inversion of its inks is seen.
 /// Text is not here yet, because the glyph sources it needs are other issues.
 /// </remarks>
 [Rasterizing]
@@ -223,6 +225,32 @@ public class GhostscriptFidelityTests
 
         Fidelity.Of(document, nameof(AnAdobeCmykJpegWithTheDecodeThatInvertsIt))
             .ShouldBeWithin(meanChannelDifference: 28, shareOverThreshold: 0);
+    }
+
+    // The four JPEGs have four components and no Adobe marker, so their samples are the inks as
+    // they are, which is what a PDF reads when it has no /Decode. They were made by taking the
+    // marker out of a file Photoshop-style, so the inks are strange ones, but Ghostscript and the
+    // device read the same bytes. SkiaSharp alone inverts every one, and draws red as (179, 171, 0)
+    // where Ghostscript draws (0, 0, 11).
+    [Test]
+    [Arguments("red")]
+    [Arguments("cyan")]
+    [Arguments("black")]
+    [Arguments("white")]
+    public void AMarkerlessCmykJpegWithNoDecode(string name)
+    {
+        var document = HandWritten.Page("q 40 0 0 40 0 0 cm /Im1 Do Q", 40, 40, (document, page) =>
+            HandWritten.Image(document, page, "/Im1", Asset($"cmyk-{name}-nomarker.jpg"), image =>
+            {
+                image.Elements.SetInteger("/Width", 8);
+                image.Elements.SetInteger("/Height", 8);
+                image.Elements.SetName("/ColorSpace", "/DeviceCMYK");
+                image.Elements.SetInteger("/BitsPerComponent", 8);
+                image.Elements.SetName("/Filter", "/DCTDecode");
+            }));
+
+        Fidelity.Of(document, nameof(AMarkerlessCmykJpegWithNoDecode) + "-" + name)
+            .ShouldBeWithin(meanChannelDifference: 30, shareOverThreshold: 0);
     }
 
     private static byte[] Asset(string name)

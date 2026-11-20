@@ -46,6 +46,19 @@ internal sealed partial class ContentInterpreter
     /// </summary>
     internal const long MaximumImageBytesKept = PageImages.MaximumSamples * 4;
 
+    /// <summary>
+    /// The size, in bytes of samples, up to which an image is kept against
+    /// <see cref="MaximumSmallImageBytesKept"/> and not <see cref="MaximumImageBytesKept"/>: 1 MiB,
+    /// an image of 512 by 512.
+    /// </summary>
+    internal const long SmallImageBytes = 1L << 20;
+
+    /// <summary>
+    /// How many bytes of decoded images of at most <see cref="SmallImageBytes"/> one render keeps
+    /// to draw again: 64 MiB, sixty-four of the largest.
+    /// </summary>
+    internal const long MaximumSmallImageBytesKept = 64L << 20;
+
     private readonly GuardedDevice _device;
     private readonly PageView _view;
     private readonly RenderFontCache _fonts;
@@ -63,6 +76,7 @@ internal sealed partial class ContentInterpreter
     // they could not be, and how many bytes of samples are kept. See ImageOf.
     private readonly Dictionary<object, PageImage> _images = new(ReferenceIdentity.Instance);
     private long _imageBytesKept;
+    private long _smallImageBytesKept;
 
     // Read from the document the first time content asks about a group.
     private PdfDocument _document;
