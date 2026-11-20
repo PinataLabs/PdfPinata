@@ -17,7 +17,9 @@ Run it from the repository root. Options, both optional: `--in` (default
 - `glyphlist.txt` is the Adobe Glyph List 2.0, from
   `https://github.com/adobe-type-tools/agl-aglfn` (`glyphlist.txt` on `master`). Its licence is
   `glyphlist-LICENSE.md`, the same repository's `LICENSE.md`, and asks that the copyright notice be
-  kept. The notice is in `glyphlist.txt` itself, and the generated file names it.
+  kept. The notice is in `glyphlist.txt` itself, the generated file names it, and
+  `THIRD-PARTY-NOTICES.md` at the repository root, which the `PdfPinata` package carries, reproduces it
+  for the binary.
 - `mac-standard-names.txt` is Apple's 258 standard glyph names, in order, as the `post` table
   documentation gives them
   (`https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6post.html`). The list was
