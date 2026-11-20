@@ -263,7 +263,11 @@ mask is kept like any other image, because what is decoded is its coverage and t
 is applied at each draw. What is kept is bounded at 1 GiB of samples, one image of the largest
 size; an image that does not fit is decoded at each draw, as before. Five draws of a 16 KB Flate
 stream that inflates to a 1-bit image of 2^28 samples took 11.9 s and allocated 5.2 GiB in a
-Release build, and take 2.5 s and 1 GiB now, which is one draw's. Inline images are not kept.
+Release build, and take 2.5 s and 1 GiB now, which is one draw's. Inline images are not kept,
+and nor is an image whose `/ColorSpace` names a space of the resources, because two forms can
+draw it with different resources and so in different colours. The first filter is handed a copy
+of the stream's bytes, because `/ASCII85Decode` compacts the array it is given in place and the
+stream's own bytes are read again by the next render.
 Drawing many distinct large images is still paid for once each, so the bound on what a filter
 inflates to, below, is what limits that.
 

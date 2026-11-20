@@ -607,6 +607,48 @@ public class ImageTests
         (images[1].Paint.Red, images[1].Paint.Blue).Should().Be((0, 1));
     }
 
+    // One image drawn by two forms, each naming /Cs1 a space of its own: gray reads the first byte
+    // as white, and CMYK reads all four as cyan.
+    [Test]
+    public void AnImageNamingASpaceOfTheResourcesIsDrawnInTheSpaceEachFormGivesIt()
+    {
+        var drawn = Drawn.Page("/Fm1 Do /Fm2 Do", (document, resources) =>
+        {
+            var image = Stream(document, [255, 0, 0, 0], ("/Subtype", "/Image"), ("/Width", 1), ("/Height", 1),
+                ("/ColorSpace", "/Cs1"), ("/BitsPerComponent", 8));
+            Drawn.Add(document, resources, "/XObject", "/Fm1", FormDrawing(document, image, "/DeviceGray"));
+            Drawn.Add(document, resources, "/XObject", "/Fm2", FormDrawing(document, image, "/DeviceCMYK"));
+        });
+
+        var images = drawn.Device.Images.ToArray();
+        images[0].Image.Data.ToArray().Should().Equal(255, 255, 255, 255);
+        images[1].Image.Data.ToArray().Should().Equal(0, 255, 255, 255);
+        drawn.Problems.Should().BeEmpty();
+    }
+
+    // /ASCII85Decode squeezes the white space out of the array it is handed, in place, so decoding
+    // the stream's own bytes changed them to "zz~>", and the next render read eight zeros for four.
+    [Test]
+    public void DrawingAnImageLeavesItsEncodedBytesAsTheyWere()
+    {
+        var encoded = Encoding.ASCII.GetBytes(" z~>");
+        PdfDictionary image = null;
+        var page = Drawn.PageOf(DrawIm1, (document, resources) =>
+        {
+            image = Stream(document, encoded, ("/Subtype", "/Image"), ("/Width", 2), ("/Height", 1),
+                ("/ColorSpace", "/DeviceGray"), ("/BitsPerComponent", 8), ("/Filter", "/ASCII85Decode"));
+            Drawn.Add(document, resources, "/XObject", "/Im1", image);
+        });
+
+        var first = new RecordingDevice();
+        var second = new RecordingDevice();
+        PageRendering.Render(page, first);
+        PageRendering.Render(page, second);
+
+        image.Stream.Value.Should().Equal(Encoding.ASCII.GetBytes(" z~>"));
+        second.Images.Single().Image.Data.ToArray().Should().Equal(first.Images.Single().Image.Data.ToArray());
+    }
+
     // ----- The dictionary --------------------------------------------------------------------------
 
     [Test]
@@ -941,6 +983,19 @@ public class ImageTests
                 Set(image, ("/Decode", decode));
         })), device);
         return new Drawn(result, device);
+    }
+
+    /// <summary>A form that draws <paramref name="image"/> with <c>/Cs1</c> in its resources naming <paramref name="space"/>.</summary>
+    private static PdfDictionary FormDrawing(PdfDocument document, PdfDictionary image, string space)
+    {
+        var form = Drawn.Form(document, "q 10 0 0 10 0 0 cm /Im1 Do Q");
+        var resources = new PdfDictionary(document);
+        form.Elements["/Resources"] = resources;
+        Drawn.Add(document, resources, "/XObject", "/Im1", image);
+        var spaces = new PdfDictionary(document);
+        spaces.Elements["/Cs1"] = new PdfName(space);
+        resources.Elements["/ColorSpace"] = spaces;
+        return form;
     }
 
     /// <summary>Bytes as the inside of a literal string: each as it is, but for the three a string escapes.</summary>

@@ -47,6 +47,14 @@ internal static class PageImages
     }
 
     /// <summary>
+    /// Whether an image's <c>/ColorSpace</c> is a name looked up in the resources, so that what it
+    /// draws depends on the resources it is drawn with and not on the image alone.
+    /// </summary>
+    internal static bool NamesAResourceSpace(PdfDictionary image) =>
+        PdfItemValues.TryGetName(PdfReference.Dereference(image.Elements["/ColorSpace"]), out var name)
+        && name is not ("/DeviceGray" or "/DeviceRGB" or "/DeviceCMYK");
+
+    /// <summary>
     /// The samples of an inline image, or null when it cannot be decoded, having reported why.
     /// </summary>
     /// <param name="image">The image, its dictionary as the text between <c>BI</c> and <c>ID</c>.</param>
@@ -318,7 +326,10 @@ internal static class PageImages
                         return false;
                 }
 
-                if (!TryApply(name, unfiltered, parameters[index] as PdfDictionary, what, out unfiltered))
+                // The first filter is handed a copy: /ASCII85Decode compacts the array it is given
+                // in place, and the first is the stream's own, which a later render reads again.
+                var input = index == 0 ? (byte[])unfiltered.Clone() : unfiltered;
+                if (!TryApply(name, input, parameters[index] as PdfDictionary, what, out unfiltered))
                     return false;
             }
 

@@ -143,6 +143,10 @@ internal sealed partial class ContentInterpreter
     /// large images drawn once each does not hold all of them to the end of the render. One that
     /// does not fit is decoded at each draw, as every image was before.
     /// </para>
+    /// <para>
+    /// An image whose <c>/ColorSpace</c> names a space of the resources is not kept: two forms can
+    /// draw it with different resources, and so in different colours.
+    /// </para>
     /// </remarks>
     private PageImage ImageOf(PdfDictionary image, string name)
     {
@@ -152,7 +156,7 @@ internal sealed partial class ContentInterpreter
 
         samples = PageImages.ReadXObject(image, name, _resources, _device, _sink);
         var bytes = samples?.Data.Length ?? 0;
-        if (_imageBytesKept + bytes <= MaximumImageBytesKept)
+        if (!PageImages.NamesAResourceSpace(image) && _imageBytesKept + bytes <= MaximumImageBytesKept)
         {
             _images[key] = samples;
             _imageBytesKept += bytes;
