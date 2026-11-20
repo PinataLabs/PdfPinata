@@ -829,11 +829,13 @@ internal sealed class Parser
     /// dictionary or an array or as an indirect object of its own. A byte order mark makes it
     /// UTF-16 and angle brackets a hex literal; anything else is raw, a character to a byte.
     /// </summary>
-    private static PdfStringFlags StringFlagsFor(Symbol symbol)
+    private PdfStringFlags StringFlagsFor(Symbol symbol)
     {
         return symbol switch
         {
-            Symbol.UnicodeString => PdfStringFlags.Unicode,
+            Symbol.UnicodeString => _lexer.TokenIsLittleEndian
+                ? PdfStringFlags.Unicode | PdfStringFlags.LittleEndianMark
+                : PdfStringFlags.Unicode,
             Symbol.HexString => PdfStringFlags.HexLiteral,
             Symbol.UnicodeHexString => PdfStringFlags.Unicode | PdfStringFlags.HexLiteral,
             _ => PdfStringFlags.RawEncoding

@@ -80,10 +80,11 @@ internal static partial class ColorSpaces
         switch (lookup)
         {
             case PdfString text:
-                return BytesOf(text.EncryptionValue, text.Encoding == PdfStringEncoding.Unicode);
+                return BytesOf(text.EncryptionValue, text.Encoding == PdfStringEncoding.Unicode && !text.IsLittleEndian);
 
             case PdfStringObject textObject:
-                return BytesOf(textObject.EncryptionValue, textObject.Encoding == PdfStringEncoding.Unicode);
+                return BytesOf(textObject.EncryptionValue,
+                    textObject.Encoding == PdfStringEncoding.Unicode && !textObject.IsLittleEndian);
 
             case PdfDictionary stream when PdfContentStreams.TryGetContent(stream, out var content):
                 return content;
@@ -95,10 +96,11 @@ internal static partial class ColorSpaces
 
     /// <summary>
     /// The lexer takes a leading FE FF off a string and calls it Unicode, which is right for text
-    /// and wrong for a palette whose first entry starts with those bytes, so it is put back.
+    /// and wrong for a palette whose first entry starts with those bytes, so it is put back. A
+    /// leading FF FE is kept in the bytes of a string that says it was read that way.
     /// </summary>
-    private static byte[] BytesOf(byte[] value, bool unicode) =>
-        unicode ? [0xFE, 0xFF, .. value] : value;
+    private static byte[] BytesOf(byte[] value, bool bigEndianUnicode) =>
+        bigEndianUnicode ? [0xFE, 0xFF, .. value] : value;
 
     private static RenderColorSpace ResolveIccBased(PdfArray array, DiagnosticSink sink, List<PdfItem> open)
     {
@@ -115,7 +117,8 @@ internal static partial class ColorSpaces
         var alternate = profile.Elements["/Alternate"];
         if (!PdfItemValues.IsNull(alternate))
         {
-            var space = ResolveNested(alternate, sink, open);
+            var space = ResolveNested(alternate, sink, open,
+                "The profile's /N is used in its place when it names a device space.");
             if (space is not UnsupportedColorSpace)
             {
                 if (space is IndexedColorSpace || componentCount > 0 && space.ComponentCount != componentCount)

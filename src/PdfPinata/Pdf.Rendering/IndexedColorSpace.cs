@@ -35,7 +35,7 @@ internal sealed class IndexedColorSpace : RenderColorSpace
     internal override PagePaint ToRgb(ReadOnlySpan<double> components)
     {
         var index = components[0];
-        return Lookup(double.IsNaN(index) ? 0 : (int)Math.Round(Math.Clamp(index, 0, HighValue)));
+        return Lookup(double.IsNaN(index) ? 0 : (int)Math.Round(Math.Clamp(index, 0, HighValue), MidpointRounding.AwayFromZero));
     }
 
     /// <summary>The colour at an index, which may be any integer: one outside the table is held to its ends.</summary>

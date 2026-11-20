@@ -103,6 +103,10 @@ internal enum PdfStringFlags
     Unicode = 0x06,
     EncodingMask = 0x0F,
 
+    // A Unicode string whose bytes opened FF FE, which the lexer reads as UTF-16LE and writes
+    // back the way it came. Without it the byte order is lost: Unicode alone means FE FF.
+    LittleEndianMark = 0x40,
+
     HexLiteral = 0x80
     // ReSharper restore InconsistentNaming
 }
@@ -220,6 +224,13 @@ public sealed class PdfString : PdfItem
     /// </remarks>
     internal static PdfString FromEncryptionValue(byte[] value, PdfStringFlags flags)
     {
+        if ((flags & PdfStringFlags.LittleEndianMark) != 0)
+        {
+            // The lexer took the ciphertext's first two bytes for a mark. They said nothing about
+            // the plaintext, so the guess is withdrawn and the plaintext decides.
+            flags &= ~(PdfStringFlags.LittleEndianMark | PdfStringFlags.EncodingMask);
+        }
+
         if (CharacterScanning.StartsWithUtf16BigEndianMark(value))
         {
             return new PdfString(
@@ -235,8 +246,34 @@ public sealed class PdfString : PdfItem
         };
     }
 
+    /// <summary>
+    /// Whether the bytes of this string open with FF FE and take their characters low byte first,
+    /// so that they are written as they were read rather than as UTF-16BE.
+    /// </summary>
+    internal bool IsLittleEndian => IsLittleEndianMark(Flags);
+
+    internal static bool IsLittleEndianMark(PdfStringFlags flags) =>
+        (flags & PdfStringFlags.LittleEndianMark) != 0
+        && (flags & PdfStringFlags.EncodingMask) == PdfStringFlags.Unicode;
+
+    /// <summary>The bytes of a string read as UTF-16LE, byte order mark first.</summary>
+    internal static byte[] LittleEndianBytes(string value)
+    {
+        var bytes = new byte[2 + 2 * value.Length];
+        bytes[0] = 0xFF;
+        bytes[1] = 0xFE;
+        for (var i = 0; i < value.Length; i++)
+        {
+            bytes[2 + 2 * i] = (byte)value[i];
+            bytes[3 + 2 * i] = (byte)(value[i] >> 8);
+        }
+        return bytes;
+    }
+
     private byte[] GetBytesFromEncoding()
     {
+        if (IsLittleEndian)
+            return LittleEndianBytes(_value);
         var encoding = (PdfStringEncoding)(Flags & PdfStringFlags.EncodingMask);
         return encoding switch
         {

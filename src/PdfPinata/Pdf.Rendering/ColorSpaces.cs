@@ -54,11 +54,13 @@ internal static partial class ColorSpaces
     /// The arrays being resolved, outermost first: an Indexed space resolves its base and an
     /// ICCBased one its alternate, so a definition that names itself would otherwise never end.
     /// </param>
-    private static RenderColorSpace ResolveNested(PdfItem definition, DiagnosticSink sink, List<PdfItem> open)
+    /// <param name="consequence">What an unsupported space is reported to cost the colour it stands for.</param>
+    private static RenderColorSpace ResolveNested(PdfItem definition, DiagnosticSink sink, List<PdfItem> open,
+        string consequence = DrawnInBlack)
     {
         definition = PdfReference.Dereference(definition);
         if (PdfItemValues.TryGetName(definition, out var name))
-            return DeviceSpace(name) ?? Unsupported(name, -1, sink);
+            return DeviceSpace(name) ?? Unsupported(name, -1, sink, consequence);
 
         if (definition is not PdfArray array || array.Elements.Count == 0
             || !PdfItemValues.TryGetName(array.Elements[0], out var family))
@@ -79,7 +81,7 @@ internal static partial class ColorSpaces
         try
         {
             return ResolveFamily(family, array, sink, open) ?? DeviceSpace(family)
-                   ?? Unsupported(family, ComponentCountOf(family, array), sink);
+                   ?? Unsupported(family, ComponentCountOf(family, array), sink, consequence);
         }
         finally
         {
@@ -98,10 +100,13 @@ internal static partial class ColorSpaces
     /// <summary>What an unsupported space draws in: black, which is what colour starts as.</summary>
     private static PagePaint Fallback => new(0, 0, 0);
 
-    private static UnsupportedColorSpace Unsupported(string family, int componentCount, DiagnosticSink sink)
+    private const string DrawnInBlack = "What it colours is drawn in black.";
+
+    private static UnsupportedColorSpace Unsupported(string family, int componentCount, DiagnosticSink sink,
+        string consequence = DrawnInBlack)
     {
         sink.Report(PageRenderProblem.UnsupportedColorSpace, family,
-            "This colour space is not resolved yet. What it colours is drawn in black.");
+            "This colour space is not resolved yet. " + consequence);
         return new UnsupportedColorSpace(componentCount, Fallback);
     }
 
