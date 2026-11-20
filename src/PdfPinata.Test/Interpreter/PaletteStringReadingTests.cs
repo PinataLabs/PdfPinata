@@ -87,6 +87,54 @@ public class PaletteStringReadingTests
         (await Draw(saved)).Should().Equal(Rgb(254, 255, 0), Rgb(1, 2, 3));
     }
 
+    [Test, Timeout(30_000)]
+    [Arguments(true)]
+    [Arguments(false)]
+    public async Task AnIndirectPaletteThatOpensFfFeSurvivesAnEncryptedSaveAndReopen(bool littleEndian)
+    {
+        var saved = await Interruptibly.Run(() =>
+            Save(Document(littleEndian ? LittleEndianMark : BigEndianMark, indirect: true), encrypt: true));
+
+        var fills = await Interruptibly.Run(() =>
+        {
+            using var document = PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(saved), "owner",
+                PdfPinata.Pdf.IO.PdfDocumentOpenMode.Import);
+            var device = new RecordingDevice();
+            PageRendering.Render(document.Pages[0], device);
+            return device.Fills.Select(f => f.Paint).ToArray();
+        });
+
+        fills.Should().Equal(littleEndian
+            ? [Rgb(255, 254, 0), Rgb(1, 2, 3)]
+            : [Rgb(254, 255, 0), Rgb(1, 2, 3)]);
+    }
+
+    [Test, Timeout(30_000)]
+    public async Task ATextStringThatOpensFfFeSurvivesAnEncryptedSaveAndReopen()
+    {
+        byte[] title = [0xFF, 0xFE, (byte)'A', 0x00, (byte)'B', 0x00];
+
+        var text = await Interruptibly.Run(() =>
+        {
+            var saved = Save(InfoDocument(title), encrypt: true);
+            using var document = PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(saved), "owner",
+                PdfPinata.Pdf.IO.PdfDocumentOpenMode.Import);
+            return document.Info.Title;
+        });
+
+        text.Should().Be("AB");
+    }
+
+    private static byte[] InfoDocument(byte[] title)
+    {
+        byte[] head = Encoding.Latin1.GetBytes("%PDF-1.4\n1 0 obj\n<</Type/Catalog/Pages 2 0 R>>\nendobj\n"
+            + "2 0 obj\n<</Type/Pages/Kids[3 0 R]/Count 1>>\nendobj\n"
+            + "3 0 obj\n<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 100]>>\nendobj\n4 0 obj\n<</Title (");
+        byte[] tail = Encoding.Latin1.GetBytes(")>>\nendobj\n");
+        return Renumbered([.. head, .. title, .. tail, .. Encoding.Latin1.GetBytes(
+            "xref\n0 1\ntrailer\n<</Size 5/Root 1 0 R/Info 4 0 R>>\nstartxref\n0\n%%EOF\n")]);
+    }
+
     private static Task<PagePaint[]> Draw(byte[] file) => Interruptibly.Run(() =>
     {
         using var document = PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(file), PdfPinata.Pdf.IO.PdfDocumentOpenMode.Import);
@@ -95,9 +143,15 @@ public class PaletteStringReadingTests
         return device.Fills.Select(f => f.Paint).ToArray();
     });
 
-    private static byte[] Save(byte[] file)
+    private static byte[] Save(byte[] file, bool encrypt = false)
     {
         using var document = PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(file), PdfPinata.Pdf.IO.PdfDocumentOpenMode.Modify);
+        if (encrypt)
+        {
+            document.SecuritySettings.DocumentSecurityLevel = PdfPinata.Pdf.Security.PdfDocumentSecurityLevel.Encrypted128Bit;
+            document.SecuritySettings.OwnerPassword = "owner";
+            document.SecuritySettings.UserPassword = "";
+        }
         var output = new MemoryStream();
         document.Save(output, false);
         return output.ToArray();
@@ -181,7 +235,9 @@ public class PaletteStringReadingTests
         entries.Append("xref\n0 " + (objects.Count + 1) + "\n0000000000 65535 f \n");
         foreach (Match match in objects)
             entries.Append(match.Index.ToString("0000000000") + " 00000 n \n");
-        entries.Append("trailer\n<</Size " + (objects.Count + 1) + "/Root 1 0 R>>\nstartxref\n" + table + "\n%%EOF\n");
+        var trailer = text[text.IndexOf("trailer\n", table, StringComparison.Ordinal)..];
+        entries.Append(trailer[..trailer.IndexOf("startxref", StringComparison.Ordinal)]);
+        entries.Append("startxref\n" + table + "\n%%EOF\n");
         return [.. file.AsSpan(0, table), .. Encoding.Latin1.GetBytes(entries.ToString())];
     }
 }

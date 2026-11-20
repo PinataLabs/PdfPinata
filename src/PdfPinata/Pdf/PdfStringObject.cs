@@ -160,6 +160,13 @@ public sealed class PdfStringObject : PdfObject
                 return;
             }
 
+            if (CharacterScanning.StartsWithUtf16LittleEndianMark(value))
+            {
+                _value = PdfString.DecodeLittleEndian(value);
+                _flags = (_flags & ~PdfStringFlags.EncodingMask) | PdfStringFlags.Unicode | PdfStringFlags.LittleEndianMark;
+                return;
+            }
+
             _value = Encoding == PdfStringEncoding.Unicode
                 ? PdfEncoders.RawUnicodeEncoding.GetString(value, 0, value.Length)
                 : PdfEncoders.RawEncoding.GetString(value, 0, value.Length);

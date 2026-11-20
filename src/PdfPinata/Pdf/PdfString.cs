@@ -238,6 +238,12 @@ public sealed class PdfString : PdfItem
                 (flags & ~PdfStringFlags.EncodingMask) | PdfStringFlags.Unicode);
         }
 
+        if (CharacterScanning.StartsWithUtf16LittleEndianMark(value))
+        {
+            return new PdfString(DecodeLittleEndian(value),
+                (flags & ~PdfStringFlags.EncodingMask) | PdfStringFlags.Unicode | PdfStringFlags.LittleEndianMark);
+        }
+
         var encoding = (PdfStringEncoding)(flags & PdfStringFlags.EncodingMask);
         return encoding switch
         {
@@ -255,6 +261,21 @@ public sealed class PdfString : PdfItem
     internal static bool IsLittleEndianMark(PdfStringFlags flags) =>
         (flags & PdfStringFlags.LittleEndianMark) != 0
         && (flags & PdfStringFlags.EncodingMask) == PdfStringFlags.Unicode;
+
+    /// <summary>
+    /// The characters of bytes that open with FF FE. A last character short of its high byte takes a
+    /// zero for it, as the lexer does.
+    /// </summary>
+    internal static string DecodeLittleEndian(byte[] value)
+    {
+        var characters = new char[(value.Length - 1) / 2];
+        for (var i = 0; i < characters.Length; i++)
+        {
+            var high = 3 + 2 * i < value.Length ? value[3 + 2 * i] : 0;
+            characters[i] = (char)(256 * high + value[2 + 2 * i]);
+        }
+        return new string(characters);
+    }
 
     /// <summary>The bytes of a string read as UTF-16LE, byte order mark first.</summary>
     internal static byte[] LittleEndianBytes(string value)
