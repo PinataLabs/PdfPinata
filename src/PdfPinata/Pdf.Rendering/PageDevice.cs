@@ -33,10 +33,11 @@ namespace PdfPinata.Pdf.Rendering;
 /// caches on.
 /// </para>
 /// <para>
-/// <b>An abstract class and not an interface</b>, so that it can grow. Shadings, patterns, blend
-/// modes and transparency groups arrive as new <c>virtual</c> members whose base body says the
-/// device cannot draw them, as <see cref="DecodeImage"/> does today, and a device written before
-/// them goes on compiling and drawing. An interface could only do that with a default member,
+/// <b>An abstract class and not an interface</b>, so that it can grow. Shadings and patterns
+/// arrived as <see cref="TryFill"/>, <see cref="TryStroke"/> and <see cref="TryDrawStencil"/>, and
+/// blend modes and transparency groups arrive the same way: as new <c>virtual</c> members whose
+/// base body says the device cannot draw them, as <see cref="DecodeImage"/> does, so that a
+/// device written before them goes on compiling and drawing. An interface could only do that with a default member,
 /// which the netstandard2.1 runtime this library keeps for Unity does not take.
 /// </para>
 /// <para>
@@ -110,4 +111,35 @@ public abstract class PageDevice
     /// reported as <see cref="PageRenderProblem.UnsupportedImage"/>.
     /// </returns>
     public virtual PageImage DecodeImage(PageImageCodec codec, ReadOnlyMemory<byte> data) => null;
+
+    /// <summary>Fills a path with a shader: a shading or a pattern in place of one colour.</summary>
+    /// <param name="path">The path, in its own coordinates. Never empty.</param>
+    /// <param name="transform">Maps the path's coordinates to device space.</param>
+    /// <param name="fillMode">How the inside of the path is decided.</param>
+    /// <param name="paint">The shader, with its own transform to device space, and the alpha.</param>
+    /// <returns>
+    /// True when the fill was drawn. False, which is what this base implementation answers, says
+    /// the device cannot draw this shader and has drawn nothing. The path is then filled through
+    /// <see cref="Fill"/> in one colour that stands for the shader, and the render reports
+    /// <see cref="PageRenderProblem.UnsupportedFeature"/>.
+    /// </returns>
+    public virtual bool TryFill(PagePath path, XMatrix transform, XFillMode fillMode, PageShaderPaint paint) => false;
+
+    /// <summary>Strokes a path with a shader.</summary>
+    /// <param name="path">The path, in its own coordinates. Never empty.</param>
+    /// <param name="transform">
+    /// Maps the path's coordinates to device space, and the pen with them, as in <see cref="Stroke"/>.
+    /// The shader is under its own transform and not this one.
+    /// </param>
+    /// <param name="stroke">The line state.</param>
+    /// <param name="paint">The shader, with its own transform to device space, and the alpha.</param>
+    /// <returns>True when the stroke was drawn, as <see cref="TryFill"/> answers.</returns>
+    public virtual bool TryStroke(PagePath path, XMatrix transform, PageStroke stroke, PageShaderPaint paint) => false;
+
+    /// <summary>Paints a stencil mask with a shader where the mask is covered.</summary>
+    /// <param name="mask">The mask. Always <see cref="PageImageFormat.Alpha8"/>.</param>
+    /// <param name="transform">Maps the mask's sample coordinates to device space, as in <see cref="DrawImage"/>.</param>
+    /// <param name="paint">The shader, with its own transform to device space, and the alpha.</param>
+    /// <returns>True when the mask was drawn, as <see cref="TryFill"/> answers.</returns>
+    public virtual bool TryDrawStencil(PageImage mask, XMatrix transform, PageShaderPaint paint) => false;
 }
