@@ -32,8 +32,12 @@ internal sealed class SplicedPdf
 
     internal long PositionOf(int id) => _positions[id];
 
-    /// <summary>The offset one past the "endobj" of an object.</summary>
-    internal long EndOf(int id) => _ends[id];
+    /// <summary>
+    ///   The bytes of an object that only reading that object reaches. Its first two are left out:
+    ///   a lexer holds two characters ahead, so reading the object written before this one reads
+    ///   them too.
+    /// </summary>
+    internal (long Start, long End) BodyOf(int id) => (_positions[id] + 2, _ends[id]);
 
     internal void Append(string text) => _pdf.Append(text);
 
@@ -47,6 +51,17 @@ internal sealed class SplicedPdf
     {
         _positions[id] = Here;
         _pdf.Append(headerId).Append(" 0 obj\n").Append(body).Append("\nendobj\n");
+        _ends[id] = Here;
+    }
+
+    /// <summary>
+    ///   Has the cross-reference sections say object <paramref name="id" /> begins here, where
+    ///   <paramref name="text" /> is written instead of one.
+    /// </summary>
+    internal void InPlaceOfObject(int id, string text)
+    {
+        _positions[id] = Here;
+        _pdf.Append(text).Append('\n');
         _ends[id] = Here;
     }
 
@@ -179,6 +194,12 @@ internal sealed class SplicedPdf
 
     internal SplicedStream ToStream() => new(Head, _origin - Head.Length, (byte)'A', TailBytes());
 
-    /// <summary>The whole document as bytes, for one written without a comment worth the name.</summary>
-    internal byte[] ToBytes() => [.. Head, .. TailBytes()];
+    /// <summary>The whole document as bytes, for one whose comment is short enough to hold.</summary>
+    internal byte[] ToBytes()
+    {
+        using var stream = ToStream();
+        var bytes = new byte[stream.Length];
+        stream.ReadExactly(bytes);
+        return bytes;
+    }
 }

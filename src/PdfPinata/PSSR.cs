@@ -196,6 +196,22 @@ internal static class PSSR
 
     public static string CannotHandleXRefStreams => "Cannot handle cross-reference streams. The current implementation of PDFsharp cannot handle this PDF feature introduced with Acrobat 6.";
 
+    public static string CannotImportFrom(PdfDocumentOpenMode openMode)
+    {
+        return
+            $"This document was opened with PdfDocumentOpenMode.{openMode}, and a PDF document must be opened with " +
+            "PdfDocumentOpenMode.Import or PdfDocumentOpenMode.Lazy to import pages from it.";
+    }
+
+    public static string LazyNeedsASeekableStream =>
+        "A document opened with PdfDocumentOpenMode.Lazy reads its objects from the stream as they are asked " +
+        "for, so the stream has to be able to seek. Open this one with PdfDocumentOpenMode.Import, or copy it " +
+        "into a stream that can seek.";
+
+    public static string LazyCannotReadEncrypted =>
+        "The document is encrypted, and a document opened with PdfDocumentOpenMode.Lazy is not decrypted. " +
+        "Open it with PdfDocumentOpenMode.Import.";
+
     public static string PasswordRequired => "A password is required to open the PDF document.";
 
     public static string InvalidPassword => "The specified password is invalid.";

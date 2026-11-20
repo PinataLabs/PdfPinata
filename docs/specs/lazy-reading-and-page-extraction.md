@@ -4,13 +4,13 @@
 ten pages out of a 6.7 GB image-heavy PDF without holding 6.7 GB. Today that cannot be done in any
 open mode, because every one of them reads the whole file before `PdfReader.Open` returns.
 
-This is a proposal. Nothing in it has been built.
+Items 1 and 3 are built. The rest is a proposal.
 
 | item | what | status |
 |---|---|---|
-| 1 | 64-bit offsets through the lexer, the cross-reference reader and the writer | not started |
+| 1 | 64-bit offsets through the lexer, the cross-reference reader and the writer | done (#367) |
 | 2 | The import closure stops at page boundaries | done (#369) |
-| 3 | `PdfDocumentOpenMode.Lazy`: objects resolved on first access | designed |
+| 3 | `PdfDocumentOpenMode.Lazy`: objects resolved on first access | done |
 | 4 | Lazy streams, copied raw and in chunks by `PdfWriter` | not started |
 | 5 | `PdfSplitter`, a SampleApp demo and a docs page | not started |
 
@@ -159,14 +159,30 @@ Nothing after that runs for `Lazy`: `RenewRevisionId`, `Compact`, `Renumber` and
 classic table entry is checked by `CheckXRefTableEntry`, which seeks to the object and reads its
 `n g obj` header. A type 1 entry of a cross-reference stream is filed by `ReadObjectNumber`, which
 does the same to learn the generation. For the 6.7 GB file that is 1 887 seeks spread over the whole
-file before `Open` returns. In `Lazy` the parser is told not to probe: an entry is filed under the
-number and generation the section gives it. Two things follow, and both are deliberate:
+file before `Open` returns. In `Lazy` the parser is told not to probe
+(`Parser.DeferEntryChecks`): an entry is filed under the number and generation the section gives
+it, and **the check moves to the read**. When an object is resolved, the `n g obj` header at its
+offset is compared with the entry that led there (`Parser.CheckObjectHeader`):
 
-- A table whose numbers are off by one, which the eager reader repairs from the object headers, is
-  not repaired. `ReadObject` already ignores the header's own numbers, so such a file reads objects
-  under the wrong numbers. It has to be opened in an eager mode.
-- An entry pointing at nothing is found when the object is asked for, not when the file is opened.
-  `PdfReadAccuracy.Strict` cannot report it at `Open`.
+| what is at the offset | `Strict` | `Moderate` |
+|---|---|---|
+| the object the entry names | read | read |
+| no `n g obj` at all | `PdfReaderException`, naming the object and the offset | the same |
+| another object, one number below the entry's | `PdfReaderException`, saying to open with `Import` | the same |
+| any other object | `PdfReaderException`, naming the object, the offset and what is there | read under the entry's number |
+
+The last row is what the eager reader does with such an entry, at `Open`. The third row is the one
+difference. The eager reader repairs a table whose numbers are off by one by filing the entry under
+the number the header gives. That changes the table, and by the time a lazy document meets the
+header, other objects have been read through the table as it stands. The repair is neither cheap
+nor local there, so the object is refused under either accuracy and the message says to use an
+eager mode. Reading it under a number it does not have would be silently wrong.
+
+A type 1 entry of a cross-reference stream is held to the same table. The eager reader files such an
+entry under whatever the header says, and never reports a disagreement.
+
+So an entry pointing at nothing is found when the object is asked for, not when the file is opened.
+`PdfReadAccuracy.Strict` cannot report it at `Open`.
 
 So `Open` in `Lazy` reads the first kilobyte, the tail it scans for `startxref`, and the
 cross-reference sections. It reads nothing else.
@@ -221,16 +237,19 @@ one null test on a path that already had one.
 
 `Resolve(reference)`, under the lock:
 
-1. If the document is disposed, throw `ObjectDisposedException`, naming the object.
-2. If the object is already being resolved, answer null. See "Re-entrancy".
-3. If `Position` is 0 or more, call `Parser.ReadObject(null, id, false, false)`. It seeks, parses,
-   and `SetObjectID` stores the result in the table's own reference. The cache is the table. No
-   second structure is kept.
-4. Otherwise, if the compressed index has the number, read it from its object stream.
-5. Otherwise answer null. This is a reference with nothing behind it, which is the null object.
+1. If the reference has a value by now, answer it. Another thread read it while this one waited.
+2. If the reference is not the table's own entry for its number, or its position is −1 and the
+   compressed index does not have the number, answer null. This is a reference with nothing behind
+   it, which is the null object. It stays the null object after `Dispose`.
+3. If the document is disposed, throw `ObjectDisposedException`, naming the object.
+4. If the object is already being resolved, answer null. See "Re-entrancy".
+5. If `Position` is 0 or more, call `Parser.ReadObject(null, id, false, false)`. It seeks, checks the
+   header, parses, and `SetObjectID` stores the result in the table's own reference. The cache is
+   the table. No second structure is kept.
+6. Otherwise read it from its object stream.
 
-An object that turns out not to be there is marked as "nothing there", by setting its position to
-−1 or removing it from the index, so it is looked for once. A malformed object throws
+A compressed object that turns out not to be there is removed from the index, so it is looked for
+once. A malformed object throws
 `PdfReaderException` from `.Value`, as it would have thrown from `Open`. It is not remembered, and
 asking again throws again.
 
@@ -247,13 +266,17 @@ object never moves the source.
 
 `Lazy` keeps that and changes who holds the result:
 
-- The lazy source resolves the object stream, builds the `PdfObjectStream`, and then **clears the
-  table's reference to it** (`PdfReference.SetObject(null)`), so the table does not pin it.
+- The lazy source reads the object stream, builds the `PdfObjectStream`, and then **puts the
+  table's entry back to what it held** (`PdfReference.SetObject`), so the table does not pin it.
+  That is nothing, unless a caller has asked for the object stream itself; the caller's object is
+  then left as it was.
 - The `PdfObjectStream` lives in a list of four, most recently used first. A fifth evicts the last.
   An evicted stream is read and decoded again if one of its objects is asked for later.
-- The object is read at the index the cross-reference entry gives. `PdfObjectStream` files it under
-  the number its own header gives at that index, as it does today. When the two disagree the number
-  asked for stays unresolved and is marked "nothing there".
+- The object is read at the index the cross-reference entry gives. `PdfObjectStream` files what it
+  reads under the number its own header gives at that index. So the header is asked first
+  (`ObjectNumberAt`): when the two disagree, or the stream has no such index, nothing is read, the
+  number asked for stays unresolved and it is removed from the index. Reading it would put the
+  object in another object's place.
 
 Objects the header of an object stream lists and no cross-reference entry names are not given
 references. `ReadObjectStreamReferences` adds them today. Nothing can refer to them.
@@ -279,7 +302,9 @@ resolution.
 - **A length that leads back to its own stream** used to be caught by `_streamsBeingRead`, which is
   consulted after `reference.Value`. The getter would now recurse before that check is reached. The
   set of objects being resolved answers null for one already on it, which is the same answer: the
-  length is unknown, and the stream is read up to `endstream` (#128).
+  length is unknown, and the stream is read up to `endstream` (#128). In a lazy document
+  `ResolveLengthObject` stops there. Asking for the value was the read, so it does not read the
+  object a second time itself.
 - **An indirect `/Length` inside an object stream** has always been parsed by the time the eager
   reader wants it, because compressed objects are read first. In `Lazy` the getter resolves it
   through the compressed index, on the object stream's own parser, and the source does not move.
@@ -373,12 +398,12 @@ Each of these reads `Value` in a way that was harmless when everything was loade
 | where | what it assumes | what happens to it |
 |---|---|---|
 | `PdfTrailer.Finish` | `Debug.Assert(iref.Value != null)` after each swap | Removed. An assertion that reads `Value` resolves the catalog in a Debug build and not in a Release build. `Finish` runs before the mode is armed. |
-| `Parser.ResolveLengthObject` | reads `reference.Value` before the cycle check | Covered by the set of objects being resolved. |
-| `Parser.ObjectStream` | `iref.Value == null` means "not read yet", and the result stays in the table | The lazy source takes the stream out of the table after decoding it. |
-| `Parser.ReadXRefSubsection`, `AddXRefStreamEntry` | may seek to every object | Skipped when the parser is told not to probe. |
+| `Parser.ResolveLengthObject` | reads `reference.Value` before the cycle check | Covered by the set of objects being resolved. In a lazy document it does not go on to read the object itself. |
+| `Parser.ObjectStream` | `iref.Value == null` means "not read yet", and the result stays in the table | Not used. The lazy source decodes an object stream itself and puts the table's entry back. |
+| `Parser.ReadXRefSubsection`, `AddXRefStreamEntry` | may seek to every object | Skipped when the parser is told not to probe. The header is checked when the object is read. |
 | `PdfReader.ReadIndirectObjects` | the only place `MaxObjectNumber` is set | `Lazy` sets it from the table's keys. |
 | `PdfPages.ImportExternalPage` | `== Import` | "is `Import` or `Lazy`". |
-| `PdfCrossReferenceTable.TransitiveClosure` | "from trailer hack": a null value is looked up again in the table | Works as it stands. A lazy value is null only when nothing is there. With item 2 the closure stops at pages. |
+| `PdfCrossReferenceTable.TransitiveClosure` | "from trailer hack": a null value is looked up again in the table | Works for a well-formed file. With item 2 the closure stops at pages. **Not handled:** a table entry with nothing behind it, reached from an imported page. A lazy document has one when a type 2 entry names an index its object stream does not have; the eager reader fails on that file at `Open`. The closure asserts on it in a Debug build and imports a null in a Release build. |
 | `PdfInternals.GetAllObjects` | every value is in memory | Works, and resolves the whole file. The caller asked for every object. |
 | `Compact`, `Renumber`, the writers, `PdfResourceDeduplicator`, `EncryptDocument` | walk every reference | Not reachable. All are behind `Save`, `Modify` or encryption. |
 
@@ -387,62 +412,72 @@ caller in the library catches around it, and none needs to.
 
 ### Size, and the order of the work
 
-About 450 lines of library code in ten files, one of them new, and about 600 lines of tests.
+About 450 lines of library code in ten files, one of them new, and about 750 lines of tests.
 
 | file | change |
 |---|---|
 | `Pdf.IO/enums/PdfDocumentOpenMode.cs` | the member and its remarks |
 | `Pdf.IO/LazyObjectSource.cs` (new) | the index, `Resolve`, the four object streams, the lock, `Dispose` |
 | `Pdf.IO/PdfReader.cs` | a private `Open` that knows who owns the stream; the `Lazy` branch |
-| `Pdf.IO/Parser.cs` | the "do not probe" switch; nothing else |
-| `Pdf.Advanced/PdfReference.cs` | the getter |
-| `Pdf.Advanced/PdfObjectStream.cs` | reached by the lazy source |
+| `Pdf.IO/Parser.cs` | the "do not probe" switch and the header check that replaces the probe; `SaveState` and `RestoreState` reachable by the lazy source; one line in `ResolveLengthObject` |
+| `Pdf.Advanced/PdfReference.cs` | the getter, and `ValueIfRead` for the two places that must not read |
+| `Pdf.Advanced/PdfObjectStream.cs` | `ObjectNumberAt` |
 | `Pdf.Advanced/PdfTrailer.cs` | the two assertions |
 | `Pdf/PdfDocument.cs` | the field; `Dispose` |
 | `Pdf/PdfPages.cs` | the import check |
-| `PSSR.cs` | the two refusals |
+| `PSSR.cs` | the two refusals, and the import refusal that now names both modes |
 
-It is one PR, in two commits that can each be checked:
+It is one PR, in three commits that can each be checked:
 
-1. **No behaviour changes.** The private `Open` that takes stream ownership, `Finish` without its
-   assertions, the probe switch left on, and `RecordingStream` moved out of `TrailerLocationTests`
-   into `Helpers/`. The whole suite passes unchanged.
-2. **The mode.** Everything else, with its tests.
-
-If review wants it smaller, commit 1 is the PR to split off.
+1. **The tests,** failing. `RecordingStream` moves out of `TrailerLocationTests` into `Helpers/`, and
+   the hand-written document of `LargeOffsetTests` becomes `SplicedPdf`.
+2. **No behaviour changes.** `Finish` without its assertions, and the probe switch, which nothing
+   sets. The whole suite passes unchanged.
+3. **The mode.** Everything else.
 
 ### Verification
 
-The tests read through a recording stream that keeps every range read, over a `SplicedStream`. The
-lexer reads a byte at a time, so the ranges are exact. Each fixture knows the byte range of every
-object it wrote.
+`LazyOpenModeTests` reads through `RecordingStream`, which keeps every range read, over a
+`SplicedPdf`, which knows the byte range of every object it wrote. Two things about the reader shape
+the fixtures. The search for `startxref` reads the last 64 KiB of any file, so each document keeps
+its cross-reference section further than that from its objects. And the lexer holds two characters
+ahead, so reading one object reads the first two bytes of the next; an object's range starts after
+them.
 
-- **`Open` reads no object.** For a classic table, a cross-reference stream and a hybrid file:
-  every read falls in the first kilobyte, the tail, or a cross-reference section. None falls inside
-  an object, and none inside the filler.
-- **The page count reads dictionaries only.** After `PageCount`, no read falls inside a content
-  stream or an image.
-- **A page reads its own objects.** After reading page N's content, the reads cover page N's
-  objects and none of page M's.
-- **Past 4 GiB.** The `LargeOffsetTests` fixture, opened `Lazy`: an object beyond 2³² resolves and
-  the filler is never read.
-- **Four object streams.** With six object streams, an object from each of five reads the first
-  stream once; going back to the first reads it a second time.
-- **Lazy agrees with eager.** Every PDF under the test assets that is not encrypted is opened
-  `Lazy` and `Import`, and `GetAllObjects` is compared object by object, as each is written. The
-  files left out are listed by name with the reason.
+- **`Open` reads no object.** For a classic table, a cross-reference stream and a hybrid file, no
+  read falls inside an object. Behind 4 GiB and behind 8 GiB of filler `Open` reads the same number
+  of bytes, under 96 KiB.
+- **The page count reads dictionaries only.** After `PageCount`, every page dictionary has been read
+  and no content stream.
+- **A page reads its own objects.** Reading page 2's content, past 4 GiB, reads that stream and
+  neither of the others, in under a kilobyte. Importing a page reads no other page's content.
+- **Four object streams.** With six object streams, an object from each resolves. Going back to the
+  last one used reads nothing from the file; going back to the first reads it again.
+- **Lazy agrees with eager.** The three test assets that are neither encrypted nor invalid, a
+  document this library wrote with a cross-reference stream, and hand-written documents behind a
+  classic table, a cross-reference stream and a hybrid table are opened `Lazy` and `Import`. The
+  page count, every page's content and every indirect object's entries and stream data are the same.
 - **Newest revision wins.** An object written out in full by a later revision, over a compressed
   copy in an earlier one, resolves to the later one.
 - **`/Length`.** An indirect length after its stream, one inside an object stream, and one that is
   its own stream all resolve to the right bytes, and the last terminates.
-- **Ownership.** After `Open(path, Lazy)` returns, an object still resolves, so the file was
-  kept open. `Open(stream, Lazy)` leaves the stream open after `Dispose`. A stream that
-  cannot seek is refused by `Open`. After `Dispose`, an unread object throws
+- **Ownership.** `Open(path, Lazy)` keeps the file: an object resolves after `Open` returns and the
+  file cannot be opened exclusively until `Dispose`, after which it can. A file that fails to open is
+  not left open. `Open(stream, Lazy)` leaves the stream open after `Dispose`. A stream that cannot
+  seek is refused by `Open` before a byte is read. After `Dispose`, an unread object throws
   `ObjectDisposedException` and a read one still answers.
 - **A moved stream.** The caller sets the stream's position between two resolutions and both are
   right.
-- **Refusals.** An encrypted file is refused by name. `OpenModeEnforcementTests` has its fifth row.
-  A page imported from a `Lazy` source is written the same as one imported from an `Import` source.
+- **The header check.** The four rows of the table under "What `Open` reads today".
+- **Refusals.** An encrypted file is refused by name, with its password and with a direct
+  encryption dictionary. `OpenModeEnforcementTests` has its fifth row. A page imported from a
+  `Lazy` source is written the same as one imported from an `Import` source.
+
+**On the 6.7 GB file,** measured in a Release build: `Open` takes 40 ms, reads 72 553 bytes and
+allocates 0.9 MB. `PageCount` (714) takes a further 72 ms, reads a further 30 037 bytes and
+allocates 31 MB, which is what parsing 714 page dictionaries out of object streams allocates and is
+not kept. The peak working set is 49 MB. Taking one page out reads 2.7 MB, the page's streams,
+and the peak working set is 55 MB.
 
 ## Item 4 — lazy streams and the raw chunked copy
 

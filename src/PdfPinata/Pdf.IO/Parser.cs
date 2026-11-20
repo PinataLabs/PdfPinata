@@ -640,6 +640,12 @@ internal sealed class Parser
         if (iref is { Position: < 0 })
             return null;
 
+        // In a lazy document asking for the value above is what read the object. One that still
+        // is not an integer has been read and is something else, or is this very stream, which
+        // answers null while it is being read; reading it here would read it a second time.
+        if (_document?._lazySource != null)
+            return null;
+
         // A stream whose length is the stream itself, or another stream whose length is the
         // first, cannot be resolved: reading it would resolve the same length again, and again,
         // until the stack overflowed. See https://github.com/PinataLabs/PdfPinata/issues/128.
@@ -1949,7 +1955,7 @@ internal sealed class Parser
     private static bool TryParseField(string date, int start, int length, out int value) =>
         int.TryParse(date.AsSpan(start, length), NumberStyles.Integer, NumberFormatInfo.CurrentInfo, out value);
 
-    private ParserState SaveState()
+    internal ParserState SaveState()
     {
         return new ParserState
         {
@@ -1958,13 +1964,13 @@ internal sealed class Parser
         };
     }
 
-    private void RestoreState(ParserState state)
+    internal void RestoreState(ParserState state)
     {
         _lexer.Position = state.Position;
         _lexer.Symbol = state.Symbol;
     }
 
-    private class ParserState
+    internal sealed class ParserState
     {
         public long Position;
         public Symbol Symbol;

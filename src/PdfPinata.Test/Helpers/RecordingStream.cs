@@ -21,12 +21,12 @@ internal sealed class RecordingStream : Stream
     /// <summary>How many bytes have been handed out since the last <see cref="Forget" />.</summary>
     internal long BytesRead { get; private set; }
 
-    /// <summary>Whether any byte from <paramref name="start" /> up to <paramref name="end" /> has been read.</summary>
-    internal bool HasRead(long start, long end)
+    /// <summary>Whether any byte of <paramref name="range" />, which stops short of its end, has been read.</summary>
+    internal bool HasRead((long Start, long End) range)
     {
-        foreach (var (rangeStart, rangeEnd) in _ranges)
+        foreach (var (start, end) in _ranges)
         {
-            if (rangeStart < end && start < rangeEnd)
+            if (start < range.End && range.Start < end)
                 return true;
         }
 

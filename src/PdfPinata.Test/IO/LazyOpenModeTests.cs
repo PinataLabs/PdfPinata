@@ -25,9 +25,12 @@ namespace PdfPinata.Test.IO;
 /// </remarks>
 public class LazyOpenModeTests
 {
-    private const PdfDocumentOpenMode Lazy = (PdfDocumentOpenMode)5;
+    private const PdfDocumentOpenMode Lazy = PdfDocumentOpenMode.Lazy;
 
     private const long FourGigabytes = 1L << 32;
+
+    /// <summary>Past the kilobyte every mode reads for the header.</summary>
+    private const long BeyondTheHeader = 8192;
 
     /// <summary>More than the scan for "startxref" reads at a time.</summary>
     private const int BeyondTheScan = 70 * 1024;
@@ -54,14 +57,14 @@ public class LazyOpenModeTests
     [Arguments("a hybrid file")]
     public void OpeningReadsNoObject(string indexedBy)
     {
-        var pdf = ThreePagesIndexedBy(indexedBy);
+        var pdf = ThreePagesIndexedBy(indexedBy, BeyondTheHeader);
         var stream = new RecordingStream(pdf.ToStream());
 
         using var document = Open(stream);
 
         var last = indexedBy == "a classic table" ? LastObjectOfThreePages : ObjectStreamId;
         for (var id = 1; id <= last; id++)
-            stream.HasRead(pdf.PositionOf(id), pdf.EndOf(id)).Should().BeFalse("object {0} was not asked for", id);
+            stream.HasRead(pdf.BodyOf(id)).Should().BeFalse("object {0} was not asked for", id);
     }
 
     [Test]
@@ -75,8 +78,8 @@ public class LazyOpenModeTests
 
         for (var page = 0; page < 3; page++)
         {
-            stream.HasRead(PositionOfPage(pdf, page), EndOfPage(pdf, page)).Should().BeTrue();
-            stream.HasRead(PositionOfContent(pdf, page), EndOfContent(pdf, page)).Should().BeFalse();
+            stream.HasRead(pdf.BodyOf(SplicedPdf.PageId(page))).Should().BeTrue();
+            stream.HasRead(pdf.BodyOf(SplicedPdf.ContentId(page))).Should().BeFalse();
         }
     }
 
@@ -92,9 +95,9 @@ public class LazyOpenModeTests
         var content = Encoding.Latin1.GetString(PageContent.Of(document.Pages[1]));
 
         content.Should().Be(SplicedPdf.ContentOfPage(1));
-        stream.HasRead(PositionOfContent(pdf, 1), EndOfContent(pdf, 1)).Should().BeTrue();
-        stream.HasRead(PositionOfContent(pdf, 0), EndOfContent(pdf, 0)).Should().BeFalse();
-        stream.HasRead(PositionOfContent(pdf, 2), EndOfContent(pdf, 2)).Should().BeFalse();
+        stream.HasRead(pdf.BodyOf(SplicedPdf.ContentId(1))).Should().BeTrue();
+        stream.HasRead(pdf.BodyOf(SplicedPdf.ContentId(0))).Should().BeFalse();
+        stream.HasRead(pdf.BodyOf(SplicedPdf.ContentId(2))).Should().BeFalse();
         stream.BytesRead.Should().BeLessThan(1024);
     }
 
@@ -180,11 +183,11 @@ public class LazyOpenModeTests
         stream.Forget();
 
         GraphicsStateOf(document.Pages[5]).Elements.GetInteger("/Page").Should().Be(5);
-        stream.HasRead(pdf.PositionOf(ObjectStreamOfPage(5)), pdf.EndOf(ObjectStreamOfPage(5))).Should()
+        stream.HasRead(pdf.BodyOf(ObjectStreamOfPage(5))).Should()
             .BeFalse("the stream used last is still decoded");
 
         GraphicsStateOf(document.Pages[0]).Elements.GetInteger("/Page").Should().Be(0);
-        stream.HasRead(pdf.PositionOf(ObjectStreamOfPage(0)), pdf.EndOf(ObjectStreamOfPage(0))).Should()
+        stream.HasRead(pdf.BodyOf(ObjectStreamOfPage(0))).Should()
             .BeTrue("five streams have been used since the first, and four are kept");
     }
 
@@ -270,6 +273,25 @@ public class LazyOpenModeTests
         read.Should().Throw<PdfReaderException>().WithMessage("*off by one*PdfDocumentOpenMode.Import*");
     }
 
+    [Test]
+    [Arguments(PdfReadAccuracy.Strict)]
+    [Arguments(PdfReadAccuracy.Moderate)]
+    public void AnEntryThatPointsAtNoObjectIsRefusedWhenItsObjectIsAskedFor(PdfReadAccuracy accuracy)
+    {
+        var pdf = new SplicedPdf();
+        pdf.Pages(3);
+        pdf.InPlaceOfObject(SplicedPdf.ContentId(1), "<< /Not /AnObject >>");
+        pdf.ClassicTable(firstId: 0, count: LastObjectOfThreePages + 1,
+            trailer: "/Size " + (LastObjectOfThreePages + 1) + " /Root 1 0 R");
+        using var document = Open(new MemoryStream(pdf.ToBytes()), accuracy);
+        document.PageCount.Should().Be(3);
+
+        var read = () => PageContent.Of(document.Pages[1]);
+
+        read.Should().Throw<PdfReaderException>()
+            .WithMessage($"Object {SplicedPdf.ContentId(1)} 0 is not at position {pdf.PositionOf(SplicedPdf.ContentId(1))}*");
+    }
+
     // ----- Importing -------------------------------------------------------------------------------
 
     [Test]
@@ -283,6 +305,21 @@ public class LazyOpenModeTests
         fromLazy.PageCount.Should().Be(fromImport.PageCount).And.Be(3);
         for (var page = 0; page < 3; page++)
             PageContent.Of(fromLazy.Pages[page]).Should().Equal(PageContent.Of(fromImport.Pages[page]));
+    }
+
+    [Test]
+    public void ImportingAPageReadsNoOtherPagesContent()
+    {
+        var pdf = ThreePages(FourGigabytes + 4096);
+        var stream = new RecordingStream(pdf.ToStream());
+        using var source = Open(stream);
+        var target = new PdfDocument();
+
+        target.AddPage(source.Pages[1]);
+
+        Encoding.Latin1.GetString(PageContent.Of(target.Pages[0])).Should().Be(SplicedPdf.ContentOfPage(1));
+        stream.HasRead(pdf.BodyOf(SplicedPdf.ContentId(0))).Should().BeFalse();
+        stream.HasRead(pdf.BodyOf(SplicedPdf.ContentId(2))).Should().BeFalse();
     }
 
     // ----- Who owns the source ---------------------------------------------------------------------
@@ -423,9 +460,9 @@ public class LazyOpenModeTests
     ///   Three pages whose first names a graphics state that lives in an object stream, with no
     ///   cross-reference section written yet.
     /// </summary>
-    private static SplicedPdf ThreePagesWithACompressedGraphicsState()
+    private static SplicedPdf ThreePagesWithACompressedGraphicsState(long origin = 0)
     {
-        var pdf = new SplicedPdf();
+        var pdf = new SplicedPdf(origin);
         pdf.Pages(3);
         pdf.Object(SplicedPdf.PageId(0), SplicedPdf.PageDictionary(0,
             "/Resources << /ExtGState << /GS1 " + GraphicsStateId + " 0 R >> >>"));
@@ -434,12 +471,12 @@ public class LazyOpenModeTests
         return pdf;
     }
 
-    private static SplicedPdf ThreePagesIndexedBy(string indexedBy)
+    private static SplicedPdf ThreePagesIndexedBy(string indexedBy, long origin = 0)
     {
         if (indexedBy == "a classic table")
-            return ThreePages();
+            return ThreePages(origin);
 
-        var pdf = ThreePagesWithACompressedGraphicsState();
+        var pdf = ThreePagesWithACompressedGraphicsState(origin);
         if (indexedBy == "a cross-reference stream")
         {
             pdf.CrossReferenceStream(XRefStreamId);
@@ -512,11 +549,6 @@ public class LazyOpenModeTests
             target.AddPage(source.Pages[page]);
         return Saved.Bytes(target);
     }
-
-    private static long PositionOfPage(SplicedPdf pdf, int page) => pdf.PositionOf(SplicedPdf.PageId(page));
-    private static long EndOfPage(SplicedPdf pdf, int page) => pdf.EndOf(SplicedPdf.PageId(page));
-    private static long PositionOfContent(SplicedPdf pdf, int page) => pdf.PositionOf(SplicedPdf.ContentId(page));
-    private static long EndOfContent(SplicedPdf pdf, int page) => pdf.EndOf(SplicedPdf.ContentId(page));
 
     private static PdfDictionary GraphicsStateOf(PdfPage page) =>
         page.Elements.GetDictionary("/Resources").Elements.GetDictionary("/ExtGState").Elements.GetDictionary("/GS1");
