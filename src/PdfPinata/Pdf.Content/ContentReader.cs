@@ -27,6 +27,7 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System.Collections.Generic;
 using System.IO;
 using PdfPinata.Pdf.Content.Objects;
 
@@ -58,6 +59,19 @@ public static class ContentReader
         var parser = new CParser(content);
         var sequence = parser.ReadContent();
         return sequence;
+    }
+
+    /// <summary>
+    /// Reads content for page rendering: every string keeps its bytes, and a fault is recorded in
+    /// <paramref name="faults"/> and read past rather than thrown.
+    /// </summary>
+    /// <param name="content">The content.</param>
+    /// <param name="faults">Receives one entry for each place the reading failed.</param>
+    /// <param name="maximumFaults">How many faults are met before the rest is left unread.</param>
+    internal static CSequence ReadPastFaults(byte[] content, List<ContentFault> faults, int maximumFaults)
+    {
+        var lexer = new CLexer(content) { KeepStringBytes = true };
+        return new CParser(lexer).ReadContentPastFaults(faults, maximumFaults);
     }
 
     /// <summary>

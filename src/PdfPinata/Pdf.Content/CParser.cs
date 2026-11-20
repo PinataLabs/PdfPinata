@@ -27,6 +27,8 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -78,6 +80,58 @@ public sealed class CParser
         ParseObject(sequence, CSymbol.Eof);
 
         return sequence;
+    }
+
+    /// <summary>
+    /// Reads the whole content stream as <see cref="ReadContent"/> does, but carries on past
+    /// whatever cannot be read, and says in <paramref name="faults"/> what that was.
+    /// </summary>
+    /// <param name="faults">Receives one entry for each place the reading failed.</param>
+    /// <param name="maximumFaults">
+    /// How many faults are met before the rest of the stream is left unread. Each costs an
+    /// exception, so a stream made of nothing but faults would otherwise take minutes to read.
+    /// </param>
+    /// <remarks>
+    /// <para>
+    /// <see cref="ReadContent"/> throws at the first fault and loses every operator of the stream,
+    /// those before the fault included. A viewer shows such a page, less the operator the fault
+    /// was in, and page rendering has to as well. The operands gathered when the fault was met are
+    /// dropped: they belonged to an operator that was never read, and handing them to the next one
+    /// would draw something the content never said.
+    /// </para>
+    /// <para>
+    /// Reading carries on from where the lexer stopped. Where it stopped without moving, which is
+    /// what it does at a character no token begins with, one byte is skipped, so every fault ends
+    /// further on than the one before and the reading ends.
+    /// </para>
+    /// </remarks>
+    internal CSequence ReadContentPastFaults(List<ContentFault> faults, int maximumFaults)
+    {
+        var sequence = new CSequence();
+        var lastFaultPosition = -1;
+        while (true)
+        {
+            try
+            {
+                ParseObject(sequence, CSymbol.Eof);
+                return sequence;
+            }
+            catch (Exception ex) when (!Unrecoverable.Is(ex))
+            {
+                _operands.Clear();
+
+                // An operator the table does not hold is looked up by its name and not found.
+                var unknownOperator = ex is KeyNotFoundException ? _lexer.Token : null;
+                var message = unknownOperator == null ? ex.Message : "'" + unknownOperator + "' is not an operator.";
+                faults.Add(new ContentFault(sequence.Count, message, unknownOperator));
+                if (faults.Count >= maximumFaults)
+                    return sequence;
+
+                if (_lexer.Position <= lastFaultPosition)
+                    _lexer.ScanNextChar();
+                lastFaultPosition = _lexer.Position;
+            }
+        }
     }
 
     /// <summary>
