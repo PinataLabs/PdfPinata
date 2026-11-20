@@ -187,9 +187,19 @@ TIFF predictor drops a final part row rather than returning pixels it could not 
 filter that is handed the cut-short output of an earlier one returns what it could inflate rather
 than throwing. Guidance for #403: when the cap is set to an image's expected sample bytes,
 `Truncated` means the stream had *more* than expected, and an image that is short shows as output
-shorter than expected with `Truncated` false. Check both. `PageImages` does not pass the limit yet, because #375
-rewrites it; that change makes `FilterParms(decodeParms, limit)` the way each filter of an image's
-chain is called, and checks `Truncated` afterwards.
+shorter than expected with `Truncated` false. Check both.
+
+`PageImages` holds each filter of an image's chain to a limit of its own. The filter that produces
+the samples stops at the sample bytes, plus each row's tag byte under a PNG predictor, counted in
+the predictor's own rows; what a stream holds past that is not drawn, as viewers do not draw it, and
+is not reported. Short data is #375's case: it is padded with zeros and reported, and less than half
+is refused. A filter before the last produces encoded data, which can be longer than what it decodes
+to: RunLength spends a byte for every 128 and two for one at worst, and a JPEG of a few samples is
+mostly headers and profiles. So each of those, and every filter before `/DCTDecode`, may produce
+twice the sample bytes and 16 MiB more; one that would produce more is reported as `LimitReached`
+and the image is not drawn. A limit shared by the whole chain would cut an incompressible RunLength
+image short. A JPEG's own size says nothing about its samples, so `/DCTDecode` is held only by
+`MaximumSamples`, after the device has decoded it.
 
 **Content streams have a cap too**, `ContentInterpreter.MaximumContentLength`, 128 MiB of inflated
 content shared by the page's streams and every form drawn in a render. Flate squeezes operators

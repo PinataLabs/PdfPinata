@@ -732,6 +732,42 @@ public class ImageTests
         drawn.Problems.Should().Equal("InvalidValue /Im1");
     }
 
+    [Test, Timeout(120_000), NotInParallel]
+    public async Task AnImageWhoseFlateDataInflatesToGigabytesIsDrawnAtItsSizeWithoutHoldingTheRest()
+    {
+        const long inflated = 2L * 1024 * 1024 * 1024;
+        var bomb = Deflated(inflated, 7);
+        bomb.Length.Should().BeLessThan(4 * 1024 * 1024, "the stream is small and what it expands to is not");
+
+        var (drawn, allocated) = await Interruptibly.Run(() =>
+        {
+            var before = GC.GetAllocatedBytesForCurrentThread();
+            var page = DrawnPage(bomb, ("/Width", 256), ("/Height", 256), ("/ColorSpace", "/DeviceGray"),
+                ("/BitsPerComponent", 8), ("/Filter", "/FlateDecode"));
+            return (page, GC.GetAllocatedBytesForCurrentThread() - before);
+        });
+
+        var image = drawn.Device.Images.Single().Image;
+        (image.Width, image.Height).Should().Be((256, 256));
+        Gray(image).Should().OnlyContain(b => b == 7);
+        drawn.Problems.Should().BeEmpty("what a stream holds past the image is not drawn, as viewers do not draw it");
+        allocated.Should().BeLessThan(32L * 1024 * 1024, "the samples are inflated to the image's size and no further");
+    }
+
+    [Test]
+    public void RunLengthDataLongerThanTheSamplesItDecodesToIsDrawnWhole()
+    {
+        // 128 samples written as 64 runs of two literals, each behind its own length byte: 192
+        // bytes for 128, the most RunLength spends.
+        var samples = Enumerable.Range(0, 128).Select(i => (byte)i).ToArray();
+        var runs = samples.Chunk(2).SelectMany(pair => new byte[] { 1, pair[0], pair[1] }).Append((byte)128).ToArray();
+
+        var image = DrawnImage(Filtering.FlateDecode.Encode(runs), ("/Width", 128), ("/Height", 1),
+            ("/ColorSpace", "/DeviceGray"), ("/BitsPerComponent", 8), ("/Filter", new[] { "/FlateDecode", "/RunLengthDecode" }));
+
+        Gray(image).Should().Equal(samples);
+    }
+
     [Test, Timeout(30_000)]
     public async Task AnImageOfAbsurdSizeIsRefusedBeforeAnythingIsDecoded()
     {
@@ -1003,6 +1039,21 @@ public class ImageTests
         bytes.SelectMany(b => b is (byte)'(' or (byte)')' or (byte)'\\' ? new[] { (byte)'\\', b } : new[] { b }).ToArray();
 
     /// <summary>The red of every sample, which is the gray of a gray image.</summary>
+    /// <summary>A zlib stream of <paramref name="length"/> bytes, each <paramref name="value"/>.</summary>
+    private static byte[] Deflated(long length, byte value)
+    {
+        using var output = new System.IO.MemoryStream();
+        using (var zlib = new System.IO.Compression.ZLibStream(output, System.IO.Compression.CompressionLevel.Optimal, leaveOpen: true))
+        {
+            var chunk = new byte[1024 * 1024];
+            Array.Fill(chunk, value);
+            for (long done = 0; done < length; done += chunk.Length)
+                zlib.Write(chunk, 0, (int)Math.Min(chunk.Length, length - done));
+        }
+
+        return output.ToArray();
+    }
+
     private static byte[] Gray(PageImage image) => Channel(image, 0);
 
     private static byte[] Alpha(PageImage image) => Channel(image, 3);

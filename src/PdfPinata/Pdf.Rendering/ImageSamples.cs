@@ -38,7 +38,11 @@ internal sealed class ImageSamples
     internal long Length => _data.Length;
 
     /// <summary>How many bytes the rows need.</summary>
-    internal long LengthNeeded => _rowBits / 8 * Height;
+    internal long LengthNeeded => LengthOf(Width, Height, Components, BitsPerComponent);
+
+    /// <summary>How many bytes the rows of an image of this size and depth need.</summary>
+    internal static long LengthOf(int width, int height, int components, int bitsPerComponent) =>
+        ((long)width * components * bitsPerComponent + 7) / 8 * height;
 
     /// <summary>The sample of a component of the sample at column x of row y, as the integer it is written as.</summary>
     internal int Read(int x, int y, int component)

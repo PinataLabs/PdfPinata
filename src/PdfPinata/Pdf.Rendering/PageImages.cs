@@ -88,19 +88,25 @@ internal static class PageImages
 
         internal PageImage Read(PdfDictionary image, byte[] encoded)
         {
-            if (encoded == null || !TryReadSize(image, "The image", out var width, out var height)
-                                || !TryUnfilter(image, encoded, "The image", out var data, out var isJpeg))
+            if (encoded == null || !TryReadSize(image, "The image", out var width, out var height))
                 return null;
 
+            byte[] data;
+            bool isJpeg;
             if (PdfItemValues.TryGetBoolean(image.Elements["/ImageMask"], out var isStencil) && isStencil)
             {
-                return ReadStencil(image, data, isJpeg, width, height, "The stencil mask") is { } coverage
+                return TryUnfilter(image, encoded, ImageSamples.LengthOf(width, height, 1, 1), "The image", out data, out isJpeg)
+                       && ReadStencil(image, data, isJpeg, width, height, "The stencil mask") is { } coverage
                     ? PageImage.FromAlpha8(width, height, coverage)
                     : null;
             }
 
+            // The colour space is read first because the number of its components is what bounds
+            // the filters' output.
             var space = ColorSpaceOf(image, out var isIndexed);
-            if (space == null)
+            if (space == null
+                || !TryUnfilter(image, encoded, ImageSamples.LengthOf(width, height, space.ComponentCount, DeclaredBits(image)),
+                    "The image", out data, out isJpeg))
                 return null;
 
             byte[] rgba;
@@ -160,6 +166,15 @@ internal static class PageImages
             count = (int)number;
             return true;
         }
+
+        /// <summary>
+        /// The <c>/BitsPerComponent</c> to bound the filters by: the one declared, or 16 where it is
+        /// missing or wrong, which is reported later if the samples need it.
+        /// </summary>
+        private static int DeclaredBits(PdfDictionary image) =>
+            PdfItemValues.TryGetInteger(image.Elements["/BitsPerComponent"], out var bits) && bits is 1 or 2 or 4 or 8 or 16
+                ? bits
+                : 16;
 
         private bool TryReadBits(PdfDictionary image, string what, out int bits)
         {
@@ -273,10 +288,28 @@ internal static class PageImages
         // ----- Filters -------------------------------------------------------------------------
 
         /// <summary>
+        /// How much more than its samples a filter before the last may produce, beyond twice them:
+        /// what a JPEG's headers and profiles add to a small image.
+        /// </summary>
+        private const long EncodedAllowance = 16L << 20;
+
+        /// <summary>
         /// Undoes every filter but <c>/DCTDecode</c>, which may only be the last and is left for
         /// the device: <paramref name="isJpeg"/> says the data is a JPEG file still.
         /// </summary>
-        private bool TryUnfilter(PdfDictionary image, byte[] data, string what, out byte[] unfiltered, out bool isJpeg)
+        /// <remarks>
+        /// No filter produces much more than the image can use, because Flate and LZW do not say
+        /// how much they will. The filter that produces the samples stops at
+        /// <paramref name="sampleBytes"/>, plus the byte in front of each row a PNG predictor
+        /// reads, and what the stream holds beyond that is not drawn anyway. A filter before it
+        /// produces encoded data, which can be larger than what it decodes to: RunLength writes a
+        /// byte more than it was given for every 128, and two for one at worst, and a JPEG of a
+        /// few samples is mostly headers. So each of those may produce twice the samples and
+        /// <see cref="EncodedAllowance"/> more, and one that would produce more is reported and
+        /// the image not drawn.
+        /// </remarks>
+        private bool TryUnfilter(PdfDictionary image, byte[] data, long sampleBytes, string what, out byte[] unfiltered,
+            out bool isJpeg)
         {
             unfiltered = data;
             isJpeg = false;
@@ -329,14 +362,53 @@ internal static class PageImages
                 // The first filter is handed a copy: /ASCII85Decode compacts the array it is given
                 // in place, and the first is the stream's own, which a later render reads again.
                 var input = index == 0 ? (byte[])unfiltered.Clone() : unfiltered;
-                if (!TryApply(name, input, parameters[index] as PdfDictionary, what, out unfiltered))
+                var decodeParms = parameters[index] as PdfDictionary;
+                var producesSamples = index == filters.Length - 1;
+                var limit = new DecodeLimit(producesSamples
+                    ? WithPredictorBytes(sampleBytes, decodeParms)
+                    : 2 * sampleBytes + EncodedAllowance);
+                if (!TryApply(name, input, new FilterParms(decodeParms, limit), what, out unfiltered))
                     return false;
+
+                if (limit.Truncated && !producesSamples)
+                {
+                    Report(PageRenderProblem.LimitReached,
+                        $"{what}'s {name} data decodes to more than the {limit.MaximumLength} bytes its size can need, and is not drawn.");
+                    return false;
+                }
             }
 
             return true;
         }
 
-        private bool TryApply(string name, byte[] data, PdfDictionary parameters, string what, out byte[] decoded)
+        /// <summary>
+        /// What a filter produces before its predictor is undone, for <paramref name="sampleBytes"/>
+        /// after: a TIFF or PNG predictor works in whole rows of its own <c>/Columns</c>, and a PNG
+        /// one adds a byte in front of each.
+        /// </summary>
+        private static long WithPredictorBytes(long sampleBytes, PdfDictionary decodeParms)
+        {
+            var predictor = PositiveOrDefault(decodeParms, "/Predictor", 1);
+            if (predictor < 2)
+                return sampleBytes;
+
+            // A row wider than the whole image is held to the image, or a /Columns a few bytes long
+            // would lift the cap to whatever it names.
+            var bits = (double)PositiveOrDefault(decodeParms, "/Columns", 1)
+                       * PositiveOrDefault(decodeParms, "/Colors", 1)
+                       * PositiveOrDefault(decodeParms, "/BitsPerComponent", 8);
+            var rowBytes = (long)Math.Min(Math.Ceiling(bits / 8), sampleBytes);
+            var rows = (sampleBytes + rowBytes - 1) / rowBytes;
+            return rows * (rowBytes + (predictor >= 10 ? 1 : 0));
+        }
+
+        private static int PositiveOrDefault(PdfDictionary decodeParms, string key, int defaultValue)
+        {
+            var value = decodeParms?.Elements.GetInteger(key) ?? 0;
+            return value < 1 ? defaultValue : value;
+        }
+
+        private bool TryApply(string name, byte[] data, FilterParms parameters, string what, out byte[] decoded)
         {
             decoded = null;
             Filter filter;
@@ -635,7 +707,8 @@ internal static class PageImages
             {
                 alpha = DataOf(stencil, "The /Mask") is { } encoded
                         && TryReadSize(stencil, "The /Mask", out maskWidth, out maskHeight)
-                        && TryUnfilter(stencil, encoded, "The /Mask", out var data, out var isJpeg)
+                        && TryUnfilter(stencil, encoded, ImageSamples.LengthOf(maskWidth, maskHeight, 1, 1), "The /Mask",
+                            out var data, out var isJpeg)
                     ? ReadStencil(stencil, data, isJpeg, maskWidth, maskHeight, "The /Mask")
                     : null;
             }
@@ -704,7 +777,8 @@ internal static class PageImages
             width = height = 0;
             if (DataOf(mask, "The /SMask") is not { } encoded
                 || !TryReadSize(mask, "The /SMask", out width, out height)
-                || !TryUnfilter(mask, encoded, "The /SMask", out var data, out var isJpeg))
+                || !TryUnfilter(mask, encoded, ImageSamples.LengthOf(width, height, 1, DeclaredBits(mask)), "The /SMask",
+                    out var data, out var isJpeg))
                 return null;
 
             var decode = new double[2];
