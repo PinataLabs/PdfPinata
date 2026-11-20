@@ -120,10 +120,27 @@ where `cm` or `Q` changes the transform in the middle of a path, which is not al
 found in files, the points before the change stay where they were. `PathInProgress` keeps the
 points in the user space the path began in: a point added under another transform is taken to that
 space as it is added, and the whole path is taken to the painting operator's space once, when it
-is painted. **Each point is mapped at most twice, however often the transform changes.** The first
+is painted. **Each point is mapped at most three times, however often the transform changes**:
+as it is added, once if the path is re-based, and when it is painted. The first
 version rewrote every point already in the path at each change, so 40,000 `q cm l Q` inside one
 path, which is 2.5 KB compressed, took most of a minute. A path painted under the transform it
-began under, which is every well-formed one, is handed over as the content wrote it. `W` and `W*`
+began under, which is every well-formed one, is handed over as the content wrote it.
+
+A transform with no inverse, such as `1 0 0 0 0 0 cm`, has no user space to take a point back to.
+A path begun under one keeps its points as written for as long as that transform stays, and when
+a point is added under another they are **re-based once**: onto the new transform where it has an inverse,
+and onto device space where it does not either. Either base has an inverse, so the path is never
+re-based again and the cost stays linear. So `q 1 0 0 0 0 0 cm 0 0 m 10 10 l Q 20 20 l S` draws
+the first two points flattened onto one line and the third where the restored transform puts it.
+The first fix round kept the points as written for the whole path and then mapped every one of them
+through the singular transform, which flattened the third point too (#400). A path painted under
+a transform with no inverse is handed to the device in the space its points were placed in, with
+the transform of that space, so `0 0 m 10 0 l 10 10 l h 1 0 0 0 0 0 cm f` fills the triangle its
+points make rather than a line. **A stroke painted under such a transform paints nothing**, and
+reports nothing: a pen is a width in user space and the transform leaves it none, which is what
+Ghostscript and pdf.js draw, so `10 w 20 50 m 80 50 l 1 0 0 0 0 0 cm S` leaves the page blank.
+The fill and clip of the same path stand, and `B` still fills. `PathInProgress.ToPath` changes nothing
+and can be asked again. `W` and `W*`
 are remembered and applied after the painting operator that follows, which is the order
 ISO 32000-1 8.5.4 gives.
 
@@ -211,9 +228,22 @@ differently:
 - Content in `/OC … BDC`, or an XObject with an `/OC` entry, whose optional content group is off
   in the catalog's default configuration (`/OCProperties /D`: `/BaseState`, `/ON`, `/OFF`), or
   whose membership dictionary evaluates off by its `/VE` expression or else its `/P` policy over
-  `/OCGs`. The content is drawn. Subject `/OC`. A `/VE` is read 32 deep and 1,024 operands long,
-  and what lies past either is taken to be visible, because an expression may name itself. `OptionalContent` answers the question and hides
-  nothing; #386 applies it.
+  `/OCGs`. The content is drawn. Subject `/OC`. A group counts only where one of its `/Intent`
+  names, `/View` where it has none, is among the configuration's `/Intent`, which is also `/View`
+  where `/D` has none and takes in every intent where it names `/All`. A group that does not count
+  has no effect on visibility (ISO 32000-1 8.11.2.3 and 8.11.4.3), so it is left out of `/OCGs` and
+  of a `/VE`, rather than read as on: read as on, `/AllOff`, `/AnyOff` or `/Not` over it would
+  turn it to hidden. A membership with no group left has no effect, as Table 99 says of one whose
+  `/OCGs` names none, and an `/And`, `/Or` or `/Not` none of whose operands has an effect has none
+  either. So a configuration `/Intent` of `[]` makes everything visible, which is what 8.11.2.3
+  asks. A dictionary whose `/Type` is neither `/OCG` nor absent is not a group, wherever it is
+  named: by `/OC`, in `/OCGs` or as a `/VE` operand, it makes the membership visible as a whole.
+  A `/VE` is read 32 deep and 1,024 operands long. An expression any part of which cannot be read, or lies
+  past either limit, is visible as a whole: a `/Not` over it does not turn it round, so
+  `[/Not [/Xor …]]` is visible. Every operand is read for that reason, rather than stopping at the
+  first that decides. `OptionalContent` answers once per membership for one render, keyed by
+  `ReferenceIdentity`, because a page may name one membership thousands of times and each answer
+  may cost the whole operand budget. It answers the question and hides nothing; #386 applies it.
 
 A page that ends with states still saved is not reported. Many real pages do, nothing was left out,
 and the states are restored on the device all the same. A `Q` with nothing saved is reported.

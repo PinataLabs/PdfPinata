@@ -263,21 +263,43 @@ public class DiagnosticsTests
         drawn.Result.IsComplete.Should().BeFalse();
     }
 
-    [Test, Timeout(20_000)]
+    [Test, Timeout(600_000)]
+    [NotInParallel]
     [Arguments("q 2 0 0 2 0 0 cm 1 1 l Q ")]
     [Arguments("2 0 0 2 0 0 cm 1 1 l 0.5 0 0 0.5 0 0 cm ")]
     public async Task ATransformChangedThroughoutOnePathIsDrawnInTimeByItsLength(string repeated)
     {
-        // 40,000 changes of transform inside one open path. Rewriting the path at each change
-        // took most of a minute; it is now a fraction of a second, and the timeout is the test.
-        const int Repeats = 40_000;
-        var content = new StringBuilder("0 0 m ");
-        for (var index = 0; index < Repeats; index++)
-            content.Append(repeated);
-        content.Append('S');
+        // Rewriting the path at each change grows by the square: twice the changes take four
+        // times as long, where a linear reading takes twice. The two sizes are timed in turn, so
+        // that a stall on a loaded machine falls on both alike, and a ratio over three says
+        // quadratic whatever the machine's speed.
+        const int Repeats = 25_000;
+        string Content(int times) => "0 0 m " + string.Concat(Enumerable.Repeat(repeated, times)) + "S";
+        var small = Content(Repeats);
+        var large = Content(Repeats * 2);
 
-        var drawn = await Page(content.ToString());
+        var (smallest, largest) = await Interruptibly.Run(() =>
+        {
+            var fastest = (Small: TimeSpan.MaxValue, Large: TimeSpan.MaxValue);
+            for (var attempt = 0; attempt < 3; attempt++)
+            {
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                Drawn.Page(small);
+                if (watch.Elapsed < fastest.Small)
+                    fastest.Small = watch.Elapsed;
 
+                watch.Restart();
+                Drawn.Page(large);
+                if (watch.Elapsed < fastest.Large)
+                    fastest.Large = watch.Elapsed;
+            }
+
+            return fastest;
+        });
+
+        largest.Should().BeLessThan(smallest * 3, $"twice the changes take about twice as long, and {Repeats} took {smallest}");
+
+        var drawn = await Page(small);
         var stroke = drawn.Device.Strokes.Single();
         stroke.Path.Verbs.Length.Should().Be(Repeats + 1);
         stroke.DevicePath.Should().StartWith("M0,100 L2,98 L2,98").And.EndWith("L2,98");
