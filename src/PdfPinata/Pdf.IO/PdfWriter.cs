@@ -185,9 +185,11 @@ internal class PdfWriter
     {
         WriteSeparator();
         var encoding = (PdfStringEncoding)(value.Flags & PdfStringFlags.EncodingMask);
+        // A little endian string's bytes carry their own FF FE, where the writer puts FE FF in front of the rest.
+        var unicode = encoding == PdfStringEncoding.Unicode && !value.IsLittleEndian;
         var pdf = (value.Flags & PdfStringFlags.HexLiteral) == 0 ?
-            PdfEncoders.ToStringLiteral(value.EncryptionValue, encoding == PdfStringEncoding.Unicode, SecurityHandler) :
-            PdfEncoders.ToHexStringLiteral(value.EncryptionValue, encoding == PdfStringEncoding.Unicode, SecurityHandler);
+            PdfEncoders.ToStringLiteral(value.EncryptionValue, unicode, SecurityHandler) :
+            PdfEncoders.ToHexStringLiteral(value.EncryptionValue, unicode, SecurityHandler);
         WriteRaw(pdf);
 
         _lastCat = CharCat.Delimiter;

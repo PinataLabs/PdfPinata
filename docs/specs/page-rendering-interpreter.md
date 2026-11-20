@@ -14,7 +14,7 @@ separate issues, and each has one place here to plug into. The last section name
 | 5 | Diagnostics on `PageRenderResult`, and one exception that escapes | done |
 | 6 | Page geometry: `PageView` | done |
 | 7 | DeviceGray, DeviceRGB and DeviceCMYK | done |
-| 8 | Indexed and ICCBased colour (#372) | plug-in point only |
+| 8 | Indexed and ICCBased colour (#372), CalGray and CalRGB as the device spaces | done |
 | 9 | Glyph outlines (#373, #374) | plug-in point only |
 | 10 | Images (#375) | done, but CCITTFax, JBIG2 and JPX (#385) |
 | 11 | CMaps other than `Identity-H`, and vertical writing | deliberately not done |
@@ -390,6 +390,35 @@ composite one, and answers it in text space before the type size is applied, whe
 wide spans 0 to 1. Choosing the glyph, through `/Encoding`, the font program's `cmap` or
 `/CIDToGIDMap`, is the source's work. It is public and experimental so that the tests here can set
 text with no font file, and so that a caller can supply a kind of font this library does not read.
+
+## Indexed and ICCBased colour
+
+`ColorSpaces.Resolve` answers, for an array that opens with one of these families:
+
+- **`/Indexed`** is an `IndexedColorSpace`: one component, an index rounded to the nearest whole
+  number and held between 0 and the highest index. The highest index is held to 0 to 255. The
+  lookup table is a string or a stream, and bytes it lacks are zeros, reported as `InvalidValue`
+  `/Indexed`. Each entry is `ComponentCount` bytes of the base, each read as byte / 255, through the
+  base's own `ToRgb`. A base that is itself Indexed, or unsupported, makes the space unsupported
+  and drawn in black. An unsupported base has been reported already, and is not reported twice.
+- **`/ICCBased`** is an `IccBasedColorSpace` standing for another space. It is the `/Alternate`
+  when there is one that is supported, is not Indexed and has as many components as `/N` where
+  `/N` is 1, 3 or 4. Otherwise it is DeviceGray, DeviceRGB or DeviceCMYK by `/N`. An alternate
+  that cannot stand in is reported, and `/N` is used. With neither, the space is reported as
+  `InvalidValue` `/ICCBased` and drawn in black. It is its own class and not the device space,
+  because every component of an ICCBased colour starts at zero and DeviceCMYK starts black.
+- **A definition that names itself**, by a reference from its base or alternate back to it, or
+  that nests more than eight deep, is reported as `InvalidValue` and drawn in black. The resolver
+  keeps the arrays it is inside of and does not follow one into itself.
+
+**How an image reads an Indexed space (#375).** An image's samples are integers, so they are not
+passed through `ToRgb`, which takes the doubles an `sc` gives. Resolve the image's `/ColorSpace`
+with `ColorSpaces.Resolve`, and when it is an `IndexedColorSpace`, call `Lookup(int index)` with the
+sample. It holds an index outside the table to the ends, builds the whole palette on the first
+call and answers from it after, so calling it for every pixel costs an array read. `HighValue`
+is the highest index there is an entry for. The image's `/Decode` default for an Indexed space is
+`[0 2^n-1]`, which makes the index the sample itself. For any other space, pass the samples
+scaled by `/Decode` to `ToRgb` as before.
 
 ## What was deliberately left out
 
