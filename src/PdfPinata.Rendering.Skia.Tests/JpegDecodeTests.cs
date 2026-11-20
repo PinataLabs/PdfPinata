@@ -74,6 +74,29 @@ public class JpegDecodeTests
         Decode(bytes).Should().BeNull();
     }
 
+    // The inks of the file as they are are what a PDF without a /Decode means, so these are drawn
+    // as the inks say, where a codec that leaves the inversion in draws them the other way round.
+    [Test]
+    public void AMarkerlessCmykJpegIsDecodedAsItsInksAreStored()
+    {
+        var black = Decode(Asset("cmyk-black-nomarker.jpg"));
+        var red = Decode(Asset("cmyk-red-nomarker.jpg"));
+
+        ComponentsOf(Asset("cmyk-black-nomarker.jpg")).Should().Be(4);
+        Asset("cmyk-black-nomarker.jpg").AsSpan().IndexOf("Adobe"u8).Should().BeLessThan(0, "it has no marker");
+        // SkiaSharp alone draws it as (0, 0, 0) and red as (179, 171, 0).
+        ShouldBeNear(black, 255, 127, 127);
+        ShouldBeNear(red, 0, 0, 0);
+    }
+
+    private static byte[] Asset(string name)
+    {
+        using var stream = typeof(JpegDecodeTests).Assembly.GetManifestResourceStream("Assets/" + name);
+        using var copy = new System.IO.MemoryStream();
+        stream!.CopyTo(copy);
+        return copy.ToArray();
+    }
+
     private static int FrameOf(byte[] jpeg)
     {
         for (var i = 0; i + 9 < jpeg.Length; i++)

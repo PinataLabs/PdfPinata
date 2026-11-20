@@ -32,6 +32,16 @@ internal static class PageImages
     internal const long MaximumSamples = 1L << 28;
 
     /// <summary>
+    /// The most an image is scaled up to meet its mask, as a multiple of the larger of the image's
+    /// and the mask's own sample counts. A scan in layers puts a mask of text over a colour image
+    /// a quarter or an eighth of its resolution each way, which is 16 to 64 times the samples, so
+    /// 64 draws every real one at the mask's detail. A thin image under a thin mask across it, 16384
+    /// by 1 under 1 by 16384, would otherwise become 16384 by 16384, a gigabyte and a quarter
+    /// from a few kilobytes, with detail no file had.
+    /// </summary>
+    internal const long MaximumScaleUp = 64;
+
+    /// <summary>
     /// The samples of an image XObject, or null when it cannot be decoded, having reported why.
     /// </summary>
     /// <param name="image">The image dictionary and its stream.</param>
@@ -619,8 +629,10 @@ internal static class PageImages
         /// of its samples, so that the mask keeps its own detail. A scan split into layers puts a
         /// coarse colour image under a fine mask of the text, and thinning the mask to the image's
         /// size would draw the text as blocks. A mask coarser than the image is stretched over it.
-        /// Neither grows the image past <see cref="MaximumSamples"/>: beyond it, the mask is made
-        /// the size of the image.
+        /// Neither grows the image past <see cref="MaximumSamples"/>, nor past
+        /// <see cref="MaximumScaleUp"/> times the larger of the image's and the mask's own sample
+        /// counts: beyond either, the mask is made the size of the image and the loss of its detail
+        /// is reported as <see cref="PageRenderProblem.LimitReached"/>.
         /// </remarks>
         private PageImage Masked(PdfDictionary image, byte[] rgba, int width, int height, RenderColorSpace space)
         {
@@ -649,8 +661,12 @@ internal static class PageImages
 
             var drawnWidth = Math.Max(width, maskWidth);
             var drawnHeight = Math.Max(height, maskHeight);
-            if ((long)drawnWidth * drawnHeight > MaximumSamples)
+            var drawnSamples = (long)drawnWidth * drawnHeight;
+            var ownSamples = Math.Max((long)width * height, (long)maskWidth * maskHeight);
+            if (drawnSamples > MaximumSamples || drawnSamples > MaximumScaleUp * ownSamples)
             {
+                Report(PageRenderProblem.LimitReached,
+                    $"An image of {width} by {height} samples under a mask of {maskWidth} by {maskHeight} would be drawn at {drawnWidth} by {drawnHeight}, more than the {MaximumSamples} samples drawn or {MaximumScaleUp} times what either has, so the mask is drawn at the image's size and loses its detail.");
                 drawnWidth = width;
                 drawnHeight = height;
             }
