@@ -187,8 +187,10 @@ arrives with item 17.
 The package references the core and `SkiaSharp` alone. It does not reference `PdfPinata.Skia`, which
 is the *writing* backend, and rendering needs no backend registered. It targets
 `netstandard2.1;net8.0;net10.0;net11.0`, like every shipped package, and is `IsTrimmable` and
-`IsAotCompatible`. The core interpreter uses no reflection, so the Blazor trim check's IL2104 gate
-covers it too.
+`IsAotCompatible`. The core interpreter uses no reflection. The Blazor trim check does **not**
+prove that, because ILLink analyses only the code the sample reaches and the sample renders
+nothing. The proof is the core's `EnableTrimAnalyzer`, which checks every member at build time, and
+the same analyzers that `IsAotCompatible` turns on in the Skia package.
 
 ## Item 8 — diagnostics, not exceptions
 
