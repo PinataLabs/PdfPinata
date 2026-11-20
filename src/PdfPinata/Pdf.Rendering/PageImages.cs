@@ -33,11 +33,13 @@ internal static class PageImages
 
     /// <summary>
     /// The most an image is scaled up to meet its mask, as a multiple of the larger of the image's
-    /// and the mask's own sample counts. A scan in layers puts a mask of text over a colour image
-    /// a quarter or an eighth of its resolution each way, which is 16 to 64 times the samples, so
-    /// 64 draws every real one at the mask's detail. A thin image under a thin mask across it, 16384
-    /// by 1 under 1 by 16384, would otherwise become 16384 by 16384, a gigabyte and a quarter
-    /// from a few kilobytes, with detail no file had.
+    /// and the mask's own sample counts. The drawn size is the larger width by the larger height,
+    /// so it equals the mask's own count whenever the mask is at least as wide and as tall as the
+    /// image, and a scan's fine mask of text over a coarse colour image is never capped by this.
+    /// It bites only when the two cross, one wider and the other taller: a thin image under a
+    /// thin mask across it, 16384 by 1 under 1 by 16384, would otherwise become 16384 by 16384,
+    /// a gigabyte and a quarter from a few kilobytes, with detail no file had. The limit on the
+    /// drawn samples overall is <see cref="MaximumSamples"/>.
     /// </summary>
     internal const long MaximumScaleUp = 64;
 

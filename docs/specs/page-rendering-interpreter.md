@@ -98,8 +98,12 @@ in step.
   marker `SkiaPageDevice` undoes it (#413): it decodes two copies in which one component's
   quantisation table is zeros, which makes that component's samples 128, one without black and one
   without cyan. Skia's `R = c * k / 255` then gives each ink to within a level, and the device
-  answers the RGB of the inks as they are stored. A file whose four tables are all in use cannot be
-  copied, and is declined and reported as an unsupported image.
+  answers the RGB of the inks as they are stored. The zero table goes in just before the first
+  scan under an identifier the file never defines, because a decoder takes a table as it stands
+  when the scan starts and a later definition of the same identifier would overwrite it. The
+  file's own decode is never made, as its size is in the header and a JPEG has no alpha. A file
+  that defines or uses all four identifiers cannot be copied, and is declined and reported as an
+  unsupported image.
 
 ## The interpreter
 
@@ -292,6 +296,11 @@ The masks:
 - A `/Mask` that is an image is the same stencil, multiplied into the image's alpha.
 - A `/Mask` that is an array is a colour key, compared with each sample as it is written, before
   `/Decode`.
+- An image drawn under a mask of another size is scaled to the larger width by the larger height,
+  at most 2^28 samples and at most 64 times the larger of the two sample counts. The 64 bites only
+  when the two cross, one wider and the other taller, because otherwise the drawn size is the
+  mask's own count (a scan's fine text mask over a coarse image is never capped by it). Past
+  either limit the mask is drawn at the image's size and `LimitReached` is reported (#413).
 - An `/SMask` is the alpha itself and overrides a `/Mask`. Its `/Matte` is taken back out of the
   colours, in RGB: exact for a device space of one or three components, close for the rest.
 - A mask finer than the image, in either direction, does not lose its detail: the image is scaled

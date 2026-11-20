@@ -150,30 +150,33 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
         if (codec != PageImageCodec.Jpeg || data.IsEmpty)
             return null;
 
-        var pixels = DecodeSamples(data, out var width, out var height);
+        if (!MarkerlessCmykJpeg.IsMarkerless(data.Span))
+        {
+            var plain = DecodeSamples(data, out var plainWidth, out var plainHeight);
+            return plain == null ? null : PageImage.FromRgba32(plainWidth, plainHeight, plain);
+        }
+
+        // Flattening black leaves cyan, magenta and yellow at half their value in red, green
+        // and blue, and flattening cyan leaves black at half its value in red. The file's own
+        // decode is never made: its size is in the header and a JPEG has no alpha.
+        var withoutBlack = MarkerlessCmykJpeg.WithComponentFlattened(data.Span, 3);
+        var withoutCyan = MarkerlessCmykJpeg.WithComponentFlattened(data.Span, 0);
+        if (withoutBlack == null || withoutCyan == null)
+            return null;
+
+        var pixels = DecodeSamples(withoutBlack, out var width, out var height);
         if (pixels == null)
             return null;
 
-        if (MarkerlessCmykJpeg.IsMarkerless(data.Span))
+        var blacks = DecodeSamples(withoutCyan, out var blackWidth, out var blackHeight);
+        if (blacks == null || blackWidth != width || blackHeight != height)
+            return null;
+
+        for (var at = 0; at < pixels.Length; at += 4)
         {
-            // Flattening black leaves cyan, magenta and yellow at half their value in red, green
-            // and blue, and flattening cyan leaves black at half its value in red.
-            var withoutBlack = MarkerlessCmykJpeg.WithComponentFlattened(data.Span, 3);
-            var withoutCyan = MarkerlessCmykJpeg.WithComponentFlattened(data.Span, 0);
-            if (withoutBlack == null || withoutCyan == null)
-                return null;
-
-            var inks = DecodeSamples(withoutBlack, out var inkWidth, out var inkHeight);
-            var blacks = DecodeSamples(withoutCyan, out var blackWidth, out var blackHeight);
-            if (inks == null || blacks == null || inkWidth != width || inkHeight != height || blackWidth != width || blackHeight != height)
-                return null;
-
-            for (var at = 0; at < pixels.Length; at += 4)
-            {
-                var white = 255 - Ink(blacks[at]);
-                for (var channel = 0; channel < 3; channel++)
-                    pixels[at + channel] = (byte)((255 - Ink(inks[at + channel])) * white / 255);
-            }
+            var white = 255 - Ink(blacks[at]);
+            for (var channel = 0; channel < 3; channel++)
+                pixels[at + channel] = (byte)((255 - Ink(pixels[at + channel])) * white / 255);
         }
 
         return PageImage.FromRgba32(width, height, pixels);
