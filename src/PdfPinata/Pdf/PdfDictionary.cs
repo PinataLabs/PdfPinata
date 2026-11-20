@@ -1675,7 +1675,12 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public override string ToString()
         {
-            var value = Value;
+            // A debugger asks for this of every stream it shows, and reading the data to answer
+            // would read it from the source, or throw once the source is disposed.
+            if (Unread != null)
+                return $"«{Unread.Length} bytes not read from object {Unread.ObjectID}»";
+
+            var value = _value;
             if (value == null)
                 return "«null»";
 

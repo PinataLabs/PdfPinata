@@ -85,6 +85,20 @@ public class LazyStreamTests
     }
 
     [Test]
+    public void DescribingAStreamReadsNoneOfItsData()
+    {
+        var pdf = PagesOfImages(2, Megabyte);
+        var stream = new RecordingStream(pdf.ToStream());
+        using var document = Open(stream);
+        var image = ImageOf(document.Pages[1]);
+
+        var description = image.Stream.ToString();
+
+        description.Should().Contain(Megabyte.ToString());
+        stream.HasRead(pdf.DataOf(ImageId(1))).Should().BeFalse();
+    }
+
+    [Test]
     public void AStreamAskedForItsDataReadsItOnce()
     {
         var pdf = PagesOfImages(1, SeveralChunks);
