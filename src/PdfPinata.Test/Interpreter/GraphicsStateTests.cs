@@ -101,6 +101,19 @@ public class GraphicsStateTests
     }
 
     [Test]
+    [Arguments("0 0 m 10 0 l 10 10 l h 1 0 0 0 0 0 cm f", "fill nonzero M0,100 L10,100 L10,90 Z rgb(0,0,0)")]
+    [Arguments("0 0 m 10 0 l 10 10 l h 1 0 0 0 0 0 cm W n", "clip nonzero M0,100 L10,100 L10,90 Z")]
+    [Arguments("q 1 0 0 0 0 0 cm 0 0 m 10 10 l Q 0 0 0 1 0 0 cm 20 20 l S", "stroke M0,100 L10,100 L0,80 rgb(0,0,0)")]
+    public void APathPaintedUnderATransformWithNoInverseKeepsItsPointsWhereTheyWerePlaced(string content, string expected)
+    {
+        // The points were placed when they were added, so a flattening transform at the
+        // painting operator does not flatten them again.
+        var drawn = Drawn.Page(content);
+
+        drawn.Device.Calls.Last(call => call.Kind is "fill" or "stroke" or "clip").ToString().Should().Be(expected);
+    }
+
+    [Test]
     public void RestoringPutsBackTheTransformTheColourAndTheLineState()
     {
         var drawn = Drawn.Page("q 1 0 0 1 50 0 cm 1 0 0 rg 5 w 0 0 5 5 re B Q 0 0 5 5 re B");

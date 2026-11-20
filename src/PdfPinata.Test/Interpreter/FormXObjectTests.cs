@@ -416,7 +416,7 @@ public class FormXObjectTests
         drawn.Result.IsComplete.Should().BeTrue();
     }
 
-    [Test, Timeout(60_000)]
+    [Test, Timeout(120_000)]
     [NotInParallel]
     public async Task AMembershipIsReadOncePerRenderHoweverOftenContentNamesIt()
     {
@@ -433,23 +433,28 @@ public class FormXObjectTests
             Drawn.Add(document, resources, "/Properties", "/M", membership);
         });
 
-        static TimeSpan Fastest(Func<Drawn> render)
+        // Read once a run, the expression costs about a hundred times the plain group. The two are
+        // timed in turn, so that a stall on a loaded machine falls on both alike.
+        var (plain, doubling) = await Interruptibly.Run(() =>
         {
-            var fastest = TimeSpan.MaxValue;
-            for (var attempt = 0; attempt < 3; attempt++)
+            var fastest = (Plain: TimeSpan.MaxValue, Doubling: TimeSpan.MaxValue);
+            for (var attempt = 0; attempt < 5; attempt++)
             {
                 var watch = System.Diagnostics.Stopwatch.StartNew();
-                render();
-                if (watch.Elapsed < fastest)
-                    fastest = watch.Elapsed;
+                Plain();
+                if (watch.Elapsed < fastest.Plain)
+                    fastest.Plain = watch.Elapsed;
+
+                watch.Restart();
+                Doubled();
+                if (watch.Elapsed < fastest.Doubling)
+                    fastest.Doubling = watch.Elapsed;
             }
 
             return fastest;
-        }
+        });
 
-        var (plain, doubling) = await Interruptibly.Run(() => (Fastest(Plain), Fastest(Doubled)));
-
-        doubling.Should().BeLessThan(plain * 2, $"the expression is read once, not once a run, and a plain group took {plain}");
+        doubling.Should().BeLessThan(plain * 10, $"the expression is read once, not once a run, and a plain group took {plain}");
     }
 
     [Test]
@@ -477,6 +482,139 @@ public class FormXObjectTests
         });
 
         drawn.Result.IsComplete.Should().Be(!reported);
+    }
+
+    /// <summary>
+    /// A page whose content is in the membership dictionary <c>/M</c>, whose groups and policy or
+    /// expression <paramref name="fill"/> writes. The first group is off and the second is on.
+    /// </summary>
+    private static Drawn WithMembership(Action<PdfDocument, PdfDictionary> configure, Action<PdfDocument, PdfDictionary, PdfDictionary, PdfDictionary> fill) =>
+        Layered("/OC /M BDC 0 0 5 5 re f EMC",
+            (document, configuration, first, _) =>
+            {
+                configuration.Elements["/OFF"] = new PdfArray(document, first.Reference);
+                configure(document, configuration);
+            },
+            (document, resources, first, second) =>
+            {
+                var membership = Membership(document);
+                fill(document, membership, first, second);
+                Drawn.Add(document, resources, "/Properties", "/M", membership);
+            });
+
+    private static PdfDictionary DesignGroup(PdfDocument document)
+    {
+        var group = Group(document);
+        group.Elements.SetName("/Intent", "/Design");
+        return group;
+    }
+
+    [Test]
+    [Arguments("/AllOff over the group that is on, where the configuration names no intent", false)]
+    [Arguments("/AnyOff over the group that is on, where the configuration names no intent", false)]
+    [Arguments("[/Not onGroup], where the configuration names no intent", false)]
+    [Arguments("/AllOff over a /Design group listed /OFF", false)]
+    [Arguments("/AllOff over the group that is off and a /Design group", false)]
+    [Arguments("[/Not designGroup]", false)]
+    [Arguments("/AnyOn over the group that is off and a /Design group", true)]
+    [Arguments("[/Or offGroup designGroup]", true)]
+    public void AGroupThatDoesNotCountIsLeftOutRatherThanReadAsOn(string membership, bool reported)
+    {
+        // ISO 32000-1 8.11.2.3: a group none of whose intents the configuration names has no
+        // effect on visibility, and an empty configuration /Intent makes all content visible.
+        // Read as on, such a group turns hidden under a negating policy or a /Not; left out, a
+        // membership with nothing left has no effect, as one that names no group has none.
+        var noIntent = membership.EndsWith("names no intent", StringComparison.Ordinal);
+        var drawn = WithMembership(
+            (document, configuration) =>
+            {
+                if (noIntent)
+                    configuration.Elements["/Intent"] = new PdfArray(document);
+            },
+            (document, m, first, second) =>
+            {
+                switch (membership)
+                {
+                    case "/AllOff over the group that is on, where the configuration names no intent":
+                        m.Elements["/OCGs"] = second.Reference;
+                        m.Elements.SetName("/P", "/AllOff");
+                        break;
+                    case "/AnyOff over the group that is on, where the configuration names no intent":
+                        m.Elements["/OCGs"] = second.Reference;
+                        m.Elements.SetName("/P", "/AnyOff");
+                        break;
+                    case "[/Not onGroup], where the configuration names no intent":
+                        m.Elements["/VE"] = Expression(document, new PdfName("/Not"), second.Reference);
+                        break;
+                    case "/AllOff over a /Design group listed /OFF":
+                        first.Elements.SetName("/Intent", "/Design");
+                        m.Elements["/OCGs"] = first.Reference;
+                        m.Elements.SetName("/P", "/AllOff");
+                        break;
+                    case "/AllOff over the group that is off and a /Design group":
+                        m.Elements["/OCGs"] = new PdfArray(document, first.Reference, DesignGroup(document).Reference);
+                        m.Elements.SetName("/P", "/AllOff");
+                        break;
+                    case "[/Not designGroup]":
+                        m.Elements["/VE"] = Expression(document, new PdfName("/Not"), DesignGroup(document).Reference);
+                        break;
+                    case "/AnyOn over the group that is off and a /Design group":
+                        m.Elements["/OCGs"] = new PdfArray(document, first.Reference, DesignGroup(document).Reference);
+                        m.Elements.SetName("/P", "/AnyOn");
+                        break;
+                    default:
+                        m.Elements["/VE"] = Expression(document, new PdfName("/Or"), first.Reference, DesignGroup(document).Reference);
+                        break;
+                }
+            });
+
+        drawn.Result.IsComplete.Should().Be(!reported);
+    }
+
+    private static PdfDictionary Typed(PdfDocument document, string type)
+    {
+        var dictionary = new PdfDictionary(document);
+        dictionary.Elements.SetName("/Type", type);
+        return dictionary;
+    }
+
+    [Test]
+    [Arguments("named by /OC")]
+    [Arguments("in /OCGs under a policy")]
+    [Arguments("in /OCGs beside the group that is off")]
+    [Arguments("an operand of /VE")]
+    [Arguments("a membership dictionary in /OCGs")]
+    [Arguments("a membership dictionary operand of /VE")]
+    public void ADictionaryThatIsNotAGroupIsVisibleWhereverItIsNamed(string where)
+    {
+        // Every group starts off, so anything read as a group, or skipped while the group that
+        // is off is not, would be reported. A policy and an expression read it alike.
+        var drawn = Layered(where == "named by /OC" ? "/OC /F BDC 0 0 5 5 re f EMC" : "/OC /M BDC 0 0 5 5 re f EMC",
+            (_, configuration, _, _) => configuration.Elements.SetName("/BaseState", "/OFF"),
+            (document, resources, first, _) =>
+            {
+                var other = where.StartsWith("a membership", StringComparison.Ordinal) ? Membership(document) : Typed(document, "/Foo");
+                var membership = Membership(document);
+                switch (where)
+                {
+                    case "named by /OC":
+                        Drawn.Add(document, resources, "/Properties", "/F", other);
+                        return;
+                    case "in /OCGs beside the group that is off":
+                        membership.Elements["/OCGs"] = new PdfArray(document, first.Reference, other);
+                        break;
+                    case "in /OCGs under a policy" or "a membership dictionary in /OCGs":
+                        membership.Elements["/OCGs"] = new PdfArray(document, other);
+                        break;
+                    default:
+                        membership.Elements["/VE"] = Expression(document, new PdfName("/Or"), other);
+                        break;
+                }
+
+                Drawn.Add(document, resources, "/Properties", "/M", membership);
+            });
+
+        drawn.Result.IsComplete.Should().BeTrue();
     }
 
     [Test]
