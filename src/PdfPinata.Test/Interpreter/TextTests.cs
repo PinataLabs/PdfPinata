@@ -229,6 +229,17 @@ public class TextTests
     }
 
     [Test]
+    public void IdentityVScalesThePositionVectorAcrossByHorizontalScalingAndNotTheAdvance()
+    {
+        // At 50 percent the glyph is half as wide, so half its width across is 2.5 and not 5.
+        var drawn = Drawn.Page("BT /F1 10 Tf 50 Tz 50 50 Td <00010002> Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", TestFonts.Composite(document, "/Identity-V", 1000)),
+            _ => new SquareGlyphs());
+
+        drawn.Device.Fills.Select(fill => fill.Origin).Should().Equal(new XPoint(47.5, 58.8), new XPoint(47.5, 68.8));
+    }
+
+    [Test]
     public void IdentityVTakesEachCidsAdvanceAndPositionVectorFromW2AndCloseUpFromTJ()
     {
         var drawn = Drawn.Page("BT /F1 10 Tf 50 50 Td 2 Tc [<0001> 500 <0002>] TJ ET", (document, resources) =>

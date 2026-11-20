@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 
 namespace PdfPinata.Fonts;
@@ -42,6 +43,28 @@ internal static class GlyphNames
         if (name.Length is >= 5 and <= 7 && name[0] == 'u')
             return ScalarOf(name.Slice(1));
         return -1;
+    }
+
+    /// <summary>
+    /// Every name a character goes by: each glyph list name that stands for it, then its
+    /// <c>uniXXXX</c> or <c>uXXXXX</c> form. A font program's <c>post</c> table may use any of them.
+    /// </summary>
+    public static IEnumerable<string> NamesOf(int character)
+    {
+        if (character <= 0)
+            yield break;
+
+        var characters = GlyphNameTables.GlyphListCharacters;
+        var starts = GlyphNameTables.GlyphListNameStarts;
+        for (var index = 0; index < characters.Length; index++)
+        {
+            if (characters[index] == character)
+                yield return GlyphNameTables.GlyphListNames.Substring(starts[index], starts[index + 1] - starts[index]);
+        }
+
+        yield return character <= 0xFFFF
+            ? "uni" + character.ToString("X4", CultureInfo.InvariantCulture)
+            : "u" + character.ToString("X", CultureInfo.InvariantCulture);
     }
 
     /// <summary>The name of one of Apple's 258 standard glyphs, which a <c>post</c> table numbers, or null.</summary>

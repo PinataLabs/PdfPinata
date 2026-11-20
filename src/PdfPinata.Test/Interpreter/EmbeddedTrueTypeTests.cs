@@ -211,6 +211,119 @@ public class EmbeddedTrueTypeTests
     }
 
     [Test]
+    public void AComponentIsTurnedByItsTwoByTwoTransformAndStretchedByItsXAndYScales()
+    {
+        var builder = new TrueTypeFontBuilder();
+        var bar = builder.AddRectangle(0, 0, 100, 50);
+
+        // A quarter turn counterclockwise: x' = -y, y' = x. Read the wrong way round, as
+        // x' = y and y' = -x, it would land at 200 to 250 across and below the baseline.
+        var turned = builder.Add(Composite(new Component(bar, Dx: 200, TwoByTwo: (0, 1, -1, 0))));
+        var stretched = builder.Add(Composite(new Component(bar, XYScale: (0.5, 1.5))));
+        var program = builder.Build();
+
+        var drawn = Drawn.Page($"BT /F1 10 Tf <{turned:X4}{stretched:X4}> Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Composite(document, program)));
+
+        var paths = drawn.Device.Fills.Select(fill => fill.Path).ToArray();
+        Bounds(paths[0]).Should().Be(new Box(0.15, 0, 0.2, 0.1));
+        Bounds(paths[1]).Should().Be(new Box(0, 0, 0.05, 0.075));
+    }
+
+    [Test]
+    public void AComponentsOffsetIsScaledWithItOnlyWhereTheFontAsks()
+    {
+        var builder = new TrueTypeFontBuilder();
+        var square = builder.AddRectangle(0, 0, 100, 100);
+        var unscaled = builder.Add(Composite(new Component(square, Dx: 100, Dy: 40, Scale: 0.5)));
+        var scaled = builder.Add(Composite(new Component(square, Dx: 100, Dy: 40, Scale: 0.5, Flags: ScaledComponentOffset)));
+        var program = builder.Build();
+
+        var drawn = Drawn.Page($"BT /F1 10 Tf <{unscaled:X4}{scaled:X4}> Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Composite(document, program)));
+
+        var paths = drawn.Device.Fills.Select(fill => fill.Path).ToArray();
+        Bounds(paths[0]).Should().Be(new Box(0.1, 0.04, 0.15, 0.09));
+        Bounds(paths[1]).Should().Be(new Box(0.05, 0.02, 0.1, 0.07));
+    }
+
+    [Test]
+    public void AContourThatBeginsOnAControlPointBeginsAtItsLastPointWhereThatIsOnTheCurve()
+    {
+        var builder = new TrueTypeFontBuilder();
+        var glyph = builder.AddContour((0, 100, false), (100, 100, true), (100, 0, true), (0, 0, true));
+
+        var path = Contour(builder, glyph);
+
+        path.Verbs.ToArray().Should().Equal(PagePathVerb.MoveTo, PagePathVerb.CubicTo, PagePathVerb.LineTo,
+            PagePathVerb.Close);
+        path.Points[0].Should().Be(new XPoint(0, 0));
+        Bounds(path).Should().Be(new Box(0, 0, 0.1, 0.1));
+    }
+
+    [Test]
+    public void AContourOfControlPointsAloneBeginsHalfwayBetweenItsLastAndFirst()
+    {
+        var builder = new TrueTypeFontBuilder();
+        var glyph = builder.AddContour((0, 0, false), (100, 0, false), (100, 100, false), (0, 100, false));
+
+        var path = Contour(builder, glyph);
+
+        // On-curve points are implied halfway along each side, and the curve closes on the first.
+        path.Verbs.ToArray().Should().Equal(PagePathVerb.MoveTo, PagePathVerb.CubicTo, PagePathVerb.CubicTo,
+            PagePathVerb.CubicTo, PagePathVerb.CubicTo, PagePathVerb.Close);
+        Rounded(path.Points[0]).Should().Be(new XPoint(0, 0.05));
+        Rounded(path.Points[3]).Should().Be(new XPoint(0.05, 0));
+        Rounded(path.Points[^1]).Should().Be(new XPoint(0, 0.05));
+    }
+
+    [Test]
+    public void ASymbolicFontThatNamesWinAnsiEncodingIsReadByGlyphName()
+    {
+        // The code's own glyph in the Unicode cmap would be the 100 bar: A is 0x41. WinAnsi's
+        // 0x80 is the euro, and that is the glyph the file means.
+        var builder = new TrueTypeFontBuilder();
+        var euro = builder.AddBar(300);
+        var other = builder.AddBar(100);
+        builder.Map(3, 1, new Dictionary<int, int> { [0x20AC] = euro, [0x80] = other });
+
+        var drawn = Drawn.Page("BT /F1 10 Tf <80> Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Simple(document, builder.Build(), 4, new PdfName("/WinAnsiEncoding"))));
+
+        Widths(drawn).Should().Equal(0.3);
+    }
+
+    [Test]
+    public void AGlyphOfTheBaseEncodingIsFoundByItsPostNameWhereTheFontHasNoUnicodeCmap()
+    {
+        var builder = new TrueTypeFontBuilder();
+        builder.AddBar(100);
+        var aacute = builder.AddBar(200);
+        builder.Name(null, "B", "aacute");
+
+        var drawn = Drawn.Page("BT /F1 10 Tf <E1> Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Simple(document, builder.Build(), 32, new PdfName("/WinAnsiEncoding"))));
+
+        drawn.Device.Fills.Should().ContainSingle();
+        Widths(drawn).Should().Equal(new[] { 0.2 }, "glyph {0} is the 200 bar", aacute);
+    }
+
+    [Test]
+    public void ACodeDifferencesNameNotdefHasNoGlyphEvenWhereItsCodeWouldFindOne()
+    {
+        var builder = new TrueTypeFontBuilder();
+        var bar = builder.AddBar(100);
+        builder.Map(3, 1, new Dictionary<int, int> { [0x41] = bar });
+
+        var drawn = Drawn.Page("BT /F1 10 Tf (A) Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Simple(document, builder.Build(), 32,
+                Differences(document, null, 65, "/.notdef"))));
+
+        drawn.Device.Fills.Should().BeEmpty();
+        drawn.Problems.Should().Equal("MissingGlyph /F1");
+    }
+
+    [Test]
     public void TextThisLibraryWritesInAnIdentityHSubsetIsDrawnBackGlyphForGlyph()
     {
         var document = new PdfDocument();
@@ -250,6 +363,16 @@ public class EmbeddedTrueTypeTests
     /// <summary>A box of Liberation Sans's font units, in ems.</summary>
     private static Box Ems(int xMin, int yMin, int xMax, int yMax) =>
         new(Math.Round(xMin / Em, 9) + 0.0, Math.Round(yMin / Em, 9) + 0.0, Math.Round(xMax / Em, 9), Math.Round(yMax / Em, 9));
+
+    private static XPoint Rounded(XPoint point) => new(Math.Round(point.X, 9) + 0.0, Math.Round(point.Y, 9) + 0.0);
+
+    /// <summary>The path a glyph of a hand-built font arrives as.</summary>
+    private static PagePath Contour(TrueTypeFontBuilder builder, int glyph)
+    {
+        var program = builder.Build();
+        return Drawn.Page($"BT /F1 10 Tf <{glyph:X4}> Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Composite(document, program))).Device.Fills.Single().Path;
+    }
 
     private static Drawn Liberation(string content) =>
         Drawn.Page(content, (document, resources) =>

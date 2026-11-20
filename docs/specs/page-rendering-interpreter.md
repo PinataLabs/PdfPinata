@@ -306,9 +306,11 @@ is malformed throws `InvalidDataException` for the glyph that meets it and no ot
 
 A composite glyph's components are placed by an offset, by matched points, or by a scale, an x and y
 scale or a 2 by 2 transform. An offset is scaled with the component only where the font sets
-`SCALED_COMPONENT_OFFSET`, which is the OpenType default. **Composites are held to eight levels and
-1024 components in all**: a glyph built of itself is reported rather than followed forever, and a
-few levels that each use the one below four times would otherwise be tens of thousands of contours.
+`SCALED_COMPONENT_OFFSET`; not scaling it is the OpenType default. **A glyph is held to eight
+levels of composites, 1024 components and 65,536 points in all**: a glyph built of itself is
+reported rather than followed forever, a few levels that each use the one below four times would
+otherwise be tens of thousands of contours, and a thousand references to one glyph of 65,535 points,
+a few hundred bytes of font, would otherwise be gigabytes of outline.
 
 ### Choosing the glyph
 
@@ -321,11 +323,15 @@ read is reported as `MissingGlyph` against each glyph shown in it, with the reas
   the end of the stream has no glyph.
 - **Simple fonts.** The descriptor's `/Flags` say which way is tried first, and the other way is
   tried after it, because real files often say a font is symbolic when it is not, or the reverse.
+  A font that names `/WinAnsiEncoding` or `/MacRomanEncoding` is tried by name first whatever its
+  flags say, as ISO 32000-1 9.6.6.4 has it. A code that `/Differences` names `.notdef` has no glyph,
+  and is not looked up another way.
   - *By name*, first for a nonsymbolic font: the code's glyph name from `/Differences`, or else its
     character from the base encoding, which is `/StandardEncoding` where a nonsymbolic font names
     none. A name becomes a character through `GlyphNames` (the Adobe Glyph List, `uniXXXX` and
-    `uXXXX`). Then the (3,1) `cmap`, or (3,10), (0,3) or (0,4); then the `post` table's names; then
-    the character's MacRomanEncoding code in the (1,0) `cmap`.
+    `uXXXX`). Then the (3,1) `cmap`, or (3,10), (0,3) or (0,4); then the `post` table's names: the
+    name `/Differences` gives, or for a code of the base encoding each name its character goes by;
+    then the character's MacRomanEncoding code in the (1,0) `cmap`.
   - *By code*, first for a symbolic font: the (3,0) `cmap` at the code, then at the code plus
     0xF000, 0xF100 and 0xF200; then the (1,0) `cmap` at the code; then the Unicode `cmap` at the code.
   - A font program with no `cmap` at all is taken to number its glyphs by the codes.

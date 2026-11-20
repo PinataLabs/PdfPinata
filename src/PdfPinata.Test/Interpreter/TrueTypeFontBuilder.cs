@@ -53,6 +53,33 @@ internal sealed class TrueTypeFontBuilder
         return Add(glyph.ToArray());
     }
 
+    /// <summary>
+    /// A glyph of one contour through these points, each on the curve or a quadratic control point.
+    /// </summary>
+    public int AddContour(params (int X, int Y, bool OnCurve)[] points)
+    {
+        var glyph = new BigEndian();
+        glyph.Int16(1).Int16(0).Int16(0).Int16(0).Int16(0);
+        glyph.UInt16(points.Length - 1).UInt16(0);
+        foreach (var point in points)
+            glyph.Bytes((byte)(point.OnCurve ? 1 : 0));
+        var previous = 0;
+        foreach (var point in points)
+        {
+            glyph.Int16(point.X - previous);
+            previous = point.X;
+        }
+
+        previous = 0;
+        foreach (var point in points)
+        {
+            glyph.Int16(point.Y - previous);
+            previous = point.Y;
+        }
+
+        return Add(glyph.ToArray());
+    }
+
     /// <summary>A glyph with no contours: a space.</summary>
     public int AddEmpty() => Add([]);
 
@@ -79,6 +106,10 @@ internal sealed class TrueTypeFontBuilder
                 flags |= ArgumentsAreXYValues;
             if (component.Scale != null)
                 flags |= WeHaveAScale;
+            else if (component.XYScale != null)
+                flags |= WeHaveAnXAndYScale;
+            else if (component.TwoByTwo != null)
+                flags |= WeHaveATwoByTwo;
             if (i < components.Length - 1)
                 flags |= MoreComponents;
 
@@ -87,8 +118,12 @@ internal sealed class TrueTypeFontBuilder
                 glyph.UInt16(points.Parent).UInt16(points.Child);
             else
                 glyph.Int16(component.Dx).Int16(component.Dy);
-            if (component.Scale is { } scale)
-                glyph.Int16((int)Math.Round(scale * 16384));
+            var transform = component.Scale is { } scale ? [scale]
+                : component.XYScale is { } xy ? [xy.X, xy.Y]
+                : component.TwoByTwo is { } m ? new[] { m.A, m.B, m.C, m.D }
+                : Array.Empty<double>();
+            foreach (var value in transform)
+                glyph.Int16((int)Math.Round(value * 16384));
         }
 
         return glyph.ToArray();
@@ -263,13 +298,20 @@ internal sealed class TrueTypeFontBuilder
     private const int ArgumentsAreXYValues = 0x0002;
     private const int WeHaveAScale = 0x0008;
     private const int MoreComponents = 0x0020;
+    private const int WeHaveAnXAndYScale = 0x0040;
+    private const int WeHaveATwoByTwo = 0x0080;
+
+    /// <summary>Asks for a component's offset to be scaled with it.</summary>
+    public const int ScaledComponentOffset = 0x0800;
 
     /// <summary>
     /// One component of a composite glyph: placed by an offset, or by matching a point of the
-    /// components before it to one of its own, and scaled the same both ways where a scale is given.
+    /// components before it to one of its own, and transformed by one scale, a scale for x and one
+    /// for y, or a 2 by 2 matrix written in the font's order: x' = A·x + C·y, y' = B·x + D·y.
     /// </summary>
     internal sealed record Component(int Glyph, int Dx = 0, int Dy = 0, double? Scale = null,
-        (int Parent, int Child)? PointMatched = null, int Flags = 0);
+        (int Parent, int Child)? PointMatched = null, int Flags = 0, (double X, double Y)? XYScale = null,
+        (double A, double B, double C, double D)? TwoByTwo = null);
 
     private sealed class BigEndian
     {

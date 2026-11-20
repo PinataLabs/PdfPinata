@@ -36,6 +36,13 @@ internal sealed class TrueTypeGlyphs
     /// </summary>
     internal const int MaximumComponents = 1024;
 
+    /// <summary>
+    /// How many points one glyph may have in all, counting those of its components: as many as
+    /// one simple glyph can have. Without it, a composite of a thousand references to a glyph of
+    /// 65,535 points is a few hundred bytes of font and gigabytes of outline.
+    /// </summary>
+    internal const int MaximumPoints = 65536;
+
     private readonly byte[] _data;
     private readonly Dictionary<string, TableRange> _tables;
     private readonly TableRange _glyf;
@@ -144,7 +151,7 @@ internal sealed class TrueTypeGlyphs
             return null;
 
         var builder = new OutlineBuilder();
-        var budget = MaximumComponents;
+        var budget = new Budget(MaximumComponents, MaximumPoints);
         AppendGlyph(builder, glyph, Transform.Identity, 0, ref budget);
         return builder.Count == 0 ? TrueTypeOutline.Empty : builder.ToOutline();
     }
@@ -241,7 +248,7 @@ internal sealed class TrueTypeGlyphs
         return names;
     }
 
-    private void AppendGlyph(OutlineBuilder builder, int glyph, Transform transform, int depth, ref int budget)
+    private void AppendGlyph(OutlineBuilder builder, int glyph, Transform transform, int depth, ref Budget budget)
     {
         if ((uint)glyph >= (uint)GlyphCount)
             throw new InvalidDataException($"A composite glyph is built of glyph {glyph}, which the font has not.");
@@ -260,12 +267,13 @@ internal sealed class TrueTypeGlyphs
         var contours = reader.ReadInt16();
         reader.Skip(8);
         if (contours >= 0)
-            AppendSimpleGlyph(builder, ref reader, contours, transform);
+            AppendSimpleGlyph(builder, ref reader, glyph, contours, transform, ref budget);
         else
             AppendCompositeGlyph(builder, ref reader, glyph, transform, depth, ref budget);
     }
 
-    private static void AppendSimpleGlyph(OutlineBuilder builder, ref BigEndianReader reader, int contours, Transform transform)
+    private static void AppendSimpleGlyph(OutlineBuilder builder, ref BigEndianReader reader, int glyph, int contours,
+        Transform transform, ref Budget budget)
     {
         if (contours == 0)
             return;
@@ -281,6 +289,9 @@ internal sealed class TrueTypeGlyphs
         }
 
         var pointCount = ends[contours - 1] + 1;
+        budget.Points -= pointCount;
+        if (budget.Points < 0)
+            throw new InvalidDataException($"Glyph {glyph} has more than {MaximumPoints} points, counting its components'.");
         reader.Skip(reader.ReadUInt16());
 
         var flags = new byte[pointCount];
@@ -333,7 +344,7 @@ internal sealed class TrueTypeGlyphs
     }
 
     private void AppendCompositeGlyph(OutlineBuilder builder, ref BigEndianReader reader, int glyph, Transform transform,
-        int depth, ref int budget)
+        int depth, ref Budget budget)
     {
         if (depth >= MaximumCompositeDepth)
             throw new InvalidDataException($"Glyph {glyph} is built of composite glyphs more than {MaximumCompositeDepth} deep.");
@@ -342,7 +353,7 @@ internal sealed class TrueTypeGlyphs
         int flags;
         do
         {
-            if (--budget < 0)
+            if (--budget.Components < 0)
                 throw new InvalidDataException($"Glyph {glyph} is built of more than {MaximumComponents} components.");
 
             flags = reader.ReadUInt16();
@@ -427,6 +438,13 @@ internal sealed class TrueTypeGlyphs
     private const int WeHaveATwoByTwo = 0x0080;
     private const int ScaledComponentOffset = 0x0800;
     private const int UnscaledComponentOffset = 0x1000;
+
+    /// <summary>What is left of the components and points one glyph may be built of.</summary>
+    private struct Budget(int components, int points)
+    {
+        public int Components = components;
+        public int Points = points;
+    }
 
     private readonly record struct TableRange(int Offset, int Length)
     {

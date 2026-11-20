@@ -134,9 +134,6 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
         public SimpleFontGlyphs(TrueTypeGlyphs glyphs, PdfDictionary font, PdfDictionary descriptor)
         {
             _glyphs = glyphs;
-            var flags = PdfItemValues.TryGetNumber(descriptor.Elements["/Flags"], out var stated) ? (int)stated : 0;
-            _symbolic = (flags & SymbolicFlag) != 0 && (flags & NonsymbolicFlag) == 0;
-
             var encoding = PdfReference.Dereference(font.Elements["/Encoding"]);
             if (PdfItemValues.TryGetName(encoding, out var name))
             {
@@ -147,6 +144,12 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
                 PdfItemValues.TryGetName(dictionary.Elements["/BaseEncoding"], out _baseEncoding);
                 ReadDifferences(dictionary.Elements.GetArray("/Differences"));
             }
+
+            // ISO 32000-1 9.6.6.4: a font that names WinAnsiEncoding or MacRomanEncoding is read
+            // by glyph name whatever its flags say, as one whose Nonsymbolic flag is set is.
+            var flags = PdfItemValues.TryGetNumber(descriptor.Elements["/Flags"], out var stated) ? (int)stated : 0;
+            _symbolic = (flags & SymbolicFlag) != 0 && (flags & NonsymbolicFlag) == 0
+                && _baseEncoding is not ("/WinAnsiEncoding" or "/MacRomanEncoding");
 
             // A nonsymbolic font that names no base encoding has the standard one.
             if (_baseEncoding == null && !_symbolic)
@@ -173,6 +176,10 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
 
         private int Choose(int code)
         {
+            // .notdef is a name for no glyph, and is not a reason to look the code up some other way.
+            if (_differences[code] == ".notdef")
+                return 0;
+
             var glyph = _symbolic ? BySymbol(code) : ByName(code);
             if (glyph == 0)
                 glyph = _symbolic ? ByName(code) : BySymbol(code);
@@ -192,6 +199,15 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
             var glyph = character > 0 && _unicode != null ? _unicode.GlyphOf(character) : 0;
             if (glyph == 0 && name != null)
                 glyph = Math.Max(0, _glyphs.GlyphNamed(name));
+            if (glyph == 0 && name == null)
+            {
+                foreach (var alias in GlyphNames.NamesOf(character))
+                {
+                    glyph = Math.Max(0, _glyphs.GlyphNamed(alias));
+                    if (glyph != 0)
+                        break;
+                }
+            }
             if (glyph == 0 && character > 0 && _macintosh != null)
             {
                 var macCode = GlyphNames.MacRomanCodeOf(character);

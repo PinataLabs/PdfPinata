@@ -135,12 +135,35 @@ internal sealed class OpenTypeFontface
 
     /// <summary>
     /// The face's glyph outlines and the tables that find a glyph, read from its bytes on first
-    /// asking. This is how page rendering draws a face the font resolver serves.
+    /// asking. This is how page rendering is to draw a face the font resolver serves (#374).
     /// </summary>
     /// <exception cref="System.IO.InvalidDataException">
-    /// The face has PostScript outlines, or lacks a table a TrueType outline needs.
+    /// The face has PostScript outlines, or lacks a table a TrueType outline needs. The face is
+    /// read once, and every later asking throws with the same message.
     /// </exception>
-    internal TrueTypeGlyphs Glyphs => field ??= TrueTypeGlyphs.Read(FontSource.Bytes);
+    internal TrueTypeGlyphs Glyphs
+    {
+        get
+        {
+            if (_glyphs != null)
+                return _glyphs;
+            if (_glyphsUnreadable != null)
+                throw new System.IO.InvalidDataException(_glyphsUnreadable);
+
+            try
+            {
+                return _glyphs = TrueTypeGlyphs.Read(FontSource.Bytes);
+            }
+            catch (System.IO.InvalidDataException ex)
+            {
+                _glyphsUnreadable = ex.Message;
+                throw;
+            }
+        }
+    }
+
+    private TrueTypeGlyphs _glyphs;
+    private string _glyphsUnreadable;
 
     internal OffsetTable _offsetTable;
 

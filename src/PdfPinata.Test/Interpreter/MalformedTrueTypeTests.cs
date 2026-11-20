@@ -100,6 +100,23 @@ public class MalformedTrueTypeTests
     }
 
     [Test, Timeout(30000)]
+    public async Task ACompositeOfManyReferencesToAGlyphOfManyPointsIsCutOffBeforeItIsBuilt()
+    {
+        // One glyph of 65,535 points in a few hundred bytes: every flag repeated, every
+        // coordinate the same as the last. A thousand references to it would be 65 million points.
+        var builder = new TrueTypeFontBuilder();
+        var dense = builder.Add([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFE, 0, 0,
+            ..Enumerable.Range(0, 257).SelectMany(_ => new byte[] { 0x39, 0xFF })]);
+        var many = builder.Add(Composite(Enumerable.Repeat(new Component(dense), 1000).ToArray()));
+        var program = builder.Build();
+
+        var drawn = await Interruptibly.Run(() => Draw($"<{dense:X4}{many:X4}>", program));
+
+        drawn.Device.Fills.Should().ContainSingle("the dense glyph is drawn on its own");
+        MissingGlyph(drawn).Message.Should().Contain("points");
+    }
+
+    [Test, Timeout(30000)]
     public async Task AFontProgramThatIsNotATrueTypeFontIsReportedForEachGlyphShown()
     {
         var drawn = await Interruptibly.Run(() => Draw("<00010002>", [0, 1, 2, 3, 4, 5, 6, 7], "0 0 5 5 re f"));
