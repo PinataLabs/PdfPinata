@@ -1092,7 +1092,7 @@ internal sealed class Parser
             ReadHybridCrossReferenceStream(trailer, accuracy);
             RecordLargestSize(trailer);
 
-            var prev = trailer != null ? trailer.Elements.GetInteger(PdfTrailer.Keys.Prev) : 0;
+            var prev = PositionNamedBy(trailer, PdfTrailer.Keys.Prev);
             if (prev == 0)
                 break;
 
@@ -1100,6 +1100,24 @@ internal sealed class Parser
         }
 
         return firstTrailer;
+    }
+
+    /// <summary>
+    /// The byte offset a trailer's /Prev or /XRefStm names, or 0 when it names none.
+    /// </summary>
+    /// <remarks>
+    /// Read as a long: a section past 2 GiB is named by a number past int.MaxValue. A value that is
+    /// not an integer at all is refused as GetInteger refuses it.
+    /// </remarks>
+    private static long PositionNamedBy(PdfTrailer trailer, string key)
+    {
+        var item = trailer?.Elements[key];
+        if (PdfItemValues.IsNull(item))
+            return 0;
+
+        return PdfItemValues.TryGetLong(item, out var position)
+            ? position
+            : throw new InvalidCastException("GetInteger: Object is not an integer.");
     }
 
     /// <summary>
@@ -1145,7 +1163,7 @@ internal sealed class Parser
     /// </remarks>
     private void ReadHybridCrossReferenceStream(PdfTrailer trailer, PdfReadAccuracy accuracy)
     {
-        var position = trailer?.Elements.GetInteger(PdfTrailer.Keys.XRefStm) ?? 0;
+        var position = PositionNamedBy(trailer, PdfTrailer.Keys.XRefStm);
         if (position == 0)
             return;
 
@@ -1181,7 +1199,7 @@ internal sealed class Parser
     /// Reads the cross-reference section at the position a trailer's /XRefStm names into the table
     /// given, and says whether it could be read. Under Strict one that cannot be is reported.
     /// </summary>
-    private bool TryReadHybridSection(int position, PdfCrossReferenceTable section, PdfReadAccuracy accuracy,
+    private bool TryReadHybridSection(long position, PdfCrossReferenceTable section, PdfReadAccuracy accuracy,
         out PdfTrailer read)
     {
         // ReadXRefStream keeps every stream it reads for PdfReader to resolve compressed objects
