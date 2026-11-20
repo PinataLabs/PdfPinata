@@ -105,17 +105,178 @@ public class EmbeddedTrueTypeTests
     }
 
     [Test]
-    public void ANonsymbolicFontWithNoEncodingIsReadInTheStandardEncoding()
+    public void ANonsymbolicFontWithNoEncodingLooksItsCodesUpInTheCmapAsViewersDo()
+    {
+        // StandardEncoding would make 0x27 quoteright and 0xE9 Oslash. pdf.js and MuPDF look
+        // the code up as it is, and draw the straight quote and the e acute.
+        var builder = new TrueTypeFontBuilder();
+        var straight = builder.AddBar(100);
+        var curly = builder.AddBar(200);
+        var eacute = builder.AddBar(300);
+        var oslash = builder.AddBar(400);
+        builder.Map(3, 1, new Dictionary<int, int> { [0x27] = straight, [0x2019] = curly, [0xE9] = eacute, [0xD8] = oslash });
+        var program = builder.Build();
+
+        var drawn = Drawn.Page("BT /F1 10 Tf <27E9> Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Simple(document, program, 32, null)));
+        var withDifferences = Drawn.Page("BT /F1 10 Tf <27E9> Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Simple(document, program, 32, Differences(document, null, 65, "/A"))));
+
+        Widths(drawn).Should().Equal(0.1, 0.3);
+        Widths(withDifferences).Should().Equal(new[] { 0.2, 0.4 }, "an /Encoding with no base encoding is StandardEncoding");
+    }
+
+    [Test]
+    public void TheMacintoshCmapIsAskedForANameBeforeThePostTable()
     {
         var builder = new TrueTypeFontBuilder();
-        var quoteRight = builder.AddBar(100);
-        builder.Map(3, 1, new Dictionary<int, int> { [0x2019] = quoteRight });
+        var viaCmap = builder.AddBar(100);
+        builder.AddBar(200);
+        builder.Map(1, 0, new Dictionary<int, int> { [0x41] = viaCmap }).Name(null, null, "A");
 
-        // StandardEncoding has quoteright at 0x27, where WinAnsiEncoding has quotesingle.
-        var drawn = Drawn.Page("BT /F1 10 Tf (') Tj ET", (document, resources) =>
-            Drawn.Add(document, resources, "/Font", "/F1", Simple(document, builder.Build(), 32, null)));
+        var drawn = Drawn.Page("BT /F1 10 Tf (A) Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Simple(document, builder.Build(), 32, new PdfName("/WinAnsiEncoding"))));
+
+        Widths(drawn).Should().Equal(new[] { 0.1 }, "post names the 200 bar A, and is asked only where the cmap has nothing");
+    }
+
+    [Test]
+    public void ACharacterTheFontLacksIsNotDrawnAsWhatItsCodeIsInAnotherCmap()
+    {
+        // WinAnsi 0x80 is the euro, which the font has not. Its Macintosh cmap has 0x80, which in
+        // MacRomanEncoding is Adieresis.
+        var builder = new TrueTypeFontBuilder();
+        var a = builder.AddBar(100);
+        var adieresis = builder.AddBar(200);
+        builder.Map(3, 1, new Dictionary<int, int> { [0x41] = a, [0xC4] = adieresis })
+            .Map(1, 0, new Dictionary<int, int> { [0x41] = a, [0x80] = adieresis });
+
+        var drawn = Drawn.Page("BT /F1 10 Tf <8041> Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Simple(document, builder.Build(), 32, new PdfName("/WinAnsiEncoding"))));
 
         Widths(drawn).Should().Equal(0.1);
+        drawn.Problems.Should().Equal("MissingGlyph /F1");
+    }
+
+    [Test]
+    public void ACharacterTheFontLacksIsStillLookedUpInTheSymbolCmap()
+    {
+        // A nonsymbolic font whose only cmap is (3,0), at 0xF000 and above: the name cannot be
+        // looked up there, so the code is.
+        var builder = new TrueTypeFontBuilder();
+        var a = builder.AddBar(100);
+        var quote = builder.AddBar(200);
+        builder.Map(3, 0, new Dictionary<int, int> { [0xF041] = a, [0xF093] = quote });
+
+        var drawn = Drawn.Page("BT /F1 10 Tf <4193> Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Simple(document, builder.Build(), 32, new PdfName("/WinAnsiEncoding"))));
+
+        Widths(drawn).Should().Equal(0.1, 0.2);
+    }
+
+    [Test]
+    public void ACidMappedToGlyphZeroDrawsGlyphZero()
+    {
+        // Glyph 0 of the builder is a 500 bar. Some files keep a real glyph there, such as a
+        // check box's tick, and viewers draw it.
+        var builder = new TrueTypeFontBuilder();
+        builder.AddBar(100);
+        var program = builder.Build();
+
+        var identity = Drawn.Page("BT /F1 10 Tf <00000001> Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Composite(document, program)));
+        var mapped = Drawn.Page("BT /F1 10 Tf <0001> Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Composite(document, program, [0, 1, 0, 0])));
+
+        Widths(identity).Should().Equal(0.5, 0.1);
+        identity.Problems.Should().BeEmpty();
+        Widths(mapped).Should().Equal(0.5);
+    }
+
+    [Test]
+    [Arguments("<0001>", "the map names glyph 9, which the font has not")]
+    [Arguments("<0002>", "CID 2 lies past the end of the map")]
+    [Arguments("<FFFF>", "CID 65535 lies past the end of the map")]
+    public void ACidThatComesToNoGlyphOfTheFontDrawsNothing(string shown, string because)
+    {
+        var builder = new TrueTypeFontBuilder();
+        builder.AddBar(100);
+        var program = builder.Build();
+
+        var drawn = Drawn.Page($"BT /F1 10 Tf {shown} Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Composite(document, program, [0, 0, 0, 9])));
+
+        drawn.Device.Fills.Should().BeEmpty(because);
+        drawn.Problems.Should().Equal("MissingGlyph /F1");
+    }
+
+    [Test]
+    public void CodeZeroOfASimpleFontDrawsGlyphZeroWhereNothingMapsItAndItHasContours()
+    {
+        var builder = new TrueTypeFontBuilder();
+        var a = builder.AddBar(100);
+        builder.Map(3, 0, new Dictionary<int, int> { [0xF041] = a });
+
+        var drawn = Drawn.Page("BT /F1 10 Tf <000141> Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Simple(document, builder.Build(), 4, null)));
+
+        Widths(drawn).Should().Equal(new[] { 0.5, 0.1 }, "code 1 has no glyph, and glyph 0 is drawn for code 0 alone");
+        drawn.Problems.Should().Equal("MissingGlyph /F1");
+    }
+
+    [Test]
+    public void CodeZeroOfASimpleFontDrawsNothingWhereGlyphZeroIsEmpty()
+    {
+        var builder = new TrueTypeFontBuilder();
+        builder.Replace(0, []);
+        var a = builder.AddBar(100);
+        builder.Map(3, 0, new Dictionary<int, int> { [0xF041] = a });
+
+        var drawn = Drawn.Page("BT /F1 10 Tf <0041> Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Simple(document, builder.Build(), 4, null)));
+
+        Widths(drawn).Should().Equal(0.1);
+        drawn.Problems.Should().Equal("MissingGlyph /F1");
+    }
+
+    [Test]
+    public void AMalformedCmapSubtableDoesNotStopTheNextFromBeingAsked()
+    {
+        // The (3,1) subtable says it has 0x7FFF segments and holds none, so every lookup in it
+        // runs off its end. The (1,0) one has the glyph.
+        var builder = new TrueTypeFontBuilder();
+        var a = builder.AddBar(100);
+        byte[] broken = [0, 4, 0, 16, 0, 0, 0xFF, 0xFE, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF];
+        builder.Map(3, 1, broken).Map(1, 0, new Dictionary<int, int> { [0x41] = a });
+
+        var drawn = Drawn.Page("BT /F1 10 Tf (AB) Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Simple(document, builder.Build(), 32, new PdfName("/WinAnsiEncoding"))));
+
+        Widths(drawn).Should().Equal(0.1);
+        drawn.Result.Diagnostics.Should().ContainSingle().Which.Message.Should().Contain("ends inside",
+            "B is in neither subtable, and the one that could not be read is the reason given");
+    }
+
+    [Test]
+    public void AFullUnicodeCmapOfManyGroupsFindsACharacterInAnyOfThem()
+    {
+        var builder = new TrueTypeFontBuilder();
+        var first = builder.AddBar(100);
+        var middle = builder.AddBar(200);
+        var last = builder.AddBar(300);
+        var other = builder.AddBar(400);
+        var map = Enumerable.Range(0, 5000).ToDictionary(i => 0x10000 + 2 * i, _ => other);
+        map[0x10000] = first;
+        map[0x10000 + 2 * 2500] = middle;
+        map[0x10000 + 2 * 4999] = last;
+        builder.Map(3, 10, map);
+
+        var drawn = Drawn.Page("BT /F1 10 Tf (ABCD) Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Simple(document, builder.Build(), 32,
+                Differences(document, null, 65, "/u10000", $"/u{0x10000 + 2 * 2500:X5}", $"/u{0x10000 + 2 * 4999:X5}", $"/u{0x10000 + 2 * 4999 + 1:X5}"))));
+
+        Widths(drawn).Should().Equal(new[] { 0.1, 0.2, 0.3 }, "D is between two groups");
+        drawn.Problems.Should().Equal("MissingGlyph /F1");
     }
 
     [Test]

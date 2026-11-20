@@ -54,7 +54,8 @@ canvas's own save stack.
 never as text", and it does: as a `Fill`, a `Stroke` or part of a `Clip`. The interpreter splits the
 text render mode into those, so the clip modes need nothing from a device that paths do not already
 need. A glyph's `PagePath` is the same instance each time that glyph of that font is drawn, and says
-so with `IsShared`, which is what a device caches its own path against.
+so with `IsShared`, which is what a device caches its own path against. That holds for the first
+1,048,576 points of outline a font keeps; a glyph past that is handed over unshared, each time anew.
 
 **It is a class and not an interface**, so that shadings, patterns, blend modes and transparency
 groups can arrive as `virtual` members whose base body says the device cannot draw them.
@@ -320,23 +321,41 @@ read is reported as `MissingGlyph` against each glyph shown in it, with the reas
 
 - **Composite fonts.** The code is the CID, by `Identity-H` or `Identity-V`. `/CIDToGIDMap` is
   `/Identity`, which is also what no entry means, or a stream of two bytes for each CID. A CID past
-  the end of the stream has no glyph.
-- **Simple fonts.** The descriptor's `/Flags` say which way is tried first, and the other way is
-  tried after it, because real files often say a font is symbolic when it is not, or the reverse.
-  A font that names `/WinAnsiEncoding` or `/MacRomanEncoding` is tried by name first whatever its
-  flags say, as ISO 32000-1 9.6.6.4 has it. A code that `/Differences` names `.notdef` has no glyph,
-  and is not looked up another way.
-  - *By name*, first for a nonsymbolic font: the code's glyph name from `/Differences`, or else its
-    character from the base encoding, which is `/StandardEncoding` where a nonsymbolic font names
-    none. A name becomes a character through `GlyphNames` (the Adobe Glyph List, `uniXXXX` and
-    `uXXXX`). Then the (3,1) `cmap`, or (3,10), (0,3) or (0,4); then the `post` table's names: the
-    name `/Differences` gives, or for a code of the base encoding each name its character goes by;
-    then the character's MacRomanEncoding code in the (1,0) `cmap`.
-  - *By code*, first for a symbolic font: the (3,0) `cmap` at the code, then at the code plus
-    0xF000, 0xF100 and 0xF200; then the (1,0) `cmap` at the code; then the Unicode `cmap` at the code.
+  the end of the stream, or mapped to a glyph number the font has not, has no glyph.
+- **Simple fonts.** A font with an `/Encoding` that is not symbolic is tried by name first, and a
+  symbolic font, or a nonsymbolic one with no `/Encoding` at all, by code first. A font that names
+  `/WinAnsiEncoding` or `/MacRomanEncoding` is tried by name first whatever its flags say, as
+  ISO 32000-1 9.6.6.4 has it. The other way is tried after the first finds nothing, because real
+  files often say a font is symbolic when it is not, or the reverse. A code that `/Differences`
+  names `.notdef` has no glyph, and is not looked up another way.
+  - *By name*: the code's glyph name from `/Differences`, or else its character from the base
+    encoding, which is `/StandardEncoding` where a nonsymbolic font's `/Encoding` names none. A name
+    becomes a character through `GlyphNames` (the Adobe Glyph List, `uniXXXX` and `uXXXX`). Then the
+    (3,1) `cmap`, or (3,10), (0,3) or (0,4); then the character's MacRomanEncoding code in the (1,0)
+    `cmap`; and only then the `post` table's names, the name `/Differences` gives, or for a code of
+    the base encoding each name its character goes by. That is 9.6.6.4's order, and MuPDF's: `post`
+    is for a name the `cmap` cannot map.
+  - *By code*: the code as it is, in each `cmap`. For a symbolic font, the (3,0) `cmap` at the code,
+    then at the code plus 0xF000, 0xF100 and 0xF200, then the (1,0) `cmap`, then the Unicode one. For
+    a nonsymbolic font, the Unicode `cmap`, then the (1,0) one, then the (3,0) one.
+  - **Where the name gave a character the font has no glyph for, the code is looked up in the (3,0)
+    `cmap` alone.** In the Unicode or (1,0) `cmap` the code means another character: WinAnsi's 0x80
+    is the euro, and a font without one has Adieresis at Mac 0x80. pdf.js and MuPDF draw nothing
+    there, and so does this, with a `MissingGlyph`.
   - A font program with no `cmap` at all is taken to number its glyphs by the codes.
+  - A subtable that is malformed for a code is passed over for the next. Only where none has a
+    glyph is the fault the reason reported.
 
-Glyph 0, `.notdef`, is never drawn: a code that comes to it has no glyph, which is reported.
+**A nonsymbolic font with no `/Encoding` is read by code, not in StandardEncoding.** ISO 32000-1
+9.6.6.1 gives such a font StandardEncoding, which makes 0x27 quoteright and 0xE9 Oslash. pdf.js and
+MuPDF look the code up in the font's `cmap` as it is, and draw the straight quote and e acute; users
+judge a rendering against those viewers, so this follows them. An `/Encoding` dictionary with
+`/Differences` and no `/BaseEncoding` is still StandardEncoding, as both viewers read it.
+
+**Glyph 0, `.notdef`, is drawn only where a file asks for it.** A CID that `/CIDToGIDMap` or
+`/Identity` sends to glyph 0 draws it, and so does code 0 of a simple font that nothing else maps,
+where glyph 0 has contours. pdf.js does both, because some files keep a real glyph there (its issue
+17333 is a check box). Any other code that comes to no glyph draws nothing and is reported.
 
 `GlyphNames` reads `Fonts/GlyphNameTables.g.cs`, which `tools/GlyphNameTableGenerator` writes from
 the checked-in Adobe Glyph List. It is the core's one map from glyph names to characters.
@@ -346,6 +365,18 @@ the checked-in Adobe Glyph List. It is the core's one map from glyph names to ch
 The source belongs to the `RenderFont` that `RenderFontCache` keeps for each font dictionary, keyed
 by its reference, so a font program is decoded once per document, and each glyph's `PagePath` once
 per font. Two font dictionaries that share one `/FontFile2` stream decode it twice.
+
+**Outlines are kept by glyph, not by code, and only up to 1,048,576 points a font.** A source
+numbers the glyph of a code through the internal `PageGlyphSource.GlyphOf`, and `RenderFont` keeps
+one outline for each number, so the CIDs a `/CIDToGIDMap` sends to one glyph share one path. A
+source of the caller's own numbers each code as its own glyph. The budget is for glyphs that are
+different numbers and one shape: alternate `loca` entries can all point at one glyph's data, and a
+glyph may have 65,536 points. Kept once for each code, a 716-byte font program and 60,000 CIDs
+would have been about 62 GiB of outline, and `Render` threw `OutOfMemoryException`. A glyph that would take a font past the budget is
+decoded again each time it is drawn and handed over unshared, so a device does not keep it either:
+it costs time, about 7 ms for each such glyph of 65,535 points, and not memory. The other way, to
+report the glyph and skip it, would leave text out of a real font whose glyphs are many and large,
+and the budget, about 20 MB, is far past what a page of CJK text keeps.
 
 ## What was deliberately left out
 

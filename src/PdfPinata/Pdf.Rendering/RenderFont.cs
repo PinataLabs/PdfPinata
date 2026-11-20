@@ -12,13 +12,25 @@ namespace PdfPinata.Pdf.Rendering;
 /// <remarks>
 /// Made once for a font dictionary and kept, so that a glyph's outline is one
 /// <see cref="PagePath"/> however often it is drawn. That is what gives the path the identity a
-/// device caches on.
+/// device caches on. Outlines are kept by glyph and not by code, so codes that draw one glyph hold
+/// one path, and only up to <see cref="KeptPointBudget"/> points of them.
 /// </remarks>
 internal sealed class RenderFont
 {
     private readonly FontWidths _widths;
     private readonly VerticalMetrics _vertical;
-    private readonly Dictionary<int, PagePath> _outlines = new();
+    private readonly Dictionary<int, (PagePath Outline, string Why)> _outlines = new();
+    private int _keptPoints;
+
+    /// <summary>
+    /// The most points of outline one font keeps, about 20 MB. A glyph that would take the font
+    /// past it is decoded each time it is drawn and handed over unshared, which costs time and
+    /// not memory: a /CIDToGIDMap or a loca table can name one glyph of 65,536 points tens of
+    /// thousands of times in a few hundred bytes.
+    /// </summary>
+    internal const int KeptPointBudget = 1 << 20;
+
+    private const string NoGlyph = "The font has no glyph for a code the text shows.";
 
     private RenderFont(bool isComposite, FontWidths widths, VerticalMetrics vertical)
     {
@@ -121,39 +133,63 @@ internal sealed class RenderFont
     internal (double Advance, double X, double Y) VerticalMetricsOf(int code) => _vertical.Of(code, WidthOf(code));
 
     /// <summary>
-    /// The outline of a code's glyph: the same instance every time, empty for a glyph that draws
-    /// nothing, and null where the font has no such glyph or no source at all.
+    /// The outline of a code's glyph: the same instance every time while the font is within
+    /// <see cref="KeptPointBudget"/>, empty for a glyph that draws nothing, and null where the font
+    /// has no such glyph or no source at all.
     /// </summary>
     /// <param name="code">The character code of a simple font, or the CID of a composite one.</param>
     /// <param name="why">Why there is no glyph, where there is none.</param>
     internal PagePath OutlineOf(int code, out string why)
     {
-        why = null;
         if (Source == null)
         {
             why = UnsupportedReason;
             return null;
         }
 
-        if (_outlines.TryGetValue(code, out var outline))
-        {
-            if (outline == null)
-                why = "The font has no glyph for a code the text shows.";
-            return outline;
-        }
-
+        int glyph;
         try
         {
-            outline = Source.GetOutline(code)?.Shared();
+            glyph = Source.GlyphOf(code);
+        }
+        catch (Exception ex) when (IsAboutTheFont(ex))
+        {
+            why = ex.Message;
+            return null;
+        }
+
+        if (glyph < 0)
+        {
+            why = NoGlyph;
+            return null;
+        }
+
+        if (_outlines.TryGetValue(glyph, out var kept))
+        {
+            why = kept.Why;
+            return kept.Outline;
+        }
+
+        PagePath outline = null;
+        why = null;
+        try
+        {
+            outline = Source.OutlineOfGlyph(glyph);
             if (outline == null)
-                why = "The font has no glyph for a code the text shows.";
+                why = NoGlyph;
         }
         catch (Exception ex) when (IsAboutTheFont(ex))
         {
             why = ex.Message;
         }
 
-        _outlines[code] = outline;
+        var points = outline?.Points.Length ?? 0;
+        if (points > KeptPointBudget - _keptPoints)
+            return outline;
+
+        _keptPoints += points;
+        outline = outline?.Shared();
+        _outlines[glyph] = (outline, why);
         return outline;
     }
 

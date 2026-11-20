@@ -77,7 +77,8 @@ The interpreter resolves everything that is PDF and hands the device only what i
 - a glyph, **as an outline path**, never as text: the interpreter has already chosen the glyph,
   positioned it with the PDF's widths and applied the text render mode. So a glyph is a fill, a
   stroke or a clip like any other path, and the seam has no member for one. Its path is the same
-  instance each time that glyph is drawn, which is what a device caches on;
+  instance each time that glyph is drawn, up to a budget of points per font, which is what a device
+  caches on;
 - an image as decoded samples with a transform, every mask already applied to them;
 - save and restore, of the clip, which is the only state a device keeps.
 
@@ -121,7 +122,8 @@ fidelity tests run on both.
 v1 reads `glyf` and `loca` outlines (simple and composite glyphs) in `Fonts.OpenType`, beside
 `OpenTypeFontface`, and chooses each glyph by the PDF's rules rather than the font's alone:
 
-- simple fonts: `/Encoding`, including `/Differences`, then the font's (3,1) or (1,0) `cmap`;
+- simple fonts: `/Encoding`, including `/Differences`, then the font's (3,1) or (1,0) `cmap`, then
+  its `post` names; a nonsymbolic font with no `/Encoding` by its codes, as pdf.js and MuPDF read it;
 - symbolic fonts: the (3,0) `cmap`, trying the code and the code plus `0xF000`;
 - composite fonts: the CMap, then `/CIDToGIDMap` (`/Identity` or a stream).
 

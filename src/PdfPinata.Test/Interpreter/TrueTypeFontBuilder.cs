@@ -150,6 +150,9 @@ internal sealed class TrueTypeFontBuilder
         return this;
     }
 
+    /// <summary>Where a glyph's data begins in the <c>glyf</c> table <see cref="Build"/> writes.</summary>
+    public uint OffsetOf(int glyph) => (uint)_glyphs.Take(glyph).Sum(data => (data.Length + 3) / 4 * 4);
+
     /// <summary>The font program.</summary>
     /// <param name="locaEnd">Overrides where <c>loca</c> says the glyphs end, for a font that is broken.</param>
     public byte[] Build(Func<int, uint?> locaEnd = null)

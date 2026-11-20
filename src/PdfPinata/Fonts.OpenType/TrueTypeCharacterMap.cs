@@ -127,17 +127,28 @@ internal sealed class TrueTypeCharacterMap
         return reader.ReadUInt16();
     }
 
-    private static int SegmentedCoverage(ref BigEndianReader reader, int code)
+    /// <summary>
+    /// Format 12's groups, which the format requires sorted by their first character and not
+    /// overlapping, found by binary search: a font may have tens of thousands of them.
+    /// </summary>
+    private int SegmentedCoverage(ref BigEndianReader reader, int code)
     {
         reader.Skip(12);
         var groups = reader.ReadUInt32();
-        for (var group = 0u; group < groups; group++)
+        var first = _offset + 16L;
+        long low = 0, high = (long)groups - 1;
+        while (low <= high)
         {
-            var start = reader.ReadUInt32();
-            var end = reader.ReadUInt32();
-            var glyph = reader.ReadUInt32();
-            if (code >= start && code <= end)
-                return (int)(glyph + ((uint)code - start));
+            var middle = low + (high - low) / 2;
+            var group = new BigEndianReader(_data, (int)Math.Min(first + 12 * middle, _end + 1L), _end);
+            var start = group.ReadUInt32();
+            var end = group.ReadUInt32();
+            if (code < start)
+                high = middle - 1;
+            else if (code > end)
+                low = middle + 1;
+            else
+                return (int)(group.ReadUInt32() + ((uint)code - start));
         }
 
         return 0;
