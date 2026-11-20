@@ -75,7 +75,7 @@ internal static class ColorSpaces
     /// <summary>What an unsupported space draws in: black, which is what colour starts as.</summary>
     private static PagePaint Fallback => new(0, 0, 0);
 
-    private static RenderColorSpace Unsupported(string family, int componentCount, DiagnosticSink sink)
+    private static UnsupportedColorSpace Unsupported(string family, int componentCount, DiagnosticSink sink)
     {
         sink.Report(PageRenderProblem.UnsupportedColorSpace, family,
             "This colour space is not resolved yet. What it colours is drawn in black.");

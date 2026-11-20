@@ -172,8 +172,6 @@ A page that states no box with any area is drawn as US Letter, which is what vie
 and reported. A box that is asked for and has no area, such as a crop box that misses the media
 box, is the media box.
 
-`/UserUnit` is read from the key, because `PdfPage.UserUnit` (#377) is being added separately.
-
 ## Fonts are kept on the document
 
 `PdfDocument.RenderFontCache` holds one `RenderFont` for each font dictionary, keyed by the

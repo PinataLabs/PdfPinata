@@ -40,7 +40,7 @@ internal sealed partial class ContentInterpreter
     /// </summary>
     internal const int MaximumFaults = 64;
 
-    private readonly PageDevice _device;
+    private readonly GuardedDevice _device;
     private readonly PageView _view;
     private readonly RenderFontCache _fonts;
     private readonly Func<PdfDictionary, PageGlyphSource> _glyphSources;

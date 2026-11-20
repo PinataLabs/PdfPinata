@@ -129,7 +129,8 @@ internal sealed partial class ContentInterpreter
         if (!ReadNumber(op, out var mode))
             return;
 
-        if (mode is >= 0 and <= 7 && mode == Math.Floor(mode))
+        // A mode is one of eight whole numbers, so a real that is not exactly one of them is none.
+        if (mode is 0 or 1 or 2 or 3 or 4 or 5 or 6 or 7)
             State.RenderMode = (TextRenderMode)(int)mode;
         else
             Invalid("Tr", "A text render mode is a whole number from 0 to 7.");

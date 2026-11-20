@@ -49,8 +49,10 @@ public readonly struct PagePaint : IEquatable<PagePaint>
     public PagePaint WithAlpha(double alpha) => new(Red, Green, Blue, alpha);
 
     /// <inheritdoc />
+    #pragma warning disable S1244 // Exact on purpose: two paints are equal when they are the same numbers.
     public bool Equals(PagePaint other) =>
         Red.Equals(other.Red) && Green.Equals(other.Green) && Blue.Equals(other.Blue) && Alpha.Equals(other.Alpha);
+    #pragma warning restore S1244
 
     /// <inheritdoc />
     public override bool Equals(object obj) => obj is PagePaint other && Equals(other);

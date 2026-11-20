@@ -122,7 +122,7 @@ public sealed class PageView
         if (boxIsAssumed)
             rectangle = new XRect(0, 0, 612, 792);
 
-        var userUnit = UserUnitOf(page);
+        var userUnit = page.UserUnit;
         var width = rectangle.Width * userUnit;
         var height = rectangle.Height * userUnit;
         var turn = (page.Rotate % 360 + 360) % 360;
@@ -174,19 +174,6 @@ public sealed class PageView
         var y1 = Math.Min(rectangle.Y1, rectangle.Y2);
         return new XRect(x1, y1, Math.Abs(rectangle.X2 - rectangle.X1), Math.Abs(rectangle.Y2 - rectangle.Y1));
     }
-
-    /// <summary>
-    /// The size of a default user space unit in points, 1 where the page says nothing usable.
-    /// </summary>
-    /// <remarks>
-    /// Read from the key, because <c>PdfPage.UserUnit</c> is being added separately (#377). Once
-    /// it is there, this reads it.
-    /// </remarks>
-    private static double UserUnitOf(PdfPage page) =>
-        PdfItemValues.TryGetNumber(page.Elements[PdfPage.Keys.UserUnit], out var unit) && unit > 0
-        && !double.IsInfinity(unit)
-            ? unit
-            : 1;
 
     // Less a hair before rounding up, so that a size that is a whole number but for the last
     // bit of a double does not gain a pixel.
