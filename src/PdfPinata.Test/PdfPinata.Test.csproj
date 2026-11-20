@@ -53,6 +53,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!--
+      The standard 14 metrics are internal and this repository carries no InternalsVisibleTo, so
+      the two files that make them up are compiled here as source. Neither depends on anything
+      else in PdfPinata.
+    -->
+    <Compile Include="..\PdfPinata\Fonts\Core14Metrics.cs" Link="Fonts\Linked\Core14Metrics.cs" />
+    <Compile Include="..\PdfPinata\Fonts\Core14Tables.g.cs" Link="Fonts\Linked\Core14Tables.g.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Assets\**\*.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
