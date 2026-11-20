@@ -327,6 +327,134 @@ public class FormXObjectTests
         drawn.Result.IsComplete.Should().BeTrue("an expression that cannot be read to its end is taken to be visible");
     }
 
+    /// <summary>A page whose content is in the membership dictionary <c>/M</c>, whose <c>/VE</c> <paramref name="expression"/> builds.</summary>
+    private static Drawn WithExpression(string content, Func<PdfDocument, PdfDictionary, PdfDictionary, PdfItem> expression) =>
+        Layered(content,
+            (document, configuration, first, _) => configuration.Elements["/OFF"] = new PdfArray(document, first.Reference),
+            (document, resources, first, second) =>
+            {
+                var membership = new PdfDictionary(document);
+                membership.Elements.SetName("/Type", "/OCMD");
+                membership.Elements["/VE"] = expression(document, first, second);
+                Drawn.Add(document, resources, "/Properties", "/M", membership);
+            });
+
+    private static PdfArray Expression(PdfDocument document, params PdfItem[] items) => new(document, items);
+
+    [Test, Timeout(30_000)]
+    [Arguments("an operation that is not one")]
+    [Arguments("an operand that is neither a group nor an expression")]
+    [Arguments("a not of two operands")]
+    [Arguments("a malformed operand after one that already decides")]
+    public async Task AVisibilityExpressionWithAPartThatCannotBeReadIsVisibleEvenUnderANot(string malformed)
+    {
+        // The first group is off and the second is on, so each of these reads as hidden were the
+        // malformed part taken to be visible and then inverted.
+        var drawn = await Interruptibly.Run(() => WithExpression("/OC /M BDC 0 0 5 5 re f EMC", (document, first, second) =>
+            malformed switch
+            {
+                "an operation that is not one" =>
+                    Expression(document, new PdfName("/Not"), Expression(document, new PdfName("/Xor"), second.Reference)),
+                "an operand that is neither a group nor an expression" =>
+                    Expression(document, new PdfName("/Not"), Expression(document, new PdfName("/And"), second.Reference, new PdfReal(7))),
+                "a not of two operands" =>
+                    Expression(document, new PdfName("/And"), second.Reference,
+                        Expression(document, new PdfName("/Not"), second.Reference, first.Reference)),
+                _ => Expression(document, new PdfName("/And"), first.Reference, new PdfName("/Nope"))
+            }));
+
+        drawn.Result.IsComplete.Should().BeTrue("an expression with a part that cannot be read is visible");
+    }
+
+    [Test, Timeout(30_000)]
+    public async Task ANotOverAnExpressionPastTheBudgetIsVisible()
+    {
+        // [/Not [/And self self]]: the inner expression is read to its limit, and what cannot be
+        // read to its end is visible whatever stands over it.
+        var drawn = await Interruptibly.Run(() => WithExpression("/OC /M BDC 0 0 5 5 re f EMC", (document, _, _) =>
+        {
+            var inner = new PdfArray(document);
+            document.Internals.AddObject(inner);
+            inner.Elements.Add(new PdfName("/And"));
+            inner.Elements.Add(inner.Reference);
+            inner.Elements.Add(inner.Reference);
+            return Expression(document, new PdfName("/Not"), inner.Reference);
+        }));
+
+        drawn.Result.IsComplete.Should().BeTrue();
+    }
+
+    [Test, Timeout(60_000)]
+    [NotInParallel]
+    public async Task AMembershipIsReadOncePerRenderHoweverOftenContentNamesIt()
+    {
+        // 40,000 runs in one membership whose expression is a group and nine levels of /And
+        // over the level below twice: 1,022 operands, every one readable, read in full each
+        // time it is read. Against as many runs in a plain group, which costs nothing to ask about.
+        var runs = string.Concat(Enumerable.Repeat("/OC /M BDC EMC ", 40_000));
+        Drawn Plain() => Layered(runs.Replace("/M", "/L1"), (_, _, _, _) => { });
+        Drawn Doubling() => Layered(runs, (_, _, _, _) => { }, (document, resources, _, second) =>
+        {
+            PdfItem level = second.Reference;
+            for (var depth = 0; depth < 9; depth++)
+            {
+                var expression = Expression(document, new PdfName("/And"), level, level);
+                document.Internals.AddObject(expression);
+                level = expression.Reference;
+            }
+
+            var membership = new PdfDictionary(document);
+            membership.Elements.SetName("/Type", "/OCMD");
+            membership.Elements["/VE"] = level;
+            Drawn.Add(document, resources, "/Properties", "/M", membership);
+        });
+
+        static TimeSpan Fastest(Func<Drawn> render)
+        {
+            var fastest = TimeSpan.MaxValue;
+            for (var attempt = 0; attempt < 3; attempt++)
+            {
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                render();
+                if (watch.Elapsed < fastest)
+                    fastest = watch.Elapsed;
+            }
+
+            return fastest;
+        }
+
+        var (plain, doubling) = await Interruptibly.Run(() => (Fastest(Plain), Fastest(Doubling)));
+
+        doubling.Should().BeLessThan(plain * 2, $"the expression is read once, not once a run, and a plain group took {plain}");
+    }
+
+    [Test]
+    [Arguments(null, "/Design", false)]
+    [Arguments(null, null, true)]
+    [Arguments(null, "[/View /Design]", true)]
+    [Arguments("/Design", "/Design", true)]
+    [Arguments("/Design", null, false)]
+    [Arguments("[/View /Design]", "/Design", true)]
+    [Arguments("/All", "/Design", true)]
+    [Arguments("[/View /All]", "/Whatever", true)]
+    public void AGroupCountsOnlyWhereTheConfigurationNamesOneOfItsIntents(string configured, string ofTheGroup, bool reported)
+    {
+        static PdfItem Intent(PdfDocument document, string intent) => intent.StartsWith('[')
+            ? new PdfArray(document, intent.Trim('[', ']').Split(' ').Select(name => (PdfItem)new PdfName(name)).ToArray())
+            : new PdfName(intent);
+
+        var drawn = Layered(InFirstGroup, (document, configuration, first, _) =>
+        {
+            configuration.Elements["/OFF"] = new PdfArray(document, first.Reference);
+            if (configured != null)
+                configuration.Elements["/Intent"] = Intent(document, configured);
+            if (ofTheGroup != null)
+                first.Elements["/Intent"] = Intent(document, ofTheGroup);
+        });
+
+        drawn.Result.IsComplete.Should().Be(!reported);
+    }
+
     [Test]
     public void AFormThatBelongsToAGroupSwitchedOffIsDrawnAndReported()
     {
