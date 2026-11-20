@@ -70,6 +70,9 @@ internal sealed class TrueTypeGlyphs
     /// </summary>
     public int GlyphCount { get; }
 
+    /// <summary>How many bytes the font program is.</summary>
+    public int Length => _data.Length;
+
     /// <summary>Reads the table directory and the tables an outline needs.</summary>
     /// <param name="data">A TrueType font program. It is kept, not copied.</param>
     /// <exception cref="InvalidDataException">

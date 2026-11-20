@@ -55,7 +55,8 @@ never as text", and it does: as a `Fill`, a `Stroke` or part of a `Clip`. The in
 text render mode into those, so the clip modes need nothing from a device that paths do not already
 need. A glyph's `PagePath` is the same instance each time that glyph of that font is drawn, and says
 so with `IsShared`, which is what a device caches its own path against. That holds for the first
-1,048,576 points of outline a font keeps; a glyph past that is handed over unshared, each time anew.
+1,048,576 points of outline a document's fonts keep; a glyph past that is handed over unshared, each
+time anew.
 
 **It is a class and not an interface**, so that shadings, patterns, blend modes and transparency
 groups can arrive as `virtual` members whose base body says the device cannot draw them.
@@ -364,20 +365,46 @@ the checked-in Adobe Glyph List. It is the core's one map from glyph names to ch
 ### Caching
 
 The source belongs to the `RenderFont` that `RenderFontCache` keeps for each font dictionary, keyed
-by its reference, so a font program is decoded once per document, and each glyph's `PagePath` once
-per font. Two font dictionaries that share one `/FontFile2` stream decode it twice.
+by its reference, so a font program is decoded once per document while the font is kept, and each
+glyph's `PagePath` once per font. Two font dictionaries that share one `/FontFile2` stream decode it
+twice.
 
-**Outlines are kept by glyph, not by code, and only up to 1,048,576 points a font.** A source
-numbers the glyph of a code through the internal `PageGlyphSource.GlyphOf`, and `RenderFont` keeps
-one outline for each number, so the CIDs a `/CIDToGIDMap` sends to one glyph share one path. A
-source of the caller's own numbers each code as its own glyph. The budget is for glyphs that are
-different numbers and one shape: alternate `loca` entries can all point at one glyph's data, and a
-glyph may have 65,536 points. Kept once for each code, a 716-byte font program and 60,000 CIDs
-would have been about 62 GiB of outline, and `Render` threw `OutOfMemoryException`. A glyph that would take a font past the budget is
-decoded again each time it is drawn and handed over unshared, so a device does not keep it either:
-it costs time, about 7 ms for each such glyph of 65,535 points, and not memory. The other way, to
-report the glyph and skip it, would leave text out of a real font whose glyphs are many and large,
-and the budget, about 20 MB, is far past what a page of CJK text keeps.
+**Outlines are kept by glyph, not by code.** A source numbers the glyph of a code through the
+internal `PageGlyphSource.GlyphOf`, and `RenderFont` keeps one outline for each number, so the CIDs
+a `/CIDToGIDMap` sends to one glyph share one path. A source of the caller's own numbers each code as
+its own glyph.
+
+**What fonts hold is bounded for the document, not for each font.** Alternate `loca` entries can
+all point at one glyph's data, and a glyph may have 65,536 points: kept once for each code, a
+716-byte font program and 60,000 CIDs would have been about 62 GiB of outline. A budget for each
+font stopped that and nothing more, because a Type 0 font dictionary over a shared descendant
+costs about 150 bytes of file: 256 of them held 4.3 GiB, and 512 in an 89 KB file threw
+`OutOfMemoryException`. So `RenderFontCache` holds three bounds:
+
+- **Outlines, within a page.** At most 1,048,576 points, about 17 MiB, for all fonts together. A
+  glyph that would take the document past it is decoded again each time it is drawn and handed
+  over unshared, so a device does not keep it either: it costs time, about 7 ms for each such
+  glyph of 65,535 points, and not memory. The 512 fonts above now render, holding 16 glyphs.
+- **Font programs, at any time.** At most 64 MiB of decoded font program for all fonts together,
+  room for two CJK fonts embedded whole beside a page of Latin text. Past it, the programs of the
+  fonts least recently selected are let go of and read again if they are asked for. A program
+  costs a font dictionary nothing to name, and a few kilobytes of Flate can decode to megabytes.
+- **Fonts, between pages.** Where outlines or programs are over half their budget when a page
+  begins, the fonts least recently selected are forgotten whole, until both are under it. A long
+  render of a document whose every page has subsets of its own stays bounded, and each new page
+  has room to keep its own glyphs.
+
+Two designs were weighed for the outline bound. **A total budget alone**, past which outlines are
+unshared, holds memory flat, but once early pages fill it every later page draws every glyph
+unshared, decoding each one each time it is drawn, for the rest of the document. **Eviction
+alone**, least recently used by font, keeps sharing, but an outline let go of during a page is
+decoded again as a new shared path, and a device keeps one path of its own for each shared one it
+is handed until the render ends: a page that cycled fonts past the budget would grow the device
+without bound, and the Skia device keeps an `SKPath` for each. So each is used where the other
+fails: the total within a page, where the device's cache lives, and eviction between pages, where
+no font is in use and no device holds a path. Programs can be let go of at any time because
+dropping one changes no path a device has been handed. The other way, to report a glyph past the
+budget and skip it, would leave text out of a real font whose glyphs are many and large.
 
 **A text object clips to at most 4,194,304 points of glyph outline.** A glyph shown in a clip mode
 is copied into the clip in device space, each time it is shown, so sharing the outline does not

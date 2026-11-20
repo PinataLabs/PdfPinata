@@ -73,6 +73,16 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
         return outline == null ? null : TrueTypeOutlinePaths.ToPagePath(outline, glyphs.UnitsPerEm);
     }
 
+    internal override long HeldBytes => (_glyphs?.Length ?? 0) + (_cidToGid?.Length ?? 0);
+
+    internal override void Release()
+    {
+        _glyphs = null;
+        _simple = null;
+        _cidToGid = null;
+        _cidMapRead = false;
+    }
+
     /// <summary>
     /// The font program, read the first time it is needed. One that cannot be read throws for
     /// every glyph asked for, with the same message, and is not read again.
@@ -147,7 +157,8 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
     /// nothing. Except that where the name gave a character the font has no glyph for, its code is
     /// not looked up in the Unicode or (1,0) <c>cmap</c>, where it means another character: a
     /// euro the font lacks would be drawn as whatever the font keeps at 0x80. Only the (3,0)
-    /// <c>cmap</c>, which the name could not be looked up in, is tried.
+    /// <c>cmap</c>, which the name could not be looked up in, is tried. The same holds for a
+    /// <c>/Differences</c> name that is no character at all.
     /// </para>
     /// </remarks>
     private sealed class SimpleFontGlyphs
@@ -240,9 +251,11 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
             }
             else
             {
+                // A name from /Differences that is no character and no glyph in post draws
+                // nothing, as in pdf.js: the code means another character in a Unicode cmap.
                 glyph = ByName(code, out var named);
                 if (glyph == 0)
-                    glyph = named ? InSymbolCmap(code) : ByCode(code);
+                    glyph = named || _differences[code] != null ? InSymbolCmap(code) : ByCode(code);
             }
 
             // A subset with no cmap at all is one whose producer numbered its glyphs by the codes.

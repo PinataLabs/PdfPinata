@@ -18,6 +18,9 @@ internal sealed class TrueTypeCharacterMap
     private readonly int _end;
     private readonly int _format;
 
+    /// <summary>Whether format 12's groups can be searched by halves, once it is known.</summary>
+    private bool? _groupsInOrder;
+
     private TrueTypeCharacterMap(byte[] data, int offset, int end, int format)
     {
         _data = data;
@@ -128,31 +131,70 @@ internal sealed class TrueTypeCharacterMap
     }
 
     /// <summary>
-    /// Format 12's groups, which the format requires sorted by their first character and not
-    /// overlapping, found by binary search: a font may have tens of thousands of them.
+    /// Format 12's groups, found by binary search where they are sorted by their first character
+    /// and do not overlap, as the format requires: a font may have tens of thousands of them.
+    /// Where they are not, every group is looked at in turn and the first that holds the code
+    /// wins. Only as many groups are read as the subtable's length has room for, whatever count
+    /// it states.
     /// </summary>
     private int SegmentedCoverage(ref BigEndianReader reader, int code)
     {
         reader.Skip(12);
-        var groups = reader.ReadUInt32();
+        var stated = reader.ReadUInt32();
         var first = _offset + 16L;
-        long low = 0, high = (long)groups - 1;
-        while (low <= high)
+        var groups = Math.Min(stated, (_end - first) / GroupLength);
+        _groupsInOrder ??= GroupsInOrder(first, groups);
+
+        if (_groupsInOrder.Value)
         {
-            var middle = low + (high - low) / 2;
-            var group = new BigEndianReader(_data, (int)Math.Min(first + 12 * middle, _end + 1L), _end);
-            var start = group.ReadUInt32();
-            var end = group.ReadUInt32();
-            if (code < start)
-                high = middle - 1;
-            else if (code > end)
-                low = middle + 1;
-            else
-                return (int)(group.ReadUInt32() + ((uint)code - start));
+            long low = 0, high = groups - 1;
+            while (low <= high)
+            {
+                var middle = low + (high - low) / 2;
+                var (start, end, glyph) = GroupAt(first, middle);
+                if (code < start)
+                    high = middle - 1;
+                else if (code > end)
+                    low = middle + 1;
+                else
+                    return (int)(glyph + ((uint)code - start));
+            }
+
+            return 0;
+        }
+
+        for (long index = 0; index < groups; index++)
+        {
+            var (start, end, glyph) = GroupAt(first, index);
+            if (code >= start && code <= end)
+                return (int)(glyph + ((uint)code - start));
         }
 
         return 0;
     }
+
+    /// <summary>Whether each group starts after the one before it ends.</summary>
+    private bool GroupsInOrder(long first, long groups)
+    {
+        long lastEnd = -1;
+        for (long index = 0; index < groups; index++)
+        {
+            var (start, end, _) = GroupAt(first, index);
+            if (start <= lastEnd || end < start)
+                return false;
+            lastEnd = end;
+        }
+
+        return true;
+    }
+
+    private (uint Start, uint End, uint Glyph) GroupAt(long first, long index)
+    {
+        var group = new BigEndianReader(_data, (int)(first + GroupLength * index), _end);
+        return (group.ReadUInt32(), group.ReadUInt32(), group.ReadUInt32());
+    }
+
+    private const int GroupLength = 12;
 
     private int UInt16At(int position)
     {

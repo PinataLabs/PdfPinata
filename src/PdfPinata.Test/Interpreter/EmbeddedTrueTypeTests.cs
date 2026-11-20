@@ -531,6 +531,70 @@ public class EmbeddedTrueTypeTests
     }
 
     [Test]
+    public void ADifferencesNameThatIsNoCharacterDrawsNothingThoughItsCodeIsInTheUnicodeCmap()
+    {
+        var builder = new TrueTypeFontBuilder();
+        var a = builder.AddBar(100);
+        var at80 = builder.AddBar(300);
+        builder.Map(3, 1, new Dictionary<int, int> { [0x41] = a, [0x80] = at80 });
+
+        var drawn = Drawn.Page("BT /F1 10 Tf <4180> Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Simple(document, builder.Build(), 32,
+                Differences(document, "/WinAnsiEncoding", 0x80, "/nosuchname"))));
+
+        Widths(drawn).Should().Equal(0.1);
+        drawn.Problems.Should().Equal("MissingGlyph /F1");
+    }
+
+    [Test]
+    [Arguments(3u, false)]
+    [Arguments(4u, false)]
+    [Arguments(0xFFFFFFFFu, false)]
+    [Arguments(3u, true)]
+    public void AFormat12CmapFindsEveryGroupWhateverCountItStatesAndInWhateverOrder(uint statedGroups, bool reversed)
+    {
+        var builder = new TrueTypeFontBuilder();
+        var a = builder.AddBar(100);
+        var b = builder.AddBar(200);
+        var c = builder.AddBar(300);
+        (uint Start, int Glyph)[] groups = [(0x41, a), (0x42, b), (0x43, c)];
+        if (reversed)
+            Array.Reverse(groups);
+        builder.Map(3, 10, Format12Groups(statedGroups, groups));
+
+        var drawn = Drawn.Page("BT /F1 10 Tf (ABC) Tj ET", (document, resources) =>
+            Drawn.Add(document, resources, "/Font", "/F1", Simple(document, builder.Build(), 32, new PdfName("/WinAnsiEncoding"))));
+
+        Widths(drawn).Should().Equal(0.1, 0.2, 0.3);
+        drawn.Problems.Should().BeEmpty();
+    }
+
+    /// <summary>A format 12 subtable of groups of one character each, stating a count of its own.</summary>
+    private static byte[] Format12Groups(uint statedGroups, (uint Start, int Glyph)[] groups)
+    {
+        var subtable = new byte[16 + 12 * groups.Length];
+        subtable[1] = 12;
+        Put(4, (uint)subtable.Length);
+        Put(12, statedGroups);
+        for (var g = 0; g < groups.Length; g++)
+        {
+            Put(16 + 12 * g, groups[g].Start);
+            Put(20 + 12 * g, groups[g].Start);
+            Put(24 + 12 * g, (uint)groups[g].Glyph);
+        }
+
+        return subtable;
+
+        void Put(int at, uint value)
+        {
+            subtable[at] = (byte)(value >> 24);
+            subtable[at + 1] = (byte)(value >> 16);
+            subtable[at + 2] = (byte)(value >> 8);
+            subtable[at + 3] = (byte)value;
+        }
+    }
+
+    [Test]
     public void ACmapSubtableIsReadNoFurtherThanTheLengthItStates()
     {
         var builder = new TrueTypeFontBuilder();
