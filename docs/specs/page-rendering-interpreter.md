@@ -15,9 +15,9 @@ separate issues, and each has one place here to plug into. The last section name
 | 6 | Page geometry: `PageView` | done |
 | 7 | DeviceGray, DeviceRGB and DeviceCMYK | done |
 | 8 | Indexed and ICCBased colour (#372) | plug-in point only |
-| 9 | Glyph outlines (#373, #374) | plug-in point only |
+| 9 | Glyph outlines from an embedded TrueType font program (#373); standard 14 fonts (#374) | done; plug-in point only |
 | 10 | Images (#375) | plug-in point only |
-| 11 | CMaps other than `Identity-H`, and vertical writing | deliberately not done |
+| 11 | `Identity-V` and vertical writing (#373); CMaps other than `Identity-H` and `Identity-V` | done; deliberately not done |
 | 12 | A limit on the operators of one page | deliberately not done |
 | 13 | Type 3 fonts (their advances are read; their glyphs are not drawn) | advance only |
 | 14 | Transparency groups (#383) and optional content (#386) | reported, not applied |
@@ -116,6 +116,12 @@ glyph space, and its `/FontMatrix` takes them to text space** (ISO 32000-1 9.6.5
 matrix of a hundredth is half an em. A Type 3 glyph is not drawn yet, but its advance is read
 now, because a page from TeX sets Type 3 beside other fonts and everything after a Type 3 run
 is placed by it.
+
+A composite font whose CMap is `Identity-V` is set down the page (ISO 32000-1 9.7.4.3). Each glyph
+is drawn with its position vector on the pen, and the pen then moves by the vertical advance plus
+character spacing, with no horizontal scaling. `VerticalMetrics` reads both from the descendant's
+`/W2` and `/DW2`; where they say nothing the advance is -1000 and the vector is half the CID's
+horizontal width across and 880 up. A number in a `TJ` array moves the pen down rather than back.
 
 The clip modes gather glyph outlines in device space and narrow the clip to them all when the text
 object ends. **The clip is narrowed only where at least one glyph had an outline.** A text object
@@ -236,8 +242,8 @@ None of these edits `ContentInterpreter`.
 | issue | what it adds | where |
 |---|---|---|
 | #372 colour | Classes derived from `RenderColorSpace`: `ComponentCount`, `ToRgb`, and `InitialColor` where it is not all zeros | `ColorSpaces.Resolve`, the branch on an array's family |
-| #373 TrueType | A class derived from `PageGlyphSource` for `/FontFile2` | The first branch of `BuiltInGlyphSources.Select` |
-| #374 standard 14 | A class derived from `PageGlyphSource` that reads `RequiredSeams.FontResolver` in `GetOutline` and nowhere else, and answers AFM widths from `TryGetAdvance`, which is asked for invisible text too and so reads no seam | The last branch of `BuiltInGlyphSources.Select` |
+| #373 TrueType | `EmbeddedTrueTypeGlyphSource`, for `/FontFile2`. Built: see the next section | The first branch of `BuiltInGlyphSources.Select` |
+| #374 standard 14 | A class derived from `PageGlyphSource` that reads `RequiredSeams.FontResolver` in `GetOutline` and nowhere else, and answers AFM widths from `TryGetAdvance`, which is asked for invisible text too and so reads no seam. Its outlines come from the resolved face's `OpenTypeFontface.Glyphs`, through `TrueTypeOutlinePaths.ToPagePath`, and a code's glyph through `GlyphNames` and `TrueTypeGlyphs.CharacterMap`, all as the next section sets out | The last branch of `BuiltInGlyphSources.Select` |
 | #375 images | The bodies of `PageImages.ReadXObject` and `ReadInline`, which answer a `PageImage` or report and answer null | `PageImages.cs` |
 | #376 Skia | A class derived from `PageDevice` | Its own package: `PageView.Of`, then `PageRendering.Render` |
 
@@ -263,12 +269,86 @@ wide spans 0 to 1. Choosing the glyph, through `/Encoding`, the font program's `
 `/CIDToGIDMap`, is the source's work. It is public and experimental so that the tests here can set
 text with no font file, and so that a caller can supply a kind of font this library does not read.
 
+## Embedded TrueType font programs (#373)
+
+**The font program is decoded here, never handed to a platform's font engine.** DirectWrite and
+FreeType draw a broken subset differently, and a page has to look the same everywhere. Nothing is
+hinted: a glyph is its outline as designed.
+
+### The decoder, for any TrueType face
+
+`Fonts.OpenType/TrueTypeGlyphs` is internal and knows nothing of PDF, so #374 draws a face the font
+resolver serves with it as well.
+
+```csharp
+static TrueTypeGlyphs Read(byte[] fontProgram);      // InvalidDataException: not TrueType, or no head, loca or glyf
+int UnitsPerEm { get; }                               // from head; 16 to 16384, else 2048
+int GlyphCount { get; }                               // maxp's count, or fewer where loca has room for fewer
+TrueTypeOutline GetOutline(int glyph);                // null: no such glyph; Empty: no contours; throws InvalidDataException
+TrueTypeCharacterMap CharacterMap(int platform, int encoding);   // formats 0, 4, 6 and 12, or null
+bool HasCharacterMaps { get; }
+int GlyphNamed(string name);                          // from post formats 1 and 2, or -1
+```
+
+`OpenTypeFontface.Glyphs` reads one from a face's bytes on first asking. A `TrueTypeOutline` is the
+font program's own shape: points in font units, y upwards, each on the curve or a quadratic control
+point, and where each contour ends, with a composite's components already placed.
+`Pdf.Rendering/TrueTypeOutlinePaths.ToPagePath(outline, unitsPerEm)` turns one into a `PagePath` in
+ems: each contour closed, an on-curve point implied between two control points, a contour that
+begins on a control point begun at its last point or halfway between the two, and each quadratic
+curve the cubic that traces it.
+
+It is not built on `OpenTypeFontface`'s own reading. That reads every table it knows when it is
+made, through one shared cursor, and reads past the end of a truncated table; one broken `name` or
+`OS/2` table in an embedded subset would cost every glyph. Here every read is checked against the end
+of its table, a table that runs past the end of the data is kept as far as the data goes, and what
+is malformed throws `InvalidDataException` for the glyph that meets it and no other.
+
+A composite glyph's components are placed by an offset, by matched points, or by a scale, an x and y
+scale or a 2 by 2 transform. An offset is scaled with the component only where the font sets
+`SCALED_COMPONENT_OFFSET`, which is the OpenType default. **Composites are held to eight levels and
+1024 components in all**: a glyph built of itself is reported rather than followed forever, and a
+few levels that each use the one below four times would otherwise be tens of thousands of contours.
+
+### Choosing the glyph
+
+`EmbeddedTrueTypeGlyphSource` reads nothing when it is made. The font program is read when the first
+outline is asked for, so a font used only for invisible text costs nothing, and one that cannot be
+read is reported as `MissingGlyph` against each glyph shown in it, with the reason.
+
+- **Composite fonts.** The code is the CID, by `Identity-H` or `Identity-V`. `/CIDToGIDMap` is
+  `/Identity`, which is also what no entry means, or a stream of two bytes for each CID. A CID past
+  the end of the stream has no glyph.
+- **Simple fonts.** The descriptor's `/Flags` say which way is tried first, and the other way is
+  tried after it, because real files often say a font is symbolic when it is not, or the reverse.
+  - *By name*, first for a nonsymbolic font: the code's glyph name from `/Differences`, or else its
+    character from the base encoding, which is `/StandardEncoding` where a nonsymbolic font names
+    none. A name becomes a character through `GlyphNames` (the Adobe Glyph List, `uniXXXX` and
+    `uXXXX`). Then the (3,1) `cmap`, or (3,10), (0,3) or (0,4); then the `post` table's names; then
+    the character's MacRomanEncoding code in the (1,0) `cmap`.
+  - *By code*, first for a symbolic font: the (3,0) `cmap` at the code, then at the code plus
+    0xF000, 0xF100 and 0xF200; then the (1,0) `cmap` at the code; then the Unicode `cmap` at the code.
+  - A font program with no `cmap` at all is taken to number its glyphs by the codes.
+
+Glyph 0, `.notdef`, is never drawn: a code that comes to it has no glyph, which is reported.
+
+`GlyphNames` reads `Fonts/GlyphNameTables.g.cs`, which `tools/GlyphNameTableGenerator` writes from
+the checked-in Adobe Glyph List. It is the core's one map from glyph names to characters.
+
+### Caching
+
+The source belongs to the `RenderFont` that `RenderFontCache` keeps for each font dictionary, keyed
+by its reference, so a font program is decoded once per document, and each glyph's `PagePath` once
+per font. Two font dictionaries that share one `/FontFile2` stream decode it twice.
+
 ## What was deliberately left out
 
-**CMaps and vertical writing.** A composite font's codes are read as two bytes that are the CID,
-which is what `Identity-H` says and what this library writes. Any other CMap is read the same way
-and reported, and `Identity-V` is set horizontally and reported. Reading CMaps belongs with choosing
-glyphs (#373).
+**CMaps.** A composite font's codes are read as two bytes that are the CID, which is what
+`Identity-H` and `Identity-V` say and what this library writes. Any other CMap, named or embedded,
+is read the same way, set horizontally and reported.
+
+**Hinting, and a glyph source for TrueType collections.** A PDF may not embed a collection, and
+`TrueTypeGlyphs.Read` refuses one.
 
 **A true union of the glyphs a text object clips to.** The glyphs are one path clipped by nonzero
 winding, which is their union where their contours wind the same way. Two glyphs that overlap and

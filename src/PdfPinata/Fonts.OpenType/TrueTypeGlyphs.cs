@@ -21,8 +21,8 @@ namespace PdfPinata.Fonts.OpenType;
 /// Nothing here hints. A glyph is its outline as designed, in font units, y upwards.
 /// </para>
 /// <para>
-/// Once made, an instance changes only the <c>post</c> names it reads on first asking, so it may
-/// be read from several threads only where that first asking has been made on one.
+/// An instance may be read from several threads. The one thing it reads late, the <c>post</c>
+/// names, is built whole before it is kept, so two threads asking first at once each build it.
 /// </para>
 /// </remarks>
 internal sealed class TrueTypeGlyphs
@@ -385,8 +385,8 @@ internal sealed class TrueTypeGlyphs
 
             if (xyValues)
             {
-                // An offset is not scaled with the component unless the font asks for it, which
-                // is what the OpenType specification makes the default and Apple's is not.
+                // The offset is scaled with the component only where the font asks for that. Not
+                // scaling it is the OpenType default; Apple's TrueType makes scaling the default.
                 double dx = argument1, dy = argument2;
                 if ((flags & ScaledComponentOffset) != 0 && (flags & UnscaledComponentOffset) == 0)
                     (dx, dy) = local.Apply(dx, dy);
