@@ -51,6 +51,12 @@ internal sealed partial class ContentInterpreter
 
     private long _contentBytesLeft = MaximumContentLength;
 
+    /// <summary>
+    /// How many bytes of decoded images one render keeps to draw again: 1 GiB, which is one image
+    /// of <see cref="PageImages.MaximumSamples"/>.
+    /// </summary>
+    internal const long MaximumImageBytesKept = PageImages.MaximumSamples * 4;
+
     private readonly GuardedDevice _device;
     private readonly PageView _view;
     private readonly RenderFontCache _fonts;
@@ -62,6 +68,11 @@ internal sealed partial class ContentInterpreter
     // Each form's content as it was read the first time it was drawn, or null where it could
     // not be decoded. A form drawn a thousand times on a page is decoded and parsed once.
     private readonly Dictionary<object, ParsedContent> _formContent = new(ReferenceIdentity.Instance);
+
+    // Each image XObject's samples as they were decoded the first time it was drawn, or null where
+    // they could not be, and how many bytes of samples are kept. See ImageOf.
+    private readonly Dictionary<object, PageImage> _images = new(ReferenceIdentity.Instance);
+    private long _imageBytesKept;
 
     // Read from the document the first time content asks about a group.
     private PdfDocument _document;

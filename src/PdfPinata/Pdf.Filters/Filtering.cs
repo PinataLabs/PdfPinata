@@ -195,7 +195,7 @@ public static class Filtering
     /// else would be a guess about which filter a dictionary was meant for, and a wrong guess
     /// decodes to the wrong bytes with nothing to say so.
     /// </remarks>
-    private static PdfItem[] ParametersForEach(int count, PdfItem decodeParms)
+    internal static PdfItem[] ParametersForEach(int count, PdfItem decodeParms)
     {
         if (decodeParms is null)
             return new PdfItem[count];

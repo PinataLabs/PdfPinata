@@ -358,28 +358,4 @@ public class FormXObjectTests
     {
         Drawn.Page("/Nope Do").Problems.Should().Equal("MissingResource /Nope");
     }
-
-    [Test]
-    public void AnImageXObjectIsReportedBecauseImagesAreNotDrawnYet()
-    {
-        var drawn = Drawn.Page("/Im1 Do 0 0 5 5 re f", (document, resources) =>
-        {
-            var image = new PdfDictionary(document);
-            image.Elements.SetName("/Subtype", "/Image");
-            image.CreateStream([0]);
-            Drawn.Add(document, resources, "/XObject", "/Im1", image);
-        });
-
-        drawn.Device.Fills.Should().ContainSingle("the page is drawn but for the image");
-        drawn.Problems.Should().Equal("UnsupportedImage /Im1");
-    }
-
-    [Test]
-    public void AnInlineImageIsReportedAndWhatFollowsItIsDrawn()
-    {
-        var drawn = Drawn.Page("BI /W 1 /H 1 /CS /G /BPC 8 ID \u00ff\nEI 0 0 5 5 re f");
-
-        drawn.Device.Fills.Should().ContainSingle();
-        drawn.Problems.Should().Equal("UnsupportedImage BI");
-    }
 }
