@@ -203,7 +203,8 @@ differently:
   names, `/View` where it has none, is among the configuration's `/Intent`, which is also `/View`
   where `/D` has none and takes in every intent where it names `/All`. A group that does not count
   has no effect on visibility (ISO 32000-1 8.11.2.3 and 8.11.4.3) and is read as on. A `/VE` is
-  read 32 deep and 1,024 operands long, and an expression any part of which cannot be read, or lies
+  read 32 deep and 1,024 operands long. An operand that is a dictionary with a `/Type` other than
+  `/OCG` cannot be read, and an expression any part of which cannot be read, or lies
   past either limit, is visible as a whole: a `/Not` over it does not turn it round, so
   `[/Not [/Xor …]]` is visible. Every operand is read for that reason, rather than stopping at the
   first that decides. `OptionalContent` answers once per membership for one render, keyed by

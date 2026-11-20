@@ -218,7 +218,7 @@ internal sealed class OptionalContent
         return PdfReference.Dereference(operand) switch
         {
             PdfArray nested => IsVisible(nested, depth + 1),
-            PdfDictionary group => IsOn(group),
+            PdfDictionary group when group.Elements.GetNameOrEmpty("/Type") is "/OCG" or "" => IsOn(group),
             _ => Unreadable()
         };
     }

@@ -341,11 +341,19 @@ public class FormXObjectTests
 
     private static PdfArray Expression(PdfDocument document, params PdfItem[] items) => new(document, items);
 
+    private static PdfDictionary Membership(PdfDocument document)
+    {
+        var membership = new PdfDictionary(document);
+        membership.Elements.SetName("/Type", "/OCMD");
+        return membership;
+    }
+
     [Test, Timeout(30_000)]
     [Arguments("an operation that is not one")]
     [Arguments("an operand that is neither a group nor an expression")]
     [Arguments("a not of two operands")]
     [Arguments("a malformed operand after one that already decides")]
+    [Arguments("an operand that is a membership dictionary rather than a group")]
     public async Task AVisibilityExpressionWithAPartThatCannotBeReadIsVisibleEvenUnderANot(string malformed)
     {
         // The first group is off and the second is on, so each of these reads as hidden were the
@@ -360,6 +368,8 @@ public class FormXObjectTests
                 "a not of two operands" =>
                     Expression(document, new PdfName("/And"), second.Reference,
                         Expression(document, new PdfName("/Not"), second.Reference, first.Reference)),
+                "an operand that is a membership dictionary rather than a group" =>
+                    Expression(document, new PdfName("/Not"), Membership(document)),
                 _ => Expression(document, new PdfName("/And"), first.Reference, new PdfName("/Nope"))
             }));
 
