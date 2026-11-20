@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;net8.0;net10.0;net11.0</TargetFrameworks>
+    <!-- Ship the XML documentation alongside the assembly, so a consumer of the package gets the
+         doc comments as IntelliSense. Set per project rather than in Directory.Build.props, which is
+         imported before IsPackable is known, or Directory.Build.targets, which is
+         imported after the SDK has already derived DocumentationFile from it. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Description>Draws the pages of an existing PDF onto a SkiaSharp canvas, picture, bitmap or encoded image, for PdfPinata.
+
+Needs no PdfPinata backend registered. SkiaSharp is a native library: consumers must also reference the SkiaSharp.NativeAssets package for their target platform.</Description>
+    <summary>Renders PDF pages with SkiaSharp</summary>
+    <PackageTags>pdf;render;rasterize;skia;skiasharp</PackageTags>
+    <IsTrimmable>true</IsTrimmable>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</IsAotCompatible>
+    <!-- The device this package supplies derives from the experimental page rendering seam. Its
+         own entry points are not experimental; a caller who uses the device directly is told. -->
+    <NoWarn>$(NoWarn);PPEXP001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="4.156.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PdfPinata\PdfPinata.csproj" />
+  </ItemGroup>
+
+</Project>
