@@ -54,6 +54,13 @@ The `PdfPinata` package also contains a 456-byte sRGB colour profile, which it g
 documents that name no profile of their own. The profile comes from the Compact ICC Profiles
 collection by Clinton Ingram and is released to the public domain under Creative Commons CC0 1.0.
 
+The `PdfPinata` package also contains a table of glyph names, which page rendering uses to choose
+the glyph of a code in an embedded TrueType font. It is generated from the Adobe Glyph List 2.0,
+Copyright 2002-2019 Adobe, which is released under a BSD 3-clause licence. That licence requires
+the copyright notice and the licence text in the materials distributed with a binary, so the package
+includes them in
+[THIRD-PARTY-NOTICES.md](https://github.com/PinataLabs/PdfPinata/blob/main/THIRD-PARTY-NOTICES.md).
+
 ## The two ImageSharp packages
 
 There are two ImageSharp backends, and their dependencies have different licences.

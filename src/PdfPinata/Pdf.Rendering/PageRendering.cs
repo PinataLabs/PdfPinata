@@ -63,6 +63,7 @@ public static class PageRendering
         // Fonts made with the caller's sources are not the document's: kept there, they would
         // be handed to a later render that asked for the library's own.
         var fonts = glyphSources == null && page.Owner != null ? page.Owner.RenderFontCache : new RenderFontCache();
+        fonts.BeginPage();
         var interpreter = new ContentInterpreter(device, view, fonts, glyphSources, optionalContent);
         try
         {

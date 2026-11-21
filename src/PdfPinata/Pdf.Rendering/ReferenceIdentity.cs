@@ -14,8 +14,8 @@ internal sealed class ReferenceIdentity : IEqualityComparer<object>
 {
     internal static readonly ReferenceIdentity Instance = new();
 
-    /// <summary>What stands for a dictionary as a key: its reference, or itself where it is written in place.</summary>
-    internal static object KeyOf(PdfDictionary dictionary) => (object)dictionary.Reference ?? dictionary;
+    /// <summary>What stands for a dictionary or an array as a key: its reference, or itself where it is written in place.</summary>
+    internal static object KeyOf(PdfObject value) => (object)value.Reference ?? value;
 
     bool IEqualityComparer<object>.Equals(object x, object y) => ReferenceEquals(x, y);
 

@@ -19,6 +19,16 @@ internal sealed class TextObject
     /// until one is. The clip is narrowed to them all together when the text object ends.
     /// </summary>
     internal PagePathBuilder Clip;
+
+    /// <summary>The points of the glyph outlines in <see cref="Clip"/>.</summary>
+    internal long ClipPoints;
+
+    /// <summary>
+    /// The most points of glyph outline one text object clips to, about 64 MB. Each glyph shown
+    /// in a clip mode is copied into the clip, so a few bytes of text showing one glyph of 65,536
+    /// points tens of thousands of times would otherwise be billions of points.
+    /// </summary>
+    internal const long MaximumClipPoints = 1 << 22;
 }
 
 // Text state, text positioning and text showing.
@@ -235,8 +245,11 @@ internal sealed partial class ContentInterpreter
             else if (CNumber.TryGetValue(array[index], out var adjustment))
             {
                 // Thousandths of text space, taken off the position: a positive number closes
-                // the text up.
-                Advance(text, -adjustment / 1000 * State.FontSize * State.HorizontalScaling);
+                // the text up. Down the page in vertical writing, where horizontal scaling has no part.
+                if (font.IsVertical)
+                    AdvanceDown(text, -adjustment / 1000 * State.FontSize);
+                else
+                    Advance(text, -adjustment / 1000 * State.FontSize * State.HorizontalScaling);
             }
         }
     }
@@ -262,12 +275,23 @@ internal sealed partial class ContentInterpreter
             if (bytesPerCode == 2)
                 code = code << 8 | shown[at + 1] & 0xFF;
 
-            if (draws)
-                DrawGlyph(text, font, code);
-
             // Word spacing is added after the single byte 32 and after nothing else: not after
             // a two-byte code that happens to be 32 (ISO 32000-1 9.3.3).
             var spacing = state.CharacterSpacing + (bytesPerCode == 1 && code == 32 ? state.WordSpacing : 0);
+
+            if (font.IsVertical)
+            {
+                // The glyph is placed with its position vector on the pen and the pen moves down
+                // (ISO 32000-1 9.7.4.3). Horizontal scaling plays no part in the advance.
+                var (advance, x, y) = font.VerticalMetricsOf(code);
+                if (draws)
+                    DrawGlyph(text, font, code, -x, -y);
+                AdvanceDown(text, advance * state.FontSize + spacing);
+                continue;
+            }
+
+            if (draws)
+                DrawGlyph(text, font, code, 0, 0);
             Advance(text, (font.WidthOf(code) * state.FontSize + spacing) * state.HorizontalScaling);
         }
     }
@@ -275,11 +299,19 @@ internal sealed partial class ContentInterpreter
     private static void Advance(TextObject text, double x) =>
         text.TextMatrix = XMatrix.Multiply(new XMatrix(1, 0, 0, 1, x, 0), text.TextMatrix);
 
+    private static void AdvanceDown(TextObject text, double y) =>
+        text.TextMatrix = XMatrix.Multiply(new XMatrix(1, 0, 0, 1, 0, y), text.TextMatrix);
+
     /// <summary>
     /// Draws one glyph by the text render mode: filled, stroked, added to the clip, or any of
     /// those together.
     /// </summary>
-    private void DrawGlyph(TextObject text, RenderFont font, int code)
+    /// <param name="text">The text object.</param>
+    /// <param name="font">The font selected.</param>
+    /// <param name="code">The code.</param>
+    /// <param name="x">How far the glyph's origin is from the pen, across, in text space before the type size.</param>
+    /// <param name="y">How far it is up. Both are 0 but in vertical writing.</param>
+    private void DrawGlyph(TextObject text, RenderFont font, int code, double x, double y)
     {
         var state = State;
         var outline = font.OutlineOf(code, out var why);
@@ -291,7 +323,8 @@ internal sealed partial class ContentInterpreter
 
         // The outline is in text space before the type size: this takes it to user space.
         var glyphToUser = XMatrix.Multiply(
-            new XMatrix(state.FontSize * state.HorizontalScaling, 0, 0, state.FontSize, 0, state.Rise),
+            new XMatrix(state.FontSize * state.HorizontalScaling, 0, 0, state.FontSize,
+                x * state.FontSize * state.HorizontalScaling, y * state.FontSize + state.Rise),
             text.TextMatrix);
         var glyphToDevice = XMatrix.Multiply(glyphToUser, state.Ctm);
         if (outline.IsEmpty || !IsFinite(glyphToDevice))
@@ -313,7 +346,29 @@ internal sealed partial class ContentInterpreter
         }
 
         if (mode >= TextRenderMode.FillClip)
-            (text.Clip ??= new PagePathBuilder()).Append(outline, glyphToDevice);
+            AddToClip(text, outline, glyphToDevice);
+    }
+
+    /// <summary>
+    /// Adds a glyph to the text object's clip, unless that would take it past
+    /// <see cref="TextObject.MaximumClipPoints"/>, which is reported once for the text object and
+    /// leaves that glyph and those after it out of the clip.
+    /// </summary>
+    private void AddToClip(TextObject text, PagePath outline, XMatrix glyphToDevice)
+    {
+        if (text.ClipPoints < 0)
+            return;
+
+        if (outline.Points.Length > TextObject.MaximumClipPoints - text.ClipPoints)
+        {
+            text.ClipPoints = -1;
+            _sink.Report(PageRenderProblem.LimitReached, "Tr",
+                "The glyphs a text object clips to have too many points. Those after the limit are left out of the clip.");
+            return;
+        }
+
+        text.ClipPoints += outline.Points.Length;
+        (text.Clip ??= new PagePathBuilder()).Append(outline, glyphToDevice);
     }
 
     /// <summary>

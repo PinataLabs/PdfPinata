@@ -7,16 +7,16 @@ drawing it onto a SkiaSharp canvas, in a new package, `PdfPinata.Rendering.Skia`
 [BobLd/PdfPig.Rendering.Skia](https://github.com/BobLd/PdfPig.Rendering.Skia) is the model for the
 Skia surface. The rest of this note explains why ours is not as thin as that one.
 
-The table is the plan. Items 1, 2 and 8 are built (#371), and `page-rendering-interpreter.md` sets
-them out as they were built: what crosses the seam, how broken content is read, and where each of
-the other items is added.
+The table is the plan. Items 1, 2 and 8 are built (#371), and item 4 (#373).
+`page-rendering-interpreter.md` sets them out as they were built: what crosses the seam, how broken
+content is read, how a glyph is chosen and decoded, and where each of the other items is added.
 
 | item | what | status |
 |---|---|---|
 | 1 | Content-stream interpreter and device seam, in the core | done |
 | 2 | Graphics state, paths, clipping, Form XObjects | done |
 | 3 | DeviceGray, DeviceRGB, DeviceCMYK, Indexed, ICCBased by `/N` | v1 |
-| 4 | Embedded TrueType font programs | v1 |
+| 4 | Embedded TrueType font programs | done |
 | 5 | Standard 14 fonts through `FontResolver`, with AFM widths | v1 |
 | 6 | Image XObjects and inline images, masks and soft masks, DCT through `SKCodec` | v1 |
 | 7 | `PdfPinata.Rendering.Skia`: canvas, picture, bitmap, encoded image | v1 |
@@ -77,7 +77,8 @@ The interpreter resolves everything that is PDF and hands the device only what i
 - a glyph, **as an outline path**, never as text: the interpreter has already chosen the glyph,
   positioned it with the PDF's widths and applied the text render mode. So a glyph is a fill, a
   stroke or a clip like any other path, and the seam has no member for one. Its path is the same
-  instance each time that glyph is drawn, which is what a device caches on;
+  instance each time that glyph is drawn, up to a budget of points for the document's fonts
+  together, which is what a device caches on;
 - an image as decoded samples with a transform, every mask already applied to them;
 - save and restore, of the clip, which is the only state a device keeps.
 
@@ -121,10 +122,11 @@ through DirectWrite, which refuses bare CFF and Type 1 and treats a broken subse
 FreeType on Linux. The same page would then draw differently on different machines, and the
 fidelity tests run on both.
 
-v1 reads `glyf` and `loca` outlines (simple and composite glyphs) by extending `OpenTypeFontface`,
-and chooses each glyph by the PDF's rules rather than the font's alone:
+v1 reads `glyf` and `loca` outlines (simple and composite glyphs) in `Fonts.OpenType`, beside
+`OpenTypeFontface`, and chooses each glyph by the PDF's rules rather than the font's alone:
 
-- simple fonts: `/Encoding`, including `/Differences`, then the font's (3,1) or (1,0) `cmap`;
+- simple fonts: `/Encoding`, including `/Differences`, then the font's (3,1) or (1,0) `cmap`, then
+  its `post` names; a nonsymbolic font with no `/Encoding` by its codes, as pdf.js and MuPDF read it;
 - symbolic fonts: the (3,0) `cmap`, trying the code and the code plus `0xF000`;
 - composite fonts: the CMap, then `/CIDToGIDMap` (`/Identity` or a stream).
 
@@ -133,9 +135,12 @@ PDF's numbers are the ones its producer laid the text out with. A Type 3 font's 
 glyph space and go through its `/FontMatrix`; every other font's are thousandths of text space.
 
 The text extractor (`FontInfo`) ignores `/Encoding` today and reads a font with no `/ToUnicode` as
-Latin-1. The encoding code written here is what item 18 gives it.
+Latin-1. `GlyphNames`, written here, is what item 18 gives it: glyph name to character, and the
+characters of WinAnsiEncoding, MacRomanEncoding and StandardEncoding.
 
-Parsed font programs are cached **per document**, keyed by the font dictionary's object reference.
+Parsed font programs are cached **per document**, keyed by the `/FontFile2` stream, and held with
+everything else read from a font to one budget for the document:
+`page-rendering-interpreter.md` has the rule.
 
 ## Item 5 — standard 14 fonts
 
