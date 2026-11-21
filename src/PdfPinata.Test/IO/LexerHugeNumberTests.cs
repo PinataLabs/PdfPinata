@@ -178,12 +178,18 @@ public class LexerHugeNumberTests
     [Arguments("positive", true)]
     [Arguments("negative", true)]
     [Arguments("real", true)]
-    public async Task ANumberOfFourHundredDigitsSurvivesASaveAndAReopen(string shape, bool incremental)
+    [Arguments("thirtyNine", false)]
+    [Arguments("thirtyNine", true)]
+    [Arguments("twoHundred", false)]
+    [Arguments("twoHundred", true)]
+    public async Task AHugeNumberSurvivesASaveAndAReopen(string shape, bool incremental)
     {
         var digits = shape switch
         {
             "negative" => "-" + FourHundredDigits,
             "real" => FourHundredDigits + ".5",
+            "thirtyNine" => ThirtyNineDigits,
+            "twoHundred" => "1" + new string('0', 200),
             _ => FourHundredDigits,
         };
         var placeholder = "[0 0 " + new string('1', digits.Length) + " 792]";
@@ -192,7 +198,13 @@ public class LexerHugeNumberTests
         using var first = new MemoryStream();
         source.Save(first, false);
         var original = Encoding.Latin1.GetString(first.ToArray()).Replace(placeholder, "[0 0 " + digits + " 792]");
-        var expected = digits.StartsWith('-') ? -float.MaxValue : float.MaxValue;
+        var expected = shape switch
+        {
+            "thirtyNine" => double.Parse(ThirtyNineDigits, System.Globalization.CultureInfo.InvariantCulture),
+            "twoHundred" => 1e200,
+            "negative" => -float.MaxValue,
+            _ => float.MaxValue,
+        };
 
         await Interruptibly.Run(() =>
         {
@@ -216,7 +228,7 @@ public class LexerHugeNumberTests
             using var again = new MemoryStream(output.ToArray());
             var reread = PdfPinata.Pdf.IO.PdfReader.Open(again, PdfDocumentOpenMode.Import);
             var rect = (PdfArray)reread.Pages[0].Elements["/PdfPinataHuge"]!;
-            ((PdfReal)rect.Elements[2]).Value.Should().Be(expected);
+            ((PdfReal)rect.Elements[2]).Value.Should().BeApproximately(expected, System.Math.Abs(expected) * 1e-14);
         });
     }
 }

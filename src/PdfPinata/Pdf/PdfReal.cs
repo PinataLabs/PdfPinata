@@ -67,11 +67,12 @@ public sealed class PdfReal : PdfNumber
 
     /// <summary>
     /// A real taken as it is, without the range check of the public constructor: one the parser
-    /// has read, held to the largest real a PDF may have, or one the library has worked out from such a number - a destination or an
+    /// has read, or one the library has worked out from such a number - a destination or an
     /// annotation's points moved with a resized page, a line's other end written back with the
     /// end a caller moved. A file can hold a number larger than a PDF real may be, and refusing
     /// it, when it was read or whenever it is touched again, would make the document unusable
-    /// for one out-of-range value. A number a caller supplies goes through the constructor.
+    /// for one out-of-range value. Only infinity is clamped, to the largest real, because a file
+    /// cannot name it. A number a caller supplies goes through the constructor.
     /// </summary>
     internal static PdfReal Unchecked(double value) => new() { Value = value };
 

@@ -887,17 +887,17 @@ public class Lexer
     public double TokenToReal => ParseReal(_token.ToString());
 
     /// <summary>
-    /// Reads the text of a number as a finite real within what ISO 32000-1 Annex C allows, which
-    /// is float.MaxValue either way. A number with more digits than that is held to the bound
-    /// rather than read as infinity, which the writer would put in the file as a word and the
-    /// reader could not read back. A token with no digit in it, a lone sign or a lone period, reads as 0.
+    /// Reads the text of a number as a finite real. A finite value is kept as written, even beyond
+    /// float.MaxValue, the largest real ISO 32000-1 Annex C allows. Only a number with so many
+    /// digits that it reads as infinity is held to float.MaxValue, because infinity has no
+    /// spelling in a file. A token with no digit in it, a lone sign or a lone period, and NaN read as 0.
     /// TryParse rather than Parse, because a runtime may throw an OverflowException where
     /// others answer infinity.
     /// </summary>
     internal static double ParseReal(string token)
     {
         if (double.TryParse(token, NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
-            return double.IsNaN(value) ? 0 : Math.Clamp(value, -float.MaxValue, float.MaxValue);
+            return double.IsNaN(value) ? 0 : double.IsInfinity(value) ? (value > 0 ? float.MaxValue : -float.MaxValue) : value;
 
         if (!token.Any(char.IsDigit))
             return 0;
