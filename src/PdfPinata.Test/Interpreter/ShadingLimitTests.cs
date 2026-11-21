@@ -204,12 +204,14 @@ public class ShadingLimitTests
 
     /// <summary>
     /// A calculator program of two inputs and three outputs about <paramref name="length"/> bytes
-    /// long, every step of which runs: a type 1 shading runs it 65 by 65 times.
+    /// long, which a type 1 shading runs 65 by 65 times. What a render spends on a function is
+    /// the most it could cost, its length, so the program skips all but a few of its steps and
+    /// the test spends the render's work without waiting for it.
     /// </summary>
     private static string LongProgram(int length)
     {
-        var program = new StringBuilder("{ ");
-        const string Step = "1 add 1 sub ", End = "exch pop dup dup }";
+        var program = new StringBuilder("{ pop pop false { ");
+        const string Step = "1 add 1 sub ", End = "} if 0.5 0.5 0.5 }";
         while (program.Length + Step.Length + End.Length <= length)
             program.Append(Step);
         return program.Append(End).ToString();
