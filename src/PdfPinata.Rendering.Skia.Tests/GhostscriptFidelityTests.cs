@@ -138,6 +138,67 @@ public class GhostscriptFidelityTests
             nameof(ContentTurnedAndSkewedByCm), new PageRenderOptions { Scale = 2 })
             .ShouldBeWithin(meanChannelDifference: 0.8, shareOverThreshold: 0.005);
 
+    // An appearance whose matrix turns its box a quarter, mapped onto a rectangle that is neither
+    // its size nor its shape, on a page that is itself turned.
+    [Test]
+    [Arguments(0)]
+    [Arguments(90)]
+    public void AnAnnotationAppearanceMappedOntoItsRectangle(int rotate) =>
+        Fidelity.Of(HandWritten.Page("0.9 g 0 0 200 150 re f",
+                page: (document, page) =>
+                {
+                    page.Rotate = rotate;
+                    var form = new PdfDictionary(document);
+                    document.Internals.AddObject(form);
+                    form.Elements.SetName("/Type", "/XObject");
+                    form.Elements.SetName("/Subtype", "/Form");
+                    form.Elements["/BBox"] = new PdfRectangle(new XPoint(0, 0), new XPoint(100, 40));
+                    form.Elements.SetMatrix("/Matrix", new XMatrix(0, 1, -1, 0, 0, 0));
+                    form.CreateStream(System.Text.Encoding.Latin1.GetBytes(
+                        "1 0 0 rg 0 0 100 40 re f 0 0 1 rg 0 0 30 40 re f 4 w 0 g 0 0 m 100 40 l S"));
+
+                    var annotation = new PdfDictionary(document);
+                    document.Internals.AddObject(annotation);
+                    annotation.Elements.SetName("/Subtype", "/Stamp");
+                    annotation.Elements["/Rect"] = new PdfRectangle(new XPoint(40, 20), new XPoint(100, 130));
+                    var appearance = new PdfDictionary(document);
+                    appearance.Elements["/N"] = form.Reference;
+                    annotation.Elements["/AP"] = appearance;
+                    var annotations = new PdfArray(document);
+                    annotations.Elements.Add(annotation.Reference);
+                    page.Elements["/Annots"] = annotations;
+                }),
+            nameof(AnAnnotationAppearanceMappedOntoItsRectangle) + rotate, new PageRenderOptions { Scale = 2 })
+            .ShouldBeWithin(meanChannelDifference: 0.8, shareOverThreshold: 0.005);
+
+    // What this library writes for its shape annotations, and so what a reader of its files sees. A field
+    // of variable text is not here: its appearance is text, and this project registers no font resolver.
+    [Test]
+    public void ShapeAnnotationsThisLibraryWrote()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        page.MediaBox = new PdfRectangle(new XPoint(0, 0), new XPoint(200, 150));
+        page.Annotations.Add(new PdfPinata.Pdf.Annotations.PdfSquareAnnotation
+        {
+            Rectangle = new PdfRectangle(new XPoint(10, 80), new XPoint(90, 140)),
+            Color = XColors.Red, BorderWidth = 4
+        });
+        page.Annotations.Add(new PdfPinata.Pdf.Annotations.PdfCircleAnnotation
+        {
+            Rectangle = new PdfRectangle(new XPoint(110, 80), new XPoint(190, 140)),
+            Color = XColors.Blue, BorderWidth = 3
+        });
+        var line = new PdfPinata.Pdf.Annotations.PdfLineAnnotation { Color = XColors.Green, BorderWidth = 3 };
+        line.SetLine(new XPoint(10, 70), new XPoint(190, 50));
+        page.Annotations.Add(line);
+        // Measured at 0.56 and 0.0049, all of it one pixel along the edges of strokes, where Ghostscript
+        // snaps a stroke to the pixel grid and Skia anti-aliases it. Turning the annotations off
+        // measures 13.9, so the limits sit at about twice the noise and a fifteenth of that.
+        Fidelity.Of(document, nameof(ShapeAnnotationsThisLibraryWrote), new PageRenderOptions { Scale = 2 })
+            .ShouldBeWithin(meanChannelDifference: 1.0, shareOverThreshold: 0.01);
+    }
+
     // Red as Photoshop writes a CMYK JPEG: an Adobe marker and every ink stored inverted, with the
     // /Decode a PDF needs to invert them back. SkiaSharp's codec undoes the inversion itself, which
     // is the convention DecodeImage states. What remains is the conversion to RGB: Ghostscript's

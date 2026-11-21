@@ -63,7 +63,8 @@ internal sealed partial class ContentInterpreter
     private readonly Func<PdfDictionary, PageGlyphSource> _glyphSources;
     private readonly DiagnosticSink _sink = new();
     private readonly StateStack _states;
-    private readonly FormVisits _forms = new();
+    private FormVisits _forms = new();
+    private bool _needAppearancesReported;
 
     // Each form's content as it was read the first time it was drawn, or null where it could
     // not be decoded. A form drawn a thousand times on a page is decoded and parsed once.
@@ -108,15 +109,11 @@ internal sealed partial class ContentInterpreter
     /// content does, and whatever is thrown, the device has been restored as often as it was
     /// saved when this returns.
     /// </summary>
-    internal void RunPage(PdfPage page)
+    internal void RunPage(PdfPage page, bool includeAnnotations)
     {
         try
         {
-            _states.Push();
-
-            var box = new PagePathBuilder();
-            box.AddRectangle(_view.Box.X, _view.Box.Y, _view.Box.Width, _view.Box.Height);
-            _device.Clip(box.ToPath(), _view.Transform, XFillMode.Winding);
+            BeginPage();
 
             if (_view.BoxIsAssumed)
             {
@@ -125,33 +122,48 @@ internal sealed partial class ContentInterpreter
             }
 
             _document = page.Owner;
-            if (!PdfContentStreams.TryGetReadablePageContent(page, _contentBytesLeft, out var content,
-                    out var unreadable, out var truncated, out var charged))
+            var readable = PdfContentStreams.TryGetReadablePageContent(page, _contentBytesLeft, out var content,
+                out var unreadable, out var truncated, out var charged);
+            _contentBytesLeft -= charged;
+            if (!readable)
             {
                 _sink.Report(PageRenderProblem.UnreadableContent, "page",
                     "The page's content could not be decoded, and nothing of it is drawn.");
-                return;
             }
-
-            _contentBytesLeft -= charged;
-            if (unreadable > 0)
+            else
             {
-                _sink.Report(PageRenderProblem.UnreadableContent, "page",
-                    $"{unreadable} of the streams the page's content is written in could not be decoded. What the others say is drawn.");
+                if (unreadable > 0)
+                {
+                    _sink.Report(PageRenderProblem.UnreadableContent, "page",
+                        $"{unreadable} of the streams the page's content is written in could not be decoded. What the others say is drawn.");
+                }
+
+                if (truncated)
+                {
+                    _sink.Report(PageRenderProblem.UnreadableContent, "page",
+                        $"The page's content inflates to more than {MaximumContentLength} bytes. Only the start of it is drawn.");
+                }
+
+                RunStream(ParsedContent.Of(content), ResourceScope.OfPage(page), "page");
             }
 
-            if (truncated)
-            {
-                _sink.Report(PageRenderProblem.UnreadableContent, "page",
-                    $"The page's content inflates to more than {MaximumContentLength} bytes. Only the start of it is drawn.");
-            }
-
-            RunStream(ParsedContent.Of(content), ResourceScope.OfPage(page), "page");
+            if (includeAnnotations)
+                DrawAnnotations(page);
         }
         finally
         {
             _states.PopTo(0);
         }
+    }
+
+    /// <summary>Saves the device's state and clips to the box the view draws.</summary>
+    private void BeginPage()
+    {
+        _states.Push();
+
+        var box = new PagePathBuilder();
+        box.AddRectangle(_view.Box.X, _view.Box.Y, _view.Box.Width, _view.Box.Height);
+        _device.Clip(box.ToPath(), _view.Transform, XFillMode.Winding);
     }
 
     /// <summary>

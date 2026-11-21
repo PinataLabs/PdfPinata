@@ -76,10 +76,63 @@ public class GraphicsStateTests
     [Test]
     public void APathBegunUnderATransformWithNoInverseIsStillPainted()
     {
-        var drawn = Drawn.Page("q 0 0 0 0 0 0 cm 0 0 m Q 10 0 l 10 10 l S");
+        var drawn = Drawn.Page("q 1 0 0 0 0 0 cm 0 0 m 10 10 l Q 20 20 l S");
 
-        drawn.Device.Strokes.Should().ContainSingle();
+        // The points under the flattening transform land on one line, and the last is placed
+        // by the transform restored before it.
+        drawn.Device.Strokes.Single().ToString().Should().Be("stroke M0,100 L10,100 L20,80 rgb(0,0,0)");
         drawn.Result.IsComplete.Should().BeTrue();
+    }
+
+    [Test]
+    public void APathBegunUnderTwoTransformsWithNoInverseIsPaintedWhereTheyPutIt()
+    {
+        var drawn = Drawn.Page("q 1 0 0 0 0 0 cm 0 0 m 10 10 l Q q 0 0 0 1 0 0 cm 20 20 l Q 30 30 l S");
+
+        drawn.Device.Strokes.Single().ToString().Should().Be("stroke M0,100 L10,100 L0,80 L30,70 rgb(0,0,0)");
+    }
+
+    [Test]
+    public void APathFilledUnderTheTransformWithNoInverseItWasBuiltUnderIsHandedOverAsWritten()
+    {
+        var drawn = Drawn.Page("1 0 0 0 0 0 cm 0 0 m 10 10 l f");
+
+        drawn.Device.Fills.Single().Path.Points.ToArray().Should().Equal(new XPoint(0, 0), new XPoint(10, 10));
+    }
+
+    [Test]
+    [Arguments("10 w 20 50 m 80 50 l 1 0 0 0 0 0 cm S")]
+    [Arguments("1 0 0 0 0 0 cm 0 0 m 10 10 l S")]
+    [Arguments("0 0 m 10 0 l 10 10 l 0 0 0 0 0 0 cm s")]
+    public void AStrokePaintedUnderATransformWithNoInverseDrawsNothingAndReportsNothing(string content)
+    {
+        var drawn = Drawn.Page(content);
+
+        drawn.Device.Strokes.Should().BeEmpty();
+        drawn.Result.IsComplete.Should().BeTrue();
+    }
+
+    [Test]
+    public void AFillAndStrokeUnderATransformWithNoInverseStillFillsAndClips()
+    {
+        var drawn = Drawn.Page("0 0 m 10 0 l 10 10 l h 1 0 0 0 0 0 cm W B");
+
+        drawn.Device.Strokes.Should().BeEmpty();
+        drawn.Device.Fills.Should().ContainSingle();
+        drawn.Device.Calls.Should().Contain(call => call.Kind == "clip");
+    }
+
+    [Test]
+    [Arguments("0 0 m 10 0 l 10 10 l h 1 0 0 0 0 0 cm f", "fill nonzero M0,100 L10,100 L10,90 Z rgb(0,0,0)")]
+    [Arguments("0 0 m 10 0 l 10 10 l h 1 0 0 0 0 0 cm W n", "clip nonzero M0,100 L10,100 L10,90 Z")]
+    [Arguments("q 1 0 0 0 0 0 cm 0 0 m 10 10 l Q 0 0 0 1 0 0 cm 20 20 l f", "fill nonzero M0,100 L10,100 L0,80 rgb(0,0,0)")]
+    public void APathPaintedUnderATransformWithNoInverseKeepsItsPointsWhereTheyWerePlaced(string content, string expected)
+    {
+        // The points were placed when they were added, so a flattening transform at the
+        // painting operator does not flatten them again.
+        var drawn = Drawn.Page(content);
+
+        drawn.Device.Calls.Last(call => call.Kind is "fill" or "clip").ToString().Should().Be(expected);
     }
 
     [Test]

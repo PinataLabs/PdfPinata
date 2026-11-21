@@ -14,7 +14,7 @@ separate issues, and each has one place here to plug into. The last section name
 | 5 | Diagnostics on `PageRenderResult`, and one exception that escapes | done |
 | 6 | Page geometry: `PageView` | done |
 | 7 | DeviceGray, DeviceRGB and DeviceCMYK | done |
-| 8 | Indexed and ICCBased colour (#372) | plug-in point only |
+| 8 | Indexed and ICCBased colour (#372), CalGray and CalRGB as the device spaces | done |
 | 9 | Glyph outlines (#373, #374) | plug-in point only |
 | 10 | Images (#375) | done, but CCITTFax, JBIG2 and JPX (#385) |
 | 11 | CMaps other than `Identity-H`, and vertical writing | deliberately not done |
@@ -109,10 +109,27 @@ where `cm` or `Q` changes the transform in the middle of a path, which is not al
 found in files, the points before the change stay where they were. `PathInProgress` keeps the
 points in the user space the path began in: a point added under another transform is taken to that
 space as it is added, and the whole path is taken to the painting operator's space once, when it
-is painted. **Each point is mapped at most twice, however often the transform changes.** The first
+is painted. **Each point is mapped at most three times, however often the transform changes**:
+as it is added, once if the path is re-based, and when it is painted. The first
 version rewrote every point already in the path at each change, so 40,000 `q cm l Q` inside one
 path, which is 2.5 KB compressed, took most of a minute. A path painted under the transform it
-began under, which is every well-formed one, is handed over as the content wrote it. `W` and `W*`
+began under, which is every well-formed one, is handed over as the content wrote it.
+
+A transform with no inverse, such as `1 0 0 0 0 0 cm`, has no user space to take a point back to.
+A path begun under one keeps its points as written for as long as that transform stays, and when
+a point is added under another they are **re-based once**: onto the new transform where it has an inverse,
+and onto device space where it does not either. Either base has an inverse, so the path is never
+re-based again and the cost stays linear. So `q 1 0 0 0 0 0 cm 0 0 m 10 10 l Q 20 20 l S` draws
+the first two points flattened onto one line and the third where the restored transform puts it.
+The first fix round kept the points as written for the whole path and then mapped every one of them
+through the singular transform, which flattened the third point too (#400). A path painted under
+a transform with no inverse is handed to the device in the space its points were placed in, with
+the transform of that space, so `0 0 m 10 0 l 10 10 l h 1 0 0 0 0 0 cm f` fills the triangle its
+points make rather than a line. **A stroke painted under such a transform paints nothing**, and
+reports nothing: a pen is a width in user space and the transform leaves it none, which is what
+Ghostscript and pdf.js draw, so `10 w 20 50 m 80 50 l 1 0 0 0 0 0 cm S` leaves the page blank.
+The fill and clip of the same path stand, and `B` still fills. `PathInProgress.ToPath` changes nothing
+and can be asked again. `W` and `W*`
 are remembered and applied after the painting operator that follows, which is the order
 ISO 32000-1 8.5.4 gives.
 
@@ -140,6 +157,54 @@ the scale, and the device is handed the glyph's own shared `PagePath` under the 
 it is for a fill. That is all text not stretched by `Tz` or by a text matrix that scales x and y
 differently. For such stretched text the pen is an ellipse in the outline's space, which a
 `PageStroke` cannot say, so the outline is copied into user space and that path is not shared.
+
+## Annotations
+
+After the page's content, and unless `PageRendering.Render` was told `annotations: false`, each
+entry of `/Annots` that has an appearance is drawn through the Form XObject path (ISO 32000-1
+12.5.5). They are drawn in the order listed, each from the graphics state the page began in and
+under the clip of the page's box, whatever the content left set or clipped to: the page's save is undone and begun again, so a `W n` outside a `q` in the content does not cut the annotations. The appearance is `/AP /N`, or,
+where that is a dictionary of states, the stream `/AS` names. A dictionary of states with no `/AS`
+or one that names no state draws nothing. That follows Ghostscript and the PDF reference; pdf.js
+instead draws a check box with no `/AS` from its field's value, and this does not. An `/AP`, `/N` or state entry that is present and is not a stream is reported as `InvalidValue`, and an absent one is not.
+
+The box is mapped on to the rectangle by the algorithm of 12.5.5: `/BBox` is taken through
+`/Matrix`, and the rectangle that encloses the result is scaled and moved on to `/Rect`. The
+interpreter then draws the form with that map as the CTM, and `DrawForm` applies `/Matrix` and the
+clip to `/BBox` as it does for a `Do`. A `/Rect` with no area draws nothing and is not reported. An
+appearance whose box has no area once the matrix is applied, one with no `/BBox`, and a `/Rect`
+that is not four finite numbers are reported as `InvalidValue`, as is a bad `/Matrix`. The form's
+own resources are used, and the page's where it has none. An appearance that draws itself is
+stopped by `FormVisits`, as any form is. The annotations have a `FormVisits` of their own, begun
+when the content is done, so a page whose content entered 4096 forms still has its annotations
+drawn. It has the content's limit of 4096 and no more: a page with more than that many
+appearance-bearing annotations is outside real use, and the limit is what bounds the work a file
+can ask for. Past it the rest are reported once as `LimitReached`.
+
+**The no-zoom and no-rotate flags (bits 4 and 5) are not applied.** The appearance is drawn scaled and turned with the page, and where the view is not at 1 to 1 and upright an annotation carrying either is reported as `UnsupportedFeature`.
+
+`/F` is read as an integer, and a real with no fractional part (`2.0`) is read as the integer it
+equals, as viewers do, so a hidden annotation written that way is still hidden.
+
+**`/NeedAppearances` is not applied.** Viewers disagree on a form that sets it: pdf.js makes the
+appearances again, PDFium discards the stored ones, and Ghostscript draws them. The stored
+appearance of a `/Widget` is drawn, and when the catalog's `/AcroForm /NeedAppearances` is true
+and a widget is drawn the render is reported once as `UnsupportedFeature` on `/NeedAppearances`,
+so its result is not complete.
+
+**Not drawn:** a hidden annotation (`/F` bit 2), one with the no-view flag (bit 6), and a
+`/Popup`. The invisible flag (bit 1) only matters for annotations of a type the viewer does not
+know and that have no appearance, so it changes nothing here. The print flag is not read: this is
+screen rendering, and a print mode that kept only annotations with bit 3 set was left out, because
+no caller has asked for it. A widget with no `/AP` is not drawn. `/MK` is not consulted: a reader
+shows an appearance in place of one built from it.
+
+**Transparency is not applied to an annotation.** An annotation's `/CA` below 1 is reported as
+`UnsupportedFeature` on `/CA`, and the appearance is drawn opaque. Blend modes are handled as for any form.
+
+**Optional content is reported, not applied.** An `/OC` on the annotation and an `/OC` on its
+appearance stream are each reported as `UnsupportedFeature` where the group is switched off, as a
+`Do` of the same form would report its own, and the appearance is drawn all the same.
 
 ## Reading content that is broken
 
@@ -200,9 +265,22 @@ differently:
 - Content in `/OC … BDC`, or an XObject with an `/OC` entry, whose optional content group is off
   in the catalog's default configuration (`/OCProperties /D`: `/BaseState`, `/ON`, `/OFF`), or
   whose membership dictionary evaluates off by its `/VE` expression or else its `/P` policy over
-  `/OCGs`. The content is drawn. Subject `/OC`. A `/VE` is read 32 deep and 1,024 operands long,
-  and what lies past either is taken to be visible, because an expression may name itself. `OptionalContent` answers the question and hides
-  nothing; #386 applies it.
+  `/OCGs`. The content is drawn. Subject `/OC`. A group counts only where one of its `/Intent`
+  names, `/View` where it has none, is among the configuration's `/Intent`, which is also `/View`
+  where `/D` has none and takes in every intent where it names `/All`. A group that does not count
+  has no effect on visibility (ISO 32000-1 8.11.2.3 and 8.11.4.3), so it is left out of `/OCGs` and
+  of a `/VE`, rather than read as on: read as on, `/AllOff`, `/AnyOff` or `/Not` over it would
+  turn it to hidden. A membership with no group left has no effect, as Table 99 says of one whose
+  `/OCGs` names none, and an `/And`, `/Or` or `/Not` none of whose operands has an effect has none
+  either. So a configuration `/Intent` of `[]` makes everything visible, which is what 8.11.2.3
+  asks. A dictionary whose `/Type` is neither `/OCG` nor absent is not a group, wherever it is
+  named: by `/OC`, in `/OCGs` or as a `/VE` operand, it makes the membership visible as a whole.
+  A `/VE` is read 32 deep and 1,024 operands long. An expression any part of which cannot be read, or lies
+  past either limit, is visible as a whole: a `/Not` over it does not turn it round, so
+  `[/Not [/Xor …]]` is visible. Every operand is read for that reason, rather than stopping at the
+  first that decides. `OptionalContent` answers once per membership for one render, keyed by
+  `ReferenceIdentity`, because a page may name one membership thousands of times and each answer
+  may cost the whole operand budget. It answers the question and hides nothing; #386 applies it.
 
 A page that ends with states still saved is not reported. Many real pages do, nothing was left out,
 and the states are restored on the device all the same. A `Q` with nothing saved is reported.
@@ -343,6 +421,35 @@ composite one, and answers it in text space before the type size is applied, whe
 wide spans 0 to 1. Choosing the glyph, through `/Encoding`, the font program's `cmap` or
 `/CIDToGIDMap`, is the source's work. It is public and experimental so that the tests here can set
 text with no font file, and so that a caller can supply a kind of font this library does not read.
+
+## Indexed and ICCBased colour
+
+`ColorSpaces.Resolve` answers, for an array that opens with one of these families:
+
+- **`/Indexed`** is an `IndexedColorSpace`: one component, an index rounded to the nearest whole
+  number and held between 0 and the highest index. The highest index is held to 0 to 255. The
+  lookup table is a string or a stream, and bytes it lacks are zeros, reported as `InvalidValue`
+  `/Indexed`. Each entry is `ComponentCount` bytes of the base, each read as byte / 255, through the
+  base's own `ToRgb`. A base that is itself Indexed, or unsupported, makes the space unsupported
+  and drawn in black. An unsupported base has been reported already, and is not reported twice.
+- **`/ICCBased`** is an `IccBasedColorSpace` standing for another space. It is the `/Alternate`
+  when there is one that is supported, is not Indexed and has as many components as `/N` where
+  `/N` is 1, 3 or 4. Otherwise it is DeviceGray, DeviceRGB or DeviceCMYK by `/N`. An alternate
+  that cannot stand in is reported, and `/N` is used. With neither, the space is reported as
+  `InvalidValue` `/ICCBased` and drawn in black. It is its own class and not the device space,
+  because every component of an ICCBased colour starts at zero and DeviceCMYK starts black.
+- **A definition that names itself**, by a reference from its base or alternate back to it, or
+  that nests more than eight deep, is reported as `InvalidValue` and drawn in black. The resolver
+  keeps the arrays it is inside of and does not follow one into itself.
+
+**How an image reads an Indexed space (#375).** An image's samples are integers, so they are not
+passed through `ToRgb`, which takes the doubles an `sc` gives. Resolve the image's `/ColorSpace`
+with `ColorSpaces.Resolve`, and when it is an `IndexedColorSpace`, call `Lookup(int index)` with the
+sample. It holds an index outside the table to the ends, builds the whole palette on the first
+call and answers from it after, so calling it for every pixel costs an array read. `HighValue`
+is the highest index there is an entry for. The image's `/Decode` default for an Indexed space is
+`[0 2^n-1]`, which makes the index the sample itself. For any other space, pass the samples
+scaled by `/Decode` to `ToRgb` as before.
 
 ## What was deliberately left out
 
