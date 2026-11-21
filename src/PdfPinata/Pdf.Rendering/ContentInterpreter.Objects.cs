@@ -69,7 +69,7 @@ internal sealed partial class ContentInterpreter
         }
 
         // Asked before the content is decoded, so that a form drawn past the limit costs nothing.
-        if (!_forms.TryEnter(form))
+        if (!_context.Forms.TryEnter(form))
         {
             _sink.Report(PageRenderProblem.LimitReached, name,
                 "The form draws itself, or forms are nested too deep or drawn too often. It is not drawn again.");
@@ -102,12 +102,12 @@ internal sealed partial class ContentInterpreter
                 _sink.Report(PageRenderProblem.InvalidValue, name, "The form has no /BBox of four numbers. It is drawn without being clipped to one.");
             }
 
-            RunStream(content, _resources.ForForm(form), _sink.Stream + name);
+            RunStream(content, _resources.ForForm(form), _sink.Stream + name, transform);
         }
         finally
         {
             _states.PopTo(depth);
-            _forms.Leave(form);
+            _context.Forms.Leave(form);
         }
     }
 
@@ -125,9 +125,9 @@ internal sealed partial class ContentInterpreter
         var key = ReferenceIdentity.KeyOf(form);
         if (!_formContent.TryGetValue(key, out var content))
         {
-            var readable = PdfContentStreams.TryGetContent(form, Math.Max(0, _contentBytesLeft), out var bytes,
+            var readable = PdfContentStreams.TryGetContent(form, Math.Max(0, _context.ContentBytesLeft), out var bytes,
                 out var truncated, out var charge);
-            _contentBytesLeft -= charge;
+            _context.ContentBytesLeft -= charge;
             if (readable)
             {
                 if (truncated)
@@ -177,25 +177,25 @@ internal sealed partial class ContentInterpreter
     private PageImage ImageOf(PdfDictionary image, string name)
     {
         var key = ReferenceIdentity.KeyOf(image);
-        if (_images.TryGetValue(key, out var samples))
+        if (_context.Images.TryGetValue(key, out var samples))
             return samples;
 
-        samples = PageImages.ReadXObject(image, name, _resources, _device, _sink);
+        samples = PageImages.ReadXObject(image, name, _resources, _device.Device, _sink);
         var bytes = samples?.Data.Length ?? 0;
         if (!PageImages.NamesAResourceSpace(image))
         {
             if (bytes <= SmallImageBytes)
             {
-                if (_smallImageBytesKept + bytes <= MaximumSmallImageBytesKept)
+                if (_context.SmallImageBytesKept + bytes <= MaximumSmallImageBytesKept)
                 {
-                    _images[key] = samples;
-                    _smallImageBytesKept += bytes;
+                    _context.Images[key] = samples;
+                    _context.SmallImageBytesKept += bytes;
                 }
             }
-            else if (_imageBytesKept + bytes <= MaximumImageBytesKept)
+            else if (_context.ImageBytesKept + bytes <= MaximumImageBytesKept)
             {
-                _images[key] = samples;
-                _imageBytesKept += bytes;
+                _context.Images[key] = samples;
+                _context.ImageBytesKept += bytes;
             }
         }
 
@@ -271,18 +271,19 @@ internal sealed partial class ContentInterpreter
         // that answer is kept, so the failure is reported once and the read not repeated.
         try
         {
-            if (_optionalContent == null)
+            if (_context.OptionalContent == null)
             {
-                _optionalContent = OptionalContent.Of(_document, _optionalContentSelection, out var problem);
+                _context.OptionalContent = OptionalContent.Of(_context.Document, _context.OptionalContentSelection,
+                    out var problem);
                 if (problem != null)
                     _sink.Report(PageRenderProblem.InvalidValue, "/OC", problem);
             }
 
-            return _optionalContent.Hides(membership);
+            return _context.OptionalContent.Hides(membership);
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex) && ex is not UnsetSeamException)
         {
-            _optionalContent = OptionalContent.Of(null, null, out _);
+            _context.OptionalContent = OptionalContent.Of(null, null, out _);
             _sink.Report(PageRenderProblem.InvalidValue, "/OC",
                 "The document's optional content could not be read. Nothing is taken to be hidden. " + ex.Message);
             return false;
@@ -328,7 +329,7 @@ internal sealed partial class ContentInterpreter
     private void DrawInlineImage(COperator op)
     {
         if (op is CInlineImage image && !_device.Hidden)
-            DrawImage(PageImages.ReadInline(image, _resources, _device, _sink));
+            DrawImage(PageImages.ReadInline(image, _resources, _device.Device, _sink));
     }
 
     /// <summary>

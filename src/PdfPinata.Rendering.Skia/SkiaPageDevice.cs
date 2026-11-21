@@ -21,8 +21,12 @@ namespace PdfPinata.Rendering.Skia;
 /// save stack as it found it.
 /// </para>
 /// <para>
-/// Dispose it when the render is done: it keeps a Skia path for each glyph outline it has drawn.
-/// It does not own the canvas.
+/// Dispose it when the render is done: it keeps a Skia path for each glyph outline it has drawn
+/// and a Skia shader for each shading and pattern. It does not own the canvas.
+/// </para>
+/// <para>
+/// It draws every shader page rendering hands over: gradients as Skia's own, a mesh and a tiling
+/// pattern's cell each as a picture that Skia repeats or does not.
 /// </para>
 /// </remarks>
 [Experimental("PPEXP001")]
@@ -33,6 +37,7 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
     private readonly bool _antiAlias;
     private readonly SKPaint _paint;
     private readonly Dictionary<PagePath, SKPath> _sharedPaths = [];
+    private readonly Dictionary<PageShader, SKShader> _sharedShaders = [];
 
     // The most samples one image may have, as the core limits one, so that a JPEG whose header
     // claims a vast size is refused before its pixels are allocated.
@@ -81,6 +86,74 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
     {
         SetMatrix(transform);
         ResetPaint(SKPaintStyle.Stroke, paint);
+        DrawStroke(path, stroke);
+    }
+
+    /// <inheritdoc />
+    public override void DrawImage(PageImage image, XMatrix transform, PagePaint paint)
+    {
+        ArgumentNullException.ThrowIfNull(image);
+        SetMatrix(transform);
+
+        // Skia paints an alpha-only image in the paint's colour, which is what a stencil mask is,
+        // and multiplies any other image by the paint's alpha alone.
+        var stencil = image.Format == PageImageFormat.Alpha8;
+        ResetPaint(SKPaintStyle.Fill, stencil ? paint : new PagePaint(1, 1, 1, paint.Alpha));
+        DrawSamples(image);
+    }
+
+    /// <inheritdoc />
+    public override bool TryFill(PagePath path, XMatrix transform, XFillMode fillMode, PageShaderPaint paint)
+    {
+        using var shader = ShaderOf(paint, transform, out var known);
+        if (shader == null)
+            return known;
+
+        SetMatrix(transform);
+        ResetPaint(SKPaintStyle.Fill, shader, paint.Alpha);
+        var skPath = PathOf(path, fillMode, out var owned);
+        using (owned)
+            _canvas.DrawPath(skPath, _paint);
+        _paint.Shader = null;
+        return true;
+    }
+
+    /// <inheritdoc />
+    public override bool TryStroke(PagePath path, XMatrix transform, PageStroke stroke, PageShaderPaint paint)
+    {
+        using var shader = ShaderOf(paint, transform, out var known);
+        if (shader == null)
+            return known;
+
+        SetMatrix(transform);
+        ResetPaint(SKPaintStyle.Stroke, shader, paint.Alpha);
+        DrawStroke(path, stroke);
+        _paint.Shader = null;
+        return true;
+    }
+
+    /// <inheritdoc />
+    public override bool TryDrawStencil(PageImage mask, XMatrix transform, PageShaderPaint paint)
+    {
+        ArgumentNullException.ThrowIfNull(mask);
+        if (mask.Format != PageImageFormat.Alpha8)
+            return false;
+
+        using var shader = ShaderOf(paint, transform, out var known);
+        if (shader == null)
+            return known;
+
+        // Skia paints an alpha-only image with the paint's shader, as it does with its colour.
+        SetMatrix(transform);
+        ResetPaint(SKPaintStyle.Fill, shader, paint.Alpha);
+        DrawSamples(mask);
+        _paint.Shader = null;
+        return true;
+    }
+
+    // The path stroked with the paint as it is set, which is a colour's or a shader's.
+    private void DrawStroke(PagePath path, PageStroke stroke)
+    {
         _paint.StrokeWidth = (float)stroke.Width;
         _paint.StrokeCap = stroke.LineCap switch
         {
@@ -106,17 +179,10 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
         }
     }
 
-    /// <inheritdoc />
-    public override void DrawImage(PageImage image, XMatrix transform, PagePaint paint)
+    // The samples at the origin, under the matrix and with the paint as they are set.
+    private void DrawSamples(PageImage image)
     {
-        ArgumentNullException.ThrowIfNull(image);
-        SetMatrix(transform);
-
-        // Skia paints an alpha-only image in the paint's colour, which is what a stencil mask is,
-        // and multiplies any other image by the paint's alpha alone.
         var stencil = image.Format == PageImageFormat.Alpha8;
-        ResetPaint(SKPaintStyle.Fill, stencil ? paint : new PagePaint(1, 1, 1, paint.Alpha));
-
         var info = stencil
             ? new SKImageInfo(image.Width, image.Height, SKColorType.Alpha8, SKAlphaType.Premul)
             : new SKImageInfo(image.Width, image.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul);
@@ -210,20 +276,196 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
         return pixels;
     }
 
-    /// <summary>Frees the paths and the paint the device made. The canvas is left alone.</summary>
+    /// <summary>Frees the paths, the shaders and the paint the device made. The canvas is left alone.</summary>
     public void Dispose()
     {
         foreach (var path in _sharedPaths.Values)
             path.Dispose();
         _sharedPaths.Clear();
+        foreach (var shader in _sharedShaders.Values)
+            shader.Dispose();
+        _sharedShaders.Clear();
         _paint.Dispose();
     }
 
-    private void SetMatrix(XMatrix transform) =>
-        _canvas.SetMatrix(_base.PreConcat(new SKMatrix(
-            (float)transform.M11, (float)transform.M21, (float)transform.OffsetX,
-            (float)transform.M12, (float)transform.M22, (float)transform.OffsetY,
-            0, 0, 1)));
+    private void SetMatrix(XMatrix transform) => _canvas.SetMatrix(_base.PreConcat(Matrix(transform)));
+
+    private static SKMatrix Matrix(XMatrix transform) => new(
+        (float)transform.M11, (float)transform.M21, (float)transform.OffsetX,
+        (float)transform.M12, (float)transform.M22, (float)transform.OffsetY,
+        0, 0, 1);
+
+    private void ResetPaint(SKPaintStyle style, SKShader shader, double alpha)
+    {
+        _paint.Style = style;
+        _paint.Color = SKColors.Black.WithAlpha(Byte(alpha));
+        _paint.Shader = shader;
+    }
+
+    // The shader a call paints with, placed for the geometry the call draws: the canvas matrix
+    // is the geometry's, so the shader's own space is taken through to the geometry's.
+    // Null is nothing to draw with: either there is nothing to draw, or, where known is false,
+    // the shader is of a kind this device does not draw.
+    private SKShader ShaderOf(PageShaderPaint paint, XMatrix geometry, out bool known)
+    {
+        known = true;
+        if (!geometry.HasInverse)
+            return null;
+
+        SKShader owned = null;
+        if (!_sharedShaders.TryGetValue(paint.Shader, out var shader))
+        {
+            shader = Build(paint.Shader, out known);
+            if (shader == null)
+                return null;
+
+            if (paint.Shader.IsShared)
+                _sharedShaders.Add(paint.Shader, shader);
+            else
+                owned = shader;
+        }
+
+        using (owned)
+        {
+            geometry.Invert();
+            return shader.WithLocalMatrix(Matrix(XMatrix.Multiply(paint.Transform, geometry)));
+        }
+    }
+
+    private SKShader Build(PageShader shader, out bool known)
+    {
+        known = true;
+        switch (shader)
+        {
+            case PageAxialShading axial:
+                Stops(axial, false, out var colors, out var positions);
+                return OverBackground(
+                    SKShader.CreateLinearGradient(Point(axial.Start), Point(axial.End), colors, positions,
+                        SKShaderTileMode.Clamp),
+                    axial.Background);
+
+            case PageRadialShading radial:
+                return OverBackground(Radial(radial), radial.Background);
+
+            case PageMeshShading mesh:
+                return Mesh(mesh);
+
+            case PageTiling tiling:
+                return Tiling(tiling);
+
+            default:
+                known = false;
+                return null;
+        }
+    }
+
+    // Skia extends a gradient past both ends or past neither. An end that is not extended is
+    // given a second stop where its first is, transparent, and that is the one carried on.
+    // Reversed, the stops run from the end to the start.
+    private static void Stops(PageGradient gradient, bool reversed, out SKColor[] colors, out float[] positions)
+    {
+        var stops = gradient.Stops;
+        var extendFirst = reversed ? gradient.ExtendEnd : gradient.ExtendStart;
+        var extendLast = reversed ? gradient.ExtendStart : gradient.ExtendEnd;
+        var before = extendFirst ? 0 : 1;
+        colors = new SKColor[stops.Count + before + (extendLast ? 0 : 1)];
+        positions = new float[colors.Length];
+        for (var index = 0; index < stops.Count; index++)
+        {
+            var stop = stops[reversed ? stops.Count - 1 - index : index];
+            colors[index + before] = Color(stop.Color);
+            positions[index + before] = (float)(reversed ? 1 - stop.Offset : stop.Offset);
+        }
+
+        if (!extendFirst)
+            colors[0] = colors[1].WithAlpha(0);
+        if (!extendLast)
+            (colors[^1], positions[^1]) = (colors[^2].WithAlpha(0), 1);
+    }
+
+    // Two circles of the gradient may pass through one point. A PDF paints the later of them that
+    // it paints at all, and Skia paints the later whether or not it lies past an end that is not
+    // extended, which leaves a hole where the earlier one should show: the far side of the last
+    // circle, where the circles are not one inside the other. So where an end is not extended the
+    // gradient is laid over itself run backwards, which is the earlier circle at every point.
+    private static SKShader Radial(PageRadialShading radial)
+    {
+        SKPoint start = Point(radial.StartCenter), end = Point(radial.EndCenter);
+        float startRadius = (float)radial.StartRadius, endRadius = (float)radial.EndRadius;
+
+        Stops(radial, false, out var colors, out var positions);
+        var later = SKShader.CreateTwoPointConicalGradient(start, startRadius, end, endRadius, colors, positions,
+            SKShaderTileMode.Clamp);
+        if (later == null || radial.ExtendStart && radial.ExtendEnd)
+            return later;
+
+        Stops(radial, true, out colors, out positions);
+        var earlier = SKShader.CreateTwoPointConicalGradient(end, endRadius, start, startRadius, colors, positions,
+            SKShaderTileMode.Clamp);
+        if (earlier == null)
+            return later;
+
+        using (later)
+        using (earlier)
+            return SKShader.CreateCompose(earlier, later, SKBlendMode.SrcOver);
+    }
+
+    // The shader over a colour, as one shader, so that a paint's alpha applies to the two once.
+    private static SKShader OverBackground(SKShader shader, PagePaint? background)
+    {
+        if (shader == null || background == null)
+            return shader;
+
+        using (shader)
+        using (var under = SKShader.CreateColor(Color(background.Value)))
+            return SKShader.CreateCompose(under, shader, SKBlendMode.SrcOver);
+    }
+
+    private static SKShader Mesh(PageMeshShading mesh)
+    {
+        var points = mesh.Points;
+        var bytes = mesh.Colors;
+        if (points.Length < 3 || !(mesh.Bounds.Width > 0 && mesh.Bounds.Height > 0))
+            return mesh.Background == null ? null : SKShader.CreateColor(Color(mesh.Background.Value));
+
+        var vertices = new SKPoint[points.Length];
+        var colors = new SKColor[points.Length];
+        for (var index = 0; index < vertices.Length; index++)
+        {
+            vertices[index] = Point(points[index]);
+            colors[index] = new SKColor(bytes[3 * index], bytes[3 * index + 1], bytes[3 * index + 2]);
+        }
+
+        var bounds = Rect(mesh.Bounds);
+        using var recorder = new SKPictureRecorder();
+        var canvas = recorder.BeginRecording(bounds);
+        using (var paint = new SKPaint { Color = SKColors.White })
+            canvas.DrawVertices(SKVertexMode.Triangles, vertices, colors, paint);
+        using var picture = recorder.EndRecording();
+        return OverBackground(PictureShader(picture, bounds, SKShaderTileMode.Decal, SKFilterMode.Linear), mesh.Background);
+    }
+
+    // The cell is drawn once, into a picture, by a device like this one, and Skia repeats it.
+    private SKShader Tiling(PageTiling tiling)
+    {
+        var tile = Rect(tiling.Tile);
+        using var recorder = new SKPictureRecorder();
+        var canvas = recorder.BeginRecording(tile);
+        using (var cell = new SkiaPageDevice(canvas, _antiAlias))
+            tiling.Cell.Replay(cell, XMatrix.Identity);
+        using var picture = recorder.EndRecording();
+        return PictureShader(picture, tile, SKShaderTileMode.Repeat, _antiAlias ? SKFilterMode.Linear : SKFilterMode.Nearest);
+    }
+
+    // Skia lays a picture shader's tile with its corner at the origin, wherever the tile is in
+    // the picture, so it is moved back to where the picture has it.
+    private static SKShader PictureShader(SKPicture picture, SKRect tile, SKShaderTileMode mode, SKFilterMode filter) =>
+        SKShader.CreatePicture(picture, mode, mode, filter, SKMatrix.CreateTranslation(tile.Left, tile.Top), tile);
+
+    private static SKColor Color(PagePaint paint) => new(Byte(paint.Red), Byte(paint.Green), Byte(paint.Blue));
+
+    private static SKRect Rect(XRect rect) =>
+        new((float)rect.X, (float)rect.Y, (float)(rect.X + rect.Width), (float)(rect.Y + rect.Height));
 
     private void ResetPaint(SKPaintStyle style, PagePaint paint)
     {

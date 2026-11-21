@@ -55,6 +55,33 @@ internal sealed class RecordingDevice : PageDevice
     public override PageImage DecodeImage(PageImageCodec codec, ReadOnlyMemory<byte> data) =>
         codec == PageImageCodec.Jpeg ? Jpeg?.Invoke(data) : null;
 
+    /// <summary>
+    /// Whether the device draws shaders. Where it does not it answers false to each shader call
+    /// and records nothing of it, as a device written before there were any.
+    /// </summary>
+    public bool DrawsShaders { get; init; } = true;
+
+    public override bool TryFill(PagePath path, XMatrix transform, XFillMode fillMode, PageShaderPaint paint)
+    {
+        if (DrawsShaders)
+            Calls.Add(new Call("fill") { Path = path, Transform = transform, FillMode = fillMode, Shader = paint });
+        return DrawsShaders;
+    }
+
+    public override bool TryStroke(PagePath path, XMatrix transform, PageStroke stroke, PageShaderPaint paint)
+    {
+        if (DrawsShaders)
+            Calls.Add(new Call("stroke") { Path = path, Transform = transform, Stroke = stroke, Shader = paint });
+        return DrawsShaders;
+    }
+
+    public override bool TryDrawStencil(PageImage mask, XMatrix transform, PageShaderPaint paint)
+    {
+        if (DrawsShaders)
+            Calls.Add(new Call("image") { Image = mask, Transform = transform, Shader = paint });
+        return DrawsShaders;
+    }
+
     internal sealed class Call(string kind)
     {
         public string Kind { get; } = kind;
@@ -64,6 +91,16 @@ internal sealed class RecordingDevice : PageDevice
         public PagePaint Paint { get; init; }
         public PageStroke Stroke { get; init; }
         public PageImage Image { get; init; }
+
+        /// <summary>What a shader call painted with, or null for a call that painted in one colour.</summary>
+        public PageShaderPaint? Shader { get; init; }
+
+        /// <summary>The shader of a shader call, as the kind a test expects it to be.</summary>
+        public T ShaderAs<T>() where T : PageShader => (T)Shader!.Value.Shader;
+
+        /// <summary>A gradient's stops, as <c>offset rgb(r,g,b)</c>.</summary>
+        public string[] Stops => ShaderAs<PageGradient>().Stops
+            .Select(stop => Number(stop.Offset) + " " + ColourOf(stop.Color)).ToArray();
 
         /// <summary>Where the origin of the path's own coordinates lands on the device.</summary>
         public XPoint Origin => Transform.Transform(new XPoint(0, 0));
@@ -116,9 +153,22 @@ internal sealed class RecordingDevice : PageDevice
 
         private string Mode => FillMode == XFillMode.Winding ? "nonzero" : "evenodd";
 
-        private string Colour =>
-            $"rgb({Number(Paint.Red)},{Number(Paint.Green)},{Number(Paint.Blue)})" +
-            (Paint.Alpha < 1 ? " a" + Number(Paint.Alpha) : "");
+        private string Colour => Shader == null
+            ? ColourOf(Paint)
+            : ShaderName + (Shader.Value.Alpha < 1 ? " a" + Number(Shader.Value.Alpha) : "");
+
+        private string ShaderName => Shader!.Value.Shader switch
+        {
+            PageAxialShading => "axial",
+            PageRadialShading => "radial",
+            PageMeshShading => "mesh",
+            PageTiling => "tiling",
+            _ => "shader"
+        };
+
+        private static string ColourOf(PagePaint paint) =>
+            $"rgb({Number(paint.Red)},{Number(paint.Green)},{Number(paint.Blue)})" +
+            (paint.Alpha < 1 ? " a" + Number(paint.Alpha) : "");
 
         private string Point(XPoint point)
         {

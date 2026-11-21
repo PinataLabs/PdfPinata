@@ -19,6 +19,12 @@ namespace PdfPinata.Pdf.Rendering;
 /// problems are reported.
 /// </para>
 /// <para>
+/// Content that is drawn apart, which a tiling pattern's cell is, is run by an instance of its
+/// own onto a <see cref="PictureRecorder"/>: <see cref="Record"/>. That instance has its own
+/// device, state stack and surface, and shares the <see cref="RenderContext"/> of the render it
+/// is part of.
+/// </para>
+/// <para>
 /// <see cref="Execute"/> is the only place an operator is told from another. Colour spaces, glyph
 /// outlines and images each have a class of their own that it calls
 /// (<see cref="ColorSpaces"/>, <see cref="BuiltInGlyphSources"/>, <see cref="PageImages"/>), and a
@@ -41,15 +47,14 @@ internal sealed partial class ContentInterpreter
     internal const int MaximumFaults = 64;
 
     /// <summary>
-    /// How many bytes of content a render inflates, across the page's streams and every form's.
+    /// How many bytes of content a render inflates, across the page's streams, every form's and every
+    /// pattern cell's.
     /// Flate compresses a page's operators at ten to one or twenty to one, so this is hundreds of
     /// megabytes of compressed content for a legitimate page, well past the largest map or
     /// drawing seen; and it is not the bound on parsing it, which is what costs more per byte.
     /// What a stream inflates to beyond it is not read, and is reported.
     /// </summary>
     internal const long MaximumContentLength = 128L * 1024 * 1024;
-
-    private long _contentBytesLeft = MaximumContentLength;
 
     /// <summary>
     /// How many bytes of decoded images one render keeps to draw again: 1 GiB, which is one image
@@ -70,29 +75,28 @@ internal sealed partial class ContentInterpreter
     /// </summary>
     internal const long MaximumSmallImageBytesKept = 64L << 20;
 
-    private readonly GuardedDevice _device;
+    private readonly RenderContext _context;
+    private readonly PaintRouter _device;
     private readonly PageView _view;
     private readonly RenderFontCache _fonts;
     private readonly Func<PdfDictionary, PageGlyphSource> _glyphSources;
-    private readonly PageOptionalContent _optionalContentSelection;
-    private readonly DiagnosticSink _sink = new();
+    private readonly DiagnosticSink _sink;
     private readonly StateStack _states;
-    private FormVisits _forms = new();
+    private readonly Dictionary<object, ParsedContent> _formContent;
     private bool _needAppearancesReported;
 
-    // Each form's content as it was read the first time it was drawn, or null where it could
-    // not be decoded. A form drawn a thousand times on a page is decoded and parsed once.
-    private readonly Dictionary<object, ParsedContent> _formContent = new(ReferenceIdentity.Instance);
+    // Everything this instance draws into, with its transform to the device: the page's box, or
+    // the box of content that is recorded. It is what sh paints, under whatever the clip leaves.
+    private readonly PagePath _surface;
+    private readonly XMatrix _surfaceTransform;
 
-    // Each image XObject's samples as they were decoded the first time it was drawn, or null where
-    // they could not be, and how many bytes of samples are kept. See ImageOf.
-    private readonly Dictionary<object, PageImage> _images = new(ReferenceIdentity.Instance);
-    private long _imageBytesKept;
-    private long _smallImageBytesKept;
+    // Set for the cell of an uncoloured tiling pattern, whose colour is the one it is painted
+    // in: every operator that sets a colour is passed over (ISO 32000-1 8.7.3.3).
+    private readonly bool _colorsLocked;
 
-    // Read from the document the first time content asks about a group.
-    private PdfDocument _document;
-    private OptionalContent _optionalContent;
+    // Whether this instance records. What it draws is then placed on a device later, under a
+    // transform not known here, so nothing is judged by its size in pixels.
+    private readonly bool _isRecording;
 
     // The marked-content sequences open in the stream being drawn, innermost last, each whether it
     // is optional content that is switched off, and how many of them are.
@@ -102,6 +106,10 @@ internal sealed partial class ContentInterpreter
     // What belongs to the content stream being drawn. A form XObject has its own of each, and
     // RunStream puts the caller's back when the form ends.
     private ResourceScope _resources;
+
+    // The default coordinate space of the stream being drawn, as a transform to the device: the
+    // space a pattern's /Matrix is over, whatever cm has done since the stream began.
+    private XMatrix _streamSpace;
     private PathInProgress _path = new();
     private XFillMode? _pendingClip;
     private TextObject _text;
@@ -111,13 +119,32 @@ internal sealed partial class ContentInterpreter
 
     internal ContentInterpreter(PageDevice device, PageView view, RenderFontCache fonts,
         Func<PdfDictionary, PageGlyphSource> glyphSources, PageOptionalContent optionalContent = null)
+        : this(new RenderContext(fonts, glyphSources) { OptionalContentSelection = optionalContent }, device,
+            new GraphicsState { Ctm = view.Transform }, view.Box, colorsLocked: false, isRecording: false)
     {
-        _optionalContentSelection = optionalContent;
-        _device = new GuardedDevice(device, _sink);
         _view = view;
-        _fonts = fonts;
-        _glyphSources = glyphSources;
-        _states = new StateStack(_device, new GraphicsState { Ctm = view.Transform });
+    }
+
+    private ContentInterpreter(RenderContext context, PageDevice device, GraphicsState initial, XRect surface,
+        bool colorsLocked, bool isRecording)
+    {
+        _context = context;
+        _sink = context.Sink;
+        _fonts = context.Fonts;
+        _glyphSources = context.GlyphSources;
+        _formContent = context.FormContent;
+        _colorsLocked = colorsLocked;
+        _isRecording = isRecording;
+
+        var guarded = new GuardedDevice(device, _sink);
+        context.Decoder ??= guarded;
+        _device = new PaintRouter(guarded, _sink);
+        _states = new StateStack(guarded, initial);
+
+        var box = new PagePathBuilder();
+        box.AddRectangle(surface.X, surface.Y, surface.Width, surface.Height);
+        _surface = box.ToPath();
+        _surfaceTransform = initial.Ctm;
     }
 
     private GraphicsState State => _states.Current;
@@ -142,10 +169,10 @@ internal sealed partial class ContentInterpreter
                     "The page states no box with any area. It is drawn as a US Letter page.");
             }
 
-            _document = page.Owner;
-            var readable = PdfContentStreams.TryGetReadablePageContent(page, _contentBytesLeft, out var content,
+            _context.Document = page.Owner;
+            var readable = PdfContentStreams.TryGetReadablePageContent(page, _context.ContentBytesLeft, out var content,
                 out var unreadable, out var truncated, out var charged);
-            _contentBytesLeft -= charged;
+            _context.ContentBytesLeft -= charged;
             if (!readable)
             {
                 _sink.Report(PageRenderProblem.UnreadableContent, "page",
@@ -165,7 +192,7 @@ internal sealed partial class ContentInterpreter
                         $"The page's content inflates to more than {MaximumContentLength} bytes. Only the start of it is drawn.");
                 }
 
-                RunStream(ParsedContent.Of(content), ResourceScope.OfPage(page), "page");
+                RunStream(ParsedContent.Of(content), ResourceScope.OfPage(page), "page", _surfaceTransform);
             }
 
             if (includeAnnotations)
@@ -181,10 +208,46 @@ internal sealed partial class ContentInterpreter
     private void BeginPage()
     {
         _states.Push();
+        _device.Clip(_surface, _surfaceTransform, XFillMode.Winding);
+    }
 
-        var box = new PagePathBuilder();
-        box.AddRectangle(_view.Box.X, _view.Box.Y, _view.Box.Width, _view.Box.Height);
-        _device.Clip(box.ToPath(), _view.Transform, XFillMode.Winding);
+    /// <summary>
+    /// Runs a content stream apart from the device, from a graphics state of its own, and
+    /// answers what it drew as a picture. A tiling pattern's cell is recorded by this, and a
+    /// transparency group is content of the same kind.
+    /// </summary>
+    /// <param name="context">The render the content is part of.</param>
+    /// <param name="content">The content.</param>
+    /// <param name="resources">What its names are looked up in.</param>
+    /// <param name="streamName">What its problems are reported against.</param>
+    /// <param name="initialState">
+    /// The graphics state it starts from. Its transform is the content's default space, and the
+    /// space the picture's coordinates are in where that is the identity.
+    /// </param>
+    /// <param name="box">What the content is clipped to, in its default space.</param>
+    /// <param name="colorsLocked">Whether the colours of <paramref name="initialState"/> are the only ones it paints in.</param>
+    internal static PagePicture Record(RenderContext context, ParsedContent content, ResourceScope resources,
+        string streamName, GraphicsState initialState, XRect box, bool colorsLocked)
+    {
+        var recorder = new PictureRecorder(context.Decoder);
+        var nested = new ContentInterpreter(context, recorder, initialState, box, colorsLocked, isRecording: true);
+        try
+        {
+            nested.BeginPage();
+            nested.RunStream(content, resources, streamName, nested._surfaceTransform);
+        }
+        finally
+        {
+            nested._states.PopTo(0);
+        }
+
+        if (recorder.Overflowed)
+        {
+            context.Sink.Report(PageRenderProblem.LimitReached, streamName,
+                "The content draws more than one picture keeps. What comes after the limit is not drawn.");
+        }
+
+        return recorder.ToPicture();
     }
 
     /// <summary>
@@ -192,14 +255,19 @@ internal sealed partial class ContentInterpreter
     /// leaves unrestored is restored when it ends, so a stream cannot leave anything on the stack
     /// of whatever drew it, and a <c>Q</c> in it cannot reach past where it began.
     /// </summary>
-    private void RunStream(ParsedContent content, ResourceScope resources, string streamName)
+    /// <param name="content">The content.</param>
+    /// <param name="resources">What its names are looked up in.</param>
+    /// <param name="streamName">What its problems are reported against.</param>
+    /// <param name="space">The stream's default coordinate space, as a transform to the device.</param>
+    private void RunStream(ParsedContent content, ResourceScope resources, string streamName, XMatrix space)
     {
         var faults = content.Faults;
         var sequence = content.Sequence;
 
-        var outer = (_resources, _path, _pendingClip, _text, _compatibilityDepth, _floor, _uncountedSaves,
-            _sink.Stream, _sink.OperatorIndex, _sink.Operator);
+        var outer = (_resources, _streamSpace, _path, _pendingClip, _text, _compatibilityDepth, _floor,
+            _uncountedSaves, _sink.Stream, _sink.OperatorIndex, _sink.Operator);
         _resources = resources;
+        _streamSpace = space;
         _path = new PathInProgress();
         _pendingClip = null;
         _text = null;
@@ -261,8 +329,8 @@ internal sealed partial class ContentInterpreter
             _hiddenMarks = outerHiddenMarks;
             _device.Hidden = _hiddenMarks > 0;
             _states.PopTo(_floor);
-            (_resources, _path, _pendingClip, _text, _compatibilityDepth, _floor, _uncountedSaves,
-                _sink.Stream, _sink.OperatorIndex, _sink.Operator) = outer;
+            (_resources, _streamSpace, _path, _pendingClip, _text, _compatibilityDepth, _floor,
+                _uncountedSaves, _sink.Stream, _sink.OperatorIndex, _sink.Operator) = outer;
         }
     }
 
@@ -270,7 +338,7 @@ internal sealed partial class ContentInterpreter
     /// A content stream as the parser read it: its operators, and the faults read past on the way.
     /// Nothing that draws it changes it, so one reading serves every time a form is drawn.
     /// </summary>
-    private sealed class ParsedContent
+    internal sealed class ParsedContent
     {
         private ParsedContent(CSequence sequence, List<ContentFault> faults, bool leftUnread)
         {
@@ -410,9 +478,9 @@ internal sealed partial class ContentInterpreter
             case OpCodeName.BI: DrawInlineImage(op); break;
 
             case OpCodeName.sh:
-                // A shading in hidden content paints nothing, so there is nothing to report.
+                // A shading in hidden content paints nothing, so it is not read and nothing is reported.
                 if (!_device.Hidden)
-                    _sink.Report(PageRenderProblem.UnsupportedFeature, "sh", "Shadings are not drawn yet.");
+                    PaintShading(op);
                 break;
 
             case OpCodeName.BMC: PushMarkedContent(hidden: false); break;
@@ -576,8 +644,12 @@ internal sealed partial class ContentInterpreter
             SetColor(stroking, space, space.ToRgb(components));
     }
 
-    private void SetColor(bool stroking, RenderColorSpace space, PagePaint color)
+    /// <summary>Where every operator that sets a colour ends.</summary>
+    private void SetColor(bool stroking, RenderColorSpace space, RenderPaint color)
     {
+        if (_colorsLocked)
+            return;
+
         if (stroking)
         {
             State.StrokeSpace = space;
@@ -603,13 +675,18 @@ internal sealed partial class ContentInterpreter
         // A name the resources do not hold has been reported, and leaves the colour as it was.
         var space = ColorSpaces.ResolveName(name, _resources, _sink);
         if (space != null)
-            SetColor(stroking, space, space.InitialColor);
+            SetColor(stroking, space, space is PatternColorSpace ? RenderPaint.Nothing : space.InitialColor);
     }
 
     /// <summary><c>sc</c>, <c>SC</c>, <c>scn</c> and <c>SCN</c>.</summary>
     private void SetColorInSpace(COperator op, bool stroking)
     {
         var space = stroking ? State.StrokeSpace : State.FillSpace;
+        if (space is PatternColorSpace patternSpace)
+        {
+            SetPatternColor(op, stroking, patternSpace);
+            return;
+        }
 
         // scn may end in the name of a pattern, which is no component.
         var skip = Operands.FromEnd(op, 0) is CName ? 1 : 0;

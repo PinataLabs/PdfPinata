@@ -312,10 +312,4 @@ public class GraphicsStateTests
         stroke.DashPattern.Should().BeEmpty();
         drawn.Problems.Should().Equal("InvalidValue w", "InvalidValue J", "InvalidValue M", "InvalidValue d");
     }
-
-    [Test]
-    public void AShadingIsReportedBecauseItIsNotDrawn()
-    {
-        Drawn.Page("/Sh1 sh").Problems.Should().Equal("UnsupportedFeature sh");
-    }
 }

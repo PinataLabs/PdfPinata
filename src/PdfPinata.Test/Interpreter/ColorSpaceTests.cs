@@ -473,13 +473,4 @@ public class ColorSpaceTests
         Filled(drawn).Should().Be(new PagePaint(0, 0, 0));
         drawn.Problems.Should().Equal("UnsupportedColorSpace " + family);
     }
-
-    [Test, Timeout(30_000)]
-    public async Task APatternSpaceIsReportedAndDrawnInTheFallbackColour()
-    {
-        var drawn = await Interruptibly.Run(() => Drawn.Page("/Pattern cs /P1 scn" + Fill));
-
-        Filled(drawn).Should().Be(new PagePaint(0, 0, 0));
-        drawn.Problems.Should().Contain("UnsupportedColorSpace /Pattern");
-    }
 }

@@ -431,15 +431,38 @@ public class OptionalContentTests
         drawn.Problems.Should().BeEmpty();
     }
 
-    [Test]
-    public void AShadingInHiddenContentIsNotReportedAndOneInVisibleContentIs()
+    // Built of objects and not of PDF text, because these pages are drawn without being saved.
+    private static PdfDictionary GrayRamp(PdfDocument document)
     {
-        var hidden = L1Off("/OC /L1 BDC /Sh1 sh EMC");
-        var visible = L1Off("/OC /L2 BDC /Sh1 sh EMC");
+        var function = new PdfDictionary(document);
+        function.Elements["/FunctionType"] = new PdfPinata.Pdf.PdfInteger(2);
+        function.Elements["/Domain"] = new PdfArray(document, new PdfPinata.Pdf.PdfInteger(0), new PdfPinata.Pdf.PdfInteger(1));
+        function.Elements["/C0"] = new PdfArray(document, new PdfPinata.Pdf.PdfInteger(0));
+        function.Elements["/C1"] = new PdfArray(document, new PdfPinata.Pdf.PdfInteger(1));
+        function.Elements["/N"] = new PdfPinata.Pdf.PdfInteger(1);
+
+        var shading = new PdfDictionary(document);
+        shading.Elements["/ShadingType"] = new PdfPinata.Pdf.PdfInteger(2);
+        shading.Elements["/ColorSpace"] = new PdfName("/DeviceGray");
+        shading.Elements["/Coords"] = new PdfArray(document, new PdfPinata.Pdf.PdfInteger(0), new PdfPinata.Pdf.PdfInteger(0), new PdfPinata.Pdf.PdfInteger(100),
+            new PdfPinata.Pdf.PdfInteger(0));
+        shading.Elements["/Function"] = function;
+        return shading;
+    }
+
+    [Test]
+    public void AShadingInHiddenContentIsNotReadAndOneInVisibleContentIsDrawn()
+    {
+        // The hidden one names no shading at all: read, it would be reported missing.
+        var hidden = L1Off("/OC /L1 BDC /Missing sh EMC");
+        var visible = L1Off("/OC /L2 BDC /Sh1 sh EMC", (document, resources, _, _) =>
+            Drawn.Add(document, resources, "/Shading", "/Sh1", GrayRamp(document)));
 
         hidden.Problems.Should().BeEmpty();
         hidden.Result.IsComplete.Should().BeTrue();
-        visible.Problems.Should().Equal("UnsupportedFeature sh");
+        hidden.Device.Fills.Should().BeEmpty();
+        visible.Problems.Should().BeEmpty();
+        visible.Device.Fills.Should().ContainSingle();
     }
 
     [Test]

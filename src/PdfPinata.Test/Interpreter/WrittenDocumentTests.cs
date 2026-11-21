@@ -46,6 +46,33 @@ public class WrittenDocumentTests
         device.Calls.Count(call => call.Kind == "save").Should().Be(device.Calls.Count(call => call.Kind == "restore"));
     }
 
+    [Test]
+    public void AGradientBrushXGraphicsFilledWithIsHandedOverAsAnAxialShadingWhereItWasDrawn()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(page))
+        {
+            var brush = new XLinearGradientBrush(new XPoint(10, 20), new XPoint(110, 20), XColors.Red, XColors.Blue);
+            gfx.DrawRectangle(brush, 10, 20, 100, 40);
+        }
+
+        var device = new RecordingDevice();
+        var result = PageRendering.Render(document.Reopened().Pages[0], device);
+
+        var fill = device.Fills.Single();
+        fill.Stops.Should().Equal("0 rgb(1,0,0)", "1 rgb(0,0,1)");
+
+        // The gradient's ends, through the shader's own transform, are where the brush put them.
+        var axial = fill.ShaderAs<PageAxialShading>();
+        var toDevice = fill.Shader!.Value.Transform;
+        var start = toDevice.Transform(axial.Start);
+        var end = toDevice.Transform(axial.End);
+        (start.X, start.Y).Should().Be((10, 20));
+        (end.X, end.Y).Should().Be((110, 20));
+        result.IsComplete.Should().BeTrue();
+    }
+
     private static XPoint[] Corners(RecordingDevice.Call call)
     {
         var points = call.Path.Points.ToArray();

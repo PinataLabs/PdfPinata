@@ -35,7 +35,7 @@ internal sealed partial class ContentInterpreter
 
         // The page's content is done with its budget of forms, which it may have spent whole, and
         // an annotation is not left undrawn for that. The annotations have one of their own.
-        _forms = new FormVisits();
+        _context.Forms = new FormVisits();
         var count = annotations.Elements.Count;
         for (var index = 0; index < count; index++)
         {
@@ -85,7 +85,7 @@ internal sealed partial class ContentInterpreter
     private bool NeedsAppearances()
     {
         if (_needAppearancesReported
-            || _document?.Internals.Catalog.Elements.GetDictionary("/AcroForm") is not { } form
+            || _context.Document?.Internals.Catalog.Elements.GetDictionary("/AcroForm") is not { } form
             || !PdfItemValues.TryGetBoolean(form.Elements["/NeedAppearances"], out var needed) || !needed)
             return false;
 

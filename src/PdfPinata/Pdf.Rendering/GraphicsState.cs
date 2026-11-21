@@ -35,10 +35,13 @@ internal sealed class GraphicsState
     internal RenderColorSpace FillSpace = ColorSpaces.DeviceGray;
     internal RenderColorSpace StrokeSpace = ColorSpaces.DeviceGray;
 
-    /// <summary>The fill colour as RGB, resolved when it was set and not each time it is painted with.</summary>
-    internal PagePaint FillColor = new(0, 0, 0);
+    /// <summary>
+    /// What fills are painted with: a colour as RGB or a pattern, resolved when it was set and
+    /// not each time it is painted with.
+    /// </summary>
+    internal RenderPaint FillColor = new PagePaint(0, 0, 0);
 
-    internal PagePaint StrokeColor = new(0, 0, 0);
+    internal RenderPaint StrokeColor = new PagePaint(0, 0, 0);
 
     /// <summary><c>/ca</c>.</summary>
     internal double FillAlpha = 1;
@@ -65,9 +68,9 @@ internal sealed class GraphicsState
     internal double Rise;
     internal TextRenderMode RenderMode;
 
-    internal PagePaint FillPaint => FillColor.WithAlpha(FillAlpha);
+    internal RenderPaint FillPaint => FillColor.WithAlpha(FillAlpha);
 
-    internal PagePaint StrokePaint => StrokeColor.WithAlpha(StrokeAlpha);
+    internal RenderPaint StrokePaint => StrokeColor.WithAlpha(StrokeAlpha);
 
     internal GraphicsState Copy() => (GraphicsState)MemberwiseClone();
 }
