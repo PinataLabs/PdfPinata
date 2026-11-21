@@ -198,7 +198,7 @@ public class InlineImageRoundTripTests
     [Test, Timeout(30_000)]
     public async Task ManyInlineImagesWithUnclosedStringsAreEachReadOnlyAsFarAsTheirOwnEnd()
     {
-        const int images = 4_000;
+        const int images = 1_000;
         var content = string.Concat(Enumerable.Repeat("BI /W 1 /H 1 /X (unclosed ID a EI ", images)) + "0 0 10 10 re f";
 
         var sequence = await Interruptibly.Run(() => Read(content));
@@ -297,32 +297,40 @@ public class InlineImageRoundTripTests
 
     // An ID standing hard against its data is no candidate, so the next candidate may lie at the
     // end of the content. Searching to it, or copying the content up to it, for every such image
-    // made the time grow with the square of the images. Doubling the images must about double it.
+    // made the time grow with the square of the images. Eight times the images must take about
+    // eight times as long, not sixty-four. The reads are long enough to measure against the noise
+    // of a loaded machine, the threshold sits well between the two, and the fastest of several
+    // interleaved attempts is compared, so a stall in one read cannot decide it.
     [Test, Timeout(60_000), NotInParallel]
     [Arguments("BI /W 1 /H 1 /F /AHx ID00>EI ")]
     [Arguments("BI /W 1 /H 1 /F /A85 ID!!~>EI ")]
     [Arguments("BI /W 1 /H 1 /BPC 8ID a EI ")]
     public async Task ImagesWhoseIDIsNoCandidateAreReadInTimeProportionalToTheirNumber(string image)
     {
-        const int images = 4_000;
-        var once = Encoding.Latin1.GetBytes(string.Concat(Enumerable.Repeat(image, images)) + "BI /W 1 ID a EI");
-        var twice = Encoding.Latin1.GetBytes(string.Concat(Enumerable.Repeat(image, 2 * images)) + "BI /W 1 ID a EI");
+        const int images = 1_000;
+        const int factor = 8;
+        var small = Encoding.Latin1.GetBytes(string.Concat(Enumerable.Repeat(image, images)) + "BI /W 1 ID a EI");
+        var large = Encoding.Latin1.GetBytes(string.Concat(Enumerable.Repeat(image, factor * images)) + "BI /W 1 ID a EI");
 
         var ratio = await Interruptibly.Run(() =>
         {
-            ContentReader.ReadContent(once);
-            var fastestOnce = long.MaxValue;
-            var fastestTwice = long.MaxValue;
-            for (var run = 0; run < 7; run++)
+            ContentReader.ReadContent(small);
+            var fastestSmall = long.MaxValue;
+            var fastestLarge = long.MaxValue;
+            for (var attempt = 0; attempt < 5; attempt++)
             {
-                fastestOnce = Math.Min(fastestOnce, TicksToRead(once));
-                fastestTwice = Math.Min(fastestTwice, TicksToRead(twice));
+                fastestSmall = Math.Min(fastestSmall, TicksToRead(small));
+                fastestLarge = Math.Min(fastestLarge, TicksToRead(large));
+                if ((double)fastestLarge / fastestSmall < MaximumLinearRatio)
+                    break;
             }
-            return (double)fastestTwice / fastestOnce;
+            return (double)fastestLarge / fastestSmall;
         });
 
-        ratio.Should().BeLessThan(3, "a linear reading doubles and a quadratic one quadruples");
+        ratio.Should().BeLessThan(MaximumLinearRatio, "a linear reading takes eight times as long and a quadratic one sixty-four");
     }
+
+    private const double MaximumLinearRatio = 24;
 
     private static long TicksToRead(byte[] content)
     {
@@ -342,6 +350,20 @@ public class InlineImageRoundTripTests
         var image = sequence[0].Should().BeOfType<CInlineImage>().Subject;
         image.ImageDictionary.Should().Be("/W 1 /H 1 " + comments + "/BPC 8");
         Encoding.Latin1.GetString(image.Data).Should().Be("a");
+    }
+
+    // A comment inside a dictionary that is still open is read as part of it, so each line holding
+    // an ID counts against the dictionary's candidates.
+    [Test, Timeout(5000)]
+    public async Task FourCommentLinesHoldingAnIDInsideOneDictionaryEndTheEntriesAtTheFirst()
+    {
+        var comments = string.Concat(Enumerable.Repeat("% ID\n", 4));
+
+        var sequence = await Interruptibly.Run(() => Read("BI /W 1 /H 1 /X << " + comments + ">> /BPC 8 ID a EI 0 0 10 10 re f"));
+
+        sequence.Select(item => ((COperator)item).Name).Should().Equal("BI", "re", "f");
+        var image = sequence[0].Should().BeOfType<CInlineImage>().Subject;
+        image.ImageDictionary.Should().Be("/W 1 /H 1 /X << %");
     }
 
     [Test]

@@ -222,9 +222,13 @@ public class CLexer
     /// </para>
     /// <para>
     /// Each read starts where the last one left a token open, or where the comment it ended in
-    /// ends, so a comment costs nothing more to pass over. One token left open across
+    /// ends. A comment that is the last thing a read reaches, outside any string or dictionary,
+    /// costs nothing more to pass over and counts for nothing. A comment inside a string or
+    /// dictionary that is still open is not: the read passes it as part of that token, so an
+    /// <c>ID</c> in each comment line is one more candidate for it. One token left open across
     /// <see cref="MaximumIDCandidates"/> candidates makes the entries malformed, and they end at
-    /// the first of them. A token that closes before then starts the count again for the next.
+    /// the first of them, even when the token would have closed after the last. A token that
+    /// closes before then starts the count again for the next.
     /// </para>
     /// </remarks>
     private bool ScanToImageData(int dictionaryStart, out int dictionaryEnd, out bool ascii85)
@@ -284,7 +288,8 @@ public class CLexer
 
     /// <summary>
     /// How many candidates for an inline image's <c>ID</c> one token is left open across before
-    /// the entries are taken to be malformed. Each costs one more read of the entries from where
+    /// the entries are taken to be malformed, whether the candidates stand in the token's text or
+    /// in comment lines inside a dictionary. Each costs one more read of the entries from where
     /// that token begins, so this bounds what one image costs whatever its entries hold.
     /// </summary>
     private const int MaximumIDCandidates = 4;
