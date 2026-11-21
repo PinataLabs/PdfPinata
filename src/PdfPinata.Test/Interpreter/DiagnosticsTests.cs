@@ -197,7 +197,8 @@ public class DiagnosticsTests
     [Test, Timeout(30_000)]
     public async Task AFormWhoseMatrixIsTooLargeToDrawUnderIsNotDrawn()
     {
-        var drawn = await Page("1" + new string('0', 200) + " 0 0 1 0 0 cm /Fm1 Do", (document, resources) =>
+        // Each number is read as float.MaxValue at most, so the seventh power stays finite and the form's own matrix makes the eighth overflow.
+        var drawn = await Page(string.Concat(Enumerable.Repeat("1" + new string('0', 200) + " 0 0 1 0 0 cm ", 7)) + "/Fm1 Do", (document, resources) =>
         {
             var form = Drawn.Form(document, "0 0 5 5 re f");
             form.Elements.SetMatrix("/Matrix", new XMatrix(1e200, 0, 0, 1, 0, 0));
