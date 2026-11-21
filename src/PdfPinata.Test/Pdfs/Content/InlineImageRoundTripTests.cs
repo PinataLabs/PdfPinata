@@ -1,3 +1,5 @@
+using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -138,6 +140,240 @@ public class InlineImageRoundTripTests
         var image = sequence.Should().ContainSingle().Subject.Should().BeOfType<CInlineImage>().Subject;
         image.ImageDictionary.Should().Be(dictionary);
         Encoding.Latin1.GetString(image.Data).Should().Be(data);
+    }
+
+    [Test, Timeout(5000)]
+    [Arguments("(unclosed")]
+    [Arguments("<<")]
+    [Arguments("<</Predictor 1")]
+    [Arguments("<00ff")]
+    public async Task AnUnclosedStringOrDictionaryEndsAtTheIDAndWhatFollowsTheImageIsRead(string unclosed)
+    {
+        var sequence = await Interruptibly.Run(() =>
+            Read($"BI /W 1 /H 1 /BPC 8 /CS /G /X {unclosed} ID ÿ EI 0 0 10 10 re f"));
+
+        sequence.Select(item => ((COperator)item).Name).Should().Equal("BI", "re", "f");
+        var image = sequence[0].Should().BeOfType<CInlineImage>().Subject;
+        image.ImageDictionary.Should().Be($"/W 1 /H 1 /BPC 8 /CS /G /X {unclosed}");
+        image.Data.Should().Equal(0xff);
+    }
+
+    [Test, Timeout(5000)]
+    public async Task AnUnclosedStringDoesNotReachIntoTheNextInlineImage()
+    {
+        var sequence = await Interruptibly.Run(() =>
+            Read("BI /W 1 /H 1 /X (unclosed ID a EI BI /W 1 /H 1 ID b EI 0 0 10 10 re f"));
+
+        sequence.Select(item => ((COperator)item).Name).Should().Equal("BI", "BI", "re", "f");
+        sequence.OfType<CInlineImage>().Select(image => Encoding.Latin1.GetString(image.Data))
+            .Should().Equal("a", "b");
+    }
+
+    [Test, Timeout(5000)]
+    public async Task AnIDInsideAStringThatClosesDoesNotEndTheEntriesBeforeAnUnclosedOne()
+    {
+        var sequence = await Interruptibly.Run(() =>
+            Read("BI /W 1 /H 1 /X ( ID EI ) /Y (unclosed ID a EI 0 0 10 10 re f"));
+
+        sequence.Select(item => ((COperator)item).Name).Should().Equal("BI", "re", "f");
+        var image = sequence[0].Should().BeOfType<CInlineImage>().Subject;
+        image.ImageDictionary.Should().Be("/W 1 /H 1 /X ( ID EI ) /Y (unclosed");
+        Encoding.Latin1.GetString(image.Data).Should().Be("a");
+    }
+
+    [Test, Timeout(5000)]
+    public async Task IDsInsideACommentDoNotEndTheEntries()
+    {
+        var sequence = await Interruptibly.Run(() =>
+            Read("BI /W 1 /H 1 /BPC 8 /CS /G % ID ID ID ID ID EI\nID a EI 0 0 10 10 re f"));
+
+        sequence.Select(item => ((COperator)item).Name).Should().Equal("BI", "re", "f");
+        var image = sequence[0].Should().BeOfType<CInlineImage>().Subject;
+        image.ImageDictionary.Should().Be("/W 1 /H 1 /BPC 8 /CS /G % ID ID ID ID ID EI");
+        Encoding.Latin1.GetString(image.Data).Should().Be("a");
+    }
+
+    // A dictionary left open used to read on to the end of the stream, so every image after the
+    // first was lost. The limit is generous because coverage instrumentation slows reading.
+    [Test, Timeout(30_000)]
+    public async Task ManyInlineImagesWithUnclosedStringsAreEachReadOnlyAsFarAsTheirOwnEnd()
+    {
+        const int images = 1_000;
+        var content = string.Concat(Enumerable.Repeat("BI /W 1 /H 1 /X (unclosed ID a EI ", images)) + "0 0 10 10 re f";
+
+        var sequence = await Interruptibly.Run(() => Read(content));
+
+        sequence.OfType<CInlineImage>().Should().HaveCount(images);
+        sequence.Select(item => ((COperator)item).Name).TakeLast(2).Should().Equal("re", "f");
+    }
+
+    [Test, Timeout(5000)]
+    [Arguments("/F /A85 ID!!~>EI", "/F /A85", "!!~>")]
+    [Arguments("/F /A85 ID!!~>\nEI", "/F /A85", "!!~>")]
+    [Arguments("/F /AHx ID00>EI", "/F /AHx", "00>")]
+    [Arguments("/F /AHx ID<00>\nEI", "/F /AHx", "<00>")]
+    [Arguments("/F [/A85 /Fl] ID<~!!~>\nEI", "/F [/A85 /Fl]", "<~!!~>")]
+    [Arguments("ID\u0080\u0081\nEI", "", "\u0080\u0081")]
+    [Arguments("ID0\nEI", "", "0")]
+    [Arguments("ID(\nEI", "", "(")]
+    [Arguments("ID/\nEI", "", "/")]
+    [Arguments("ID\u000ba\nEI", "", "\u000ba")]
+    [Arguments("ID\u00ada\nEI", "", "\u00ada")]
+    public async Task AnIDWithNoWhiteSpaceAfterItEndsTheEntries(string image, string entries, string data)
+    {
+        var sequence = await Interruptibly.Run(() =>
+            Read("BI /W 1 /H 1 " + image + " 0 0 10 10 re f"));
+
+        sequence.Select(item => ((COperator)item).Name).Should().Equal("BI", "re", "f");
+        var read = sequence[0].Should().BeOfType<CInlineImage>().Subject;
+        read.ImageDictionary.Should().Be(("/W 1 /H 1 " + entries).TrimEnd());
+        Encoding.Latin1.GetString(read.Data).Should().Be(data);
+    }
+
+    [Test, Timeout(5000)]
+    [Arguments("8ID a\nEI", "8")]
+    [Arguments("8.0ID a\nEI", "8.0")]
+    [Arguments("8\u000bID a\nEI", "8\u000b")]
+    [Arguments("8\u00adID a\nEI", "8\u00ad")]
+    public async Task AnIDWithNoWhiteSpaceBeforeItEndsTheEntries(string image, string bitsPerComponent)
+    {
+        var sequence = await Interruptibly.Run(() =>
+            Read("BI /W 1 /H 1 /BPC " + image + " 0 0 10 10 re f"));
+
+        sequence.Select(item => ((COperator)item).Name).Should().Equal("BI", "re", "f");
+        var read = sequence[0].Should().BeOfType<CInlineImage>().Subject;
+        read.ImageDictionary.Should().Be("/W 1 /H 1 /BPC " + bitsPerComponent);
+        Encoding.Latin1.GetString(read.Data).Should().Be("a");
+    }
+
+    [Test, Timeout(5000)]
+    public async Task AnIDWithNoWhiteSpaceAfterItIsFoundPastAStringHoldingAnotherID()
+    {
+        var sequence = await Interruptibly.Run(() =>
+            Read("BI /W 1 /H 1 /X (a ID b) /F /A85 ID!!~>EI 0 0 10 10 re f"));
+
+        sequence.Select(item => ((COperator)item).Name).Should().Equal("BI", "re", "f");
+        var image = sequence[0].Should().BeOfType<CInlineImage>().Subject;
+        image.ImageDictionary.Should().Be("/W 1 /H 1 /X (a ID b) /F /A85");
+        Encoding.Latin1.GetString(image.Data).Should().Be("!!~>");
+    }
+
+    [Test, Timeout(5000)]
+    public async Task ThreeIDsInsideAStringThatClosesAreReadAsText()
+    {
+        var sequence = await Interruptibly.Run(() => Read("BI /W 1 /H 1 /X ( ID ID ID ) ID a EI 0 0 10 10 re f"));
+
+        sequence.Select(item => ((COperator)item).Name).Should().Equal("BI", "re", "f");
+        var image = sequence[0].Should().BeOfType<CInlineImage>().Subject;
+        image.ImageDictionary.Should().Be("/W 1 /H 1 /X ( ID ID ID )");
+        Encoding.Latin1.GetString(image.Data).Should().Be("a");
+    }
+
+    // Each ID a string holds costs one more read of the string, so the reading gives up at the
+    // fourth and takes the string to be left open. The image is misread, and what follows it is not.
+    [Test, Timeout(5000)]
+    public async Task FourIDsInsideAStringThatClosesEndTheEntriesAtTheFirst()
+    {
+        var sequence = await Interruptibly.Run(() => Read("BI /W 1 /H 1 /X ( ID ID ID ID ) ID a EI 0 0 10 10 re f"));
+
+        sequence.Select(item => ((COperator)item).Name).Should().Equal("BI", "re", "f");
+        var image = sequence[0].Should().BeOfType<CInlineImage>().Subject;
+        image.ImageDictionary.Should().Be("/W 1 /H 1 /X (");
+        Encoding.Latin1.GetString(image.Data).Should().Be("ID ID ID ) ID a");
+    }
+
+    [Test, Timeout(5000)]
+    public async Task FourStringsThatEachCloseOverAnIDAreReadAsText()
+    {
+        const string entries = "/A ( ID ) /B ( ID ) /C ( ID ) /D ( ID ) /E 1";
+
+        var sequence = await Interruptibly.Run(() => Read("BI " + entries + " ID a EI 0 0 10 10 re f"));
+
+        sequence.Select(item => ((COperator)item).Name).Should().Equal("BI", "re", "f");
+        var image = sequence[0].Should().BeOfType<CInlineImage>().Subject;
+        image.ImageDictionary.Should().Be(entries);
+        Encoding.Latin1.GetString(image.Data).Should().Be("a");
+    }
+
+    // An ID standing hard against its data is no candidate, so the next candidate may lie at the
+    // end of the content. Searching to it, or copying the content up to it, for every such image
+    // made the time grow with the square of the images. Eight times the images must take about
+    // eight times as long, not sixty-four. The reads are long enough to measure against the noise
+    // of a loaded machine, the threshold sits well between the two, and the fastest of several
+    // interleaved attempts is compared, so a stall in one read cannot decide it.
+    [Test, Timeout(60_000), NotInParallel]
+    [Arguments("BI /W 1 /H 1 /F /AHx ID00>EI ")]
+    [Arguments("BI /W 1 /H 1 /F /A85 ID!!~>EI ")]
+    [Arguments("BI /W 1 /H 1 /BPC 8ID a EI ")]
+    public async Task ImagesWhoseIDIsNoCandidateAreReadInTimeProportionalToTheirNumber(string image)
+    {
+        const int images = 1_000;
+        const int factor = 8;
+        var small = Encoding.Latin1.GetBytes(string.Concat(Enumerable.Repeat(image, images)) + "BI /W 1 ID a EI");
+        var large = Encoding.Latin1.GetBytes(string.Concat(Enumerable.Repeat(image, factor * images)) + "BI /W 1 ID a EI");
+
+        var ratio = await Interruptibly.Run(() =>
+        {
+            ContentReader.ReadContent(small);
+            var fastestSmall = long.MaxValue;
+            var fastestLarge = long.MaxValue;
+            for (var attempt = 0; attempt < 5; attempt++)
+            {
+                fastestSmall = Math.Min(fastestSmall, TicksToRead(small));
+                fastestLarge = Math.Min(fastestLarge, TicksToRead(large));
+                if ((double)fastestLarge / fastestSmall < MaximumLinearRatio)
+                    break;
+            }
+            return (double)fastestLarge / fastestSmall;
+        });
+
+        ratio.Should().BeLessThan(MaximumLinearRatio, "a linear reading takes eight times as long and a quadratic one sixty-four");
+    }
+
+    private const double MaximumLinearRatio = 24;
+
+    private static long TicksToRead(byte[] content)
+    {
+        var clock = Stopwatch.StartNew();
+        ContentReader.ReadContent(content);
+        return clock.ElapsedTicks;
+    }
+
+    [Test, Timeout(5000)]
+    public async Task ManyCommentLinesEachHoldingAnIDDoNotEndTheEntries()
+    {
+        var comments = string.Concat(Enumerable.Repeat("% ID\n", 100));
+
+        var sequence = await Interruptibly.Run(() => Read("BI /W 1 /H 1 " + comments + "/BPC 8 ID a EI 0 0 10 10 re f"));
+
+        sequence.Select(item => ((COperator)item).Name).Should().Equal("BI", "re", "f");
+        var image = sequence[0].Should().BeOfType<CInlineImage>().Subject;
+        image.ImageDictionary.Should().Be("/W 1 /H 1 " + comments + "/BPC 8");
+        Encoding.Latin1.GetString(image.Data).Should().Be("a");
+    }
+
+    // A comment inside a dictionary that is still open is read as part of it, so each line holding
+    // an ID counts against the dictionary's candidates.
+    [Test, Timeout(5000)]
+    public async Task FourCommentLinesHoldingAnIDInsideOneDictionaryEndTheEntriesAtTheFirst()
+    {
+        var comments = string.Concat(Enumerable.Repeat("% ID\n", 4));
+
+        var sequence = await Interruptibly.Run(() => Read("BI /W 1 /H 1 /X << " + comments + ">> /BPC 8 ID a EI 0 0 10 10 re f"));
+
+        sequence.Select(item => ((COperator)item).Name).Should().Equal("BI", "re", "f");
+        var image = sequence[0].Should().BeOfType<CInlineImage>().Subject;
+        image.ImageDictionary.Should().Be("/W 1 /H 1 /X << %");
+    }
+
+    [Test]
+    public void AStringThatClosesKeepsAnIDInsideItAsText()
+    {
+        var sequence = Read("BI /W 1 /H 1 /X (an ID inside) ID a EI");
+
+        var image = sequence.Should().ContainSingle().Subject.Should().BeOfType<CInlineImage>().Subject;
+        image.ImageDictionary.Should().Be("/W 1 /H 1 /X (an ID inside)");
+        Encoding.Latin1.GetString(image.Data).Should().Be("a");
     }
 
     private static CSequence Read(string content) => ContentReader.ReadContent(Encoding.Latin1.GetBytes(content));

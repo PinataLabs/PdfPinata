@@ -49,6 +49,7 @@ public class CLexer
     public CLexer(byte[] content)
     {
         _content = content;
+        _end = content.Length;
         _charIndex = 0;
         _readNextRawByte = ReadNextRawByte;
         _scanNextCharFolding = ScanNextCharFolding;
@@ -59,6 +60,13 @@ public class CLexer
     /// </summary>
     public CLexer(MemoryStream content) : this(content.ToArray())
     {
+    }
+
+    /// <summary>A lexer over the content from one index up to another, and nothing after.</summary>
+    private CLexer(byte[] content, int start, int end) : this(content)
+    {
+        _charIndex = start;
+        _end = end;
     }
 
     /// <summary>
@@ -88,6 +96,7 @@ public class CLexer
 
             // Eat comments, the parser doesn't handle them
             ScanComment();
+            _endedInComment = _currChar == Chars.EOF;
         }
     }
 
@@ -171,7 +180,7 @@ public class CLexer
     public CSymbol ScanInlineImage()
     {
         var dictionaryStart = CurrentCharIndex;
-        var foundData = ScanToImageData(out var dictionaryEnd, out var ascii85);
+        var foundData = ScanToImageData(dictionaryStart, out var dictionaryEnd, out var ascii85);
         InlineImageDictionary = RawText(dictionaryStart, dictionaryEnd).Trim(WhiteSpaceCharacters);
 
         var dataStart = foundData ? StartOfImageData(dictionaryEnd) : ContLength;
@@ -201,23 +210,178 @@ public class CLexer
     /// there was one. Where the entries end is where the <c>ID</c> begins, or the end of the
     /// content when there is none.
     /// </summary>
-    private bool ScanToImageData(out int dictionaryEnd, out bool ascii85)
+    /// <remarks>
+    /// <para>
+    /// The <c>ID</c> is the first operator the entries' tokens reach, as it always was, and may
+    /// stand hard against what follows it: ASCII data needs no white space after it (ISO 32000-1
+    /// 8.9.7). What changes is how far the tokens are read at a time. An <c>ID</c> between white
+    /// space or a delimiter and white space is a candidate, and the tokens are read up to each
+    /// candidate in turn and no further, because a string or dictionary left unclosed would read on
+    /// to the end of the content, past every operator after the image, and do it again for each
+    /// image after it. Once there are no candidates left, the tokens are read to the end.
+    /// </para>
+    /// <para>
+    /// Each read starts where the last one left a token open, or where the comment it ended in
+    /// ends. A comment that is the last thing a read reaches, outside any string or dictionary,
+    /// costs nothing more to pass over and counts for nothing. A comment inside a string or
+    /// dictionary that is still open is not: the read passes it as part of that token, so an
+    /// <c>ID</c> in each comment line is one more candidate for it. One token left open across
+    /// <see cref="MaximumIDCandidates"/> candidates makes the entries malformed, and they end at
+    /// the first of them, even when the token would have closed after the last. A token that
+    /// closes before then starts the count again for the next.
+    /// </para>
+    /// </remarks>
+    private bool ScanToImageData(int dictionaryStart, out int dictionaryEnd, out bool ascii85)
     {
-        dictionaryEnd = ContLength;
+        var readFrom = dictionaryStart;
+        var searchFrom = dictionaryStart;
+        var openTokenStart = -1;
+        var firstCandidateInOpenToken = -1;
+        var candidatesInOpenToken = 0;
         ascii85 = false;
+        while (candidatesInOpenToken < MaximumIDCandidates)
+        {
+            var id = FirstStandaloneID(searchFrom);
+            var entries = new CLexer(_content, readFrom, id < 0 ? ContLength : id + 2);
+            if (TryScanEntriesToID(entries, out var idStart, out var lastTokenStart, ref ascii85))
+            {
+                dictionaryEnd = idStart;
+                MoveTo(dictionaryEnd + 2);
+                return true;
+            }
+
+            if (id < 0)
+                break;
+
+            if (entries._endedInComment)
+            {
+                readFrom = searchFrom = EndOfComment(id + 2);
+                openTokenStart = -1;
+                candidatesInOpenToken = 0;
+                continue;
+            }
+
+            if (lastTokenStart != openTokenStart)
+            {
+                openTokenStart = lastTokenStart;
+                firstCandidateInOpenToken = id;
+                candidatesInOpenToken = 0;
+            }
+            candidatesInOpenToken++;
+            readFrom = lastTokenStart;
+            searchFrom = id + 2;
+        }
+
+        ascii85 = false;
+        if (candidatesInOpenToken == 0)
+        {
+            dictionaryEnd = ContLength;
+            MoveTo(ContLength);
+            return false;
+        }
+
+        dictionaryEnd = firstCandidateInOpenToken;
+        TryScanEntriesToID(new CLexer(_content, dictionaryStart, dictionaryEnd), out _, out _, ref ascii85);
+        MoveTo(dictionaryEnd + 2);
+        return true;
+    }
+
+    /// <summary>
+    /// How many candidates for an inline image's <c>ID</c> one token is left open across before
+    /// the entries are taken to be malformed, whether the candidates stand in the token's text or
+    /// in comment lines inside a dictionary. Each costs one more read of the entries from where
+    /// that token begins, so this bounds what one image costs whatever its entries hold.
+    /// </summary>
+    private const int MaximumIDCandidates = 4;
+
+    /// <summary>
+    /// Where a comment holding an index ends: its first CR or LF at or after it, where
+    /// <see cref="ScanComment"/> stops too.
+    /// </summary>
+    private int EndOfComment(int index)
+    {
+        while (index < ContLength && _content[index] != Chars.CR && _content[index] != Chars.LF)
+            index++;
+        return index;
+    }
+
+    /// <summary>
+    /// <see cref="TryScanToID"/> on a lexer over part of this one's content. A fault it meets
+    /// leaves this lexer standing where it was met, so that it is recorded once, where reading the
+    /// whole content would have met it, rather than met again when reading goes on from here.
+    /// </summary>
+    private bool TryScanEntriesToID(CLexer entries, out int idStart, out int lastTokenStart, ref bool ascii85)
+    {
+        try
+        {
+            return entries.TryScanToID(out idStart, out lastTokenStart, ref ascii85);
+        }
+        catch
+        {
+            MoveTo(entries.CurrentCharIndex);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Reads tokens until one is the operator <c>ID</c>, and says where it begins, where the last
+    /// token read begins, and whether a name of the ASCII85 filter came before it.
+    /// </summary>
+    private bool TryScanToID(out int idStart, out int lastTokenStart, ref bool ascii85)
+    {
+        idStart = -1;
+        lastTokenStart = -1;
         while (ScanNextToken() != CSymbol.Eof)
         {
+            lastTokenStart = _tokenStart;
             // HACK: Is image ASCII85 decoded?
-            if (!ascii85 && NamesAscii85Filter())
-                ascii85 = true;
-
+            ascii85 |= NamesAscii85Filter();
             if (Symbol == CSymbol.Operator && Token == "ID")
             {
-                dictionaryEnd = _tokenStart;
+                idStart = _tokenStart;
                 return true;
             }
         }
         return false;
+    }
+
+    /// <summary>
+    /// Where the first <c>ID</c> at or after an index begins that is not part of a longer word or a
+    /// name: white space or a delimiter other than <c>/</c> before it, and white space or the end of
+    /// the content after it. -1 when there is none.
+    /// </summary>
+    /// <remarks>
+    /// The last answer is kept, and a search starting between where that one started and what it
+    /// found has the same answer. An image whose <c>ID</c> is not a candidate may lie far before
+    /// the next one, and every such image would otherwise search all the way to it again.
+    /// </remarks>
+    private int FirstStandaloneID(int start)
+    {
+        if (_idSearchStart <= start && (_idFound < 0 || start <= _idFound))
+            return _idFound;
+
+        _idSearchStart = start;
+        _idFound = -1;
+        for (var idx = Math.Max(start, 1); idx + 1 < ContLength; idx++)
+        {
+            if (_content[idx] != 'I' || _content[idx + 1] != 'D')
+                continue;
+
+            var before = (char)_content[idx - 1];
+            var separatedBefore = IsWhiteSpace(before) || (IsDelimiter(before) && before != '/');
+            var separatedAfter = idx + 2 == ContLength || IsWhiteSpace((char)_content[idx + 2]);
+            if (separatedBefore && separatedAfter)
+                return _idFound = idx;
+        }
+        return _idFound;
+    }
+
+    /// <summary>Stands the reader on the byte at an index, or at the end of the content.</summary>
+    private void MoveTo(int index)
+    {
+        _charIndex = index;
+        _nextChar = ReadNextRawByte();
+        ScanNextChar();
     }
 
     private bool NamesAscii85Filter() => Symbol == CSymbol.Name && (Token is "/ASCII85Decode" or "/A85");
@@ -1104,7 +1268,7 @@ public class CLexer
     /// <summary>
     /// Gets the length of the content.
     /// </summary>
-    public int ContLength => _content.Length;
+    public int ContLength => _end;
 
     // ad
     /// <summary>Gets or sets how far through the content the lexer has read, in bytes.</summary>
@@ -1120,6 +1284,9 @@ public class CLexer
     }
 
     private readonly byte[] _content;
+    // Where the content ends for this lexer: the end of the array, or less for one reading an
+    // inline image's entries.
+    private readonly int _end;
     private int _charIndex;
     private char _currChar;
     private char _nextChar;
@@ -1132,6 +1299,11 @@ public class CLexer
     private readonly StringBuilder _token = new();
     // Where in the content the token last scanned by ScanNextToken begins.
     private int _tokenStart;
+    // Whether the content ended inside a comment ScanNextToken was stepping over.
+    private bool _endedInComment;
+    // The last search for an inline image's ID candidate: where it started, and what it found.
+    private int _idSearchStart = int.MaxValue;
+    private int _idFound = -1;
     private long _tokenAsLong;
     private double _tokenAsReal;
 }
