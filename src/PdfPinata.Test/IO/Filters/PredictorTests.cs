@@ -1,9 +1,13 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
+using PdfPinata.Test.Helpers;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Filters;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Pdf.Rendering;
+using PdfPinata.Test.Interpreter;
 using TUnit.Core;
 
 namespace PdfPinata.Test.IO.Filters;
@@ -307,5 +311,161 @@ public class PredictorTests
         var act = () => Unpredict(predicted, Parms(12, 1, 8, 4));
 
         act.Should().Throw<PdfReaderException>().WithMessage("*Png-Predictor*");
+    }
+
+    // ----- parameters that overflow a row's size -------------------------------------------------
+
+    [Test, Timeout(10000)]
+    [Arguments(2, 268435456, 16, 1)]
+    [Arguments(2, 1, 16, 268435456)]
+    [Arguments(2, 65536, 8, 65536)]
+    [Arguments(12, 268435456, 16, 1)]
+    [Arguments(12, 1, 8, int.MaxValue)]
+    [Arguments(15, 65536, 16, 65536)]
+    public async Task ARowWhoseSizeOverflowsAnIntIsRefusedRatherThanWrappedToZero(
+        int predictor, int colors, int bitsPerComponent, int columns)
+    {
+        // 268435456 colours of sixteen bits wrapped to a stride of 0, and the TIFF predictor never
+        // advanced past the first row. The PNG one got a negative stride and threw by accident.
+        var act = async () => await Interruptibly.Run(() =>
+            Unpredict([1, 2, 3, 4], Parms(predictor, colors, bitsPerComponent, columns)));
+
+        (await act.Should().ThrowAsync<PdfReaderException>()).WithMessage("*predictor*");
+    }
+
+    [Test, Timeout(10000)]
+    [Arguments(2)]
+    [Arguments(12)]
+    public async Task AParameterThatIsNotPositiveFallsBackToItsDefaultInsteadOfHanging(int predictor)
+    {
+        var parms = Parms(predictor, 0, 0, 0);
+        parms.Elements.SetInteger("/Colors", -5);
+        parms.Elements.SetInteger("/Columns", 0);
+        parms.Elements.SetInteger("/BitsPerComponent", -1);
+
+        var result = await Interruptibly.Run(() => Unpredict([0, 1, 2, 3], parms));
+
+        result.Should().NotBeNull();
+    }
+
+    [Test, Timeout(10000)]
+    public async Task AWholeFileWhoseCrossReferenceStreamOverflowsTheRowSizeIsRefusedNotHung()
+    {
+        var entries = new byte[] { 0, 0, 0, 255 };
+        var compressed = Filtering.FlateDecode.Encode(entries);
+        var head = "%PDF-1.5\n1 0 obj\n<< /Type /XRef /Size 1 /W [1 2 1] /Filter /FlateDecode "
+                   + "/DecodeParms << /Predictor 2 /Colors 268435456 /BitsPerComponent 16 >> /Length "
+                   + compressed.Length + " >>\nstream\n";
+        var tail = "\nendstream\nendobj\nstartxref\n9\n%%EOF\n";
+        var file = System.Text.Encoding.Latin1.GetBytes(head)
+            .Concat(compressed).Concat(System.Text.Encoding.Latin1.GetBytes(tail)).ToArray();
+
+        var act = async () => await Interruptibly.Run(() =>
+            PdfPinata.Pdf.IO.PdfReader.Open(new System.IO.MemoryStream(file), PdfDocumentOpenMode.Modify).PageCount);
+
+        (await act.Should().ThrowAsync<PdfReaderException>()).WithMessage("*predictor*");
+    }
+
+    // ----- a row longer than the data ------------------------------------------------------------
+    //
+    // The row buffers used to be sized from the declared stride before the data was looked at, so a
+    // file a few hundred bytes long asked for half a gigabyte. A row cannot be longer than the data.
+
+    private const long OneMebibyte = 1024 * 1024;
+
+    private static long Allocated(Action action)
+    {
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        action();
+        return GC.GetAllocatedBytesForCurrentThread() - before;
+    }
+
+    [Test, Timeout(10000)]
+    [Arguments(12, 1, 8, 268435455)]
+    [Arguments(15, 1, 1, 2147483640)]
+    [Arguments(12, 3, 16, 44739242)]
+    [Arguments(2, 1, 8, 268435455)]
+    [Arguments(2, 3, 16, 44739242)]
+    public async Task DataShorterThanOneRowIsDecodedToNothingWithoutAllocatingARow(
+        int predictor, int colors, int bitsPerComponent, int columns)
+    {
+        var parms = Parms(predictor, colors, bitsPerComponent, columns);
+
+        var (allocated, result) = await Interruptibly.Run(() =>
+        {
+            byte[] decoded = null;
+            var bytes = Allocated(() => decoded = Unpredict([0, 1, 2, 3], parms));
+            return (bytes, decoded);
+        });
+
+        allocated.Should().BeLessThan(OneMebibyte);
+        if (predictor >= 10)
+            result.Should().BeEmpty();
+    }
+
+    [Test]
+    public void APngPredictedTrailingPartRowIsDroppedLikeTheTiffOnesIsLeft()
+    {
+        var predicted = Predict(0, 1, [1, 2, 3], [4, 5, 6]).Concat(new byte[] { 0, 9 }).ToArray();
+
+        Unpredict(predicted, Parms(12, 1, 8, 3)).Should().Equal(1, 2, 3, 4, 5, 6);
+    }
+
+    [Test, Timeout(10000)]
+    public async Task ACrossReferenceStreamWhoseRowIsLongerThanItsDataDoesNotAllocateTheRow()
+    {
+        var compressed = Filtering.FlateDecode.Encode([0, 0, 0, 255]);
+        var head = "%PDF-1.5\n1 0 obj\n<< /Type /XRef /Size 1 /W [1 2 1] /Filter /FlateDecode "
+                   + "/DecodeParms << /Predictor 12 /Columns 268435455 >> /Length "
+                   + compressed.Length + " >>\nstream\n";
+        var tail = "\nendstream\nendobj\nstartxref\n9\n%%EOF\n";
+        var file = System.Text.Encoding.Latin1.GetBytes(head)
+            .Concat(compressed).Concat(System.Text.Encoding.Latin1.GetBytes(tail)).ToArray();
+
+        var allocated = await Interruptibly.Run(() => Allocated(() =>
+        {
+            try
+            {
+                PdfPinata.Pdf.IO.PdfReader.Open(new System.IO.MemoryStream(file), PdfDocumentOpenMode.Modify);
+            }
+            catch (PdfReaderException)
+            {
+            }
+        }));
+
+        allocated.Should().BeLessThan(4 * OneMebibyte);
+    }
+
+    [Test, Timeout(10000)]
+    public async Task AnImageWhoseRowIsLongerThanItsDataIsReportedWithoutAllocatingTheRow()
+    {
+        var content = System.Text.Encoding.Latin1.GetBytes("q 10 0 0 10 0 0 cm /Im1 Do Q");
+
+        var (allocated, drawn) = await Interruptibly.Run(() =>
+        {
+            Drawn result = null;
+            var bytes = Allocated(() => result = Drawn.Page(content, (document, resources) =>
+            {
+                var image = new PdfDictionary(document);
+                document.Internals.AddObject(image);
+                image.CreateStream(Filtering.FlateDecode.Encode([0, 1, 2, 3]));
+                image.Elements.SetName("/Subtype", "/Image");
+                image.Elements.SetInteger("/Width", 1);
+                image.Elements.SetInteger("/Height", 1);
+                image.Elements.SetName("/ColorSpace", "/DeviceGray");
+                image.Elements.SetInteger("/BitsPerComponent", 8);
+                image.Elements.SetName("/Filter", "/FlateDecode");
+                var parameters = new PdfDictionary(document);
+                parameters.Elements.SetInteger("/Predictor", 12);
+                parameters.Elements.SetInteger("/Columns", 268435455);
+                image.Elements["/DecodeParms"] = parameters;
+                Drawn.Add(document, resources, "/XObject", "/Im1", image);
+            }));
+            return (bytes, result);
+        });
+
+        allocated.Should().BeLessThan(4 * OneMebibyte);
+        drawn.Device.Images.Should().BeEmpty();
+        drawn.Problems.Should().Equal("InvalidValue /Im1");
     }
 }
