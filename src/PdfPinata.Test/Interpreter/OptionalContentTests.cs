@@ -99,7 +99,7 @@ public class OptionalContentTests
         var drawn = L1Off("EMC 1 1 5 5 re f /OC /L1 BDC EMC EMC 2 2 5 5 re f");
 
         Lefts(drawn).Should().Equal(1, 2);
-        drawn.Problems.Should().Equal("OperatorOutOfPlace EMC", "OperatorOutOfPlace EMC");
+        drawn.Problems.Should().Equal("OperatorOutOfPlace EMC");
     }
 
     [Test]
