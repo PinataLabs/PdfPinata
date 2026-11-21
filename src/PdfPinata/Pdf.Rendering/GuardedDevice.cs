@@ -30,6 +30,14 @@ internal sealed class GuardedDevice : PageDevice
         _sink = sink;
     }
 
+    /// <summary>
+    /// Whether the content being drawn is in optional content that is switched off. Nothing is
+    /// painted while it is, but a clip still reaches the device and the interpreter keeps its
+    /// graphics state, because ISO 32000-1 8.11.3.2 has hidden content change the state as
+    /// visible content does.
+    /// </summary>
+    internal bool Hidden { get; set; }
+
     public override void Save()
     {
         var saved = false;
@@ -76,6 +84,9 @@ internal sealed class GuardedDevice : PageDevice
 
     public override void Fill(PagePath path, XMatrix transform, XFillMode fillMode, PagePaint paint)
     {
+        if (Hidden)
+            return;
+
         try
         {
             _device.Fill(path, transform, fillMode, paint);
@@ -88,6 +99,9 @@ internal sealed class GuardedDevice : PageDevice
 
     public override void Stroke(PagePath path, XMatrix transform, PageStroke stroke, PagePaint paint)
     {
+        if (Hidden)
+            return;
+
         try
         {
             _device.Stroke(path, transform, stroke, paint);
@@ -100,6 +114,9 @@ internal sealed class GuardedDevice : PageDevice
 
     public override void DrawImage(PageImage image, XMatrix transform, PagePaint paint)
     {
+        if (Hidden)
+            return;
+
         try
         {
             _device.DrawImage(image, transform, paint);

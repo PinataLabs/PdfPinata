@@ -185,8 +185,9 @@ public class FormXObjectTests
     /// A page whose content is in the optional content group <c>/L1</c>, with a second group
     /// <c>/L2</c> beside it, in a document whose default configuration is <paramref name="configure"/>d.
     /// </summary>
-    private static Drawn Layered(string content, Action<PdfDocument, PdfDictionary, PdfDictionary, PdfDictionary> configure,
-        Action<PdfDocument, PdfDictionary, PdfDictionary, PdfDictionary> more = null) =>
+    internal static Drawn Layered(string content, Action<PdfDocument, PdfDictionary, PdfDictionary, PdfDictionary> configure,
+        Action<PdfDocument, PdfDictionary, PdfDictionary, PdfDictionary> more = null,
+        Func<PageOptionalContent> optionalContent = null) =>
         Drawn.Page(content, (document, resources) =>
         {
             var first = Group(document);
@@ -201,9 +202,9 @@ public class FormXObjectTests
             properties.Elements["/D"] = configuration;
             document.Internals.Catalog.Elements["/OCProperties"] = properties;
             more?.Invoke(document, resources, first, second);
-        });
+        }, optionalContent: optionalContent);
 
-    private static PdfDictionary Group(PdfDocument document)
+    internal static PdfDictionary Group(PdfDocument document)
     {
         var group = new PdfDictionary(document);
         group.Elements.SetName("/Type", "/OCG");
@@ -214,18 +215,17 @@ public class FormXObjectTests
     private const string InFirstGroup = "/OC /L1 BDC 0 0 5 5 re f EMC";
 
     [Test]
-    public void ContentOfAGroupTheDocumentSwitchesOffIsDrawnAndReported()
+    public void ContentOfAGroupTheDocumentSwitchesOffIsNotDrawnAndNotReported()
     {
         var drawn = Layered(InFirstGroup, (document, configuration, first, _) =>
             configuration.Elements["/OFF"] = new PdfArray(document, first.Reference));
 
-        drawn.Device.Fills.Should().ContainSingle("optional content is not applied yet");
-        drawn.Problems.Should().Equal("UnsupportedFeature /OC");
-        drawn.Result.IsComplete.Should().BeFalse();
+        drawn.Device.Fills.Should().BeEmpty();
+        drawn.Result.IsComplete.Should().BeTrue();
     }
 
     [Test]
-    public void ContentOfAGroupThatIsOnIsNotReported()
+    public void ContentOfAGroupThatIsOnIsDrawn()
     {
         var drawn = Layered(InFirstGroup, (document, configuration, _, second) =>
             configuration.Elements["/OFF"] = new PdfArray(document, second.Reference));
@@ -244,8 +244,9 @@ public class FormXObjectTests
         });
         var off = Layered(InFirstGroup, (_, configuration, _, _) => configuration.Elements.SetName("/BaseState", "/OFF"));
 
-        on.Result.IsComplete.Should().BeTrue();
-        off.Problems.Should().Equal("UnsupportedFeature /OC");
+        on.Device.Fills.Should().ContainSingle();
+        off.Device.Fills.Should().BeEmpty();
+        off.Result.IsComplete.Should().BeTrue();
     }
 
     [Test]
@@ -257,7 +258,7 @@ public class FormXObjectTests
     [Arguments("/AnyOff", "/L2", true)]
     [Arguments("/AllOff", "/L1", false)]
     [Arguments("/AllOff", "/L1 /L2", true)]
-    public void AMembershipDictionaryIsOffByItsPolicyOverItsGroups(string policy, string groups, bool reported)
+    public void AMembershipDictionaryIsOffByItsPolicyOverItsGroups(string policy, string groups, bool hidden)
     {
         // The first group is off and the second is on.
         var drawn = Layered("/OC /M BDC 0 0 5 5 re f EMC",
@@ -273,7 +274,8 @@ public class FormXObjectTests
                 Drawn.Add(document, resources, "/Properties", "/M", membership);
             });
 
-        drawn.Result.IsComplete.Should().Be(!reported);
+        drawn.Device.Fills.Should().HaveCount(hidden ? 0 : 1);
+        drawn.Result.IsComplete.Should().BeTrue("hidden content is left out and not reported");
     }
 
     [Test]
@@ -282,7 +284,7 @@ public class FormXObjectTests
     [Arguments("/And", false, true)]
     [Arguments("/Or", false, false)]
     public void AMembershipDictionaryWithAVisibilityExpressionIsOffByTheExpression(string operation, bool ofTheGroupThatIsOn,
-        bool reported)
+        bool hidden)
     {
         // The first group is off and the second is on. The policy says visible, and is not used.
         var drawn = Layered("/OC /M BDC 0 0 5 5 re f EMC",
@@ -299,7 +301,8 @@ public class FormXObjectTests
                 Drawn.Add(document, resources, "/Properties", "/M", membership);
             });
 
-        drawn.Result.IsComplete.Should().Be(!reported);
+        drawn.Device.Fills.Should().HaveCount(hidden ? 0 : 1);
+        drawn.Result.IsComplete.Should().BeTrue("hidden content is left out and not reported");
     }
 
     [Test, Timeout(30_000)]
@@ -373,6 +376,7 @@ public class FormXObjectTests
                 _ => Expression(document, new PdfName("/And"), first.Reference, new PdfName("/Nope"))
             }));
 
+        drawn.Device.Fills.Should().ContainSingle();
         drawn.Result.IsComplete.Should().BeTrue("an expression with a part that cannot be read is visible");
     }
 
@@ -413,6 +417,7 @@ public class FormXObjectTests
             return Expression(document, new PdfName("/Not"), inner.Reference);
         }));
 
+        drawn.Device.Fills.Should().ContainSingle();
         drawn.Result.IsComplete.Should().BeTrue();
     }
 
@@ -466,7 +471,7 @@ public class FormXObjectTests
     [Arguments("[/View /Design]", "/Design", true)]
     [Arguments("/All", "/Design", true)]
     [Arguments("[/View /All]", "/Whatever", true)]
-    public void AGroupCountsOnlyWhereTheConfigurationNamesOneOfItsIntents(string configured, string ofTheGroup, bool reported)
+    public void AGroupCountsOnlyWhereTheConfigurationNamesOneOfItsIntents(string configured, string ofTheGroup, bool hidden)
     {
         static PdfItem Intent(PdfDocument document, string intent) => intent.StartsWith('[')
             ? new PdfArray(document, intent.Trim('[', ']').Split(' ').Select(name => (PdfItem)new PdfName(name)).ToArray())
@@ -481,7 +486,8 @@ public class FormXObjectTests
                 first.Elements["/Intent"] = Intent(document, ofTheGroup);
         });
 
-        drawn.Result.IsComplete.Should().Be(!reported);
+        drawn.Device.Fills.Should().HaveCount(hidden ? 0 : 1);
+        drawn.Result.IsComplete.Should().BeTrue("hidden content is left out and not reported");
     }
 
     /// <summary>
@@ -518,7 +524,7 @@ public class FormXObjectTests
     [Arguments("[/Not designGroup]", false)]
     [Arguments("/AnyOn over the group that is off and a /Design group", true)]
     [Arguments("[/Or offGroup designGroup]", true)]
-    public void AGroupThatDoesNotCountIsLeftOutRatherThanReadAsOn(string membership, bool reported)
+    public void AGroupThatDoesNotCountIsLeftOutRatherThanReadAsOn(string membership, bool hidden)
     {
         // ISO 32000-1 8.11.2.3: a group none of whose intents the configuration names has no
         // effect on visibility, and an empty configuration /Intent makes all content visible.
@@ -568,7 +574,8 @@ public class FormXObjectTests
                 }
             });
 
-        drawn.Result.IsComplete.Should().Be(!reported);
+        drawn.Device.Fills.Should().HaveCount(hidden ? 0 : 1);
+        drawn.Result.IsComplete.Should().BeTrue("hidden content is left out and not reported");
     }
 
     private static PdfDictionary Typed(PdfDocument document, string type)
@@ -614,11 +621,12 @@ public class FormXObjectTests
                 Drawn.Add(document, resources, "/Properties", "/M", membership);
             });
 
+        drawn.Device.Fills.Should().ContainSingle();
         drawn.Result.IsComplete.Should().BeTrue();
     }
 
     [Test]
-    public void AFormThatBelongsToAGroupSwitchedOffIsDrawnAndReported()
+    public void AFormThatBelongsToAGroupSwitchedOffIsNotDrawnAndNotReported()
     {
         var drawn = Layered("/Fm1 Do",
             (document, configuration, first, _) => configuration.Elements["/OFF"] = new PdfArray(document, first.Reference),
@@ -629,12 +637,12 @@ public class FormXObjectTests
                 Drawn.Add(document, resources, "/XObject", "/Fm1", form);
             });
 
-        drawn.Device.Fills.Should().ContainSingle();
-        drawn.Problems.Should().Equal("UnsupportedFeature /OC");
+        drawn.Device.Fills.Should().BeEmpty();
+        drawn.Result.IsComplete.Should().BeTrue();
     }
 
     [Test]
-    public void MarkedContentInADocumentWithNoOptionalContentIsNotReported()
+    public void MarkedContentInADocumentWithNoOptionalContentIsDrawn()
     {
         var drawn = Drawn.Page("/OC /L1 BDC /Span << /ActualText (a) >> BDC 0 0 5 5 re f EMC EMC", (document, resources) =>
             Drawn.Add(document, resources, "/Properties", "/L1", Group(document)));
