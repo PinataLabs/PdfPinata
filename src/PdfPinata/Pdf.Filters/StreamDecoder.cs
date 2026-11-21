@@ -32,6 +32,7 @@ internal static class StreamDecoder
         if (predictor == 2)
         {
             EnsureValidBitsPerComponent(bpc);
+            EnsureRowFits(colors, bpc, columns);
             return UndoTiffPredictor(data, colors, bpc, columns);
         }
 
@@ -40,6 +41,7 @@ internal static class StreamDecoder
             throw new PdfReaderException("Invalid predictor " + predictor);
 
         EnsureValidBitsPerComponent(bpc);
+        EnsureRowFits(colors, bpc, columns);
         return UndoPngPredictor(data, colors, bpc, columns);
     }
 
@@ -60,12 +62,25 @@ internal static class StreamDecoder
     }
 
     /// <summary>
+    /// A row's size in bits has to fit an <see cref="int"/>, which the sample arithmetic below is
+    /// done in. Left to wrap, the product reached zero or went negative, and a zero stride made
+    /// the TIFF predictor loop forever.
+    /// </summary>
+    private static void EnsureRowFits(int colors, int bpc, int columns)
+    {
+        if ((long)colors * bpc * columns > int.MaxValue - 7)
+            throw new PdfReaderException("Invalid predictor parameters: a row is too large");
+    }
+
+    /// <summary>
     /// Undoes a PNG predictor, which puts a byte naming the filter in front of every row.
     /// </summary>
     private static byte[] UndoPngPredictor(byte[] data, int colors, int bpc, int columns)
     {
         var stride = (bpc * colors * columns + 7) / 8;
         var rows = data.Length / (stride + 1);
+        if (rows == 0)
+            return [];
         var unfilteredData = new byte[rows * stride];
         PngFilter.Unfilter(stride, (bpc * colors + 7) / 8, data, unfilteredData);
         return unfilteredData;
