@@ -113,6 +113,10 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
     /// <param name="bytes">The bytes, cut at the limit.</param>
     /// <param name="truncated">Whether the stream has more than the limit.</param>
     /// <param name="decoded">How many bytes were decoded to find out.</param>
+    /// <remarks>
+    /// The stream is decoded whole and then cut, so a stream that inflates to gigabytes is held
+    /// while it is decoded. <c>DecodeLimit</c> (#398) stops the filter at the limit, and belongs here.
+    /// </remarks>
     private static bool TryRead(PdfDictionary stream, int limit, out byte[] bytes, out bool truncated, out long decoded)
     {
         truncated = false;

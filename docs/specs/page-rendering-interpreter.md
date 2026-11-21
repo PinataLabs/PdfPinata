@@ -667,9 +667,11 @@ entry of `_data` or `_outlines`.
 
 What the rule does not cover, because it is not kept for a font:
 
-- **The decoding itself.** `/FontFile2` is decoded under a `DecodeLimit` of 64 MiB and
-  `/CIDToGIDMap` under one of 131,072 bytes, so a stream of kilobytes that inflates to gigabytes
-  stops there.
+- **The decoding itself, which is not capped yet.** A `/FontFile2` or `/CIDToGIDMap` stream is
+  decoded whole and then measured, so a stream of kilobytes that inflates to gigabytes is held for
+  as long as decoding it takes, and then let go of: 512 MiB from a file of 524 KB. `DecodeLimit`
+  (#398, PR #406) stops a filter at a length, and `EmbeddedTrueTypeGlyphSource.TryRead` is the one
+  place that passes it, 64 MiB for a font program and 131,072 bytes for a map, once that is merged.
 - **What one call uses and lets go of**: a table being read, a glyph being decoded, each bounded by
   the 65,536 CIDs or points there can be.
 - **A caller's own `PageGlyphSource`**, which holds what its author makes it hold. Its outlines are
