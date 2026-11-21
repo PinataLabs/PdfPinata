@@ -82,6 +82,12 @@ internal static class ParserProbe
     /// </summary>
     internal static byte[] Bytes(string text) => [..text.Select(ch => (byte)ch)];
 
+    /// <summary>
+    ///   How many arrays and dictionaries the parser reads inside the one it is reading.
+    /// </summary>
+    // ReSharper disable once PossibleNullReferenceException
+    internal static int MaximumNesting => (int)Field(ParserType, "MaximumNesting").GetValue(null);
+
     // ----- Driving the lexer behind it ------------------------------------------------------------
 
     internal static Symbol Scan(object parser) =>

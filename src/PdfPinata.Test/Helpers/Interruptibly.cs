@@ -43,7 +43,12 @@ public static class Interruptibly
     /// <summary>
     /// Runs <paramref name="work"/> on a thread of its own and answers with what it returned.
     /// </summary>
-    public static Task<T> Run<T>(Func<T> work)
+    /// <param name="work">What to run.</param>
+    /// <param name="maxStackSize">
+    /// The thread's stack in bytes, or 0 for the default. A test that work fits a small stack names
+    /// one, and fails by ending the test host, because a stack overflow cannot be caught.
+    /// </param>
+    public static Task<T> Run<T>(Func<T> work, int maxStackSize = 0)
     {
         ArgumentNullException.ThrowIfNull(work);
 
@@ -64,7 +69,7 @@ public static class Interruptibly
                 // failure mode these tests exist to avoid rather than one to add.
                 completion.SetException(exception);
             }
-        })
+        }, maxStackSize)
         {
             // A scan that never ends is exactly what the timeouts are written to catch, and giving
             // up on it does not stop it - the thread is still in the loop when the test has failed
