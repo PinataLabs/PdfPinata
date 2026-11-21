@@ -46,13 +46,27 @@ internal sealed partial class ContentInterpreter
     /// </summary>
     internal const long MaximumImageBytesKept = PageImages.MaximumSamples * 4;
 
+    /// <summary>
+    /// The size, in bytes of samples, up to which an image is kept against
+    /// <see cref="MaximumSmallImageBytesKept"/> and not <see cref="MaximumImageBytesKept"/>: 1 MiB,
+    /// an image of 512 by 512.
+    /// </summary>
+    internal const long SmallImageBytes = 1L << 20;
+
+    /// <summary>
+    /// How many bytes of decoded images of at most <see cref="SmallImageBytes"/> one render keeps
+    /// to draw again: 64 MiB, sixty-four of the largest.
+    /// </summary>
+    internal const long MaximumSmallImageBytesKept = 64L << 20;
+
     private readonly GuardedDevice _device;
     private readonly PageView _view;
     private readonly RenderFontCache _fonts;
     private readonly Func<PdfDictionary, PageGlyphSource> _glyphSources;
     private readonly DiagnosticSink _sink = new();
     private readonly StateStack _states;
-    private readonly FormVisits _forms = new();
+    private FormVisits _forms = new();
+    private bool _needAppearancesReported;
 
     // Each form's content as it was read the first time it was drawn, or null where it could
     // not be decoded. A form drawn a thousand times on a page is decoded and parsed once.
@@ -62,6 +76,7 @@ internal sealed partial class ContentInterpreter
     // they could not be, and how many bytes of samples are kept. See ImageOf.
     private readonly Dictionary<object, PageImage> _images = new(ReferenceIdentity.Instance);
     private long _imageBytesKept;
+    private long _smallImageBytesKept;
 
     // Read from the document the first time content asks about a group.
     private PdfDocument _document;
@@ -97,15 +112,11 @@ internal sealed partial class ContentInterpreter
     /// content does, and whatever is thrown, the device has been restored as often as it was
     /// saved when this returns.
     /// </summary>
-    internal void RunPage(PdfPage page)
+    internal void RunPage(PdfPage page, bool includeAnnotations)
     {
         try
         {
-            _states.Push();
-
-            var box = new PagePathBuilder();
-            box.AddRectangle(_view.Box.X, _view.Box.Y, _view.Box.Width, _view.Box.Height);
-            _device.Clip(box.ToPath(), _view.Transform, XFillMode.Winding);
+            BeginPage();
 
             if (_view.BoxIsAssumed)
             {
@@ -118,21 +129,35 @@ internal sealed partial class ContentInterpreter
             {
                 _sink.Report(PageRenderProblem.UnreadableContent, "page",
                     "The page's content could not be decoded, and nothing of it is drawn.");
-                return;
             }
-
-            if (unreadable > 0)
+            else
             {
-                _sink.Report(PageRenderProblem.UnreadableContent, "page",
-                    $"{unreadable} of the streams the page's content is written in could not be decoded. What the others say is drawn.");
+                if (unreadable > 0)
+                {
+                    _sink.Report(PageRenderProblem.UnreadableContent, "page",
+                        $"{unreadable} of the streams the page's content is written in could not be decoded. What the others say is drawn.");
+                }
+
+                RunStream(ParsedContent.Of(content), ResourceScope.OfPage(page), "page");
             }
 
-            RunStream(ParsedContent.Of(content), ResourceScope.OfPage(page), "page");
+            if (includeAnnotations)
+                DrawAnnotations(page);
         }
         finally
         {
             _states.PopTo(0);
         }
+    }
+
+    /// <summary>Saves the device's state and clips to the box the view draws.</summary>
+    private void BeginPage()
+    {
+        _states.Push();
+
+        var box = new PagePathBuilder();
+        box.AddRectangle(_view.Box.X, _view.Box.Y, _view.Box.Width, _view.Box.Height);
+        _device.Clip(box.ToPath(), _view.Transform, XFillMode.Winding);
     }
 
     /// <summary>

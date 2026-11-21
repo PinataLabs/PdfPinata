@@ -96,6 +96,17 @@ in step.
   device cyan, or the inverting `/Decode` with no marker. Any other `/Decode`, and a colour key,
   on a JPEG of four components is reported and not applied.
 
+  SkiaSharp inverts every JPEG of four components, marker or no marker, so for a file with no
+  marker `SkiaPageDevice` undoes it (#413): it decodes two copies in which one component's
+  quantisation table is zeros, which makes that component's samples 128, one without black and one
+  without cyan. Skia's `R = c * k / 255` then gives each ink to within a level, and the device
+  answers the RGB of the inks as they are stored. The zero table goes in just before the first
+  scan under an identifier the file never defines, because a decoder takes a table as it stands
+  when the scan starts and a later definition of the same identifier would overwrite it. The
+  file's own decode is never made, as its size is in the header and a JPEG has no alpha. A file
+  that defines or uses all four identifiers cannot be copied, and is declined and reported as an
+  unsupported image.
+
 ## The interpreter
 
 `ContentInterpreter` is one render of one page. `Execute` is the only place an operator is told from
@@ -165,6 +176,54 @@ the scale, and the device is handed the glyph's own shared `PagePath` under the 
 it is for a fill. That is all text not stretched by `Tz` or by a text matrix that scales x and y
 differently. For such stretched text the pen is an ellipse in the outline's space, which a
 `PageStroke` cannot say, so the outline is copied into user space and that path is not shared.
+
+## Annotations
+
+After the page's content, and unless `PageRendering.Render` was told `annotations: false`, each
+entry of `/Annots` that has an appearance is drawn through the Form XObject path (ISO 32000-1
+12.5.5). They are drawn in the order listed, each from the graphics state the page began in and
+under the clip of the page's box, whatever the content left set or clipped to: the page's save is undone and begun again, so a `W n` outside a `q` in the content does not cut the annotations. The appearance is `/AP /N`, or,
+where that is a dictionary of states, the stream `/AS` names. A dictionary of states with no `/AS`
+or one that names no state draws nothing. That follows Ghostscript and the PDF reference; pdf.js
+instead draws a check box with no `/AS` from its field's value, and this does not. An `/AP`, `/N` or state entry that is present and is not a stream is reported as `InvalidValue`, and an absent one is not.
+
+The box is mapped on to the rectangle by the algorithm of 12.5.5: `/BBox` is taken through
+`/Matrix`, and the rectangle that encloses the result is scaled and moved on to `/Rect`. The
+interpreter then draws the form with that map as the CTM, and `DrawForm` applies `/Matrix` and the
+clip to `/BBox` as it does for a `Do`. A `/Rect` with no area draws nothing and is not reported. An
+appearance whose box has no area once the matrix is applied, one with no `/BBox`, and a `/Rect`
+that is not four finite numbers are reported as `InvalidValue`, as is a bad `/Matrix`. The form's
+own resources are used, and the page's where it has none. An appearance that draws itself is
+stopped by `FormVisits`, as any form is. The annotations have a `FormVisits` of their own, begun
+when the content is done, so a page whose content entered 4096 forms still has its annotations
+drawn. It has the content's limit of 4096 and no more: a page with more than that many
+appearance-bearing annotations is outside real use, and the limit is what bounds the work a file
+can ask for. Past it the rest are reported once as `LimitReached`.
+
+**The no-zoom and no-rotate flags (bits 4 and 5) are not applied.** The appearance is drawn scaled and turned with the page, and where the view is not at 1 to 1 and upright an annotation carrying either is reported as `UnsupportedFeature`.
+
+`/F` is read as an integer, and a real with no fractional part (`2.0`) is read as the integer it
+equals, as viewers do, so a hidden annotation written that way is still hidden.
+
+**`/NeedAppearances` is not applied.** Viewers disagree on a form that sets it: pdf.js makes the
+appearances again, PDFium discards the stored ones, and Ghostscript draws them. The stored
+appearance of a `/Widget` is drawn, and when the catalog's `/AcroForm /NeedAppearances` is true
+and a widget is drawn the render is reported once as `UnsupportedFeature` on `/NeedAppearances`,
+so its result is not complete.
+
+**Not drawn:** a hidden annotation (`/F` bit 2), one with the no-view flag (bit 6), and a
+`/Popup`. The invisible flag (bit 1) only matters for annotations of a type the viewer does not
+know and that have no appearance, so it changes nothing here. The print flag is not read: this is
+screen rendering, and a print mode that kept only annotations with bit 3 set was left out, because
+no caller has asked for it. A widget with no `/AP` is not drawn. `/MK` is not consulted: a reader
+shows an appearance in place of one built from it.
+
+**Transparency is not applied to an annotation.** An annotation's `/CA` below 1 is reported as
+`UnsupportedFeature` on `/CA`, and the appearance is drawn opaque. Blend modes are handled as for any form.
+
+**Optional content is reported, not applied.** An `/OC` on the annotation and an `/OC` on its
+appearance stream are each reported as `UnsupportedFeature` where the group is switched off, as a
+`Do` of the same form would report its own, and the appearance is drawn all the same.
 
 ## Reading content that is broken
 
@@ -299,7 +358,9 @@ keyed by the XObject's reference through `ReferenceIdentity`, so a page that dra
 hundred times decodes it once. A failure is kept too, and reported the first time. A stencil
 mask is kept like any other image, because what is decoded is its coverage and the fill colour
 is applied at each draw. What is kept is bounded at 1 GiB of samples, one image of the largest
-size; an image that does not fit is decoded at each draw, as before. Five draws of a 16 KB Flate
+size; an image that does not fit is decoded at each draw, as before. An image of at most 1 MiB
+is kept against a budget of its own, 64 MiB, so that large images that have spent the first do
+not make a small tile decode at every draw (#413). Five draws of a 16 KB Flate
 stream that inflates to a 1-bit image of 2^28 samples took 11.9 s and allocated 5.2 GiB in a
 Release build, and take 2.5 s and 1 GiB now, which is one draw's. Inline images are not kept,
 and nor is an image whose `/ColorSpace` names a space of the resources, because two forms can
@@ -321,6 +382,11 @@ The masks:
 - A `/Mask` that is an image is the same stencil, multiplied into the image's alpha.
 - A `/Mask` that is an array is a colour key, compared with each sample as it is written, before
   `/Decode`.
+- An image drawn under a mask of another size is scaled to the larger width by the larger height,
+  at most 2^28 samples and at most 64 times the larger of the two sample counts. The 64 bites only
+  when the two cross, one wider and the other taller, because otherwise the drawn size is the
+  mask's own count (a scan's fine text mask over a coarse image is never capped by it). Past
+  either limit the mask is drawn at the image's size and `LimitReached` is reported (#413).
 - An `/SMask` is the alpha itself and overrides a `/Mask`. Its `/Matte` is taken back out of the
   colours, in RGB: exact for a device space of one or three components, close for the rest.
 - A mask finer than the image, in either direction, does not lose its detail: the image is scaled

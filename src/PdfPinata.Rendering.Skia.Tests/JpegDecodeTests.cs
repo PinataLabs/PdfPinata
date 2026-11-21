@@ -74,6 +74,69 @@ public class JpegDecodeTests
         Decode(bytes).Should().BeNull();
     }
 
+    // The inks of the file as they are are what a PDF without a /Decode means, so these are drawn
+    // as the inks say, where a codec that leaves the inversion in draws them the other way round.
+    [Test]
+    public void AMarkerlessCmykJpegIsDecodedAsItsInksAreStored()
+    {
+        var black = Decode(Asset("cmyk-black-nomarker.jpg"));
+        var red = Decode(Asset("cmyk-red-nomarker.jpg"));
+
+        ComponentsOf(Asset("cmyk-black-nomarker.jpg")).Should().Be(4);
+        Asset("cmyk-black-nomarker.jpg").AsSpan().IndexOf("Adobe"u8).Should().BeLessThan(0, "it has no marker");
+        // SkiaSharp alone draws it as (0, 0, 0) and red as (179, 171, 0).
+        ShouldBeNear(black, 255, 127, 127);
+        ShouldBeNear(red, 0, 0, 0);
+    }
+
+    // The red file's components use tables 0 and 1. A table 2 the file defines after the frame
+    // header would overwrite a zero table of that number put before it, so the copy takes another.
+    [Test]
+    public void ASpareTableDefinedAfterTheFrameHeaderDoesNotDefeatTheFlattening()
+    {
+        var red = Asset("cmyk-red-nomarker.jpg");
+        var withSpare = DefineTableAfterFrame(red, 2);
+
+        ShouldBeNear(Decode(withSpare), 0, 0, 0);
+    }
+
+    [Test]
+    public void AFileThatDefinesEveryTableIdentifierIsDeclined()
+    {
+        var red = Asset("cmyk-red-nomarker.jpg");
+        var all = DefineTableAfterFrame(DefineTableAfterFrame(red, 2), 3);
+
+        Decode(all).Should().BeNull();
+    }
+
+    // A table of ones, as a segment of its own, put straight after the frame header.
+    private static byte[] DefineTableAfterFrame(byte[] jpeg, int id)
+    {
+        var at = FrameOf(jpeg);
+        var length = (jpeg[at + 2] << 8) | jpeg[at + 3];
+        var end = at + 2 + length;
+        var table = new byte[69];
+        table[0] = 0xFF;
+        table[1] = 0xDB;
+        table[3] = 67;
+        table[4] = (byte)id;
+        Array.Fill(table, (byte)1, 5, 64);
+
+        var copy = new byte[jpeg.Length + table.Length];
+        jpeg.AsSpan(0, end).CopyTo(copy);
+        table.CopyTo(copy, end);
+        jpeg.AsSpan(end).CopyTo(copy.AsSpan(end + table.Length));
+        return copy;
+    }
+
+    private static byte[] Asset(string name)
+    {
+        using var stream = typeof(JpegDecodeTests).Assembly.GetManifestResourceStream("Assets/" + name);
+        using var copy = new System.IO.MemoryStream();
+        stream!.CopyTo(copy);
+        return copy.ToArray();
+    }
+
     private static int FrameOf(byte[] jpeg)
     {
         for (var i = 0; i + 9 < jpeg.Length; i++)

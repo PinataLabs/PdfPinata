@@ -29,6 +29,12 @@ public sealed class PageRenderOptions
     /// </summary>
     public SKColor Background { get; init; } = SKColors.White;
 
+    /// <summary>
+    /// Whether the normal appearance of each annotation is drawn over the page, as a viewer shows
+    /// it. On by default. Hidden and no-view annotations and popups are never drawn.
+    /// </summary>
+    public bool Annotations { get; init; } = true;
+
     /// <summary>Whether edges are smoothed. On by default.</summary>
     public bool AntiAlias { get; init; } = true;
 }

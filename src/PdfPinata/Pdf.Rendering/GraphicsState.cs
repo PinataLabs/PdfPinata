@@ -98,6 +98,9 @@ internal sealed class StateStack
     /// <summary>How many states are saved.</summary>
     internal int Depth => _saved.Count;
 
+    /// <summary>Puts a state in force in place of the current one, without touching the device.</summary>
+    internal void Replace(GraphicsState state) => Current = state;
+
     internal void Push()
     {
         _saved.Add(Current);
