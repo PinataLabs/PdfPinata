@@ -70,7 +70,17 @@ public class LzwDecode : Filter
         _bytePointer = 0;
         _nextData = 0;
         _nextBits = 0;
+        _limit = parms?.Limit;
         DecodeCodes(outputStream);
+
+        if (_limit != null && outputStream.Length > _limit.MaximumLength)
+        {
+            outputStream.SetLength(_limit.MaximumLength);
+            _limit.Truncated = true;
+        }
+
+        if (_limit != null)
+            _limit.Produced += outputStream.Length;
 
         if (outputStream.Length < 0)
             return null;
@@ -78,7 +88,7 @@ public class LzwDecode : Filter
         // No parameters at all is not an error: it is what DecodeToString passes, and it says
         // the same thing as parameters with no predictor in them.
         return parms?.DecodeParms != null
-            ? StreamDecoder.Decode(outputStream.ToArray(), parms.DecodeParms)
+            ? StreamDecoder.Decode(outputStream.ToArray(), parms.DecodeParms, _limit)
             : outputStream.ToArray();
     }
 
@@ -97,14 +107,33 @@ public class LzwDecode : Filter
                 if (code == 257)
                     break;
 
+                if (AtLimit(outputStream))
+                    return;
+
                 outputStream.Write(_stringTable[code], 0, _stringTable[code].Length);
             }
             else
             {
+                if (AtLimit(outputStream))
+                    return;
+
                 WriteString(outputStream, code, oldCode);
             }
             oldCode = code;
         }
+    }
+
+    /// <summary>
+    /// Whether the output has reached the cap with a code still to write, which is the
+    /// stream being cut short.
+    /// </summary>
+    private bool AtLimit(MemoryStream outputStream)
+    {
+        if (_limit == null || outputStream.Length < _limit.MaximumLength)
+            return false;
+
+        _limit.Truncated = true;
+        return true;
     }
 
     /// <summary>
@@ -206,6 +235,7 @@ public class LzwDecode : Filter
 
     private readonly int[] _andTable = [511, 1023, 2047, 4095];
     private byte[][] _stringTable;
+    private DecodeLimit _limit;
     private byte[] _data;
     private int _tableIndex, _bitsToGet = 9;
     private int _bytePointer;

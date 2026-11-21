@@ -137,33 +137,66 @@ public class Ascii85Decode : Filter
     {
         ArgumentNullException.ThrowIfNull(data);
 
-        var length = CompactSignificantCharacters(data, out var zCount);
+        // An earlier filter of the chain stopped at the cap, so this one may have only the start
+        // of its stream: no end marker, and perhaps a group cut part way, which is left out rather
+        // than read as if it were the last. The limit already says the data was cut. A cut after
+        // the end marker, or between its two characters, left the whole stream.
+        var limit = parms?.Limit;
+        var inputWasCut = limit is { Truncated: true };
+        var length = CompactSignificantCharacters(data, inputWasCut, out var zCount, out var reachedEnd);
 
         var nonZero = length - zCount;
         var byteCount = 4 * (zCount + nonZero / 5); // full 4 byte blocks
 
         var remainder = nonZero % 5;
+        if (!reachedEnd)
+        {
+            length -= remainder;
+            remainder = 0;
+        }
+
         if (remainder == 1)
             throw new InvalidOperationException("Illegal character.");
 
         if (remainder != 0)
             byteCount += remainder - 1;
 
-        var output = new byte[byteCount];
+        // Four bytes to one z is as much as the input can grow, and a limit holds the output to
+        // its cap: the groups past it are not decoded, and the array is not made larger than the
+        // cap and the four bytes a group written across it needs.
+        var stopAt = int.MaxValue;
+        var capacity = byteCount;
+        if (limit != null && byteCount > limit.MaximumLength)
+        {
+            stopAt = (int)limit.MaximumLength;
+            capacity = (int)Math.Min(byteCount, (long)stopAt + 4);
+            limit.Truncated = true;
+        }
 
-        var (idx, idxOut) = DecodeWholeGroups(data, length, output);
-        DecodeTrailingGroup(data, idx, output, idxOut, remainder);
+        var output = new byte[capacity];
+
+        var (idx, idxOut) = DecodeWholeGroups(data, length, output, stopAt);
+        if (idxOut < stopAt)
+            DecodeTrailingGroup(data, idx, output, idxOut, remainder);
+
+        if (output.Length > stopAt)
+            Array.Resize(ref output, stopAt);
+        if (limit != null)
+            limit.Produced += output.Length;
         return output;
     }
 
     /// <summary>
     /// Moves the characters that carry data - the digits and z - to the front of the array, in
     /// place, dropping everything else, and answers how many there are. Stops at the end marker
-    /// and refuses data that has none.
+    /// and refuses data that has none, unless the data was cut short before it reached one, when
+    /// <paramref name="reachedEnd"/> is false. Data cut between the marker's two characters
+    /// reached it.
     /// </summary>
-    private static int CompactSignificantCharacters(byte[] data, out int zCount)
+    private static int CompactSignificantCharacters(byte[] data, bool inputWasCut, out int zCount, out bool reachedEnd)
     {
         zCount = 0;
+        reachedEnd = true;
         var idxOut = 0;
         // How far into a five-character group the characters kept so far reach.
         var groupLength = 0;
@@ -172,7 +205,8 @@ public class Ascii85Decode : Filter
             var ch = (char)data[idx];
             if (ch == '~')
             {
-                RequireEndMarkerAt(data, idx);
+                if (!(inputWasCut && idx == data.Length - 1))
+                    RequireEndMarkerAt(data, idx);
                 return idxOut;
             }
 
@@ -191,6 +225,9 @@ public class Ascii85Decode : Filter
         }
 
         // The loop ended without reaching the end marker.
+        reachedEnd = false;
+        if (inputWasCut)
+            return idxOut;
         throw new ArgumentException("Illegal character.", nameof(data));
     }
 
@@ -224,13 +261,14 @@ public class Ascii85Decode : Filter
 
     /// <summary>
     /// Decodes every z and every whole group of five, and answers where the trailing partial group
-    /// begins in the input and where its bytes go in the output.
+    /// begins in the input and where its bytes go in the output. It stops once the output reaches
+    /// <paramref name="stopAt"/> bytes.
     /// </summary>
-    private static (int Idx, int IdxOut) DecodeWholeGroups(byte[] data, int length, byte[] output)
+    private static (int Idx, int IdxOut) DecodeWholeGroups(byte[] data, int length, byte[] output, int stopAt)
     {
         var idxOut = 0;
         var idx = 0;
-        while (idx < length)
+        while (idx < length && idxOut < stopAt)
         {
             if ((char)data[idx] == 'z')
             {

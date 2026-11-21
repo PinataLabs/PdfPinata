@@ -47,6 +47,19 @@ public class FilterParms
     {
         DecodeParms = decodeParms;
     }
+
+    /// <summary>Initializes a new instance holding the given decoding parameters and a cap on the output.</summary>
+    public FilterParms(PdfDictionary decodeParms, DecodeLimit limit)
+    {
+        DecodeParms = decodeParms;
+        Limit = limit;
+    }
+
+    /// <summary>
+    /// Gets the cap on the filter's output, or null for none. FlateDecode, LZWDecode,
+    /// RunLengthDecode, ASCII85Decode and ASCIIHexDecode read it.
+    /// </summary>
+    public DecodeLimit Limit { get; }
 }
 
 /// <summary>
@@ -80,6 +93,14 @@ public abstract class Filter
     public byte[] Decode(byte[] data, PdfDictionary decodeParms)
     {
         return Decode(data, new FilterParms(decodeParms));
+    }
+
+    /// <summary>
+    /// Decodes the specified data, stopping at the limit's cap and saying so on the limit.
+    /// </summary>
+    public byte[] Decode(byte[] data, PdfDictionary decodeParms, DecodeLimit limit)
+    {
+        return Decode(data, new FilterParms(decodeParms, limit));
     }
 
     /// <summary>

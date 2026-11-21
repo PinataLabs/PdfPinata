@@ -1505,33 +1505,37 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// <summary>
         /// Gets the value of the stream unfiltered. The stream content is not modified by this operation.
         /// </summary>
-        public byte[] UnfilteredValue
+        public byte[] UnfilteredValue => GetUnfilteredValue(null);
+
+        /// <summary>
+        /// Gets the value of the stream unfiltered, with no Flate or LZW filter producing more than
+        /// <paramref name="limit"/> allows. Where one is cut off, <see cref="DecodeLimit.Truncated"/>
+        /// says so and the result is the start of the stream. A null limit is no limit.
+        /// </summary>
+        public byte[] GetUnfilteredValue(DecodeLimit limit)
         {
-            get
+            byte[] bytes = null;
+            var value = Value;
+            if (value != null)
             {
-                byte[] bytes = null;
-                var value = Value;
-                if (value != null)
+                var filter = _ownerDictionary.Elements[Keys.Filter];
+                if (filter != null)
                 {
-                    var filter = _ownerDictionary.Elements[Keys.Filter];
-                    if (filter != null)
+                    var decodeParms = _ownerDictionary.Elements[Keys.DecodeParms];
+                    bytes = Filtering.Decode(value, filter, decodeParms, limit);
+                    if (bytes == null)
                     {
-                        var decodeParms = _ownerDictionary.Elements[Keys.DecodeParms];
-                        bytes = Filtering.Decode(value, filter, decodeParms);
-                        if (bytes == null)
-                        {
-                            var message = $"«Cannot decode filter '{filter}'»";
-                            bytes = PdfEncoders.RawEncoding.GetBytes(message);
-                        }
-                    }
-                    else
-                    {
-                        bytes = new byte[value.Length];
-                        value.CopyTo(bytes, 0);
+                        var message = $"«Cannot decode filter '{filter}'»";
+                        bytes = PdfEncoders.RawEncoding.GetBytes(message);
                     }
                 }
-                return bytes ?? [];
+                else
+                {
+                    bytes = new byte[value.Length];
+                    value.CopyTo(bytes, 0);
+                }
             }
+            return bytes ?? [];
         }
 
         /// <summary>
