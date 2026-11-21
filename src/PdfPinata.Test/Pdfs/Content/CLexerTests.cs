@@ -632,6 +632,56 @@ public class CLexerTests
     }
 
     /// <summary>
+    ///   Integers and reals of any length are read as a real and never throw, the way the document
+    ///   lexer reads them: a 39-digit integer, a 400-digit one, the same negated, and reals with
+    ///   hundreds of digits before or after the period.
+    /// </summary>
+    [Test, Timeout(5000)]
+    [Arguments("123456789012345678901234567890123456789")]
+    [Arguments("-123456789012345678901234567890123456789")]
+    [Arguments("+123456789012345678901234567890123456789")]
+    [Arguments("123456789012345678901234567890123456789.5")]
+    [Arguments("0.123456789012345678901234567890123456789")]
+    public async Task ScanNumber_readsAnIntegerOrRealBeyondInt64AsARealAndDoesNotThrow(string content)
+    {
+        var tokens = await ScanAll(new CLexer(Encoding.ASCII.GetBytes(content + " ")));
+
+        TokensOf(tokens, CSymbol.Real).Should().Equal(content);
+    }
+
+    [Test, Timeout(5000)]
+    public async Task ScanNumber_readsFourHundredDigitsAsARealWithoutThrowing()
+    {
+        var digits = new string('7', 400);
+        foreach (var content in new[] { digits, "-" + digits, digits + "." + digits })
+        {
+            var tokens = await ScanAll(new CLexer(Encoding.ASCII.GetBytes(content + " ")));
+
+            TokensOf(tokens, CSymbol.Real).Should().Equal(content);
+        }
+    }
+
+    /// <summary>
+    ///   A number past what a real can hold reads as the largest real ISO 32000-1 Annex C allows,
+    ///   not as infinity, which a writer would put in a file as a word.
+    /// </summary>
+    [Test, Timeout(5000)]
+    [Arguments(false, false)]
+    [Arguments(true, false)]
+    [Arguments(false, true)]
+    public void TokenToReal_holdsAFourHundredDigitNumberToFloatMaxValue(bool negative, bool fraction)
+    {
+        var content = (negative ? "-" : "") + new string('7', 400) + (fraction ? ".5" : "");
+        var lexer = new CLexer(Encoding.ASCII.GetBytes(content + " "));
+
+        lexer.ScanNextToken().Should().Be(CSymbol.Real);
+
+        var tokenToReal = typeof(CLexer)
+            .GetProperty("TokenToReal", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        ((double)tokenToReal.GetValue(lexer)!).Should().Be(negative ? -float.MaxValue : float.MaxValue);
+    }
+
+    /// <summary>
     ///   The document lexer refuses to append the end-of-content marker to a token rather than
     ///   grow one out of it, and CLexer now carries the same guard. No grammar rule reaches it
     ///   through the public surface - each of ScanComment, ScanName and ScanOperator checks the

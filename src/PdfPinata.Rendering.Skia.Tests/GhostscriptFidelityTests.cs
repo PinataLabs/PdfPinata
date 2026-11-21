@@ -305,6 +305,44 @@ public class GhostscriptFidelityTests
             .ShouldBeWithin(meanChannelDifference: 30, shareOverThreshold: 0);
     }
 
+    // The PDF ImageMagick writes for a page scanned at 150 dots to the inch: one Group 4 image
+    // filling the page, drawn here a pixel of the page to a pixel of the scan. Both draw every
+    // pixel the same, measured at 0 and 0, so any difference at all is a pixel decoded wrongly.
+    [Test]
+    public void AGroup4ScanImageMagickWrote()
+    {
+        using var document = PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(Asset("group4-scan.pdf")),
+            PdfPinata.Pdf.IO.PdfDocumentOpenMode.Modify);
+
+        Fidelity.Of(document, nameof(AGroup4ScanImageMagickWrote), new PageRenderOptions { Scale = 150 / 72.0 })
+            .ShouldBeWithin(meanChannelDifference: 0, shareOverThreshold: 0);
+    }
+
+    // /BlackIs1 makes the filter answer 1 for black, and a /DeviceGray image with no /Decode draws
+    // 1 as white, so the text is drawn white on black. Ghostscript draws it so too.
+    [Test]
+    public void AGroup4ImageWithBlackIs1AndNoDecodeIsDrawnInverted()
+    {
+        var document = HandWritten.Page("q 301 0 0 61 0 0 cm /Im1 Do Q", 301, 61, (document, page) =>
+            HandWritten.Image(document, page, "/Im1", Asset("g4-blackis1.bin"), image =>
+            {
+                image.Elements.SetInteger("/Width", 301);
+                image.Elements.SetInteger("/Height", 61);
+                image.Elements.SetName("/ColorSpace", "/DeviceGray");
+                image.Elements.SetInteger("/BitsPerComponent", 1);
+                image.Elements.SetName("/Filter", "/CCITTFaxDecode");
+                var parameters = new PdfDictionary(document);
+                parameters.Elements.SetInteger("/K", -1);
+                parameters.Elements.SetInteger("/Columns", 301);
+                parameters.Elements.SetInteger("/Rows", 61);
+                parameters.Elements.SetBoolean("/BlackIs1", true);
+                image.Elements["/DecodeParms"] = parameters;
+            }));
+
+        Fidelity.Of(document, nameof(AGroup4ImageWithBlackIs1AndNoDecodeIsDrawnInverted))
+            .ShouldBeWithin(meanChannelDifference: 0, shareOverThreshold: 0);
+    }
+
     private static byte[] Asset(string name)
     {
         using var stream = typeof(GhostscriptFidelityTests).Assembly.GetManifestResourceStream("Assets/" + name)
