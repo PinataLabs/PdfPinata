@@ -187,14 +187,19 @@ LZW itself produces, before a predictor is undone, so with a PNG predictor it in
 filter-type byte in front of each row. Cut-short data is read as far as it goes: a PNG or TIFF
 predictor drops a final part row rather than returning pixels it could not undo, and a Flate or
 ASCII85 filter that is handed the cut-short output of an earlier one returns what it could decode
-rather than throwing. With the cap set to an image's sample bytes, `Truncated` means the stream had
+rather than throwing. ASCII85 drops a final part group only when the cut came before its `~>`
+marker; one after it, or between its two characters, left the whole stream. With the cap set to an image's sample bytes, `Truncated` means the stream had
 *more* than the image needs, and an image that is short shows as output shorter than its sample
 bytes with `Truncated` false.
 
 `PageImages` holds each filter of an image's chain to a limit of its own. The filter that produces
 the samples stops at the sample bytes, plus each row's tag byte under a PNG predictor, counted in
-the predictor's own rows; what a stream holds past that is not drawn, as viewers do not draw it, and
-is not reported. Short data is #375's case: it is padded with zeros and reported, and less than half
+the predictor's own rows and never less than one whole row, since a predictor drops a part row and a
+row declared wider than the image would otherwise leave nothing; what a stream holds past that is not
+drawn, as viewers do not draw it, and is not reported. That row is held to the allowance of a filter
+before the last, below, so a large `/Columns` cannot lift the cap. Only Flate and LZW undo a
+predictor, and a `/DecodeParms` value of the wrong type is read as its default for the cap and left
+for the filter to refuse. Short data is #375's case: it is padded with zeros and reported, and less than half
 is refused. A filter before the last produces encoded data, which can be longer than what it decodes
 to: RunLength spends a byte for every 128 and two for one at worst, and a JPEG of a few samples is
 mostly headers and profiles. So each of those, and every filter before `/DCTDecode`, may produce
