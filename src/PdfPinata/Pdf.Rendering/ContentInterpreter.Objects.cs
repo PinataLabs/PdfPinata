@@ -18,6 +18,10 @@ internal sealed partial class ContentInterpreter
             return;
         }
 
+        // Nothing it draws is painted, and a form's own state is its own.
+        if (_device.Hidden)
+            return;
+
         var xObject = _resources.Lookup("/XObject", name);
         if (xObject == null)
         {
@@ -25,7 +29,8 @@ internal sealed partial class ContentInterpreter
             return;
         }
 
-        ReportIfHidden(xObject.Elements.GetDictionary("/OC"));
+        if (IsHidden(xObject.Elements.GetDictionary("/OC")))
+            return;
 
         switch (xObject.Elements.GetNameOrEmpty("/Subtype"))
         {
@@ -189,28 +194,54 @@ internal sealed partial class ContentInterpreter
         }
     }
 
-    /// <summary><c>BDC</c>, which is looked at only where it puts content in an optional content group.</summary>
+    /// <summary><c>BMC</c> and <c>BDC</c>: opens a sequence, hidden where it is in optional content that is switched off.</summary>
     private void BeginMarkedContent(COperator op)
     {
-        if (Operands.NameFromEnd(op, 1) == "/OC" && Operands.NameFromEnd(op, 0) is { } name)
-            ReportIfHidden(_resources.Lookup("/Properties", name));
+        var hidden = Operands.NameFromEnd(op, 1) == "/OC" && Operands.NameFromEnd(op, 0) is { } name
+                     && IsHidden(_resources.Lookup("/Properties", name));
+        PushMarkedContent(hidden);
+    }
+
+    private void PushMarkedContent(bool hidden)
+    {
+        _marked.Push(hidden);
+        if (hidden)
+            _hiddenMarks++;
+        _device.Hidden = _hiddenMarks > 0;
+    }
+
+    /// <summary><c>EMC</c>. One with no sequence open in the stream is reported and does nothing.</summary>
+    private void EndMarkedContent(bool report)
+    {
+        if (_marked.Count == 0)
+        {
+            if (report)
+                _sink.Report(PageRenderProblem.OperatorOutOfPlace, "EMC", "A marked-content sequence is ended where none is open.");
+            return;
+        }
+
+        if (_marked.Pop())
+            _hiddenMarks--;
+        _device.Hidden = _hiddenMarks > 0;
     }
 
     /// <summary>
-    /// Says when content is drawn that belongs to optional content the document switches off.
+    /// Whether content belongs to optional content the render switches off.
     /// </summary>
     /// <param name="membership">What an <c>/OC</c> names, or null where there is none.</param>
-    private void ReportIfHidden(PdfDictionary membership)
+    private bool IsHidden(PdfDictionary membership)
     {
         if (membership == null)
-            return;
+            return false;
 
-        _optionalContent ??= OptionalContent.Of(_document);
-        if (_optionalContent.Hides(membership))
+        if (_optionalContent == null)
         {
-            _sink.Report(PageRenderProblem.UnsupportedFeature, "/OC",
-                "Optional content is not applied yet. Content of a group that is switched off is drawn.");
+            _optionalContent = OptionalContent.Of(_document, _optionalContentSelection, out var problem);
+            if (problem != null)
+                _sink.Report(PageRenderProblem.InvalidValue, "/OC", problem);
         }
+
+        return _optionalContent.Hides(membership);
     }
 
     /// <summary>
@@ -251,7 +282,7 @@ internal sealed partial class ContentInterpreter
     /// <summary><c>BI</c>, which the parser reads with its data up to <c>EI</c> as one operator.</summary>
     private void DrawInlineImage(COperator op)
     {
-        if (op is CInlineImage image)
+        if (op is CInlineImage image && !_device.Hidden)
             DrawImage(PageImages.ReadInline(image, _resources, _device, _sink));
     }
 

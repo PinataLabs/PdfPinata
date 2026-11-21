@@ -20,7 +20,8 @@ separate issues, and each has one place here to plug into. The last section name
 | 11 | CMaps other than `Identity-H`, and vertical writing | deliberately not done |
 | 12 | A limit on the operators of one page | deliberately not done |
 | 13 | Type 3 fonts (their advances are read; their glyphs are not drawn) | advance only |
-| 14 | Transparency groups (#383) and optional content (#386) | reported, not applied |
+| 14 | Transparency groups (#383) | reported, not applied |
+| 15 | Optional content (#386) | done: hidden content is not drawn and not reported |
 
 ---
 
@@ -202,9 +203,67 @@ shows an appearance in place of one built from it.
 **Transparency is not applied to an annotation.** An annotation's `/CA` below 1 is reported as
 `UnsupportedFeature` on `/CA`, and the appearance is drawn opaque. Blend modes are handled as for any form.
 
-**Optional content is reported, not applied.** An `/OC` on the annotation and an `/OC` on its
-appearance stream are each reported as `UnsupportedFeature` where the group is switched off, as a
-`Do` of the same form would report its own, and the appearance is drawn all the same.
+**Optional content applies to annotations.** An annotation whose `/OC`, or whose appearance stream's
+`/OC`, is switched off is not drawn, as a `Do` of the same form would not be, and nothing is reported.
+
+## Optional content
+
+Content that belongs to a group the render's configuration switches off is not drawn, and is not
+reported: a viewer does not report it either (#386).
+
+**What is hidden.** Marked content opened by `/OC /Name BDC`, where `/Name` is in the resources'
+`/Properties`; a form or image XObject with an `/OC` entry; and an annotation or its appearance
+stream with one. The entry names a group, or a membership dictionary that makes one answer of
+several, read as the rest of this section says.
+
+**Hidden content still changes the graphics state** (ISO 32000-1 8.11.3.2). While a hidden sequence
+is open the interpreter runs every operator as it always does, and `GuardedDevice.Hidden` turns
+`Fill`, `Stroke` and `DrawImage` into nothing. So `q`, `Q`, `cm`, colours, line state, `gs`, text
+state and the text matrix, which a show-text operator advances, all take effect, and so does a clip,
+which still reaches the device. `Do` and inline images are skipped outright, because neither leaves
+anything behind that a later operator could read: a form's state is its own.
+
+**Marked content is a stack per content stream.** `BMC` and `BDC` push whether they are hidden,
+`EMC` pops, and the device is hidden while any entry on the stack is. A sequence inside a hidden one
+is hidden whatever it names, and a hidden one inside a visible one hides only itself.
+Three cases a malformed file makes, all decided:
+
+- An `EMC` with nothing open in its stream is reported as `OperatorOutOfPlace` on `EMC` and does
+  nothing. In particular a form's `EMC` cannot end a sequence the page opened, because a form has a
+  stack of its own.
+- A `BDC` or `BMC` never ended is ended where its content stream ends, and reported as
+  `OperatorOutOfPlace` on `BDC`. A hidden sequence left open on the page therefore cannot hide the
+  annotations, and one left open in a form cannot hide what drew the form.
+- An `/OC` that names nothing readable is visible and nothing is said: a name the properties do not
+  hold, a property that is not a dictionary, a dictionary written in the content in place of a name,
+  an `/OC` entry that is an integer or a name, or a dictionary whose `/Type` is not `/OCG` or
+  `/OCMD`. Nothing throws.
+
+**Choosing the configuration.** `PageRendering.Render(…, optionalContent)` takes a
+`PageOptionalContent`, null for `/D`. `Configuration` names an entry of `/OCProperties /Configs` by
+its `/Name`, the first where two have it. A named configuration is read as `/D` is, and does not
+inherit from it: its own `/BaseState`, `/ON`, `/OFF` and `/Intent` apply. A name no entry has is
+reported as `InvalidValue` on `/OC`, once, and `/D` is used. `On` and `Off` are group dictionaries,
+by identity, switched over whichever configuration is chosen; a group in both is off. A group the
+configuration's `/Intent` does not count has no effect on visibility whatever the caller says,
+because that is a property of the group and not of its state. `/AS` auto states are not applied.
+
+**How a membership is read.** A group counts only where one of its `/Intent`
+names, `/View` where it has none, is among the configuration's `/Intent`, which is also `/View`
+where `/D` has none and takes in every intent where it names `/All`. A group that does not count
+has no effect on visibility (ISO 32000-1 8.11.2.3 and 8.11.4.3), so it is left out of `/OCGs` and
+of a `/VE`, rather than read as on: read as on, `/AllOff`, `/AnyOff` or `/Not` over it would
+turn it to hidden. A membership with no group left has no effect, as Table 99 says of one whose
+`/OCGs` names none, and an `/And`, `/Or` or `/Not` none of whose operands has an effect has none
+either. So a configuration `/Intent` of `[]` makes everything visible, which is what 8.11.2.3
+asks. A dictionary whose `/Type` is neither `/OCG` nor absent is not a group, wherever it is
+named: by `/OC`, in `/OCGs` or as a `/VE` operand, it makes the membership visible as a whole.
+A `/VE` is read 32 deep and 1,024 operands long. An expression any part of which cannot be read, or lies
+past either limit, is visible as a whole: a `/Not` over it does not turn it round, so
+`[/Not [/Xor …]]` is visible. Every operand is read for that reason, rather than stopping at the
+first that decides. `OptionalContent` answers once per membership for one render, keyed by
+`ReferenceIdentity`, because a page may name one membership thousands of times and each answer
+may cost the whole operand budget.
 
 ## Reading content that is broken
 
@@ -262,25 +321,6 @@ differently:
   here each piece of it is drawn at that alpha, so pieces that overlap show through each other.
   With both alphas at 1 and no knockout the two are the same picture and nothing is reported,
   because a producer such as cairo makes every form a group. Subject `/Group`. #383 composes them.
-- Content in `/OC … BDC`, or an XObject with an `/OC` entry, whose optional content group is off
-  in the catalog's default configuration (`/OCProperties /D`: `/BaseState`, `/ON`, `/OFF`), or
-  whose membership dictionary evaluates off by its `/VE` expression or else its `/P` policy over
-  `/OCGs`. The content is drawn. Subject `/OC`. A group counts only where one of its `/Intent`
-  names, `/View` where it has none, is among the configuration's `/Intent`, which is also `/View`
-  where `/D` has none and takes in every intent where it names `/All`. A group that does not count
-  has no effect on visibility (ISO 32000-1 8.11.2.3 and 8.11.4.3), so it is left out of `/OCGs` and
-  of a `/VE`, rather than read as on: read as on, `/AllOff`, `/AnyOff` or `/Not` over it would
-  turn it to hidden. A membership with no group left has no effect, as Table 99 says of one whose
-  `/OCGs` names none, and an `/And`, `/Or` or `/Not` none of whose operands has an effect has none
-  either. So a configuration `/Intent` of `[]` makes everything visible, which is what 8.11.2.3
-  asks. A dictionary whose `/Type` is neither `/OCG` nor absent is not a group, wherever it is
-  named: by `/OC`, in `/OCGs` or as a `/VE` operand, it makes the membership visible as a whole.
-  A `/VE` is read 32 deep and 1,024 operands long. An expression any part of which cannot be read, or lies
-  past either limit, is visible as a whole: a `/Not` over it does not turn it round, so
-  `[/Not [/Xor …]]` is visible. Every operand is read for that reason, rather than stopping at the
-  first that decides. `OptionalContent` answers once per membership for one render, keyed by
-  `ReferenceIdentity`, because a page may name one membership thousands of times and each answer
-  may cost the whole operand budget. It answers the question and hides nothing; #386 applies it.
 
 A page that ends with states still saved is not reported. Many real pages do, nothing was left out,
 and the states are restored on the device all the same. A `Q` with nothing saved is reported.

@@ -50,6 +50,7 @@ internal sealed partial class ContentInterpreter
     private readonly PageView _view;
     private readonly RenderFontCache _fonts;
     private readonly Func<PdfDictionary, PageGlyphSource> _glyphSources;
+    private readonly PageOptionalContent _optionalContentSelection;
     private readonly DiagnosticSink _sink = new();
     private readonly StateStack _states;
     private FormVisits _forms = new();
@@ -68,6 +69,11 @@ internal sealed partial class ContentInterpreter
     private PdfDocument _document;
     private OptionalContent _optionalContent;
 
+    // The marked-content sequences open in the stream being drawn, innermost last, each whether it
+    // is optional content that is switched off, and how many of them are.
+    private Stack<bool> _marked = new();
+    private int _hiddenMarks;
+
     // What belongs to the content stream being drawn. A form XObject has its own of each, and
     // RunStream puts the caller's back when the form ends.
     private ResourceScope _resources;
@@ -79,8 +85,9 @@ internal sealed partial class ContentInterpreter
     private int _uncountedSaves;
 
     internal ContentInterpreter(PageDevice device, PageView view, RenderFontCache fonts,
-        Func<PdfDictionary, PageGlyphSource> glyphSources)
+        Func<PdfDictionary, PageGlyphSource> glyphSources, PageOptionalContent optionalContent = null)
     {
+        _optionalContentSelection = optionalContent;
         _device = new GuardedDevice(device, _sink);
         _view = view;
         _fonts = fonts;
@@ -165,6 +172,8 @@ internal sealed partial class ContentInterpreter
         _compatibilityDepth = 0;
         _floor = _states.Depth;
         _uncountedSaves = 0;
+        var outerMarked = _marked;
+        _marked = new Stack<bool>();
         _sink.Stream = streamName;
         _sink.Operator = null;
 
@@ -196,9 +205,18 @@ internal sealed partial class ContentInterpreter
             // A text object the content never ended still clips, as it would have at its ET.
             if (_text != null)
                 EndText();
+
+            if (_marked.Count > 0)
+            {
+                _sink.Report(PageRenderProblem.OperatorOutOfPlace, "BDC",
+                    "A marked-content sequence is never ended. It is ended where the content stream ends.");
+            }
         }
         finally
         {
+            while (_marked.Count > 0)
+                EndMarkedContent(report: false);
+            _marked = outerMarked;
             _states.PopTo(_floor);
             (_resources, _path, _pendingClip, _text, _compatibilityDepth, _floor, _uncountedSaves,
                 _sink.Stream, _sink.OperatorIndex, _sink.Operator) = outer;
@@ -352,7 +370,9 @@ internal sealed partial class ContentInterpreter
                 _sink.Report(PageRenderProblem.UnsupportedFeature, "sh", "Shadings are not drawn yet.");
                 break;
 
+            case OpCodeName.BMC: PushMarkedContent(hidden: false); break;
             case OpCodeName.BDC: BeginMarkedContent(op); break;
+            case OpCodeName.EMC: EndMarkedContent(report: true); break;
 
             case OpCodeName.BX: _compatibilityDepth++; break;
             case OpCodeName.EX: _compatibilityDepth = Math.Max(0, _compatibilityDepth - 1); break;
