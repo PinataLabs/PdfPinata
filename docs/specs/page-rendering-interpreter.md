@@ -581,8 +581,9 @@ and nor is an image whose `/ColorSpace` names a space of the resources, because 
 draw it with different resources and so in different colours. The first filter is handed a copy
 of the stream's bytes, because `/ASCII85Decode` compacts the array it is given in place and the
 stream's own bytes are read again by the next render.
-Drawing many distinct large images is still paid for once each, so the bound on what a filter
-inflates to, below, is what limits that.
+Drawing many distinct large images is still paid for once each. What bounds that is
+`DecodeLimit` (#398): each filter of an image's chain stops near the samples its size declares, as
+`page-rendering.md` sets out, so a stream that inflates to gigabytes costs the image's size and no more.
 
 **An image is refused before anything is decoded when it has more than 2^28 samples.** Its RGBA is
 then 1 GiB, which a page of A0 scanned at 400 dots to the inch stays under. A `/Width` and
@@ -710,13 +711,6 @@ page is slow before it is endless.
 **The unset seam has no test here.** Nothing in this unit reads a seam, and a test cannot throw the
 internal exception that carries one. The first glyph source that reads the font resolver (#374)
 brings the test with it.
-
-**A bound on what a filter inflates to.** The limit on samples is checked before decoding, but
-`FlateDecode` inflates the whole stream whatever the image needs, so a small stream that inflates
-to gigabytes is still inflated. Bounding it belongs in the filter, where every stream would gain.
-TODO: PR #406 adds `DecodeLimit`, a cap on Flate output. Once it merges, `PageImages.TryApply`
-passes `FilterParms(decodeParms, new DecodeLimit(expectedSampleBytes))`, plus one byte a row where
-a PNG predictor is in force, and treats `Truncated` as data that stops short.
 
 **Flate data with a missing or wrong Adler-32 is not drawn.** The inflater throws on the
 checksum after it has inflated everything, and the image is reported and dropped whole. Drawing

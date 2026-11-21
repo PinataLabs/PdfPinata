@@ -76,6 +76,12 @@ internal sealed class RenderContext
 
     internal PdfDocument Document { get; set; }
 
+    /// <summary>
+    /// How many more bytes of content the render inflates, across the page, its forms and its
+    /// pattern cells. See <see cref="ContentInterpreter.MaximumContentLength"/>.
+    /// </summary>
+    internal long ContentBytesLeft { get; set; } = ContentInterpreter.MaximumContentLength;
+
     /// <summary>Which optional content the caller switched on or off, or null for the document's own default.</summary>
     internal PageOptionalContent OptionalContentSelection { get; init; }
 

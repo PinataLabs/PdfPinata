@@ -169,8 +169,53 @@ The core decodes an image XObject or inline image into one neutral sample buffer
 DCT is the one filter decoded outside the core, by `SKCodec` in the Skia package, because the core
 carries no imaging dependency. The device decodes it *for* the core, through
 `PageDevice.DecodeImage`, and hands the samples back, so the `/Decode` array and the masks are
-applied in one place and a device draws only finished samples. CCITTFax, JBIG2 and JPX are item 15. An image the renderer cannot
-decode is skipped and reported. `page-rendering-interpreter.md` says how it was built (#375).
+applied in one place and a device draws only finished samples. CCITTFax, JBIG2 and JPX are item 15.
+An image the renderer cannot decode is skipped and reported. `page-rendering-interpreter.md` says
+how it was built (#375).
+
+**An image is inflated to a cap, because Flate does not say how big it will be.** A few kilobytes
+can expand to gigabytes, and bounding the image by its `/Width` and `/Height` before decoding does
+nothing if the filter has already inflated the whole stream. `DecodeLimit` (#398) is the cap: a
+filter handed one stops at `MaximumLength` bytes and sets `Truncated` if the stream had more, and
+one handed none behaves as it always did. Every filter that expands honours it, Flate, LZW,
+RunLength, ASCII85 and ASCIIHex, because a chain such as `[/FlateDecode /RunLengthDecode]` is
+only as bounded as its last filter: RunLength turns two bytes into 128. `Filtering.Decode` also
+cuts what any one filter returns to the cap, so the bound does not rest on each filter keeping to
+it. For an image the cap is the sample bytes the dictionary
+declares, `ceil(Width * Components * BitsPerComponent / 8) * Height`. The cap counts what Flate or
+LZW itself produces, before a predictor is undone, so with a PNG predictor it includes the one
+filter-type byte in front of each row. Cut-short data is read as far as it goes: a PNG or TIFF
+predictor drops a final part row rather than returning pixels it could not undo, and a Flate or
+ASCII85 filter that is handed the cut-short output of an earlier one returns what it could decode
+rather than throwing. ASCII85 drops a final part group only when the cut came before its `~>`
+marker; one after it, or between its two characters, left the whole stream. With the cap set to an image's sample bytes, `Truncated` means the stream had
+*more* than the image needs, and an image that is short shows as output shorter than its sample
+bytes with `Truncated` false.
+
+`PageImages` holds each filter of an image's chain to a limit of its own. The filter that produces
+the samples stops at the sample bytes, plus each row's tag byte under a PNG predictor, counted in
+the predictor's own rows and never less than one whole row, since a predictor drops a part row and a
+row declared wider than the image would otherwise leave nothing; what a stream holds past that is not
+drawn, as viewers do not draw it, and is not reported. That row is held to the allowance of a filter
+before the last, below, so a large `/Columns` cannot lift the cap. Only Flate and LZW undo a
+predictor, and a `/DecodeParms` value of the wrong type is read as its default for the cap and left
+for the filter to refuse. Short data is #375's case: it is padded with zeros and reported, and less than half
+is refused. A filter before the last produces encoded data, which can be longer than what it decodes
+to: RunLength spends a byte for every 128 and two for one at worst, and a JPEG of a few samples is
+mostly headers and profiles. So each of those, and every filter before `/DCTDecode`, may produce
+twice the sample bytes and 16 MiB more; one that would produce more is reported as `LimitReached`
+and the image is not drawn. A limit shared by the whole chain would cut an incompressible RunLength
+image short. A JPEG's own size says nothing about its samples, so `/DCTDecode` is held only by
+`MaximumSamples`, after the device has decoded it.
+
+**Content streams have a cap too**, `ContentInterpreter.MaximumContentLength`, 128 MiB of inflated
+content shared by the page's streams and every form drawn in a render. Flate squeezes operators
+about ten to one, so a legitimate page reaches it only with over ten megabytes of compressed
+content, and the largest maps and drawings seen are a few tens of megabytes inflated. The cost per
+byte is what sets it low: parsing 128 MiB of operators already builds a graph several times that
+size, so a higher cap would only move the exhaustion from the inflater to the parser. A stream cut by
+it is drawn as far as it goes and reported as `UnreadableContent`. A stream filtered through
+ASCIIHex, ASCII85 or RunLength is held to the same cap, so that no chain of filters gets past it.
 
 ## Item 7 — the Skia surface
 

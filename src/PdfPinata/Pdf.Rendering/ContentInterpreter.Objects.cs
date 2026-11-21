@@ -79,7 +79,7 @@ internal sealed partial class ContentInterpreter
         var depth = _states.Depth;
         try
         {
-            var content = ContentOf(form);
+            var content = ContentOf(name, form);
             if (content == null)
             {
                 _sink.Report(PageRenderProblem.UnreadableContent, name, "The form's content could not be decoded, and nothing of it is drawn.");
@@ -120,12 +120,29 @@ internal sealed partial class ContentInterpreter
     /// inside the limits of <see cref="FormVisits"/>, and reading its stream again each time is
     /// what made such a page slow.
     /// </remarks>
-    private ParsedContent ContentOf(PdfDictionary form)
+    private ParsedContent ContentOf(string name, PdfDictionary form)
     {
         var key = ReferenceIdentity.KeyOf(form);
         if (!_formContent.TryGetValue(key, out var content))
         {
-            content = PdfContentStreams.TryGetContent(form, out var bytes) ? ParsedContent.Of(bytes) : null;
+            var readable = PdfContentStreams.TryGetContent(form, Math.Max(0, _context.ContentBytesLeft), out var bytes,
+                out var truncated, out var charge);
+            _context.ContentBytesLeft -= charge;
+            if (readable)
+            {
+                if (truncated)
+                {
+                    _sink.Report(PageRenderProblem.UnreadableContent, name,
+                        $"The content a render inflates is capped at {MaximumContentLength} bytes, and this form's was cut short.");
+                }
+
+                content = ParsedContent.Of(bytes);
+            }
+            else
+            {
+                content = null;
+            }
+
             _formContent[key] = content;
         }
 

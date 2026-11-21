@@ -27,7 +27,9 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System;
 using System.IO;
+using ICSharpCode.SharpZipLib;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 
@@ -82,25 +84,49 @@ public class FlateDecode : Filter
         var msInput = new MemoryStream(data);
         var msOutput = new MemoryStream();
 
+        var limit = parms?.Limit;
+        var cap = limit?.MaximumLength ?? long.MaxValue;
         var iis = new InflaterInputStream(msInput, new Inflater(false));
         int cbRead;
         var abResult = new byte[32768];
-        do
+        var inputWasCut = limit is { Truncated: true };
+        try
         {
-            cbRead = iis.Read(abResult, 0, abResult.Length);
-            if (cbRead > 0)
-                msOutput.Write(abResult, 0, cbRead);
+            do
+            {
+                var want = (int)Math.Min(abResult.Length, cap - msOutput.Length);
+                if (want == 0)
+                {
+                    // At the cap: one more byte read says whether the stream really ended here.
+                    if (limit != null && iis.Read(abResult, 0, 1) > 0)
+                        limit.Truncated = true;
+                    break;
+                }
+
+                cbRead = iis.Read(abResult, 0, want);
+                if (cbRead > 0)
+                    msOutput.Write(abResult, 0, cbRead);
+            }
+            while (cbRead > 0);
         }
-        while (cbRead > 0);
+        catch (SharpZipBaseException) when (inputWasCut)
+        {
+            // An earlier filter of the chain was stopped at the cap, so this one was given the start
+            // of its stream and ran out. What it inflated is the start of the content, and the limit
+            // already says the content was cut. Without a limit this throws, as it always did.
+        }
+
         iis.Close();
         msOutput.Flush();
+        if (limit != null)
+            limit.Produced += msOutput.Length;
         if (msOutput.Length < 0)
             return null;
 
         // No parameters at all is not an error: it is what DecodeToString passes, and it says
         // the same thing as parameters with no predictor in them.
         return parms?.DecodeParms != null
-            ? StreamDecoder.Decode(msOutput.ToArray(), parms.DecodeParms)
+            ? StreamDecoder.Decode(msOutput.ToArray(), parms.DecodeParms, limit)
             : msOutput.ToArray();
     }
 }

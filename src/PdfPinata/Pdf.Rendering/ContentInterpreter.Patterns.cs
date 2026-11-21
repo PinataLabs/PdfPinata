@@ -199,7 +199,7 @@ internal sealed partial class ContentInterpreter
         PagePicture cell;
         try
         {
-            var content = ContentOf(pattern);
+            var content = ContentOf(name, pattern);
             if (content == null)
             {
                 _sink.Report(PageRenderProblem.UnreadableContent, name, "The pattern's content could not be decoded. It paints nothing.");
