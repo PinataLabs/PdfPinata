@@ -32,7 +32,7 @@ internal sealed class RenderContext
     {
         Fonts = fonts;
         GlyphSources = glyphSources;
-        Functions = new FunctionReader(Sink);
+        Functions = new FunctionReader(Sink, ShadingWork);
     }
 
     internal DiagnosticSink Sink { get; } = new();

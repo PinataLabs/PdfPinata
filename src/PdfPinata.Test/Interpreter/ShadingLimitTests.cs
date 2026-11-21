@@ -1,5 +1,8 @@
 using System;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -141,12 +144,16 @@ public class ShadingLimitTests
             ("/N", "1"));
 
     /// <summary>A stitching of its pieces, each over an equal share of the domain.</summary>
-    private static PdfDictionary Stitching(PdfDocument document, params PdfDictionary[] pieces)
+    private static PdfDictionary Stitching(PdfDocument document, params PdfDictionary[] pieces) =>
+        Stitching(document, "0 1", pieces);
+
+    /// <summary>A stitching of its pieces, each over an equal share of the domain and given the inputs <paramref name="encode"/> names.</summary>
+    private static PdfDictionary Stitching(PdfDocument document, string encode, params PdfDictionary[] pieces)
     {
         var bounds = string.Join(" ", Enumerable.Range(1, pieces.Length - 1)
             .Select(bound => ((double)bound / pieces.Length).ToString(CultureInfo.InvariantCulture)));
         var stitching = Drawn.Object(document, ("/FunctionType", "3"), ("/Domain", "[0 1]"), ("/Bounds", $"[{bounds}]"),
-            ("/Encode", $"[{string.Concat(Enumerable.Repeat("0 1 ", pieces.Length))}]"));
+            ("/Encode", $"[{string.Concat(Enumerable.Repeat(encode + " ", pieces.Length))}]"));
         var functions = new PdfArray(document);
         foreach (var piece in pieces)
             functions.Elements.Add(piece.Reference);
@@ -155,11 +162,11 @@ public class ShadingLimitTests
     }
 
     /// <summary>Stitchings <paramref name="deep"/> deep, each of whose pieces all name the one below it.</summary>
-    private static PdfDictionary SharedStitching(PdfDocument document, int width, int deep)
+    private static PdfDictionary SharedStitching(PdfDocument document, int width, int deep, string encode = "0 1")
     {
         var below = RedToBlue(document);
         for (var level = 0; level < deep; level++)
-            below = Stitching(document, Enumerable.Repeat(below, width).ToArray());
+            below = Stitching(document, encode, Enumerable.Repeat(below, width).ToArray());
         return below;
     }
 
@@ -169,6 +176,21 @@ public class ShadingLimitTests
         // Five objects, and 256 to the fourth paths through them.
         var drawn = await Shaded(document => SharedStitching(document, 256, 4));
 
+        drawn.Device.Fills.First().ShaderAs<PageGradient>().Stops.Count.Should().BeInRange(2, 256);
+        drawn.Problems.Should().BeEmpty();
+    }
+
+    [Test, Timeout(30_000)]
+    [Arguments("0 0")]
+    [Arguments("2 3")]
+    public async Task AStitchingWhosePiecesNameOneFunctionIsSearchedForBreakpointsOnceForEachObject(string encode)
+    {
+        // Each piece's own breakpoints fall outside it, so none fills the list and every piece
+        // below is looked at: 256 to the fifth of them, were each looked at on each path.
+        var watch = Stopwatch.StartNew();
+        var drawn = await Shaded(document => SharedStitching(document, 256, 5, encode));
+
+        watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(5));
         drawn.Device.Fills.First().ShaderAs<PageGradient>().Stops.Count.Should().BeInRange(2, 256);
         drawn.Problems.Should().BeEmpty();
     }
@@ -478,5 +500,106 @@ public class ShadingLimitTests
         tilings.Should().HaveCount(40);
         tilings.Count(tiling => tiling.IsShared).Should().Be(32);
         drawn.Problems.Should().BeEmpty();
+    }
+
+    // What ShadingWork.MaximumBytes is in the library, which this assembly cannot see.
+    private const long ShadingWork_MaximumBytes = 128L << 20;
+
+    /// <summary><paramref name="length"/> zero bytes, deflated.</summary>
+    private static byte[] DeflatedZeros(long length)
+    {
+        using var output = new MemoryStream();
+        using (var zlib = new ZLibStream(output, CompressionLevel.SmallestSize, leaveOpen: true))
+        {
+            var block = new byte[1 << 20];
+            for (long written = 0; written < length; written += block.Length)
+                zlib.Write(block, 0, (int)Math.Min(block.Length, length - written));
+        }
+
+        return output.ToArray();
+    }
+
+    /// <summary>A page that paints <paramref name="count"/> axial shadings, /S0 on, and what drawing it allocated.</summary>
+    private static Task<(Drawn Drawn, long Allocated)> ShadedMany(int count, Func<PdfDocument, int, PdfDictionary> function) =>
+        Interruptibly.Run(() =>
+        {
+            var before = GC.GetAllocatedBytesForCurrentThread();
+            var drawn = Drawn.Saved(string.Concat(Enumerable.Range(0, count).Select(index => $"/S{index} sh ")),
+                (document, resources) =>
+                {
+                    for (var index = 0; index < count; index++)
+                    {
+                        Drawn.Add(document, resources, "/Shading", $"/S{index}", Drawn.Object(document,
+                            ("/ShadingType", "2"), ("/ColorSpace", "/DeviceGray"), ("/Coords", $"[0 0 {100 + index} 0]"),
+                            ("/Function", function(document, index))));
+                    }
+                });
+            return (drawn, GC.GetAllocatedBytesForCurrentThread() - before);
+        });
+
+    [Test, Timeout(60_000)]
+    public async Task ACalculatorProgramThatInflatesPastTheLimitIsDecodedNoFurtherAndOnce()
+    {
+        // 256 MiB of zeros, which a program of 64 KiB at most is never read to the end of.
+        var bomb = DeflatedZeros(256L << 20);
+        PdfDictionary program = null;
+        var watch = Stopwatch.StartNew();
+        var (drawn, allocated) = await ShadedMany(64, (document, _) => program ??= Drawn.Stream(document, bomb,
+            ("/FunctionType", "4"), ("/Domain", "[0 1]"), ("/Range", "[0 1]"), ("/Filter", "/FlateDecode")));
+
+        watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(5));
+        allocated.Should().BeLessThan(64L << 20);
+        drawn.Device.Fills.Should().BeEmpty();
+        drawn.Problems.Should().Equal("LimitReached /S0");
+    }
+
+    [Test, Timeout(60_000)]
+    public async Task ASampledFunctionWhoseStreamFailsIsDecodedAndReportedOnce()
+    {
+        // A table of 16 MiB whose stream is a byte short of it.
+        var table = DeflatedZeros((1L << 24) - 1);
+        PdfDictionary function = null;
+        var (drawn, allocated) = await ShadedMany(64, (document, _) => function ??= Drawn.Stream(document, table,
+            ("/FunctionType", "0"), ("/Domain", "[0 1]"), ("/Range", "[0 1]"), ("/Size", "[16777216]"),
+            ("/BitsPerSample", "8"), ("/Filter", "/FlateDecode")));
+
+        // Each decode of it allocates more than 16 MiB.
+        allocated.Should().BeLessThan(128L << 20);
+        drawn.Device.Fills.Should().BeEmpty();
+        drawn.Problems.Should().Equal("InvalidValue /S0");
+    }
+
+    [Test, Timeout(60_000)]
+    public async Task SampleTablesAreReadUntilTheRenderHasDecodedAllItMay()
+    {
+        // Sixteen tables of 16 MiB, each its own object: twice what a render decodes.
+        var table = DeflatedZeros(1L << 24);
+        var (drawn, _) = await ShadedMany(16, (document, _) => Drawn.Stream(document, table,
+            ("/FunctionType", "0"), ("/Domain", "[0 1]"), ("/Range", "[0 1]"), ("/Size", "[16777216]"),
+            ("/BitsPerSample", "8"), ("/Filter", "/FlateDecode")));
+
+        const int kept = (int)(ShadingWork_MaximumBytes >> 24);
+        drawn.Device.Fills.Should().HaveCount(kept);
+        drawn.Problems.Should().Equal(Enumerable.Range(kept, 16 - kept).Select(index => $"LimitReached /S{index}"));
+    }
+
+    [Test, Timeout(60_000)]
+    public async Task AMeshIsDecodedNoFurtherThanTheTrianglesItIsDrawnAs()
+    {
+        // 256 MiB of zeros: a vertex of three bytes, flag 0, at the origin, so a triangle in nine.
+        var bomb = DeflatedZeros(256L << 20);
+        var (drawn, allocated) = await Interruptibly.Run(() =>
+        {
+            var before = GC.GetAllocatedBytesForCurrentThread();
+            var drawn = Drawn.Saved("/Sh0 sh", (document, resources) =>
+                Drawn.Add(document, resources, "/Shading", "/Sh0", Drawn.Stream(document, bomb, ("/ShadingType", "4"),
+                    ("/ColorSpace", "/DeviceGray"), ("/BitsPerCoordinate", "8"), ("/BitsPerComponent", "8"),
+                    ("/BitsPerFlag", "8"), ("/Decode", "[0 100 0 100 0 1]"), ("/Filter", "/FlateDecode"))));
+            return (drawn, GC.GetAllocatedBytesForCurrentThread() - before);
+        });
+
+        allocated.Should().BeLessThan(256L << 20);
+        drawn.Device.Fills.Should().ContainSingle();
+        drawn.Problems.Should().Equal("LimitReached /Sh0");
     }
 }

@@ -41,8 +41,8 @@ internal sealed class SampledFunction : PdfFunction
     // Two samples along each input, for each output.
     internal override long Cost => (1L << _size.Length) * OutputCount;
 
-    internal static PdfFunction Read(PdfDictionary dictionary, double[] domain, double[] range, DiagnosticSink sink,
-        string subject)
+    internal static PdfFunction Read(PdfDictionary dictionary, double[] domain, double[] range, ShadingWork work,
+        DiagnosticSink sink, string subject)
     {
         var elements = dictionary.Elements;
         var inputs = domain.Length / 2;
@@ -76,9 +76,11 @@ internal sealed class SampledFunction : PdfFunction
             }
         }
 
+        // Decoded no further than the table, which is all that is read of it.
         var needed = (entries * outputs * bits + 7) / 8;
-        if (!PdfContentStreams.TryGetContent(dictionary, out var samples) || samples.Length < needed)
-            return Invalid(sink, subject, "A sampled function's stream is shorter than its /Size, or cannot be decoded.");
+        var samples = work.Decode(dictionary, needed);
+        if (samples == null || samples.Length < needed)
+            return Undecodable(work, sink, subject, "A sampled function's stream is shorter than its /Size, or cannot be decoded.");
 
         var encode = Numbers(elements["/Encode"]);
         if (encode == null || encode.Length != 2 * inputs)
@@ -146,7 +148,7 @@ internal sealed class SampledFunction : PdfFunction
             output[index] = Interpolate(output[index], 0, top, _decode[2 * index], _decode[2 * index + 1]);
     }
 
-    internal override void AddBreakpoints(List<double> into)
+    protected override void AddBreakpoints(List<double> into)
     {
         // The function turns a corner at each sample. A table with more samples than are handed
         // on is sampled like any curve.

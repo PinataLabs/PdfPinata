@@ -241,9 +241,7 @@ internal sealed class ShadingColors
         // Worked in the stops' own offsets, from 0 to 1, so that a domain that runs downwards
         // needs nothing of its own.
         var cuts = new List<double>();
-        var breakpoints = new List<double>();
-        _function.AddBreakpoints(breakpoints);
-        foreach (var at in breakpoints)
+        foreach (var at in _function.Breakpoints)
         {
 #pragma warning disable S1244 // Exact on purpose: only a domain of no length at all cannot be divided by.
             var offset = t1 == t0 ? 0 : (at - t0) / (t1 - t0);

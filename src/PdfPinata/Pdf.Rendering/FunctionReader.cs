@@ -11,16 +11,18 @@ namespace PdfPinata.Pdf.Rendering;
 /// <remarks>
 /// A function is kept by the identity of its dictionary, so a stitching whose pieces all name one
 /// function, nested a few deep, is read in as many steps as it has objects and not in as many as
-/// it has paths through them. A file can still hold many functions that are each different, and
-/// <see cref="MaximumReads"/> bounds those.
+/// it has paths through them. One that cannot be read is kept as that, so that a stream which
+/// fails to decode is decoded and reported once, however many shadings name it. A file can
+/// still hold many functions that are each different, and <see cref="MaximumReads"/> bounds
+/// those; the streams they decode are charged to the render's <see cref="ShadingWork"/>.
 /// </remarks>
-internal sealed class FunctionReader(DiagnosticSink sink)
+internal sealed class FunctionReader(DiagnosticSink sink, ShadingWork work)
 {
     /// <summary>How many function dictionaries one render reads.</summary>
     internal const int MaximumReads = 4096;
 
     // Each function read, with how deep it nests below itself: a function read where it nests
-    // within the limit may be named again where it would not.
+    // within the limit may be named again where it would not. Null for one that could not be.
     private readonly Dictionary<object, (PdfFunction Function, int Height)> _read = new(ReferenceIdentity.Instance);
 
     // The functions being read, from the outermost in: one named again among them is made of itself.
@@ -50,6 +52,9 @@ internal sealed class FunctionReader(DiagnosticSink sink)
         var key = ReferenceIdentity.KeyOf(dictionary);
         if (_read.TryGetValue(key, out var known))
         {
+            if (known.Function == null)
+                return null;
+
             if (depth + known.Height > PdfFunction.MaximumDepth)
                 return TooDeep(subject);
 
@@ -74,7 +79,10 @@ internal sealed class FunctionReader(DiagnosticSink sink)
             }
 
             var function = ReadDictionary(dictionary, depth, subject, out height);
-            if (function != null)
+
+            // A stitching that fails may fail for where it was named, too deep or inside itself,
+            // and is read again where it is named next. What it is made of is kept either way.
+            if (function != null || !IsStitching(dictionary))
                 _read.Add(key, (function, height));
             return function;
         }
@@ -101,10 +109,10 @@ internal sealed class FunctionReader(DiagnosticSink sink)
 
         return type switch
         {
-            0 => SampledFunction.Read(dictionary, domain, range, sink, subject),
+            0 => SampledFunction.Read(dictionary, domain, range, work, sink, subject),
             2 => ExponentialFunction.Read(dictionary, domain, range, sink, subject),
             3 => ReadStitching(dictionary, domain, range, depth, subject, out height),
-            4 => CalculatorFunction.Read(dictionary, domain, range, sink, subject),
+            4 => CalculatorFunction.Read(dictionary, domain, range, work, sink, subject),
             _ => PdfFunction.Invalid(sink, subject, "A function's /FunctionType is 0, 2, 3 or 4.")
         };
     }
@@ -181,6 +189,9 @@ internal sealed class FunctionReader(DiagnosticSink sink)
 
         return new StitchingFunction(domain, range, functions, edges, encode);
     }
+
+    private static bool IsStitching(PdfDictionary dictionary) =>
+        PdfItemValues.TryGetInteger(dictionary.Elements["/FunctionType"], out var type) && type == 3;
 
     private PdfFunction TooDeep(string subject)
     {

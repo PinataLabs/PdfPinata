@@ -556,11 +556,17 @@ internal static class MeshReader
                 || !PdfItemValues.TryGetInteger(elements["/BitsPerComponent"], out var component)
                 || component is not (1 or 2 or 4 or 8 or 12 or 16)
                 || hasFlags && (!PdfItemValues.TryGetInteger(elements["/BitsPerFlag"], out flagBits) || flagBits is not (2 or 4 or 8))
-                || decode == null || decode.Length != 4 + 2 * colors.ComponentCount
-                || !PdfContentStreams.TryGetContent(shading, out var data))
+                || decode == null || decode.Length != 4 + 2 * colors.ComponentCount)
             {
                 return false;
             }
+
+            // Decoded no further than the most triangles a shading is drawn as can reach, at three
+            // whole vertices each. A patch takes far fewer bytes a triangle than that.
+            var vertexBytes = (flagBits + 2 * coordinate + colors.ComponentCount * component + 7) / 8;
+            var data = colors.Work.Decode(shading, 3L * (MaximumTriangles + 1) * vertexBytes);
+            if (data == null)
+                return false;
 
             stream = new VertexStream(data, colors, decode, coordinate, component, flagBits);
             return true;

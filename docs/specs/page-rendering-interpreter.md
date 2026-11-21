@@ -256,11 +256,22 @@ wherever a patch's data ends on a byte.
 **Functions are read once a render.** `RenderContext.Functions`, a `FunctionReader`, keeps each
 function by the identity of its dictionary, so every shading and every stitching that names one
 shares a single instance. A stitching whose 256 pieces each name the stitching below it, four
-deep, is five objects to read and not four billion. Each function knows its `Cost`, the most work
+deep, is five objects to read and not four billion. A function that cannot be read is kept as
+that too, so a stream that fails to decode is decoded and reported once however many shadings
+name it. A stitching is the exception: it may fail for where it was named, too deep, and is read
+again where it is named next, while what it is made of stays kept. Each function also finds its
+breakpoints once, the inputs where it may jump that a gradient puts stops either side of, and a
+stitching looks up only those of each piece's that land inside the piece, so the search is as
+long as the functions are many and not as long as the paths through them. Each function knows its `Cost`, the most work
 one evaluation can be: a step of a calculator program, a sample of a table or an output each count
 one. `RenderContext.ShadingWork` is charged that cost for every colour found through a function,
-and 64 for every triangle of a mesh, across every shading of the render. Once it is spent, the
-shading being read is not drawn, and no shading is read after it.
+and 64 for every triangle of a mesh, across every shading of the render. It also holds the bytes
+the render decodes from the streams of functions and meshes, 128 MiB. Each stream is decoded only
+as far as it can be read: a sampled function to its table's size, a calculator program to one
+byte past 64 KiB, and a mesh to three whole vertices for each triangle it may be drawn as. Every
+table a render keeps was charged against those bytes, so they bound what is held as well: a
+table past them is not read again later but reported and skipped. Once either budget is spent,
+the shading being read is not drawn, and no shading is read after it.
 
 **A tiling cell is recorded by the core.** `ContentInterpreter.Record` runs a content stream
 through an interpreter of its own onto an internal `PictureRecorder`, and answers a `PagePicture`:
@@ -308,6 +319,7 @@ drawn.
 | Functions read | 4,096 dictionaries a render. One named again is not read again. | The function is not read. |
 | Calculator program | 64 KiB, braces 32 deep, a stack of 100. | Not read. A program that runs off its stack, divides by zero, or takes the root or the logarithm of a number out of range answers zeros and is not reported. |
 | Shading work | 2^27 for a render: a function's `Cost` for each colour, 64 for each triangle. About a second of the longest calculator program, or two million triangles. | The shading being read, and every one after it, is not drawn. |
+| Shading bytes | 128 MiB decoded for a render from the streams of functions and meshes, which bounds the sample tables kept: eight of the largest. Each stream is decoded no further than it can be read. | The shading being read, and every one after it, is not drawn. |
 | Gradient stops | 256 | Never more are made. |
 | Mesh | 262,144 triangles | Reading stops and what was read is drawn. A lattice whose rows are longer than its data is `InvalidValue`. |
 | Cells and forms | Counted together by `FormVisits`: once at a time, 32 deep, 4,096 in all. | The pattern paints nothing. This is what stops a cell that paints with its own pattern. |

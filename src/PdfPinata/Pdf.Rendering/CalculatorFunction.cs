@@ -40,14 +40,16 @@ internal sealed class CalculatorFunction : PdfFunction
     // Each instruction runs at most once.
     internal override long Cost => _program.Length + 1;
 
-    internal static PdfFunction Read(PdfDictionary dictionary, double[] domain, double[] range, DiagnosticSink sink,
-        string subject)
+    internal static PdfFunction Read(PdfDictionary dictionary, double[] domain, double[] range, ShadingWork work,
+        DiagnosticSink sink, string subject)
     {
         if (range == null || range.Length == 0)
             return Invalid(sink, subject, "A calculator function has a /Range.");
 
-        if (!PdfContentStreams.TryGetContent(dictionary, out var source))
-            return Invalid(sink, subject, "A calculator function's program cannot be decoded.");
+        // One byte past the most that is read, to know a program longer than that from one as long.
+        var source = work.Decode(dictionary, MaximumLength + 1);
+        if (source == null)
+            return Undecodable(work, sink, subject, "A calculator function's program cannot be decoded.");
 
         if (source.Length > MaximumLength)
         {

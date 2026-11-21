@@ -26,6 +26,7 @@ internal abstract class PdfFunction
 
     private readonly double[] _domain;
     private readonly double[] _range;
+    private double[] _breakpoints;
 
     /// <param name="domain">A low and a high for each input.</param>
     /// <param name="range">A low and a high for each output, or null where the outputs are not clipped.</param>
@@ -72,11 +73,35 @@ internal abstract class PdfFunction
     protected abstract void Compute(ReadOnlySpan<double> input, Span<double> output);
 
     /// <summary>
-    /// Adds the inputs at which a function of one input may jump or turn a corner: the bounds of
-    /// a stitching, the knots of a table. Whoever samples the function puts a sample either side
+    /// The inputs at which a function of one input may jump or turn a corner: the bounds of a
+    /// stitching, the knots of a table. Whoever samples the function puts a sample either side
     /// of each, so that a hard edge stays hard.
     /// </summary>
-    internal virtual void AddBreakpoints(List<double> into)
+    /// <remarks>
+    /// In ascending order, at most <see cref="MaximumBreakpoints"/> of them, and found once: a
+    /// stitching whose pieces all name one function, nested a few deep, is searched in as many
+    /// steps as it has functions and not in as many as it has paths through them.
+    /// </remarks>
+    internal double[] Breakpoints
+    {
+        get
+        {
+            if (_breakpoints == null)
+            {
+                var found = new List<double>();
+                AddBreakpoints(found);
+                found.Sort();
+                if (found.Count > MaximumBreakpoints)
+                    found.RemoveRange(MaximumBreakpoints, found.Count - MaximumBreakpoints);
+                _breakpoints = found.ToArray();
+            }
+
+            return _breakpoints;
+        }
+    }
+
+    /// <summary>Adds the function's own <see cref="Breakpoints"/>, in any order.</summary>
+    protected virtual void AddBreakpoints(List<double> into)
     {
     }
 
@@ -89,6 +114,20 @@ internal abstract class PdfFunction
 #pragma warning disable S1244 // Exact on purpose: only an interval of no length at all cannot be divided by.
         return x1 == x0 ? y0 : y0 + (x - x0) * (y1 - y0) / (x1 - x0);
 #pragma warning restore S1244
+    }
+
+    /// <summary>
+    /// Reports a function whose stream could not be decoded: because the render has decoded all
+    /// it may, or because the stream is broken.
+    /// </summary>
+    internal static PdfFunction Undecodable(ShadingWork work, DiagnosticSink sink, string subject, string message)
+    {
+        if (!work.IsSpent)
+            return Invalid(sink, subject, message);
+
+        sink.Report(PageRenderProblem.LimitReached, subject,
+            "The page's shadings decode more than one render reads. What this function colours is not drawn.");
+        return null;
     }
 
     internal static PdfFunction Invalid(DiagnosticSink sink, string subject, string message)
@@ -222,25 +261,42 @@ internal sealed class StitchingFunction : PdfFunction
         _functions[piece].Evaluate(encoded, output);
     }
 
-    internal override void AddBreakpoints(List<double> into)
+    protected override void AddBreakpoints(List<double> into)
     {
-        var inner = new List<double>();
         for (var piece = 0; piece < _functions.Length && into.Count < MaximumBreakpoints; piece++)
         {
             if (piece > 0)
                 into.Add(_edges[piece]);
 
-            // The piece's own, taken from its input back to this function's.
-            inner.Clear();
-            _functions[piece].AddBreakpoints(inner);
+            // The piece's own, taken from its input back to this function's. Only those strictly
+            // between the ends of the piece's /Encode land inside the piece.
+            var inner = _functions[piece].Breakpoints;
             double from = _encode[2 * piece], to = _encode[2 * piece + 1];
-            foreach (var at in inner)
+            var high = Math.Max(from, to);
+            for (var index = FirstAbove(inner, Math.Min(from, to)); index < inner.Length && inner[index] < high
+                                                                     && into.Count < MaximumBreakpoints; index++)
             {
-                var x = Interpolate(at, from, to, _edges[piece], _edges[piece + 1]);
-                if (x > _edges[piece] && x < _edges[piece + 1] && into.Count < MaximumBreakpoints)
+                var x = Interpolate(inner[index], from, to, _edges[piece], _edges[piece + 1]);
+                if (x > _edges[piece] && x < _edges[piece + 1])
                     into.Add(x);
             }
         }
+    }
+
+    // The index of the first of the ascending values that is above the low.
+    private static int FirstAbove(double[] values, double low)
+    {
+        int start = 0, end = values.Length;
+        while (start < end)
+        {
+            var middle = (start + end) / 2;
+            if (values[middle] > low)
+                end = middle;
+            else
+                start = middle + 1;
+        }
+
+        return start;
     }
 }
 
@@ -266,12 +322,12 @@ internal sealed class FunctionGroup : PdfFunction
             _functions[index].Evaluate(input, output.Slice(index, 1));
     }
 
-    internal override void AddBreakpoints(List<double> into)
+    protected override void AddBreakpoints(List<double> into)
     {
         foreach (var function in _functions)
         {
             if (into.Count < MaximumBreakpoints)
-                function.AddBreakpoints(into);
+                into.AddRange(function.Breakpoints);
         }
     }
 
