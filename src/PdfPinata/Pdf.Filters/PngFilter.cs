@@ -19,7 +19,7 @@ internal static class PngFilter
         var row = new byte[stride];
         var pos = 0;
         var outIndex = 0;
-        while (pos < inData.Length)
+        while (pos + stride + 1 <= inData.Length)
         {
             Array.Copy(inData, pos + 1, row, 0, stride);
             var filterType = inData[pos];
