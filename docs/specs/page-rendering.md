@@ -27,7 +27,7 @@ the other items is added.
 | 12 | Shadings (`sh`, shading patterns) and tiling patterns | done (#382); `page-rendering-interpreter.md` has the seam |
 | 13 | Blend modes, transparency groups, soft-mask groups | deferred; reported where they change what is drawn |
 | 14 | Separation, DeviceN, Lab, and ICC colour management | deferred |
-| 15 | CCITTFax, JBIG2 and JPX images | deferred |
+| 15 | CCITTFax, JBIG2 and JPX images | CCITTFax done (#385); JBIG2 and JPX deferred |
 | 16 | Optional content | done (#386): `/D`, a named `/Configs` entry, or groups switched by the caller; content of a group that is off is not drawn |
 | 17 | Annotation appearances, and the option to draw them | done (#387) |
 | 18 | `PdfTextExtractor` and `PdfImagePlacementReader` on the new interpreter | follow-up |
@@ -169,9 +169,9 @@ The core decodes an image XObject or inline image into one neutral sample buffer
 DCT is the one filter decoded outside the core, by `SKCodec` in the Skia package, because the core
 carries no imaging dependency. The device decodes it *for* the core, through
 `PageDevice.DecodeImage`, and hands the samples back, so the `/Decode` array and the masks are
-applied in one place and a device draws only finished samples. CCITTFax, JBIG2 and JPX are item 15.
-An image the renderer cannot decode is skipped and reported. `page-rendering-interpreter.md` says
-how it was built (#375).
+applied in one place and a device draws only finished samples. CCITTFax is decoded in the core, by
+the `CCITTFaxDecode` filter (#385); JBIG2 and JPX are item 15. An image the renderer cannot
+decode is skipped and reported. `page-rendering-interpreter.md` says how it was built (#375).
 
 **An image is inflated to a cap, because Flate does not say how big it will be.** A few kilobytes
 can expand to gigabytes, and bounding the image by its `/Width` and `/Height` before decoding does

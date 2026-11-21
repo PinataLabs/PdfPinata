@@ -363,7 +363,15 @@ internal static class PageImages
                         Report(PageRenderProblem.UnsupportedImage, what + " is filtered after /DCTDecode, which a JPEG decoder cannot read.");
                         return false;
 
-                    case "/CCITTFaxDecode" or "/CCF" or "/JBIG2Decode" or "/JPXDecode":
+                    case "/CCITTFaxDecode" or "/CCF":
+                        // A last fax filter decodes the image's /Height in rows, whatever /Rows says.
+                        if (!TryReadSize(image, what, out var width, out var height)
+                            || !TryDecodeFax(unfiltered, parameters[index] as PdfDictionary, width,
+                                index == filters.Length - 1 ? height : null, what, out unfiltered))
+                            return false;
+                        continue;
+
+                    case "/JBIG2Decode" or "/JPXDecode":
                         ReportNotDecodedYet(what, name);
                         return false;
                 }
@@ -434,6 +442,45 @@ internal static class PageImages
             decodeParms != null && PdfItemValues.TryGetInteger(decodeParms.Elements[key], out var value) && value >= 1
                 ? value
                 : defaultValue;
+
+        /// <summary>
+        /// The widest <c>/Columns</c> drawn for an image of <paramref name="width"/> pixels: twice
+        /// the width, and never under 65536, which no fax is. Viewers decode by <c>/Columns</c> and
+        /// not by the width, so a mismatch within this is drawn as they draw it; a 1 pixel image
+        /// that names 2 billion columns is not decoded into a 256 MiB buffer for them.
+        /// </summary>
+        private static long MostFaxColumns(int width) => Math.Max(1L << 16, 2L * width);
+
+        /// <summary>
+        /// Facsimile data decoded to <paramref name="rows"/> rows, or to those <c>/Rows</c> says
+        /// where that is null. The rows past where damaged or short data stops are white, which is
+        /// reported, and the image is drawn.
+        /// </summary>
+        private bool TryDecodeFax(byte[] data, PdfDictionary parameters, int width, int? rows, string what, out byte[] decoded)
+        {
+            decoded = null;
+            try
+            {
+                var faxParameters = CcittFaxParameters.Read(parameters);
+                if (rows != null && faxParameters.Columns > MostFaxColumns(width))
+                {
+                    Report(PageRenderProblem.InvalidValue,
+                        $"{what}'s /CCITTFaxDecode /Columns of {faxParameters.Columns} is far wider than the image's {width} pixels.");
+                    return false;
+                }
+
+                var result = CcittFaxDecoder.Decode(data, faxParameters, rows ?? faxParameters.Rows);
+                if (result.Problem != null)
+                    Report(PageRenderProblem.InvalidValue, $"{what}'s /CCITTFaxDecode data {result.Problem}");
+                decoded = result.Data;
+                return true;
+            }
+            catch (InvalidOperationException ex)
+            {
+                Report(PageRenderProblem.InvalidValue, $"{what}'s /CCITTFaxDecode data cannot be decoded: {ex.Message}");
+                return false;
+            }
+        }
 
         private void ReportNotDecodedYet(string what, string filter) =>
             Report(PageRenderProblem.UnsupportedImage, $"{what} is encoded with {filter}, which is not decoded yet.");

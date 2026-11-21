@@ -40,6 +40,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Assets\**" LogicalName="Assets/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="..\PdfPinata.Test\Assets\Ccitt\group4-scan.pdf;..\PdfPinata.Test\Assets\Ccitt\g4-blackis1.bin" LogicalName="Assets/%(Filename)%(Extension)" />
   </ItemGroup>
 
 </Project>

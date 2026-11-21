@@ -164,9 +164,19 @@ internal class PdfWriter
     public void Write(double value)
     {
         WriteSeparator();
-        WriteRaw(value.ToString(Config.SignificantFigures7, CultureInfo.InvariantCulture));
+        WriteRaw(Finite(value).ToString(Config.SignificantFigures7, CultureInfo.InvariantCulture));
         _lastCat = CharCat.Character;
     }
+
+    /// <summary>
+    /// Holds a real to what a PDF file can say. Infinity and NaN have no spelling in PDF, and a
+    /// file that names one cannot be read back, so an infinite value is written as the largest
+    /// real ISO 32000-1 Annex C allows and NaN as 0. A finite value is written as it is. Clamped here rather than refused where
+    /// <see cref="PdfRealObject.Value"/> is set, because that setter is public and has always
+    /// taken any double, and the one place every real passes on its way out is this.
+    /// </summary>
+    private static double Finite(double value) =>
+        double.IsNaN(value) ? 0 : double.IsInfinity(value) ? (value > 0 ? float.MaxValue : -float.MaxValue) : value;
 
     /// <summary>
     /// Writes the specified value to the PDF stream.
@@ -174,7 +184,7 @@ internal class PdfWriter
     public void Write(PdfReal value)
     {
         WriteSeparator();
-        WriteRaw(value.Value.ToString(Config.SignificantFigures7, CultureInfo.InvariantCulture));
+        WriteRaw(Finite(value.Value).ToString(Config.SignificantFigures7, CultureInfo.InvariantCulture));
         _lastCat = CharCat.Character;
     }
 

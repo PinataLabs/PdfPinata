@@ -454,17 +454,13 @@ public class Lexer
 
         if (AppendDigitsAndPeriod(ch))
             return Symbol.Real;
-        var l = long.Parse(_token.ToString(), CultureInfo.InvariantCulture);
+        // An integer too large for a long - a stray run of digits in a /Rect, or in the garbage
+        // after a stream - is read as a real, as pdf.js and MuPDF read it. Never an exception.
+        if (!long.TryParse(_token.ToString(), NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var l))
+            return Symbol.Real;
         if (l is >= int.MinValue and <= int.MaxValue)
             return Symbol.Integer;
-        // ReSharper disable ConditionIsAlwaysTrueOrFalse
-        if (l >= long.MinValue && l <= long.MaxValue)
-            return Symbol.Long;
-        // ReSharper restore ConditionIsAlwaysTrueOrFalse
-
-        // Got an AutoCAD PDF file that contains this: /C 264584027963392
-        // Best we can do is to convert it to real value.
-        return Symbol.Real;
+        return Symbol.Long;
     }
 
     /// <summary>
@@ -888,7 +884,25 @@ public class Lexer
     /// <summary>
     /// Interprets current token as real or integer literal.
     /// </summary>
-    public double TokenToReal => double.Parse(_token.ToString(), CultureInfo.InvariantCulture);
+    public double TokenToReal => ParseReal(_token.ToString());
+
+    /// <summary>
+    /// Reads the text of a number as a finite real. A finite value is kept as written, even beyond
+    /// float.MaxValue, the largest real ISO 32000-1 Annex C allows. Only a number with so many
+    /// digits that it reads as infinity is held to float.MaxValue, because infinity has no
+    /// spelling in a file. A token with no digit in it, a lone sign or a lone period, and NaN read as 0.
+    /// TryParse rather than Parse, because a runtime may throw an OverflowException where
+    /// others answer infinity.
+    /// </summary>
+    internal static double ParseReal(string token)
+    {
+        if (double.TryParse(token, NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
+            return double.IsNaN(value) ? 0 : double.IsInfinity(value) ? (value > 0 ? float.MaxValue : -float.MaxValue) : value;
+
+        if (!token.Any(char.IsDigit))
+            return 0;
+        return token.StartsWith('-') ? -float.MaxValue : float.MaxValue;
+    }
 
     /// <summary>
     /// Interprets current token as object ID.
