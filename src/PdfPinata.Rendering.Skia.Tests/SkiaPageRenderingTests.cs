@@ -105,6 +105,42 @@ public class SkiaPageRenderingTests
     }
 
     [Test]
+    public void OptionalContentIsDrawnByTheDefaultConfigurationUnlessAnotherIsChosen()
+    {
+        // A page 100 by 150, as Page makes it: the group is off in /D and on in the configuration "Show".
+        PdfDictionary group = null;
+        var document = HandWritten.Page("/OC /L1 BDC 0 0 1 rg 0 0 100 150 re f EMC", page: (doc, added) =>
+        {
+            group = new PdfDictionary(doc);
+            doc.Internals.AddObject(group);
+            group.Elements.SetName("/Type", "/OCG");
+            var off = new PdfDictionary(doc);
+            off.Elements["/OFF"] = new PdfArray(doc, group.Reference);
+            var show = new PdfDictionary(doc);
+            show.Elements.SetString("/Name", "Show");
+            var properties = new PdfDictionary(doc);
+            properties.Elements["/OCGs"] = new PdfArray(doc, group.Reference);
+            properties.Elements["/D"] = off;
+            properties.Elements["/Configs"] = new PdfArray(doc, show);
+            doc.Internals.Catalog.Elements["/OCProperties"] = properties;
+
+            var names = new PdfDictionary(doc);
+            names.Elements["/L1"] = group.Reference;
+            var resources = new PdfDictionary(doc);
+            resources.Elements["/Properties"] = names;
+            added.Elements["/Resources"] = resources;
+        });
+
+        using var hidden = document.ToSKBitmap(0);
+        using var named = document.ToSKBitmap(0, new PageRenderOptions { OptionalContent = new PageOptionalContent { Configuration = "Show" } });
+        using var switched = document.ToSKBitmap(0, new PageRenderOptions { OptionalContent = new PageOptionalContent { On = [group] } });
+
+        hidden.GetPixel(50, 75).Should().Be(SKColors.White);
+        named.GetPixel(50, 75).Should().Be(SKColors.Blue);
+        switched.GetPixel(50, 75).Should().Be(SKColors.Blue);
+    }
+
+    [Test]
     public void TheBackgroundIsWhiteUnlessItIsSaid()
     {
         using var bitmap = Page("").ToSKBitmap();

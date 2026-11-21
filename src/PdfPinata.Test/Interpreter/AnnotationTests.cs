@@ -389,7 +389,7 @@ public class AnnotationTests
     }
 
     [Test]
-    public void AnAppearanceStreamInAGroupSwitchedOffIsReported()
+    public void AnAppearanceStreamInAGroupSwitchedOffIsNotDrawnAndNotReported()
     {
         var page = Drawn.PageOf("");
         var form = Drawn.Form(page.Owner, "0 0 100 100 re f");
@@ -398,8 +398,22 @@ public class AnnotationTests
 
         var (device, result) = Render(page);
 
-        device.Fills.Should().ContainSingle();
-        result.Diagnostics.Should().ContainSingle(d => d.Problem == PageRenderProblem.UnsupportedFeature && d.Subject == "/OC");
+        device.Fills.Should().BeEmpty();
+        result.IsComplete.Should().BeTrue();
+    }
+
+    [Test]
+    public void AnAnnotationInAGroupSwitchedOffIsNotDrawn()
+    {
+        var page = Drawn.PageOf("");
+        var form = Drawn.Form(page.Owner, "0 0 100 100 re f");
+        var annotation = Annotation(page.Owner, page, "/Square", Reference(form));
+        annotation.Elements["/OC"] = OffGroup(page.Owner).Reference;
+
+        var (device, result) = Render(page);
+
+        device.Fills.Should().BeEmpty();
+        result.IsComplete.Should().BeTrue();
     }
 
     [Test]

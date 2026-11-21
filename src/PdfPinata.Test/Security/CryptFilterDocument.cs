@@ -30,6 +30,19 @@ internal sealed class CryptFilterDocument
     /// </summary>
     public string Method { get; init; } = "/V2";
 
+    /// <summary>
+    ///   The revision RC4 (<c>/V2</c>) is written at: 4, through the crypt filter <c>/StdCF</c>, or 3, at
+    ///   <c>/V</c> 2 with no crypt filters at all. Both derive the same keys.
+    /// </summary>
+    public int Revision { get; init; } = 4;
+
+    /// <summary>
+    ///   Entries added to the page dictionary, object 3. The function given writes a hex string holding
+    ///   the bytes it is handed, encrypted under the page's own object key, as every string the page
+    ///   holds is, however deep in it.
+    /// </summary>
+    public Func<Func<byte[], string>, string> PageEntries { get; init; }
+
     /// <summary>The crypt filter streams are encrypted with: <c>/StdCF</c> or <c>/Identity</c>, or null to leave <c>/StmF</c> out, which means <c>/Identity</c>.</summary>
     public string StreamFilter { get; init; } = "/StdCF";
 
@@ -85,6 +98,8 @@ internal sealed class CryptFilterDocument
 
     private bool Aes256 => Method == "/AESV3";
 
+    private bool Revision3 => Revision == 3 && !Aes;
+
     /// <summary>
     ///   What the reader would answer for <paramref name="data"/> of object <paramref name="number"/>
     ///   if it decrypted bytes that were never encrypted, with AES-128 and the padding check off:
@@ -112,11 +127,14 @@ internal sealed class CryptFilterDocument
         {
             Ascii("<< /Type /Catalog /Pages 2 0 R /Metadata 4 0 R >>"),
             Ascii("<< /Type /Pages /Kids [3 0 R] /Count 1 >>"),
-            Ascii("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Contents 5 0 R >>"),
+            Ascii("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Contents 5 0 R " +
+                  $"{PageEntries?.Invoke(bytes => $"<{Hex(Encrypt(3, bytes))}>")} >>"),
             Stream($"/Type /Metadata /Subtype /XML{MetadataEntries}", metadata),
             Stream("", content),
             Ascii($"<< /Title {(LiteralTitle ? Octal(title) : $"<{Hex(title)}>")} >>"),
-            Ascii($"<< /Filter /Standard {Handler()} /CF << /StdCF << /CFM {Method} /AuthEvent /DocOpen " +
+            Ascii(Revision3
+                ? $"<< /Filter /Standard {Handler()} /P {Permissions} >>"
+                : $"<< /Filter /Standard {Handler()} /CF << /StdCF << /CFM {Method} /AuthEvent /DocOpen " +
                   $"/Length {FileKey.Length} >> >>{Entry("/StmF", StreamFilter)}{Entry("/StrF", StringFilter)} " +
                   $"/P {Permissions}{encryptMetadata} >>")
         };
@@ -148,7 +166,7 @@ internal sealed class CryptFilterDocument
         if (!Aes256)
         {
             var user = StandardSecurity.UserEntry(FileKey, Id, 4).Concat(new byte[16]).ToArray();
-            return $"/V 4 /R 4 /Length 128 /O <{Hex(Owner)}> /U <{Hex(user)}>";
+            return $"{(Revision3 ? "/V 2 /R 3" : "/V 4 /R 4")} /Length 128 /O <{Hex(Owner)}> /U <{Hex(user)}>";
         }
 
         var u = Aes256Security.UserEntry("");

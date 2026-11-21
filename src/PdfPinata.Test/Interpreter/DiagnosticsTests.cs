@@ -46,6 +46,22 @@ public class DiagnosticsTests
         drawn.Problems.Should().Equal("WrongOperands w", "WrongOperands rg", "WrongOperands re");
     }
 
+    // The entries of an inline image used to be read a second time from their start when the first
+    // reading met a fault, so a stray delimiter among them was reported more often than elsewhere.
+    [Test, Timeout(30_000)]
+    [Arguments(")")]
+    [Arguments(">")]
+    public async Task AStrayDelimiterAmongAnInlineImagesEntriesIsReportedAsOftenAsAnywhereElse(string stray)
+    {
+        var elsewhere = await Page($"{stray} 0 0 5 5 re f");
+
+        var drawn = await Page($"BI /W 1 {stray} ID a\nEI 0 0 5 5 re f");
+
+        drawn.Device.Body.Should().Equal(Square + "rgb(0,0,0)");
+        drawn.Problems.Should().Equal("UnreadableContent page", "UnknownOperator a");
+        drawn.Result.Diagnostics[0].Occurrences.Should().Be(elsewhere.Result.Diagnostics.Single().Occurrences);
+    }
+
     [Test, Timeout(30_000)]
     public async Task AnOperatorGivenMoreOperandsThanItTakesIsDrawnFromItsOwn()
     {

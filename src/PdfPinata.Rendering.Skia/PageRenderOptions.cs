@@ -35,6 +35,13 @@ public sealed class PageRenderOptions
     /// </summary>
     public bool Annotations { get; init; } = true;
 
+    /// <summary>
+    /// Which optional content (layers) is drawn: a configuration of the document, and groups
+    /// switched on or off over it. Null, the default, draws the document's default configuration
+    /// as a viewer opens it. Content in a group that is off is not drawn.
+    /// </summary>
+    public PageOptionalContent OptionalContent { get; init; }
+
     /// <summary>Whether edges are smoothed. On by default.</summary>
     public bool AntiAlias { get; init; } = true;
 }

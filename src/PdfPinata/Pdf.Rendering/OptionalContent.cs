@@ -4,13 +4,14 @@ using PdfPinata.Pdf.Advanced;
 namespace PdfPinata.Pdf.Rendering;
 
 /// <summary>
-/// Which of a document's optional content is switched off in its default configuration: the
-/// <c>/D</c> of the catalog's <c>/OCProperties</c> (ISO 32000-1 8.11).
+/// Which of a document's optional content is switched off in the configuration a render uses: the
+/// <c>/D</c> of the catalog's <c>/OCProperties</c>, or one of its <c>/Configs</c>, with the
+/// caller's groups switched on or off over it (ISO 32000-1 8.11).
 /// </summary>
 /// <remarks>
 /// <para>
-/// This answers a question and hides nothing. Page rendering does not apply optional content
-/// yet, and asks only so that it can say when it has drawn what a viewer would not.
+/// This answers a question and hides nothing. The interpreter asks it and draws nothing of what
+/// it says is hidden.
 /// </para>
 /// <para>
 /// One instance serves one render, and remembers its answer for each membership: a page may
@@ -42,6 +43,10 @@ internal sealed class OptionalContent
     // The groups /D lists against its base state: those in /OFF, or where every group starts
     // off, those in /ON.
     private readonly HashSet<object> _exceptions = new(ReferenceIdentity.Instance);
+
+    // The groups the caller switched, which win over the configuration.
+    private readonly HashSet<object> _forcedOn = new(ReferenceIdentity.Instance);
+    private readonly HashSet<object> _forcedOff = new(ReferenceIdentity.Instance);
     private readonly bool _offUnlessListed;
 
     // The intents of /D, or null where it names /All.
@@ -49,14 +54,24 @@ internal sealed class OptionalContent
 
     private readonly Dictionary<object, bool> _hides = new(ReferenceIdentity.Instance);
 
-    private OptionalContent(PdfDictionary configuration)
+    private OptionalContent(PdfDictionary configuration, PdfDictionary defaults, PageOptionalContent selection)
     {
-        _offUnlessListed = configuration?.Elements.GetNameOrEmpty("/BaseState") == "/OFF";
-        var listed = configuration?.Elements.GetArray(_offUnlessListed ? "/ON" : "/OFF");
-        for (var index = 0; listed != null && index < listed.Elements.Count; index++)
+        AddAll(_forcedOn, selection?.On);
+        AddAll(_forcedOff, selection?.Off);
+
+        // A configuration that leaves the base state unchanged starts from what /D says, which
+        // is what the groups are at the start of a render, and applies its own lists over it
+        // (ISO 32000-1 Table 101).
+        var unchanged = configuration != null && defaults != null && !ReferenceEquals(configuration, defaults)
+                        && configuration.Elements.GetNameOrEmpty("/BaseState") == "/Unchanged";
+        var basis = unchanged ? defaults : configuration;
+
+        _offUnlessListed = basis?.Elements.GetNameOrEmpty("/BaseState") == "/OFF";
+        AddGroups(_exceptions, basis?.Elements.GetArray(_offUnlessListed ? "/ON" : "/OFF"), add: true);
+        if (unchanged)
         {
-            if (listed.Elements.GetDictionary(index) is { } group)
-                _exceptions.Add(ReferenceIdentity.KeyOf(group));
+            AddGroups(_exceptions, configuration.Elements.GetArray("/ON"), add: _offUnlessListed);
+            AddGroups(_exceptions, configuration.Elements.GetArray("/OFF"), add: !_offUnlessListed);
         }
 
         _intents = Intents(configuration?.Elements["/Intent"]);
@@ -64,9 +79,69 @@ internal sealed class OptionalContent
             _intents = null;
     }
 
-    /// <summary>The optional content of a document, which may state none.</summary>
-    internal static OptionalContent Of(PdfDocument document) =>
-        new(document?.Catalog.Elements.GetDictionary(PdfCatalog.Keys.OCProperties)?.Elements.GetDictionary("/D"));
+    private static void AddGroups(HashSet<object> keys, PdfArray listed, bool add)
+    {
+        for (var index = 0; listed != null && index < listed.Elements.Count; index++)
+        {
+            if (listed.Elements.GetDictionary(index) is not { } group)
+                continue;
+
+            if (add)
+                keys.Add(ReferenceIdentity.KeyOf(group));
+            else
+                keys.Remove(ReferenceIdentity.KeyOf(group));
+        }
+    }
+
+    private static void AddAll(HashSet<object> keys, IReadOnlyCollection<PdfDictionary> groups)
+    {
+        if (groups == null)
+            return;
+
+        foreach (var group in groups)
+        {
+            if (group != null)
+                keys.Add(ReferenceIdentity.KeyOf(group));
+        }
+    }
+
+    /// <summary>
+    /// The optional content of a document, which may state none.
+    /// </summary>
+    /// <param name="document">The document, or null.</param>
+    /// <param name="selection">Which configuration to read, and the groups to switch over it, or null for <c>/D</c> alone.</param>
+    /// <param name="problem">What was wrong with the selection, or null.</param>
+    internal static OptionalContent Of(PdfDocument document, PageOptionalContent selection, out string problem)
+    {
+        problem = null;
+        var properties = document?.Catalog.Elements.GetDictionary(PdfCatalog.Keys.OCProperties);
+        var defaults = properties?.Elements.GetDictionary("/D");
+        var configuration = defaults;
+
+        if (selection?.Configuration is { } name)
+        {
+            configuration = Named(properties, name);
+            if (configuration == null)
+            {
+                problem = $"The document has no optional content configuration named \"{name}\". Its default configuration is used.";
+                configuration = defaults;
+            }
+        }
+
+        return new OptionalContent(configuration, defaults, selection);
+    }
+
+    private static PdfDictionary Named(PdfDictionary properties, string name)
+    {
+        var configs = properties?.Elements.GetArray("/Configs");
+        for (var index = 0; configs != null && index < configs.Elements.Count; index++)
+        {
+            if (configs.Elements.GetDictionary(index) is { } candidate && candidate.Elements.TryGetString("/Name", out var candidateName) && candidateName == name)
+                return candidate;
+        }
+
+        return null;
+    }
 
     /// <summary>
     /// Whether content is hidden that belongs to a group, or to a membership dictionary that
@@ -154,8 +229,17 @@ internal sealed class OptionalContent
     /// an expression, rather than read as on, which a <c>/Not</c> or <c>/AllOff</c> would turn
     /// to hidden.
     /// </summary>
-    private bool? StateOf(PdfDictionary group) =>
-        Counts(group) ? _exceptions.Contains(ReferenceIdentity.KeyOf(group)) == _offUnlessListed : null;
+    private bool? StateOf(PdfDictionary group)
+    {
+        if (!Counts(group))
+            return null;
+
+        var key = ReferenceIdentity.KeyOf(group);
+        if (_forcedOff.Contains(key))
+            return false;
+
+        return _forcedOn.Contains(key) || _exceptions.Contains(key) == _offUnlessListed;
+    }
 
     private bool Counts(PdfDictionary group)
     {

@@ -33,11 +33,22 @@ internal sealed class PaintRouter
     /// <summary>The device, for what is no paint: saves, restores and decoding.</summary>
     internal GuardedDevice Device { get; }
 
+    /// <summary>
+    /// Whether the content being drawn is optional content that is switched off. Nothing is
+    /// painted, no shader is handed over and no shader the device declines is reported, but a
+    /// clip still reaches the device.
+    /// </summary>
+    internal bool Hidden
+    {
+        get => Device.Hidden;
+        set => Device.Hidden = value;
+    }
+
     internal void Clip(PagePath path, XMatrix transform, XFillMode fillMode) => Device.Clip(path, transform, fillMode);
 
     internal void Fill(PagePath path, XMatrix transform, XFillMode fillMode, RenderPaint paint)
     {
-        if (paint.IsNothing)
+        if (paint.IsNothing || Hidden)
             return;
 
         if (paint.Shaded == null)
@@ -54,7 +65,7 @@ internal sealed class PaintRouter
 
     internal void Stroke(PagePath path, XMatrix transform, PageStroke stroke, RenderPaint paint)
     {
-        if (paint.IsNothing)
+        if (paint.IsNothing || Hidden)
             return;
 
         if (paint.Shaded == null)
@@ -71,6 +82,9 @@ internal sealed class PaintRouter
 
     internal void DrawImage(PageImage image, XMatrix transform, RenderPaint paint)
     {
+        if (Hidden)
+            return;
+
         // Only a stencil mask is painted with the fill colour. Any other image takes its alpha.
         if (image.Format != PageImageFormat.Alpha8)
         {

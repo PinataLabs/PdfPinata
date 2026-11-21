@@ -76,6 +76,9 @@ internal sealed class RenderContext
 
     internal PdfDocument Document { get; set; }
 
+    /// <summary>Which optional content the caller switched on or off, or null for the document's own default.</summary>
+    internal PageOptionalContent OptionalContentSelection { get; init; }
+
     /// <summary>Read from the document the first time content asks about a group.</summary>
     internal OptionalContent OptionalContent { get; set; }
 

@@ -33,16 +33,17 @@ internal sealed class Drawn
     /// <param name="content">The operators.</param>
     /// <param name="resources">Fills in the page's resources.</param>
     /// <param name="glyphSources">Asked for each font's glyphs, as <see cref="PageRendering.Render"/> takes it.</param>
+    /// <param name="optionalContent">Which optional content is drawn, asked for once the resources are filled in because it names groups of the document; null draws the default configuration.</param>
     public static Drawn Page(string content, Action<PdfDocument, PdfDictionary> resources = null,
-        Func<PdfDictionary, PageGlyphSource> glyphSources = null) =>
-        Page(Encoding.Latin1.GetBytes(content), resources, glyphSources);
+        Func<PdfDictionary, PageGlyphSource> glyphSources = null, Func<PageOptionalContent> optionalContent = null) =>
+        Page(Encoding.Latin1.GetBytes(content), resources, glyphSources, optionalContent);
 
     public static Drawn Page(byte[] content, Action<PdfDocument, PdfDictionary> resources = null,
-        Func<PdfDictionary, PageGlyphSource> glyphSources = null)
+        Func<PdfDictionary, PageGlyphSource> glyphSources = null, Func<PageOptionalContent> optionalContent = null)
     {
         var page = PageOf(content, resources);
         var device = new RecordingDevice();
-        return new Drawn(PageRendering.Render(page, device, glyphSources: glyphSources), device);
+        return new Drawn(PageRendering.Render(page, device, glyphSources: glyphSources, optionalContent: optionalContent?.Invoke()), device);
     }
 
     /// <summary>

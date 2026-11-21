@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -112,6 +113,18 @@ internal sealed class StandardSecurity
     /// <summary>A string entry of an object, decrypted with that object's own key.</summary>
     public byte[] DecryptedObjectBytes(int objectNumber, string key) =>
         Rc4(ObjectKey(_fileKey, objectNumber, 0), RawObjectBytes(objectNumber, key));
+
+    /// <summary>
+    ///   Every hex string in an object, in the order they stand in the file, each decrypted with that
+    ///   object's own key however deep in its arrays and dictionaries it sits (ISO 32000-1 7.6.2).
+    /// </summary>
+    public IReadOnlyList<byte[]> DecryptedHexStrings(int objectNumber)
+    {
+        var key = ObjectKey(_fileKey, objectNumber, 0);
+        return Regex.Matches(ObjectBody(objectNumber), "<([0-9A-Fa-f]+)>")
+            .Select(hex => Rc4(key, Convert.FromHexString(hex.Groups[1].Value)))
+            .ToList();
+    }
 
     private int InfoObjectNumber => int.Parse(Last(_pdf, @"/Info\s+(\d+)\s+\d+\s+R").Groups[1].Value);
     private string InfoDictionary => ObjectBody(InfoObjectNumber);

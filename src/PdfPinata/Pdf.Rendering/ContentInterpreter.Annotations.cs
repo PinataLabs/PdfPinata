@@ -107,14 +107,14 @@ internal sealed partial class ContentInterpreter
         if (appearance == null)
             return;
 
+        if (IsHidden(annotation.Elements.GetDictionary("/OC")) || IsHidden(appearance.Elements.GetDictionary("/OC")))
+            return;
+
         if (flags is { } kept && (kept & (NoZoomFlag | NoRotateFlag)) != 0 && !IsUpright)
         {
             _sink.Report(PageRenderProblem.UnsupportedFeature, "/F",
                 "The no-zoom and no-rotate flags are not applied yet. The appearance is drawn scaled and turned with the page.");
         }
-
-        ReportIfHidden(annotation.Elements.GetDictionary("/OC"));
-        ReportIfHidden(appearance.Elements.GetDictionary("/OC"));
 
         if (PdfItemValues.TryGetNumber(annotation.Elements["/CA"], out var opacity) && opacity < 1)
         {

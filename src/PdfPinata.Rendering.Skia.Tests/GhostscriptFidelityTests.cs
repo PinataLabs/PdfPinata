@@ -442,6 +442,58 @@ public class GhostscriptFidelityTests
             nameof(AnAnnotationAppearanceMappedOntoItsRectangle) + rotate, new PageRenderOptions { Scale = 2 })
             .ShouldBeWithin(meanChannelDifference: 0.8, shareOverThreshold: 0.005);
 
+    // Ghostscript honours the default configuration, /D, unless told not to. The red square is in
+    // marked content of the group that is off and the green one is a form of it, so each way a
+    // page names a group is compared; the blue square is in the group that is on. Drawn all, the
+    // page differs from Ghostscript's by the two squares.
+    [Test]
+    public void ContentOfAGroupTheDefaultConfigurationSwitchesOff()
+    {
+        var document = HandWritten.Page(
+            "/OC /Off BDC 1 0 0 rg 10 10 80 60 re f EMC " +
+            "/OC /On BDC 0 0 1 rg 110 10 80 60 re f EMC " +
+            "/Fm1 Do",
+            page: (document, page) =>
+            {
+                var off = new PdfDictionary(document);
+                document.Internals.AddObject(off);
+                off.Elements.SetName("/Type", "/OCG");
+                off.Elements.SetString("/Name", "Off");
+                var on = new PdfDictionary(document);
+                document.Internals.AddObject(on);
+                on.Elements.SetName("/Type", "/OCG");
+                on.Elements.SetString("/Name", "On");
+
+                var configuration = new PdfDictionary(document);
+                configuration.Elements["/OFF"] = new PdfArray(document, off.Reference);
+                var properties = new PdfDictionary(document);
+                properties.Elements["/OCGs"] = new PdfArray(document, off.Reference, on.Reference);
+                properties.Elements["/D"] = configuration;
+                document.Internals.Catalog.Elements["/OCProperties"] = properties;
+
+                var form = new PdfDictionary(document);
+                document.Internals.AddObject(form);
+                form.Elements.SetName("/Type", "/XObject");
+                form.Elements.SetName("/Subtype", "/Form");
+                form.Elements["/BBox"] = new PdfRectangle(new XPoint(0, 0), new XPoint(200, 150));
+                form.Elements["/OC"] = off.Reference;
+                form.CreateStream(System.Text.Encoding.Latin1.GetBytes("0 1 0 rg 10 80 80 60 re f"));
+
+                var resources = new PdfDictionary(document);
+                var properties2 = new PdfDictionary(document);
+                properties2.Elements["/Off"] = off.Reference;
+                properties2.Elements["/On"] = on.Reference;
+                resources.Elements["/Properties"] = properties2;
+                var xObjects = new PdfDictionary(document);
+                xObjects.Elements["/Fm1"] = form.Reference;
+                resources.Elements["/XObject"] = xObjects;
+                page.Elements["/Resources"] = resources;
+            });
+
+        Fidelity.Of(document, nameof(ContentOfAGroupTheDefaultConfigurationSwitchesOff), new PageRenderOptions { Scale = 2 })
+            .ShouldBeWithin(meanChannelDifference: 0.5, shareOverThreshold: 0.001);
+    }
+
     // What this library writes for its shape annotations, and so what a reader of its files sees. A field
     // of variable text is not here: its appearance is text, and this project registers no font resolver.
     [Test]
