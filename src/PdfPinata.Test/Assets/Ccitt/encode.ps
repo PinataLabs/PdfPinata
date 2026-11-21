@@ -3,7 +3,7 @@
 % set is encoded from the inverse of the bits unless it says /BlackIs1 true.
 
 /pbm (text.pbm) (r) file def
-/width pbm token pop pop pbm token pop def   % skip "P4", read the width
+/width pbm token pop pop pbm token pop def
 /height pbm token pop def   % token takes the one white space after it too
 /rowbytes width 7 add 8 idiv def
 /black1 rowbytes height mul string def

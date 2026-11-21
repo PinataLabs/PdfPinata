@@ -22,9 +22,8 @@ namespace PdfPinata.Pdf.Filters;
 public sealed class CcittFaxDecode : Filter
 {
     /// <summary>
-    /// The most bytes the filter decodes to: 256 MiB, a page of A0 scanned at 1200 dots to the
-    /// inch. Past it, a few bytes of Group 4 data saying "the same row again" could stand for any
-    /// number of rows.
+    /// The most bytes the filter decodes to: 256 MiB. Past it, a few bytes of Group 4 data saying
+    /// "the same row again" could stand for any number of rows.
     /// </summary>
     internal const int MaximumLength = 1 << 28;
 
@@ -65,8 +64,11 @@ internal sealed class CcittFaxParameters
 
     internal int Columns { get; init; } = 1728;
 
-    /// <summary>The rows the image has, or 0 where they are as many as the data holds.</summary>
-    internal int Rows { get; init; }
+    /// <summary>
+    /// The rows the image has, or null where they are as many as the data holds, which a
+    /// <c>/Rows</c> of 0 also says.
+    /// </summary>
+    internal int? Rows { get; init; }
 
     internal bool BlackIs1 { get; init; }
 
@@ -82,22 +84,23 @@ internal sealed class CcittFaxParameters
             return new CcittFaxParameters();
 
         var defaults = new CcittFaxParameters();
-        var parameters = new CcittFaxParameters
+        var columns = Integer("/Columns", defaults.Columns);
+        var rows = Integer("/Rows", 0);
+        if (columns < 1)
+            throw new InvalidOperationException($"CCITTFaxDecode's /Columns is {columns}, and must be at least 1.");
+        if (rows < 0)
+            throw new InvalidOperationException($"CCITTFaxDecode's /Rows is {rows}, and must not be negative.");
+
+        return new CcittFaxParameters
         {
             K = Integer("/K", defaults.K),
             EndOfLine = Boolean("/EndOfLine", defaults.EndOfLine),
             EncodedByteAlign = Boolean("/EncodedByteAlign", defaults.EncodedByteAlign),
-            Columns = Integer("/Columns", defaults.Columns),
-            Rows = Integer("/Rows", defaults.Rows),
+            Columns = columns,
+            Rows = rows == 0 ? null : rows,
             BlackIs1 = Boolean("/BlackIs1", defaults.BlackIs1),
             DamagedRowsBeforeError = Math.Max(0, Integer("/DamagedRowsBeforeError", defaults.DamagedRowsBeforeError)),
         };
-
-        if (parameters.Columns < 1)
-            throw new InvalidOperationException($"CCITTFaxDecode's /Columns is {parameters.Columns}, and must be at least 1.");
-        if (parameters.Rows < 0)
-            throw new InvalidOperationException($"CCITTFaxDecode's /Rows is {parameters.Rows}, and must not be negative.");
-        return parameters;
 
         int Integer(string key, int value) => PdfItemValues.TryGetInteger(parms.Elements[key], out var read) ? read : value;
 
@@ -109,10 +112,11 @@ internal sealed class CcittFaxParameters
 /// The rows a CCITTFaxDecode filter decoded, and what was wrong with the data, if anything.
 /// </summary>
 /// <param name="Data">The rows, 1 bit a pixel, each padded to a whole byte.</param>
-/// <param name="Rows">How many rows <paramref name="Data"/> holds.</param>
-/// <param name="DamagedRows">How many rows could not be decoded to their end.</param>
-/// <param name="Problem">What was wrong with the data, as a sentence; or null where nothing was.</param>
-internal sealed record CcittFaxResult(byte[] Data, int Rows, int DamagedRows, string Problem);
+/// <param name="Problem">
+/// What was wrong with the data, as the rest of a sentence whose subject is the data, such as
+/// "ends after 30 of its 61 rows."; or null where nothing was.
+/// </param>
+internal sealed record CcittFaxResult(byte[] Data, string Problem);
 
 /// <summary>
 /// Decodes ITU-T T.4 and T.6 data a row at a time. A row is held as its changing elements: the
@@ -135,27 +139,41 @@ internal sealed class CcittFaxDecoder
         _columns = columns;
     }
 
+    private enum CodingMode
+    {
+        Pass,
+        Horizontal,
+        Vertical,
+    }
+
+    private enum RowStart
+    {
+        Data,
+        EndOfLine,
+        EndOfData,
+    }
+
     /// <summary>
     /// Decodes <paramref name="rows"/> rows, white where the data holds no more; or, where
-    /// <paramref name="rows"/> is 0, as many rows as the data holds.
+    /// <paramref name="rows"/> is null, as many rows as the data holds.
     /// </summary>
-    internal static CcittFaxResult Decode(byte[] data, CcittFaxParameters parameters, int rows)
+    internal static CcittFaxResult Decode(byte[] data, CcittFaxParameters parameters, int? rows)
     {
         var rowLength = (parameters.Columns + 7) / 8;
         var mostRows = CcittFaxDecode.MaximumLength / rowLength;
-        if (rows > mostRows || mostRows == 0)
+        if (rows > mostRows)
         {
             throw new InvalidOperationException(
                 $"CCITTFaxDecode data of {parameters.Columns} columns and {rows} rows would be more than the {CcittFaxDecode.MaximumLength} bytes decoded.");
         }
 
-        return new CcittFaxDecoder(data, parameters.Columns).DecodeRows(parameters, rows, rows == 0 ? mostRows : rows, rowLength);
+        return new CcittFaxDecoder(data, parameters.Columns).DecodeRows(parameters, rows, rows ?? mostRows, rowLength);
     }
 
-    private CcittFaxResult DecodeRows(CcittFaxParameters parameters, int rows, int rowLimit, int rowLength)
+    private CcittFaxResult DecodeRows(CcittFaxParameters parameters, int? rows, int rowLimit, int rowLength)
     {
         var white = parameters.BlackIs1 ? (byte)0x00 : (byte)0xFF;
-        var output = new byte[(long)(rows > 0 ? rows : Math.Min(rowLimit, 64)) * rowLength];
+        var output = new byte[(long)(rows ?? Math.Min(rowLimit, 64)) * rowLength];
         output.AsSpan().Fill(white);
 
         // Each row is coded against the one above it, and the row above the first is white.
@@ -198,6 +216,7 @@ internal sealed class CcittFaxDecoder
                 Array.Resize(ref output, (int)Math.Min((long)output.Length * 2, (long)rowLimit * rowLength));
                 output.AsSpan(filled).Fill(white);
             }
+
             Pack(current, output.AsSpan(decoded * rowLength, rowLength), parameters.BlackIs1);
             decoded++;
             (reference, current) = (current, reference);
@@ -213,23 +232,25 @@ internal sealed class CcittFaxDecoder
             break;
         }
 
-        if (problem == null && rows == 0 && decoded == rowLimit && !IsRestEmpty())
+        var damagedRowsSteppedOver = problem == null ? damaged : damaged - 1;
+        if (problem == null && rows == null && decoded == rowLimit && !IsRestEmpty())
             problem = $"holds more than the {decoded} rows of {_columns} columns decoded, which are {CcittFaxDecode.MaximumLength} bytes.";
-        if (problem == null && rows > 0 && decoded < rows)
+        if (problem == null && decoded < rows)
             problem = $"ends after {decoded} of its {rows} rows.";
-        if (problem != null && damaged > 1)
-            problem += $" {damaged} rows are damaged in all.";
-        if (problem == null && damaged > 0)
-            problem = $"has {damaged} damaged rows, each decoded as far as it goes.";
+
+        if (damagedRowsSteppedOver > 0)
+        {
+            var damage = $"{damagedRowsSteppedOver} damaged rows, each decoded as far as it goes";
+            problem = problem == null ? $"has {damage}." : $"{problem} Before that it has {damage}.";
+        }
+
         if (problem != null && rows > decoded)
-            problem += $" The {rows - decoded} rows after it are white.";
+            problem += $" The {rows - decoded} rows after row {decoded} are white.";
 
-        if (rows == 0 && output.Length != (long)decoded * rowLength)
+        if (rows == null && output.Length != (long)decoded * rowLength)
             Array.Resize(ref output, decoded * rowLength);
-        return new CcittFaxResult(output, rows > 0 ? rows : decoded, damaged, problem);
+        return new CcittFaxResult(output, problem);
     }
-
-    // ----- Rows ----------------------------------------------------------------------------
 
     /// <summary>T.4 4.1.1 and T.6 2.2: runs of white and black, in turn, beginning with white.</summary>
     private string DecodeOneDimensional(ChangingElements row)
@@ -238,14 +259,13 @@ internal sealed class CcittFaxDecoder
         var isBlack = false;
         while (position < _columns)
         {
-            var run = ReadRun(isBlack);
-            if (run < 0)
+            if (ReadRun(isBlack) is not { } run)
                 return $"no {(isBlack ? "black" : "white")} run is coded at column {position}";
             if (position + run > _columns)
                 return $"a run at column {position} goes past the row's {_columns} columns";
 
             position += run;
-            row.Add(position, _columns);
+            row.Toggle(position, _columns);
             isBlack = !isBlack;
         }
 
@@ -264,72 +284,70 @@ internal sealed class CcittFaxDecoder
         var past = 0;
         while (a0 < _columns)
         {
-            // The colour at a0 is the colour after the changing elements so far, white for none.
-            var colour = row.Count & 1;
+            var isBlack = row.EndsBlack;
             while (reference[past] <= a0)
                 past++;
-            var b1Index = (past & 1) == colour ? past : past + 1;
+
+            // An element at an even index changes to black, and one at an odd index to white.
+            var b1Index = ((past & 1) == 1) == isBlack ? past : past + 1;
             var b1 = reference[b1Index];
             var b2 = reference[b1Index + 1];
+            var from = Math.Max(a0, 0);
 
-            var mode = Peek(7);
-            if (mode >= 0b0001000 && mode < 0b0010000)
+            switch (ReadMode())
             {
-                // Pass: the run of a0's colour goes on below b2.
-                Skip(4);
-                a0 = b2;
-                continue;
+                case (CodingMode.Pass, _):
+                    // The run of a0's colour goes on below b2.
+                    a0 = b2;
+                    break;
+
+                case (CodingMode.Horizontal, _):
+                    // Two runs, a0's colour and then the other, coded as in one dimension.
+                    if (ReadRun(isBlack) is not { } first || ReadRun(!isBlack) is not { } second)
+                        return $"no run is coded at column {from}";
+                    if ((long)from + first + second > _columns)
+                        return $"a run at column {from} goes past the row's {_columns} columns";
+
+                    row.Toggle(from + first, _columns);
+                    row.Toggle(from + first + second, _columns);
+                    a0 = from + first + second;
+                    break;
+
+                case (CodingMode.Vertical, var offset):
+                    // a1 is within three of b1. Past the row's end it is the row's end.
+                    var a1 = Math.Min(b1 + offset, _columns);
+                    if (a1 < from)
+                        return $"a changing element is coded at column {a1}, before column {from} that the row is decoded to";
+
+                    row.Toggle(a1, _columns);
+                    a0 = a1;
+                    break;
+
+                default:
+                    return $"no mode is coded at column {from}";
             }
-
-            if (mode >= 0b0010000 && mode < 0b0100000)
-            {
-                // Horizontal: two runs, a0's colour and then the other, coded as in one dimension.
-                Skip(3);
-                var from = Math.Max(a0, 0);
-                var first = ReadRun(colour == 1);
-                var second = first < 0 ? -1 : ReadRun(colour == 0);
-                if (second < 0)
-                    return $"no run is coded at column {from}";
-                if ((long)from + first + second > _columns)
-                    return $"a run at column {from} goes past the row's {_columns} columns";
-
-                row.Add(from + first, _columns);
-                row.Add(from + first + second, _columns);
-                a0 = from + first + second;
-                continue;
-            }
-
-            var offset = VerticalOffset(mode);
-            if (offset == null)
-                return $"no mode is coded at column {Math.Max(a0, 0)}";
-
-            // Vertical: a1 is within three of b1. Past the row's end it is the row's end.
-            var a1 = Math.Min(b1 + offset.Value, _columns);
-            if (a1 < Math.Max(a0, 0))
-                return $"a changing element is coded at column {a1}, before column {Math.Max(a0, 0)} that the row is decoded to";
-
-            row.Add(a1, _columns);
-            a0 = a1;
         }
 
         return null;
     }
 
     /// <summary>
-    /// The offset of a1 from b1 that a vertical mode code at the next 7 bits stands for, having
-    /// read the code; or null where they are not one.
+    /// Reads the mode code of T.4 Table 4 that the next bits begin with, and for a vertical mode
+    /// the offset of a1 from b1; or reads nothing and answers null where they begin with none.
     /// </summary>
-    private int? VerticalOffset(int bits)
+    private (CodingMode Mode, int Offset)? ReadMode()
     {
-        (int Length, int Offset)? code = bits switch
+        (int Length, CodingMode Mode, int Offset)? code = Peek(7) switch
         {
-            >= 0b1000000 => (1, 0),
-            >= 0b0110000 => (3, 1),
-            >= 0b0100000 => (3, -1),
-            >= 0b0000110 and < 0b0001000 => (6, 2),
-            >= 0b0000100 and < 0b0000110 => (6, -2),
-            0b0000011 => (7, 3),
-            0b0000010 => (7, -3),
+            >= 0b1000000 => (1, CodingMode.Vertical, 0),
+            >= 0b0110000 => (3, CodingMode.Vertical, 1),
+            >= 0b0100000 => (3, CodingMode.Vertical, -1),
+            >= 0b0010000 => (3, CodingMode.Horizontal, 0),
+            >= 0b0001000 => (4, CodingMode.Pass, 0),
+            >= 0b0000110 => (6, CodingMode.Vertical, 2),
+            >= 0b0000100 => (6, CodingMode.Vertical, -2),
+            0b0000011 => (7, CodingMode.Vertical, 3),
+            0b0000010 => (7, CodingMode.Vertical, -3),
             _ => null,
         };
 
@@ -337,43 +355,40 @@ internal sealed class CcittFaxDecoder
             return null;
 
         Skip(found.Length);
-        return found.Offset;
+        return (found.Mode, found.Offset);
     }
 
     /// <summary>
-    /// A run of one colour: any make-up codes and then a terminating code; or -1 where the bits
+    /// A run of one colour: any make-up codes and then a terminating code; or null where the bits
     /// are no code, or the run is longer than a row.
     /// </summary>
-    private int ReadRun(bool isBlack)
+    private int? ReadRun(bool isBlack)
     {
         var run = 0;
         while (true)
         {
-            var entry = isBlack
+            var code = isBlack
                 ? CcittFaxCodes.Black[Peek(CcittFaxCodes.BlackBits)]
                 : CcittFaxCodes.White[Peek(CcittFaxCodes.WhiteBits)];
-            if (entry == 0)
-                return -1;
+            if (code.Length == 0)
+                return null;
 
-            Skip(entry & 0xFF);
-            var length = entry >> 8;
-            run += length;
+            Skip(code.Length);
+            run += code.Run;
             if (run > _columns)
-                return -1;
-            if (length < CcittFaxCodes.FirstMakeUp)
+                return null;
+            if (!code.IsMakeUp)
                 return run;
         }
     }
 
-    /// <summary>A row's pixels from its changing elements: white up to the first, then each in turn.</summary>
     private void Pack(ChangingElements row, Span<byte> pixels, bool blackIs1)
     {
         for (var index = 0; index < row.Count; index += 2)
-            Paint(pixels, row[index], index + 1 < row.Count ? row[index + 1] : _columns, blackIs1);
+            PaintBlack(pixels, row[index], index + 1 < row.Count ? row[index + 1] : _columns, blackIs1);
     }
 
-    /// <summary>Makes the pixels from <paramref name="from"/> up to <paramref name="to"/> black.</summary>
-    private static void Paint(Span<byte> pixels, int from, int to, bool blackIs1)
+    private static void PaintBlack(Span<byte> pixels, int from, int to, bool blackIs1)
     {
         while (from < to)
         {
@@ -392,15 +407,6 @@ internal sealed class CcittFaxDecoder
             pixels.Slice(from >> 3, whole).Fill(blackIs1 ? (byte)0xFF : (byte)0x00);
             from += whole << 3;
         }
-    }
-
-    // ----- End-of-line codes and fill --------------------------------------------------------
-
-    private enum RowStart
-    {
-        Data,
-        EndOfLine,
-        EndOfData,
     }
 
     /// <summary>
@@ -448,7 +454,6 @@ internal sealed class CcittFaxDecoder
         return RowStart.EndOfLine;
     }
 
-    /// <summary>Moves to the next end-of-line code, past a damaged row; false where there is none.</summary>
     private bool SeekEndOfLine()
     {
         var zeros = 0;
@@ -474,9 +479,7 @@ internal sealed class CcittFaxDecoder
 
     private bool IsRestEmpty() => SkipEndOfLine() != RowStart.Data;
 
-    // ----- Bits ------------------------------------------------------------------------------
-
-    /// <summary>The next <paramref name="count"/> bits, up to 13, as a number; zeros past the data.</summary>
+    /// <summary>Up to 13 bits; zeros past the data.</summary>
     private int Peek(int count)
     {
         if (_at >= _length)
@@ -510,9 +513,17 @@ internal sealed class CcittFaxDecoder
     /// </summary>
     private sealed class ChangingElements
     {
+        /// <summary>
+        /// How many times <see cref="EndAt"/> puts the width after the elements: b1 may be the
+        /// second of them, when the row ends in the colour b1 must change to, and b2 the third.
+        /// </summary>
+        private const int Ends = 3;
+
         private int[] _items = new int[64];
 
         internal int Count { get; private set; }
+
+        internal bool EndsBlack => (Count & 1) == 1;
 
         internal int this[int index] => _items[index];
 
@@ -522,7 +533,7 @@ internal sealed class CcittFaxDecoder
         /// Adds a changing element, or takes one away where the last is at the same place: a run
         /// of no length is two changes that undo each other. One at the row's end is no change.
         /// </summary>
-        internal void Add(int position, int columns)
+        internal void Toggle(int position, int columns)
         {
             if (position >= columns)
                 return;
@@ -533,18 +544,11 @@ internal sealed class CcittFaxDecoder
                 return;
             }
 
-            // Room for this one and the three EndAt puts after it.
-            if (Count + 4 > _items.Length)
+            if (Count + 1 + Ends > _items.Length)
                 Array.Resize(ref _items, _items.Length * 2);
             _items[Count++] = position;
         }
 
-        /// <summary>Puts the row's width after its changing elements, three times, for b1 and b2.</summary>
-        internal void EndAt(int columns)
-        {
-            _items[Count] = columns;
-            _items[Count + 1] = columns;
-            _items[Count + 2] = columns;
-        }
+        internal void EndAt(int columns) => _items.AsSpan(Count, Ends).Fill(columns);
     }
 }

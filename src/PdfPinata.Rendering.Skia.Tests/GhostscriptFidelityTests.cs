@@ -263,7 +263,7 @@ public class GhostscriptFidelityTests
             PdfPinata.Pdf.IO.PdfDocumentOpenMode.Modify);
 
         Fidelity.Of(document, nameof(AGroup4ScanImageMagickWrote), new PageRenderOptions { Scale = 150 / 72.0 })
-            .ShouldBeWithin(meanChannelDifference: 0.05, shareOverThreshold: 0.0005);
+            .ShouldBeWithin(meanChannelDifference: 0, shareOverThreshold: 0);
     }
 
     // /BlackIs1 makes the filter answer 1 for black, and a /DeviceGray image with no /Decode draws
@@ -288,7 +288,7 @@ public class GhostscriptFidelityTests
             }));
 
         Fidelity.Of(document, nameof(AGroup4ImageWithBlackIs1AndNoDecodeIsDrawnInverted))
-            .ShouldBeWithin(meanChannelDifference: 0.05, shareOverThreshold: 0.0005);
+            .ShouldBeWithin(meanChannelDifference: 0, shareOverThreshold: 0);
     }
 
     private static byte[] Asset(string name)

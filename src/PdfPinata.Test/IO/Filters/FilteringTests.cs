@@ -75,10 +75,8 @@ public class FilteringTests
     [Arguments("/DCTDecode")]
     public void AStreamInAFilterThatCannotBeAppliedSaysSoRatherThanThrowing(string name)
     {
-        // ISO 32000-1 Table 94 abbreviates DCTDecode for inline images, and a
-        // stream named by an abbreviation is the same stream as one named in full. Both fell
-        // through to "Unknown filter", so asking whether the stream could be decoded was answered
-        // with a NotImplementedException.
+        // ISO 32000-1 Table 94 abbreviates DCTDecode for inline images, and a stream named by an
+        // abbreviation is the same stream as one named in full.
         var document = new PdfDocument();
         var dictionary = new PdfDictionary(document);
         dictionary.CreateStream([1, 2, 3]);

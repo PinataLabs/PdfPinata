@@ -22,8 +22,6 @@ public class CcittFaxDecodeTests
 {
     internal static readonly Pbm Text = Pbm.Read("text.pbm");
 
-    // ----- Every kind of coding --------------------------------------------------------------
-
     [Test]
     [Arguments("g4", -1, false, false, false)]
     [Arguments("g4-noeob", -1, false, false, false)]
@@ -105,8 +103,6 @@ public class CcittFaxDecodeTests
         Filtering.CcittFaxDecode.Decode(row, (FilterParms)null).Should().Equal(Enumerable.Repeat((byte)0xFF, 216));
     }
 
-    // ----- A real file -----------------------------------------------------------------------
-
     [Test]
     public void AGroup4ScanImageMagickWroteDecodesToTheScan()
     {
@@ -121,8 +117,6 @@ public class CcittFaxDecodeTests
         image.Stream.Value.Should().Equal(scan.Bits(blackIs1: false));
         image.Elements.ContainsKey("/Filter").Should().BeFalse();
     }
-
-    // ----- Damage ----------------------------------------------------------------------------
 
     [Test]
     [Arguments("g4", -1)]
@@ -253,8 +247,6 @@ public class CcittFaxDecodeTests
         act.Should().Throw<NotSupportedException>();
     }
 
-    // ----- Helpers ---------------------------------------------------------------------------
-
     private static byte[] Decode(byte[] data, PdfDictionary parameters) => Filtering.CcittFaxDecode.Decode(data, parameters);
 
     private static PdfDictionary Parameters(params (string Key, object Value)[] entries)
@@ -301,10 +293,8 @@ public class CcittFaxDecodeTests
 
         internal int RowLength => (Width + 7) / 8;
 
-        /// <summary>Whether the pixel is black.</summary>
         internal bool IsBlack(int x, int y) => (_blackIs1[y * RowLength + x / 8] & (0x80 >> (x % 8))) != 0;
 
-        /// <summary>The bitmap as the filter decodes it: black is 0 unless <paramref name="blackIs1"/>.</summary>
         internal byte[] Bits(bool blackIs1) => blackIs1 ? [.. _blackIs1] : _blackIs1.Select(value => (byte)~value).ToArray();
 
         internal static Pbm Read(string name)

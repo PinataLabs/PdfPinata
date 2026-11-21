@@ -441,6 +441,21 @@ public class ImageTests
     }
 
     [Test]
+    public void FaxDataWithARowDamagedAndSteppedOverIsDrawnAndReported()
+    {
+        var data = CcittFaxDecodeTests.Asset("g3-1d-eol.bin");
+        data[data.Length / 2] = 0;
+        data[data.Length / 2 + 1] = 0;
+        var drawn = Drawn.Page(DrawIm1, Resources(data,
+            FaxImage(("/K", 0), ("/EndOfLine", true), ("/DamagedRowsBeforeError", 5))));
+
+        drawn.Problems.Should().Equal("InvalidValue /Im1");
+        drawn.Result.Diagnostics.Single().Message.Should().Contain("damaged rows").And.NotContain("white");
+        Gray(drawn.Device.Images.Single().Image).Skip(Text.Width * (Text.Height - 1))
+            .Should().Equal(TextPixels(black: 0, white: 255).Skip(Text.Width * (Text.Height - 1)));
+    }
+
+    [Test]
     public void FaxParametersOutOfRangeAreReportedAndTheImageIsNotDrawn()
     {
         var drawn = Drawn.Page(DrawIm1, Resources(CcittFaxDecodeTests.Asset("g4.bin"), FaxImage(("/K", -1), ("/Columns", 0))));
@@ -1261,10 +1276,8 @@ public class ImageTests
     private static byte[] Escaped(byte[] bytes) =>
         bytes.SelectMany(b => b is (byte)'(' or (byte)')' or (byte)'\\' ? new[] { (byte)'\\', b } : new[] { b }).ToArray();
 
-    /// <summary>The red of every sample, which is the gray of a gray image.</summary>
     private static CcittFaxDecodeTests.Pbm Text => CcittFaxDecodeTests.Text;
 
-    /// <summary>A 1-bit gray image of <c>text.pbm</c>'s size, coded with CCITTFax and the parameters given.</summary>
     private static Action<PdfDocument, PdfDictionary> FaxImage(params (string Key, object Value)[] parameters) =>
         (_, image) => Set(image, ("/Width", Text.Width), ("/Height", Text.Height), ("/ColorSpace", "/DeviceGray"),
             ("/BitsPerComponent", 1), ("/Filter", "/CCITTFaxDecode"), ("/DecodeParms", FaxParameters(parameters)));
@@ -1276,11 +1289,11 @@ public class ImageTests
         return dictionary;
     }
 
-    /// <summary><c>text.pbm</c> a byte a pixel, each black or white.</summary>
     private static byte[] TextPixels(byte black, byte white) =>
         Enumerable.Range(0, Text.Width * Text.Height)
             .Select(at => Text.IsBlack(at % Text.Width, at / Text.Width) ? black : white).ToArray();
 
+    /// <summary>The red of every sample, which is the gray of a gray image.</summary>
     private static byte[] Gray(PageImage image) => Channel(image, 0);
 
     private static byte[] Alpha(PageImage image) => Channel(image, 3);

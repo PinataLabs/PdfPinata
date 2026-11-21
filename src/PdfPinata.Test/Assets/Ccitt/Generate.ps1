@@ -11,8 +11,6 @@ try {
     Pop-Location
 }
 
-# A page scanned at 150 dots to the inch, skewed and speckled as a scanner leaves one, stored as
-# scan.pbm and as the Group 4 PDF ImageMagick writes from it.
 Push-Location $PSScriptRoot
 try {
     magick -size 600x400 xc:white -fill black -font Times-New-Roman -pointsize 26 `

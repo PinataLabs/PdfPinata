@@ -15,8 +15,7 @@ namespace PdfPinata.Pdf.Rendering;
 /// What they answer is finished: <see cref="PageImageFormat.Alpha8"/> for an <c>/ImageMask</c>,
 /// which the interpreter paints in the fill colour, and otherwise
 /// <see cref="PageImageFormat.Rgba32"/> with the colour space, the <c>/Decode</c> array, the
-/// <c>/Mask</c> and the <c>/SMask</c> applied. <c>/CCITTFaxDecode</c> is decoded here, as every
-/// filter in <see cref="Filtering"/> is. A <c>/DCTDecode</c> stream is handed to
+/// <c>/Mask</c> and the <c>/SMask</c> applied. A <c>/DCTDecode</c> stream is handed to
 /// <see cref="PageDevice.DecodeImage"/>, because this library carries no imaging dependency. What
 /// the device answers is RGB already, and goes through the same masks as any other image. An
 /// image's colour space is resolved through <see cref="ColorSpaces.Resolve"/>.
@@ -337,7 +336,7 @@ internal static class PageImages
 
                     case "/CCITTFaxDecode" or "/CCF":
                         if (!TryDecodeFax(unfiltered, parameters[index] as PdfDictionary,
-                                index == filters.Length - 1 ? height : 0, what, out unfiltered))
+                                index == filters.Length - 1 ? height : null, what, out unfiltered))
                             return false;
                         continue;
 
@@ -358,16 +357,16 @@ internal static class PageImages
 
         /// <summary>
         /// Facsimile data decoded to <paramref name="rows"/> rows, or to those <c>/Rows</c> says
-        /// where that is 0. The rows past where damaged or short data stops are white, which is
+        /// where that is null. The rows past where damaged or short data stops are white, which is
         /// reported, and the image is drawn.
         /// </summary>
-        private bool TryDecodeFax(byte[] data, PdfDictionary parameters, int rows, string what, out byte[] decoded)
+        private bool TryDecodeFax(byte[] data, PdfDictionary parameters, int? rows, string what, out byte[] decoded)
         {
             decoded = null;
             try
             {
                 var faxParameters = CcittFaxParameters.Read(parameters);
-                var result = CcittFaxDecoder.Decode(data, faxParameters, rows > 0 ? rows : faxParameters.Rows);
+                var result = CcittFaxDecoder.Decode(data, faxParameters, rows ?? faxParameters.Rows);
                 if (result.Problem != null)
                     Report(PageRenderProblem.InvalidValue, $"{what}'s /CCITTFaxDecode data {result.Problem}");
                 decoded = result.Data;

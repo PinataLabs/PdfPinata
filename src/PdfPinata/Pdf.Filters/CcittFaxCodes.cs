@@ -1,4 +1,13 @@
+using System;
+
 namespace PdfPinata.Pdf.Filters;
+
+/// <summary>One entry of a code table: a code word of <see cref="Length"/> bits for a run.</summary>
+internal readonly record struct RunCode(int Run, int Length)
+{
+    /// <summary>Whether a terminating code follows: runs of 64 and up are make-up codes.</summary>
+    internal bool IsMakeUp => Run >= 64;
+}
 
 /// <summary>
 /// The run-length code words of ITU-T T.4 Tables 2 and 3, as lookup tables indexed by the next
@@ -6,9 +15,9 @@ namespace PdfPinata.Pdf.Filters;
 /// </summary>
 /// <remarks>
 /// A table holds one entry for every value the next <see cref="WhiteBits"/> or
-/// <see cref="BlackBits"/> bits can take: the run length shifted left by 8, or'd with the length
-/// of the code word that begins them, and 0 where no code word does. A code word of n bits fills
-/// every entry it is a prefix of, so a lookup is one array read whatever the code's length.
+/// <see cref="BlackBits"/> bits can take, and a <see cref="RunCode"/> of length 0 where no code
+/// word begins them. A code word of n bits fills every entry it is a prefix of, so a lookup is one
+/// array read whatever the code's length.
 /// </remarks>
 internal static class CcittFaxCodes
 {
@@ -18,28 +27,20 @@ internal static class CcittFaxCodes
     /// <summary>The longest black code word, 13 bits.</summary>
     internal const int BlackBits = 13;
 
-    /// <summary>Run lengths below this are terminating codes; this and above are make-up codes.</summary>
-    internal const int FirstMakeUp = 64;
-
-    private static int[] Build(int bits, params string[][] tables)
+    private static RunCode[] Build(int bits, params (string[] Codes, int FirstRun, int Step)[] tables)
     {
-        var table = new int[1 << bits];
-        foreach (var codes in tables)
+        var table = new RunCode[1 << bits];
+        foreach (var (codes, firstRun, step) in tables)
         {
             for (var index = 0; index < codes.Length; index++)
             {
-                var run = codes == WhiteMakeUp || codes == BlackMakeUp ? (index + 1) * 64
-                    : codes == ExtendedMakeUp ? 1792 + index * 64
-                    : index;
                 var code = codes[index];
                 var value = 0;
                 foreach (var digit in code)
                     value = (value << 1) | (digit - '0');
 
                 var start = value << (bits - code.Length);
-                var end = start + (1 << (bits - code.Length));
-                for (var at = start; at < end; at++)
-                    table[at] = (run << 8) | code.Length;
+                table.AsSpan(start, 1 << (bits - code.Length)).Fill(new RunCode(firstRun + index * step, code.Length));
             }
         }
 
@@ -96,7 +97,9 @@ internal static class CcittFaxCodes
     ];
 
     // After the code words: static fields are initialized in the order they are written.
-    internal static readonly int[] White = Build(WhiteBits, WhiteTerminating, WhiteMakeUp, ExtendedMakeUp);
+    internal static readonly RunCode[] White =
+        Build(WhiteBits, (WhiteTerminating, 0, 1), (WhiteMakeUp, 64, 64), (ExtendedMakeUp, 1792, 64));
 
-    internal static readonly int[] Black = Build(BlackBits, BlackTerminating, BlackMakeUp, ExtendedMakeUp);
+    internal static readonly RunCode[] Black =
+        Build(BlackBits, (BlackTerminating, 0, 1), (BlackMakeUp, 64, 64), (ExtendedMakeUp, 1792, 64));
 }
