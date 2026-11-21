@@ -577,6 +577,27 @@ public class DecodeLimitTests
         decoded.Should().Equal(payload.Take(400), "a group cut part way is left out, not read as the last one");
     }
 
+    // 1002 bytes are 250 groups and three characters standing for the last two bytes, then the
+    // end marker at 1253 and 1254, and a comment after it for the cap to fall in. A cut after the
+    // marker or between its two characters has the whole stream, last part group included
+    // (ISO 32000-1 7.4.3).
+    [Test, Timeout(60_000)]
+    [Arguments(1255 + 4)]
+    [Arguments(1255 - 1)]
+    public async Task AnAscii85StreamCutAtOrAfterItsEndMarkerGivesItsLastPartGroup(int cap)
+    {
+        var payload = Counting(1002);
+        var ascii85 = Filtering.ASCII85Decode.Encode(payload);
+        ascii85.Length.Should().Be(1255);
+        var encoded = Deflated([.. ascii85, .. Encoding.ASCII.GetBytes(" % a comment past the end marker ")]);
+        var limit = new DecodeLimit(cap);
+
+        var (decoded, _) = await DecodedUnder(limit, encoded, "/FlateDecode", "/ASCII85Decode");
+
+        limit.Truncated.Should().BeTrue();
+        decoded.Should().Equal(payload);
+    }
+
     [Test]
     public void AFlateStreamThatIsCutShortStillThrowsWhenNoEarlierFilterWasCapped()
     {

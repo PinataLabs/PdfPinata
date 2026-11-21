@@ -137,18 +137,19 @@ public class Ascii85Decode : Filter
     {
         ArgumentNullException.ThrowIfNull(data);
 
-        // An earlier filter of the chain stopped at the cap, so this one has the start of its
-        // stream: no end marker, and perhaps a group cut part way, which is left out rather than
-        // read as if it were the last. The limit already says the data was cut.
+        // An earlier filter of the chain stopped at the cap, so this one may have only the start
+        // of its stream: no end marker, and perhaps a group cut part way, which is left out rather
+        // than read as if it were the last. The limit already says the data was cut. A cut after
+        // the end marker, or between its two characters, left the whole stream.
         var limit = parms?.Limit;
         var inputWasCut = limit is { Truncated: true };
-        var length = CompactSignificantCharacters(data, inputWasCut, out var zCount);
+        var length = CompactSignificantCharacters(data, inputWasCut, out var zCount, out var reachedEnd);
 
         var nonZero = length - zCount;
         var byteCount = 4 * (zCount + nonZero / 5); // full 4 byte blocks
 
         var remainder = nonZero % 5;
-        if (inputWasCut)
+        if (!reachedEnd)
         {
             length -= remainder;
             remainder = 0;
@@ -188,11 +189,14 @@ public class Ascii85Decode : Filter
     /// <summary>
     /// Moves the characters that carry data - the digits and z - to the front of the array, in
     /// place, dropping everything else, and answers how many there are. Stops at the end marker
-    /// and refuses data that has none, unless the data was cut short before it reached one.
+    /// and refuses data that has none, unless the data was cut short before it reached one, when
+    /// <paramref name="reachedEnd"/> is false. Data cut between the marker's two characters
+    /// reached it.
     /// </summary>
-    private static int CompactSignificantCharacters(byte[] data, bool inputWasCut, out int zCount)
+    private static int CompactSignificantCharacters(byte[] data, bool inputWasCut, out int zCount, out bool reachedEnd)
     {
         zCount = 0;
+        reachedEnd = true;
         var idxOut = 0;
         // How far into a five-character group the characters kept so far reach.
         var groupLength = 0;
@@ -201,7 +205,8 @@ public class Ascii85Decode : Filter
             var ch = (char)data[idx];
             if (ch == '~')
             {
-                RequireEndMarkerAt(data, idx);
+                if (!(inputWasCut && idx == data.Length - 1))
+                    RequireEndMarkerAt(data, idx);
                 return idxOut;
             }
 
@@ -220,6 +225,7 @@ public class Ascii85Decode : Filter
         }
 
         // The loop ended without reaching the end marker.
+        reachedEnd = false;
         if (inputWasCut)
             return idxOut;
         throw new ArgumentException("Illegal character.", nameof(data));
