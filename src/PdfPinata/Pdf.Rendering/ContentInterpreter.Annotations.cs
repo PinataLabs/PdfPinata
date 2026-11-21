@@ -116,7 +116,6 @@ internal sealed partial class ContentInterpreter
                 "The no-zoom and no-rotate flags are not applied yet. The appearance is drawn scaled and turned with the page.");
         }
 
-
         if (PdfItemValues.TryGetNumber(annotation.Elements["/CA"], out var opacity) && opacity < 1)
         {
             _sink.Report(PageRenderProblem.UnsupportedFeature, "/CA",

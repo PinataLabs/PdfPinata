@@ -1,5 +1,6 @@
 using System;
 using PdfPinata.Drawing;
+using PdfPinata.Internal;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Content.Objects;
 
@@ -248,14 +249,27 @@ internal sealed partial class ContentInterpreter
         if (membership == null)
             return false;
 
-        if (_optionalContent == null)
+        // Never throws, so neither a content operator nor an annotation can be undone by a
+        // malformed /OCProperties. Once reading it fails the document is taken to have none, and
+        // that answer is kept, so the failure is reported once and the read not repeated.
+        try
         {
-            _optionalContent = OptionalContent.Of(_document, _optionalContentSelection, out var problem);
-            if (problem != null)
-                _sink.Report(PageRenderProblem.InvalidValue, "/OC", problem);
-        }
+            if (_optionalContent == null)
+            {
+                _optionalContent = OptionalContent.Of(_document, _optionalContentSelection, out var problem);
+                if (problem != null)
+                    _sink.Report(PageRenderProblem.InvalidValue, "/OC", problem);
+            }
 
-        return _optionalContent.Hides(membership);
+            return _optionalContent.Hides(membership);
+        }
+        catch (Exception ex) when (!Unrecoverable.Is(ex) && ex is not UnsetSeamException)
+        {
+            _optionalContent = OptionalContent.Of(null, null, out _);
+            _sink.Report(PageRenderProblem.InvalidValue, "/OC",
+                "The document's optional content could not be read. Nothing is taken to be hidden. " + ex.Message);
+            return false;
+        }
     }
 
     /// <summary>

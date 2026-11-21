@@ -54,22 +54,43 @@ internal sealed class OptionalContent
 
     private readonly Dictionary<object, bool> _hides = new(ReferenceIdentity.Instance);
 
-    private OptionalContent(PdfDictionary configuration, PageOptionalContent selection)
+    private OptionalContent(PdfDictionary configuration, PdfDictionary defaults, PageOptionalContent selection)
     {
         AddAll(_forcedOn, selection?.On);
         AddAll(_forcedOff, selection?.Off);
 
-        _offUnlessListed = configuration?.Elements.GetNameOrEmpty("/BaseState") == "/OFF";
-        var listed = configuration?.Elements.GetArray(_offUnlessListed ? "/ON" : "/OFF");
-        for (var index = 0; listed != null && index < listed.Elements.Count; index++)
+        // A configuration that leaves the base state unchanged starts from what /D says, which
+        // is what the groups are at the start of a render, and applies its own lists over it
+        // (ISO 32000-1 Table 101).
+        var unchanged = configuration != null && defaults != null && !ReferenceEquals(configuration, defaults)
+                        && configuration.Elements.GetNameOrEmpty("/BaseState") == "/Unchanged";
+        var basis = unchanged ? defaults : configuration;
+
+        _offUnlessListed = basis?.Elements.GetNameOrEmpty("/BaseState") == "/OFF";
+        AddGroups(_exceptions, basis?.Elements.GetArray(_offUnlessListed ? "/ON" : "/OFF"), add: true);
+        if (unchanged)
         {
-            if (listed.Elements.GetDictionary(index) is { } group)
-                _exceptions.Add(ReferenceIdentity.KeyOf(group));
+            AddGroups(_exceptions, configuration.Elements.GetArray("/ON"), add: _offUnlessListed);
+            AddGroups(_exceptions, configuration.Elements.GetArray("/OFF"), add: !_offUnlessListed);
         }
 
         _intents = Intents(configuration?.Elements["/Intent"]);
         if (_intents.Contains("/All"))
             _intents = null;
+    }
+
+    private static void AddGroups(HashSet<object> keys, PdfArray listed, bool add)
+    {
+        for (var index = 0; listed != null && index < listed.Elements.Count; index++)
+        {
+            if (listed.Elements.GetDictionary(index) is not { } group)
+                continue;
+
+            if (add)
+                keys.Add(ReferenceIdentity.KeyOf(group));
+            else
+                keys.Remove(ReferenceIdentity.KeyOf(group));
+        }
     }
 
     private static void AddAll(HashSet<object> keys, IReadOnlyCollection<PdfDictionary> groups)
@@ -94,7 +115,8 @@ internal sealed class OptionalContent
     {
         problem = null;
         var properties = document?.Catalog.Elements.GetDictionary(PdfCatalog.Keys.OCProperties);
-        var configuration = properties?.Elements.GetDictionary("/D");
+        var defaults = properties?.Elements.GetDictionary("/D");
+        var configuration = defaults;
 
         if (selection?.Configuration is { } name)
         {
@@ -102,11 +124,11 @@ internal sealed class OptionalContent
             if (configuration == null)
             {
                 problem = $"The document has no optional content configuration named \"{name}\". Its default configuration is used.";
-                configuration = properties?.Elements.GetDictionary("/D");
+                configuration = defaults;
             }
         }
 
-        return new OptionalContent(configuration, selection);
+        return new OptionalContent(configuration, defaults, selection);
     }
 
     private static PdfDictionary Named(PdfDictionary properties, string name)
@@ -114,7 +136,7 @@ internal sealed class OptionalContent
         var configs = properties?.Elements.GetArray("/Configs");
         for (var index = 0; configs != null && index < configs.Elements.Count; index++)
         {
-            if (configs.Elements.GetDictionary(index) is { } candidate && candidate.Elements.GetString("/Name") == name)
+            if (configs.Elements.GetDictionary(index) is { } candidate && candidate.Elements.TryGetString("/Name", out var candidateName) && candidateName == name)
                 return candidate;
         }
 

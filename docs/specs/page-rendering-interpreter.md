@@ -234,6 +234,20 @@ state and the text matrix, which a show-text operator advances, all take effect,
 which still reaches the device. `Do` and inline images are skipped outright, because neither leaves
 anything behind that a later operator could read: a form's state is its own.
 
+**What hidden content still reports.** Anything that would only paint is not reported, because
+nothing of it would be drawn: a shading (`sh`), an image, a form and an XObject that is neither. What
+changes the graphics state is still reported, a `gs` with a blend mode or soft mask, a missing
+ExtGState or a bad operand, because hidden content changes the state a later visible operator
+draws under. Text is reported as visible text is, since it advances the pen and a clipping render
+mode needs its outlines.
+
+**A stream of its own starts with nothing hidden.** `RunStream` gives each stream an empty
+marked-content stack and zero hidden sequences, and puts the caller's back when it ends. A form
+is not entered from hidden content at all, so the rule is reached by the streams that will be run
+from a paint: pattern cells, soft masks and Type 3 glyphs. A cell is not part of the marked
+content it is painted from. Whether the paint is drawn is decided where it is made, by `Hidden`
+on the device, and the cell's own `/OC` sequences are its own.
+
 **Marked content is a stack per content stream.** `BMC` and `BDC` push whether they are hidden,
 `EMC` pops, and the device is hidden while any entry on the stack is. A sequence inside a hidden one
 is hidden whatever it names, and a hidden one inside a visible one hides only itself.
@@ -253,7 +267,11 @@ Three cases a malformed file makes, all decided:
 **Choosing the configuration.** `PageRendering.Render(…, optionalContent)` takes a
 `PageOptionalContent`, null for `/D`. `Configuration` names an entry of `/OCProperties /Configs` by
 its `/Name`, the first where two have it. A named configuration is read as `/D` is, and does not
-inherit from it: its own `/BaseState`, `/ON`, `/OFF` and `/Intent` apply. A name no entry has is
+inherit from it: its own `/BaseState`, `/ON`, `/OFF` and `/Intent` apply. `/BaseState /Unchanged` starts from what
+`/D` says, the groups' states at the start of a render, and then applies the configuration's own
+`/ON` and `/OFF` (Table 101). A `/Configs` entry whose `/Name` is not a string is not a match. If the
+properties cannot be read at all, nothing is hidden, one `InvalidValue` on `/OC` is reported and the
+answer is kept. A name no entry has is
 reported as `InvalidValue` on `/OC`, once, and `/D` is used. `On` and `Off` are group dictionaries,
 by identity, switched over whichever configuration is chosen; a group in both is off. A group the
 configuration's `/Intent` does not count has no effect on visibility whatever the caller says,

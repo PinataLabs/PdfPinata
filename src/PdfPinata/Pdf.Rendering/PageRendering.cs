@@ -29,7 +29,9 @@ public static class PageRendering
     /// <param name="optionalContent">
     /// Which optional content (layers) is drawn: a configuration of the document and groups
     /// switched over it. Null draws the document's default configuration, <c>/D</c>. Content in a
-    /// group that is off is not drawn, and is not reported.
+    /// group that is off is not drawn. Hidden content still changes the graphics state, so what it
+    /// does to the state is reported as visible content's is. What it would only paint, such as a
+    /// shading, an image or a form, is not reported. Text is reported as visible text is.
     /// </param>
     /// <returns>What was left out of the page, and why. Never null.</returns>
     /// <remarks>

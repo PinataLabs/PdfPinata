@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using AwesomeAssertions;
+using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Rendering;
 using TUnit.Core;
@@ -304,5 +305,148 @@ public class OptionalContentTests
             () => new PageOptionalContent { Off = [design] });
 
         Lefts(drawn).Should().Equal(1);
+    }
+
+    [Test]
+    public void AConfigurationWithBaseStateUnchangedStartsFromTheDefault()
+    {
+        // /D has L1 off and L2 on, and "Print" says nothing but that it leaves them as they were.
+        var drawn = Print(new PageOptionalContent { Configuration = "Print" },
+            (configuration, _, _) => configuration.Elements.SetName("/BaseState", "/Unchanged"));
+
+        Lefts(drawn).Should().Equal(20);
+    }
+
+    [Test]
+    public void AnUnchangedConfigurationAppliesItsOwnListsOverTheDefault()
+    {
+        var switchedOn = Print(new PageOptionalContent { Configuration = "Print" }, (configuration, first, _) =>
+        {
+            configuration.Elements.SetName("/BaseState", "/Unchanged");
+            configuration.Elements["/ON"] = new PdfArray(configuration.Owner, first.Reference);
+        });
+        var switchedOff = Print(new PageOptionalContent { Configuration = "Print" }, (configuration, _, second) =>
+        {
+            configuration.Elements.SetName("/BaseState", "/Unchanged");
+            configuration.Elements["/OFF"] = new PdfArray(configuration.Owner, second.Reference);
+        });
+
+        Lefts(switchedOn).Should().Equal(1, 20);
+        Lefts(switchedOff).Should().BeEmpty();
+    }
+
+    [Test]
+    public void AnUnchangedConfigurationOverADefaultThatStartsOffKeepsWhatTheDefaultSwitchedOn()
+    {
+        var drawn = L1Off(Both, (document, _, first, second) =>
+        {
+            var defaults = document.Internals.Catalog.Elements.GetDictionary("/OCProperties").Elements.GetDictionary("/D");
+            defaults.Elements.SetName("/BaseState", "/OFF");
+            defaults.Elements.Remove("/OFF");
+            defaults.Elements["/ON"] = new PdfArray(document, second.Reference);
+            AddConfiguration(document, "Print", (configuration, _, _) =>
+                configuration.Elements.SetName("/BaseState", "/Unchanged"), first, second);
+        }, () => new PageOptionalContent { Configuration = "Print" });
+
+        Lefts(drawn).Should().Equal(20);
+    }
+
+    /// <summary>
+    /// A page with the group <c>/L1</c>, an annotation in it or the content in it, and a
+    /// <c>/Configs</c> holding an entry whose <c>/Name</c> is not a string beside "Print".
+    /// </summary>
+    private static Drawn MalformedConfigs(bool inAnnotation, Func<PdfDocument, PdfItem> badName, bool printHidesTheGroup)
+    {
+        PdfDictionary group = null;
+        var page = Drawn.PageOf(inAnnotation ? "" : "/OC /L1 BDC 0 0 5 5 re f EMC", (document, resources) =>
+        {
+            group = FormXObjectTests.Group(document);
+            Drawn.Add(document, resources, "/Properties", "/L1", group);
+
+            var malformed = new PdfDictionary(document);
+            malformed.Elements["/Name"] = badName(document);
+            var print = new PdfDictionary(document);
+            print.Elements.SetString("/Name", "Print");
+            if (printHidesTheGroup)
+                print.Elements["/OFF"] = new PdfArray(document, group.Reference);
+
+            var properties = new PdfDictionary(document);
+            properties.Elements["/OCGs"] = new PdfArray(document, group.Reference);
+            properties.Elements["/D"] = new PdfDictionary(document);
+            properties.Elements["/Configs"] = new PdfArray(document, malformed, print);
+            document.Internals.Catalog.Elements["/OCProperties"] = properties;
+        });
+
+        if (inAnnotation)
+        {
+            var document = page.Owner;
+            var annotation = new PdfDictionary(document);
+            document.Internals.AddObject(annotation);
+            annotation.Elements.SetName("/Type", "/Annot");
+            annotation.Elements.SetName("/Subtype", "/Square");
+            annotation.Elements["/Rect"] = new PdfRectangle(new XPoint(0, 0), new XPoint(50, 50));
+            var appearance = new PdfDictionary(document);
+            appearance.Elements["/N"] = Drawn.Form(document, "0 0 5 5 re f").Reference;
+            annotation.Elements["/AP"] = appearance;
+            annotation.Elements["/OC"] = group.Reference;
+            annotation.Elements.SetInteger("/F", 4);
+            page.Elements["/Annots"] = new PdfArray(document, annotation.Reference);
+        }
+
+        var device = new RecordingDevice();
+        var result = PageRendering.Render(page, device, optionalContent: new PageOptionalContent { Configuration = "Print" });
+        return new Drawn(result, device);
+    }
+
+    private static PdfItem NumberName(PdfDocument document)
+    {
+        var holder = new PdfDictionary(document);
+        holder.Elements.SetInteger("/Number", 5);
+        return holder.Elements["/Number"];
+    }
+
+    private static PdfItem DictionaryName(PdfDocument document) => new PdfDictionary(document);
+
+    [Test]
+    [Arguments(false, false)]
+    [Arguments(false, true)]
+    [Arguments(true, false)]
+    [Arguments(true, true)]
+    public void AConfigurationWhoseNameIsNotAStringIsPassedOverNotThrownAt(bool dictionary, bool inAnnotation)
+    {
+        Drawn drawn = null;
+        var act = () => drawn = MalformedConfigs(inAnnotation, dictionary ? DictionaryName : NumberName, printHidesTheGroup: true);
+
+        act.Should().NotThrow();
+        drawn.Device.Fills.Should().BeEmpty();
+        drawn.Problems.Should().BeEmpty();
+    }
+
+    [Test]
+    public void AnAnnotationInAGroupTheNamedConfigurationLeavesOnIsDrawnBesideAMalformedEntry()
+    {
+        var drawn = MalformedConfigs(inAnnotation: true, NumberName, printHidesTheGroup: false);
+
+        drawn.Device.Fills.Should().ContainSingle();
+        drawn.Problems.Should().BeEmpty();
+    }
+
+    [Test]
+    public void AShadingInHiddenContentIsNotReportedAndOneInVisibleContentIs()
+    {
+        var hidden = L1Off("/OC /L1 BDC /Sh1 sh EMC");
+        var visible = L1Off("/OC /L2 BDC /Sh1 sh EMC");
+
+        hidden.Problems.Should().BeEmpty();
+        hidden.Result.IsComplete.Should().BeTrue();
+        visible.Problems.Should().Equal("UnsupportedFeature sh");
+    }
+
+    [Test]
+    public void AProblemWithTheGraphicsStateInHiddenContentIsStillReported()
+    {
+        var drawn = L1Off("/OC /L1 BDC /GS1 gs EMC");
+
+        drawn.Problems.Should().Equal("MissingResource /GS1");
     }
 }

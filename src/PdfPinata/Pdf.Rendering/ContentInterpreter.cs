@@ -188,6 +188,13 @@ internal sealed partial class ContentInterpreter
         _uncountedSaves = 0;
         var outerMarked = _marked;
         _marked = new Stack<bool>();
+
+        // A stream of its own is not part of the marked content it is drawn from: a form is
+        // not entered while that is hidden, and a pattern cell or soft mask is its own content.
+        // So it starts with no sequence open and nothing hidden, whatever drew it.
+        var outerHiddenMarks = _hiddenMarks;
+        _hiddenMarks = 0;
+        _device.Hidden = false;
         _sink.Stream = streamName;
         _sink.Operator = null;
 
@@ -231,6 +238,8 @@ internal sealed partial class ContentInterpreter
             while (_marked.Count > 0)
                 EndMarkedContent(report: false);
             _marked = outerMarked;
+            _hiddenMarks = outerHiddenMarks;
+            _device.Hidden = _hiddenMarks > 0;
             _states.PopTo(_floor);
             (_resources, _path, _pendingClip, _text, _compatibilityDepth, _floor, _uncountedSaves,
                 _sink.Stream, _sink.OperatorIndex, _sink.Operator) = outer;
@@ -381,7 +390,9 @@ internal sealed partial class ContentInterpreter
             case OpCodeName.BI: DrawInlineImage(op); break;
 
             case OpCodeName.sh:
-                _sink.Report(PageRenderProblem.UnsupportedFeature, "sh", "Shadings are not drawn yet.");
+                // A shading in hidden content paints nothing, so there is nothing to report.
+                if (!_device.Hidden)
+                    _sink.Report(PageRenderProblem.UnsupportedFeature, "sh", "Shadings are not drawn yet.");
                 break;
 
             case OpCodeName.BMC: PushMarkedContent(hidden: false); break;
