@@ -675,7 +675,7 @@ is a glyph of through `OutlineOwner`, which for an embedded font is its `/FontFi
 CIDs a `/CIDToGIDMap` sends to one glyph share one path, and so do the font dictionaries over one
 font program. A source of the caller's own is its own owner and numbers each code as its own glyph.
 
-**A font program of more than 64 MiB is not read.** A TrueType font has at most 65,535 glyphs.
+**A font program of more than 64 MiB is not read, and not decoded past that.** A TrueType font has at most 65,535 glyphs.
 The largest there are, CJK fonts embedded whole, run to 20 or 30 MB, and at the far end to about
 50; the limit allows a kilobyte for every glyph a font can have. A stream that decodes to more is
 reported as `MissingGlyph`, with the limit, against each glyph shown in it. The limit is under half
@@ -726,11 +726,13 @@ entry of `_data` or `_outlines`.
 
 What the rule does not cover, because it is not kept for a font:
 
-- **The decoding itself, which is not capped yet.** A `/FontFile2` or `/CIDToGIDMap` stream is
-  decoded whole and then measured, so a stream of kilobytes that inflates to gigabytes is held for
-  as long as decoding it takes, and then let go of: 512 MiB from a file of 524 KB. `DecodeLimit`
-  (#398, PR #406) stops a filter at a length, and `EmbeddedTrueTypeGlyphSource.TryRead` is the one
-  place that passes it, 64 MiB for a font program and 131,072 bytes for a map, once that is merged.
+- **The decoding itself, which is capped where it is done.** `/FontFile2` is decoded under a
+  `DecodeLimit` (#398) of 64 MiB and `/CIDToGIDMap` under one of 131,072 bytes, which is all a CID
+  can reach, in `EmbeddedTrueTypeGlyphSource.TryRead`. A font program whose filters had more to
+  give is declined whole and reported: no part of it is kept. A stream that inflates to 512 MiB
+  or to 1900 MiB from a file of one or two megabytes peaks at 192 MiB while it is decoded, three
+  times the limit, and holds nothing after. A stream with no filter is the file's own bytes,
+  which the document already holds, and is measured as it is.
 - **What one call uses and lets go of**: a table being read, a glyph being decoded, each bounded by
   the 65,536 CIDs or points there can be.
 - **A caller's own `PageGlyphSource`**, which holds what its author makes it hold. Its outlines are

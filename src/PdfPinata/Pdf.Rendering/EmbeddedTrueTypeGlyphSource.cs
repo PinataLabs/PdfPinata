@@ -3,6 +3,7 @@ using System.IO;
 using PdfPinata.Fonts;
 using PdfPinata.Fonts.OpenType;
 using PdfPinata.Pdf.Advanced;
+using PdfPinata.Pdf.Filters;
 
 namespace PdfPinata.Pdf.Rendering;
 
@@ -114,17 +115,15 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
     /// <param name="truncated">Whether the stream has more than the limit.</param>
     /// <param name="decoded">How many bytes were decoded to find out.</param>
     /// <remarks>
-    /// The stream is decoded whole and then cut, so a stream that inflates to gigabytes is held
-    /// while it is decoded. <c>DecodeLimit</c> (#398) stops the filter at the limit, and belongs here.
+    /// The filters stop at the limit (<see cref="DecodeLimit"/>), so a stream of kilobytes that
+    /// would inflate to gigabytes is decoded no further than that. A stream with no filter is
+    /// the file's own bytes, which the document holds already, and is cut here.
     /// </remarks>
     private static bool TryRead(PdfDictionary stream, int limit, out byte[] bytes, out bool truncated, out long decoded)
     {
-        truncated = false;
-        decoded = 0;
-        if (!PdfContentStreams.TryGetContent(stream, out bytes))
+        if (!PdfContentStreams.TryGetContent(stream, limit, out bytes, out truncated, out decoded))
             return false;
 
-        decoded = bytes.Length;
         if (bytes.Length > limit)
         {
             truncated = true;

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -251,27 +253,43 @@ public class FontMemoryTests
     }
 
     [Test, Timeout(300000), NotInParallel]
-    public async Task AFontProgramLargerThanTheLimitIsReportedAndNotKept()
+    public async Task AFontProgramThatInflatesPastTheLimitIsReportedAndDecodedNoFurtherThanIt()
     {
-        // A stream of a few kilobytes that decodes to 72 MiB of font program. The largest real
-        // fonts are 20 to 50 MB, and the limit is 64 MiB.
+        // A stream of half a megabyte that inflates to 512 MiB of font program. The largest real
+        // fonts are 20 to 50 MB, and the limit is 64 MiB: the filter stops there, where it once
+        // inflated all of it, and 1900 MiB threw OutOfMemoryException inside the filter.
         var page = Drawn.PageOf("BT /F1 10 Tf <0001> Tj ET 0 0 5 5 re f", (document, resources) =>
         {
-            var padded = new byte[72 << 20];
-            OneBar().CopyTo(padded, 0);
-            var font = Composite(document, padded);
-            Deflated(font);
+            var font = Composite(document, OneBar());
+            var file = (PdfDictionary)((PdfReference)Descendant(font).Elements.GetDictionary("/FontDescriptor").Elements["/FontFile2"]).Value;
+            using var compressed = new MemoryStream();
+            using (var zlib = new ZLibStream(compressed, CompressionLevel.Fastest, leaveOpen: true))
+            {
+                zlib.Write(file.Stream.Value);
+                var zeros = new byte[1 << 20];
+                for (var written = 0; written < 512; written++)
+                    zlib.Write(zeros);
+            }
+
+            file.Stream.Value = compressed.ToArray();
+            file.Elements.SetName("/Filter", "/FlateDecode");
             Drawn.Add(document, resources, "/Font", "/F1", font);
         });
         var device = new PathCountingDevice();
 
-        var (result, retained) = await Interruptibly.Run(() => Retained(() => PageRendering.Render(page, device)));
+        var (result, retained, allocated) = await Interruptibly.Run(() =>
+        {
+            var before = GC.GetAllocatedBytesForCurrentThread();
+            var (rendered, kept) = Retained(() => PageRendering.Render(page, device));
+            return (rendered, kept, GC.GetAllocatedBytesForCurrentThread() - before);
+        });
 
         var missing = result.Diagnostics.Should().ContainSingle().Subject;
         missing.Problem.Should().Be(PageRenderProblem.MissingGlyph);
         missing.Message.Should().Contain("larger than 64 MiB");
         device.Fills.Should().Be(1, "the rectangle after the text is drawn");
-        retained.Should().BeLessThan(8 * Megabyte, "the program is not kept");
+        allocated.Should().BeLessThan(320 * Megabyte, "decoding stops at 64 MiB, where all of it was 512 MiB and the buffers that grew to it");
+        retained.Should().BeLessThan(8 * Megabyte, "no part of the program is kept");
         GC.KeepAlive(page);
     }
 
