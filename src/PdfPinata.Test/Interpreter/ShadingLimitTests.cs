@@ -136,6 +136,131 @@ public class ShadingLimitTests
         drawn.Problems.Should().Equal("InvalidValue /Sh0");
     }
 
+    private static PdfDictionary RedToBlue(PdfDocument document) =>
+        Drawn.Object(document, ("/FunctionType", "2"), ("/Domain", "[0 1]"), ("/C0", "[1 0 0]"), ("/C1", "[0 0 1]"),
+            ("/N", "1"));
+
+    /// <summary>A stitching of its pieces, each over an equal share of the domain.</summary>
+    private static PdfDictionary Stitching(PdfDocument document, params PdfDictionary[] pieces)
+    {
+        var bounds = string.Join(" ", Enumerable.Range(1, pieces.Length - 1)
+            .Select(bound => ((double)bound / pieces.Length).ToString(CultureInfo.InvariantCulture)));
+        var stitching = Drawn.Object(document, ("/FunctionType", "3"), ("/Domain", "[0 1]"), ("/Bounds", $"[{bounds}]"),
+            ("/Encode", $"[{string.Concat(Enumerable.Repeat("0 1 ", pieces.Length))}]"));
+        var functions = new PdfArray(document);
+        foreach (var piece in pieces)
+            functions.Elements.Add(piece.Reference);
+        stitching.Elements["/Functions"] = functions;
+        return stitching;
+    }
+
+    /// <summary>Stitchings <paramref name="deep"/> deep, each of whose pieces all name the one below it.</summary>
+    private static PdfDictionary SharedStitching(PdfDocument document, int width, int deep)
+    {
+        var below = RedToBlue(document);
+        for (var level = 0; level < deep; level++)
+            below = Stitching(document, Enumerable.Repeat(below, width).ToArray());
+        return below;
+    }
+
+    [Test, Timeout(30_000)]
+    public async Task AStitchingWhosePiecesNameOneFunctionIsReadOnceForEachObject()
+    {
+        // Five objects, and 256 to the fourth paths through them.
+        var drawn = await Shaded(document => SharedStitching(document, 256, 4));
+
+        drawn.Device.Fills.First().ShaderAs<PageGradient>().Stops.Count.Should().BeInRange(2, 256);
+        drawn.Problems.Should().BeEmpty();
+    }
+
+    [Test, Timeout(30_000)]
+    public async Task AFunctionOfMoreObjectsThanARenderReadsIsNotRead()
+    {
+        // 17 stitchings of 256 functions, each its own object, and the stitching of those: 4,370.
+        var drawn = await Shaded(document => Stitching(document, Enumerable.Range(0, 17)
+            .Select(_ => Stitching(document, Enumerable.Range(0, 256).Select(_ => RedToBlue(document)).ToArray()))
+            .ToArray()));
+
+        drawn.Device.Body.Should().Equal(Square);
+        drawn.Problems.Should().Equal("LimitReached /Sh0");
+    }
+
+    [Test, Timeout(30_000)]
+    public async Task AFunctionAlreadyReadIsStillTooDeepWhereItIsNamedDeeper()
+    {
+        // As deep as the limit where the first shading names it, and one deeper in the second.
+        var drawn = await Interruptibly.Run(() => Drawn.Saved("/Sh0 sh /Sh1 sh", (document, resources) =>
+        {
+            var deepest = SharedStitching(document, 1, 8);
+            Drawn.Add(document, resources, "/Shading", "/Sh0", Drawn.Object(document, ("/ShadingType", "2"),
+                ("/ColorSpace", "/DeviceRGB"), ("/Coords", "[0 0 100 0]"), ("/Function", deepest)));
+            Drawn.Add(document, resources, "/Shading", "/Sh1", Drawn.Object(document, ("/ShadingType", "2"),
+                ("/ColorSpace", "/DeviceRGB"), ("/Coords", "[0 0 100 0]"), ("/Function", Stitching(document, deepest))));
+        }));
+
+        drawn.Device.Fills.Should().ContainSingle();
+        drawn.Problems.Should().Equal("LimitReached /Sh1");
+    }
+
+    /// <summary>
+    /// A calculator program of two inputs and three outputs about <paramref name="length"/> bytes
+    /// long, every step of which runs: a type 1 shading runs it 65 by 65 times.
+    /// </summary>
+    private static string LongProgram(int length)
+    {
+        var program = new StringBuilder("{ ");
+        const string Step = "1 add 1 sub ", End = "exch pop dup dup }";
+        while (program.Length + Step.Length + End.Length <= length)
+            program.Append(Step);
+        return program.Append(End).ToString();
+    }
+
+    private static PdfDictionary FunctionGrid(PdfDocument document, PdfDictionary function, int scale) =>
+        Drawn.Object(document, ("/ShadingType", "1"), ("/ColorSpace", "/DeviceRGB"), ("/Domain", "[0 1 0 1]"),
+            ("/Matrix", $"[{scale} 0 0 100 0 0]"), ("/Function", function));
+
+    [Test, Timeout(60_000)]
+    [Arguments(64)]
+    [Arguments(1024)]
+    public async Task ShadingsThatShareACostlyProgramAreDrawnUntilTheRenderHasSpentItsWork(int count)
+    {
+        // One grid of the longest program read is most of what a render spends on shadings.
+        var drawn = await Interruptibly.Run(() => Drawn.Saved(
+            string.Concat(Enumerable.Range(0, count).Select(index => $"/S{index} sh ")), (document, resources) =>
+            {
+                var function = Drawn.Stream(document, LongProgram(1 << 16), ("/FunctionType", "4"),
+                    ("/Domain", "[0 1 0 1]"), ("/Range", "[0 1 0 1 0 1]"));
+                for (var index = 0; index < count; index++)
+                    Drawn.Add(document, resources, "/Shading", $"/S{index}", FunctionGrid(document, function, 100 + index));
+            }));
+
+        drawn.Device.Fills.Should().ContainSingle();
+        drawn.Problems.Should().StartWith("LimitReached /S1").And.OnlyContain(problem => problem.StartsWith("LimitReached /S"));
+    }
+
+    [Test, Timeout(60_000)]
+    public async Task AShadingPastThoseKeptIsReadAgainOnlyUntilTheRenderHasSpentItsWork()
+    {
+        // The first 1,024 shadings are kept, so the one after them is read at each sh.
+        var content = new StringBuilder();
+        for (var index = 0; index < 1024; index++)
+            content.Append($"/F{index} sh ");
+        for (var index = 0; index < 200; index++)
+            content.Append("/Heavy sh ");
+
+        var drawn = await Interruptibly.Run(() => Drawn.Saved(content.ToString(), (document, resources) =>
+        {
+            for (var index = 0; index < 1024; index++)
+                Drawn.Add(document, resources, "/Shading", $"/F{index}", Drawn.Object(document, ("/ShadingType", "2"),
+                    ("/ColorSpace", "/DeviceRGB"), ("/Coords", "[0 0 100 0]"), ("/Function", RedToBlue(document))));
+            Drawn.Add(document, resources, "/Shading", "/Heavy", FunctionGrid(document, Drawn.Stream(document,
+                LongProgram(8000), ("/FunctionType", "4"), ("/Domain", "[0 1 0 1]"), ("/Range", "[0 1 0 1 0 1]")), 100));
+        }));
+
+        drawn.Device.Fills.Count().Should().BeInRange(1025, 1100);
+        drawn.Problems.Should().Equal("LimitReached /Heavy");
+    }
+
     private static object Calculator(PdfDocument document, string program) =>
         Drawn.Stream(document, program, ("/FunctionType", "4"), ("/Domain", "[0 1]"), ("/Range", "[0 1]"));
 
@@ -192,6 +317,11 @@ public class ShadingLimitTests
     [Arguments("{ 1000000000 index }", "nothing lies that far down")]
     [Arguments("{ 1 0 idiv }", "nothing is divided by zero")]
     [Arguments("{ 1 0 mod }", "nothing is divided by zero")]
+    [Arguments("{ 1 0 div }", "nothing is divided by zero")]
+    [Arguments("{ 0 0 div }", "nothing is divided by zero")]
+    [Arguments("{ -1 sqrt }", "a negative number has no root")]
+    [Arguments("{ 0 ln }", "zero has no logarithm")]
+    [Arguments("{ -1 log }", "a negative number has no logarithm")]
     [Arguments("{ true add }", "a truth value is no number")]
     [Arguments("{ 1 { 1 } if }", "a number is no truth value")]
     [Arguments("{ 1 lt }", "the result is a truth value and no colour")]
@@ -204,9 +334,6 @@ public class ShadingLimitTests
     }
 
     [Test, Timeout(30_000)]
-    [Arguments("{ 1 0 div }")]
-    [Arguments("{ -1 sqrt }")]
-    [Arguments("{ 0 ln }")]
     [Arguments("{ 1 1 1e300 roll pop }")]
     [Arguments("{ 1e300 1e300 mul 100000 bitshift cvi }")]
     public async Task ACalculatorProgramThatComputesNoNumberAnswersOneInItsRange(string program)

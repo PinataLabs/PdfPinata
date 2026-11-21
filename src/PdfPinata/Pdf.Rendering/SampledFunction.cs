@@ -10,7 +10,7 @@ namespace PdfPinata.Pdf.Rendering;
 /// <remarks>
 /// The samples stay packed as the stream holds them and are unpacked as they are asked for, so
 /// nothing the size of <c>/Size</c> is allocated beyond the stream itself. <c>/Order 3</c> is read
-/// as 1: a cubic spline between samples is not computed.
+/// as 1, and reported: a cubic spline between samples is not computed.
 /// </remarks>
 internal sealed class SampledFunction : PdfFunction
 {
@@ -37,6 +37,9 @@ internal sealed class SampledFunction : PdfFunction
     }
 
     internal override int OutputCount => _decode.Length / 2;
+
+    // Two samples along each input, for each output.
+    internal override long Cost => (1L << _size.Length) * OutputCount;
 
     internal static PdfFunction Read(PdfDictionary dictionary, double[] domain, double[] range, DiagnosticSink sink,
         string subject)
@@ -88,6 +91,12 @@ internal sealed class SampledFunction : PdfFunction
         var decode = Numbers(elements["/Decode"]);
         if (decode == null || decode.Length != range.Length)
             decode = range;
+
+        if (PdfItemValues.TryGetInteger(elements["/Order"], out var order) && order == 3)
+        {
+            sink.Report(PageRenderProblem.UnsupportedFeature, "/Order",
+                "A sampled function of /Order 3 is read between its samples in a straight line, not along a cubic spline.");
+        }
 
         return new SampledFunction(domain, range, samples, size, bits, encode, decode);
     }

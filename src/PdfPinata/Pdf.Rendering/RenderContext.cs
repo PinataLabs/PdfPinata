@@ -32,9 +32,16 @@ internal sealed class RenderContext
     {
         Fonts = fonts;
         GlyphSources = glyphSources;
+        Functions = new FunctionReader(Sink);
     }
 
     internal DiagnosticSink Sink { get; } = new();
+
+    /// <summary>Every function the render reads, each once.</summary>
+    internal FunctionReader Functions { get; }
+
+    /// <summary>What reading shadings may cost the whole render.</summary>
+    internal ShadingWork ShadingWork { get; } = new();
 
     internal RenderFontCache Fonts { get; }
 
@@ -86,7 +93,7 @@ internal sealed class RenderContext
             return read;
 
         var kept = _shadings.Count < MaximumShaders;
-        read = Shadings.Read(shading, kept, Sink, subject);
+        read = Shadings.Read(shading, kept, this, subject);
         if (kept)
             _shadings.Add(key, read);
         return read;

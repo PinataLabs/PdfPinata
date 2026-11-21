@@ -313,6 +313,50 @@ public class GhostscriptFidelityTests
             nameof(TriangleMeshes), new PageRenderOptions { Scale = 2 })
             .ShouldBeWithin(meanChannelDifference: 1.6, shareOverThreshold: 0.009);
 
+    // The same two meshes in values that do not fill a byte: 12-bit coordinates, 4-bit
+    // components and, in the free-form mesh, a 2-bit flag. A vertex is then 38 bits, or 36 in the
+    // lattice, and each is padded to a whole byte. Read without the padding, every vertex after
+    // the first is wrong.
+    [Test]
+    public void AFreeFormMeshOfValuesNarrowerThanAByte() =>
+        Fidelity.Of(PageWith(
+                "/Free sh",
+                ("/Shading", "/Free", NarrowMesh(4, new PackedMesh(2, 12, 4)
+                    .Vertex(0, 10, 20, 15, 0, 0)
+                    .Vertex(0, 90, 30, 0, 15, 0)
+                    .Vertex(0, 30, 130, 0, 0, 15)
+                    .Vertex(1, 95, 140, 15, 15, 0)
+                    .Vertex(2, 60, 75, 15, 15, 15)))),
+            nameof(AFreeFormMeshOfValuesNarrowerThanAByte), new PageRenderOptions { Scale = 2 })
+            .ShouldBeWithin(meanChannelDifference: 0.8, shareOverThreshold: 0.005);
+
+    [Test]
+    public void ALatticeMeshOfValuesNarrowerThanAByte() =>
+        Fidelity.Of(PageWith(
+                "/Lattice sh",
+                ("/Shading", "/Lattice", NarrowMesh(5, new PackedMesh(0, 12, 4)
+                    .Vertex(0, 110, 20, 15, 0, 0).Vertex(0, 150, 10, 0, 15, 0).Vertex(0, 190, 25, 0, 0, 15)
+                    .Vertex(0, 105, 75, 0, 0, 0).Vertex(0, 150, 80, 15, 15, 15).Vertex(0, 195, 70, 0, 0, 0)
+                    .Vertex(0, 115, 135, 0, 15, 15).Vertex(0, 150, 140, 15, 0, 15).Vertex(0, 185, 130, 15, 15, 0),
+                    ("/VerticesPerRow", "3")))),
+            nameof(ALatticeMeshOfValuesNarrowerThanAByte), new PageRenderOptions { Scale = 2 })
+            .ShouldBeWithin(meanChannelDifference: 0.8, shareOverThreshold: 0.005);
+
+    private static Func<PdfDocument, PdfDictionary> NarrowMesh(int type, PackedMesh data,
+        params (string Key, object Value)[] entries) =>
+        document =>
+        {
+            var shading = HandWritten.Stream(document, data.ToString(), entries);
+            shading.Elements["/ShadingType"] = new PdfLiteral(type.ToString());
+            shading.Elements["/ColorSpace"] = new PdfLiteral("/DeviceRGB");
+            shading.Elements["/BitsPerCoordinate"] = new PdfLiteral("12");
+            shading.Elements["/BitsPerComponent"] = new PdfLiteral("4");
+            shading.Elements["/Decode"] = new PdfLiteral("[0 4095 0 4095 0 1 0 1 0 1]");
+            if (type == 4)
+                shading.Elements["/BitsPerFlag"] = new PdfLiteral("2");
+            return shading;
+        };
+
     // A Coons patch with a second sharing its side, and a tensor-product patch whose inner
     // control points pull the colours towards one corner.
     [Test]

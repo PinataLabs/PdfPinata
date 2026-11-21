@@ -10,8 +10,8 @@ namespace PdfPinata.Pdf.Rendering;
 /// <remarks>
 /// Immutable, so one instance serves every evaluation. <see cref="Evaluate"/> never throws: the
 /// inputs are clipped to <c>/Domain</c>, the outputs to <c>/Range</c>, and an output that is not
-/// a number is 0. <see cref="Read(PdfItem, DiagnosticSink, string)"/> is the one reader and holds every limit, so nothing that
-/// evaluates a function has to bound it.
+/// a number is 0. <see cref="FunctionReader"/> is the one reader and holds every limit on reading;
+/// <see cref="Cost"/> is what a caller bounds evaluating by.
 /// </remarks>
 internal abstract class PdfFunction
 {
@@ -38,6 +38,12 @@ internal abstract class PdfFunction
     internal int InputCount => _domain.Length / 2;
 
     internal abstract int OutputCount { get; }
+
+    /// <summary>
+    /// The most work one <see cref="Evaluate"/> can be: a step of a calculator program, a sample
+    /// of a table or an output of an exponential each count one. Known when the function is read.
+    /// </summary>
+    internal abstract long Cost { get; }
 
     /// <summary>The low and the high of an input.</summary>
     internal (double Low, double High) DomainOf(int input) => (_domain[2 * input], _domain[2 * input + 1]);
@@ -85,137 +91,7 @@ internal abstract class PdfFunction
 #pragma warning restore S1244
     }
 
-    /// <summary>
-    /// What a <c>/Function</c> entry describes: one function, or an array of functions of one
-    /// output each, read as one function of as many outputs.
-    /// </summary>
-    /// <returns>The function, or null where it cannot be read, which is reported.</returns>
-    internal static PdfFunction Read(PdfItem definition, DiagnosticSink sink, string subject) =>
-        Read(definition, 0, new HashSet<object>(ReferenceIdentity.Instance), sink, subject);
-
-    private static PdfFunction Read(PdfItem definition, int depth, HashSet<object> active, DiagnosticSink sink,
-        string subject)
-    {
-        definition = PdfReference.Dereference(definition);
-        if (depth > MaximumDepth)
-        {
-            sink.Report(PageRenderProblem.LimitReached, subject,
-                "Functions are nested too deep. What they colour is not drawn.");
-            return null;
-        }
-
-        if (definition is PdfArray array)
-            return ReadGroup(array, depth, active, sink, subject);
-
-        if (definition is not PdfDictionary dictionary)
-            return Invalid(sink, subject, "A function is a dictionary, a stream or an array of them.");
-
-        var key = ReferenceIdentity.KeyOf(dictionary);
-        if (!active.Add(key))
-        {
-            sink.Report(PageRenderProblem.LimitReached, subject,
-                "A function is made of itself. What it colours is not drawn.");
-            return null;
-        }
-
-        try
-        {
-            var elements = dictionary.Elements;
-            var domain = Intervals(elements["/Domain"]);
-            if (domain == null || domain.Length == 0 || domain.Length / 2 > MaximumArity)
-                return Invalid(sink, subject, "A function's /Domain is a low and a high for each input.");
-
-            var range = Intervals(elements["/Range"]);
-            if (range == null && !PdfItemValues.IsNull(elements["/Range"]) || range?.Length / 2 > MaximumArity)
-                return Invalid(sink, subject, "A function's /Range is a low and a high for each output.");
-
-            if (!PdfItemValues.TryGetInteger(elements["/FunctionType"], out var type))
-                type = -1;
-
-            return type switch
-            {
-                0 => SampledFunction.Read(dictionary, domain, range, sink, subject),
-                2 => ExponentialFunction.Read(dictionary, domain, range, sink, subject),
-                3 => ReadStitching(dictionary, domain, range, depth, active, sink, subject),
-                4 => CalculatorFunction.Read(dictionary, domain, range, sink, subject),
-                _ => Invalid(sink, subject, "A function's /FunctionType is 0, 2, 3 or 4.")
-            };
-        }
-        finally
-        {
-            active.Remove(key);
-        }
-    }
-
-    private static PdfFunction ReadGroup(PdfArray array, int depth, HashSet<object> active, DiagnosticSink sink,
-        string subject)
-    {
-        var count = array.Elements.Count;
-        if (count == 0 || count > MaximumArity)
-            return Invalid(sink, subject, "An array of functions holds one for each colour component.");
-
-        var functions = new PdfFunction[count];
-        for (var index = 0; index < count; index++)
-        {
-            // An array inside an array is no function, and would nest without end.
-            if (PdfReference.Dereference(array.Elements[index]) is PdfArray)
-                return Invalid(sink, subject, "An array of functions holds functions.");
-
-            functions[index] = Read(array.Elements[index], depth + 1, active, sink, subject);
-            if (functions[index] == null)
-                return null;
-
-            if (functions[index].OutputCount != 1 || functions[index].InputCount != functions[0].InputCount)
-                return Invalid(sink, subject, "Each function of an array has one output and the same inputs.");
-        }
-
-        return count == 1 ? functions[0] : new FunctionGroup(functions);
-    }
-
-    private static PdfFunction ReadStitching(PdfDictionary dictionary, double[] domain, double[] range, int depth,
-        HashSet<object> active, DiagnosticSink sink, string subject)
-    {
-        var elements = dictionary.Elements;
-        if (domain.Length != 2 || PdfReference.Dereference(elements["/Functions"]) is not PdfArray pieces
-                               || pieces.Elements.Count == 0 || pieces.Elements.Count > MaximumBreakpoints)
-        {
-            return Invalid(sink, subject, "A stitching function has one input and an array of /Functions.");
-        }
-
-        var count = pieces.Elements.Count;
-        var bounds = Numbers(elements["/Bounds"]);
-        var encode = Numbers(elements["/Encode"]);
-        if (bounds == null || bounds.Length != count - 1 || encode == null || encode.Length != 2 * count)
-            return Invalid(sink, subject, "A stitching function has a bound between each two functions and an /Encode pair for each.");
-
-        var edges = new double[count + 1];
-        edges[0] = domain[0];
-        edges[count] = domain[1];
-        bounds.CopyTo(edges, 1);
-        for (var index = 1; index <= count; index++)
-        {
-            if (edges[index] < edges[index - 1])
-                return Invalid(sink, subject, "The /Bounds of a stitching function rise, inside its /Domain.");
-        }
-
-        var functions = new PdfFunction[count];
-        for (var index = 0; index < count; index++)
-        {
-            functions[index] = Read(pieces.Elements[index], depth + 1, active, sink, subject);
-            if (functions[index] == null)
-                return null;
-
-            if (functions[index].InputCount != 1 || functions[index].OutputCount != functions[0].OutputCount)
-                return Invalid(sink, subject, "Each function of a stitching has one input and the same outputs.");
-        }
-
-        if (range != null && range.Length != 2 * functions[0].OutputCount)
-            return Invalid(sink, subject, "A function's /Range is a low and a high for each output.");
-
-        return new StitchingFunction(domain, range, functions, edges, encode);
-    }
-
-    protected static PdfFunction Invalid(DiagnosticSink sink, string subject, string message)
+    internal static PdfFunction Invalid(DiagnosticSink sink, string subject, string message)
     {
         sink.Report(PageRenderProblem.InvalidValue, subject, message + " What it colours is not drawn.");
         return null;
@@ -238,7 +114,7 @@ internal abstract class PdfFunction
     }
 
     /// <summary>An array of pairs, each a low and a high that is not below it, or null.</summary>
-    private static double[] Intervals(PdfItem item)
+    internal static double[] Intervals(PdfItem item)
     {
         var numbers = Numbers(item);
         if (numbers == null || numbers.Length % 2 != 0)
@@ -270,6 +146,8 @@ internal sealed class ExponentialFunction : PdfFunction
     }
 
     internal override int OutputCount => _c0.Length;
+
+    internal override long Cost => _c0.Length;
 
     internal static PdfFunction Read(PdfDictionary dictionary, double[] domain, double[] range, DiagnosticSink sink,
         string subject)
@@ -315,9 +193,16 @@ internal sealed class StitchingFunction : PdfFunction
         _functions = functions;
         _edges = edges;
         _encode = encode;
+
+        // One piece is evaluated, after a search of the bounds.
+        foreach (var function in functions)
+            Cost = Math.Max(Cost, function.Cost);
+        Cost += functions.Length;
     }
 
     internal override int OutputCount => _functions[0].OutputCount;
+
+    internal override long Cost { get; }
 
     protected override void Compute(ReadOnlySpan<double> input, Span<double> output)
     {
@@ -367,9 +252,13 @@ internal sealed class FunctionGroup : PdfFunction
     internal FunctionGroup(PdfFunction[] functions) : base(DomainOf(functions[0]), null)
     {
         _functions = functions;
+        foreach (var function in functions)
+            Cost += function.Cost;
     }
 
     internal override int OutputCount => _functions.Length;
+
+    internal override long Cost { get; }
 
     protected override void Compute(ReadOnlySpan<double> input, Span<double> output)
     {

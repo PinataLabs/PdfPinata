@@ -51,6 +51,10 @@ internal static class MeshReader
             _ => ReadPatches(shading, type, colors, mesh)
         };
 
+        // The caller reports it, as it does for a gradient.
+        if (colors.Work.IsSpent)
+            return null;
+
         if (!read)
         {
             Shadings.Invalid(sink, subject, "The shading's mesh is not laid out as its type is.");
@@ -102,16 +106,17 @@ internal static class MeshReader
         if (!VertexStream.TryOpen(shading, colors, type == 4, out var stream))
             return false;
 
+        // Each vertex of a triangle mesh, with its flag where it has one, takes a whole number of
+        // bytes (ISO 32000-1 8.7.4.5.5, and 8.7.4.5.6, which gives type 5 the same layout less the
+        // flags). Ghostscript and PDFium both pad type 5 so.
+        stream.PadsVertices = true;
         if (type == 5)
             return ReadLattice(shading, ref stream, mesh);
-
-        // Each vertex of a type 4 mesh, flag and all, is padded to a whole byte. Nothing else is.
-        stream.PadsVertices = true;
 
         // The triangle before: a flag of 1 or 2 makes the next from two of its corners.
         Vertex a = default, b = default, c = default;
         var known = false;
-        while (!mesh.Overflowed && stream.TryReadFlag(out var flag))
+        while (!mesh.Stopped && stream.TryReadFlag(out var flag))
         {
             if (flag == 0 || !known)
             {
@@ -147,7 +152,7 @@ internal static class MeshReader
 
         var above = new Vertex[perRow];
         var row = new Vertex[perRow];
-        for (var rows = 0; !mesh.Overflowed; rows++)
+        for (var rows = 0; !mesh.Stopped; rows++)
         {
             for (var column = 0; column < perRow; column++)
             {
@@ -177,12 +182,17 @@ internal static class MeshReader
         if (!VertexStream.TryOpen(shading, colors, true, out var stream))
             return false;
 
+        // A patch is not padded to a whole byte. ISO 32000-1 asks that of each vertex of a
+        // triangle mesh (8.7.4.5.5) and says nothing of a patch. pdf.js and PDFium read patches
+        // unpadded and Ghostscript pads each one, so this follows the two. All three agree
+        // wherever a patch's data ends on a byte.
+
         // The sixteen control points as p[column, row], and the colours at the corners in the
         // order the stream gives them: (0,0), (0,3), (3,3), (3,0).
         var p = new XPoint[4, 4];
         var corners = new Vertex[4];
         var known = false;
-        while (!mesh.Overflowed && stream.TryReadFlag(out var flag))
+        while (!mesh.Stopped && stream.TryReadFlag(out var flag))
         {
             var given = 0;
             if (flag != 0 && known)
@@ -351,9 +361,11 @@ internal static class MeshReader
         // The function as a gradient's stops, where the vertices carry its input, and its domain.
         private readonly PageGradientStop[] _ramp;
         private readonly double _low, _high;
+        private readonly ShadingWork _work;
 
         internal Triangles(ShadingColors colors)
         {
+            _work = colors.Work;
             if (!colors.BlendsInput)
                 return;
 
@@ -370,6 +382,9 @@ internal static class MeshReader
 
         /// <summary>Whether triangles were left out at <see cref="MaximumTriangles"/>.</summary>
         internal bool Overflowed { get; private set; }
+
+        /// <summary>Whether no more triangles are read: there are as many as are kept, or the render's work is spent.</summary>
+        internal bool Stopped => Overflowed || _work.IsSpent;
 
         internal XRect Bounds => Points.Count == 0 ? default : new XRect(_left, _top, _right - _left, _bottom - _top);
 
@@ -407,7 +422,7 @@ internal static class MeshReader
             var lowest = Math.Min(offsets[0], Math.Min(offsets[1], offsets[2]));
             var highest = Math.Max(offsets[0], Math.Max(offsets[1], offsets[2]));
 
-            for (var stop = 1; stop < _ramp.Length && !Overflowed; stop++)
+            for (var stop = 1; stop < _ramp.Length && !Stopped; stop++)
             {
                 PageGradientStop from = _ramp[stop - 1], to = _ramp[stop];
                 if (!(to.Offset > from.Offset) || to.Offset < lowest || from.Offset > highest)
@@ -473,6 +488,11 @@ internal static class MeshReader
                 Overflowed = true;
                 return;
             }
+
+            if (_work.IsSpent)
+                return;
+
+            _work.Spend(ShadingWork.TriangleCost);
 
             Emit(a);
             Emit(b);
@@ -546,9 +566,17 @@ internal static class MeshReader
             return true;
         }
 
-        /// <summary>How many more vertices the data is long enough to hold.</summary>
-        internal readonly long VerticesLeft =>
-            (_data.Length * 8L - _bit) / (2 * _bitsPerCoordinate + _colors.ComponentCount * _bitsPerComponent);
+        /// <summary>How many more vertices the data is long enough to hold, where they have no flags.</summary>
+        internal readonly long VerticesLeft
+        {
+            get
+            {
+                long bits = 2 * _bitsPerCoordinate + _colors.ComponentCount * _bitsPerComponent;
+                if (PadsVertices)
+                    bits = (bits + 7) & ~7L;
+                return (_data.Length * 8L - _bit) / bits;
+            }
+        }
 
         internal bool TryReadFlag(out int flag)
         {

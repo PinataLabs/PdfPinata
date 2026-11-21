@@ -238,6 +238,21 @@ in a straight line across a triangle, so the triangle is cut along the lines whe
 that of one of the function's stops. A hard edge of the function is then a hard edge across the
 triangle.
 
+**Padding.** Each vertex of a triangle mesh, type 4 with its flag and type 5 without, is padded to
+a whole byte, as ISO 32000-1 8.7.4.5.5 and 8.7.4.5.6 say and Ghostscript and PDFium read it. A
+patch of type 6 or 7 is not padded. The standard says nothing of a patch, pdf.js and PDFium read
+patches unpadded, and Ghostscript pads each one. This follows the two, and all three agree
+wherever a patch's data ends on a byte.
+
+**Functions are read once a render.** `RenderContext.Functions`, a `FunctionReader`, keeps each
+function by the identity of its dictionary, so every shading and every stitching that names one
+shares a single instance. A stitching whose 256 pieces each name the stitching below it, four
+deep, is five objects to read and not four billion. Each function knows its `Cost`, the most work
+one evaluation can be: a step of a calculator program, a sample of a table or an output each count
+one. `RenderContext.ShadingWork` is charged that cost for every colour found through a function,
+and 64 for every triangle of a mesh, across every shading of the render. Once it is spent, the
+shading being read is not drawn, and no shading is read after it.
+
 **A tiling cell is recorded by the core.** `ContentInterpreter.Record` runs a content stream
 through an interpreter of its own onto an internal `PictureRecorder`, and answers a `PagePicture`:
 device calls, kept, in the pattern's own coordinates. `PagePicture.Replay(device, transform)` makes
@@ -280,8 +295,10 @@ drawn.
 | input | limit | past it |
 |---|---|---|
 | Sampled function table | 16 MiB by `/Size`, outputs and `/BitsPerSample`, asked before the stream is decoded. 8 inputs. | The function is not read. A stream shorter than its `/Size` is `InvalidValue`. |
-| Function nesting | 8 deep. A function made of itself is caught by its reference. 32 inputs or outputs. | The function is not read. |
-| Calculator program | 64 KiB, braces 32 deep, a stack of 100. | Not read. A program that runs off its stack at run time answers zeros and is not reported. |
+| Function nesting | 8 deep, counted where a function is named, though it was read where it nests less. A function made of itself is caught by its reference. 32 inputs or outputs. | The function is not read. |
+| Functions read | 4,096 dictionaries a render. One named again is not read again. | The function is not read. |
+| Calculator program | 64 KiB, braces 32 deep, a stack of 100. | Not read. A program that runs off its stack, divides by zero, or takes the root or the logarithm of a number out of range answers zeros and is not reported. |
+| Shading work | 2^27 for a render: a function's `Cost` for each colour, 64 for each triangle. About a second of the longest calculator program, or two million triangles. | The shading being read, and every one after it, is not drawn. |
 | Gradient stops | 256 | Never more are made. |
 | Mesh | 262,144 triangles | Reading stops and what was read is drawn. A lattice whose rows are longer than its data is `InvalidValue`. |
 | Cells and forms | Counted together by `FormVisits`: once at a time, 32 deep, 4,096 in all. | The pattern paints nothing. This is what stops a cell that paints with its own pattern. |
@@ -290,14 +307,19 @@ drawn.
 | Tile size on the device | A step of a quarter of a pixel | The pattern is painted as one colour. Not asked inside a cell, whose size on the device is not known there. |
 | `/XStep`, `/YStep`, `/BBox` | A step of zero, or a box with no area | `InvalidValue`. The pattern paints nothing. |
 | Shader transform | Not finite, or with no area | `InvalidValue`. Nothing is painted. |
-| Shaders kept | 1,024 shadings and 1,024 patterns, 32 colours of one uncoloured pattern | The shader is read again each time, and `IsShared` is false. Not reported. |
+| Shaders kept | 1,024 shadings and 1,024 patterns, 32 colours of one uncoloured pattern | The shader is read again each time, and `IsShared` is false. Not reported. Reading it again draws on the shading work, so a shading past those kept and painted without end is bounded too. |
 
 The calculator language has no loop and no procedure call. `if` and `ifelse` are compiled to
 jumps forwards, so one evaluation runs each instruction at most once.
 
 ### What was left out
 
-- **`/Order 3` in a sampled function** is read as 1. A cubic spline between samples is not computed.
+- **`/Order 3` in a sampled function** is read as 1, and reported as `UnsupportedFeature`, subject
+  `/Order`. A cubic spline between samples is not computed.
+- **The order overlapping cells stack in.** Where a step is shorter than the cell, each tile is
+  drawn with the tile's own cell over the neighbours that reach into it. The standard does not say
+  which of two overlapping cells is on top, and Ghostscript stacks them differently, so where cells
+  overlap the two can disagree.
 - **A shading pattern's `/ExtGState`** is not applied. It is reported, subject `/ExtGState`.
 - **Exact patch colours.** A patch is a grid of flat triangles, so its colours are bilinear
   between its corners across each cell and not across the curved surface. The cut is always 8 by 8,

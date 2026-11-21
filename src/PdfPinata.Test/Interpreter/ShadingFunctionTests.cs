@@ -131,6 +131,19 @@ public class ShadingFunctionTests
     }
 
     [Test]
+    public void ASampledFunctionOfOrderThreeIsReadInStraightLinesAndSaysSo()
+    {
+        var drawn = Drawn.Saved("/Sh0 sh", (document, resources) => Drawn.Add(document, resources, "/Shading", "/Sh0",
+            Drawn.Object(document, ("/ShadingType", "2"), ("/ColorSpace", "/DeviceRGB"), ("/Coords", "[0 0 100 0]"),
+                ("/Function", Drawn.Stream(document, [255, 0, 0, 0, 255, 0, 0, 0, 255], ("/FunctionType", "0"),
+                    ("/Domain", "[0 1]"), ("/Range", "[0 1 0 1 0 1]"), ("/Size", "[3]"), ("/BitsPerSample", "8"),
+                    ("/Order", "3"))))));
+
+        drawn.Device.Fills.Single().Stops.Should().Equal("0 rgb(1,0,0)", "0.5 rgb(0,1,0)", "1 rgb(0,0,1)");
+        drawn.Problems.Should().Equal("UnsupportedFeature /Order");
+    }
+
+    [Test]
     public void ASampledFunctionAppliesEncodeAndDecode()
     {
         // The table is read backwards, and its samples are taken to a narrower range.
@@ -204,6 +217,8 @@ public class ShadingFunctionTests
     [Arguments("{ pop true false or true and false xor not { 0.25 } { 0.5 } ifelse }", 0.5, 0.5)]
     [Arguments("{ pop 1 2 eq 1 2 ne and 2 1 ge and { 0.25 } { 0.5 } ifelse }", 0.5, 0.5)]
     [Arguments("{ pop 1 2 le 1 2 lt and 2 1 gt and { 0.5 } if }", 0.5, 0.5)]
+    [Arguments("{ pop true 1 eq 1 true eq or { 0.25 } { 0.5 } ifelse }", 0.5, 0.5)]
+    [Arguments("{ pop false 0 ne 0 false ne and { 0.5 } { 0.25 } ifelse }", 0.5, 0.5)]
     [Arguments("{ pop 0.1 0.2 0.3 3 1 roll pop pop 0.2 add }", 0.5, 0.5)]
     [Arguments("{ pop 0.1 0.2 0.3 3 -1 roll 0.4 add 3 1 roll pop pop }", 0.5, 0.5)]
     [Arguments("{ pop 0.2 0.3 2 copy add add add 2 div }", 0.5, 0.5)]

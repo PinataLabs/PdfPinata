@@ -42,8 +42,12 @@ internal static class Shadings
     internal const int MaximumStops = 256;
 
     /// <returns>The shading, or null where it cannot be read or is of a kind not drawn, which is reported.</returns>
-    internal static ReadShading Read(PdfDictionary shading, bool isShared, DiagnosticSink sink, string subject)
+    internal static ReadShading Read(PdfDictionary shading, bool isShared, RenderContext context, string subject)
     {
+        var sink = context.Sink;
+        if (context.ShadingWork.IsSpent)
+            return Spent(sink, subject);
+
         var elements = shading.Elements;
         if (!PdfItemValues.TryGetInteger(elements["/ShadingType"], out var type) || type is < 1 or > 7)
             return Invalid(sink, subject, "A shading's /ShadingType is a number from 1 to 7.");
@@ -55,12 +59,12 @@ internal static class Shadings
         PdfFunction function = null;
         if (!PdfItemValues.IsNull(elements["/Function"]))
         {
-            function = PdfFunction.Read(elements["/Function"], sink, subject);
+            function = context.Functions.Read(elements["/Function"], subject);
             if (function == null)
                 return null;
         }
 
-        var colors = ShadingColors.Of(space, function, type);
+        var colors = ShadingColors.Of(space, function, type, context.ShadingWork);
         if (colors == null)
             return Invalid(sink, subject, "A shading's /Function has the inputs its type takes and an output for each colour component.");
 
@@ -76,6 +80,9 @@ internal static class Shadings
             2 or 3 => Gradient(shading, type, colors, isShared, sink, subject),
             _ => MeshReader.Read(shading, type, colors, isShared, sink, subject)
         };
+        if (context.ShadingWork.IsSpent)
+            return Spent(sink, subject);
+
         if (make == null)
             return null;
 
@@ -138,6 +145,13 @@ internal static class Shadings
         return box.ToPath();
     }
 
+    private static ReadShading Spent(DiagnosticSink sink, string subject)
+    {
+        sink.Report(PageRenderProblem.LimitReached, subject,
+            "The page's shadings cost more to read than one render spends. This one is not drawn.");
+        return null;
+    }
+
     internal static ReadShading Invalid(DiagnosticSink sink, string subject, string message)
     {
         sink.Report(PageRenderProblem.InvalidValue, subject, message + " The shading is not drawn.");
@@ -151,11 +165,15 @@ internal sealed class ShadingColors
     private readonly RenderColorSpace _space;
     private readonly PdfFunction _function;
 
-    private ShadingColors(RenderColorSpace space, PdfFunction function)
+    private ShadingColors(RenderColorSpace space, PdfFunction function, ShadingWork work)
     {
         _space = space;
         _function = function;
+        Work = work;
     }
+
+    /// <summary>What the render may still spend, which each colour found through the function draws on.</summary>
+    internal ShadingWork Work { get; }
 
     /// <summary>
     /// Whether a mesh's vertices carry the function's one input in place of a colour, so that
@@ -170,27 +188,35 @@ internal sealed class ShadingColors
     internal (double Low, double High) DomainOf(int input) => _function.DomainOf(input);
 
     /// <returns>Null where the function does not fit the shading type and the colour space.</returns>
-    internal static ShadingColors Of(RenderColorSpace space, PdfFunction function, int shadingType)
+    internal static ShadingColors Of(RenderColorSpace space, PdfFunction function, int shadingType, ShadingWork work)
     {
         var inputs = shadingType == 1 ? 2 : 1;
         // A mesh with no function states a colour at each vertex, in as many numbers as the space takes.
         if (function == null)
         {
             return shadingType >= 4 && space.ComponentCount is > 0 and <= PdfFunction.MaximumArity
-                ? new ShadingColors(space, null)
+                ? new ShadingColors(space, null, work)
                 : null;
         }
 
         var fits = function.InputCount == inputs
                    && (space.ComponentCount < 0 || function.OutputCount == space.ComponentCount);
-        return fits ? new ShadingColors(space, function) : null;
+        return fits ? new ShadingColors(space, function, work) : null;
     }
 
-    /// <summary>The colour of what a vertex or a point carries: the function's inputs, or the components themselves.</summary>
+    /// <summary>
+    /// The colour of what a vertex or a point carries: the function's inputs, or the components
+    /// themselves. Black, and the function not run, once <see cref="Work"/> is spent, because the
+    /// shading is then not drawn.
+    /// </summary>
     internal PagePaint At(ReadOnlySpan<double> values)
     {
         if (_function == null)
             return _space.ToRgb(values);
+
+        Work.Spend(_function.Cost);
+        if (Work.IsSpent)
+            return default;
 
         Span<double> components = stackalloc double[_function.OutputCount];
         _function.Evaluate(values, components);

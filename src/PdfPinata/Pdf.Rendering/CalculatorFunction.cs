@@ -12,7 +12,8 @@ namespace PdfPinata.Pdf.Rendering;
 /// <remarks>
 /// The language has no loop and no procedure call, and <c>if</c> and <c>ifelse</c> become jumps
 /// forwards, so one evaluation runs each instruction at most once. A program that runs off either
-/// end of its stack, or hands an operator the wrong kind of operand, answers zeros.
+/// end of its stack, hands an operator the wrong kind of operand, or asks for what has no value
+/// (a division by zero, the root or the logarithm of a number out of its range) answers zeros.
 /// </remarks>
 internal sealed class CalculatorFunction : PdfFunction
 {
@@ -35,6 +36,9 @@ internal sealed class CalculatorFunction : PdfFunction
     }
 
     internal override int OutputCount => _outputs;
+
+    // Each instruction runs at most once.
+    internal override long Cost => _program.Length + 1;
 
     internal static PdfFunction Read(PdfDictionary dictionary, double[] domain, double[] range, DiagnosticSink sink,
         string subject)
@@ -116,11 +120,11 @@ internal sealed class CalculatorFunction : PdfFunction
             case Op.Truncate:
             case Op.Cvi: stack.Push(Math.Truncate(stack.Pop())); break;
             case Op.Cvr: stack.Push(stack.Pop()); break;
-            case Op.Sqrt: stack.Push(Math.Sqrt(stack.Pop())); break;
+            case Op.Sqrt: PushOrFail(ref stack, Math.Sqrt(stack.Pop())); break;
             case Op.Sin: stack.Push(Math.Sin(stack.Pop() * Math.PI / 180)); break;
             case Op.Cos: stack.Push(Math.Cos(stack.Pop() * Math.PI / 180)); break;
-            case Op.Ln: stack.Push(Math.Log(stack.Pop())); break;
-            case Op.Log: stack.Push(Math.Log10(stack.Pop())); break;
+            case Op.Ln: PushOrFail(ref stack, Math.Log(stack.Pop())); break;
+            case Op.Log: PushOrFail(ref stack, Math.Log10(stack.Pop())); break;
 
             case Op.Add:
             case Op.Sub:
@@ -180,7 +184,7 @@ internal sealed class CalculatorFunction : PdfFunction
             case Op.Add: stack.Push(left + right); break;
             case Op.Sub: stack.Push(left - right); break;
             case Op.Mul: stack.Push(left * right); break;
-            case Op.Div: stack.Push(left / right); break;
+            case Op.Div: PushOrFail(ref stack, left / right); break;
             case Op.Exp: stack.Push(Math.Pow(left, right)); break;
             case Op.Idiv:
             case Op.Mod:
@@ -204,11 +208,29 @@ internal sealed class CalculatorFunction : PdfFunction
         }
     }
 
+    // A result that is no number is an error in PostScript, as undefinedresult or rangecheck.
+    private static void PushOrFail(ref Stack stack, double value)
+    {
+        if (double.IsFinite(value))
+            stack.Push(value);
+        else
+            stack.Fail();
+    }
+
     private static void Compare(Op op, ref Stack stack)
     {
         // Two truth values are compared as 1 and 0, which is equal exactly where they are the same.
+        // A truth value is never equal to a number, as in PostScript.
+        var rightIsTruth = stack.TopIsTruth;
         var right = stack.PopEither();
+        var leftIsTruth = stack.TopIsTruth;
         var left = stack.PopEither();
+        if (rightIsTruth != leftIsTruth && op is Op.Eq or Op.Ne)
+        {
+            stack.PushTruth(op == Op.Ne);
+            return;
+        }
+
 #pragma warning disable S1244 // Exact on purpose: eq and ne are PostScript's, which compare numbers as they are.
         stack.PushTruth(op switch
         {
