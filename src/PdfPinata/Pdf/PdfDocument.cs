@@ -270,6 +270,26 @@ public sealed class PdfDocument : PdfObject, IDisposable
         var check = CanSave();
         if (!check.CanSave)
             throw new PdfPinataException(check.Reason);
+
+        EnsureNothingNestedTooDeepToRead();
+    }
+
+    /// <summary>
+    /// Refuses, before anything is written, a document holding an object built in code with more
+    /// arrays and dictionaries one inside the next than a document is read with.
+    /// </summary>
+    /// <remarks>
+    /// The writer refuses one too, but only when it reaches it, and by then the destination has been
+    /// emptied and part of the file written. An object not yet read cannot be too deep: the parser
+    /// would refuse it.
+    /// </remarks>
+    private void EnsureNothingNestedTooDeepToRead()
+    {
+        foreach (var reference in _irefTable.AllReferences)
+        {
+            if (reference.ValueIfRead is { } value && PdfWriter.NestsTooDeepToRead(value))
+                throw PdfWriter.TooDeepToSave(value);
+        }
     }
 
     /// <summary>
@@ -388,6 +408,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         EnsureCanSaveIncrementally(stream);
 
         EnsureCanDeduplicate();
+        EnsureNothingNestedTooDeepToRead();
         PrepareForSave();
 
         stream.Write(_originalBytes, 0, _originalBytes.Length);
