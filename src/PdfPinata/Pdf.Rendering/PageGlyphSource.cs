@@ -14,7 +14,12 @@ namespace PdfPinata.Pdf.Rendering;
 /// </para>
 /// <para>
 /// Each glyph is asked for once and the answer kept, so a source need not cache, and the path a
-/// device is handed for a glyph is the same instance every time.
+/// device is handed for a glyph is the same instance every time. That holds for about the first
+/// million points of outline a document's fonts draw, 18 MiB with what keeping each glyph costs.
+/// Past that, a glyph not yet kept is asked for each time it is drawn and handed over with
+/// <see cref="PagePath.IsShared"/> false, so a font program of a few hundred bytes cannot hold
+/// gigabytes of outline. Between pages, the outlines least recently drawn are forgotten where
+/// they are over half of that, and asked for again when a later page draws them.
 /// </para>
 /// <para>
 /// A source is made when a font is selected and may be made for text that is never drawn, such as
@@ -59,4 +64,21 @@ public abstract class PageGlyphSource
         advance = 0;
         return false;
     }
+
+    /// <summary>
+    /// The glyph a code draws, as a number that every code drawing that glyph shares, or -1 where
+    /// the font has no glyph for it. Page rendering keeps one outline for each such number, so
+    /// codes that draw one glyph hold one path. This base numbers each code as its own glyph.
+    /// </summary>
+    internal virtual int GlyphOf(int code) => code;
+
+    /// <summary>The outline of a glyph that <see cref="GlyphOf"/> numbered, as <see cref="GetOutline"/> answers one.</summary>
+    internal virtual PagePath OutlineOfGlyph(int glyph) => GetOutline(glyph);
+
+    /// <summary>
+    /// What the glyphs <see cref="GlyphOf"/> numbers are glyphs of. Outlines are kept under it, so
+    /// sources that answer the same thing here share them: every font dictionary over one font
+    /// program draws one set of paths. This base is its own, and shares with no other source.
+    /// </summary>
+    internal virtual object OutlineOwner => this;
 }

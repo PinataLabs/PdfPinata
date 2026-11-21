@@ -15,9 +15,9 @@ separate issues, and each has one place here to plug into. The last section name
 | 6 | Page geometry: `PageView` | done |
 | 7 | DeviceGray, DeviceRGB and DeviceCMYK | done |
 | 8 | Indexed and ICCBased colour (#372), CalGray and CalRGB as the device spaces | done |
-| 9 | Glyph outlines (#373, #374) | plug-in point only |
+| 9 | Glyph outlines from an embedded TrueType font program (#373); standard 14 fonts (#374) | done; plug-in point only |
 | 10 | Images (#375), CCITTFax (#385) | done, but JBIG2 and JPX (#385) |
-| 11 | CMaps other than `Identity-H`, and vertical writing | deliberately not done |
+| 11 | `Identity-V` and vertical writing (#373); CMaps other than `Identity-H` and `Identity-V` | done; deliberately not done |
 | 12 | A limit on the operators of one page | deliberately not done |
 | 13 | Type 3 fonts (their advances are read; their glyphs are not drawn) | advance only |
 | 14 | Transparency groups (#383) | reported, not applied |
@@ -60,7 +60,9 @@ canvas's own save stack.
 never as text", and it does: as a `Fill`, a `Stroke` or part of a `Clip`. The interpreter splits the
 text render mode into those, so the clip modes need nothing from a device that paths do not already
 need. A glyph's `PagePath` is the same instance each time that glyph of that font is drawn, and says
-so with `IsShared`, which is what a device caches its own path against.
+so with `IsShared`, which is what a device caches its own path against. That holds for the first
+18 MiB of outline a document's fonts keep, about a million points; a glyph past that is handed over
+unshared, each time anew.
 
 **It is a class and not an interface**, so that shadings, patterns, blend modes and transparency
 groups can arrive as `virtual` members whose base body says the device cannot draw them.
@@ -162,6 +164,12 @@ glyph space, and its `/FontMatrix` takes them to text space** (ISO 32000-1 9.6.5
 matrix of a hundredth is half an em. A Type 3 glyph is not drawn yet, but its advance is read
 now, because a page from TeX sets Type 3 beside other fonts and everything after a Type 3 run
 is placed by it.
+
+A composite font whose CMap is `Identity-V` is set down the page (ISO 32000-1 9.7.4.3). Each glyph
+is drawn with its position vector on the pen, and the pen then moves by the vertical advance plus
+character spacing, with no horizontal scaling. `VerticalMetrics` reads both from the descendant's
+`/W2` and `/DW2`; where they say nothing the advance is -1000 and the vector is half the CID's
+horizontal width across and 880 up. A number in a `TJ` array moves the pen down rather than back.
 
 The clip modes gather glyph outlines in device space and narrow the clip to them all when the text
 object ends. **The clip is narrowed only where at least one glyph had an outline.** A text object
@@ -668,8 +676,8 @@ None of these edits `ContentInterpreter`.
 | issue | what it adds | where |
 |---|---|---|
 | #372 colour | Classes derived from `RenderColorSpace`: `ComponentCount`, `ToRgb`, and `InitialColor` where it is not all zeros | `ColorSpaces.Resolve`, the branch on an array's family |
-| #373 TrueType | A class derived from `PageGlyphSource` for `/FontFile2` | The first branch of `BuiltInGlyphSources.Select` |
-| #374 standard 14 | A class derived from `PageGlyphSource` that reads `RequiredSeams.FontResolver` in `GetOutline` and nowhere else, and answers AFM widths from `TryGetAdvance`, which is asked for invisible text too and so reads no seam | The last branch of `BuiltInGlyphSources.Select` |
+| #373 TrueType | `EmbeddedTrueTypeGlyphSource`, for `/FontFile2`. Built: see the next section | The first branch of `BuiltInGlyphSources.Select` |
+| #374 standard 14 | A class derived from `PageGlyphSource` that reads `RequiredSeams.FontResolver` in `GetOutline` and nowhere else, and answers AFM widths from `TryGetAdvance`, which is asked for invisible text too and so reads no seam. Its outlines come from the resolved face's `OpenTypeFontface.Glyphs`, through `TrueTypeOutlinePaths.ToPagePath`, and a code's glyph through `GlyphNames` and `TrueTypeGlyphs.CharacterMap`, all as the next section sets out | The last branch of `BuiltInGlyphSources.Select` |
 | #375 images | The bodies of `PageImages.ReadXObject` and `ReadInline`, which answer a `PageImage` or report and answer null. Done: see Images | `PageImages.cs` |
 | #376 Skia | `SkiaPageDevice`, derived from `PageDevice`; done | Its own package: `PageView.Of`, then `PageRendering.Render` |
 | #383 groups | A form recorded apart and laid down once | `ContentInterpreter.Record`, which a tiling cell already uses, and a `virtual` member for the composition |
@@ -725,12 +733,242 @@ is the highest index there is an entry for. The image's `/Decode` default for an
 `[0 2^n-1]`, which makes the index the sample itself. For any other space, pass the samples
 scaled by `/Decode` to `ToRgb` as before.
 
+## Embedded TrueType font programs (#373)
+
+**The font program is decoded here, never handed to a platform's font engine.** DirectWrite and
+FreeType draw a broken subset differently, and a page has to look the same everywhere. Nothing is
+hinted: a glyph is its outline as designed.
+
+### The decoder, for any TrueType face
+
+`Fonts.OpenType/TrueTypeGlyphs` is internal and knows nothing of PDF, so #374 draws a face the font
+resolver serves with it as well.
+
+```csharp
+static TrueTypeGlyphs Read(byte[] fontProgram);      // InvalidDataException: not TrueType, or no head, loca or glyf
+int UnitsPerEm { get; }                               // from head; 16 to 16384, else 2048
+int GlyphCount { get; }                               // maxp's count, or fewer where loca has room for fewer
+TrueTypeOutline GetOutline(int glyph);                // null: no such glyph; Empty: no contours; throws InvalidDataException
+TrueTypeCharacterMap CharacterMap(int platform, int encoding);   // formats 0, 4, 6 and 12, or null; the same instance each time
+long HeldBytes { get; }                               // the most this can come to hold; it does not change
+bool HasCharacterMaps { get; }
+int GlyphNamed(string name);                          // from post formats 1 and 2, or -1
+```
+
+`OpenTypeFontface.Glyphs` reads one from a face's bytes on first asking. A `TrueTypeOutline` is the
+font program's own shape: points in font units, y upwards, each on the curve or a quadratic control
+point, and where each contour ends, with a composite's components already placed.
+`Pdf.Rendering/TrueTypeOutlinePaths.ToPagePath(outline, unitsPerEm)` turns one into a `PagePath` in
+ems: each contour closed, an on-curve point implied between two control points, a contour that
+begins on a control point begun at its last point or halfway between the two, and each quadratic
+curve the cubic that traces it.
+
+It is not built on `OpenTypeFontface`'s own reading. That reads every table it knows when it is
+made, through one shared cursor, and reads past the end of a truncated table; one broken `name` or
+`OS/2` table in an embedded subset would cost every glyph. Here every read is checked against the end
+of its table, a table that runs past the end of the data is kept as far as the data goes, and what
+is malformed throws `InvalidDataException` for the glyph that meets it and no other.
+
+A composite glyph's components are placed by an offset, by matched points, or by a scale, an x and y
+scale or a 2 by 2 transform. An offset is scaled with the component only where the font sets
+`SCALED_COMPONENT_OFFSET`; not scaling it is the OpenType default. **A glyph is held to eight
+levels of composites, 1024 components and 65,536 points in all**: a glyph built of itself is
+reported rather than followed forever, a few levels that each use the one below four times would
+otherwise be tens of thousands of contours, and a thousand references to one glyph of 65,535 points,
+a few hundred bytes of font, would otherwise be gigabytes of outline.
+
+### Choosing the glyph
+
+`EmbeddedTrueTypeGlyphSource` reads nothing when it is made. The font program is read when the first
+outline is asked for, so a font used only for invisible text costs nothing, and one that cannot be
+read is reported as `MissingGlyph` against each glyph shown in it, with the reason.
+
+- **Composite fonts.** The code is the CID, by `Identity-H` or `Identity-V`. `/CIDToGIDMap` is
+  `/Identity`, which is also what no entry means, or a stream of two bytes for each CID. A CID past
+  the end of the stream, or mapped to a glyph number the font has not, has no glyph.
+- **Simple fonts.** A font with an `/Encoding` that is not symbolic is tried by name first, and a
+  symbolic font, or a nonsymbolic one with no `/Encoding` at all, by code first. A font that names
+  `/WinAnsiEncoding` or `/MacRomanEncoding` is tried by name first whatever its flags say, as
+  ISO 32000-1 9.6.6.4 has it. The other way is tried after the first finds nothing, because real
+  files often say a font is symbolic when it is not, or the reverse. A code that `/Differences`
+  names `.notdef` has no glyph, and is not looked up another way.
+  - *By name*: the code's glyph name from `/Differences`, or else its character from the base
+    encoding, which is `/StandardEncoding` where a nonsymbolic font's `/Encoding` names none. A name
+    becomes a character through `GlyphNames` (the Adobe Glyph List, `uniXXXX` and `uXXXX`). Then the
+    (3,1) `cmap`, or (3,10), (0,3) or (0,4); then the character's MacRomanEncoding code in the (1,0)
+    `cmap`; and only then the `post` table's names, the name `/Differences` gives, or for a code of
+    the base encoding each name its character goes by. That is 9.6.6.4's order, and MuPDF's: `post`
+    is for a name the `cmap` cannot map.
+  - *By code*: the code as it is, in each `cmap`. For a symbolic font, the (3,0) `cmap` at the code,
+    then at the code plus 0xF000, 0xF100 and 0xF200, then the (1,0) `cmap`, then the Unicode one. For
+    a nonsymbolic font, the Unicode `cmap`, then the (1,0) one, then the (3,0) one.
+  - **Where the name gave a character the font has no glyph for, the code is looked up in the (3,0)
+    `cmap` alone.** In the Unicode or (1,0) `cmap` the code means another character: WinAnsi's 0x80
+    is the euro, and a font without one has Adieresis at Mac 0x80. pdf.js and MuPDF draw nothing
+    there, and so does this, with a `MissingGlyph`.
+  - A font program with no `cmap` table at all is taken to number its glyphs by the codes. One whose
+    `cmap` has only subtables this does not read, such as format 2, is not.
+  - A subtable that is malformed for a code is passed over for the next. Only where none has a
+    glyph is the fault the reason reported. A format 12 subtable whose groups are out of order is
+    malformed for every code, and so is a format 4 subtable of more than 256 segments that are.
+
+**A nonsymbolic font with no `/Encoding` is read by code, not in StandardEncoding.** ISO 32000-1
+9.6.6.1 gives such a font StandardEncoding, which makes 0x27 quoteright and 0xE9 Oslash. pdf.js and
+MuPDF look the code up in the font's `cmap` as it is, and draw the straight quote and e acute; users
+judge a rendering against those viewers, so this follows them. An `/Encoding` dictionary with
+`/Differences` and no `/BaseEncoding` is still StandardEncoding, as both viewers read it.
+
+**Glyph 0, `.notdef`, is drawn only where a file asks for it.** A CID that `/CIDToGIDMap` or
+`/Identity` sends to glyph 0 draws it, and so does code 0 of a simple font that nothing else maps,
+where glyph 0 has contours. pdf.js does both, because some files keep a real glyph there (its issue
+17333 is a check box). Any other code that comes to no glyph draws nothing and is reported.
+
+`GlyphNames` reads `Fonts/GlyphNameTables.g.cs`, which `tools/GlyphNameTableGenerator` writes from
+the checked-in Adobe Glyph List. It is the core's one map from glyph names to characters.
+
+### What is kept, and the bound on it
+
+**The rule: whatever page rendering reads from a font and keeps is kept in the document's
+`RenderFontCache`, under the PDF object it was read from, and charged in bytes to a budget for the
+whole document.** A `RenderFont` and a glyph source keep references to the document's own objects
+and a few numbers, and nothing that grows.
+
+Three rounds of budgets, one for each cache that was known of, each left a structure that grew with
+the number of font dictionaries and was charged to nothing: outlines for each code, then outlines
+for each font, then `/W2` read into each font. A font dictionary costs about 150 bytes of file, so
+whatever a font dictionary holds is multiplied by thousands in a file of kilobytes. The rule
+removes the place such a structure could be, and `FontMemoryTests.AFontAndItsGlyphSourceKeepNothingThatGrows`
+fails the build when a field of any other type is added to those classes.
+
+The rule has two halves, and each does a different job:
+
+- **Kept under the object it was read from.** Font dictionaries that share a `/FontFile2` stream, a
+  descendant, a `/W` or `/W2` array or a `/CIDToGIDMap` stream share one copy of what was read from
+  it, and a font program shared by 64 font dictionaries is decoded once.
+- **Charged to the document's budget.** Sharing alone is no bound: a `/W` array of three numbers is
+  20 bytes of file as an object of its own, and reads to half a megabyte, so a file of fonts that
+  share nothing would still hold what its font dictionaries multiply. Everything read is charged,
+  and what does not fit is let go of.
+
+There are two budgets, because what is kept is of two kinds:
+
+- **Data that can be read again, 144 MiB**: font programs, `/CIDToGIDMap` streams, widths, vertical
+  metrics and a simple font's glyph choices. Past the budget the data least recently used is let
+  go of, at any time, and read again if it is asked for. That changes nothing a device has been
+  handed. It is room for two font programs of the largest size read, their names, and the widths
+  and maps that go with them.
+- **Glyph outlines, 18 MiB**: what 1,048,576 points cost, at sixteen bytes and a verb each. Each
+  outline is charged 96 bytes for its entry as well as its points, so an empty glyph is not free.
+  None is let go of during a page. A glyph past the budget is decoded each time it is drawn and
+  handed over unshared, so a device does not keep it either: it costs time, about 7 ms for a glyph
+  of 65,535 points, and not memory. Between pages, where outlines are over half the budget, those
+  of the font programs least recently drawn from are forgotten.
+
+They are not one budget. Outlines cannot be let go of during a page, so a page that filled a shared
+budget with them would leave no room to hold a font program from one glyph to the next.
+
+**Outlines are kept by glyph of the font program, not by code or by font dictionary.** A source
+numbers the glyph of a code through the internal `PageGlyphSource.GlyphOf` and names what the glyph
+is a glyph of through `OutlineOwner`, which for an embedded font is its `/FontFile2` stream. So the
+CIDs a `/CIDToGIDMap` sends to one glyph share one path, and so do the font dictionaries over one
+font program. A source of the caller's own is its own owner and numbers each code as its own glyph.
+
+**A font program of more than 64 MiB is not read, and not decoded past that.** A TrueType font has at most 65,535 glyphs.
+The largest there are, CJK fonts embedded whole, run to 20 or 30 MB, and at the far end to about
+50; the limit allows a kilobyte for every glyph a font can have. A stream that decodes to more is
+reported as `MissingGlyph`, with the limit, against each glyph shown in it. The limit is under half
+the data budget so that two of the largest can be held together.
+
+**A page reads at most 1 GiB of font program.** Letting go of a font program and reading it again
+costs its whole decoding, so a page that selects three fonts of 63 MiB in turn decodes 63 MiB at
+each selection, a fifth of a second for 15 bytes of content. Past the allowance a font program that would
+have to be read is not, and its glyphs are reported with the reason. Fonts still held go on
+drawing. The next page has an allowance of its own, and nothing is kept of the refusal.
+
+**Widths are a table, not a dictionary.** `/Widths`, `/W` and `/W2` are each read into a
+`WidthTable`, one array of doubles as long as the highest code given a number: at most 0.5 MiB for
+a `/W` and 1.5 MiB for a `/W2`, however the array is written. `FontWidths` and `VerticalMetrics`
+hold the default and the array, and ask the cache for the table at each code.
+
+#### Every field, and what covers it
+
+*(a)* means of a fixed size and held once for the object of the file it stands for. *(b)* means
+charged to one of the two budgets.
+
+| held by | field | what it is | covered by |
+|---|---|---|---|
+| `RenderFontCache` | `_fonts` | one `RenderFont` for each font dictionary selected | (a): each is of a fixed size, smaller than the dictionary it stands for. Past 4096 they are all forgotten as a page begins |
+| | `_data`, `_recent` | the data kept and its order of use | (b): each entry charged what it holds and 192 bytes |
+| | `_outlines` | the outlines kept, by owner and glyph | (b): each outline charged its points and 96 bytes, each owner 192 bytes |
+| | `_dataBytes`, `_outlineBytes`, `_programBytesRead`, `_clock` | four numbers | fixed |
+| `RenderFont` | `_cache`, `Source` | the cache, and the glyph source | references |
+| | `_widths`, `_vertical` | `FontWidths` and `VerticalMetrics`, below | (a) |
+| | `IsComposite`, `UnsupportedReason`, `EncodingNote` | a flag and two messages | fixed |
+| `FontWidths` | `_simpleFont`, `_w` | the font dictionary or the `/W` array, the document's own | references |
+| | `_defaultWidth`, `_stated` | a number and a flag | fixed |
+| `VerticalMetrics` | `_w2`, `_defaultY`, `_defaultAdvance` | the `/W2` array and two numbers | references, fixed |
+| `EmbeddedTrueTypeGlyphSource` | `_cache`, `_font`, `_descendant`, `_fontFile` | the cache and the document's own dictionaries | references |
+| data: `FontProgram` | `Glyphs`, `Unreadable` | the decoded program, or why it cannot be read | (b), under the `/FontFile2` stream |
+| data: `TrueTypeGlyphs` | `_data` | the font program's bytes | (b): `HeldBytes` |
+| | `_tables` | the table directory | (b): 96 bytes a table in `HeldBytes` |
+| | `_postNames` | the `post` names, read when a glyph is asked for by name | (b): counted in `HeldBytes` before they are read, as no more names than glyphs and no more characters than `post` has bytes |
+| | `_characterMaps` | one `TrueTypeCharacterMap` for each of the seven subtables asked for | (b): counted in `HeldBytes`. A subtable holds four numbers and the program's own bytes |
+| data: `CidToGidMap` | `_map` | the first 131,072 bytes of the stream, which is all a CID can reach | (b), under the stream |
+| data: `WidthTable` | `_values` | the numbers of `/Widths`, `/W` or `/W2` | (b), under the font dictionary or the array |
+| data: `SimpleFontGlyphs` | `_differences`, `_chosen`, the flags | 256 names, 256 glyph numbers | (b), under the font dictionary. It holds no font program: one is handed to it for each choice |
+
+**So no structure that grows with the number of font dictionaries is uncharged.** What a font
+dictionary adds to memory is its `RenderFont`, its source, its `FontWidths` and its
+`VerticalMetrics`: about 300 bytes, all fields above, none a collection. Everything else is an
+entry of `_data` or `_outlines`.
+
+What the rule does not cover, because it is not kept for a font:
+
+- **The decoding itself, which is capped where it is done.** `/FontFile2` is decoded under a
+  `DecodeLimit` (#398) of 64 MiB and `/CIDToGIDMap` under one of 131,072 bytes, which is all a CID
+  can reach, in `EmbeddedTrueTypeGlyphSource.TryRead`. A font program whose filters had more to
+  give is declined whole and reported: no part of it is kept. A stream that inflates to 512 MiB
+  or to 1900 MiB from a file of one or two megabytes peaks at 192 MiB while it is decoded, three
+  times the limit, and holds nothing after. A stream with no filter is the file's own bytes,
+  which the document already holds, and is measured as it is.
+- **What one call uses and lets go of**: a table being read, a glyph being decoded, each bounded by
+  the 65,536 CIDs or points there can be.
+- **A caller's own `PageGlyphSource`**, which holds what its author makes it hold. Its outlines are
+  charged like any other.
+
+#### What was weighed
+
+For outlines, **a total budget alone**, past which outlines are unshared, holds memory flat, but
+once early pages fill it every later page draws every glyph unshared, decoding each one each time
+it is drawn, for the rest of the document. **Eviction alone** keeps sharing, but an outline let go
+of during a page is decoded again as a new shared path, and a device keeps one path of its own for
+each shared one it is handed until the render ends: a page that cycled fonts past the budget would
+grow the device without bound, and the Skia device keeps an `SKPath` for each. So each is used
+where the other fails: the total within a page, where the device's cache lives, and eviction
+between pages, where no device holds a path. The other way, to report a glyph past the budget and
+skip it, would leave text out of a real font whose glyphs are many and large.
+
+For a format 12 `cmap` subtable whose groups are out of order, **refusing it** against **sorting
+the groups once**. Sorting builds twelve bytes for each group that would have to be charged and
+kept in step with the program, for a subtable the format forbids and FreeType refuses. So it is
+refused: the next subtable is tried, and where none has the glyph the reason is reported. A format
+4 subtable out of order is one FreeType does read, in turn, so it is read in turn here where it
+has at most 256 segments, and refused past that. Both formats are searched by halves where they
+are in order, and whether they are is found once for a font program, in one pass.
+
+**A text object clips to at most 4,194,304 points of glyph outline.** A glyph shown in a clip mode
+is copied into the clip in device space, each time it is shown, so sharing the outline does not
+bound the clip: 60,000 shows of one glyph of 65,535 points would be four billion points. Past the
+limit a glyph is left out of the clip, and `LimitReached` is reported once for the text object.
+
 ## What was deliberately left out
 
-**CMaps and vertical writing.** A composite font's codes are read as two bytes that are the CID,
-which is what `Identity-H` says and what this library writes. Any other CMap is read the same way
-and reported, and `Identity-V` is set horizontally and reported. Reading CMaps belongs with choosing
-glyphs (#373).
+**CMaps.** A composite font's codes are read as two bytes that are the CID, which is what
+`Identity-H` and `Identity-V` say and what this library writes. Any other CMap, named or embedded,
+is read the same way, set horizontally and reported.
+
+**Hinting, and a glyph source for TrueType collections.** A PDF may not embed a collection, and
+`TrueTypeGlyphs.Read` refuses one.
 
 **A true union of the glyphs a text object clips to.** The glyphs are one path clipped by nonzero
 winding, which is their union where their contours wind the same way. Two glyphs that overlap and

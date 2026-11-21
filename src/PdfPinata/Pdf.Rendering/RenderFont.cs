@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using PdfPinata.Internal;
 using PdfPinata.Pdf.Advanced;
 
@@ -10,19 +9,32 @@ namespace PdfPinata.Pdf.Rendering;
 /// each code advances, and the outline of each glyph.
 /// </summary>
 /// <remarks>
-/// Made once for a font dictionary and kept, so that a glyph's outline is one
-/// <see cref="PagePath"/> however often it is drawn. That is what gives the path the identity a
-/// device caches on.
+/// <para>
+/// <b>This keeps nothing that grows</b>: references to the font's own objects, a few numbers and
+/// its glyph source. The widths, the outlines and everything else read from the font are kept by
+/// the document's <see cref="RenderFontCache"/>, under the object each was read from, and asked
+/// for there each time. That is the rule the cache states, and a collection added here breaks it.
+/// </para>
+/// <para>
+/// A glyph's outline is one <see cref="PagePath"/> however often it is drawn, which is what gives
+/// the path the identity a device caches on. Outlines are kept by glyph and not by code, so codes
+/// that draw one glyph hold one path, and only while the cache has room for them.
+/// </para>
 /// </remarks>
 internal sealed class RenderFont
 {
+    private readonly RenderFontCache _cache;
     private readonly FontWidths _widths;
-    private readonly Dictionary<int, PagePath> _outlines = new();
+    private readonly VerticalMetrics _vertical;
 
-    private RenderFont(bool isComposite, FontWidths widths)
+    private const string NoGlyph = "The font has no glyph for a code the text shows.";
+
+    private RenderFont(RenderFontCache cache, bool isComposite, FontWidths widths, VerticalMetrics vertical)
     {
+        _cache = cache;
         IsComposite = isComposite;
         _widths = widths;
+        _vertical = vertical;
     }
 
     /// <summary>Whether this is a Type 0 font, whose codes are two bytes and name CIDs.</summary>
@@ -30,6 +42,12 @@ internal sealed class RenderFont
 
     /// <summary>How many bytes of a shown string make one code.</summary>
     internal int BytesPerCode => IsComposite ? 2 : 1;
+
+    /// <summary>
+    /// Whether the text is set in vertical writing, down the page: a composite font whose CMap is
+    /// <c>Identity-V</c>.
+    /// </summary>
+    internal bool IsVertical => _vertical != null;
 
     /// <summary>
     /// Where the outlines come from, or null where this version has no source for the font, in
@@ -49,7 +67,8 @@ internal sealed class RenderFont
     /// <summary>Reads a font dictionary.</summary>
     /// <param name="font">The font dictionary a <c>Tf</c> names.</param>
     /// <param name="custom">Asked for the font's glyph source before the library's own, or null.</param>
-    internal static RenderFont From(PdfDictionary font, Func<PdfDictionary, PageGlyphSource> custom)
+    /// <param name="cache">What keeps everything read from the font.</param>
+    internal static RenderFont From(PdfDictionary font, Func<PdfDictionary, PageGlyphSource> custom, RenderFontCache cache)
     {
         var isComposite = font.Elements.GetNameOrEmpty("/Subtype") == "/Type0";
         var descendants = isComposite ? font.Elements.GetArray("/DescendantFonts") : null;
@@ -58,8 +77,11 @@ internal sealed class RenderFont
             : null;
 
         // A composite font with no descendant states no widths, and every CID takes the default.
-        var renderFont = new RenderFont(isComposite,
-            FontWidths.From(font, isComposite ? descendant ?? new PdfDictionary() : null));
+        var metricsOf = isComposite ? descendant ?? new PdfDictionary() : null;
+        var vertical = isComposite && PdfItemValues.TryGetName(font.Elements["/Encoding"], out var cmap) && cmap == "/Identity-V"
+            ? VerticalMetrics.Of(metricsOf)
+            : null;
+        var renderFont = new RenderFont(cache, isComposite, FontWidths.Of(font, metricsOf), vertical);
         if (isComposite)
             renderFont.EncodingNote = EncodingNoteOf(font);
 
@@ -75,7 +97,7 @@ internal sealed class RenderFont
 
         if (renderFont.Source == null)
         {
-            renderFont.Source = BuiltInGlyphSources.Select(font, descendant, out var why);
+            renderFont.Source = BuiltInGlyphSources.Select(font, descendant, cache, out var why);
             renderFont.UnsupportedReason = why;
         }
 
@@ -88,7 +110,7 @@ internal sealed class RenderFont
     /// </summary>
     internal double WidthOf(int code)
     {
-        var stated = _widths.Of(code);
+        var stated = _widths.Of(code, _cache);
         if (stated != null)
             return stated.Value;
 
@@ -103,40 +125,67 @@ internal sealed class RenderFont
     }
 
     /// <summary>
-    /// The outline of a code's glyph: the same instance every time, empty for a glyph that draws
-    /// nothing, and null where the font has no such glyph or no source at all.
+    /// How a code of a font in vertical writing is placed and advanced, in text space before the
+    /// type size is applied: the advance, negative for down the page, and the position vector that
+    /// is put on the pen. Asked only where <see cref="IsVertical"/>.
+    /// </summary>
+    internal (double Advance, double X, double Y) VerticalMetricsOf(int code) => _vertical.Of(code, WidthOf(code), _cache);
+
+    /// <summary>
+    /// The outline of a code's glyph: the same instance every time where the cache had room to
+    /// keep it, empty for a glyph that draws nothing, and null where the font has no such glyph
+    /// or no source at all.
     /// </summary>
     /// <param name="code">The character code of a simple font, or the CID of a composite one.</param>
     /// <param name="why">Why there is no glyph, where there is none.</param>
     internal PagePath OutlineOf(int code, out string why)
     {
-        why = null;
         if (Source == null)
         {
             why = UnsupportedReason;
             return null;
         }
 
-        if (_outlines.TryGetValue(code, out var outline))
-        {
-            if (outline == null)
-                why = "The font has no glyph for a code the text shows.";
-            return outline;
-        }
-
+        int glyph;
         try
         {
-            outline = Source.GetOutline(code)?.Shared();
+            glyph = Source.GlyphOf(code);
+        }
+        catch (Exception ex) when (IsAboutTheFont(ex))
+        {
+            why = ex.Message;
+            return null;
+        }
+
+        if (glyph < 0)
+        {
+            why = NoGlyph;
+            return null;
+        }
+
+        var owner = Source.OutlineOwner;
+        if (_cache.TryGetOutline(owner, glyph, out var kept, out why))
+            return kept;
+
+        PagePath outline = null;
+        try
+        {
+            outline = Source.OutlineOfGlyph(glyph);
             if (outline == null)
-                why = "The font has no glyph for a code the text shows.";
+                why = NoGlyph;
+        }
+        catch (FontProgramNotReadException ex)
+        {
+            // True of this page and not of the glyph, so it is not kept as the glyph's answer.
+            why = ex.Message;
+            return null;
         }
         catch (Exception ex) when (IsAboutTheFont(ex))
         {
             why = ex.Message;
         }
 
-        _outlines[code] = outline;
-        return outline;
+        return _cache.KeepOutline(owner, glyph, outline, why);
     }
 
     /// <summary>
@@ -147,46 +196,14 @@ internal sealed class RenderFont
 
     /// <summary>
     /// A composite font's codes are read as two bytes that are the CID, which is what
-    /// <c>Identity-H</c> says and what this library writes. Any other CMap is read the same way
-    /// until CMaps are, and vertical writing is set horizontally.
+    /// <c>Identity-H</c> and <c>Identity-V</c> say and what this library writes. Any other CMap,
+    /// named or embedded, is read the same way until CMaps are, and is set horizontally.
     /// </summary>
     private static string EncodingNoteOf(PdfDictionary font)
     {
         PdfItemValues.TryGetName(font.Elements["/Encoding"], out var encoding);
-        return encoding switch
-        {
-            "/Identity-H" => null,
-            "/Identity-V" => "Vertical writing is not set yet. The text is set horizontally.",
-            _ => "The font's CMap is not read yet. Its codes are read as two bytes that are the CID."
-        };
-    }
-}
-
-/// <summary>
-/// The fonts of one document that page rendering has read, each made once and kept, so that a
-/// font program is parsed once however many pages use it.
-/// </summary>
-/// <remarks>
-/// <para>
-/// The key is the font dictionary's reference, which a document holds one instance of for an
-/// object. A font dictionary written in place has no reference, and is its own key: it belongs to
-/// the one resource dictionary it is written in.
-/// </para>
-/// <para>
-/// Nothing here is synchronised. One page of a document is rendered at a time, as
-/// <see cref="PageRendering.Render"/> says.
-/// </para>
-/// </remarks>
-internal sealed class RenderFontCache
-{
-    private readonly Dictionary<object, RenderFont> _fonts = new(ReferenceIdentity.Instance);
-
-    /// <summary>The font for a font dictionary, read the first time it is asked for. Never null.</summary>
-    internal RenderFont For(PdfDictionary font, Func<PdfDictionary, PageGlyphSource> custom)
-    {
-        var key = ReferenceIdentity.KeyOf(font);
-        if (!_fonts.TryGetValue(key, out var renderFont))
-            _fonts[key] = renderFont = RenderFont.From(font, custom);
-        return renderFont;
+        return encoding is "/Identity-H" or "/Identity-V"
+            ? null
+            : "The font's CMap is not read yet. Its codes are read as two bytes that are the CID.";
     }
 }

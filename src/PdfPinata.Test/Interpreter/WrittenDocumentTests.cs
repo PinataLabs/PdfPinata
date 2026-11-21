@@ -18,8 +18,6 @@ namespace PdfPinata.Test.Interpreter;
 /// </remarks>
 public class WrittenDocumentTests
 {
-    private static readonly XFont Font = new("Arial", 12);
-
     [Test]
     public void WhatXGraphicsDrewIsHandedToTheDeviceWhereItWasDrawn()
     {
@@ -73,26 +71,6 @@ public class WrittenDocumentTests
         (start.X, start.Y).Should().Be((10, 20));
         (end.X, end.Y).Should().Be((110, 20));
         result.IsComplete.Should().BeTrue();
-    }
-
-    [Test]
-    public void TextXGraphicsDrewIsReportedBecauseItsFontProgramIsNotReadYet()
-    {
-        var document = new PdfDocument();
-        var page = document.AddPage();
-        using (var gfx = XGraphics.FromPdfPage(page))
-        {
-            gfx.DrawString("Not drawn yet", Font, XBrushes.Black, 20, 40);
-            gfx.DrawRectangle(XBrushes.Red, 10, 20, 30, 40);
-        }
-
-        var device = new RecordingDevice();
-        var result = PageRendering.Render(document.Reopened().Pages[0], device);
-
-        device.Fills.Should().ContainSingle("the page is drawn but for its text");
-        var diagnostic = result.Diagnostics.Single();
-        diagnostic.Problem.Should().Be(PageRenderProblem.UnsupportedFont);
-        diagnostic.Message.Should().Contain("TrueType");
     }
 
     private static XPoint[] Corners(RecordingDevice.Call call)

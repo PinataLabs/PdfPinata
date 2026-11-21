@@ -45,6 +45,15 @@ PdfPinata is a partial port of PdfSharp.Xamarin for .NET Core Additionally Migra
     </EmbeddedResource>
   </ItemGroup>
 
+  <!--
+    The Adobe Glyph List's BSD licence asks that a binary carry its notice in the materials
+    distributed with it. Fonts/GlyphNameTables.g.cs is built from the list, so the package carries
+    the notice, beside LICENSE.md.
+  -->
+  <ItemGroup>
+    <None Include="..\..\THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
   <ItemGroup>
     <Folder Include="Resources\images\" />
   </ItemGroup>
