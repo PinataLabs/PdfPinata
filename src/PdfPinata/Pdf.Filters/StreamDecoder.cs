@@ -79,6 +79,8 @@ internal static class StreamDecoder
     {
         var stride = (bpc * colors * columns + 7) / 8;
         var rows = data.Length / (stride + 1);
+        if (rows == 0)
+            return [];
         var unfilteredData = new byte[rows * stride];
         PngFilter.Unfilter(stride, (bpc * colors + 7) / 8, data, unfilteredData);
         return unfilteredData;
