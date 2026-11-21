@@ -902,6 +902,71 @@ public class ImageTests
         Gray(image).Should().Equal(samples);
     }
 
+    // A 1-bit image three samples wide needs one byte, and a predictor whose /DecodeParms leave
+    // out /BitsPerComponent works in rows of three, eight bits to a sample. The filter is held to
+    // one whole row of those, or the predictor would find none and leave nothing to draw.
+    [Test]
+    [Arguments(2, new byte[] { 0b1010_0000, 0, 0 })]
+    [Arguments(12, new byte[] { 2, 0b1010_0000, 0, 0 })]
+    public void AnImageWhosePredictorRowIsWiderThanTheWholeImageIsDrawn(int predictor, byte[] rows)
+    {
+        var image = DrawnImage(Filtering.FlateDecode.Encode(rows), (document, image) =>
+        {
+            Set(image, ("/Width", 3), ("/Height", 1), ("/ColorSpace", "/DeviceGray"), ("/BitsPerComponent", 1),
+                ("/Filter", "/FlateDecode"));
+            image.Elements["/DecodeParms"] = Dictionary(document, ("/Predictor", predictor), ("/Columns", 3));
+        });
+
+        Gray(image).Should().Equal(255, 0, 255);
+    }
+
+    // A /DecodeParms entry of the wrong type is the filter's to refuse, as it always was: an
+    // image's mask is then left off and the image drawn, and a filter that reads no predictor
+    // does not look at it.
+    [Test]
+    [Arguments("/Columns", 2.5)]
+    [Arguments("/Predictor", "/Foo")]
+    public void AMaskWhosePredictorCannotBeReadIsLeftOffAndTheImageDrawn(string key, object value)
+    {
+        var drawn = Drawn.Page(DrawIm1, Resources([10, 20, 30, 40, 50, 60], (document, image) =>
+        {
+            Set(image, ("/Width", 2), ("/Height", 1), ("/ColorSpace", "/DeviceRGB"), ("/BitsPerComponent", 8));
+            var mask = Stream(document, Filtering.FlateDecode.Encode([0, 100, 200]), ("/Width", 2), ("/Height", 1),
+                ("/ColorSpace", "/DeviceGray"), ("/BitsPerComponent", 8), ("/Filter", "/FlateDecode"));
+            mask.Elements["/DecodeParms"] = Dictionary(document, ("/Predictor", 12), (key, value));
+            image.Elements["/SMask"] = mask.Reference;
+        }));
+
+        var image = drawn.Device.Images.Single().Image;
+        Gray(image).Should().Equal(10, 40);
+        Alpha(image).Should().Equal(255, 255);
+        drawn.Problems.Should().Equal("UnsupportedImage /Im1");
+    }
+
+    [Test]
+    public void APredictorThatCannotBeReadIsIgnoredByAFilterThatReadsNone()
+    {
+        var image = DrawnImage(Filtering.ASCIIHexDecode.Encode([1, 2]), (document, image) =>
+        {
+            Set(image, ("/Width", 2), ("/Height", 1), ("/ColorSpace", "/DeviceGray"), ("/BitsPerComponent", 8),
+                ("/Filter", "/ASCIIHexDecode"));
+            image.Elements["/DecodeParms"] = Dictionary(document, ("/Predictor", "/Foo"));
+        });
+
+        Gray(image).Should().Equal(1, 2);
+    }
+
+    // /JPXDecode may leave the colour space to the codestream (ISO 32000-1 8.9.5), so a JPX image
+    // with none is reported as not decoded rather than as missing one.
+    [Test]
+    public void AJpxImageWithNoColourSpaceIsReportedAsNotDecodedYet()
+    {
+        var drawn = DrawnPage([1, 2, 3], ("/Width", 1), ("/Height", 1), ("/BitsPerComponent", 8), ("/Filter", "/JPXDecode"));
+
+        drawn.Device.Images.Should().BeEmpty();
+        drawn.Result.Diagnostics.Single().Message.Should().Contain("/JPXDecode, which is not decoded yet");
+    }
+
     [Test, Timeout(30_000)]
     public async Task AnImageOfAbsurdSizeIsRefusedBeforeAnythingIsDecoded()
     {
@@ -1168,6 +1233,13 @@ public class ImageTests
             Drawn.Add(document, resources, "/XObject", "/Im1", image);
         };
 
+    private static PdfDictionary Dictionary(PdfDocument document, params (string Key, object Value)[] entries)
+    {
+        var dictionary = new PdfDictionary(document);
+        Set(dictionary, entries);
+        return dictionary;
+    }
+
     /// <summary>A stream object holding <paramref name="data"/> as it is, with the entries given.</summary>
     private static PdfDictionary Stream(PdfDocument document, byte[] data, params (string Key, object Value)[] entries)
     {
@@ -1233,7 +1305,6 @@ public class ImageTests
     private static byte[] Escaped(byte[] bytes) =>
         bytes.SelectMany(b => b is (byte)'(' or (byte)')' or (byte)'\\' ? new[] { (byte)'\\', b } : new[] { b }).ToArray();
 
-    /// <summary>The red of every sample, which is the gray of a gray image.</summary>
     /// <summary>A zlib stream of <paramref name="length"/> bytes, each <paramref name="value"/>.</summary>
     private static byte[] Deflated(long length, byte value)
     {
@@ -1249,6 +1320,7 @@ public class ImageTests
         return output.ToArray();
     }
 
+    /// <summary>The red of every sample, which is the gray of a gray image.</summary>
     private static byte[] Gray(PageImage image) => Channel(image, 0);
 
     private static byte[] Alpha(PageImage image) => Channel(image, 3);

@@ -208,7 +208,11 @@ internal static class PageImages
             var definition = PdfReference.Dereference(image.Elements["/ColorSpace"]);
             if (PdfItemValues.IsNull(definition))
             {
-                Report(PageRenderProblem.InvalidValue, "The image has no /ColorSpace.");
+                // A JPX image may leave its colour space to the codestream (ISO 32000-1 8.9.5).
+                if (Array.Exists(FiltersOf(image), filter => PdfItemValues.TryGetName(filter, out var name) && name == "/JPXDecode"))
+                    ReportNotDecodedYet("The image", "/JPXDecode");
+                else
+                    Report(PageRenderProblem.InvalidValue, "The image has no /ColorSpace.");
                 return null;
             }
 
@@ -312,8 +316,9 @@ internal static class PageImages
         /// <remarks>
         /// No filter produces much more than the image can use, because Flate and LZW do not say
         /// how much they will. The filter that produces the samples stops at
-        /// <paramref name="sampleBytes"/>, plus the byte in front of each row a PNG predictor
-        /// reads, and what the stream holds beyond that is not drawn anyway. A filter before it
+        /// <paramref name="sampleBytes"/>, rounded up to the predictor's whole rows and the byte in
+        /// front of each a PNG predictor reads, and what the stream holds beyond that is not drawn
+        /// anyway. A filter before it
         /// produces encoded data, which can be larger than what it decodes to: RunLength writes a
         /// byte more than it was given for every 128, and two for one at worst, and a JPEG of a
         /// few samples is mostly headers. So each of those may produce twice the samples and
@@ -326,15 +331,7 @@ internal static class PageImages
             unfiltered = data;
             isJpeg = false;
 
-            var filter = PdfReference.Dereference(image.Elements["/Filter"]);
-            PdfItem[] filters;
-            if (PdfItemValues.IsNull(filter))
-                filters = [];
-            else if (filter is PdfArray array)
-                filters = [.. array.Elements];
-            else
-                filters = [filter];
-
+            var filters = FiltersOf(image);
             var parameters = filters.Length == 0 || PdfItemValues.IsNull(image.Elements["/DecodeParms"])
                 ? new PdfItem[filters.Length]
                 : Filtering.ParametersForEach(filters.Length, PdfReference.Dereference(image.Elements["/DecodeParms"]));
@@ -367,7 +364,7 @@ internal static class PageImages
                         return false;
 
                     case "/CCITTFaxDecode" or "/CCF" or "/JBIG2Decode" or "/JPXDecode":
-                        Report(PageRenderProblem.UnsupportedImage, $"{what} is encoded with {name}, which is not decoded yet.");
+                        ReportNotDecodedYet(what, name);
                         return false;
                 }
 
@@ -377,8 +374,8 @@ internal static class PageImages
                 var decodeParms = parameters[index] as PdfDictionary;
                 var producesSamples = index == filters.Length - 1;
                 var limit = new DecodeLimit(producesSamples
-                    ? WithPredictorBytes(sampleBytes, decodeParms)
-                    : 2 * sampleBytes + EncodedAllowance);
+                    ? WithPredictorBytes(name, sampleBytes, decodeParms)
+                    : EarlierFilterBytes(sampleBytes));
                 if (!TryApply(name, input, new FilterParms(decodeParms, limit), what, out unfiltered))
                     return false;
 
@@ -393,32 +390,53 @@ internal static class PageImages
             return true;
         }
 
+        /// <summary>The image's <c>/Filter</c> as a list of its entries, which need not be names.</summary>
+        private static PdfItem[] FiltersOf(PdfDictionary image)
+        {
+            var filter = PdfReference.Dereference(image.Elements["/Filter"]);
+            if (PdfItemValues.IsNull(filter))
+                return [];
+            return filter is PdfArray array ? [.. array.Elements] : [filter];
+        }
+
         /// <summary>
         /// What a filter produces before its predictor is undone, for <paramref name="sampleBytes"/>
         /// after: a TIFF or PNG predictor works in whole rows of its own <c>/Columns</c>, and a PNG
-        /// one adds a byte in front of each.
+        /// one adds a byte in front of each. Only Flate and LZW undo a predictor.
         /// </summary>
-        private static long WithPredictorBytes(long sampleBytes, PdfDictionary decodeParms)
+        /// <remarks>
+        /// The cap always covers one whole row, however much wider than the image a row is declared,
+        /// because a predictor drops a part row and would leave nothing to draw. It is held to what
+        /// an earlier filter may produce, so that a <c>/Columns</c> a few bytes long cannot lift it
+        /// to whatever it names. A value that is not a positive integer is read as its default here,
+        /// and refused by the filter itself, where the refusal is reported.
+        /// </remarks>
+        private static long WithPredictorBytes(string filter, long sampleBytes, PdfDictionary decodeParms)
         {
             var predictor = PositiveOrDefault(decodeParms, "/Predictor", 1);
-            if (predictor < 2)
+            if (predictor < 2 || filter is not ("/FlateDecode" or "/Fl" or "/LZWDecode" or "/LZW"))
                 return sampleBytes;
 
-            // A row wider than the whole image is held to the image, or a /Columns a few bytes long
-            // would lift the cap to whatever it names.
             var bits = (double)PositiveOrDefault(decodeParms, "/Columns", 1)
                        * PositiveOrDefault(decodeParms, "/Colors", 1)
                        * PositiveOrDefault(decodeParms, "/BitsPerComponent", 8);
-            var rowBytes = (long)Math.Min(Math.Ceiling(bits / 8), sampleBytes);
+            var tagBytes = predictor >= 10 ? 1 : 0;
+            var bound = EarlierFilterBytes(sampleBytes);
+            var rowBytes = (long)Math.Min(Math.Ceiling(bits / 8), bound);
             var rows = (sampleBytes + rowBytes - 1) / rowBytes;
-            return rows * (rowBytes + (predictor >= 10 ? 1 : 0));
+            return Math.Min(rows * (rowBytes + tagBytes), bound);
         }
 
-        private static int PositiveOrDefault(PdfDictionary decodeParms, string key, int defaultValue)
-        {
-            var value = decodeParms?.Elements.GetInteger(key) ?? 0;
-            return value < 1 ? defaultValue : value;
-        }
+        /// <summary>What a filter before the last may produce for <paramref name="sampleBytes"/>.</summary>
+        private static long EarlierFilterBytes(long sampleBytes) => 2 * sampleBytes + EncodedAllowance;
+
+        private static int PositiveOrDefault(PdfDictionary decodeParms, string key, int defaultValue) =>
+            decodeParms != null && PdfItemValues.TryGetInteger(decodeParms.Elements[key], out var value) && value >= 1
+                ? value
+                : defaultValue;
+
+        private void ReportNotDecodedYet(string what, string filter) =>
+            Report(PageRenderProblem.UnsupportedImage, $"{what} is encoded with {filter}, which is not decoded yet.");
 
         private bool TryApply(string name, byte[] data, FilterParms parameters, string what, out byte[] decoded)
         {
