@@ -158,7 +158,10 @@ internal sealed partial class ContentInterpreter
     /// <para>
     /// The samples kept are bounded by <see cref="MaximumImageBytesKept"/>, so that a page of many
     /// large images drawn once each does not hold all of them to the end of the render. One that
-    /// does not fit is decoded at each draw, as every image was before.
+    /// does not fit is decoded at each draw, as every image was before. An image of at most
+    /// <see cref="SmallImageBytes"/> is kept against a budget of its own,
+    /// <see cref="MaximumSmallImageBytesKept"/>, so that large images that have filled the first
+    /// do not make a tile of one sample decode at each of its thousand draws.
     /// </para>
     /// <para>
     /// An image whose <c>/ColorSpace</c> names a space of the resources is not kept: two forms can
@@ -173,10 +176,21 @@ internal sealed partial class ContentInterpreter
 
         samples = PageImages.ReadXObject(image, name, _resources, _device, _sink);
         var bytes = samples?.Data.Length ?? 0;
-        if (!PageImages.NamesAResourceSpace(image) && _imageBytesKept + bytes <= MaximumImageBytesKept)
+        if (!PageImages.NamesAResourceSpace(image))
         {
-            _images[key] = samples;
-            _imageBytesKept += bytes;
+            if (bytes <= SmallImageBytes)
+            {
+                if (_smallImageBytesKept + bytes <= MaximumSmallImageBytesKept)
+                {
+                    _images[key] = samples;
+                    _smallImageBytesKept += bytes;
+                }
+            }
+            else if (_imageBytesKept + bytes <= MaximumImageBytesKept)
+            {
+                _images[key] = samples;
+                _imageBytesKept += bytes;
+            }
         }
 
         return samples;

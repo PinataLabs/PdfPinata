@@ -94,6 +94,17 @@ in step.
   device cyan, or the inverting `/Decode` with no marker. Any other `/Decode`, and a colour key,
   on a JPEG of four components is reported and not applied.
 
+  SkiaSharp inverts every JPEG of four components, marker or no marker, so for a file with no
+  marker `SkiaPageDevice` undoes it (#413): it decodes two copies in which one component's
+  quantisation table is zeros, which makes that component's samples 128, one without black and one
+  without cyan. Skia's `R = c * k / 255` then gives each ink to within a level, and the device
+  answers the RGB of the inks as they are stored. The zero table goes in just before the first
+  scan under an identifier the file never defines, because a decoder takes a table as it stands
+  when the scan starts and a later definition of the same identifier would overwrite it. The
+  file's own decode is never made, as its size is in the header and a JPEG has no alpha. A file
+  that defines or uses all four identifiers cannot be copied, and is declined and reported as an
+  unsupported image.
+
 ## The interpreter
 
 `ContentInterpreter` is one render of one page. `Execute` is the only place an operator is told from
@@ -339,7 +350,9 @@ keyed by the XObject's reference through `ReferenceIdentity`, so a page that dra
 hundred times decodes it once. A failure is kept too, and reported the first time. A stencil
 mask is kept like any other image, because what is decoded is its coverage and the fill colour
 is applied at each draw. What is kept is bounded at 1 GiB of samples, one image of the largest
-size; an image that does not fit is decoded at each draw, as before. Five draws of a 16 KB Flate
+size; an image that does not fit is decoded at each draw, as before. An image of at most 1 MiB
+is kept against a budget of its own, 64 MiB, so that large images that have spent the first do
+not make a small tile decode at every draw (#413). Five draws of a 16 KB Flate
 stream that inflates to a 1-bit image of 2^28 samples took 11.9 s and allocated 5.2 GiB in a
 Release build, and take 2.5 s and 1 GiB now, which is one draw's. Inline images are not kept,
 and nor is an image whose `/ColorSpace` names a space of the resources, because two forms can
@@ -362,6 +375,11 @@ The masks:
 - A `/Mask` that is an image is the same stencil, multiplied into the image's alpha.
 - A `/Mask` that is an array is a colour key, compared with each sample as it is written, before
   `/Decode`.
+- An image drawn under a mask of another size is scaled to the larger width by the larger height,
+  at most 2^28 samples and at most 64 times the larger of the two sample counts. The 64 bites only
+  when the two cross, one wider and the other taller, because otherwise the drawn size is the
+  mask's own count (a scan's fine text mask over a coarse image is never capped by it). Past
+  either limit the mask is drawn at the image's size and `LimitReached` is reported (#413).
 - An `/SMask` is the alpha itself and overrides a `/Mask`. Its `/Matte` is taken back out of the
   colours, in RGB: exact for a device space of one or three components, close for the rest.
 - A mask finer than the image, in either direction, does not lose its detail: the image is scaled

@@ -242,6 +242,62 @@ public class ImageTests
         Gray(image).Should().Equal(255, 170, 85, 0);
     }
 
+    // ----- Scaling an image up to its mask ----------------------------------------------------------
+
+    [Test, Timeout(30_000)]
+    public async Task AThinImageUnderAThinMaskAcrossItIsNotScaledToTheSquareOfBoth()
+    {
+        var drawn = await DrawWith(new byte[16384], (document, image) =>
+        {
+            Set(image, ("/Width", 16384), ("/Height", 1), ("/ColorSpace", "/DeviceGray"), ("/BitsPerComponent", 8));
+            image.Elements["/SMask"] = Stream(document, new byte[16384], ("/Width", 1), ("/Height", 16384),
+                ("/ColorSpace", "/DeviceGray"), ("/BitsPerComponent", 8)).Reference;
+        });
+
+        var image = drawn.Device.Images.Single().Image;
+        image.Width.Should().Be(16384);
+        image.Height.Should().Be(1);
+        drawn.Problems.Should().Equal("LimitReached /Im1");
+    }
+
+    // 64 samples of an image 1 by 64 and of a mask 64 by 1 draw at 64 by 64, which is 64 times
+    // what either has; one more of each is past it.
+    [Test]
+    [Arguments(64, true)]
+    [Arguments(65, false)]
+    public void AnImageIsScaledToItsMaskUpToSixtyFourTimesTheSamplesOfEither(int length, bool scaled)
+    {
+        var drawn = Drawn.Page(DrawIm1, Resources(new byte[length], (document, image) =>
+        {
+            Set(image, ("/Width", 1), ("/Height", length), ("/ColorSpace", "/DeviceGray"), ("/BitsPerComponent", 8));
+            image.Elements["/SMask"] = Stream(document, new byte[length], ("/Width", length), ("/Height", 1),
+                ("/ColorSpace", "/DeviceGray"), ("/BitsPerComponent", 8)).Reference;
+        }));
+
+        var image = drawn.Device.Images.Single().Image;
+        image.Width.Should().Be(scaled ? length : 1);
+        image.Height.Should().Be(length);
+        drawn.Problems.Should().Equal(scaled ? [] : ["LimitReached /Im1"]);
+    }
+
+    // 20000 by 500 under 500 by 20000 is 400 million samples, over the 2^28 an image may have, and
+    // is 40 times what either has, so it is the limit and not the multiple that refuses it.
+    [Test, Timeout(60_000)]
+    public async Task AnImageScaledToItsMaskPastTheMostSamplesAnImageMayHaveIsReported()
+    {
+        var drawn = await DrawWith(new byte[10_000_000], (document, image) =>
+        {
+            Set(image, ("/Width", 20000), ("/Height", 500), ("/ColorSpace", "/DeviceGray"), ("/BitsPerComponent", 8));
+            image.Elements["/SMask"] = Stream(document, new byte[10_000_000], ("/Width", 500), ("/Height", 20000),
+                ("/ColorSpace", "/DeviceGray"), ("/BitsPerComponent", 8)).Reference;
+        });
+
+        var image = drawn.Device.Images.Single().Image;
+        image.Width.Should().Be(20000);
+        image.Height.Should().Be(500);
+        drawn.Problems.Should().Equal("LimitReached /Im1");
+    }
+
     // ----- Soft masks ------------------------------------------------------------------------------
 
     [Test]
@@ -609,6 +665,39 @@ public class ImageTests
             ("/Filter", "/DCTDecode"))), device);
 
         decoded.Should().Be(1);
+        device.Images.Should().HaveCount(5);
+    }
+
+    // The first image fills the budget for large ones, being a whole 2^28 samples.
+    [Test]
+    public void ASmallImageIsKeptEvenWhenLargeOnesHaveSpentTheirBudget()
+    {
+        var decoded = new int[3];
+        var largest = new byte[1 << 30];
+        var device = new RecordingDevice
+        {
+            Jpeg = data =>
+            {
+                var which = data.Span[1];
+                decoded[which]++;
+                return which == 1
+                    ? PageImage.FromRgba32(1 << 14, 1 << 14, largest)
+                    : PageImage.FromRgba32(1, 1, new byte[] { 1, 2, 3, 255 });
+            }
+        };
+
+        PageRendering.Render(Drawn.PageOf("/Im1 Do /Im2 Do /Im2 Do /Im2 Do /Im1 Do", (document, resources) =>
+        {
+            foreach (var which in new byte[] { 1, 2 })
+            {
+                var image = Stream(document, [0xFF, which], ("/Subtype", "/Image"), ("/Width", 1), ("/Height", 1),
+                    ("/ColorSpace", "/DeviceRGB"), ("/BitsPerComponent", 8), ("/Filter", "/DCTDecode"));
+                Drawn.Add(document, resources, "/XObject", "/Im" + which, image);
+            }
+        }), device);
+
+        decoded[2].Should().Be(1);
+        decoded[1].Should().Be(1);
         device.Images.Should().HaveCount(5);
     }
 
@@ -988,10 +1077,71 @@ public class ImageTests
         drawn.Problems.Should().Equal("MissingResource /Cs9");
     }
 
+
+    // ----- Scaling an image to a mask of another shape ---------------------------------------
+
+    private static Drawn Crossed(string content, int imageWidth, int imageHeight, int maskWidth, int maskHeight, string space = "/DeviceGray")
+    {
+        return Drawn.Page(content, (document, resources) =>
+        {
+            if (space != "/DeviceGray")
+            {
+                var spaces = new PdfDictionary(document);
+                spaces.Elements[space] = new PdfName("/DeviceGray");
+                resources.Elements["/ColorSpace"] = spaces;
+            }
+            Resources(new byte[imageWidth * imageHeight], (doc, image) =>
+            {
+                Set(image, ("/Width", imageWidth), ("/Height", imageHeight), ("/ColorSpace", space), ("/BitsPerComponent", 8));
+                image.Elements["/SMask"] = Stream(doc, new byte[maskWidth * maskHeight], ("/Width", maskWidth), ("/Height", maskHeight),
+                    ("/ColorSpace", "/DeviceGray"), ("/BitsPerComponent", 8)).Reference;
+            })(document, resources);
+        });
+    }
+
+    [Test]
+    [Arguments(2, 2, 200, 200, 200, 200, 0)]      // both axes, a hundred times each way: the mask's own size
+    [Arguments(1, 4, 400, 4, 400, 4, 0)]          // one axis only
+    [Arguments(4, 1, 4, 400, 4, 400, 0)]          // the other axis only
+    [Arguments(2, 128, 128, 2, 128, 128, 0)]      // crossed, exactly 64 times
+    [Arguments(2, 130, 130, 2, 2, 130, 1)]        // crossed, 65 times
+    [Arguments(1, 64, 64, 1, 64, 64, 0)]
+    [Arguments(1, 65, 65, 1, 1, 65, 1)]
+    [Arguments(3, 300, 100, 5, 100, 300, 0)]      // crossed and uneven: 30000 against 64 * 900
+    [Arguments(1, 1000, 1000, 1, 1, 1000, 1)]
+    [Arguments(200, 200, 2, 2, 200, 200, 0)]      // a mask coarser than the image
+    public void AnImageUnderAMaskIsScaledUpOnlyWithinTheCap(int iw, int ih, int mw, int mh, int dw, int dh, int problems)
+    {
+        var drawn = Crossed(DrawIm1, iw, ih, mw, mh);
+        var image = drawn.Device.Images.Single().Image;
+        (image.Width, image.Height).Should().Be((dw, dh));
+        drawn.Problems.Should().HaveCount(problems);
+        if (problems > 0) drawn.Problems.Should().OnlyContain(p => p == "LimitReached /Im1");
+    }
+
+    [Test]
+    public void ACappedScaleUpIsReportedOncePerImageKept()
+    {
+        var drawn = Crossed("/Im1 Do /Im1 Do /Im1 Do /Im1 Do", 1, 65, 65, 1);
+        drawn.Device.Images.Should().HaveCount(4);
+        drawn.Problems.Should().Equal("LimitReached /Im1");
+    }
+
+    [Test]
+    public void ACappedScaleUpOfAnImageNotKeptIsReportedOnce()
+    {
+        var drawn = Crossed("/Im1 Do /Im1 Do /Im1 Do /Im1 Do", 1, 65, 65, 1, "/Cs1");
+        drawn.Device.Images.Should().HaveCount(4);
+        drawn.Problems.Should().Equal("LimitReached /Im1");
+    }
+
     // ----- Helpers ---------------------------------------------------------------------------------
 
     private static Task<Drawn> Draw(byte[] data, params (string Key, object Value)[] entries) =>
         Interruptibly.Run(() => DrawnPage(data, entries));
+
+    private static Task<Drawn> DrawWith(byte[] data, Action<PdfDocument, PdfDictionary> entries) =>
+        Interruptibly.Run(() => Drawn.Page(DrawIm1, Resources(data, entries)));
 
     private static Drawn DrawnPage(byte[] data, params (string Key, object Value)[] entries) =>
         Drawn.Page(DrawIm1, Resources(data, entries));
