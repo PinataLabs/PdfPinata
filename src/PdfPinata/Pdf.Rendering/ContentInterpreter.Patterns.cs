@@ -189,7 +189,7 @@ internal sealed partial class ContentInterpreter
         PagePaint? tint)
     {
         // A cell counts as a form does: it is content that draws content, and it may paint with itself.
-        if (!_forms.TryEnter(pattern))
+        if (!_context.Forms.TryEnter(pattern))
         {
             _sink.Report(PageRenderProblem.LimitReached, name,
                 "The pattern paints with itself, or patterns and forms are nested too deep or drawn too often. It paints nothing.");
@@ -215,7 +215,7 @@ internal sealed partial class ContentInterpreter
         }
         finally
         {
-            _forms.Leave(pattern);
+            _context.Forms.Leave(pattern);
         }
 
         // Asked after the cell is recorded: a pattern the cell paints with is kept before this one.

@@ -40,8 +40,11 @@ internal sealed class RenderContext
 
     internal Func<PdfDictionary, PageGlyphSource> GlyphSources { get; }
 
-    /// <summary>Counts forms and pattern cells together: either may draw the other.</summary>
-    internal FormVisits Forms { get; } = new();
+    /// <summary>
+    /// Counts forms and pattern cells together: either may draw the other. The annotations are
+    /// given a new one, so that a page whose content spent its budget still shows them.
+    /// </summary>
+    internal FormVisits Forms { get; set; } = new();
 
     /// <summary>
     /// Each form's or cell's content as it was read the first time it was drawn, or null where it
@@ -55,8 +58,14 @@ internal sealed class RenderContext
     /// </summary>
     internal Dictionary<object, PageImage> Images { get; } = new(ReferenceIdentity.Instance);
 
-    /// <summary>How many bytes of samples <see cref="Images"/> holds.</summary>
+    /// <summary>
+    /// How many bytes of samples <see cref="Images"/> holds of images larger than
+    /// <see cref="ContentInterpreter.SmallImageBytes"/>.
+    /// </summary>
     internal long ImageBytesKept { get; set; }
+
+    /// <summary>How many bytes of samples <see cref="Images"/> holds of the smaller images.</summary>
+    internal long SmallImageBytesKept { get; set; }
 
     internal PdfDocument Document { get; set; }
 

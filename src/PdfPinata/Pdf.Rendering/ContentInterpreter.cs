@@ -52,6 +52,19 @@ internal sealed partial class ContentInterpreter
     /// </summary>
     internal const long MaximumImageBytesKept = PageImages.MaximumSamples * 4;
 
+    /// <summary>
+    /// The size, in bytes of samples, up to which an image is kept against
+    /// <see cref="MaximumSmallImageBytesKept"/> and not <see cref="MaximumImageBytesKept"/>: 1 MiB,
+    /// an image of 512 by 512.
+    /// </summary>
+    internal const long SmallImageBytes = 1L << 20;
+
+    /// <summary>
+    /// How many bytes of decoded images of at most <see cref="SmallImageBytes"/> one render keeps
+    /// to draw again: 64 MiB, sixty-four of the largest.
+    /// </summary>
+    internal const long MaximumSmallImageBytesKept = 64L << 20;
+
     private readonly RenderContext _context;
     private readonly PaintRouter _device;
     private readonly PageView _view;
@@ -59,8 +72,8 @@ internal sealed partial class ContentInterpreter
     private readonly Func<PdfDictionary, PageGlyphSource> _glyphSources;
     private readonly DiagnosticSink _sink;
     private readonly StateStack _states;
-    private readonly FormVisits _forms;
     private readonly Dictionary<object, ParsedContent> _formContent;
+    private bool _needAppearancesReported;
 
     // Everything this instance draws into, with its transform to the device: the page's box, or
     // the box of content that is recorded. It is what sh paints, under whatever the clip leaves.
@@ -104,7 +117,6 @@ internal sealed partial class ContentInterpreter
         _sink = context.Sink;
         _fonts = context.Fonts;
         _glyphSources = context.GlyphSources;
-        _forms = context.Forms;
         _formContent = context.FormContent;
         _colorsLocked = colorsLocked;
         _isRecording = isRecording;
@@ -130,13 +142,11 @@ internal sealed partial class ContentInterpreter
     /// content does, and whatever is thrown, the device has been restored as often as it was
     /// saved when this returns.
     /// </summary>
-    internal void RunPage(PdfPage page)
+    internal void RunPage(PdfPage page, bool includeAnnotations)
     {
         try
         {
-            _states.Push();
-
-            _device.Clip(_surface, _surfaceTransform, XFillMode.Winding);
+            BeginPage();
 
             if (_view.BoxIsAssumed)
             {
@@ -149,21 +159,32 @@ internal sealed partial class ContentInterpreter
             {
                 _sink.Report(PageRenderProblem.UnreadableContent, "page",
                     "The page's content could not be decoded, and nothing of it is drawn.");
-                return;
             }
-
-            if (unreadable > 0)
+            else
             {
-                _sink.Report(PageRenderProblem.UnreadableContent, "page",
-                    $"{unreadable} of the streams the page's content is written in could not be decoded. What the others say is drawn.");
+                if (unreadable > 0)
+                {
+                    _sink.Report(PageRenderProblem.UnreadableContent, "page",
+                        $"{unreadable} of the streams the page's content is written in could not be decoded. What the others say is drawn.");
+                }
+
+                RunStream(ParsedContent.Of(content), ResourceScope.OfPage(page), "page", _surfaceTransform);
             }
 
-            RunStream(ParsedContent.Of(content), ResourceScope.OfPage(page), "page", _surfaceTransform);
+            if (includeAnnotations)
+                DrawAnnotations(page);
         }
         finally
         {
             _states.PopTo(0);
         }
+    }
+
+    /// <summary>Saves the device's state and clips to the box the view draws.</summary>
+    private void BeginPage()
+    {
+        _states.Push();
+        _device.Clip(_surface, _surfaceTransform, XFillMode.Winding);
     }
 
     /// <summary>
@@ -188,8 +209,7 @@ internal sealed partial class ContentInterpreter
         var nested = new ContentInterpreter(context, recorder, initialState, box, colorsLocked, isRecording: true);
         try
         {
-            nested._states.Push();
-            nested._device.Clip(nested._surface, nested._surfaceTransform, XFillMode.Winding);
+            nested.BeginPage();
             nested.RunStream(content, resources, streamName, nested._surfaceTransform);
         }
         finally

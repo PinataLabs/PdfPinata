@@ -21,6 +21,11 @@ public static class PageRendering
     /// a kind of font the library does not read, and how a test sets text without a font file.
     /// Fonts read with it are kept for this call only.
     /// </param>
+    /// <param name="annotations">
+    /// Whether the normal appearance of each annotation is drawn after the page's content, as a
+    /// viewer shows the page. True by default. Hidden and no-view annotations and popups are not
+    /// drawn either way.
+    /// </param>
     /// <returns>What was left out of the page, and why. Never null.</returns>
     /// <remarks>
     /// <para>
@@ -40,7 +45,7 @@ public static class PageRendering
     /// the library was set up and not a defect in the file.
     /// </exception>
     public static PageRenderResult Render(PdfPage page, PageDevice device, PageView view = null,
-        Func<PdfDictionary, PageGlyphSource> glyphSources = null)
+        Func<PdfDictionary, PageGlyphSource> glyphSources = null, bool annotations = true)
     {
         ArgumentNullException.ThrowIfNull(page);
         ArgumentNullException.ThrowIfNull(device);
@@ -53,7 +58,7 @@ public static class PageRendering
         var interpreter = new ContentInterpreter(device, view, fonts, glyphSources);
         try
         {
-            interpreter.RunPage(page);
+            interpreter.RunPage(page, annotations);
         }
         catch (UnsetSeamException unset)
         {

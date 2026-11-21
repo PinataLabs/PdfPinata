@@ -63,7 +63,7 @@ internal sealed partial class ContentInterpreter
         }
 
         // Asked before the content is decoded, so that a form drawn past the limit costs nothing.
-        if (!_forms.TryEnter(form))
+        if (!_context.Forms.TryEnter(form))
         {
             _sink.Report(PageRenderProblem.LimitReached, name,
                 "The form draws itself, or forms are nested too deep or drawn too often. It is not drawn again.");
@@ -101,7 +101,7 @@ internal sealed partial class ContentInterpreter
         finally
         {
             _states.PopTo(depth);
-            _forms.Leave(form);
+            _context.Forms.Leave(form);
         }
     }
 
@@ -141,7 +141,10 @@ internal sealed partial class ContentInterpreter
     /// <para>
     /// The samples kept are bounded by <see cref="MaximumImageBytesKept"/>, so that a page of many
     /// large images drawn once each does not hold all of them to the end of the render. One that
-    /// does not fit is decoded at each draw, as every image was before.
+    /// does not fit is decoded at each draw, as every image was before. An image of at most
+    /// <see cref="SmallImageBytes"/> is kept against a budget of its own,
+    /// <see cref="MaximumSmallImageBytesKept"/>, so that large images that have filled the first
+    /// do not make a tile of one sample decode at each of its thousand draws.
     /// </para>
     /// <para>
     /// An image whose <c>/ColorSpace</c> names a space of the resources is not kept: two forms can
@@ -156,10 +159,21 @@ internal sealed partial class ContentInterpreter
 
         samples = PageImages.ReadXObject(image, name, _resources, _device.Device, _sink);
         var bytes = samples?.Data.Length ?? 0;
-        if (!PageImages.NamesAResourceSpace(image) && _context.ImageBytesKept + bytes <= MaximumImageBytesKept)
+        if (!PageImages.NamesAResourceSpace(image))
         {
-            _context.Images[key] = samples;
-            _context.ImageBytesKept += bytes;
+            if (bytes <= SmallImageBytes)
+            {
+                if (_context.SmallImageBytesKept + bytes <= MaximumSmallImageBytesKept)
+                {
+                    _context.Images[key] = samples;
+                    _context.SmallImageBytesKept += bytes;
+                }
+            }
+            else if (_context.ImageBytesKept + bytes <= MaximumImageBytesKept)
+            {
+                _context.Images[key] = samples;
+                _context.ImageBytesKept += bytes;
+            }
         }
 
         return samples;

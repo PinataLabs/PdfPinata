@@ -200,6 +200,14 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
     /// Decodes a JPEG with <see cref="SKCodec"/>, which turns a CMYK or an Adobe-inverted JPEG to
     /// RGB itself.
     /// </summary>
+    /// <remarks>
+    /// SkiaSharp reads every JPEG of four components as inverted inks, with an Adobe marker or
+    /// without one. A file without the marker stores its inks as they are, so its answer is
+    /// rebuilt here from two decodes of copies of it (<see cref="MarkerlessCmykJpeg"/>), and the
+    /// inversion is undone as <see cref="PageDevice.DecodeImage"/> says it must be. Each ink is
+    /// then read to within one level of 255, because a copy's constant is 128 and Skia's product
+    /// with it halves what it multiplies.
+    /// </remarks>
     /// <param name="codec">What <paramref name="data"/> is encoded as.</param>
     /// <param name="data">The encoded bytes.</param>
     /// <returns>The samples, or null when they are not a JPEG SkiaSharp can decode.</returns>
@@ -208,6 +216,44 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
         if (codec != PageImageCodec.Jpeg || data.IsEmpty)
             return null;
 
+        if (!MarkerlessCmykJpeg.IsMarkerless(data.Span))
+        {
+            var plain = DecodeSamples(data, out var plainWidth, out var plainHeight);
+            return plain == null ? null : PageImage.FromRgba32(plainWidth, plainHeight, plain);
+        }
+
+        // Flattening black leaves cyan, magenta and yellow at half their value in red, green
+        // and blue, and flattening cyan leaves black at half its value in red. The file's own
+        // decode is never made: its size is in the header and a JPEG has no alpha.
+        var withoutBlack = MarkerlessCmykJpeg.WithComponentFlattened(data.Span, 3);
+        var withoutCyan = MarkerlessCmykJpeg.WithComponentFlattened(data.Span, 0);
+        if (withoutBlack == null || withoutCyan == null)
+            return null;
+
+        var pixels = DecodeSamples(withoutBlack, out var width, out var height);
+        if (pixels == null)
+            return null;
+
+        var blacks = DecodeSamples(withoutCyan, out var blackWidth, out var blackHeight);
+        if (blacks == null || blackWidth != width || blackHeight != height)
+            return null;
+
+        for (var at = 0; at < pixels.Length; at += 4)
+        {
+            var white = 255 - Ink(blacks[at]);
+            for (var channel = 0; channel < 3; channel++)
+                pixels[at + channel] = (byte)((255 - Ink(pixels[at + channel])) * white / 255);
+        }
+
+        return PageImage.FromRgba32(width, height, pixels);
+    }
+
+    // Skia's product of an ink with the constant 128, back to the ink.
+    private static int Ink(int halved) => Math.Min(255, (halved * 255 + 64) / 128);
+
+    private static byte[] DecodeSamples(ReadOnlyMemory<byte> data, out int width, out int height)
+    {
+        width = height = 0;
         using var skData = SKData.CreateCopy(data.Span);
         using var decoder = SKCodec.Create(skData);
         if (decoder == null || decoder.EncodedFormat != SKEncodedImageFormat.Jpeg)
@@ -225,7 +271,9 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
         if (result is not (SKCodecResult.Success or SKCodecResult.IncompleteInput))
             return null;
 
-        return PageImage.FromRgba32(size.Width, size.Height, pixels);
+        width = size.Width;
+        height = size.Height;
+        return pixels;
     }
 
     /// <summary>Frees the paths, the shaders and the paint the device made. The canvas is left alone.</summary>
