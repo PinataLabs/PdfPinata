@@ -3,7 +3,7 @@ name: Release
 # All ten packages version in lockstep from one tag, so one tag releases the whole
 # set: PdfPinata and its seven companion packages, and the two PinataLayout packages.
 # The list is PACKAGES below and in release-prerelease.yml; a new packable project
-# has to be added to both. Both lists are the same ten, in the same order, and
+# has to be added to both. Both lists are the same eleven, in the same order, and
 # .github/scripts/verify-packages.sh fails a run whose packages are not one per entry.
 #
 # The glob requires a digit after the `v`, so a tag that merely starts with one
@@ -35,6 +35,7 @@ jobs:
       PACKAGES: >-
         PdfPinata
         PdfPinata.Skia
+        PdfPinata.Rendering.Skia
         PdfPinata.ImageSharp
         PdfPinata.ImageSharp4
         PdfPinata.HarfBuzz

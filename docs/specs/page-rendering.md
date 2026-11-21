@@ -32,6 +32,7 @@ content is read, how a glyph is chosen and decoded, and where each of the other 
 | 17 | Annotation appearances, and the option to draw them | done (#387) |
 | 18 | `PdfTextExtractor` and `PdfImagePlacementReader` on the new interpreter | follow-up |
 | 19 | A `RenderPage` demo in SampleApp and on the docs site | follow-up |
+| 20 | Publish `PdfPinata.Rendering.Skia` (#378) | done as a pre-release; the fidelity bar below was waived for it, and items 10, 11, 13, 14 and JBIG2/JPX are listed as not drawn on the FAQ |
 
 ---
 
@@ -357,9 +358,9 @@ never matches byte for byte. These tests are `[Rasterizing]`. The inputs are:
 A checked-in golden PNG is used only where Ghostscript itself draws a feature wrongly. The note
 that adds one must say why.
 
-**The package is not added to `PACKAGES`** in `release.yml` and `release-prerelease.yml` until it
-draws the SampleApp demos and the conformance corpus within tolerance. Until then it is in
-`PdfPinata.slnx`, built and tested in CI, and published nowhere.
+**The package is in `PACKAGES`** in `release.yml` and `release-prerelease.yml` (#378). The fidelity bar
+above was waived for the first release: it ships as a pre-release, with the gaps in the table above
+named in the FAQ, and its API is experimental.
 
 ## What was deliberately left out of v1
 

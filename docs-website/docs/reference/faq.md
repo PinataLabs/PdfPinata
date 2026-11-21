@@ -160,10 +160,26 @@ fields, and move, resize or delete whole pages. See
 No. There is no HTML or CSS engine. Build the document with [PinataLayout](../layout/documents-sections-and-styles.md)
 instead, or use a separate HTML renderer.
 
-### Can it convert a PDF to Word, HTML or an image?
+### Can it convert a PDF to Word or HTML?
 
-No. PdfPinata writes PDF files; it does not render them. To make an image of a page, use a
-rasterizer such as Ghostscript or PDFium. The library cannot print or display a PDF either.
+No. PdfPinata writes PDF files; it does not convert them to Word or HTML. The library cannot print
+or display a PDF either.
+
+### Can it render a PDF page to an image?
+
+Yes, in a pre-release. The `PdfPinata.Rendering.Skia` package draws an existing page onto a
+SkiaSharp canvas, picture or bitmap, or encodes it as PNG or JPEG: `page.ToSKBitmap()` or
+`page.ToImage(stream, SKEncodedImageFormat.Png)`. It is published as a pre-release first, and its
+API is marked experimental (`PPEXP001`) and will change. It does not draw everything yet. Not drawn:
+
+- CFF and Type 1 font programs, and Type 3 fonts.
+- The standard 14 fonts when the file does not embed them.
+- Transparency groups and blend modes.
+- Separation, DeviceN and Lab colour. ICC profiles are not applied.
+- JBIG2 and JPX images.
+
+What it cannot draw is skipped and listed in the `PageRenderResult`. If you need a complete
+rasterization today, use a rasterizer such as Ghostscript or PDFium.
 
 ### Does it keep bookmarks when I import pages?
 
