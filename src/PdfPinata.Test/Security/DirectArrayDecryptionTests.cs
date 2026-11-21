@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
@@ -74,9 +75,13 @@ public class DirectArrayDecryptionTests
         var saved = new MemoryStream();
         modified.Save(saved, false);
 
-        var reopened = Reader.Open(new MemoryStream(saved.ToArray()), "", PdfDocumentOpenMode.Import);
-
-        AssertStrings(reopened);
+        var written = saved.ToArray();
+        var independent = new StandardSecurity(written);
+        independent.DerivedKeyMatchesTheDocument.Should().BeTrue();
+        independent.DecryptedHexStrings(3)
+            .Should().HaveCount(Strings.Length)
+            .And.SatisfyRespectively(Strings.Select<(string Path, byte[] Plain), System.Action<byte[]>>(
+                s => actual => actual.Should().Equal(s.Plain, $"{s.Path} is under the page's own key in the saved file")).ToArray());
     }
 
     private static void AssertStrings(PdfDocument document)
