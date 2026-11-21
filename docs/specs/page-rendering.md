@@ -28,7 +28,7 @@ the other items is added.
 | 13 | Blend modes, transparency groups, soft-mask groups | deferred; reported where they change what is drawn |
 | 14 | Separation, DeviceN, Lab, and ICC colour management | deferred |
 | 15 | CCITTFax, JBIG2 and JPX images | deferred |
-| 16 | Optional content | deferred; content of a group that is off is drawn and reported |
+| 16 | Optional content | done (#386): `/D`, a named `/Configs` entry, or groups switched by the caller; content of a group that is off is not drawn |
 | 17 | Annotation appearances, and the option to draw them | done (#387) |
 | 18 | `PdfTextExtractor` and `PdfImagePlacementReader` on the new interpreter | follow-up |
 | 19 | A `RenderPage` demo in SampleApp and on the docs site | follow-up |
@@ -195,6 +195,7 @@ of every canvas, bitmap and picture.
 | `Region` | the whole box | the rectangle to draw |
 | `Background` | white | painted before the page |
 | `Annotations` | on | draw each annotation's normal appearance over the page |
+| `OptionalContent` | the default configuration | which layers are drawn, see below |
 | `AntiAlias` | on | |
 
 **A region is in points from the top-left of the page as displayed**, after the box, `/Rotate` and
@@ -207,6 +208,14 @@ to work out the rotation themselves.
 reader sees without them. `Annotations = false` draws the content alone, and the core's
 `PageRendering.Render` takes the same choice as its `annotations` argument. The rules are in
 `page-rendering-interpreter.md`, "Annotations".
+
+**Optional content follows the default configuration** (#386), as a viewer opens the file.
+`OptionalContent` is a `PageOptionalContent`, and `PageRendering.Render` takes the same type as its
+`optionalContent` argument: `Configuration` names an entry of `/OCProperties /Configs` by its
+`/Name` to use in place of `/D`, and `On` and `Off` are group dictionaries switched whatever the
+configuration says, which is what a layer panel hands over. A group in both lists is off, and a name
+no configuration has is reported and `/D` is used. The rules are in `page-rendering-interpreter.md`,
+"Optional content".
 
 The package references the core and `SkiaSharp` alone. It does not reference `PdfPinata.Skia`, which
 is the *writing* backend, and rendering needs no backend registered. It targets
