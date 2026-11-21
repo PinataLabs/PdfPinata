@@ -1,0 +1,61 @@
+% Encodes text.pbm with Ghostscript's CCITTFaxEncode once for each parameter set below.
+% Run by Generate.ps1. PBM stores black as 1, the reverse of CCITTFaxEncode's default, so each
+% set is encoded from the inverse of the bits unless it says /BlackIs1 true.
+
+/pbm (text.pbm) (r) file def
+/width pbm token pop pop pbm token pop def   % skip "P4", read the width
+/height pbm token pop def   % token takes the one white space after it too
+/rowbytes width 7 add 8 idiv def
+/black1 rowbytes height mul string def
+pbm black1 readstring pop pop
+/black0 black1 length string def
+0 1 black1 length 1 sub { dup black1 exch get 255 xor black0 3 1 roll put } for
+
+/encode {   % name dict
+  dup /Columns width put
+  dup /Rows height put
+  dup /BlackIs1 known { dup /BlackIs1 get } { false } ifelse { black1 } { black0 } ifelse
+  3 1 roll
+  exch (.bin) concatstrings (w) file
+  exch /CCITTFaxEncode filter
+  dup 3 -1 roll writestring
+  closefile
+} def
+
+/concatstrings { exch dup length 2 index length add string dup dup 4 2 roll copy length 4 -1 roll putinterval } def
+
+(g4) << /K -1 >> encode
+(g4-noeob) << /K -1 /EndOfBlock false >> encode
+(g4-align) << /K -1 /EncodedByteAlign true >> encode
+(g4-blackis1) << /K -1 /BlackIs1 true >> encode
+(g3-1d) << /K 0 >> encode
+(g3-1d-noeob) << /K 0 /EndOfBlock false >> encode
+(g3-1d-eol) << /K 0 /EndOfLine true >> encode
+(g3-1d-eol-align) << /K 0 /EndOfLine true /EncodedByteAlign true >> encode
+(g3-1d-align) << /K 0 /EncodedByteAlign true >> encode
+(g3-2d) << /K 4 >> encode
+(g3-2d-eol) << /K 4 /EndOfLine true >> encode
+(g3-2d-eol-align) << /K 4 /EndOfLine true /EncodedByteAlign true >> encode
+(g3-2d-blackis1) << /K 2 /EndOfLine true /BlackIs1 true >> encode
+
+% A pattern 2700 columns wide for the extended make-up codes, which no run in text.pbm is long
+% enough to need. Row 0 is white, row 1 black, row 2 black for its first 2000 columns and row 3
+% black from column 100 to 2650. CcittFaxDecodeTests builds the same rows.
+/width 2700 def
+/height 4 def
+/rowbytes width 7 add 8 idiv def
+/black0 rowbytes height mul string def
+0 1 black0 length 1 sub { black0 exch 255 put } for
+/paint {   % row from to: makes columns from up to to black
+  /to exch def /from exch def /row exch def
+  from 1 to 1 sub {
+    /x exch def
+    /at row rowbytes mul x 8 idiv add def
+    black0 at black0 at get 128 x 8 mod neg bitshift not and put
+  } for
+} def
+1 0 2700 paint
+2 0 2000 paint
+3 100 2650 paint
+(wide-g4) << /K -1 >> encode
+(wide-g3-1d) << /K 0 >> encode

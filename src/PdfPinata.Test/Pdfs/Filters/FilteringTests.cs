@@ -59,7 +59,6 @@ public class FilteringTests
     /// decode.
     /// </summary>
     [Test]
-    [Arguments("CCITTFaxDecode")]
     [Arguments("JBIG2Decode")]
     [Arguments("DCTDecode")]
     [Arguments("JPXDecode")]
