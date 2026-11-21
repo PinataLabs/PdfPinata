@@ -230,6 +230,50 @@ public class CcittFaxDecodeTests
     }
 
     [Test]
+    [NotInParallel("CcittFaxHugeRows")]
+    public void RunsWhoseSumPasses2To31AreADamagedRowAndNotAnIndexOutOfRange()
+    {
+        var columns = int.MaxValue - 7;
+
+        var decoded = Decode(OverflowingRuns(), Parameters(("/K", 0), ("/Columns", columns), ("/Rows", 1)));
+
+        decoded.Length.Should().Be((columns + 7) / 8);
+    }
+
+    [Test]
+    [NotInParallel("CcittFaxHugeRows")]
+    public void ARowOfInt32MaxValueColumnsDecodesWithoutWrapping()
+    {
+        var decoded = Decode([0xFF, 0xFF], Parameters(("/K", -1), ("/Columns", int.MaxValue)));
+
+        decoded.Length.Should().Be(1 << 28);
+        decoded.AsSpan().IndexOfAnyExcept((byte)0xFF).Should().Be(-1);
+    }
+
+    [Test]
+    public void DataThatHoldsNoRowsAllocatesNoRows()
+    {
+        var decoded = Decode([], Parameters(("/K", -1), ("/Columns", 1 << 24)));
+
+        decoded.Should().BeEmpty();
+    }
+
+    [Test]
+    public void TheOutputIsAllocatedOnceAtItsFinalSize()
+    {
+        var data = new byte[4096];
+        Array.Fill(data, (byte)0xFF);
+        var parameters = Parameters(("/K", -1), ("/Columns", 1 << 20));
+
+        Decode(data, parameters);
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        var decoded = Decode(data, parameters);
+        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+
+        allocated.Should().BeLessThan(decoded.Length + (1 << 20));
+    }
+
+    [Test]
     [Arguments("/Columns", 0)]
     [Arguments("/Rows", -1)]
     public void AParameterOutOfRangeIsRefused(string key, int value)
@@ -245,6 +289,32 @@ public class CcittFaxDecodeTests
         var act = () => Filtering.CcittFaxDecode.Encode([0xFF]);
 
         act.Should().Throw<NotSupportedException>();
+    }
+
+    /// <summary>
+    /// A white run of 1.0e9, a black one of 1.0e8 and a white one of 1.2e9, each coded as 2560
+    /// make-up codes and a terminating zero: the third passes 2^31 from where it begins.
+    /// </summary>
+    private static byte[] OverflowingRuns()
+    {
+        var bits = new StringBuilder();
+        Run(2560L * 390625, black: false);
+        Run(2560L * 39063, black: true);
+        Run(2560L * 468750, black: false);
+        while (bits.Length % 8 != 0)
+            bits.Append('0');
+
+        var data = new byte[bits.Length / 8];
+        for (var index = 0; index < data.Length; index++)
+            data[index] = Convert.ToByte(bits.ToString(index * 8, 8), 2);
+        return data;
+
+        void Run(long length, bool black)
+        {
+            for (; length > 0; length -= 2560)
+                bits.Append("000000011111");
+            bits.Append(black ? "0000110111" : "00110101");
+        }
     }
 
     private static byte[] Decode(byte[] data, PdfDictionary parameters) => Filtering.CcittFaxDecode.Decode(data, parameters);

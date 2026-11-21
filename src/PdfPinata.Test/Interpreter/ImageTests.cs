@@ -465,6 +465,15 @@ public class ImageTests
     }
 
     [Test]
+    public void ColumnsFarWiderThanTheImageAreReportedAndTheImageIsNotDrawn()
+    {
+        var drawn = Drawn.Page(DrawIm1, Resources(CcittFaxDecodeTests.Asset("g4.bin"), FaxImage(("/K", -1), ("/Columns", 2147483640))));
+
+        drawn.Device.Images.Should().BeEmpty();
+        drawn.Problems.Should().Equal("InvalidValue /Im1");
+    }
+
+    [Test]
     [Arguments("/JBIG2Decode")]
     [Arguments("/JPXDecode")]
     public void AFilterNotDecodedYetIsReported(string filter)

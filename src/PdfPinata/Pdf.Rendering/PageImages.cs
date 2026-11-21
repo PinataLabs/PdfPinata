@@ -101,7 +101,7 @@ internal static class PageImages
         internal PageImage Read(PdfDictionary image, byte[] encoded)
         {
             if (encoded == null || !TryReadSize(image, "The image", out var width, out var height)
-                                || !TryUnfilter(image, encoded, height, "The image", out var data, out var isJpeg))
+                                || !TryUnfilter(image, encoded, width, height, "The image", out var data, out var isJpeg))
                 return null;
 
             if (PdfItemValues.TryGetBoolean(image.Elements["/ImageMask"], out var isStencil) && isStencil)
@@ -287,9 +287,11 @@ internal static class PageImages
         /// <summary>
         /// Undoes every filter but <c>/DCTDecode</c>, which may only be the last and is left for
         /// the device: <paramref name="isJpeg"/> says the data is a JPEG file still. A last
-        /// <c>/CCITTFaxDecode</c> decodes the image's <paramref name="height"/> in rows.
+        /// <c>/CCITTFaxDecode</c> decodes the image's <paramref name="height"/> in rows, in the
+        /// <c>/Columns</c> it says, which may differ from <paramref name="width"/> as viewers allow
+        /// but not by more than <see cref="MostFaxColumns"/> allows.
         /// </summary>
-        private bool TryUnfilter(PdfDictionary image, byte[] data, int height, string what, out byte[] unfiltered, out bool isJpeg)
+        private bool TryUnfilter(PdfDictionary image, byte[] data, int width, int height, string what, out byte[] unfiltered, out bool isJpeg)
         {
             unfiltered = data;
             isJpeg = false;
@@ -335,7 +337,7 @@ internal static class PageImages
                         return false;
 
                     case "/CCITTFaxDecode" or "/CCF":
-                        if (!TryDecodeFax(unfiltered, parameters[index] as PdfDictionary,
+                        if (!TryDecodeFax(unfiltered, parameters[index] as PdfDictionary, width,
                                 index == filters.Length - 1 ? height : null, what, out unfiltered))
                             return false;
                         continue;
@@ -356,16 +358,31 @@ internal static class PageImages
         }
 
         /// <summary>
+        /// The widest <c>/Columns</c> drawn for an image of <paramref name="width"/> pixels: twice
+        /// the width, and never under 65536, which no fax is. Viewers decode by <c>/Columns</c> and
+        /// not by the width, so a mismatch within this is drawn as they draw it; a 1 pixel image
+        /// that names 2 billion columns is not decoded into a 256 MiB buffer for them.
+        /// </summary>
+        private static long MostFaxColumns(int width) => Math.Max(1L << 16, 2L * width);
+
+        /// <summary>
         /// Facsimile data decoded to <paramref name="rows"/> rows, or to those <c>/Rows</c> says
         /// where that is null. The rows past where damaged or short data stops are white, which is
         /// reported, and the image is drawn.
         /// </summary>
-        private bool TryDecodeFax(byte[] data, PdfDictionary parameters, int? rows, string what, out byte[] decoded)
+        private bool TryDecodeFax(byte[] data, PdfDictionary parameters, int width, int? rows, string what, out byte[] decoded)
         {
             decoded = null;
             try
             {
                 var faxParameters = CcittFaxParameters.Read(parameters);
+                if (rows != null && faxParameters.Columns > MostFaxColumns(width))
+                {
+                    Report(PageRenderProblem.InvalidValue,
+                        $"{what}'s /CCITTFaxDecode /Columns of {faxParameters.Columns} is far wider than the image's {width} pixels.");
+                    return false;
+                }
+
                 var result = CcittFaxDecoder.Decode(data, faxParameters, rows ?? faxParameters.Rows);
                 if (result.Problem != null)
                     Report(PageRenderProblem.InvalidValue, $"{what}'s /CCITTFaxDecode data {result.Problem}");
@@ -680,7 +697,7 @@ internal static class PageImages
             {
                 alpha = DataOf(stencil, "The /Mask") is { } encoded
                         && TryReadSize(stencil, "The /Mask", out maskWidth, out maskHeight)
-                        && TryUnfilter(stencil, encoded, maskHeight, "The /Mask", out var data, out var isJpeg)
+                        && TryUnfilter(stencil, encoded, maskWidth, maskHeight, "The /Mask", out var data, out var isJpeg)
                     ? ReadStencil(stencil, data, isJpeg, maskWidth, maskHeight, "The /Mask")
                     : null;
             }
@@ -753,7 +770,7 @@ internal static class PageImages
             width = height = 0;
             if (DataOf(mask, "The /SMask") is not { } encoded
                 || !TryReadSize(mask, "The /SMask", out width, out height)
-                || !TryUnfilter(mask, encoded, height, "The /SMask", out var data, out var isJpeg))
+                || !TryUnfilter(mask, encoded, width, height, "The /SMask", out var data, out var isJpeg))
                 return null;
 
             var decode = new double[2];

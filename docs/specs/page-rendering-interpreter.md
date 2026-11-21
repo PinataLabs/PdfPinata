@@ -404,6 +404,23 @@ with `/EncodedByteAlign`, an end-of-line code ends on a byte, so it is looked fo
 padding only where `/EndOfLine` is true: four zeros of padding before a white run of 1792,
 `00000001000`, look like one.
 
+The first of those is a choice among viewers, not a rule of the standard. T.4 does not define a
+tag bit without an end-of-line code and ISO 32000-1 7.4.6 does not either; Ghostscript reads none,
+and MuPDF and PDFium read one before every row. Data written one way and declared the other
+decodes wrongly in one of the two camps. Truncated data has no agreed drawing either: MuPDF and
+PDFium draw the rows it does not hold black, Ghostscript leaves them unpainted, and this decoder
+draws them white (and reports it).
+
+**The output is sized by the data and the image, never by `/Columns` alone.** Rows are counted in
+`long`: `/Columns` up to `int.MaxValue` is a row of 256 MiB, and every sum of run lengths is a
+`long` too, so a column count above 2^30 cannot wrap into a negative changing element. Where
+`/Rows` is absent the rows are counted in a first pass and the output allocated once at its final
+size, so data that holds no rows allocates none and a 256 MiB result costs 256 MiB, not the
+doubling's 504. Viewers decode by `/Columns` and not by `/Width`, so a mismatch is drawn as they
+draw it, but `PageImages` refuses an image whose `/Columns` is more than twice its `/Width` and
+over 65536, which is what stops 300 one pixel images naming 2 billion columns from allocating
+76.8 GiB between them.
+
 **DCT is the one filter the core does not undo.** The filters before it are undone, and the JPEG
 that is left is handed to `PageDevice.DecodeImage`; one followed by another filter is reported,
 because what a JPEG decoder answers is not bytes a filter reads. The JPEG's own size is the image's

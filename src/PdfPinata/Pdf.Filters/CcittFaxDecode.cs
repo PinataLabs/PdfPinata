@@ -74,6 +74,9 @@ internal sealed class CcittFaxParameters
 
     internal int DamagedRowsBeforeError { get; init; }
 
+    /// <summary>The bytes of a row of <paramref name="columns"/> pixels, in <c>long</c> because 7 added to int.MaxValue wraps.</summary>
+    internal static long RowLength(int columns) => ((long)columns + 7) / 8;
+
     /// <summary>
     /// The parameters a dictionary gives, each of which takes its default where it is absent or is
     /// not of its type.
@@ -90,6 +93,8 @@ internal sealed class CcittFaxParameters
             throw new InvalidOperationException($"CCITTFaxDecode's /Columns is {columns}, and must be at least 1.");
         if (rows < 0)
             throw new InvalidOperationException($"CCITTFaxDecode's /Rows is {rows}, and must not be negative.");
+        if (RowLength(columns) > CcittFaxDecode.MaximumLength)
+            throw new InvalidOperationException($"CCITTFaxDecode's /Columns is {columns}, and a row of it is more than the {CcittFaxDecode.MaximumLength} bytes decoded.");
 
         return new CcittFaxParameters
         {
@@ -155,11 +160,19 @@ internal sealed class CcittFaxDecoder
 
     /// <summary>
     /// Decodes <paramref name="rows"/> rows, white where the data holds no more; or, where
-    /// <paramref name="rows"/> is null, as many rows as the data holds.
+    /// <paramref name="rows"/> is null, as many rows as the data holds. The output is allocated
+    /// once, at its final size: the rows of the second case are counted first, so data that holds
+    /// none or few allocates none or few.
     /// </summary>
     internal static CcittFaxResult Decode(byte[] data, CcittFaxParameters parameters, int? rows)
     {
-        var rowLength = (parameters.Columns + 7) / 8;
+        var rowLength = checked((int)CcittFaxParameters.RowLength(parameters.Columns));
+        if (rowLength > CcittFaxDecode.MaximumLength)
+        {
+            throw new InvalidOperationException(
+                $"CCITTFaxDecode data of {parameters.Columns} columns has rows of more than the {CcittFaxDecode.MaximumLength} bytes decoded.");
+        }
+
         var mostRows = CcittFaxDecode.MaximumLength / rowLength;
         if (rows > mostRows)
         {
@@ -167,15 +180,20 @@ internal sealed class CcittFaxDecoder
                 $"CCITTFaxDecode data of {parameters.Columns} columns and {rows} rows would be more than the {CcittFaxDecode.MaximumLength} bytes decoded.");
         }
 
-        return new CcittFaxDecoder(data, parameters.Columns).DecodeRows(parameters, rows, rows ?? mostRows, rowLength);
-    }
-
-    private CcittFaxResult DecodeRows(CcittFaxParameters parameters, int? rows, int rowLimit, int rowLength)
-    {
         var white = parameters.BlackIs1 ? (byte)0x00 : (byte)0xFF;
-        var output = new byte[(long)(rows ?? Math.Min(rowLimit, 64)) * rowLength];
+        var counted = rows ?? new CcittFaxDecoder(data, parameters.Columns).DecodeRows(parameters, null, mostRows, rowLength, null).Rows;
+        var output = new byte[counted * rowLength];
         output.AsSpan().Fill(white);
 
+        var (_, problem) = new CcittFaxDecoder(data, parameters.Columns).DecodeRows(parameters, rows, rows ?? mostRows, rowLength, output);
+        return new CcittFaxResult(output, problem);
+    }
+
+    /// <summary>
+    /// Decodes into <paramref name="output"/>, or only counts the rows where that is null.
+    /// </summary>
+    private (int Rows, string Problem) DecodeRows(CcittFaxParameters parameters, int? rows, int rowLimit, int rowLength, byte[] output)
+    {
         // Each row is coded against the one above it, and the row above the first is white.
         var reference = new ChangingElements();
         var current = new ChangingElements();
@@ -210,14 +228,8 @@ internal sealed class CcittFaxDecoder
             if (failure == null && _at > _length)
                 failure = "the data ends inside it";
 
-            if ((long)(decoded + 1) * rowLength > output.Length)
-            {
-                var filled = output.Length;
-                Array.Resize(ref output, (int)Math.Min((long)output.Length * 2, (long)rowLimit * rowLength));
-                output.AsSpan(filled).Fill(white);
-            }
-
-            Pack(current, output.AsSpan(decoded * rowLength, rowLength), parameters.BlackIs1);
+            if (output != null)
+                Pack(current, output.AsSpan(decoded * rowLength, rowLength), parameters.BlackIs1);
             decoded++;
             (reference, current) = (current, reference);
 
@@ -247,9 +259,7 @@ internal sealed class CcittFaxDecoder
         if (problem != null && rows > decoded)
             problem += $" The {rows - decoded} rows after row {decoded} are white.";
 
-        if (rows == null && output.Length != (long)decoded * rowLength)
-            Array.Resize(ref output, decoded * rowLength);
-        return new CcittFaxResult(output, problem);
+        return (decoded, problem);
     }
 
     /// <summary>T.4 4.1.1 and T.6 2.2: runs of white and black, in turn, beginning with white.</summary>
@@ -261,7 +271,7 @@ internal sealed class CcittFaxDecoder
         {
             if (ReadRun(isBlack) is not { } run)
                 return $"no {(isBlack ? "black" : "white")} run is coded at column {position}";
-            if (position + run > _columns)
+            if ((long)position + run > _columns)
                 return $"a run at column {position} goes past the row's {_columns} columns";
 
             position += run;
@@ -315,7 +325,7 @@ internal sealed class CcittFaxDecoder
 
                 case (CodingMode.Vertical, var offset):
                     // a1 is within three of b1. Past the row's end it is the row's end.
-                    var a1 = Math.Min(b1 + offset, _columns);
+                    var a1 = (int)Math.Min((long)b1 + offset, _columns);
                     if (a1 < from)
                         return $"a changing element is coded at column {a1}, before column {from} that the row is decoded to";
 
@@ -364,7 +374,7 @@ internal sealed class CcittFaxDecoder
     /// </summary>
     private int? ReadRun(bool isBlack)
     {
-        var run = 0;
+        long run = 0;
         while (true)
         {
             var code = isBlack
@@ -378,7 +388,7 @@ internal sealed class CcittFaxDecoder
             if (run > _columns)
                 return null;
             if (!code.IsMakeUp)
-                return run;
+                return (int)run;
         }
     }
 
