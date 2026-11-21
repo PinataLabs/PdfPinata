@@ -126,6 +126,12 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// <summary>
     /// Encrypts an indirect object.
     /// </summary>
+    /// <remarks>
+    /// Every string the object holds, however deep in its direct arrays and dictionaries, is under
+    /// this object's key (ISO 32000-1 7.6.2), so the key is made here once and nothing the walk
+    /// reaches makes another. A direct array keyed on its own object ID, which is empty, misread
+    /// every string in it and after it (#411).
+    /// </remarks>
     internal void EncryptObject(PdfObject value)
     {
         Debug.Assert(value.Reference != null);
@@ -337,10 +343,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
             PdfDictionary value2;
             PdfArray value3;
             if ((value1 = item as PdfString) != null)
-            {
-                stringEncryptor.CreateHashKey(array.ObjectID);
                 array.Elements[idx] = EncryptString(value1);
-            }
             else if ((value2 = item as PdfDictionary) != null)
             {
                 EncryptDictionary(value2);
