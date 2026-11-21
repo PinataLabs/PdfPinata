@@ -20,7 +20,7 @@ namespace PdfPinata.Test.IO.Filters;
 /// </summary>
 public class CcittFaxDecodeTests
 {
-    private static readonly Pbm Text = Pbm.Read("text.pbm");
+    internal static readonly Pbm Text = Pbm.Read("text.pbm");
 
     // ----- Every kind of coding --------------------------------------------------------------
 
@@ -281,10 +281,10 @@ public class CcittFaxDecodeTests
         return digits.Chunk(8).Select(octet => Convert.ToByte(new string(octet), 2)).ToArray();
     }
 
-    private static byte[] Asset(string name) => File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "Assets", "Ccitt", name));
+    internal static byte[] Asset(string name) => File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "Assets", "Ccitt", name));
 
     /// <summary>A binary PBM: black is 1, and each row is padded to a byte with zeros, which are white.</summary>
-    private sealed class Pbm
+    internal sealed class Pbm
     {
         private readonly byte[] _blackIs1;
 
@@ -300,6 +300,9 @@ public class CcittFaxDecodeTests
         internal int Height { get; }
 
         internal int RowLength => (Width + 7) / 8;
+
+        /// <summary>Whether the pixel is black.</summary>
+        internal bool IsBlack(int x, int y) => (_blackIs1[y * RowLength + x / 8] & (0x80 >> (x % 8))) != 0;
 
         /// <summary>The bitmap as the filter decodes it: black is 0 unless <paramref name="blackIs1"/>.</summary>
         internal byte[] Bits(bool blackIs1) => blackIs1 ? [.. _blackIs1] : _blackIs1.Select(value => (byte)~value).ToArray();

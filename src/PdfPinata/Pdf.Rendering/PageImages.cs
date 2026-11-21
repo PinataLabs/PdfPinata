@@ -15,7 +15,8 @@ namespace PdfPinata.Pdf.Rendering;
 /// What they answer is finished: <see cref="PageImageFormat.Alpha8"/> for an <c>/ImageMask</c>,
 /// which the interpreter paints in the fill colour, and otherwise
 /// <see cref="PageImageFormat.Rgba32"/> with the colour space, the <c>/Decode</c> array, the
-/// <c>/Mask</c> and the <c>/SMask</c> applied. A <c>/DCTDecode</c> stream is handed to
+/// <c>/Mask</c> and the <c>/SMask</c> applied. <c>/CCITTFaxDecode</c> is decoded here, as every
+/// filter in <see cref="Filtering"/> is. A <c>/DCTDecode</c> stream is handed to
 /// <see cref="PageDevice.DecodeImage"/>, because this library carries no imaging dependency. What
 /// the device answers is RGB already, and goes through the same masks as any other image. An
 /// image's colour space is resolved through <see cref="ColorSpaces.Resolve"/>.
@@ -101,7 +102,7 @@ internal static class PageImages
         internal PageImage Read(PdfDictionary image, byte[] encoded)
         {
             if (encoded == null || !TryReadSize(image, "The image", out var width, out var height)
-                                || !TryUnfilter(image, encoded, "The image", out var data, out var isJpeg))
+                                || !TryUnfilter(image, encoded, height, "The image", out var data, out var isJpeg))
                 return null;
 
             if (PdfItemValues.TryGetBoolean(image.Elements["/ImageMask"], out var isStencil) && isStencil)
@@ -286,9 +287,10 @@ internal static class PageImages
 
         /// <summary>
         /// Undoes every filter but <c>/DCTDecode</c>, which may only be the last and is left for
-        /// the device: <paramref name="isJpeg"/> says the data is a JPEG file still.
+        /// the device: <paramref name="isJpeg"/> says the data is a JPEG file still. A last
+        /// <c>/CCITTFaxDecode</c> decodes the image's <paramref name="height"/> in rows.
         /// </summary>
-        private bool TryUnfilter(PdfDictionary image, byte[] data, string what, out byte[] unfiltered, out bool isJpeg)
+        private bool TryUnfilter(PdfDictionary image, byte[] data, int height, string what, out byte[] unfiltered, out bool isJpeg)
         {
             unfiltered = data;
             isJpeg = false;
@@ -333,7 +335,13 @@ internal static class PageImages
                         Report(PageRenderProblem.UnsupportedImage, what + " is filtered after /DCTDecode, which a JPEG decoder cannot read.");
                         return false;
 
-                    case "/CCITTFaxDecode" or "/CCF" or "/JBIG2Decode" or "/JPXDecode":
+                    case "/CCITTFaxDecode" or "/CCF":
+                        if (!TryDecodeFax(unfiltered, parameters[index] as PdfDictionary,
+                                index == filters.Length - 1 ? height : 0, what, out unfiltered))
+                            return false;
+                        continue;
+
+                    case "/JBIG2Decode" or "/JPXDecode":
                         Report(PageRenderProblem.UnsupportedImage, $"{what} is encoded with {name}, which is not decoded yet.");
                         return false;
                 }
@@ -346,6 +354,30 @@ internal static class PageImages
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Facsimile data decoded to <paramref name="rows"/> rows, or to those <c>/Rows</c> says
+        /// where that is 0. The rows past where damaged or short data stops are white, which is
+        /// reported, and the image is drawn.
+        /// </summary>
+        private bool TryDecodeFax(byte[] data, PdfDictionary parameters, int rows, string what, out byte[] decoded)
+        {
+            decoded = null;
+            try
+            {
+                var faxParameters = CcittFaxParameters.Read(parameters);
+                var result = CcittFaxDecoder.Decode(data, faxParameters, rows > 0 ? rows : faxParameters.Rows);
+                if (result.Problem != null)
+                    Report(PageRenderProblem.InvalidValue, $"{what}'s /CCITTFaxDecode data {result.Problem}");
+                decoded = result.Data;
+                return true;
+            }
+            catch (InvalidOperationException ex)
+            {
+                Report(PageRenderProblem.InvalidValue, $"{what}'s /CCITTFaxDecode data cannot be decoded: {ex.Message}");
+                return false;
+            }
         }
 
         private bool TryApply(string name, byte[] data, PdfDictionary parameters, string what, out byte[] decoded)
@@ -649,7 +681,7 @@ internal static class PageImages
             {
                 alpha = DataOf(stencil, "The /Mask") is { } encoded
                         && TryReadSize(stencil, "The /Mask", out maskWidth, out maskHeight)
-                        && TryUnfilter(stencil, encoded, "The /Mask", out var data, out var isJpeg)
+                        && TryUnfilter(stencil, encoded, maskHeight, "The /Mask", out var data, out var isJpeg)
                     ? ReadStencil(stencil, data, isJpeg, maskWidth, maskHeight, "The /Mask")
                     : null;
             }
@@ -722,7 +754,7 @@ internal static class PageImages
             width = height = 0;
             if (DataOf(mask, "The /SMask") is not { } encoded
                 || !TryReadSize(mask, "The /SMask", out width, out height)
-                || !TryUnfilter(mask, encoded, "The /SMask", out var data, out var isJpeg))
+                || !TryUnfilter(mask, encoded, height, "The /SMask", out var data, out var isJpeg))
                 return null;
 
             var decode = new double[2];

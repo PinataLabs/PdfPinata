@@ -27,7 +27,7 @@ the other items is added.
 | 12 | Shadings (`sh`, shading patterns) and tiling patterns | deferred |
 | 13 | Blend modes, transparency groups, soft-mask groups | deferred; reported where they change what is drawn |
 | 14 | Separation, DeviceN, Lab, and ICC colour management | deferred |
-| 15 | CCITTFax, JBIG2 and JPX images | deferred |
+| 15 | CCITTFax, JBIG2 and JPX images | CCITTFax done (#385); JBIG2 and JPX deferred |
 | 16 | Optional content | deferred; content of a group that is off is drawn and reported |
 | 17 | Annotation appearances, and the option to draw them | done (#387) |
 | 18 | `PdfTextExtractor` and `PdfImagePlacementReader` on the new interpreter | follow-up |
@@ -169,7 +169,8 @@ The core decodes an image XObject or inline image into one neutral sample buffer
 DCT is the one filter decoded outside the core, by `SKCodec` in the Skia package, because the core
 carries no imaging dependency. The device decodes it *for* the core, through
 `PageDevice.DecodeImage`, and hands the samples back, so the `/Decode` array and the masks are
-applied in one place and a device draws only finished samples. CCITTFax, JBIG2 and JPX are item 15. An image the renderer cannot
+applied in one place and a device draws only finished samples. CCITTFax is decoded in the core, by
+the `CCITTFaxDecode` filter (#385); JBIG2 and JPX are item 15. An image the renderer cannot
 decode is skipped and reported. `page-rendering-interpreter.md` says how it was built (#375).
 
 ## Item 7 — the Skia surface

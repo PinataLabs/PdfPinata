@@ -16,7 +16,7 @@ separate issues, and each has one place here to plug into. The last section name
 | 7 | DeviceGray, DeviceRGB and DeviceCMYK | done |
 | 8 | Indexed and ICCBased colour (#372), CalGray and CalRGB as the device spaces | done |
 | 9 | Glyph outlines (#373, #374) | plug-in point only |
-| 10 | Images (#375) | done, but CCITTFax, JBIG2 and JPX (#385) |
+| 10 | Images (#375), CCITTFax (#385) | done, but JBIG2 and JPX (#385) |
 | 11 | CMaps other than `Identity-H`, and vertical writing | deliberately not done |
 | 12 | A limit on the operators of one page | deliberately not done |
 | 13 | Type 3 fonts (their advances are read; their glyphs are not drawn) | advance only |
@@ -387,6 +387,22 @@ The masks:
   the mask to the image would draw the text as blocks. A mask coarser than the image is stretched
   over it. Neither grows the image past 2^28 samples; past that the mask is made the image's
   size. A mask that cannot be read is reported, and the image is drawn without it.
+
+**CCITTFax is a filter like any other** (#385), `CcittFaxDecode` in `Pdf.Filters`, written from
+ITU-T T.4 and T.6, so a stream decodes through `Filtering` and `TryUnfilter` as well as here.
+`PageImages` calls the decoder underneath it, `CcittFaxDecoder.Decode`, for the one thing the
+`Filter` signature cannot carry: what was wrong with the data. Damaged or short data is drawn as
+far as it decodes, the image's `/Height` in rows with the rest white, and the damage is reported
+as `InvalidValue`; it never reaches the half-the-data refusal above. `/BlackIs1` belongs to the
+filter, which answers 1 for black when it is true. The image's `/Decode` then reads those samples
+as it reads any others, so such a file says `/Decode [1 0]` to draw its black as black, and
+Ghostscript draws one without it inverted too. The decoder's bounds: each row costs at least one
+bit, a row is held as its changing elements, and the output is at most 256 MiB. Two conventions
+are Ghostscript's, the only encoder whose output the tests were checked against. In Group 3 mixed
+coding without end-of-line codes there is no tag bit, and every K-th row is one-dimensional. And
+with `/EncodedByteAlign`, an end-of-line code ends on a byte, so it is looked for before the
+padding only where `/EndOfLine` is true: four zeros of padding before a white run of 1792,
+`00000001000`, look like one.
 
 **DCT is the one filter the core does not undo.** The filters before it are undone, and the JPEG
 that is left is handed to `PageDevice.DecodeImage`; one followed by another filter is reported,
