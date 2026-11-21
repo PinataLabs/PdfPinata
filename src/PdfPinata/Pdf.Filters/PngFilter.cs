@@ -11,7 +11,7 @@ internal static class PngFilter
     /// </summary>
     /// <param name="stride">The width of a scanline in bytes</param>
     /// <param name="bpp">Bytes per pixel</param>
-    /// <param name="inData">The input data</param>
+    /// <param name="inData">The input data. A final row cut short is left out, as the caller sized <paramref name="outData"/> without it.</param>
     /// <param name="outData">The target array where the unfiltered data is stored</param>
     internal static void Unfilter(int stride, int bpp, byte[] inData, byte[] outData)
     {
@@ -19,7 +19,7 @@ internal static class PngFilter
         var row = new byte[stride];
         var pos = 0;
         var outIndex = 0;
-        while (pos < inData.Length)
+        while (pos + stride + 1 <= inData.Length)
         {
             Array.Copy(inData, pos + 1, row, 0, stride);
             var filterType = inData[pos];

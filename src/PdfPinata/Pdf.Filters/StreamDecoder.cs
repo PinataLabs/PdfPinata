@@ -10,11 +10,12 @@ internal static class StreamDecoder
     /// Further decodes a stream of bytes that were processed by the Flate- or LZW-decoder. 
     /// </summary>
     /// <param name="data">The data to decode</param>
+    /// <param name="limit">The cap the data was decoded under, or null. Where it cut the data short, a part row is left out of a TIFF-predicted image as it is of a PNG-predicted one.</param>
     /// <param name="decodeParms">Parameters for the decoder. If this is null, <paramref name="data"/> is returned unchanged</param>
     /// <returns>The decoded data as a byte-array</returns>
     /// <exception cref="PdfReaderException">The predictor or the number of bits per component is
     /// not one the reference defines, or a PNG-predicted row names a filter type other than 0 to 4.</exception>
-    public static byte[] Decode(byte[] data, PdfDictionary decodeParms)
+    public static byte[] Decode(byte[] data, PdfDictionary decodeParms, DecodeLimit limit = null)
     {
         if (decodeParms == null)
             return data;
@@ -32,7 +33,8 @@ internal static class StreamDecoder
         if (predictor == 2)
         {
             EnsureValidBitsPerComponent(bpc);
-            return UndoTiffPredictor(data, colors, bpc, columns);
+            EnsureRowFits(colors, bpc, columns);
+            return UndoTiffPredictor(data, colors, bpc, columns, limit is { Truncated: true });
         }
 
         // PNG predictors
@@ -40,6 +42,7 @@ internal static class StreamDecoder
             throw new PdfReaderException("Invalid predictor " + predictor);
 
         EnsureValidBitsPerComponent(bpc);
+        EnsureRowFits(colors, bpc, columns);
         return UndoPngPredictor(data, colors, bpc, columns);
     }
 
@@ -60,12 +63,25 @@ internal static class StreamDecoder
     }
 
     /// <summary>
+    /// A row's size in bits has to fit an <see cref="int"/>, which the sample arithmetic below is
+    /// done in. Left to wrap, the product reached zero or went negative, and a zero stride made
+    /// the TIFF predictor loop forever.
+    /// </summary>
+    private static void EnsureRowFits(int colors, int bpc, int columns)
+    {
+        if ((long)colors * bpc * columns > int.MaxValue - 7)
+            throw new PdfReaderException("Invalid predictor parameters: a row is too large");
+    }
+
+    /// <summary>
     /// Undoes a PNG predictor, which puts a byte naming the filter in front of every row.
     /// </summary>
     private static byte[] UndoPngPredictor(byte[] data, int colors, int bpc, int columns)
     {
         var stride = (bpc * colors * columns + 7) / 8;
         var rows = data.Length / (stride + 1);
+        if (rows == 0)
+            return [];
         var unfilteredData = new byte[rows * stride];
         PngFilter.Unfilter(stride, (bpc * colors + 7) / 8, data, unfilteredData);
         return unfilteredData;
@@ -76,12 +92,14 @@ internal static class StreamDecoder
     /// every sample but those of a row's first pixel was written as its difference from the same
     /// component of the pixel to its left, modulo 2 to the power of the component size. Rows are
     /// predicted independently and each begins on a byte boundary; sixteen-bit samples are big-endian.
-    /// A trailing part row is left as it was, since there is no telling where its pixels fall.
+    /// A trailing part row is left as it was, since there is no telling where its pixels fall,
+    /// unless a cap cut the data short, when it is left out: its differences cannot be undone,
+    /// and a row of them would be drawn as garbage pixels.
     /// </summary>
-    private static byte[] UndoTiffPredictor(byte[] data, int colors, int bpc, int columns)
+    private static byte[] UndoTiffPredictor(byte[] data, int colors, int bpc, int columns, bool cutShort)
     {
-        var result = (byte[])data.Clone();
         var stride = (bpc * colors * columns + 7) / 8;
+        var result = cutShort ? data[..(data.Length / stride * stride)] : (byte[])data.Clone();
         var samplesPerRow = colors * columns;
         var mask = (1 << bpc) - 1;
 

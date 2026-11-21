@@ -26,6 +26,13 @@ public static class PageRendering
     /// viewer shows the page. True by default. Hidden and no-view annotations and popups are not
     /// drawn either way.
     /// </param>
+    /// <param name="optionalContent">
+    /// Which optional content (layers) is drawn: a configuration of the document and groups
+    /// switched over it. Null draws the document's default configuration, <c>/D</c>. Content in a
+    /// group that is off is not drawn. Hidden content still changes the graphics state, so what it
+    /// does to the state is reported as visible content's is. What it would only paint, such as a
+    /// shading, an image or a form, is not reported. Text is reported as visible text is.
+    /// </param>
     /// <returns>What was left out of the page, and why. Never null.</returns>
     /// <remarks>
     /// <para>
@@ -45,7 +52,8 @@ public static class PageRendering
     /// the library was set up and not a defect in the file.
     /// </exception>
     public static PageRenderResult Render(PdfPage page, PageDevice device, PageView view = null,
-        Func<PdfDictionary, PageGlyphSource> glyphSources = null, bool annotations = true)
+        Func<PdfDictionary, PageGlyphSource> glyphSources = null, bool annotations = true,
+        PageOptionalContent optionalContent = null)
     {
         ArgumentNullException.ThrowIfNull(page);
         ArgumentNullException.ThrowIfNull(device);
@@ -56,7 +64,7 @@ public static class PageRendering
         // be handed to a later render that asked for the library's own.
         var fonts = glyphSources == null && page.Owner != null ? page.Owner.RenderFontCache : new RenderFontCache();
         fonts.BeginPage();
-        var interpreter = new ContentInterpreter(device, view, fonts, glyphSources);
+        var interpreter = new ContentInterpreter(device, view, fonts, glyphSources, optionalContent);
         try
         {
             interpreter.RunPage(page, annotations);
