@@ -55,6 +55,7 @@ public static class Filtering
             "LZWDecode" or "LZW" => LzwDecode,
             "FlateDecode" or "Fl" => FlateDecode,
             "RunLengthDecode" or "RL" => RunLengthDecode,
+            "CCITTFaxDecode" or "CCF" => CcittFaxDecode,
             _ when IsRecognisedButNotImplemented(filterName) => NotImplementedFilter(filterName),
             _ => throw new NotImplementedException("Unknown filter: " + filterName)
         };
@@ -62,11 +63,11 @@ public static class Filtering
 
     /// <summary>
     /// Whether the name is one of the standard filters this library knows of but cannot apply.
-    /// <c>CCF</c> and <c>DCT</c> are the abbreviations ISO 32000-1 Table 94 gives for inline
-    /// images, and name the same filters as their full names do.
+    /// <c>DCT</c> is the abbreviation ISO 32000-1 Table 94 gives for inline images, and names the
+    /// same filter as its full name does.
     /// </summary>
     private static bool IsRecognisedButNotImplemented(string filterName) =>
-        filterName is "CCITTFaxDecode" or "CCF" or "JBIG2Decode" or "DCTDecode" or "DCT" or "JPXDecode" or "Crypt";
+        filterName is "JBIG2Decode" or "DCTDecode" or "DCT" or "JPXDecode" or "Crypt";
 
     /// <summary>
     /// What a recognised but unimplemented filter is looked up as: nothing, with a note in the
@@ -107,6 +108,11 @@ public static class Filtering
     /// Gets the filter singleton.
     /// </summary>
     public static RunLengthDecode RunLengthDecode { get; } = new();
+
+    /// <summary>
+    /// Gets the filter singleton.
+    /// </summary>
+    public static CcittFaxDecode CcittFaxDecode { get; } = new();
 
     /// <summary>
     /// Encodes the data with the specified filter.

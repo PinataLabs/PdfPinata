@@ -75,6 +75,13 @@
     <None Update="Assets\Imaging\*.jpg;Assets\Imaging\*.gif;Assets\Imaging\*.webp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <!--
+      CCITT facsimile data, each made by Ghostscript's encoder or ImageMagick from the bitmap
+      beside it. Generate.ps1 makes them all again.
+    -->
+    <None Update="Assets\Ccitt\*.bin;Assets\Ccitt\*.pbm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Assets\Fonts\*.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

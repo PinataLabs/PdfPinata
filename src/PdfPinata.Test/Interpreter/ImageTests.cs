@@ -7,6 +7,7 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.Filters;
 using PdfPinata.Pdf.Rendering;
 using PdfPinata.Test.Helpers;
+using PdfPinata.Test.IO.Filters;
 using TUnit.Core;
 
 namespace PdfPinata.Test.Interpreter;
@@ -385,8 +386,94 @@ public class ImageTests
         Gray(image).Should().Equal(7, 8, 9);
     }
 
+    // ----- CCITTFax ----------------------------------------------------------------------------
+
     [Test]
-    [Arguments("/CCITTFaxDecode")]
+    public void AOneBitImageCodedInGroup4IsDrawn()
+    {
+        var image = DrawnImage(CcittFaxDecodeTests.Asset("g4.bin"), FaxImage(("/K", -1)));
+
+        Gray(image).Should().Equal(TextPixels(black: 0, white: 255));
+    }
+
+    [Test]
+    public void AnImageMaskCodedInGroup4PaintsWhereTheScanIsBlack()
+    {
+        var image = DrawnImage(CcittFaxDecodeTests.Asset("g4.bin"), (document, entries) =>
+        {
+            Set(entries, ("/Width", Text.Width), ("/Height", Text.Height), ("/ImageMask", true),
+                ("/Filter", "/CCITTFaxDecode"), ("/DecodeParms", FaxParameters(("/K", -1))));
+        });
+
+        image.Format.Should().Be(PageImageFormat.Alpha8);
+        image.Data.ToArray().Should().Equal(TextPixels(black: 255, white: 0));
+    }
+
+    [Test]
+    [Arguments(false, 255, 0)]
+    [Arguments(true, 0, 255)]
+    public void BlackIs1SaysWhatTheFilterAnswersAndTheDecodeIsAppliedToThatAfterwards(bool inverted, int black, int white)
+    {
+        // /BlackIs1 belongs to the filter: its samples are 1 where the scan is black. A /DeviceGray
+        // image reads 1 as white, as it reads any other samples, so a file coded that way says
+        // /Decode [1 0] to draw its black as black.
+        var image = DrawnImage(CcittFaxDecodeTests.Asset("g4-blackis1.bin"), (document, entries) =>
+        {
+            FaxImage(("/K", -1), ("/BlackIs1", true))(document, entries);
+            if (inverted)
+                Set(entries, ("/Decode", new[] { 1, 0 }));
+        });
+
+        Gray(image).Should().Equal(TextPixels((byte)black, (byte)white));
+    }
+
+    [Test]
+    public void FaxDataCutShortIsDrawnWithTheRowsItLacksWhiteAndReported()
+    {
+        var data = CcittFaxDecodeTests.Asset("g4.bin");
+        var drawn = Drawn.Page(DrawIm1, Resources(data.AsSpan(0, data.Length / 2).ToArray(), FaxImage(("/K", -1))));
+
+        drawn.Problems.Should().Equal("InvalidValue /Im1");
+        drawn.Result.Diagnostics.Single().Message.Should().Contain("/CCITTFaxDecode").And.Contain("white");
+        var gray = Gray(drawn.Device.Images.Single().Image);
+        gray.Should().HaveCount(Text.Width * Text.Height);
+        gray.Skip(Text.Width * (Text.Height - 1)).Should().OnlyContain(value => value == 255);
+    }
+
+    [Test]
+    public void FaxDataWithARowDamagedAndSteppedOverIsDrawnAndReported()
+    {
+        var data = CcittFaxDecodeTests.Asset("g3-1d-eol.bin");
+        data[data.Length / 2] = 0;
+        data[data.Length / 2 + 1] = 0;
+        var drawn = Drawn.Page(DrawIm1, Resources(data,
+            FaxImage(("/K", 0), ("/EndOfLine", true), ("/DamagedRowsBeforeError", 5))));
+
+        drawn.Problems.Should().Equal("InvalidValue /Im1");
+        drawn.Result.Diagnostics.Single().Message.Should().Contain("damaged rows").And.NotContain("white");
+        Gray(drawn.Device.Images.Single().Image).Skip(Text.Width * (Text.Height - 1))
+            .Should().Equal(TextPixels(black: 0, white: 255).Skip(Text.Width * (Text.Height - 1)));
+    }
+
+    [Test]
+    public void FaxParametersOutOfRangeAreReportedAndTheImageIsNotDrawn()
+    {
+        var drawn = Drawn.Page(DrawIm1, Resources(CcittFaxDecodeTests.Asset("g4.bin"), FaxImage(("/K", -1), ("/Columns", 0))));
+
+        drawn.Device.Images.Should().BeEmpty();
+        drawn.Problems.Should().Equal("InvalidValue /Im1");
+    }
+
+    [Test]
+    public void ColumnsFarWiderThanTheImageAreReportedAndTheImageIsNotDrawn()
+    {
+        var drawn = Drawn.Page(DrawIm1, Resources(CcittFaxDecodeTests.Asset("g4.bin"), FaxImage(("/K", -1), ("/Columns", 2147483640))));
+
+        drawn.Device.Images.Should().BeEmpty();
+        drawn.Problems.Should().Equal("InvalidValue /Im1");
+    }
+
+    [Test]
     [Arguments("/JBIG2Decode")]
     [Arguments("/JPXDecode")]
     public void AFilterNotDecodedYetIsReported(string filter)
@@ -1258,6 +1345,7 @@ public class ImageTests
 
     private static PdfItem Item(object value) => value switch
     {
+        PdfDictionary dictionary => dictionary,
         int integer => new global::PdfPinata.Pdf.PdfInteger(integer),
         double real => new PdfReal(real),
         bool boolean => new PdfBoolean(boolean),
@@ -1304,6 +1392,23 @@ public class ImageTests
     /// <summary>Bytes as the inside of a literal string: each as it is, but for the three a string escapes.</summary>
     private static byte[] Escaped(byte[] bytes) =>
         bytes.SelectMany(b => b is (byte)'(' or (byte)')' or (byte)'\\' ? new[] { (byte)'\\', b } : new[] { b }).ToArray();
+
+    private static CcittFaxDecodeTests.Pbm Text => CcittFaxDecodeTests.Text;
+
+    private static Action<PdfDocument, PdfDictionary> FaxImage(params (string Key, object Value)[] parameters) =>
+        (_, image) => Set(image, ("/Width", Text.Width), ("/Height", Text.Height), ("/ColorSpace", "/DeviceGray"),
+            ("/BitsPerComponent", 1), ("/Filter", "/CCITTFaxDecode"), ("/DecodeParms", FaxParameters(parameters)));
+
+    private static PdfDictionary FaxParameters(params (string Key, object Value)[] parameters)
+    {
+        var dictionary = new PdfDictionary();
+        Set(dictionary, [("/Columns", Text.Width), ("/Rows", Text.Height), .. parameters]);
+        return dictionary;
+    }
+
+    private static byte[] TextPixels(byte black, byte white) =>
+        Enumerable.Range(0, Text.Width * Text.Height)
+            .Select(at => Text.IsBlack(at % Text.Width, at / Text.Width) ? black : white).ToArray();
 
     /// <summary>A zlib stream of <paramref name="length"/> bytes, each <paramref name="value"/>.</summary>
     private static byte[] Deflated(long length, byte value)

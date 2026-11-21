@@ -45,15 +45,15 @@ public class FilteringTests
         Filtering.GetFilter("ASCII85Decode").Should().BeSameAs(Filtering.ASCII85Decode);
         Filtering.GetFilter("ASCIIHexDecode").Should().BeSameAs(Filtering.ASCIIHexDecode);
         Filtering.GetFilter("LZWDecode").Should().BeSameAs(Filtering.LzwDecode);
+        Filtering.GetFilter("CCITTFaxDecode").Should().BeSameAs(Filtering.CcittFaxDecode);
+        Filtering.GetFilter("CCF").Should().BeSameAs(Filtering.CcittFaxDecode);
     }
 
     [Test]
-    [Arguments("CCITTFaxDecode")]
     [Arguments("JBIG2Decode")]
     [Arguments("DCTDecode")]
     [Arguments("JPXDecode")]
     [Arguments("Crypt")]
-    [Arguments("CCF")]
     [Arguments("DCT")]
     public void AFilterThatIsRealButUnimplementedComesBackAsNothing(string name)
     {
@@ -71,16 +71,12 @@ public class FilteringTests
     }
 
     [Test]
-    [Arguments("/CCF")]
     [Arguments("/DCT")]
-    [Arguments("/CCITTFaxDecode")]
     [Arguments("/DCTDecode")]
     public void AStreamInAFilterThatCannotBeAppliedSaysSoRatherThanThrowing(string name)
     {
-        // ISO 32000-1 Table 94 abbreviates CCITTFaxDecode and DCTDecode for inline images, and a
-        // stream named by an abbreviation is the same stream as one named in full. Both fell
-        // through to "Unknown filter", so asking whether the stream could be decoded was answered
-        // with a NotImplementedException.
+        // ISO 32000-1 Table 94 abbreviates DCTDecode for inline images, and a stream named by an
+        // abbreviation is the same stream as one named in full.
         var document = new PdfDocument();
         var dictionary = new PdfDictionary(document);
         dictionary.CreateStream([1, 2, 3]);
