@@ -979,10 +979,23 @@ internal sealed class Parser
     /// Replaces the object number and generation on top of the stack, the 'R' after them just read,
     /// with the reference they make.
     /// </summary>
+    /// <remarks>
+    /// A number the reference needs that no integer holds - a garbage run of digits such as
+    /// "99999999999999999999 0 R", which the lexer read as a real - names no object the file can
+    /// carry. The reference reads as null, as <see cref="ReferenceTo" /> reads a reference to an
+    /// object the file never defines (PDF Reference section 3.2.9), rather than the cast of the
+    /// stack item to an integer escaping the read as an InvalidCastException.
+    /// </remarks>
     private void ReduceReference()
     {
-        Debug.Assert(_stack.GetItem(-1) is PdfInteger && _stack.GetItem(-2) is PdfInteger);
-        var objectID = new PdfObjectID(_stack.GetInteger(-2), _stack.GetInteger(-1));
+        if (!PdfItemValues.TryGetInteger(_stack.GetItem(-2), out var objectNumber)
+            || !PdfItemValues.TryGetInteger(_stack.GetItem(-1), out var generation))
+        {
+            _stack.Reduce(PdfNull.Value, 2);
+            return;
+        }
+
+        var objectID = new PdfObjectID(objectNumber, generation);
         _stack.Reduce(ReferenceTo(objectID), 2);
     }
 
@@ -1320,8 +1333,10 @@ internal sealed class Parser
     /// The byte offset a trailer's /Prev or /XRefStm names, or 0 when it names none.
     /// </summary>
     /// <remarks>
-    /// Read as a long: a section past 2 GiB is named by a number past int.MaxValue. A value that is
-    /// not an integer at all is refused as GetInteger refuses it.
+    /// Read as a long: a section past 2 GiB is named by a number past int.MaxValue. A value that
+    /// names no position at all - not an integer, such as a run of digits past long, which the
+    /// lexer read as a real - is treated as naming none, as a trailer without the key, rather than
+    /// the read ending in an InvalidCastException.
     /// </remarks>
     private static long PositionNamedBy(PdfTrailer trailer, string key)
     {
@@ -1329,9 +1344,7 @@ internal sealed class Parser
         if (PdfItemValues.IsNull(item))
             return 0;
 
-        return PdfItemValues.TryGetLong(item, out var position)
-            ? position
-            : throw new InvalidCastException("GetInteger: Object is not an integer.");
+        return PdfItemValues.TryGetLong(item, out var position) ? position : 0;
     }
 
     /// <summary>
