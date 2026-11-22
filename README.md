@@ -43,6 +43,21 @@ The core `PdfPinata` package has no imaging or font-rendering dependency of its 
 | `PdfPinata.ImageSharp4` | [SixLabors.ImageSharp](https://github.com/SixLabors/ImageSharp) 4.x / [Fonts](https://github.com/SixLabors/Fonts) 3.x     | Six Labors Split License | Fully managed. The ImageSharp backend to choose, unless you target Unity or need Apache-2.0 dependencies. `net8.0` and `net10.0` only. |
 | `PdfPinata.ImageSharp`  | [SixLabors.ImageSharp](https://github.com/SixLabors/ImageSharp) 2.1.x / [Fonts](https://github.com/SixLabors/Fonts) 1.0.1 | Apache-2.0               | Fully managed. For Unity and Apache-2.0 only. ImageSharp 2.1.x is end of life, with five security advisories that will never be fixed. |
 
+### Rendering existing pages (pre-release)
+
+`PdfPinata.Rendering.Skia` draws a page of an existing PDF with SkiaSharp. It needs no backend registered and the API is experimental (`PPEXP001`). It does not yet draw CFF, Type 1 or Type 3 fonts, unembedded standard 14 fonts, transparency groups, Separation, DeviceN or Lab colour, or JBIG2 and JPX images. Skipped content is listed in the returned `PageRenderResult`.
+
+```csharp
+using PdfPinata.Pdf.IO;
+using PdfPinata.Rendering.Skia;
+using SkiaSharp;
+
+var document = PdfReader.Open("input.pdf", PdfDocumentOpenMode.Import);
+using SKBitmap bitmap = document.Pages[0].ToSKBitmap(new PageRenderOptions { Scale = 2 });
+using var stream = File.Create("page.png");
+document.ToImage(0, stream, SKEncodedImageFormat.Png);
+```
+
 The two ImageSharp packages have the same types in the same namespaces, so switching between them is a change to the project file only. See [ImageSharp packages](#imagesharp-packages).
 
 Register the backend before creating fonts or loading images:

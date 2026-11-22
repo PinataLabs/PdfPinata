@@ -58,7 +58,7 @@ or PinataLayout assembly** (`-p:FailOnPdfPinataTrimWarnings=false` prints them i
 IL2026 from any assembly, because ILLink never collapses IL2026 into IL2104 for a trimmable assembly,
 so a call to a `[RequiresUnreferencedCode]` member would otherwise pass. It then drives
 it in headless Chromium through `src/SampleBlazorWasm.SmokeTest`. The release workflows build the
-ten packaged projects alone, so a sample cannot hold up a release, and
+eleven packaged projects alone, so a sample cannot hold up a release, and
 `.github/scripts/verify-packages.sh` fails a release or pre-release unless it produced exactly one
 package per `PACKAGES` entry, all at one version, with no `sixlabors.lic` in any. The vulnerable-package check
 allows five advisories against SixLabors.ImageSharp 2.1.x **permanently**: `PdfPinata.ImageSharp`
@@ -67,7 +67,7 @@ against 4.x fails the build; only if NuGet's data is wrong about it (it still fl
 fixed) does it get a temporary entry, with a note saying when to remove it.
 
 **Versions come from git tags, not from the project files.** MinVer (referenced for packable
-projects in `Directory.Build.targets`) versions all ten packages in lockstep from the latest
+projects in `Directory.Build.targets`) versions all eleven packages in lockstep from the latest
 `v1.2.3` tag, so no csproj carries a `<Version>`; an untagged commit is a pre-release. Releasing is
 the *Publish Release* workflow (`release-publish.yml`): it takes the version Release Drafter has
 drafted from merged PRs' labels, rolls `CHANGELOG.md`'s `[Unreleased]` section, tags, and calls
