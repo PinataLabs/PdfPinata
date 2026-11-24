@@ -284,6 +284,18 @@ public class SkiaPageRenderingTests
     }
 
     [Test]
+    [Arguments(int.MaxValue, 10)]
+    [Arguments(10, int.MaxValue)]
+    public void APageTooLargeForABitmapIsRefusedAsTooLarge(double width, double height)
+    {
+        var page = HandWritten.Page("", width, height).Reopened().Pages[0];
+
+        var render = () => page.ToSKBitmap();
+
+        render.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("options");
+    }
+
+    [Test]
     public void WhatCouldNotBeDrawnIsReported()
     {
         using var stream = new MemoryStream();
