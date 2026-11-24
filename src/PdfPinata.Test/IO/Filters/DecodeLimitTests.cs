@@ -522,6 +522,26 @@ public class DecodeLimitTests
     }
 
     [Test, Timeout(60_000)]
+    [Arguments(2, new byte[] { 1, 1, 1, 2, 2, 2, 3, 3 })]
+    [Arguments(15, new byte[] { 1, 1, 1, 1, 2, 1, 2, 3, 2, 1, 1 })]
+    public async Task APredictorDropsAPartRowWhereDamageCutTheStream(int predictor, byte[] rows)
+    {
+        // Two whole rows of three samples and the start of a third, the stream ending in a wrong
+        // checksum.
+        var parms = Predictor(new PdfDocument(), predictor, 3);
+        var limit = new DecodeLimit(1_000) { TolerateDamage = true };
+        var damaged = Deflated(rows);
+        damaged[^1] ^= 0xFF;
+
+        var decoded = await Interruptibly.Run(() =>
+            Filtering.FlateDecode.Decode(damaged, new FilterParms(parms, limit)));
+
+        decoded.Should().Equal([1, 2, 3, 2, 4, 6], "a part row's differences cannot be undone, and would be drawn as colours");
+        limit.Damaged.Should().BeTrue();
+        limit.Truncated.Should().BeFalse("damage is not the cap");
+    }
+
+    [Test, Timeout(60_000)]
     public async Task ATiffPredictorWithNoLimitStillLeavesAPartRowAsItWas()
     {
         var parms = Predictor(new PdfDocument(), 2, 3);

@@ -10,7 +10,7 @@ internal static class StreamDecoder
     /// Further decodes a stream of bytes that were processed by the Flate- or LZW-decoder. 
     /// </summary>
     /// <param name="data">The data to decode</param>
-    /// <param name="limit">The cap the data was decoded under, or null. Where it cut the data short, a part row is left out of a TIFF-predicted image as it is of a PNG-predicted one.</param>
+    /// <param name="limit">The cap the data was decoded under, or null. Where it cut the data short, or damage did, a part row is left out of a TIFF-predicted image as it is of a PNG-predicted one.</param>
     /// <param name="decodeParms">Parameters for the decoder. If this is null, <paramref name="data"/> is returned unchanged</param>
     /// <returns>The decoded data as a byte-array</returns>
     /// <exception cref="PdfReaderException">The predictor or the number of bits per component is
@@ -34,7 +34,7 @@ internal static class StreamDecoder
         {
             EnsureValidBitsPerComponent(bpc);
             EnsureRowFits(colors, bpc, columns);
-            return UndoTiffPredictor(data, colors, bpc, columns, limit is { Truncated: true });
+            return UndoTiffPredictor(data, colors, bpc, columns, limit is { Truncated: true } or { Damaged: true });
         }
 
         // PNG predictors
@@ -93,7 +93,7 @@ internal static class StreamDecoder
     /// component of the pixel to its left, modulo 2 to the power of the component size. Rows are
     /// predicted independently and each begins on a byte boundary; sixteen-bit samples are big-endian.
     /// A trailing part row is left as it was, since there is no telling where its pixels fall,
-    /// unless a cap cut the data short, when it is left out: its differences cannot be undone,
+    /// unless a cap or damage cut the data short, when it is left out: its differences cannot be undone,
     /// and a row of them would be drawn as garbage pixels.
     /// </summary>
     private static byte[] UndoTiffPredictor(byte[] data, int colors, int bpc, int columns, bool cutShort)

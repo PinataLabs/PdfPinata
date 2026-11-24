@@ -1112,11 +1112,16 @@ public class ImageTests
 
         drawn.Device.Fills.Should().ContainSingle();
         drawn.Problems.Should().Equal("InvalidValue /Im1");
+        var message = drawn.Result.Diagnostics.Single().Message;
+        message.Should().Contain("damaged", "the one report on the image says why its data is short");
         if (!drawsTheImage)
         {
+            message.Should().Contain("not drawn", "what came before the damage is too little to draw");
             drawn.Device.Images.Should().BeEmpty("less than half of the samples inflated");
             return;
         }
+
+        message.Should().Contain("as if every sample were 0", "the rest of the image is drawn as zeros");
 
         var gray = Gray(drawn.Device.Images.Single().Image);
         var inflated = gray.TakeWhile(sample => sample != 0).Count();

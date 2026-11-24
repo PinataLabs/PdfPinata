@@ -387,8 +387,11 @@ internal static class PageImages
                 if (!TryApply(name, input, new FilterParms(decodeParms, limit), what, out unfiltered))
                     return false;
 
+                // The last filter's output is the samples, so its report also says what is drawn of
+                // them: the shortfall is reported under the same problem, and only the first stays.
                 if (limit.Damaged)
-                    Report(PageRenderProblem.InvalidValue, $"{what}'s {name} data is damaged, and is read only as far as the damage.");
+                    Report(PageRenderProblem.InvalidValue, $"{what}'s {name} data is damaged, and is read only as far as the damage."
+                        + (producesSamples ? Shortfall(unfiltered.Length, sampleBytes) : null));
 
                 if (limit.Truncated && !producesSamples)
                 {
@@ -987,15 +990,15 @@ internal static class PageImages
             if (samples.Length >= samples.LengthNeeded)
                 return false;
 
-            if (samples.Length * 2 < samples.LengthNeeded)
-            {
-                Report(PageRenderProblem.InvalidValue, what + "'s data is less than half of what its size needs, and is not drawn.");
-                return true;
-            }
-
-            Report(PageRenderProblem.InvalidValue, what + "'s data stops short of its size. The rest is drawn as if every sample were 0.");
-            return false;
+            Report(PageRenderProblem.InvalidValue, what + "'s data stops short of its size." + Shortfall(samples.Length, samples.LengthNeeded));
+            return samples.Length * 2 < samples.LengthNeeded;
         }
+
+        /// <summary>What becomes of data <paramref name="length"/> bytes long where <paramref name="needed"/> are needed.</summary>
+        private static string Shortfall(long length, long needed) =>
+            length >= needed ? null
+            : length * 2 < needed ? " It is less than half of what its size needs, and is not drawn."
+            : " The rest is drawn as if every sample were 0.";
 
         private void Report(PageRenderProblem problem, string message) => sink.Report(problem, subject, message);
     }
