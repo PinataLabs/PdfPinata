@@ -29,7 +29,7 @@ namespace PdfPinata.Pdf.Rendering;
 public sealed class OptionalContentLayers
 {
     private const int MaximumOrderDepth = 32;
-    private const int MaximumOrderNodes = 10_000;
+    private const int MaximumOrderEntries = 10_000;
 
     private OptionalContentLayers(IReadOnlyList<OptionalContentGroup> groups, OptionalContentConfiguration defaultConfiguration,
         IReadOnlyList<OptionalContentConfiguration> configurations)
@@ -170,7 +170,7 @@ public sealed class OptionalContentLayers
     private sealed class OrderReader(Dictionary<object, OptionalContentGroup> groups)
     {
         private readonly HashSet<object> _open = new(ReferenceIdentity.Instance);
-        private int _nodesLeft = MaximumOrderNodes;
+        private int _entriesLeft = MaximumOrderEntries;
 
         internal List<OptionalContentOrderNode> Read(PdfArray array) => Nodes(array, 0, 0);
 
@@ -181,14 +181,13 @@ public sealed class OptionalContentLayers
             if (depth >= MaximumOrderDepth || !_open.Add(key))
                 return nodes;
 
-            for (var index = start; index < array.Elements.Count && _nodesLeft > 0; index++)
+            for (var index = start; index < array.Elements.Count && _entriesLeft-- > 0; index++)
             {
                 if (array.Elements.GetDictionary(index) is { } dictionary)
                 {
                     if (!groups.TryGetValue(ReferenceIdentity.KeyOf(dictionary), out var group))
                         continue;
 
-                    _nodesLeft--;
                     var children = new List<OptionalContentOrderNode>();
                     if (index + 1 < array.Elements.Count && array.Elements.GetArray(index + 1) is { } nested)
                     {
@@ -207,7 +206,6 @@ public sealed class OptionalContentLayers
                     var members = Nodes(subarray, label != null ? 1 : 0, depth + 1);
                     if (label != null || members.Count > 0)
                     {
-                        _nodesLeft--;
                         nodes.Add(new OptionalContentOrderNode(label, null, members));
                     }
                 }

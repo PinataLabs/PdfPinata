@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Rendering;
@@ -223,5 +224,19 @@ public class OptionalContentLayersTests
 
         order.Should().ContainSingle().Which.Group.Name.Should().Be("Base");
         order[0].Children.Should().BeEmpty();
+    }
+
+    [Test, Timeout(30_000)]
+    public async Task AnOrderOfArraysSharedAtEveryLevelIsReadOnceEach()
+    {
+        var document = Layered().Owner;
+        var rung = new PdfArray(document);
+        for (var level = 0; level < 40; level++)
+            rung = new PdfArray(document, rung, rung);
+        document.Internals.Catalog.Elements.GetDictionary("/OCProperties").Elements.GetDictionary("/D").Elements["/Order"] = rung;
+
+        var order = await Interruptibly.Run(() => OptionalContentLayers.Read(document).Default.Order);
+
+        order.Should().BeEmpty();
     }
 }
