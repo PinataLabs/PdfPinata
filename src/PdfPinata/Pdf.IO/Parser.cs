@@ -1319,7 +1319,7 @@ internal sealed class Parser
             ReadHybridCrossReferenceStream(trailer, accuracy);
             RecordLargestSize(trailer);
 
-            var prev = PositionNamedBy(trailer, PdfTrailer.Keys.Prev);
+            var prev = PositionNamedBy(trailer, PdfTrailer.Keys.Prev, accuracy);
             if (prev == 0)
                 break;
 
@@ -1335,16 +1335,24 @@ internal sealed class Parser
     /// <remarks>
     /// Read as a long: a section past 2 GiB is named by a number past int.MaxValue. A value that
     /// names no position at all - not an integer, such as a run of digits past long, which the
-    /// lexer read as a real - is treated as naming none, as a trailer without the key, rather than
-    /// the read ending in an InvalidCastException.
+    /// lexer read as a real - is reported under Strict, because what it hides is a revision or the
+    /// compressed objects of one. Otherwise it is treated as naming none, as a trailer without the
+    /// key.
     /// </remarks>
-    private static long PositionNamedBy(PdfTrailer trailer, string key)
+    private static long PositionNamedBy(PdfTrailer trailer, string key, PdfReadAccuracy accuracy)
     {
         var item = trailer?.Elements[key];
         if (PdfItemValues.IsNull(item))
             return 0;
 
-        return PdfItemValues.TryGetLong(item, out var position) ? position : 0;
+        if (PdfItemValues.TryGetLong(item, out var position))
+            return position;
+
+        if (accuracy == PdfReadAccuracy.Strict)
+            ParserDiagnostics.ThrowParserException(
+                "The trailer's " + key + " is " + item + ", which names no position in the file.");
+
+        return 0;
     }
 
     /// <summary>
@@ -1390,7 +1398,7 @@ internal sealed class Parser
     /// </remarks>
     private void ReadHybridCrossReferenceStream(PdfTrailer trailer, PdfReadAccuracy accuracy)
     {
-        var position = PositionNamedBy(trailer, PdfTrailer.Keys.XRefStm);
+        var position = PositionNamedBy(trailer, PdfTrailer.Keys.XRefStm, accuracy);
         if (position == 0)
             return;
 

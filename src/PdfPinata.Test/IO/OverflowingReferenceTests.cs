@@ -3,6 +3,7 @@ using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Pdf.IO.enums;
 using TUnit.Core;
 
 namespace PdfPinata.Test.IO;
@@ -45,21 +46,40 @@ public class OverflowingReferenceTests
             "<</Type/Annot/Subtype/Link>>"
         ]));
 
-        // The entry the file does define is the annotation it always was.
-        array.Elements[0].Should().BeOfType<PdfReference>();
+        var annotation = ((PdfReference)array.Elements[0]).Value.Should().BeAssignableTo<PdfDictionary>().Subject;
+        annotation.Elements.GetName("/Subtype").Should().Be("/Link");
     }
 
     [Test]
-    public void ATrailerWhosePrevNamesNoPositionOpensTheDocument()
+    [Arguments("/Prev")]
+    [Arguments("/XRefStm")]
+    public void ATrailerPositionThatNamesNoPositionOpensTheDocument(string key)
     {
-        var document = Read(RawPdf.Build([
-            "<</Type/Catalog/Pages 2 0 R>>",
-            "<</Type/Pages/Kids[3 0 R]/Count 1>>",
-            "<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 100]>>"
-        ], "/Prev 99999999999999999999"));
+        var document = Read(TrailerWith(key + " 99999999999999999999"), PdfReadAccuracy.Moderate);
 
         document.Pages.Count.Should().Be(1);
     }
+
+    [Test]
+    [Arguments("/Prev")]
+    [Arguments("/XRefStm")]
+    public void UnderStrictATrailerPositionThatNamesNoPositionIsReported(string key)
+    {
+        var document = TrailerWith(key + " 99999999999999999999");
+
+        var read = () => Read(document, PdfReadAccuracy.Strict);
+
+        read.Should().Throw<PdfReaderException>().WithMessage("*" + key + "*names no position*");
+    }
+
+    /// <summary>
+    ///   A one page document carrying the given extra entry in its trailer.
+    /// </summary>
+    private static byte[] TrailerWith(string trailerEntry) => RawPdf.Build([
+        "<</Type/Catalog/Pages 2 0 R>>",
+        "<</Type/Pages/Kids[3 0 R]/Count 1>>",
+        "<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 100]>>"
+    ], trailerEntry);
 
     /// <summary>
     ///   The /Annots array of the first page of the given document.
@@ -69,9 +89,9 @@ public class OverflowingReferenceTests
         return Read(document).Pages[0].Elements.GetArray("/Annots")!;
     }
 
-    private static PdfDocument Read(byte[] document)
+    private static PdfDocument Read(byte[] document, PdfReadAccuracy accuracy = PdfReadAccuracy.Moderate)
     {
-        return Pdf.IO.PdfReader.Open(new MemoryStream(document), PdfDocumentOpenMode.Modify);
+        return Pdf.IO.PdfReader.Open(new MemoryStream(document), PdfDocumentOpenMode.Modify, accuracy);
     }
 
     /// <summary>
