@@ -522,6 +522,26 @@ public class DecodeLimitTests
     }
 
     [Test, Timeout(60_000)]
+    [Arguments(2, new byte[] { 1, 1, 1, 2, 2, 2, 3, 3 })]
+    [Arguments(15, new byte[] { 1, 1, 1, 1, 2, 1, 2, 3, 2, 1, 1 })]
+    public async Task APredictorDropsAPartRowWhereDamageCutTheStream(int predictor, byte[] rows)
+    {
+        // Two whole rows of three samples and the start of a third, the stream ending in a wrong
+        // checksum.
+        var parms = Predictor(new PdfDocument(), predictor, 3);
+        var limit = new DecodeLimit(1_000) { TolerateDamage = true };
+        var damaged = Deflated(rows);
+        damaged[^1] ^= 0xFF;
+
+        var decoded = await Interruptibly.Run(() =>
+            Filtering.FlateDecode.Decode(damaged, new FilterParms(parms, limit)));
+
+        decoded.Should().Equal([1, 2, 3, 2, 4, 6], "a part row's differences cannot be undone, and would be drawn as colours");
+        limit.Damaged.Should().BeTrue();
+        limit.Truncated.Should().BeFalse("damage is not the cap");
+    }
+
+    [Test, Timeout(60_000)]
     public async Task ATiffPredictorWithNoLimitStillLeavesAPartRowAsItWas()
     {
         var parms = Predictor(new PdfDocument(), 2, 3);
@@ -612,5 +632,100 @@ public class DecodeLimitTests
 
         plain.Should().Throw<Exception>();
         limited.Should().Throw<Exception>("a limit alone does not make a damaged stream readable");
+    }
+
+    /// <summary>The payload deflated, its Adler-32 checksum cut off or made wrong.</summary>
+    private static byte[] WithChecksumDamaged(byte[] payload, bool cut)
+    {
+        var deflated = Deflated(payload);
+        if (cut)
+            return deflated[..^4];
+        deflated[^1] ^= 0xFF;
+        return deflated;
+    }
+
+    [Test]
+    [Arguments(true)]
+    [Arguments(false)]
+    public void AFlateStreamWithItsChecksumMissingOrWrongStillThrowsUnlessDamageIsTolerated(bool cut)
+    {
+        var damaged = WithChecksumDamaged(Counting(100 * 100), cut);
+
+        var plain = () => Filtering.FlateDecode.Decode(damaged, (FilterParms)null);
+        var limited = () => Filtering.FlateDecode.Decode(damaged, new FilterParms(null, new DecodeLimit(1_000_000)));
+
+        plain.Should().Throw<Exception>();
+        limited.Should().Throw<Exception>("only a caller that asks for tolerance is given a damaged stream's bytes");
+    }
+
+    [Test]
+    [Arguments(true, 100 * 100)]
+    [Arguments(false, 100 * 100)]
+    [Arguments(true, 1_000_000)]
+    [Arguments(false, 1_000_000)]
+    public void AFlateStreamWithItsChecksumMissingOrWrongGivesEveryByteAndSaysItWasDamagedWhenTolerated(bool cut, long cap)
+    {
+        var payload = Counting(100 * 100);
+        var limit = new DecodeLimit(cap) { TolerateDamage = true };
+
+        var decoded = Filtering.FlateDecode.Decode(WithChecksumDamaged(payload, cut), new FilterParms(null, limit));
+
+        decoded.Should().Equal(payload);
+        limit.Damaged.Should().BeTrue();
+        limit.Truncated.Should().BeFalse();
+    }
+
+    [Test]
+    public void AFlateStreamCutPartWayGivesWhatInflatedWhenTolerated()
+    {
+        var random = new Random(3);
+        var payload = new byte[20_000];
+        random.NextBytes(payload);
+        var deflated = Deflated(payload);
+        var limit = new DecodeLimit(1_000_000) { TolerateDamage = true };
+
+        var decoded = Filtering.FlateDecode.Decode(deflated[..(deflated.Length / 2)], new FilterParms(null, limit));
+
+        decoded.Should().NotBeEmpty();
+        decoded.Should().Equal(payload.Take(decoded.Length));
+        limit.Damaged.Should().BeTrue();
+    }
+
+    [Test]
+    public void AWholeFlateStreamIsNotDamagedWhenDamageIsTolerated()
+    {
+        var payload = Counting(100 * 100);
+        var limit = new DecodeLimit(1_000_000) { TolerateDamage = true };
+
+        var decoded = Filtering.FlateDecode.Decode(Deflated(payload), new FilterParms(null, limit));
+
+        decoded.Should().Equal(payload);
+        limit.Damaged.Should().BeFalse();
+    }
+
+    [Test]
+    [Arguments(true)]
+    [Arguments(false)]
+    public void AFlateStreamDamagedAfterMoreThanOneReadGivesEveryByteWhenTolerated(bool cut)
+    {
+        // Longer than the 32 KiB FlateDecode reads at a time, so the read that fails is not the
+        // first and its buffer still holds the bytes of the one before.
+        var payload = Counting(100_000);
+        var limit = new DecodeLimit(1_000_000) { TolerateDamage = true };
+
+        var decoded = Filtering.FlateDecode.Decode(WithChecksumDamaged(payload, cut), new FilterParms(null, limit));
+
+        decoded.Should().Equal(payload);
+        limit.Damaged.Should().BeTrue();
+    }
+
+    [Test]
+    public void DataThatIsNotFlateStillThrowsWhenDamageIsTolerated()
+    {
+        var limit = new DecodeLimit(1_000_000) { TolerateDamage = true };
+
+        var decode = () => Filtering.FlateDecode.Decode([1, 2, 3, 4, 5, 6], new FilterParms(null, limit));
+
+        decode.Should().Throw<Exception>("nothing inflated, so there is nothing to give");
     }
 }

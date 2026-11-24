@@ -206,8 +206,11 @@ public static class SkiaPageRendering
     {
         ArgumentNullException.ThrowIfNull(page);
         var view = ViewOf(page, options);
+        var info = new SKImageInfo(view.PixelWidth, view.PixelHeight);
         var bitmap = new SKBitmap();
-        if (!bitmap.TryAllocPixels(new SKImageInfo(view.PixelWidth, view.PixelHeight)))
+        // SKImageInfo works a row's bytes out in checked int arithmetic, so a row too long for an
+        // int throws OverflowException from inside TryAllocPixels rather than failing it.
+        if ((long)info.Width * info.BytesPerPixel > int.MaxValue || !bitmap.TryAllocPixels(info))
         {
             bitmap.Dispose();
             throw new ArgumentOutOfRangeException(nameof(options),

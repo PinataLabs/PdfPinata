@@ -39,6 +39,20 @@ public sealed class DecodeLimit
     public bool Truncated { get; internal set; }
 
     /// <summary>
+    /// Whether a filter that meets damaged data, such as a Flate stream that stops part way or
+    /// whose checksum is wrong, returns what it decoded before the damage rather than throwing.
+    /// <see cref="Damaged"/> then says that it did. FlateDecode reads it. A stream so damaged
+    /// that nothing decodes still throws.
+    /// </summary>
+    public bool TolerateDamage { get; init; }
+
+    /// <summary>
+    /// Whether a filter tolerating damage met some, so that the decoded bytes are what came
+    /// before it, which may be all of the stream or only its start.
+    /// </summary>
+    public bool Damaged { get; internal set; }
+
+    /// <summary>
     /// How many bytes the filters have produced under this limit, whether or not the
     /// result survived what came after, such as a predictor that left out a part row or one that
     /// threw. This is what the decode cost, and what a budget shared by several streams charges.
