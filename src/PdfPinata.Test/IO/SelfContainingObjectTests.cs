@@ -39,6 +39,25 @@ public class SelfContainingObjectTests
     }
 
     [Test, Timeout(10_000)]
+    public async Task ADictionaryThatContainsItselfIsRefusedWhenWrittenWithoutTheCheckBeforeSaving()
+    {
+        // PdfInternals.WriteObject writes one object, with nothing asked of it first. The writer's
+        // own depth guard is what ends it.
+        var document = new PdfDocument();
+        var loop = new PdfDictionary(document);
+        loop.Elements["/Self"] = loop;
+        loop.Elements["/Again"] = loop;
+
+        var writing = () => Interruptibly.Run(() =>
+        {
+            document.Internals.WriteObject(new MemoryStream(), loop);
+            return true;
+        });
+
+        await writing.Should().ThrowAsync<InvalidOperationException>().WithMessage("*cannot be saved*");
+    }
+
+    [Test, Timeout(10_000)]
     public async Task AnIndirectObjectHoldingItselfInPlaceIsSavedAsReferringToItself()
     {
         // Put in its own entry while it was still direct, and made indirect afterwards: the writer
