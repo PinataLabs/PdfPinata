@@ -1,4 +1,4 @@
-using System;
+using System.Buffers.Binary;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -87,8 +87,9 @@ public class ByteOrderMarkLookalikeTests
     public void AnAes256EntryOpeningWithAByteOrderMarkIsReadAsTheBytesItIs(int keyPrefix, string key)
     {
         var fileKey = Enumerable.Range(0, 32).Select(i => (byte)(0x40 + 3 * i)).ToArray();
-        BitConverter.GetBytes(keyPrefix).CopyTo(fileKey, 0);
-        var bytes = new CryptFilterDocument { Method = "/AESV3", Aes256FileKey = fileKey }.Build();
+        BinaryPrimitives.WriteInt32LittleEndian(fileKey, keyPrefix);
+        var fixture = new CryptFilterDocument { Method = "/AESV3", Aes256FileKey = fileKey };
+        var bytes = fixture.Build();
         Regex.Match(Encoding.Latin1.GetString(bytes), key + @"\s*<(\w{4})").Groups[1].Value.ToUpperInvariant()
             .Should().Be("FEFF", "the point of this test is an entry that opens so");
         var password = key == "/OE" ? CryptFilterDocument.OwnerPassword : "";
@@ -96,6 +97,8 @@ public class ByteOrderMarkLookalikeTests
         using var document = Pdf.IO.PdfReader.Open(new MemoryStream(bytes), password, PdfDocumentOpenMode.Import);
 
         document.SecuritySettings.HasOwnerPermissions.Should().Be(key == "/OE");
+        document.Pages[0].Elements.GetDictionary("/Contents").Stream.Value.Should()
+            .Equal(fixture.Content, "the page is decrypted with the file key the entry holds");
     }
 
     private static byte[] Encrypted(string identifier, string ownerPassword)
