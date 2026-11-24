@@ -1098,16 +1098,30 @@ public class ImageTests
     }
 
     [Test, Timeout(30_000)]
-    public async Task FlateDataCutOffPartWayIsReportedAndThePageDrawn()
+    [Arguments(4, false)]
+    [Arguments(8, true)]
+    public async Task FlateDataCutOffPartWayIsDrawnAsFarAsItInflatedAndReported(int eighthsKept, bool drawsTheImage)
     {
-        var flate = Filtering.FlateDecode.Encode(Enumerable.Range(0, 64).Select(value => (byte)value).ToArray());
+        var samples = Enumerable.Range(0, 64).Select(value => (byte)(value + 1)).ToArray();
+        var flate = Filtering.FlateDecode.Encode(samples);
+        var kept = flate.Length * eighthsKept / 8 - (eighthsKept == 8 ? 8 : 0);
 
         var drawn = await Interruptibly.Run(() => Drawn.Page(DrawIm1 + " 0 0 5 5 re f", Resources(
-            flate.AsSpan(0, flate.Length / 2).ToArray(), ("/Width", 8), ("/Height", 8),
+            flate.AsSpan(0, kept).ToArray(), ("/Width", 8), ("/Height", 8),
             ("/ColorSpace", "/DeviceGray"), ("/BitsPerComponent", 8), ("/Filter", "/FlateDecode"))));
 
         drawn.Device.Fills.Should().ContainSingle();
-        drawn.Problems.Should().Equal("UnsupportedImage /Im1");
+        drawn.Problems.Should().Equal("InvalidValue /Im1");
+        if (!drawsTheImage)
+        {
+            drawn.Device.Images.Should().BeEmpty("less than half of the samples inflated");
+            return;
+        }
+
+        var gray = Gray(drawn.Device.Images.Single().Image);
+        var inflated = gray.TakeWhile(sample => sample != 0).Count();
+        inflated.Should().BeInRange(32, 63);
+        gray.Should().Equal(samples.Take(inflated).Concat(new byte[64 - inflated]), "what inflated is drawn and the rest is 0");
     }
 
     [Test, Timeout(30_000)]

@@ -86,7 +86,8 @@ public class FlateDecode : Filter
 
         var limit = parms?.Limit;
         var cap = limit?.MaximumLength ?? long.MaxValue;
-        var iis = new InflaterInputStream(msInput, new Inflater(false));
+        var inflater = new Inflater(false);
+        var iis = new InflaterInputStream(msInput, inflater);
         int cbRead;
         var abResult = new byte[32768];
         var inputWasCut = limit is { Truncated: true };
@@ -109,11 +110,17 @@ public class FlateDecode : Filter
             }
             while (cbRead > 0);
         }
-        catch (SharpZipBaseException) when (inputWasCut)
+        catch (SharpZipBaseException) when (inputWasCut || limit is { TolerateDamage: true } && inflater.TotalOut > 0)
         {
             // An earlier filter of the chain was stopped at the cap, so this one was given the start
-            // of its stream and ran out. What it inflated is the start of the content, and the limit
-            // already says the content was cut. Without a limit this throws, as it always did.
+            // of its stream and ran out, and the limit already says the content was cut. Or the
+            // caller tolerates damage, such as a checksum missing or wrong after every byte has
+            // inflated. Either way what inflated is the start of the content. The read that threw
+            // had already put some of it in the buffer, and the inflater counts it.
+            var unread = (int)Math.Min(inflater.TotalOut - msOutput.Length, cap - msOutput.Length);
+            msOutput.Write(abResult, 0, unread);
+            if (!inputWasCut)
+                limit.Damaged = true;
         }
 
         iis.Close();

@@ -383,9 +383,12 @@ internal static class PageImages
                 var producesSamples = index == filters.Length - 1;
                 var limit = new DecodeLimit(producesSamples
                     ? WithPredictorBytes(name, sampleBytes, decodeParms)
-                    : EarlierFilterBytes(sampleBytes));
+                    : EarlierFilterBytes(sampleBytes)) { TolerateDamage = true };
                 if (!TryApply(name, input, new FilterParms(decodeParms, limit), what, out unfiltered))
                     return false;
+
+                if (limit.Damaged)
+                    Report(PageRenderProblem.InvalidValue, $"{what}'s {name} data is damaged, and is read only as far as the damage.");
 
                 if (limit.Truncated && !producesSamples)
                 {

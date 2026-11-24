@@ -198,6 +198,15 @@ marker; one after it, or between its two characters, left the whole stream. With
 *more* than the image needs, and an image that is short shows as output shorter than its sample
 bytes with `Truncated` false.
 
+**A damaged Flate image is drawn as far as it inflated** (#409). Real files are often cut short
+in the Adler-32 checksum at the end of a Flate stream, or carry a wrong one, after every sample
+has inflated, and pdf.js and MuPDF draw them. `PageImages` sets `DecodeLimit.TolerateDamage`, so
+`FlateDecode` returns what it inflated before the damage instead of throwing, and sets `Damaged`,
+which is reported as `InvalidValue`. What it returns is then held to the same rules as short data,
+below: padded with zeros, or refused under half. A stream from which nothing inflates still throws
+and is reported as undecodable. Every other caller passes no such limit and gets the exception, as
+it always did. Content streams do not opt in yet.
+
 `PageImages` holds each filter of an image's chain to a limit of its own. The filter that produces
 the samples stops at the sample bytes, plus each row's tag byte under a PNG predictor, counted in
 the predictor's own rows and never less than one whole row, since a predictor drops a part row and a
