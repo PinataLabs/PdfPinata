@@ -276,7 +276,8 @@ public sealed class PdfDocument : PdfObject, IDisposable
 
     /// <summary>
     /// Refuses, before anything is written, a document holding an object built in code with more
-    /// arrays and dictionaries one inside the next than a document is read with.
+    /// arrays and dictionaries one inside the next than a document is read with, or with one that
+    /// is inside itself.
     /// </summary>
     /// <remarks>
     /// The writer refuses one too, but only when it reaches it, and by then the destination has been
@@ -287,8 +288,8 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         foreach (var reference in _irefTable.AllReferences)
         {
-            if (reference.ValueIfRead is { } value && PdfWriter.NestsTooDeepToRead(value))
-                throw PdfWriter.TooDeepToSave(value);
+            if (reference.ValueIfRead is { } value)
+                PdfWriter.EnsureCanBeWrittenAndReadBack(value);
         }
     }
 
