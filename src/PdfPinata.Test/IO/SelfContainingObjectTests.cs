@@ -97,14 +97,17 @@ public class SelfContainingObjectTests
     [Test, Timeout(10_000)]
     public async Task AnObjectSharingWhatItHoldsIsWalkedOnceForEachObjectNotOnceForEachPath()
     {
-        // /A is too deep to read back. /B is a ladder of rungs that each name the next one twice,
-        // so there are two to the sixty-fourth ways down it. A walk that followed every way would
-        // never reach /A, and one that walks each shared rung once refuses the document at once.
+        // The ladder's rungs each name the next one twice, so there are two to the sixty-fourth
+        // ways down it, and it is shallow enough to read back. What lies between its two places in
+        // the array is too deep to, and from either end a walk meets the ladder first. One that
+        // followed every way down the ladder would never reach what is too deep, and one that
+        // walks each shared rung once refuses the document at once.
         var document = new PdfDocument();
         document.AddPage();
+        var ladder = Ladder(document, 64);
         var holder = new PdfDictionary(document);
-        holder.Elements["/A"] = Nested(document, ParserProbe.MaximumNesting + 1);
-        holder.Elements["/B"] = Ladder(document, 64);
+        holder.Elements["/Both"] = new PdfArray(document,
+            ladder, Nested(document, ParserProbe.MaximumNesting + 1), ladder);
         Hold(document, holder);
 
         var saving = () => Interruptibly.Run(() => Saved(document));
@@ -131,6 +134,36 @@ public class SelfContainingObjectTests
         var saving = () => Interruptibly.Run(() => Saved(document));
 
         await saving.Should().ThrowAsync<InvalidOperationException>().WithMessage("*nested deeper*");
+    }
+
+    [Test, Timeout(10_000)]
+    public async Task ContainersThatCallThemselvesEqualAreStillToldApart()
+    {
+        // Each of the two holds a reference of its own. Taken for one another, the second would
+        // be refused as inside the first, or what it refers to left out of the file.
+        var document = new PdfDocument();
+        document.AddPage();
+        var referred = new PdfDictionary(document);
+        referred.Elements["/Name"] = new PdfString("referred");
+        document.Internals.AddObject(referred);
+        var inner = new AllEqualDictionary(document);
+        inner.Elements["/Referred"] = referred.Reference;
+        var outer = new AllEqualDictionary(document);
+        outer.Elements["/Inner"] = inner;
+        Hold(document, outer);
+
+        var pdf = await Interruptibly.Run(() => Saved(document));
+
+        using var read = Reader.Open(new MemoryStream(pdf), PdfDocumentOpenMode.Import);
+        read.Internals.Catalog.Elements.GetDictionary("/Held").Elements.GetDictionary("/Inner")
+            .Elements.GetDictionary("/Referred").Elements.GetString("/Name").Should().Be("referred");
+    }
+
+    private sealed class AllEqualDictionary(PdfDocument document) : PdfDictionary(document)
+    {
+        public override bool Equals(object obj) => obj is AllEqualDictionary;
+
+        public override int GetHashCode() => 0;
     }
 
     private static void Hold(PdfDocument document, PdfDictionary holder)

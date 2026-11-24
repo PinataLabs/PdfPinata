@@ -32,6 +32,7 @@ using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Pdf.Rendering;
 
 namespace PdfPinata.Pdf.Advanced;
 
@@ -323,12 +324,13 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
         var objects = new Dictionary<PdfItem, object>();
 
         // Walked with a stack of its own rather than by recursion, because a chain of references
-        // can be as long as the file, and visited in the order a recursive walk would take. An
-        // array or dictionary held in place is walked once, however many hold it, so one that
-        // contains itself ends the walk rather than repeating it.
-        var walked = new HashSet<PdfObject>();
+        // can be as long as the file, and visited in the order a recursive walk would take. Each
+        // array and dictionary is walked once, by which object it is, however many hold it or
+        // refer to it, so one that contains itself ends the walk rather than repeating it. The
+        // object given is walked as though something held it.
+        var walked = new HashSet<PdfObject>(ReferenceIdentity.Instance);
         var open = new Stack<IEnumerator>();
-        Open(pdfObject);
+        open.Push(new PdfItem[] { pdfObject }.GetEnumerator());
         while (open.Count != 0)
         {
             var items = open.Peek();
@@ -341,12 +343,10 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
             switch (items.Current)
             {
                 case PdfReference iref:
-                    if (AddReferenceToClosure(objects, iref, isBoundary) is { } value and (PdfArray or PdfDictionary))
-                        Open(value);
+                    Open(AddReferenceToClosure(objects, iref, isBoundary));
                     break;
-                case PdfObject held and (PdfDictionary or PdfArray):
-                    if (walked.Add(held))
-                        Open(held);
+                case PdfObject held:
+                    Open(held);
                     break;
             }
         }
@@ -359,25 +359,10 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
 
         void Open(PdfObject container)
         {
-            if (ElementsOf(container) is { } elements)
-                open.Push(elements.GetEnumerator());
-        }
-    }
-
-    /// <summary>
-    /// The items of a dictionary or an array, which are what the closure walks through.
-    /// </summary>
-    private static IEnumerable ElementsOf(PdfObject pdfObject)
-    {
-        switch (pdfObject)
-        {
-            case PdfDictionary dict:
-                return dict.Elements.Values;
-            case PdfArray array:
-                return array.Elements;
-            default:
-                Debug.Assert(false, "Should not come here.");
-                return null;
+            if (container is PdfDictionary dictionary && walked.Add(dictionary))
+                open.Push(dictionary.Elements.Values.GetEnumerator());
+            else if (container is PdfArray array && walked.Add(array))
+                open.Push(array.Elements.GetEnumerator());
         }
     }
 

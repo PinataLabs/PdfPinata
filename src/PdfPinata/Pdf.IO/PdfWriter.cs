@@ -36,6 +36,7 @@ using System.IO;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Security;
 using PdfPinata.Pdf.Internal;
+using PdfPinata.Pdf.Rendering;
 
 namespace PdfPinata.Pdf.IO;
 
@@ -600,9 +601,9 @@ internal class PdfWriter
 
         // What is known of each container met: -1 while it is open, so that meeting it again is a
         // cycle, and once it is closed how many levels lie below it.
-        var below = new Dictionary<PdfObject, int>();
+        var below = new Dictionary<PdfObject, int>(ReferenceIdentity.Instance);
         var open = new Stack<Level>();
-        Open(obj);
+        open.Push(Entered(obj));
         while (open.Count != 0)
         {
             var level = open.Peek();
@@ -613,7 +614,7 @@ internal class PdfWriter
                     continue;
 
                 if (!below.TryGetValue(nested, out var levels))
-                    Open(nested);
+                    open.Push(Entered(nested));
                 else if (levels < 0)
                     throw ContainsItself(obj);
                 else
@@ -628,13 +629,13 @@ internal class PdfWriter
             }
         }
 
-        void Open(PdfObject container)
+        Level Entered(PdfObject container)
         {
             if (open.Count > Parser.MaximumNesting)
                 throw TooDeepToSave(obj);
 
             below[container] = -1;
-            open.Push(new Level(container));
+            return new Level(container);
         }
 
         void Reached(Level level, int levels)
