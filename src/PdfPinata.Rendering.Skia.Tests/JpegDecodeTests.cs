@@ -207,7 +207,10 @@ public class JpegDecodeTests
             image.Settings.Interlace = Interlace.Jpeg;
         var bytes = image.ToByteArray(MagickFormat.Jpeg);
 
-        (bytes.AsSpan().IndexOf([(byte)0xFF, (byte)0xC2]) > 0).Should().Be(progressive, "the test is of that kind of frame");
+        var frame = bytes.AsSpan().IndexOf([(byte)0xFF, progressive ? (byte)0xC2 : (byte)0xC0]);
+        frame.Should().BePositive("the test is of that kind of frame");
+        bytes[frame + 11].Should().Be(sampling switch { "4:4:4" => 0x11, "4:2:0" => 0x22, _ => 0x41 },
+            "the test is of that layout, which the first component's sampling factors say");
         ShouldBeNear(Decode(bytes), 200, 30, 60);
     }
 
