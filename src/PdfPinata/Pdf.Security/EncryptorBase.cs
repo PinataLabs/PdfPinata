@@ -97,12 +97,12 @@ internal abstract class EncryptorBase
         doc = document;
         encryptionDict = encryptionDictionary;
 
-        documentId = PdfEncoders.RawEncoding.GetBytes(doc.Internals.FirstDocumentID);
-        ownerValue = PdfEncoders.RawEncoding.GetBytes(encryptionDict.Elements.GetString(PdfStandardSecurityHandler.Keys.O));
-        userValue = PdfEncoders.RawEncoding.GetBytes(encryptionDict.Elements.GetString(PdfStandardSecurityHandler.Keys.U));
-        oeValue = PdfEncoders.RawEncoding.GetBytes(encryptionDict.Elements.GetString(PdfStandardSecurityHandler.Keys.OE));
-        ueValue = PdfEncoders.RawEncoding.GetBytes(encryptionDict.Elements.GetString(PdfStandardSecurityHandler.Keys.UE));
-        permsValue = PdfEncoders.RawEncoding.GetBytes(encryptionDict.Elements.GetString(PdfStandardSecurityHandler.Keys.Perms));
+        documentId = doc._trailer.FirstDocumentIDBytes;
+        ownerValue = BytesOf(PdfStandardSecurityHandler.Keys.O);
+        userValue = BytesOf(PdfStandardSecurityHandler.Keys.U);
+        oeValue = BytesOf(PdfStandardSecurityHandler.Keys.OE);
+        ueValue = BytesOf(PdfStandardSecurityHandler.Keys.UE);
+        permsValue = BytesOf(PdfStandardSecurityHandler.Keys.Perms);
         pValue = encryptionDict.Elements.GetInteger(PdfStandardSecurityHandler.Keys.P);
         rValue = encryptionDict.Elements.GetInteger(PdfStandardSecurityHandler.Keys.R);
         vValue = encryptionDict.Elements.GetInteger(PdfSecurityHandler.Keys.V);
@@ -121,6 +121,15 @@ internal abstract class EncryptorBase
             keyLength = 16;
         keySize = keyLength;
     }
+
+    /// <summary>
+    /// An entry that holds key bytes, as they are in the file. Its text would do only until the bytes
+    /// open with FE FF or FF FE by chance, which the lexer takes for UTF-16 and decodes (#416).
+    /// </summary>
+    private byte[] BytesOf(string key) =>
+        PdfItemValues.TryGetBytes(encryptionDict.Elements[key], out var bytes)
+            ? bytes
+            : PdfEncoders.RawEncoding.GetBytes(encryptionDict.Elements.GetString(key));
 
     /// <summary>
     /// Compares the first 'length' bytes of two byte-arrays

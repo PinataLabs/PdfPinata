@@ -105,6 +105,16 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
     }
 
     /// <summary>
+    /// The bytes of the first document identifier, which the standard security handler derives its
+    /// key from. Not <see cref="GetDocumentID"/>, whose text loses an opening FE FF or FF FE.
+    /// </summary>
+    internal byte[] FirstDocumentIDBytes =>
+        Elements[Keys.ID] is PdfArray { Elements.Count: >= 2 } array
+        && PdfItemValues.TryGetBytes(array.Elements[0], out var bytes)
+            ? bytes
+            : [];
+
+    /// <summary>
     /// Sets the first or second document identifier.
     /// </summary>
     public void SetDocumentID(int index, string value)

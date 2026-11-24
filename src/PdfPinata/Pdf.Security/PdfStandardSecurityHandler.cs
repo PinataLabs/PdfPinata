@@ -457,7 +457,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         var ownerPad = StandardSecurityAlgorithms.PadPassword(_ownerPassword);
 
         _ownerKey = StandardSecurityAlgorithms.OwnerValue(_md5, _rc4, ownerPad, userPad, revision, keyLength);
-        var documentID = PdfEncoders.RawEncoding.GetBytes(_document.Internals.FirstDocumentID);
+        var documentID = _document._trailer.FirstDocumentIDBytes;
         _encryptionKey = StandardSecurityAlgorithms.FileKey(_md5, userPad, _ownerKey, permissions, documentID,
             revision, keyLength, encryptMetadata: true);
         _userKey = StandardSecurityAlgorithms.UserValue(_md5, _rc4, _encryptionKey, documentID, revision);
