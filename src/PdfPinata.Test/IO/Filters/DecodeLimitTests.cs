@@ -614,7 +614,7 @@ public class DecodeLimitTests
         limited.Should().Throw<Exception>("a limit alone does not make a damaged stream readable");
     }
 
-    /// <summary>A 100 by 100 gray image deflated, its Adler-32 checksum cut off or made wrong.</summary>
+    /// <summary>The payload deflated, its Adler-32 checksum cut off or made wrong.</summary>
     private static byte[] WithChecksumDamaged(byte[] payload, bool cut)
     {
         var deflated = Deflated(payload);
@@ -681,6 +681,22 @@ public class DecodeLimitTests
 
         decoded.Should().Equal(payload);
         limit.Damaged.Should().BeFalse();
+    }
+
+    [Test]
+    [Arguments(true)]
+    [Arguments(false)]
+    public void AFlateStreamDamagedAfterMoreThanOneReadGivesEveryByteWhenTolerated(bool cut)
+    {
+        // Longer than the 32 KiB FlateDecode reads at a time, so the read that fails is not the
+        // first and its buffer still holds the bytes of the one before.
+        var payload = Counting(100_000);
+        var limit = new DecodeLimit(1_000_000) { TolerateDamage = true };
+
+        var decoded = Filtering.FlateDecode.Decode(WithChecksumDamaged(payload, cut), new FilterParms(null, limit));
+
+        decoded.Should().Equal(payload);
+        limit.Damaged.Should().BeTrue();
     }
 
     [Test]
