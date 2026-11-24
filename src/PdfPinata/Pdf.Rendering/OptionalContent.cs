@@ -238,8 +238,22 @@ internal sealed class OptionalContent
         if (_forcedOff.Contains(key))
             return false;
 
-        return _forcedOn.Contains(key) || _exceptions.Contains(key) == _offUnlessListed;
+        return _forcedOn.Contains(key) || IsOn(group);
     }
+
+    /// <summary>
+    /// The optional content of one configuration, over the document's <c>/D</c>, with nothing
+    /// switched by a caller.
+    /// </summary>
+    internal static OptionalContent For(PdfDictionary configuration, PdfDictionary defaults) =>
+        new(configuration, defaults, null);
+
+    /// <summary>
+    /// Whether the configuration has a group on, whether or not its <c>/Intent</c> counts the
+    /// group.
+    /// </summary>
+    internal bool IsOn(PdfDictionary group) =>
+        _exceptions.Contains(ReferenceIdentity.KeyOf(group)) == _offUnlessListed;
 
     private bool Counts(PdfDictionary group)
     {

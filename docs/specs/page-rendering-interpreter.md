@@ -478,6 +478,23 @@ first that decides. `OptionalContent` answers once per membership for one render
 `ReferenceIdentity`, because a page may name one membership thousands of times and each answer
 may cost the whole operand budget.
 
+**Listing the layers** (#431). `OptionalContentLayers.Read(document)` reads `/OCProperties` into a
+snapshot a layer panel is built from: `Groups` (each with `Name`, `Intents` and `Dictionary`), `Default`
+(`/D`) and `Configurations` (`/Configs`), each configuration with `Name`, `Creator`, `BaseState`,
+`Intents`, `IsOn(group)`, the `Order` tree and `RadioButtonGroups`. **A group's identity is its
+`Dictionary`**, the object `On` and `Off` compare by `ReferenceIdentity`, and a configuration's is its
+`Name`, so what a panel lists goes straight back in. A configuration's states come from `OptionalContent` itself,
+through `OptionalContent.For` and `IsOn`, so `/BaseState`, `/Unchanged` over `/D`, `/ON` and `/OFF` mean
+here what they mean to a render; `OptionalContentLayersTests` checks that each configuration draws what
+its `IsOn` says. `IsOn` ignores `/Intent`, which `OptionalContent` applies on top; compare
+`Intents` of the group and the configuration for that. `/Order` follows Table 101: an array after a group is
+nested under it, and an array that starts with a string is a label over the rest. Reading is tolerant and
+throws on nothing: no `/OCProperties` is an empty model with a default configuration that has every group
+on; an entry that is not a dictionary, is not typed `/OCG`, or is named twice is dropped; a `/Configs`
+entry that is not a dictionary is dropped; an `/Order` or `/RBGroups` entry naming no listed group is
+dropped. An `/Order` array met again while it is being read is ignored, and one is read 32 deep and
+10,000 entries long.
+
 ## Reading content that is broken
 
 `ContentReader.ReadContent` throws at the first fault and loses every operator of the stream, those
