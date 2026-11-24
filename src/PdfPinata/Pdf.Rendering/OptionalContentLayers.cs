@@ -83,7 +83,7 @@ public sealed class OptionalContentLayers
                 configurations.Add(ReadConfiguration(configuration, defaults, groups, byKey));
         }
 
-        return new OptionalContentLayers(groups, ReadConfiguration(defaults, defaults, groups, byKey), configurations);
+        return new OptionalContentLayers(groups.AsReadOnly(), ReadConfiguration(defaults, defaults, groups, byKey), configurations.AsReadOnly());
     }
 
     private static OptionalContentConfiguration ReadConfiguration(PdfDictionary configuration, PdfDictionary defaults,
@@ -127,17 +127,18 @@ public sealed class OptionalContentLayers
             }
 
             if (members.Count > 0)
-                radio.Add(members);
+                radio.Add(members.AsReadOnly());
         }
 
         var order = configuration?.Elements.GetArray("/Order") is { } array
             ? new OrderReader(byKey).Read(array)
             : new List<OptionalContentOrderNode>();
 
-        return new OptionalContentConfiguration(name, creator, baseState, IntentsOf(configuration?.Elements["/Intent"]), on, order, radio);
+        return new OptionalContentConfiguration(configuration, name, creator, baseState, IntentsOf(configuration?.Elements["/Intent"]), on,
+            order.AsReadOnly(), radio.AsReadOnly());
     }
 
-    private static List<string> IntentsOf(PdfItem intent)
+    private static IReadOnlyList<string> IntentsOf(PdfItem intent)
     {
         var intents = new List<string>();
         switch (PdfReference.Dereference(intent))
@@ -160,7 +161,7 @@ public sealed class OptionalContentLayers
                 break;
         }
 
-        return intents;
+        return intents.AsReadOnly();
     }
 
     /// <summary>
@@ -195,7 +196,7 @@ public sealed class OptionalContentLayers
                         children = Nodes(nested, 0, depth + 1);
                     }
 
-                    nodes.Add(new OptionalContentOrderNode(null, group, children));
+                    nodes.Add(new OptionalContentOrderNode(null, group, children.AsReadOnly()));
                 }
                 else if (array.Elements.GetArray(index) is { } subarray)
                 {
@@ -206,7 +207,7 @@ public sealed class OptionalContentLayers
                     var members = Nodes(subarray, label != null ? 1 : 0, depth + 1);
                     if (label != null || members.Count > 0)
                     {
-                        nodes.Add(new OptionalContentOrderNode(label, null, members));
+                        nodes.Add(new OptionalContentOrderNode(label, null, members.AsReadOnly()));
                     }
                 }
             }

@@ -27,10 +27,11 @@ public sealed class OptionalContentConfiguration
 {
     private readonly HashSet<OptionalContentGroup> _on;
 
-    internal OptionalContentConfiguration(string name, string creator, OptionalContentBaseState baseState,
+    internal OptionalContentConfiguration(PdfDictionary dictionary, string name, string creator, OptionalContentBaseState baseState,
         IReadOnlyList<string> intents, HashSet<OptionalContentGroup> on, IReadOnlyList<OptionalContentOrderNode> order,
         IReadOnlyList<IReadOnlyList<OptionalContentGroup>> radioButtonGroups)
     {
+        Dictionary = dictionary;
         Name = name;
         Creator = creator;
         BaseState = baseState;
@@ -39,6 +40,9 @@ public sealed class OptionalContentConfiguration
         Order = order;
         RadioButtonGroups = radioButtonGroups;
     }
+
+    /// <summary>The configuration's dictionary, null for a default configuration a document does not have.</summary>
+    internal PdfDictionary Dictionary { get; }
 
     /// <summary>
     /// The <c>/Name</c>, which is what <see cref="PageOptionalContent.Configuration"/> takes, or

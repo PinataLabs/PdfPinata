@@ -118,7 +118,22 @@ internal sealed class OptionalContent
         var defaults = properties?.Elements.GetDictionary("/D");
         var configuration = defaults;
 
-        if (selection?.Configuration is { } name)
+        if (selection?.ChosenConfiguration is { } chosen)
+        {
+            if (chosen.Dictionary == null || defaults != null && Same(chosen.Dictionary, defaults))
+            {
+                configuration = defaults;
+            }
+            else if (IsListed(properties, chosen.Dictionary))
+            {
+                configuration = chosen.Dictionary;
+            }
+            else
+            {
+                problem = "The optional content configuration chosen is not one of the document's. Its default configuration is used.";
+            }
+        }
+        else if (selection?.Configuration is { } name)
         {
             configuration = Named(properties, name);
             if (configuration == null)
@@ -129,6 +144,21 @@ internal sealed class OptionalContent
         }
 
         return new OptionalContent(configuration, defaults, selection);
+    }
+
+    private static bool Same(PdfDictionary first, PdfDictionary second) =>
+        ReferenceEquals(ReferenceIdentity.KeyOf(first), ReferenceIdentity.KeyOf(second));
+
+    private static bool IsListed(PdfDictionary properties, PdfDictionary configuration)
+    {
+        var configs = properties?.Elements.GetArray("/Configs");
+        for (var index = 0; configs != null && index < configs.Elements.Count; index++)
+        {
+            if (configs.Elements.GetDictionary(index) is { } listed && Same(listed, configuration))
+                return true;
+        }
+
+        return false;
     }
 
     private static PdfDictionary Named(PdfDictionary properties, string name)

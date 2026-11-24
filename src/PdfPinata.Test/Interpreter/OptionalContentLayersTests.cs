@@ -239,4 +239,90 @@ public class OptionalContentLayersTests
 
         order.Should().BeEmpty();
     }
+
+    [Test]
+    public void EveryConfigurationFromTheModelIsDrawnAsItSaysWhetherItIsNamedUnnamedOrNamedAsAnother()
+    {
+        var page = Layered((document, properties, _) =>
+        {
+            var groups = properties.Elements.GetArray("/OCGs");
+            var unnamed = new PdfDictionary(document);
+            unnamed.Elements.SetName("/BaseState", "/OFF");
+            unnamed.Elements["/ON"] = new PdfArray(document, groups.Elements[2]);
+
+            var again = new PdfDictionary(document);
+            again.Elements.SetString("/Name", "Print");
+            again.Elements.SetName("/BaseState", "/OFF");
+            again.Elements["/ON"] = new PdfArray(document, groups.Elements[3]);
+
+            var configs = properties.Elements.GetArray("/Configs");
+            configs.Elements.Add(unnamed);
+            configs.Elements.Add(again);
+        });
+        var layers = OptionalContentLayers.Read(page.Owner);
+        var positions = new Dictionary<string, double> { ["Base"] = 1, ["Notes"] = 20, ["Alt"] = 40, ["Extra"] = 60 };
+
+        layers.Configurations.Should().HaveCount(4);
+        foreach (var configuration in layers.Configurations.Append(layers.Default))
+        {
+            var expected = layers.Groups.Where(group => configuration.IsOn(group) && positions.ContainsKey(group.Name))
+                .Select(group => positions[group.Name]).OrderBy(x => x);
+
+            DrawnAt(page, new PageOptionalContent { ChosenConfiguration = configuration }).Should().Equal(expected);
+        }
+
+        DrawnAt(page, new PageOptionalContent { ChosenConfiguration = layers.Configurations[2] }).Should().Equal(40);
+        DrawnAt(page, new PageOptionalContent { ChosenConfiguration = layers.Configurations[3] }).Should().Equal(60);
+        DrawnAt(page, new PageOptionalContent { Configuration = "Print" }).Should().Equal(1);
+    }
+
+    [Test]
+    public void AChosenConfigurationWinsOverANameAndOneFromAnotherDocumentIsReportedAndNotUsed()
+    {
+        var page = Layered();
+        var layers = OptionalContentLayers.Read(page.Owner);
+
+        DrawnAt(page, new PageOptionalContent { Configuration = "Print", ChosenConfiguration = layers.Configurations[1] })
+            .Should().Equal(20, 40);
+
+        var other = OptionalContentLayers.Read(Layered().Owner);
+        DrawnAt(page, new PageOptionalContent { ChosenConfiguration = other.Configurations[0] }).Should().Equal(1, 40);
+    }
+
+    [Test]
+    public void ThePartsOfTheModelCannotBeChangedThroughTheListsThatHoldThem()
+    {
+        var layers = OptionalContentLayers.Read(Layered().Owner);
+        var group = layers.Groups[0];
+        var node = layers.Default.Order[1];
+
+        Action[] mutations =
+        [
+            () => ((IList<OptionalContentGroup>)layers.Groups).Add(group),
+            () => ((IList<OptionalContentConfiguration>)layers.Configurations).Clear(),
+            () => ((IList<string>)group.Intents).Add("Design"),
+            () => ((IList<string>)layers.Default.Intents).Clear(),
+            () => ((IList<OptionalContentOrderNode>)layers.Default.Order).Clear(),
+            () => ((IList<OptionalContentOrderNode>)node.Children).Clear(),
+            () => ((IList<IReadOnlyList<OptionalContentGroup>>)layers.Default.RadioButtonGroups).Clear(),
+            () => ((IList<OptionalContentGroup>)layers.Default.RadioButtonGroups[0]).Clear()
+        ];
+
+        foreach (var mutation in mutations)
+            mutation.Should().Throw<NotSupportedException>();
+        layers.Groups.Should().HaveCount(5);
+    }
+
+    [Test]
+    public void AGroupWithNoTypeIsListedAsTheRendererTakesItForAGroup()
+    {
+        var page = Layered((_, properties, _) =>
+            properties.Elements.GetArray("/OCGs").Elements.GetDictionary(3).Elements.Remove("/Type"));
+        var layers = OptionalContentLayers.Read(page.Owner);
+
+        Names(layers.Groups).Should().Equal("Base", "Notes", "Alt", "Extra", "Design");
+        DrawnAt(page, new PageOptionalContent { On = [layers.Groups[1].Dictionary], Off = [layers.Groups[3].Dictionary] })
+            .Should().Equal(1, 20, 40);
+        DrawnAt(page, new PageOptionalContent { On = [layers.Groups[3].Dictionary] }).Should().Equal(1, 40, 60);
+    }
 }
