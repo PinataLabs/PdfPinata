@@ -296,6 +296,38 @@ public class SkiaPageRenderingTests
     }
 
     [Test]
+    [Arguments(true)]
+    [Arguments(false)]
+    public void AFlateImageWithItsChecksumMissingOrWrongIsDrawnAndReported(bool cut)
+    {
+        // Gray rising to the right and downwards, so the last row, which is what a cut stream
+        // loses first, is the lightest.
+        var samples = Enumerable.Range(0, 100 * 100).Select(i => (byte)(i % 100 + i / 100)).ToArray();
+        var flate = PdfPinata.Pdf.Filters.Filtering.FlateDecode.Encode(samples);
+        if (cut)
+            flate = flate[..^4];
+        else
+            flate[^1] ^= 0xFF;
+        var page = Page("q 100 0 0 100 0 50 cm /Im1 Do Q", (document, added) =>
+            HandWritten.Image(document, added, "/Im1", flate, image =>
+            {
+                image.Elements.SetInteger("/Width", 100);
+                image.Elements.SetInteger("/Height", 100);
+                image.Elements.SetName("/ColorSpace", "/DeviceGray");
+                image.Elements.SetInteger("/BitsPerComponent", 8);
+                image.Elements.SetName("/Filter", "/FlateDecode");
+            }));
+        using var bitmap = new SKBitmap(200, 150);
+        using var canvas = new SKCanvas(bitmap);
+
+        var result = page.Render(canvas);
+
+        foreach (var (x, y) in new[] { (0, 0), (50, 50), (99, 99) })
+            bitmap.GetPixel(x, y).Red.Should().BeCloseTo((byte)(x + y), 2, $"the sample at {x}, {y} is drawn");
+        result.Diagnostics.Should().ContainSingle().Which.Problem.Should().Be(PageRenderProblem.InvalidValue);
+    }
+
+    [Test]
     public void WhatCouldNotBeDrawnIsReported()
     {
         using var stream = new MemoryStream();

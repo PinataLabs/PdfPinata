@@ -1111,6 +1111,25 @@ public class ImageTests
     }
 
     [Test, Timeout(30_000)]
+    [Arguments(true)]
+    [Arguments(false)]
+    public async Task FlateDataWithItsChecksumMissingOrWrongIsDrawnWholeAndReported(bool cut)
+    {
+        var samples = Enumerable.Range(0, 100 * 100).Select(i => (byte)(i % 100 + i / 100)).ToArray();
+        var flate = Filtering.FlateDecode.Encode(samples);
+        if (cut)
+            flate = flate[..^4];
+        else
+            flate[^1] ^= 0xFF;
+
+        var drawn = await Draw(flate, ("/Width", 100), ("/Height", 100), ("/ColorSpace", "/DeviceGray"),
+            ("/BitsPerComponent", 8), ("/Filter", "/FlateDecode"));
+
+        Gray(drawn.Device.Images.Single().Image).Should().Equal(samples);
+        drawn.Problems.Should().Equal("InvalidValue /Im1");
+    }
+
+    [Test, Timeout(30_000)]
     public async Task AnUnknownFilterIsReported()
     {
         var drawn = await Draw([0], ("/Width", 1), ("/Height", 1), ("/ColorSpace", "/DeviceGray"),
