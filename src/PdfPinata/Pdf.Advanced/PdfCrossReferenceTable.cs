@@ -32,6 +32,7 @@ using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Pdf.Rendering;
 
 namespace PdfPinata.Pdf.Advanced;
 
@@ -321,21 +322,33 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
     internal PdfReference[] TransitiveClosure(PdfObject pdfObject, Func<PdfObject, bool> isBoundary)
     {
         var objects = new Dictionary<PdfItem, object>();
-        _overflow = new Dictionary<PdfItem, object>();
-        TransitiveClosureImplementation(objects, pdfObject, isBoundary);
-        TryAgain:
-        if (_overflow.Count > 0)
+
+        // Walked with a stack of its own rather than by recursion, because a chain of references
+        // can be as long as the file, and visited in the order a recursive walk would take. Each
+        // array and dictionary is walked once, by which object it is, however many hold it or
+        // refer to it, so one that contains itself ends the walk rather than repeating it. The
+        // object given is walked as though something held it.
+        var walked = new HashSet<PdfObject>(ReferenceIdentity.Instance);
+        var open = new Stack<IEnumerator>();
+        open.Push(new PdfItem[] { pdfObject }.GetEnumerator());
+        while (open.Count != 0)
         {
-            var array = new PdfItem[_overflow.Count];
-            _overflow.Keys.CopyTo(array, 0);
-            _overflow = new Dictionary<PdfItem, object>();
-            foreach (var item in array)
+            var items = open.Peek();
+            if (!items.MoveNext())
             {
-                var obj = (PdfObject)item;
-                TransitiveClosureImplementation(objects, obj, isBoundary);
+                open.Pop();
+                continue;
             }
 
-            goto TryAgain;
+            switch (items.Current)
+            {
+                case PdfReference iref:
+                    Open(AddReferenceToClosure(objects, iref, isBoundary));
+                    break;
+                case PdfObject held:
+                    Open(held);
+                    break;
+            }
         }
 
         ICollection collection = objects.Keys;
@@ -343,64 +356,21 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
         var irefs = new PdfReference[count];
         collection.CopyTo(irefs, 0);
         return irefs;
-    }
 
-    private static int _nestingLevel;
-    private Dictionary<PdfItem, object> _overflow = new();
-
-    private void TransitiveClosureImplementation(Dictionary<PdfItem, object> objects,
-        PdfObject pdfObject, Func<PdfObject, bool> isBoundary)
-    {
-        try
+        void Open(PdfObject container)
         {
-            _nestingLevel++;
-            if (_nestingLevel >= 1000)
-            {
-                if (!_overflow.ContainsKey(pdfObject))
-                    _overflow.Add(pdfObject, null);
-                return;
-            }
-
-            var enumerable = ElementsOf(pdfObject);
-            if (enumerable == null)
-                return;
-
-            foreach (PdfItem item in enumerable)
-            {
-                if (item is PdfReference iref)
-                    AddReferenceToClosure(objects, iref, isBoundary);
-                else if (item is PdfObject pdfObject28 and (PdfDictionary or PdfArray))
-                    TransitiveClosureImplementation(objects, pdfObject28, isBoundary);
-            }
-        }
-        finally
-        {
-            _nestingLevel--;
+            if (container is PdfDictionary dictionary && walked.Add(dictionary))
+                open.Push(dictionary.Elements.Values.GetEnumerator());
+            else if (container is PdfArray array && walked.Add(array))
+                open.Push(array.Elements.GetEnumerator());
         }
     }
 
     /// <summary>
-    /// The items of a dictionary or an array, which are what the closure walks through.
+    /// Adds the object a reference leads to, unless it is in the closure already or is unreachable,
+    /// and answers it so that what it leads to can be walked in turn, or null.
     /// </summary>
-    private static IEnumerable ElementsOf(PdfObject pdfObject)
-    {
-        switch (pdfObject)
-        {
-            case PdfDictionary dict:
-                return dict.Elements.Values;
-            case PdfArray array:
-                return array.Elements;
-            default:
-                Debug.Assert(false, "Should not come here.");
-                return null;
-        }
-    }
-
-    /// <summary>
-    /// Adds the object a reference leads to, and everything it leads to in turn, unless it is in
-    /// the closure already or is unreachable.
-    /// </summary>
-    private void AddReferenceToClosure(Dictionary<PdfItem, object> objects, PdfReference iref,
+    private PdfObject AddReferenceToClosure(Dictionary<PdfItem, object> objects, PdfReference iref,
         Func<PdfObject, bool> isBoundary)
     {
         if (!ReferenceEquals(iref.Document, _document))
@@ -409,13 +379,13 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
         Debug.Assert(ReferenceEquals(iref.Document, _document) || iref.Document == null,
             "External object detected!");
         if (objects.ContainsKey(iref))
-            return;
+            return null;
 
         var value = iref.Value;
 
         // Ignore unreachable objets.
         if (iref.Document == null)
-            return;
+            return null;
 
         // ... from trailer hack
         if (value == null)
@@ -427,11 +397,10 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
 
         Debug.Assert(ReferenceEquals(iref.Document, _document));
         if (isBoundary != null && isBoundary(value))
-            return;
+            return null;
 
         objects.Add(iref, null);
-        if (value is PdfArray or PdfDictionary)
-            TransitiveClosureImplementation(objects, value, isBoundary);
+        return value;
     }
 
     /// <summary>

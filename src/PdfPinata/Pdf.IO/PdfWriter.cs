@@ -36,6 +36,7 @@ using System.IO;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Security;
 using PdfPinata.Pdf.Internal;
+using PdfPinata.Pdf.Rendering;
 
 namespace PdfPinata.Pdf.IO;
 
@@ -274,7 +275,8 @@ internal class PdfWriter
     public void WriteBeginObject(PdfObject obj)
     {
         // PdfDocument refuses such an object before it opens the destination, through
-        // NestsTooDeepToRead. This is for whatever is written without that check.
+        // EnsureCanBeWrittenAndReadBack. This is for whatever is written without that check, and is
+        // also what ends the writing of an object that contains itself.
         if (_stack.Count > Parser.MaximumNesting)
             throw TooDeepToSave(_stack[0].Object);
 
@@ -581,58 +583,108 @@ internal class PdfWriter
     }
 
     /// <summary>
-    /// Whether <paramref name="obj"/> holds more arrays and dictionaries one inside the next than
-    /// <see cref="Parser.MaximumNesting"/>, so that a file it was written to could not be read back.
+    /// Refuses <paramref name="obj"/> if it holds more arrays and dictionaries one inside the next
+    /// than <see cref="Parser.MaximumNesting"/>, so that a file it was written to could not be read
+    /// back, or holds one that is inside itself, so that writing it would never end.
     /// </summary>
     /// <remarks>
     /// Walked with a stack of its own rather than by recursion, because the object it is asked
     /// about may be nested deeply enough to overflow the thread's. An indirect object held inside is
-    /// written as a reference, and is asked about on its own.
+    /// written as a reference, and is asked about on its own. A direct object held by several others
+    /// is walked once: how many levels lie below it is remembered, and is what it adds wherever else
+    /// it is met.
     /// </remarks>
-    internal static bool NestsTooDeepToRead(PdfObject obj)
+    internal static void EnsureCanBeWrittenAndReadBack(PdfObject obj)
     {
         if (obj is not (PdfArray or PdfDictionary))
-            return false;
+            return;
 
-        var open = new Stack<(PdfObject Container, int Inside)>();
-        open.Push((obj, 0));
+        // What is known of each container met: -1 while it is open, so that meeting it again is a
+        // cycle, and once it is closed how many levels lie below it.
+        var below = new Dictionary<PdfObject, int>(ReferenceIdentity.Instance);
+        var open = new Stack<Level>();
+        open.Push(Entered(obj));
         while (open.Count != 0)
         {
-            var (container, inside) = open.Pop();
-            if (inside > Parser.MaximumNesting)
-                return true;
-
-            if (container is PdfArray array)
+            var level = open.Peek();
+            if (level.Items.MoveNext())
             {
-                foreach (var item in array.Elements)
-                    PushIfNested(item);
+                if (level.Items.Current is not PdfObject { IsIndirect: false } nested
+                    || nested is not (PdfArray or PdfDictionary))
+                    continue;
+
+                if (!below.TryGetValue(nested, out var levels))
+                    open.Push(Entered(nested));
+                else if (levels < 0)
+                    throw ContainsItself(obj);
+                else
+                    Reached(level, levels + 1);
             }
             else
             {
-                foreach (var entry in ((PdfDictionary)container).Elements)
-                    PushIfNested(entry.Value);
-            }
-
-            void PushIfNested(PdfItem item)
-            {
-                if (item is PdfObject { IsIndirect: false } nested and (PdfArray or PdfDictionary))
-                    open.Push((nested, inside + 1));
+                open.Pop();
+                below[level.Container] = level.Below;
+                if (open.Count != 0)
+                    Reached(open.Peek(), level.Below + 1);
             }
         }
-        return false;
+
+        Level Entered(PdfObject container)
+        {
+            if (open.Count > Parser.MaximumNesting)
+                throw TooDeepToSave(obj);
+
+            below[container] = -1;
+            return new Level(container);
+        }
+
+        void Reached(Level level, int levels)
+        {
+            if (open.Count - 1 + levels > Parser.MaximumNesting)
+                throw TooDeepToSave(obj);
+
+            level.Below = Math.Max(level.Below, levels);
+        }
     }
 
     /// <summary>
-    /// The refusal of a document holding <paramref name="obj"/>, which
-    /// <see cref="NestsTooDeepToRead"/> answered true of.
+    /// A container open in <see cref="EnsureCanBeWrittenAndReadBack"/>: what is left of its items,
+    /// and how many levels lie below what has been walked of it.
+    /// </summary>
+    private sealed class Level(PdfObject container)
+    {
+        public readonly PdfObject Container = container;
+
+        public readonly IEnumerator<PdfItem> Items = container is PdfArray array
+            ? array.Elements.GetEnumerator()
+            : ((PdfDictionary)container).Elements.Values.GetEnumerator();
+
+        public int Below;
+    }
+
+    /// <summary>
+    /// The refusal of a document holding <paramref name="obj"/>, which holds an array or dictionary
+    /// that is inside itself.
+    /// </summary>
+    private static InvalidOperationException ContainsItself(PdfObject obj)
+    {
+        return new InvalidOperationException(
+            $"The document cannot be saved. {Which(obj)} contains an array or dictionary that is inside itself, "
+            + "directly or through others written in place, so writing it would never end.");
+    }
+
+    /// <summary>
+    /// The refusal of a document holding <paramref name="obj"/>, which has arrays and dictionaries
+    /// nested deeper than a document is read with.
     /// </summary>
     internal static InvalidOperationException TooDeepToSave(PdfObject obj)
     {
-        var which = obj.IsIndirect ? $"Object {obj.ObjectNumber}" : "An object";
         return new InvalidOperationException(
-            $"The document cannot be saved. {which} has arrays and dictionaries nested deeper than the "
+            $"The document cannot be saved. {Which(obj)} has arrays and dictionaries nested deeper than the "
             + $"{Parser.MaximumNesting} a document is read with, so the file would not open again.");
     }
+
+    private static string Which(PdfObject obj) => obj.IsIndirect ? $"Object {obj.ObjectNumber}" : "An object";
 
     private class StackItem
     {
