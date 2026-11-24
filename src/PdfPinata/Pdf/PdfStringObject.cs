@@ -98,7 +98,7 @@ public sealed class PdfStringObject : PdfObject
     public PdfStringEncoding Encoding
     {
         get => (PdfStringEncoding)(_flags & PdfStringFlags.EncodingMask);
-        set => _flags = (_flags & ~(PdfStringFlags.EncodingMask | PdfStringFlags.LittleEndianMark))
+        set => _flags = (_flags & ~(PdfStringFlags.EncodingMask | PdfStringFlags.LittleEndianMark | PdfStringFlags.OddLength))
                         | ((PdfStringFlags)value & PdfStringFlags.EncodingMask);
     }
 
@@ -112,8 +112,7 @@ public sealed class PdfStringObject : PdfObject
     }
     private PdfStringFlags _flags;
 
-    /// <summary>Whether the bytes open with FF FE and take their characters low byte first.</summary>
-    internal bool IsLittleEndian => PdfString.IsLittleEndianMark(_flags);
+    internal PdfStringFlags Flags => _flags;
 
     /// <summary>
     /// Gets or sets the value as string
@@ -125,7 +124,7 @@ public sealed class PdfStringObject : PdfObject
         {
             // Only a string written back unchanged keeps the byte order it was read in.
             _value = value ?? "";
-            _flags &= ~PdfStringFlags.LittleEndianMark;
+            _flags &= ~(PdfStringFlags.LittleEndianMark | PdfStringFlags.OddLength);
         }
     }
     private string _value;
@@ -157,6 +156,7 @@ public sealed class PdfStringObject : PdfObject
             // As in PdfString: the byte order mark is inside the encrypted bytes, so it is only
             // after decrypting that a string can be seen to be UTF-16BE. A little endian reading
             // came from the ciphertext and says nothing about what it decrypts to, so it is dropped.
+            _flags &= ~PdfStringFlags.OddLength;
             if ((_flags & PdfStringFlags.LittleEndianMark) != 0)
                 _flags &= ~(PdfStringFlags.LittleEndianMark | PdfStringFlags.EncodingMask);
             if (CharacterScanning.StartsWithUtf16BigEndianMark(value))

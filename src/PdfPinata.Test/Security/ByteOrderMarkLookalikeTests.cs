@@ -101,6 +101,39 @@ public class ByteOrderMarkLookalikeTests
             .Equal(fixture.Content, "the page is decrypted with the file key the entry holds");
     }
 
+    [Test]
+    public void AnIdentifierOfAnOddNumberOfBytesOpeningWithAByteOrderMarkIsReadAsTheBytesItIs()
+    {
+        var bytes = Encrypted("þÿA", "owner");
+        Encoding.Latin1.GetString(bytes).Should().MatchRegex(@"/ID\s*\[<FEFF41>", "the point of this test is such an identifier");
+
+        using var document = Pdf.IO.PdfReader.Open(new MemoryStream(bytes), UserPassword, PdfDocumentOpenMode.Import);
+
+        document.PageCount.Should().Be(1);
+    }
+
+    [Test]
+    [Arguments(@"(\376\377)")]
+    [Arguments("<FEFF41>")]
+    [Arguments(@"(\376\377A)")]
+    [Arguments(@"(\377\376A)")]
+    public void AnIdentifierReadAsTextIsWrittenAsTheBytesTheKeyIsDerivedFrom(string identifier)
+    {
+        var plain = new PdfDocument();
+        plain.AddPage();
+        var written = Encoding.Latin1.GetString(Saved.Bytes(plain));
+        var patched = Regex.Replace(written, @"/ID\s*\[\s*<[0-9A-Fa-f]*>", _ => "/ID [" + identifier);
+        patched.Should().Contain("/ID [" + identifier, "the point of this test is such an identifier");
+        using var read = Saved.Open(Encoding.Latin1.GetBytes(patched));
+        read.SecuritySettings.UserPassword = UserPassword;
+
+        var bytes = Saved.Bytes(read);
+
+        new StandardSecurity(bytes, UserPassword).DerivedKeyMatchesTheDocument.Should().BeTrue();
+        using var reopened = Pdf.IO.PdfReader.Open(new MemoryStream(bytes), UserPassword, PdfDocumentOpenMode.Import);
+        reopened.PageCount.Should().Be(1);
+    }
+
     private static byte[] Encrypted(string identifier, string ownerPassword)
     {
         var document = new PdfDocument();

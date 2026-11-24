@@ -115,6 +115,20 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
             : [];
 
     /// <summary>
+    /// The bytes of the first document identifier, put back as a string of those bytes so that
+    /// they are what is written. An identifier read as UTF-16 text is written back as text, which
+    /// is not always the bytes it was read from: FE FF alone becomes an empty string, and an odd
+    /// number of bytes gains a zero.
+    /// </summary>
+    internal byte[] PinFirstDocumentIDBytes()
+    {
+        var bytes = FirstDocumentIDBytes;
+        if (Elements[Keys.ID] is PdfArray { Elements.Count: >= 2 } array)
+            array.Elements[0] = new PdfString(PdfEncoders.RawEncoding.GetString(bytes, 0, bytes.Length), PdfStringFlags.HexLiteral);
+        return bytes;
+    }
+
+    /// <summary>
     /// Sets the first or second document identifier.
     /// </summary>
     public void SetDocumentID(int index, string value)

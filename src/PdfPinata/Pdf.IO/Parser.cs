@@ -847,13 +847,14 @@ internal sealed class Parser
     /// </summary>
     private PdfStringFlags StringFlagsFor(Symbol symbol)
     {
+        var oddLength = _lexer.TokenIsOddLength ? PdfStringFlags.OddLength : 0;
         return symbol switch
         {
             Symbol.UnicodeString => _lexer.TokenIsLittleEndian
-                ? PdfStringFlags.Unicode | PdfStringFlags.LittleEndianMark
-                : PdfStringFlags.Unicode,
+                ? PdfStringFlags.Unicode | PdfStringFlags.LittleEndianMark | oddLength
+                : PdfStringFlags.Unicode | oddLength,
             Symbol.HexString => PdfStringFlags.HexLiteral,
-            Symbol.UnicodeHexString => PdfStringFlags.Unicode | PdfStringFlags.HexLiteral,
+            Symbol.UnicodeHexString => PdfStringFlags.Unicode | PdfStringFlags.HexLiteral | oddLength,
             _ => PdfStringFlags.RawEncoding
         };
     }
