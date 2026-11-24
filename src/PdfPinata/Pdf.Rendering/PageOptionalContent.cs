@@ -30,6 +30,16 @@ public sealed class PageOptionalContent
     public string Configuration { get; init; }
 
     /// <summary>
+    /// A configuration of <see cref="OptionalContentLayers"/> to draw with, which wins over
+    /// <see cref="Configuration"/>. It names the configuration itself, so one with no
+    /// <c>/Name</c>, or with the name of another, is drawn as it is and not as <c>/D</c> or the
+    /// first of that name. The default configuration of the model draws <c>/D</c>. One that is not
+    /// of the document drawn is reported as <see cref="PageRenderProblem.InvalidValue"/> and
+    /// <c>/D</c> is used.
+    /// </summary>
+    public OptionalContentConfiguration ChosenConfiguration { get; init; }
+
+    /// <summary>
     /// Groups switched on whatever the configuration says. These are the group dictionaries of the
     /// document, as <c>/OCProperties /OCGs</c> holds them. A group does not count where its
     /// <c>/Intent</c> is not one of the configuration's, as for the configuration's own states.
