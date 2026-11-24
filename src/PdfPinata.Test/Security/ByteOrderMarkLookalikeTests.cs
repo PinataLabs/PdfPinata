@@ -1,5 +1,8 @@
+using System;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
@@ -9,17 +12,19 @@ using TUnit.Core;
 namespace PdfPinata.Test.Security;
 
 /// <summary>
-///   The /O and /U entries of an encryption dictionary and the document identifier are bytes, not
-///   text, and any of them can open with FE FF or FF FE by chance. The lexer takes a string that
-///   opens that way for UTF-16 and decodes it, so the security handler has to put the bytes back
-///   rather than read the decoded text, or the password is checked against the wrong key (#416).
+///   The /O, /U, /OE, /UE and /Perms entries of an encryption dictionary and the document
+///   identifier are bytes, not text, and any of them can open with FE FF or FF FE by chance. The
+///   lexer takes a string that opens that way for UTF-16 and decodes it, so the security handler
+///   has to put the bytes back rather than read the decoded text, or the password is checked
+///   against the wrong key (#416).
 /// </summary>
 /// <remarks>
-///   RC4 output opens with one of the two marks about once in 32768, and a document carries both
-///   entries, so roughly one RC4 document in 16000 that PdfPinata wrote could not be opened again.
-///   That is what failed <c>LazyStreamTests.AStreamCopiedIntoAnEncryptedDocumentIsReadBackAsItWas</c>
-///   now and then. The owner passwords here were found by searching for one whose entries open
-///   with each mark, under <see cref="Identifier" />.
+///   Random bytes open with one of the two marks once in 32768, and an RC4 document carries three
+///   such strings, so about one RC4 document in 11000 that PdfPinata wrote could not be opened
+///   again. An AES-256 document carries five. The AES-256 builder writes hex strings, which the
+///   lexer decodes only when they open with FE FF, so only that mark is tested there. The owner
+///   passwords and file keys here were found by searching for ones whose entries open with each
+///   mark.
 /// </remarks>
 public class ByteOrderMarkLookalikeTests
 {
@@ -73,6 +78,24 @@ public class ByteOrderMarkLookalikeTests
         security.DerivedKeyMatchesTheDocument.Should().BeTrue("the key is derived from the identifier as written");
         using var reopened = Pdf.IO.PdfReader.Open(new MemoryStream(bytes), UserPassword, PdfDocumentOpenMode.Import);
         reopened.PageCount.Should().Be(1);
+    }
+
+    [Test]
+    [Arguments(22814, "/OE")]
+    [Arguments(53824, "/UE")]
+    [Arguments(89424, "/Perms")]
+    public void AnAes256EntryOpeningWithAByteOrderMarkIsReadAsTheBytesItIs(int keyPrefix, string key)
+    {
+        var fileKey = Enumerable.Range(0, 32).Select(i => (byte)(0x40 + 3 * i)).ToArray();
+        BitConverter.GetBytes(keyPrefix).CopyTo(fileKey, 0);
+        var bytes = new CryptFilterDocument { Method = "/AESV3", Aes256FileKey = fileKey }.Build();
+        Regex.Match(Encoding.Latin1.GetString(bytes), key + @"\s*<(\w{4})").Groups[1].Value.ToUpperInvariant()
+            .Should().Be("FEFF", "the point of this test is an entry that opens so");
+        var password = key == "/OE" ? CryptFilterDocument.OwnerPassword : "";
+
+        using var document = Pdf.IO.PdfReader.Open(new MemoryStream(bytes), password, PdfDocumentOpenMode.Import);
+
+        document.SecuritySettings.HasOwnerPermissions.Should().Be(key == "/OE");
     }
 
     private static byte[] Encrypted(string identifier, string ownerPassword)
