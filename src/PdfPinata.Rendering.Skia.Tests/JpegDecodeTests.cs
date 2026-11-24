@@ -1,7 +1,10 @@
 using System;
 using AwesomeAssertions;
 using ImageMagick;
+using PdfPinata.Pdf;
 using PdfPinata.Pdf.Rendering;
+using PdfPinata.Rendering.Skia.Tests.Helpers;
+using PdfPinata.Test.Helpers;
 using SkiaSharp;
 using TUnit.Core;
 
@@ -74,6 +77,153 @@ public class JpegDecodeTests
         Decode(bytes).Should().BeNull();
     }
 
+    // Every one of these ended the process inside SkiaSharp 4.156.0's codec on Windows x64, with an
+    // access violation no handler catches, so a device that lets one through fails this run by
+    // ending it and not by an assertion.
+    [Test]
+    [Arguments(CorruptJpeg.QuantizationTableNumberedFour)]
+    [Arguments(CorruptJpeg.QuantizationTableOfWideValuesInTheRoomOfNarrow)]
+    [Arguments(CorruptJpeg.QuantizationTableNeverDefined)]
+    [Arguments(CorruptJpeg.HuffmanTableNumberedFour)]
+    [Arguments(CorruptJpeg.HuffmanTableWhoseCodesDoNotFit)]
+    [Arguments(CorruptJpeg.HuffmanTableNeverDefined)]
+    [Arguments(CorruptJpeg.FrameWithNoWidth)]
+    [Arguments(CorruptJpeg.ComponentSampledZeroTimes)]
+    [Arguments(CorruptJpeg.SecondFrame)]
+    [Arguments(CorruptJpeg.FrameOfAnUnsupportedProcess)]
+    [Arguments(CorruptJpeg.ScanOfAComponentTheFrameLacks)]
+    [Arguments(CorruptJpeg.ScanOutOfTheFramesOrder)]
+    [Arguments(CorruptJpeg.SegmentRunningPastTheEnd)]
+    [Arguments(CorruptJpeg.UnknownMarker)]
+    public void AJpegWhoseHeaderIsCorruptIsNotDecoded(string defect)
+    {
+        var bytes = CorruptJpeg.With(Jpeg(new SKColor(200, 30, 60)), defect);
+
+        Decode(bytes).Should().BeNull();
+    }
+
+    // Skia's codec gives up at the hundredth scan, and giving up is what ends the process.
+    [Test]
+    public void AProgressiveJpegOfAHundredScansIsNotDecoded()
+    {
+        using var image = new MagickImage(new MagickColor(200, 30, 60), 16, 8);
+        image.Settings.Interlace = Interlace.Jpeg;
+        var bytes = image.ToByteArray(MagickFormat.Jpeg);
+        ReadOnlySpan<byte> refinement = [0xFF, 0xDA, 0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x00, 0x10];
+        var many = new System.IO.MemoryStream();
+        many.Write(bytes, 0, bytes.Length - 2);
+        for (var scan = 0; scan < 100; scan++)
+            many.Write(refinement);
+        many.Write(bytes, bytes.Length - 2, 2);
+
+        Decode(many.ToArray()).Should().BeNull();
+    }
+
+    // Every block adds the largest difference a 15-bit symbol can code, 32767, to a running int,
+    // which 65,792 blocks overflow. libjpeg-turbo calls that fatal where all other bad data is
+    // only warned about.
+    [Test]
+    public void AProgressiveJpegWhoseDcValuesCanOverflowIsNotDecoded()
+    {
+        const int Width = 2056, Height = 2048;
+        var file = new System.IO.MemoryStream();
+        file.Write([0xFF, 0xD8, 0xFF, 0xDB, 0x00, 0x43, 0x00]);
+        for (var value = 0; value < 64; value++)
+            file.WriteByte(1);
+        file.Write([0xFF, 0xC2, 0x00, 0x0B, 0x08, Height >> 8, Height & 0xFF, Width >> 8, Width & 0xFF, 0x01, 0x01, 0x11, 0x00]);
+        file.Write([0xFF, 0xC4, 0x00, 0x14, 0x00, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15]);
+        file.Write([0xFF, 0xDA, 0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00]);
+        for (var block = 0; block < Width / 8 * (Height / 8); block++)
+            file.Write([0x7F, 0xFF, 0x00]);
+        file.Write([0xFF, 0xD9]);
+
+        Decode(file.ToArray()).Should().BeNull();
+    }
+
+    // libjpeg-turbo's arithmetic decoder calls running out of data fatal, so a file cut short
+    // would end the process, and a whole one cannot be told from it without decoding.
+    [Test]
+    public void AnArithmeticCodedJpegIsNotDecoded()
+    {
+        using var image = new MagickImage(new MagickColor(200, 30, 60), 16, 8);
+        image.Settings.SetDefine(MagickFormat.Jpeg, "arithmetic-coding", "true");
+        var bytes = image.ToByteArray(MagickFormat.Jpeg);
+
+        (bytes.AsSpan().IndexOf([(byte)0xFF, (byte)0xC9]) > 0).Should().BeTrue("the test is of an arithmetic-coded frame");
+        Decode(bytes).Should().BeNull();
+    }
+
+    [Test]
+    [Arguments(CorruptJpeg.QuantizationTableNumberedFour)]
+    [Arguments(CorruptJpeg.HuffmanTableNeverDefined)]
+    [Arguments(CorruptJpeg.ScanOutOfTheFramesOrder)]
+    public void APageWithACorruptJpegIsDrawnWithoutItAndSaysSo(string defect)
+    {
+        var bytes = CorruptJpeg.With(Jpeg(new SKColor(200, 30, 60)), defect);
+        var corrupt = HandWritten.Page("0 0 1 rg 0 0 20 20 re f q 16 0 0 8 30 30 cm /Im1 Do Q", page: (document, page) =>
+            HandWritten.Image(document, page, "/Im1", bytes, image =>
+            {
+                image.Elements.SetInteger("/Width", 16);
+                image.Elements.SetInteger("/Height", 8);
+                image.Elements.SetName("/ColorSpace", "/DeviceRGB");
+                image.Elements.SetInteger("/BitsPerComponent", 8);
+                image.Elements.SetName("/Filter", "/DCTDecode");
+            })).Reopened().Pages[0];
+
+        using var bitmap = new SKBitmap(200, 150);
+        using var canvas = new SKCanvas(bitmap);
+        var result = corrupt.Render(canvas);
+
+        result.Diagnostics.Should().ContainSingle().Which.Problem.Should().Be(PageRenderProblem.UnsupportedImage);
+        bitmap.GetPixel(10, 140).Should().Be(new SKColor(0, 0, 255), "the rest of the page is still drawn");
+    }
+
+    // A frame decoded from one scan is never read past that scan, so what follows it cannot stop
+    // the decode and is no reason to refuse the file.
+    [Test]
+    public void ABaselineJpegWithAnythingAfterItsScanIsStillDecoded()
+    {
+        var bytes = Jpeg(new SKColor(200, 30, 60));
+        byte[] rubbish = [0xFF, 0x02, 0xFF, 0xDB, 0x00, 0x03, 0x09, 0xFF, 0xD9];
+        var followed = new byte[bytes.Length - 2 + rubbish.Length];
+        bytes.AsSpan(0, bytes.Length - 2).CopyTo(followed);
+        rubbish.CopyTo(followed, bytes.Length - 2);
+
+        ShouldBeNear(Decode(followed), 200, 30, 60);
+    }
+
+    // The decoder reads every scan of these before it answers a row, so every marker of them is
+    // checked, where a baseline file is checked up to its one scan.
+    [Test]
+    [Arguments(true, "4:2:0")]
+    [Arguments(true, "4:4:4")]
+    [Arguments(false, "4:2:0")]
+    [Arguments(false, "4:1:1")]
+    public void AJpegOfAnotherLayoutIsDecoded(bool progressive, string sampling)
+    {
+        using var image = new MagickImage(new MagickColor(200, 30, 60), 40, 24);
+        image.Settings.SetDefine(MagickFormat.Jpeg, "sampling-factor", sampling);
+        if (progressive)
+            image.Settings.Interlace = Interlace.Jpeg;
+        var bytes = image.ToByteArray(MagickFormat.Jpeg);
+
+        (bytes.AsSpan().IndexOf([(byte)0xFF, (byte)0xC2]) > 0).Should().Be(progressive, "the test is of that kind of frame");
+        ShouldBeNear(Decode(bytes), 200, 30, 60);
+    }
+
+    // The table is read from the tables a decoder knows when a file defines none, as the frames of
+    // a Motion JPEG do.
+    [Test]
+    public void ABaselineJpegWithoutItsHuffmanTablesIsDecodedWithTheStandardOnes()
+    {
+        using var image = new MagickImage(new MagickColor(200, 30, 60), 16, 8);
+        image.Settings.SetDefine(MagickFormat.Jpeg, "optimize-coding", "false");
+        var bytes = WithoutSegments(image.ToByteArray(MagickFormat.Jpeg), 0xC4);
+
+        bytes.AsSpan().IndexOf([(byte)0xFF, (byte)0xC4]).Should().BeLessThan(0, "the test is of a file with no table");
+        ShouldBeNear(Decode(bytes), 200, 30, 60);
+    }
+
     // The inks of the file as they are are what a PDF without a /Decode means, so these are drawn
     // as the inks say, where a codec that leaves the inversion in draws them the other way round.
     [Test]
@@ -127,6 +277,24 @@ public class JpegDecodeTests
         table.CopyTo(copy, end);
         jpeg.AsSpan(end).CopyTo(copy.AsSpan(end + table.Length));
         return copy;
+    }
+
+    // The file without any segment of this marker before its first scan.
+    private static byte[] WithoutSegments(byte[] jpeg, byte marker)
+    {
+        var kept = new System.IO.MemoryStream();
+        kept.Write(jpeg, 0, 2);
+        var at = 2;
+        while (at + 4 <= jpeg.Length && jpeg[at] == 0xFF && jpeg[at + 1] != 0xDA)
+        {
+            var length = 2 + ((jpeg[at + 2] << 8) | jpeg[at + 3]);
+            if (jpeg[at + 1] != marker)
+                kept.Write(jpeg, at, length);
+            at += length;
+        }
+
+        kept.Write(jpeg, at, jpeg.Length - at);
+        return kept.ToArray();
     }
 
     private static byte[] Asset(string name)
