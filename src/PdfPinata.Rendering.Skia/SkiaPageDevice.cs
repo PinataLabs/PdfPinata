@@ -207,6 +207,10 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
     /// inversion is undone as <see cref="PageDevice.DecodeImage"/> says it must be. Each ink is
     /// then read to within one level of 255, because a copy's constant is 128 and Skia's product
     /// with it halves what it multiplies.
+    /// <para>
+    /// No file reaches the codec unless <see cref="JpegStructure"/> passes it, because the codec
+    /// ends the process on a file libjpeg-turbo calls fatal.
+    /// </para>
     /// </remarks>
     /// <param name="codec">What <paramref name="data"/> is encoded as.</param>
     /// <param name="data">The encoded bytes.</param>
@@ -254,6 +258,9 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
     private static byte[] DecodeSamples(ReadOnlyMemory<byte> data, out int width, out int height)
     {
         width = height = 0;
+        if (!JpegStructure.IsWellFormed(data.Span))
+            return null;
+
         using var skData = SKData.CreateCopy(data.Span);
         using var decoder = SKCodec.Create(skData);
         if (decoder == null || decoder.EncodedFormat != SKEncodedImageFormat.Jpeg)

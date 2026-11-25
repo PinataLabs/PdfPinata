@@ -113,6 +113,23 @@ in step.
   file's own decode is never made, as its size is in the header and a JPEG has no alpha. A file
   that defines or uses all four identifiers cannot be copied, and is declined and reported as an
   unsupported image.
+- **The Skia device reads a JPEG's markers before the codec does** (#425). On Windows x64,
+  SkiaSharp 4.156.0 to 4.159.0-rc.1 end the process with an access violation whenever
+  libjpeg-turbo raises a fatal error, and 3.119 does not; an upgrade does not help, and nothing
+  catches it. So `JpegStructure.IsWellFormed` repeats libjpeg-turbo 3.1's fatal checks, and the
+  three in Skia's `SkJpegCodec` (a skipped segment longer than the file, a hundredth scan, and
+  whatever libjpeg-turbo raises), and a file that fails one is never handed over. Each check is
+  named by its `JERR_` code in the source. It is in the Skia package and not the core because
+  the hazard is that codec's, and a device on another decoder has no use for libjpeg-turbo's
+  rules. Damaged or short data is only a warning there and is still drawn. Four refusals are
+  wider than the codec's own, each because the fatal case cannot be told apart without
+  decoding: an arithmetic-coded frame (its decoder calls running out of data fatal), a lossless
+  frame, a progressive scan of first DC bits whose table and size allow the running DC value to
+  overflow an `int` (above about 67 million pixels with an encoder's usual table), and a file
+  cut short inside a segment. What remains fatal is the codec running out of memory, which
+  `MaximumSamples` bounds and does not rule out. The checks came from reading the sources and
+  were confirmed by decoding mutated files in child processes, never in the test host: remove
+  the guard only with a SkiaSharp that answers `InvalidInput` for the files `CorruptJpeg` makes.
 
 ## The interpreter
 
