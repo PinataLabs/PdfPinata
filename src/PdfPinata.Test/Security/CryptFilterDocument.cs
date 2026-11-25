@@ -87,7 +87,7 @@ internal sealed class CryptFilterDocument
     private const int Permissions = -4;
 
     /// <summary>At revision 6 the file key is chosen rather than derived, and stored under each password.</summary>
-    private static readonly byte[] Aes256FileKey = Enumerable.Range(0, 32).Select(i => (byte)(0x40 + 3 * i)).ToArray();
+    public byte[] Aes256FileKey { get; init; } = Enumerable.Range(0, 32).Select(i => (byte)(0x40 + 3 * i)).ToArray();
 
     public byte[] FileKey => Aes256 ? Aes256FileKey
         : StandardSecurity.FileKey(StandardSecurity.Pad(""), Owner, Permissions, Id, 4, 16, EncryptMetadata);

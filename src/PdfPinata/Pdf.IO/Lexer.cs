@@ -655,6 +655,12 @@ public class Lexer
     internal bool TokenIsLittleEndian { get; private set; }
 
     /// <summary>
+    /// Whether the UTF-16 string last scanned held an odd number of bytes, so that the zero
+    /// completing its last character is not in the file.
+    /// </summary>
+    internal bool TokenIsOddLength { get; private set; }
+
+    /// <summary>
     /// Decodes the bytes <see cref="ScanLiteralStringBytes"/> has gathered in the token as UTF-16
     /// when they open with a byte order mark, and says which kind of string they turned out to be.
     /// UTF-16BE Unicode strings start with U+FEFF. There can be empty strings with UTF-16BE prefix.
@@ -662,6 +668,7 @@ public class Lexer
     private Symbol DecodeLiteralString()
     {
         TokenIsLittleEndian = false;
+        TokenIsOddLength = false;
         if (CharacterScanning.StartsWithUtf16BigEndianMark(_token))
         {
             DecodeUtf16Token(bigEndian: true);
@@ -699,6 +706,7 @@ public class Lexer
             // rather than the character. See LexerUnicodeStringTests.
             temp.Append('\0');
             ++length;
+            TokenIsOddLength = true;
         }
         _token = new StringBuilder();
         for (var i = 2; i < length; i += 2)
@@ -775,6 +783,7 @@ public class Lexer
     /// </summary>
     private Symbol DecodeHexString()
     {
+        TokenIsOddLength = false;
         var chars = _token.ToString();
         var count = chars.Length;
         if (count <= 2 || !CharacterScanning.StartsWithUtf16BigEndianMark(chars.AsSpan()))
@@ -787,6 +796,7 @@ public class Lexer
         {
             chars += '\0';
             ++count;
+            TokenIsOddLength = true;
         }
         _token.Length = 0;
         for (var idx = 2; idx < count; idx += 2)

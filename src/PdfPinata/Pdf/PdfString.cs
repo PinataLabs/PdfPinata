@@ -103,6 +103,10 @@ internal enum PdfStringFlags
     Unicode = 0x06,
     EncodingMask = 0x0F,
 
+    // A Unicode string the file holds an odd number of bytes of. The lexer completes its last
+    // character with a zero byte, which its bytes as the file holds them do not include.
+    OddLength = 0x20,
+
     // A Unicode string whose bytes opened FF FE, which the lexer reads as UTF-16LE and writes
     // back the way it came. Without it the byte order is lost: Unicode alone means FE FF.
     LittleEndianMark = 0x40,
@@ -224,6 +228,7 @@ public sealed class PdfString : PdfItem
     /// </remarks>
     internal static PdfString FromEncryptionValue(byte[] value, PdfStringFlags flags)
     {
+        flags &= ~PdfStringFlags.OddLength;
         if ((flags & PdfStringFlags.LittleEndianMark) != 0)
         {
             // The lexer took the ciphertext's first two bytes for a mark. They said nothing about

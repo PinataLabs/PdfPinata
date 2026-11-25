@@ -80,6 +80,38 @@ internal static class PdfItemValues
     }
 
     /// <summary>
+    /// The bytes of a string as the file holds them. The lexer takes a string opening FE FF for
+    /// UTF-16BE text, decodes it and drops the mark, which is right for text and wrong for bytes
+    /// that open so by chance - a palette, a key in an encryption dictionary, a document
+    /// identifier - so the mark is put back, and the zero the lexer completed an odd number of
+    /// bytes with is taken off. A string read as FF FE keeps the mark in its bytes.
+    /// </summary>
+    internal static bool TryGetBytes(PdfItem item, out byte[] value)
+    {
+        switch (PdfReference.Dereference(item))
+        {
+            case PdfString text:
+                value = AsInFile(text.EncryptionValue, text.Flags);
+                return true;
+
+            case PdfStringObject textObject:
+                value = AsInFile(textObject.EncryptionValue, textObject.Flags);
+                return true;
+
+            default:
+                value = null;
+                return false;
+        }
+
+        static byte[] AsInFile(byte[] bytes, PdfStringFlags flags)
+        {
+            if ((flags & PdfStringFlags.EncodingMask) == PdfStringFlags.Unicode && !PdfString.IsLittleEndianMark(flags))
+                bytes = [0xFE, 0xFF, .. bytes];
+            return (flags & PdfStringFlags.OddLength) != 0 ? bytes[..^1] : bytes;
+        }
+    }
+
+    /// <summary>
     /// The text of a string, or of a name where <paramref name="allowName"/> says a name will do,
     /// in which case it keeps the slash it is written with.
     /// </summary>

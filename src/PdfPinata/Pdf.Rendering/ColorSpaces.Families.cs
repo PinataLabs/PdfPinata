@@ -77,30 +77,12 @@ internal static partial class ColorSpaces
 
     private static byte[] TableOf(PdfItem lookup)
     {
-        switch (lookup)
-        {
-            case PdfString text:
-                return BytesOf(text.EncryptionValue, text.Encoding == PdfStringEncoding.Unicode && !text.IsLittleEndian);
-
-            case PdfStringObject textObject:
-                return BytesOf(textObject.EncryptionValue,
-                    textObject.Encoding == PdfStringEncoding.Unicode && !textObject.IsLittleEndian);
-
-            case PdfDictionary stream when PdfContentStreams.TryGetContent(stream, out var content):
-                return content;
-
-            default:
-                return null;
-        }
+        if (PdfItemValues.TryGetBytes(lookup, out var bytes))
+            return bytes;
+        return lookup is PdfDictionary stream && PdfContentStreams.TryGetContent(stream, out var content)
+            ? content
+            : null;
     }
-
-    /// <summary>
-    /// The lexer takes a leading FE FF off a string and calls it Unicode, which is right for text
-    /// and wrong for a palette whose first entry starts with those bytes, so it is put back. A
-    /// leading FF FE is kept in the bytes of a string that says it was read that way.
-    /// </summary>
-    private static byte[] BytesOf(byte[] value, bool bigEndianUnicode) =>
-        bigEndianUnicode ? [0xFE, 0xFF, .. value] : value;
 
     private static RenderColorSpace ResolveIccBased(PdfArray array, DiagnosticSink sink, List<PdfItem> open)
     {
