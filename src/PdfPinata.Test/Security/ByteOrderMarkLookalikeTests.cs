@@ -113,11 +113,11 @@ public class ByteOrderMarkLookalikeTests
     }
 
     [Test]
-    [Arguments(@"(\376\377)")]
-    [Arguments("<FEFF41>")]
-    [Arguments(@"(\376\377A)")]
-    [Arguments(@"(\377\376A)")]
-    public void AnIdentifierReadAsTextIsWrittenAsTheBytesTheKeyIsDerivedFrom(string identifier)
+    [Arguments(@"(\376\377)", "FEFF")]
+    [Arguments("<FEFF41>", "FEFF41")]
+    [Arguments(@"(\376\377A)", "FEFF41")]
+    [Arguments(@"(\377\376A)", "FFFE41")]
+    public void AnIdentifierReadAsTextIsWrittenAsTheBytesTheKeyIsDerivedFrom(string identifier, string bytesInTheFile)
     {
         var plain = new PdfDocument();
         plain.AddPage();
@@ -129,7 +129,9 @@ public class ByteOrderMarkLookalikeTests
 
         var bytes = Saved.Bytes(read);
 
-        new StandardSecurity(bytes, UserPassword).DerivedKeyMatchesTheDocument.Should().BeTrue();
+        var security = new StandardSecurity(bytes, UserPassword);
+        security.Entries.Id.Should().Equal(System.Convert.FromHexString(bytesInTheFile), "the identifier is written as the bytes it was read as");
+        security.DerivedKeyMatchesTheDocument.Should().BeTrue();
         using var reopened = Pdf.IO.PdfReader.Open(new MemoryStream(bytes), UserPassword, PdfDocumentOpenMode.Import);
         reopened.PageCount.Should().Be(1);
     }
