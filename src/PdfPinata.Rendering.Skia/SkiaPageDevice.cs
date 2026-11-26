@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf.Rendering;
 using SkiaSharp;
@@ -25,6 +26,15 @@ namespace PdfPinata.Rendering.Skia;
 /// and a Skia shader for each shading and pattern. It does not own the canvas.
 /// </para>
 /// <para>
+/// A canvas that records, such as an <see cref="SKPictureRecorder"/>'s, keeps a copy of every
+/// path drawn onto it. Over one, this device draws each path page rendering builds afresh, such
+/// as a glyph past the outline budget or a path repeated through a form XObject, as a path of its
+/// own, and the picture holds every one.
+/// <see cref="SkiaPageRendering.ToSKPicture(PdfPinata.Pdf.PdfPage, PageRenderOptions)"/> draws
+/// identical paths through one Skia path from their second draw, so the picture holds them at
+/// most twice.
+/// </para>
+/// <para>
 /// It draws every shader page rendering hands over: gradients as Skia's own, a mesh and a tiling
 /// pattern's cell each as a picture that Skia repeats or does not.
 /// </para>
@@ -37,6 +47,11 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
     private readonly bool _antiAlias;
     private readonly SKPaint _paint;
     private readonly Dictionary<PagePath, SKPath> _sharedPaths = [];
+
+    // Recording only: the content of each unshared path drawn, by its hash, and the paths whose
+    // content was drawn again, by that content. Null for a canvas that does not record.
+    private readonly HashSet<int> _drawnContent;
+    private readonly Dictionary<PagePath, SKPath> _repeatedPaths;
     private readonly Dictionary<PageShader, SKShader> _sharedShaders = [];
 
     // The most samples one image may have, as the core limits one, so that a JPEG whose header
@@ -48,12 +63,26 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
     /// <param name="antiAlias">Whether fills, strokes, clips and images are drawn with smoothed edges.</param>
     /// <exception cref="ArgumentNullException"><paramref name="canvas"/> is null.</exception>
     public SkiaPageDevice(SKCanvas canvas, bool antiAlias = true)
+        : this(canvas, antiAlias, recording: false)
+    {
+    }
+
+    // Recording, the canvas is an SKPictureRecorder's, which keeps every path drawn onto it.
+    // A picture shares the points of one SKPath drawn twice, and not of two built alike, so
+    // the device draws content it has drawn before through one SKPath, which the picture holds
+    // anyway. Content drawn once is not kept, so a page of distinct glyphs costs no more.
+    internal SkiaPageDevice(SKCanvas canvas, bool antiAlias, bool recording)
     {
         ArgumentNullException.ThrowIfNull(canvas);
         _canvas = canvas;
         _base = canvas.TotalMatrix;
         _antiAlias = antiAlias;
         _paint = new SKPaint { IsAntialias = antiAlias };
+        if (recording)
+        {
+            _drawnContent = [];
+            _repeatedPaths = new(SameContent.Instance);
+        }
     }
 
     /// <inheritdoc />
@@ -289,6 +318,13 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
         foreach (var path in _sharedPaths.Values)
             path.Dispose();
         _sharedPaths.Clear();
+        if (_repeatedPaths != null)
+        {
+            foreach (var path in _repeatedPaths.Values)
+                path.Dispose();
+            _repeatedPaths.Clear();
+            _drawnContent.Clear();
+        }
         foreach (var shader in _sharedShaders.Values)
             shader.Dispose();
         _sharedShaders.Clear();
@@ -458,7 +494,7 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
         var tile = Rect(tiling.Tile);
         using var recorder = new SKPictureRecorder();
         var canvas = recorder.BeginRecording(tile);
-        using (var cell = new SkiaPageDevice(canvas, _antiAlias))
+        using (var cell = new SkiaPageDevice(canvas, _antiAlias, recording: true))
             tiling.Cell.Replay(cell, XMatrix.Identity);
         using var picture = recorder.EndRecording();
         return PictureShader(picture, tile, SKShaderTileMode.Repeat, _antiAlias ? SKFilterMode.Linear : SKFilterMode.Nearest);
@@ -496,19 +532,32 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
 
     // The path a call draws. A glyph outline is handed over again, so its path is kept until the
     // device is disposed; any other is made for this call, and handed back as owned to be freed.
+    // While recording, a path whose content is drawn a second time is kept from then on, by that
+    // content, so the picture holds it at most twice; content drawn once is freed as before.
     private SKPath PathOf(PagePath path, XFillMode fillMode, out SKPath owned)
     {
         ArgumentNullException.ThrowIfNull(path);
         owned = null;
-        if (!_sharedPaths.TryGetValue(path, out var skPath))
+        if (path.IsShared)
         {
-            skPath = Build(path);
-            if (path.IsShared)
-                _sharedPaths.Add(path, skPath);
-            else
-                owned = skPath;
+            if (!_sharedPaths.TryGetValue(path, out var shared))
+                _sharedPaths.Add(path, shared = Build(path));
+            return WithFill(shared, fillMode);
         }
 
+        if (_repeatedPaths != null && !_drawnContent.Add(SameContent.Instance.GetHashCode(path)))
+        {
+            if (!_repeatedPaths.TryGetValue(path, out var repeated))
+                _repeatedPaths.Add(path, repeated = Build(path));
+            return WithFill(repeated, fillMode);
+        }
+
+        owned = Build(path);
+        return WithFill(owned, fillMode);
+    }
+
+    private static SKPath WithFill(SKPath skPath, XFillMode fillMode)
+    {
         skPath.FillType = fillMode == XFillMode.Alternate ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
         return skPath;
     }
@@ -542,4 +591,26 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
     }
 
     private static SKPoint Point(XPoint point) => new((float)point.X, (float)point.Y);
+
+    // Two paths are the same when their verbs and the bits of their points are, so that a NaN
+    // matches itself and 0 does not match -0.
+    private sealed class SameContent : IEqualityComparer<PagePath>
+    {
+        public static readonly SameContent Instance = new();
+
+        public bool Equals(PagePath x, PagePath y) =>
+            ReferenceEquals(x, y)
+            || (x != null && y != null
+                && MemoryMarshal.AsBytes(x.Verbs).SequenceEqual(MemoryMarshal.AsBytes(y.Verbs))
+                && MemoryMarshal.AsBytes(x.Points).SequenceEqual(MemoryMarshal.AsBytes(y.Points)));
+
+        public int GetHashCode(PagePath path)
+        {
+            var hash = new HashCode();
+            hash.Add(path.Verbs.Length);
+            foreach (var bits in MemoryMarshal.Cast<XPoint, long>(path.Points))
+                hash.Add(bits);
+            return hash.ToHashCode();
+        }
+    }
 }

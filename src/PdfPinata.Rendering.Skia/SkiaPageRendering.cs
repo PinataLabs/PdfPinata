@@ -52,7 +52,7 @@ public static class SkiaPageRendering
         ArgumentNullException.ThrowIfNull(page);
         ArgumentNullException.ThrowIfNull(canvas);
         var view = ViewOf(page, options);
-        return Render(page, canvas, view, options ?? Defaults);
+        return Render(page, canvas, view, options ?? Defaults, recording: false);
     }
 
     /// <summary>Draws a page of a document onto a canvas.</summary>
@@ -69,6 +69,14 @@ public static class SkiaPageRendering
     /// <summary>
     /// Records a page as a picture, whose cull rectangle is the region in pixels.
     /// </summary>
+    /// <remarks>
+    /// A picture holds every path drawn into it, where a bitmap holds only pixels. Paths with the
+    /// same points are recorded at most twice however often they are drawn, such as a form XObject
+    /// repeated across the page or a glyph set many times. Distinct paths each cost the picture
+    /// their points, a glyph outline included, so a page that sets many different glyphs of a
+    /// large font may make a picture far larger than its bitmap. While recording, a path drawn
+    /// more than once is also kept until the method returns.
+    /// </remarks>
     /// <param name="page">The page.</param>
     /// <param name="options">How to render it, or null for the defaults.</param>
     /// <returns>The picture. The caller disposes it.</returns>
@@ -84,7 +92,7 @@ public static class SkiaPageRendering
         var view = ViewOf(page, options);
         using var recorder = new SKPictureRecorder();
         var canvas = recorder.BeginRecording(SKRect.Create(view.PixelWidth, view.PixelHeight));
-        Render(page, canvas, view, options ?? Defaults);
+        Render(page, canvas, view, options ?? Defaults, recording: true);
         return recorder.EndRecording();
     }
 
@@ -180,7 +188,8 @@ public static class SkiaPageRendering
         return PageView.Of(page, options.Box, options.Scale, options.Region);
     }
 
-    private static PageRenderResult Render(PdfPage page, SKCanvas canvas, PageView view, PageRenderOptions options)
+    private static PageRenderResult Render(PdfPage page, SKCanvas canvas, PageView view, PageRenderOptions options,
+        bool recording)
     {
         // Whole pixels, so that the last column and row are painted and clipped all the way across
         // rather than blended into whatever the canvas held.
@@ -192,7 +201,7 @@ public static class SkiaPageRendering
                 canvas.DrawRect(region, background);
             canvas.ClipRect(region, SKClipOperation.Intersect, antialias: false);
 
-            using var device = new SkiaPageDevice(canvas, options.AntiAlias);
+            using var device = new SkiaPageDevice(canvas, options.AntiAlias, recording);
             return PageRendering.Render(page, device, view, annotations: options.Annotations,
                 optionalContent: options.OptionalContent);
         }
@@ -221,7 +230,7 @@ public static class SkiaPageRendering
         {
             bitmap.Erase(SKColors.Transparent);
             using (var canvas = new SKCanvas(bitmap))
-                result = Render(page, canvas, view, options ?? Defaults);
+                result = Render(page, canvas, view, options ?? Defaults, recording: false);
             return bitmap;
         }
         catch

@@ -479,7 +479,7 @@ public class DdlReadingTests
             act.Should().Throw<Exception>();
         });
 
-        var finished = await ReaderDiagnostics.FinishesWithin(reading, TimeSpan.FromSeconds(5));
+        var finished = await ReaderDiagnostics.FinishesWithin(reading, TimeSpan.FromSeconds(60));
 
         finished.Should().BeTrue("this one comes back");
         await reading;

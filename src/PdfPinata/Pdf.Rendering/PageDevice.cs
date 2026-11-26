@@ -31,7 +31,9 @@ namespace PdfPinata.Pdf.Rendering;
 /// widths and split by text render mode. Its <see cref="PagePath"/> is the same instance each time
 /// that glyph is drawn and says so through <see cref="PagePath.IsShared"/>, which is what a device
 /// caches on. A font that has drawn more outline than page rendering keeps hands its other glyphs
-/// over unshared, so a device keeps no more of them than page rendering does.
+/// over unshared, so a device that caches by <see cref="PagePath.IsShared"/> keeps no more of them
+/// than page rendering does. A device that records rather than drawing pixels, such as one over a
+/// Skia picture, keeps every path it is handed, unless it draws identical ones as one.
 /// </para>
 /// <para>
 /// <b>An abstract class and not an interface</b>, so that it can grow. Shadings and patterns

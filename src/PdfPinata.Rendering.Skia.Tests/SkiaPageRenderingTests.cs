@@ -226,6 +226,17 @@ public class SkiaPageRenderingTests
     }
 
     [Test]
+    public void APictureHoldsAPathDrawnAgainAndAgainOnce()
+    {
+        // Each Do hands the device a new path of the same 6,001 points, which a picture would
+        // otherwise keep one copy of per draw: about 50 KB each, serialized.
+        var eight = SerializedPictureBytes(draws: 8);
+        var sixtyFour = SerializedPictureBytes(draws: 64);
+
+        sixtyFour.Should().BeLessThan(2 * eight, "eight times the draws of one path must not hold eight times its points");
+    }
+
+    [Test]
     public void TheEncodedImageIsThePage()
     {
         using var stream = new MemoryStream();
@@ -385,6 +396,30 @@ public class SkiaPageRenderingTests
         bitmap.GetPixel(50, 30).Should().Be(SKColors.White);
         bitmap.GetPixel(26, 110).Should().Be(SKColors.Red, "the red fill shows through the glyph it is clipped to");
         bitmap.GetPixel(100, 110).Should().Be(SKColors.White, "and nowhere else");
+    }
+
+    // A form XObject filling one dense path, drawn that many times across the page.
+    private static long SerializedPictureBytes(int draws)
+    {
+        var path = new System.Text.StringBuilder("0 0 m");
+        for (var curve = 0; curve < 2000; curve++)
+            path.Append(System.Globalization.CultureInfo.InvariantCulture, $" {curve % 7} {curve % 5} {curve % 3} {curve % 11} {curve % 13} {curve % 9} c");
+        path.Append(" h f");
+
+        var content = new System.Text.StringBuilder();
+        for (var draw = 0; draw < draws; draw++)
+            content.Append(System.Globalization.CultureInfo.InvariantCulture, $"q 1 0 0 1 {draw % 16 * 12} {draw / 16 * 12} cm /Fm Do Q ");
+
+        var page = Page(content.ToString(), (document, added) =>
+        {
+            var form = HandWritten.Stream(document, path.ToString(),
+                ("/Type", "/XObject"), ("/Subtype", "/Form"), ("/BBox", "[0 0 13 13]"));
+            HandWritten.Resource(document, added, "/XObject", "/Fm", form);
+        });
+
+        using var picture = page.ToSKPicture();
+        using var data = picture.Serialize();
+        return data.Size;
     }
 
     private static PdfPage Page(string content, Action<PdfPage> page = null) =>

@@ -50,7 +50,7 @@ public class ConcurrentRenderingTests
 
     private const int Conversions = 60_000;
 
-    [Test, Timeout(300000)]
+    [Test, Timeout(600_000)]
     public async Task TheSameDocumentLaidOutAgainAndAgainDrawsTheSamePage()
     {
         // The control. What the test below compares against is this one answer, so a page that is

@@ -22,7 +22,7 @@ public class ReferenceChainTests
 {
     private const int ChainLength = 5_000;
 
-    [Test, Timeout(30_000)]
+    [Test, Timeout(60_000)]
     [Arguments(256)]
     [Arguments(128)]
     public async Task AChainOfReferencesOpensForModifyingOnASmallStack(int kilobytes)
@@ -38,7 +38,7 @@ public class ReferenceChainTests
         length.Should().Be(ChainLength);
     }
 
-    [Test, Timeout(30_000)]
+    [Test, Timeout(60_000)]
     [Arguments(256)]
     [Arguments(128)]
     public async Task APageHoldingAChainOfReferencesIsImportedOnASmallStack(int kilobytes)

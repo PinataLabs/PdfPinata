@@ -47,9 +47,9 @@ internal sealed class CalculatorFunction : PdfFunction
             return Invalid(sink, subject, "A calculator function has a /Range.");
 
         // One byte past the most that is read, to know a program longer than that from one as long.
-        var source = work.Decode(dictionary, MaximumLength + 1);
+        var source = work.Decode(dictionary, MaximumLength + 1, out var refused);
         if (source == null)
-            return Undecodable(work, sink, subject, "A calculator function's program cannot be decoded.");
+            return Undecodable(refused, sink, subject, "A calculator function's program cannot be decoded.");
 
         if (source.Length > MaximumLength)
         {
