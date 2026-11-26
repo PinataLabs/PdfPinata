@@ -11,10 +11,10 @@ namespace PdfPinata.Pdf.Rendering;
 /// <remarks>
 /// A function is kept by the identity of its dictionary, so a stitching whose pieces all name one
 /// function, nested a few deep, is read in as many steps as it has objects and not in as many as
-/// it has paths through them. One that cannot be read is kept as that, so that a stream which
-/// fails to decode is decoded and reported once, however many shadings name it. A file can
-/// still hold many functions that are each different, and <see cref="MaximumReads"/> bounds
-/// those; the streams they decode are charged to the render's <see cref="ShadingWork"/>.
+/// it has paths through them. One that cannot be read is kept as that, with why, so that a stream
+/// which fails to decode is decoded once, however many shadings name it, and each of them is
+/// reported for it. A file can still hold many functions that are each different, and
+/// <see cref="MaximumReads"/> bounds those; the streams they decode are charged to the render's <see cref="ShadingWork"/>.
 /// </remarks>
 internal sealed class FunctionReader(DiagnosticSink sink, ShadingWork work)
 {
@@ -22,8 +22,10 @@ internal sealed class FunctionReader(DiagnosticSink sink, ShadingWork work)
     internal const int MaximumReads = 4096;
 
     // Each function read, with how deep it nests below itself: a function read where it nests
-    // within the limit may be named again where it would not. Null for one that could not be.
-    private readonly Dictionary<object, (PdfFunction Function, int Height)> _read = new(ReferenceIdentity.Instance);
+    // within the limit may be named again where it would not. Null for one that could not be,
+    // with the problem and the reason it was reported with.
+    private readonly Dictionary<object, (PdfFunction Function, int Height, (PageRenderProblem Problem, string Message) Failure)> _read =
+        new(ReferenceIdentity.Instance);
 
     // The functions being read, from the outermost in: one named again among them is made of itself.
     private readonly HashSet<object> _active = new(ReferenceIdentity.Instance);
@@ -53,7 +55,10 @@ internal sealed class FunctionReader(DiagnosticSink sink, ShadingWork work)
         if (_read.TryGetValue(key, out var known))
         {
             if (known.Function == null)
+            {
+                sink.Report(known.Failure.Problem, subject, known.Failure.Message);
                 return null;
+            }
 
             if (depth + known.Height > PdfFunction.MaximumDepth)
                 return TooDeep(subject);
@@ -82,8 +87,9 @@ internal sealed class FunctionReader(DiagnosticSink sink, ShadingWork work)
 
             // A stitching that fails may fail for where it was named, too deep or inside itself,
             // and is read again where it is named next. What it is made of is kept either way.
+            // Any other that fails reported why last, as every read that answers null does.
             if (function != null || !IsStitching(dictionary))
-                _read.Add(key, (function, height));
+                _read.Add(key, (function, height, function == null ? sink.Last : default));
             return function;
         }
         finally

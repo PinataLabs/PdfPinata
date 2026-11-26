@@ -55,6 +55,13 @@ internal static class MeshReader
         if (colors.Work.IsSpent)
             return null;
 
+        if (!read && colors.Work.HasDecodedAll)
+        {
+            sink.Report(PageRenderProblem.LimitReached, subject,
+                "The page's shadings decode more than one render reads. This one is not drawn.");
+            return null;
+        }
+
         if (!read)
         {
             Shadings.Invalid(sink, subject, "The shading's mesh is not laid out as its type is.");

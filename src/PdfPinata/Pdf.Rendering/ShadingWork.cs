@@ -10,8 +10,11 @@ namespace PdfPinata.Pdf.Rendering;
 /// </summary>
 /// <remarks>
 /// A limit on one shading does not bound a page, which may hold a thousand shadings that each
-/// stay inside it, or paint one shading a thousand times that is read each time. Once either
-/// budget is spent, a shading being read is not drawn, and none is read after it.
+/// stay inside it, or paint one shading a thousand times that is read each time. The two
+/// budgets stop different things. Once the work is spent, a shading being read is not drawn,
+/// and none is read after it. Once the bytes are spent, no stream is decoded, so a function or
+/// a mesh not yet read is not drawn; a shading that decodes nothing, or whose function was read
+/// already, still is.
 /// </remarks>
 internal sealed class ShadingWork
 {
@@ -34,7 +37,11 @@ internal sealed class ShadingWork
     private long _left = Maximum;
     private long _bytesLeft = MaximumBytes;
 
-    internal bool IsSpent => _left < 0 || _bytesLeft < 0;
+    /// <summary>Whether the render has done all the work it may: no colour or triangle is made after it.</summary>
+    internal bool IsSpent => _left < 0;
+
+    /// <summary>Whether the render has decoded all it may: no stream is decoded after it.</summary>
+    internal bool HasDecodedAll => _bytesLeft < 0;
 
     internal void Spend(long work) => _left -= work;
 
@@ -44,11 +51,11 @@ internal sealed class ShadingWork
     /// </summary>
     /// <returns>
     /// At most <paramref name="most"/> bytes, or null where the stream cannot be decoded or
-    /// where the render has decoded all it may, which <see cref="IsSpent"/> then says.
+    /// where the render has decoded all it may, which <see cref="HasDecodedAll"/> then says.
     /// </returns>
     internal byte[] Decode(PdfDictionary stream, long most)
     {
-        if (IsSpent)
+        if (HasDecodedAll)
             return null;
 
         var limit = Math.Min(most, _bytesLeft);

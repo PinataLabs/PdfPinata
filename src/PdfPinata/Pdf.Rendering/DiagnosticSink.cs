@@ -30,6 +30,12 @@ internal sealed class DiagnosticSink
     /// </summary>
     internal string Operator { get; set; }
 
+    /// <summary>
+    /// The problem and the reason last reported, whatever its subject and whether or not it was
+    /// kept: what a reader that caches a failure says again for the next subject it fails.
+    /// </summary>
+    internal (PageRenderProblem Problem, string Message) Last { get; private set; }
+
     /// <summary>Records a problem met at the operator being drawn.</summary>
     /// <param name="problem">What sort of problem.</param>
     /// <param name="subject">What it is about. With <paramref name="problem"/>, what makes two reports one entry.</param>
@@ -37,6 +43,7 @@ internal sealed class DiagnosticSink
     internal void Report(PageRenderProblem problem, string subject, string message)
     {
         subject ??= "";
+        Last = (problem, message);
         if (_bySubject.TryGetValue((problem, subject), out var known))
         {
             if (known.Occurrences < int.MaxValue)

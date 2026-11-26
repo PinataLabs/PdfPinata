@@ -122,7 +122,7 @@ internal abstract class PdfFunction
     /// </summary>
     internal static PdfFunction Undecodable(ShadingWork work, DiagnosticSink sink, string subject, string message)
     {
-        if (!work.IsSpent)
+        if (!work.HasDecodedAll)
             return Invalid(sink, subject, message);
 
         sink.Report(PageRenderProblem.LimitReached, subject,
