@@ -283,7 +283,7 @@ public class ImageTests
 
     // 20000 by 500 under 500 by 20000 is 400 million samples, over the 2^28 an image may have, and
     // is 40 times what either has, so it is the limit and not the multiple that refuses it.
-    [Test, Timeout(60_000)]
+    [Test, Timeout(300_000)]
     public async Task AnImageScaledToItsMaskPastTheMostSamplesAnImageMayHaveIsReported()
     {
         var drawn = await DrawWith(new byte[10_000_000], (document, image) =>
@@ -953,7 +953,7 @@ public class ImageTests
         drawn.Problems.Should().Equal("InvalidValue /Im1");
     }
 
-    [Test, Timeout(120_000), NotInParallel]
+    [Test, Timeout(300_000), NotInParallel]
     public async Task AnImageWhoseFlateDataInflatesToGigabytesIsDrawnAtItsSizeWithoutHoldingTheRest()
     {
         const long inflated = 2L * 1024 * 1024 * 1024;

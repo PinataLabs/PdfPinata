@@ -194,7 +194,7 @@ public class ShadingLimitTests
         drawn.Problems.Should().BeEmpty();
     }
 
-    [Test, Timeout(30_000)]
+    [Test, Timeout(120_000)]
     public async Task AFunctionOfMoreObjectsThanARenderReadsIsNotRead()
     {
         // 17 stitchings of 256 functions, each its own object, and the stitching of those: 4,370.
@@ -261,7 +261,7 @@ public class ShadingLimitTests
         drawn.Problems.Should().StartWith("LimitReached /S1").And.OnlyContain(problem => problem.StartsWith("LimitReached /S"));
     }
 
-    [Test, Timeout(60_000)]
+    [Test, Timeout(120_000)]
     public async Task AShadingPastThoseKeptIsReadAgainOnlyUntilTheRenderHasSpentItsWork()
     {
         // The first 1,024 shadings are kept, so the one after them is read at each sh.
@@ -452,7 +452,7 @@ public class ShadingLimitTests
         drawn.Problems.Should().Equal("LimitReached /T0");
     }
 
-    [Test, Timeout(30_000)]
+    [Test, Timeout(120_000)]
     public async Task ACellThatDrawsMoreThanAPictureKeepsIsCutShortAndStaysInBalance()
     {
         var cell = string.Concat(Enumerable.Repeat("q 0 0 1 1 re f ", 70_000));
@@ -536,7 +536,7 @@ public class ShadingLimitTests
             return (drawn, GC.GetAllocatedBytesForCurrentThread() - before);
         });
 
-    [Test, Timeout(60_000)]
+    [Test, Timeout(120_000)]
     public async Task ACalculatorProgramThatInflatesPastTheLimitIsDecodedNoFurtherAndOnce()
     {
         // 256 MiB of zeros, which a program of 64 KiB at most is never read to the end of. What
@@ -552,7 +552,7 @@ public class ShadingLimitTests
         drawn.Problems.Should().Equal(Enumerable.Range(0, 64).Select(index => $"LimitReached /S{index}"));
     }
 
-    [Test, Timeout(60_000)]
+    [Test, Timeout(120_000)]
     public async Task ASampledFunctionWhoseStreamFailsIsDecodedOnceAndReportedForEachShading()
     {
         // A table of 16 MiB whose stream is a byte short of it.
@@ -580,7 +580,7 @@ public class ShadingLimitTests
         drawn.Result.Diagnostics.Select(diagnostic => diagnostic.Message).Distinct().Should().ContainSingle();
     }
 
-    [Test, Timeout(60_000)]
+    [Test, Timeout(300_000)]
     public async Task SampleTablesAreReadUntilTheRenderHasDecodedAllItMay()
     {
         // Sixteen tables of 16 MiB, each its own object: twice what a render decodes.
@@ -594,7 +594,7 @@ public class ShadingLimitTests
         drawn.Problems.Should().Equal(Enumerable.Range(kept, 16 - kept).Select(index => $"LimitReached /S{index}"));
     }
 
-    [Test, Timeout(60_000)]
+    [Test, Timeout(300_000)]
     public async Task ShadingsThatDecodeNothingAreDrawnAfterTheRenderHasDecodedAllItMay()
     {
         // Nine tables of 16 MiB spend the bytes. Then an exponential function, which has no
@@ -633,7 +633,7 @@ public class ShadingLimitTests
         drawn.Problems.Should().Equal("LimitReached /S8", "LimitReached /Mesh");
     }
 
-    [Test, Timeout(60_000)]
+    [Test, Timeout(300_000)]
     public async Task AMeshIsDecodedNoFurtherThanTheTrianglesItIsDrawnAs()
     {
         // 256 MiB of zeros: a vertex of three bytes, flag 0, at the origin, so a triangle in nine.

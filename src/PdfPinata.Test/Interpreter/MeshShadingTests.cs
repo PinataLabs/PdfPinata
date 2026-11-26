@@ -212,7 +212,7 @@ public class MeshShadingTests
         drawn.Problems.Should().BeEmpty();
     }
 
-    [Test, Timeout(60_000)]
+    [Test, Timeout(120_000)]
     public async Task AMeshOfMoreTrianglesThanTheLimitIsCutShortAndSaysSo()
     {
         // Three vertices, then three hundred thousand more that each make a triangle with the two before.

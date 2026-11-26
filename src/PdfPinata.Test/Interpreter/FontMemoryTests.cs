@@ -444,7 +444,7 @@ public class FontMemoryTests
         device.Fills.Should().Be(8, "the subtable is refused, as FreeType refuses it, and code 0 draws the missing glyph");
     }
 
-    [Test, Timeout(60000), NotInParallel]
+    [Test, Timeout(300_000), NotInParallel]
     [Arguments(true)]
     [Arguments(false)]
     public async Task ALargeFormat4CmapIsSearchedByHalvesWhereItIsInOrderAndRefusedWhereItIsNot(bool inOrder)

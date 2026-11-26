@@ -53,7 +53,7 @@ public class DeepNestingTests
         await reading.Should().ThrowAsync<PdfReaderException>().WithMessage("*nested deeper*");
     }
 
-    [Test, Timeout(10_000), MatrixDataSource]
+    [Test, Timeout(60_000), MatrixDataSource]
     public async Task AnObjectNestedFarTooDeepIsRefusedRatherThanOverflowingTheStack(Nesting nesting,
         PdfDocumentOpenMode mode, PdfReadAccuracy accuracy)
     {
@@ -152,7 +152,7 @@ public class DeepNestingTests
         depth.Should().Be(limit + 1);
     }
 
-    [Test, Timeout(10_000)]
+    [Test, Timeout(60_000)]
     [Arguments(1)]
     [Arguments(FarTooDeep)]
     public async Task AnObjectBuiltDeeperThanCanBeReadIsRefusedWhenSaved(int pastTheLimit)

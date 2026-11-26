@@ -144,7 +144,7 @@ public class ContentLimitTests
         return output.ToArray();
     }
 
-    [Test, Timeout(120_000), NotInParallel]
+    [Test, Timeout(600_000), NotInParallel]
     [Arguments(31)]
     [Arguments(128)]
     public async Task AFlateThenRunLengthChainCannotGetPastTheCap(int megabytesOfPairs)

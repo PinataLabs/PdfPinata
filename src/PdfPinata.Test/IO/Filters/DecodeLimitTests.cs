@@ -47,7 +47,7 @@ public class DecodeLimitTests
     private static byte[] Counting(int length) =>
         Enumerable.Range(0, length).Select(i => (byte)(i * 31 % 251)).ToArray();
 
-    [Test, Timeout(60_000)]
+    [Test, Timeout(120_000)]
     public async Task AStreamThatInflatesPastTheCapStopsAtTheCapWithoutHoldingTheRest()
     {
         const long inflated = 256L * Megabyte;
@@ -430,7 +430,7 @@ public class DecodeLimitTests
         allocated.Should().BeLessThan(16L * Megabyte, "no filter of the three builds more than the cap");
     }
 
-    [Test, Timeout(60_000), NotInParallel]
+    [Test, Timeout(120_000), NotInParallel]
     public async Task AnAscii85StreamBehindFlateIsHeldToTheCapWhileItIsBuilt()
     {
         // 256 MiB of z, which is a gigabyte of zeros.

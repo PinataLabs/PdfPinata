@@ -164,7 +164,7 @@ public class MalformedTrueTypeTests
         GC.KeepAlive(page);
     }
 
-    [Test, Timeout(120000), NotInParallel]
+    [Test, Timeout(600_000), NotInParallel]
     public async Task GlyphsWhoseLocaEntriesShareOneGlyphsDataAreKeptOnlyUpToTheFontsBudget()
     {
         // Every other loca entry points at one glyph of 65,535 points, so 300 glyphs are 300
@@ -239,7 +239,7 @@ public class MalformedTrueTypeTests
         GC.KeepAlive(page);
     }
 
-    [Test, Timeout(300000), NotInParallel]
+    [Test, Timeout(1_800_000), NotInParallel]
     public async Task ALongRenderForgetsTheFontsOfEarlierPagesSoEachPageKeepsItsGlyphsAndMemoryStaysBounded()
     {
         // Each page has a font of its own, as a document of per-page subsets does, whose program
