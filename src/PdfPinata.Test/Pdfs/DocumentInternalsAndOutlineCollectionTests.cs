@@ -90,6 +90,40 @@ public class DocumentInternalsAndOutlineCollectionTests
         document.Internals.SecondDocumentID.Should().Be("not sixteen bytes at all, this one");
     }
 
+    [Test]
+    public void TheSecondIdentifierIsReadAsTheSecondGuid()
+    {
+        var document = ADocumentOf(1);
+        document.Internals.FirstDocumentID = "first identifier";
+        document.Internals.SecondDocumentID = "secondidentifier";
+
+        document.Internals.SecondDocumentGuid.Should().Be(GuidOf("secondidentifier"u8.ToArray()));
+    }
+
+    /// <summary>
+    ///   An identifier is bytes, and sixteen random ones open with FE FF by chance. The lexer takes
+    ///   such a string for UTF-16 text and decodes it, so a guid built from that text has lost the
+    ///   mark and is no longer sixteen bytes (#444). Saving gives a document a new second
+    ///   identifier, so both are written into the saved file.
+    /// </summary>
+    [Test]
+    public void AnIdentifierOpeningWithAByteOrderMarkIsStillAGuid()
+    {
+        byte[] first = [0xFE, 0xFF, .. Enumerable.Range(1, 14).Select(i => (byte)i)];
+        byte[] second = [0xFE, 0xFF, .. Enumerable.Range(101, 14).Select(i => (byte)i)];
+        var saved = System.Text.Encoding.Latin1.GetString(Saved.Bytes(ADocumentOf(1)));
+        var patched = System.Text.RegularExpressions.Regex.Replace(saved, @"/ID\s*\[\s*<[0-9A-Fa-f]*>\s*<[0-9A-Fa-f]*>",
+            $"/ID [<{Convert.ToHexString(first)}> <{Convert.ToHexString(second)}>");
+        patched.Should().NotBe(saved, "the point of this test is identifiers that open so");
+
+        var read = Saved.Open(System.Text.Encoding.Latin1.GetBytes(patched), PdfDocumentOpenMode.Import);
+
+        read.Internals.FirstDocumentGuid.Should().Be(GuidOf(first));
+        read.Internals.SecondDocumentGuid.Should().Be(GuidOf(second));
+    }
+
+    private static Guid GuidOf(byte[] identifier) => new(Convert.ToHexString(identifier));
+
     /// <summary>
     ///   Creating an object through the document is how a caller gets one that is already numbered
     ///   and already in the table. It goes through the constructor taking a document, and a type

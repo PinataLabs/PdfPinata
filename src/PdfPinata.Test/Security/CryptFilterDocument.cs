@@ -82,8 +82,12 @@ internal sealed class CryptFilterDocument
     /// <summary>Whether the title is written as a literal string rather than as a hex string.</summary>
     public bool LiteralTitle { get; init; }
 
-    private static readonly byte[] Id = Enumerable.Range(0, 16).Select(i => (byte)(i * 17)).ToArray();
-    private static readonly byte[] InitializationVector = Enumerable.Range(0, 16).Select(i => (byte)(0xA0 + i)).ToArray();
+    /// <summary>The document identifier, which the file key of every revision but 6 is derived from.</summary>
+    public byte[] Id { get; init; } = Enumerable.Range(0, 16).Select(i => (byte)(i * 17)).ToArray();
+
+    /// <summary>The initialization vector every AES ciphertext opens with.</summary>
+    public byte[] InitializationVector { get; init; } = Enumerable.Range(0, 16).Select(i => (byte)(0xA0 + i)).ToArray();
+
     private const int Permissions = -4;
 
     /// <summary>At revision 6 the file key is chosen rather than derived, and stored under each password.</summary>
