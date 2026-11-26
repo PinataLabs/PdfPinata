@@ -285,35 +285,39 @@ public class DiagnosticsTests
     [Arguments("2 0 0 2 0 0 cm 1 1 l 0.5 0 0 0.5 0 0 cm ")]
     public async Task ATransformChangedThroughoutOnePathIsDrawnInTimeByItsLength(string repeated)
     {
-        // Rewriting the path at each change grows by the square: twice the changes take four
-        // times as long, where a linear reading takes twice. The two sizes are timed in turn, so
-        // that a stall on a loaded machine falls on both alike, and a ratio over three says
-        // quadratic whatever the machine's speed.
+        // Rewriting the path at each change grows by the square: eight times the changes take
+        // sixty-four times as long, where a linear reading takes eight. The threshold sits a
+        // factor of about three from each, so a stall has to slow one size three times more than
+        // the other to decide it, and the fastest of several interleaved attempts is compared, so
+        // one stall cannot. Twice the changes against a threshold of three, as this was, left
+        // half that margin, and the test failed on loaded runners.
+        //
+        // It is timed because nothing else sees the work: the points are rewritten in place, so
+        // a rewrite at every change allocates nothing, and nothing the interpreter answers counts
+        // how often a point was mapped.
         const int Repeats = 25_000;
+        const int Factor = 8;
         string Content(int times) => "0 0 m " + string.Concat(Enumerable.Repeat(repeated, times)) + "S";
         var small = Content(Repeats);
-        var large = Content(Repeats * 2);
+        var large = Content(Factor * Repeats);
 
-        var (smallest, largest) = await Interruptibly.Run(() =>
+        var ratio = await Interruptibly.Run(() =>
         {
-            var fastest = (Small: TimeSpan.MaxValue, Large: TimeSpan.MaxValue);
-            for (var attempt = 0; attempt < 3; attempt++)
+            Drawn.Page(small);
+            var fastestSmall = long.MaxValue;
+            var fastestLarge = long.MaxValue;
+            for (var attempt = 0; attempt < 5; attempt++)
             {
-                var watch = System.Diagnostics.Stopwatch.StartNew();
-                Drawn.Page(small);
-                if (watch.Elapsed < fastest.Small)
-                    fastest.Small = watch.Elapsed;
-
-                watch.Restart();
-                Drawn.Page(large);
-                if (watch.Elapsed < fastest.Large)
-                    fastest.Large = watch.Elapsed;
+                fastestSmall = Math.Min(fastestSmall, TicksToDraw(small));
+                fastestLarge = Math.Min(fastestLarge, TicksToDraw(large));
+                if ((double)fastestLarge / fastestSmall < MaximumLinearRatio)
+                    break;
             }
 
-            return fastest;
+            return (double)fastestLarge / fastestSmall;
         });
 
-        largest.Should().BeLessThan(smallest * 3, $"twice the changes take about twice as long, and {Repeats} took {smallest}");
+        ratio.Should().BeLessThan(MaximumLinearRatio, "a linear reading takes eight times as long and a quadratic one sixty-four");
 
         var drawn = await Page(small);
         var stroke = drawn.Device.Strokes.Single();
@@ -322,19 +326,41 @@ public class DiagnosticsTests
         drawn.Result.IsComplete.Should().BeTrue();
     }
 
-    [Test, Timeout(20_000)]
+    private const double MaximumLinearRatio = 24;
+
+    private static long TicksToDraw(string content)
+    {
+        var clock = System.Diagnostics.Stopwatch.StartNew();
+        Drawn.Page(content);
+        return clock.ElapsedTicks;
+    }
+
+    [Test, Timeout(60_000)]
     public async Task AFormReachedThousandsOfTimesThroughOtherFormsIsReadOnce()
     {
         // Twelve forms, each drawing the next twice, reach the last of them some two thousand
-        // times before the limit on forms is met. Its stream is long to read and draws nothing,
-        // so what this takes is what reading it takes: most of a minute read every time.
-        var drawn = await Page("/L0 Do", (document, resources) =>
-        {
-            var last = new StringBuilder();
-            for (var index = 0; index < 20_000; index++)
-                last.Append("0 0 1 1 ");
+        // times before the limit on forms is met. The last draws nothing, so what its length
+        // costs is what reading it costs, and that is counted in the bytes reading it allocates
+        // on the one thread that renders, rather than in time, which a loaded machine stretches.
+        // Lengthening it costs a render through the twelve what it costs a page that draws it
+        // straight once, where reading it every time it is reached would cost two thousand times
+        // that. Read every time, 20,000 operands took most of a minute, so this lengthens it by
+        // 1,800, and reading it every time fails the comparison rather than the timeout.
+        static string Long(int operands) => string.Concat(Enumerable.Repeat("0 0 1 1 ", operands));
 
-            var next = Drawn.Form(document, last.ToString());
+        static (Drawn Drawn, long Allocated) Measured(Action<PdfDocument, PdfDictionary> resources)
+        {
+            var before = GC.GetAllocatedBytesForCurrentThread();
+            var drawn = Drawn.Page("/L0 Do", resources);
+            return (drawn, GC.GetAllocatedBytesForCurrentThread() - before);
+        }
+
+        static (Drawn Drawn, long Allocated) Straight(int operands) => Measured((document, resources) =>
+            Drawn.Add(document, resources, "/XObject", "/L0", Drawn.Form(document, Long(operands))));
+
+        static (Drawn Drawn, long Allocated) Nested(int operands) => Measured((document, resources) =>
+        {
+            var next = Drawn.Form(document, Long(operands));
             for (var level = 0; level < 12; level++)
             {
                 var form = Drawn.Form(document, "/N Do /N Do");
@@ -347,9 +373,19 @@ public class DiagnosticsTests
             Drawn.Add(document, resources, "/XObject", "/L0", next);
         });
 
+        var (straight, nested, drawn) = await Interruptibly.Run(() =>
+        {
+            Nested(1);
+            var longer = Nested(2_000);
+            return (Straight(2_000).Allocated - Straight(200).Allocated, longer.Allocated - Nested(200).Allocated, longer.Drawn);
+        });
+
         drawn.Problems.Should().Equal("LimitReached /N");
         // The page saves once, and each of the 4096 forms that may be entered once more.
         drawn.Device.Calls.Count(call => call.Kind == "save").Should().Be(4096 + 1);
+        straight.Should().BePositive("reading the form is what this measures, so reading it has to allocate");
+        nested.Should().BeLessThan(2 * straight,
+            $"the last form is read once however often it is reached, and drawn once straight from the page its length cost {straight} bytes");
     }
 
     [Test, Timeout(30_000)]
