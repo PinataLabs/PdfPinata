@@ -108,6 +108,7 @@ internal sealed class RenderFont
     /// How far a code advances, in text space before the type size is applied: the font
     /// dictionary's own width, or else what the glyph source knows, or else nothing.
     /// </summary>
+    /// <exception cref="FontDataNotReadException">The widths are not kept, and the page has read all the font data it may.</exception>
     internal double WidthOf(int code)
     {
         var stated = _widths.Of(code, _cache);
@@ -129,6 +130,7 @@ internal sealed class RenderFont
     /// type size is applied: the advance, negative for down the page, and the position vector that
     /// is put on the pen. Asked only where <see cref="IsVertical"/>.
     /// </summary>
+    /// <exception cref="FontDataNotReadException">The metrics are not kept, and the page has read all the font data it may.</exception>
     internal (double Advance, double X, double Y) VerticalMetricsOf(int code) => _vertical.Of(code, WidthOf(code), _cache);
 
     /// <summary>
@@ -138,6 +140,10 @@ internal sealed class RenderFont
     /// </summary>
     /// <param name="code">The character code of a simple font, or the CID of a composite one.</param>
     /// <param name="why">Why there is no glyph, where there is none.</param>
+    /// <exception cref="FontDataNotReadException">
+    /// What the glyph is read from is not kept, and the page has read all the font data it may. That
+    /// is true of the page and not of the glyph, so it is not kept as the glyph's answer.
+    /// </exception>
     internal PagePath OutlineOf(int code, out string why)
     {
         if (Source == null)
@@ -174,12 +180,6 @@ internal sealed class RenderFont
             if (outline == null)
                 why = NoGlyph;
         }
-        catch (FontProgramNotReadException ex)
-        {
-            // True of this page and not of the glyph, so it is not kept as the glyph's answer.
-            why = ex.Message;
-            return null;
-        }
         catch (Exception ex) when (IsAboutTheFont(ex))
         {
             why = ex.Message;
@@ -190,9 +190,11 @@ internal sealed class RenderFont
 
     /// <summary>
     /// Whether an exception from a glyph source says the font could not be read, which is
-    /// recorded, and not that the process is out of memory or a seam is unset, which are not.
+    /// recorded, and not that the process is out of memory, a seam is unset or the page has read
+    /// all the font data it may, which are not.
     /// </summary>
-    private static bool IsAboutTheFont(Exception ex) => !Unrecoverable.Is(ex) && ex is not UnsetSeamException;
+    private static bool IsAboutTheFont(Exception ex) =>
+        !Unrecoverable.Is(ex) && ex is not UnsetSeamException and not FontDataNotReadException;
 
     /// <summary>
     /// A composite font's codes are read as two bytes that are the CID, which is what

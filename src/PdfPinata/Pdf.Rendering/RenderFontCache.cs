@@ -13,6 +13,12 @@ internal interface IFontData
     /// first kept.
     /// </summary>
     long HeldBytes { get; }
+
+    /// <summary>
+    /// About how many bytes reading this went through: what was decoded, or what was built. It is
+    /// charged to the page's <see cref="RenderFontCache.PageReadAllowance"/> each time it is read.
+    /// </summary>
+    long ReadBytes { get; }
 }
 
 /// <summary>What a piece of font data is, which with the object it was read from is its key.</summary>
@@ -73,9 +79,10 @@ internal enum FontDataKind
 /// and the next.
 /// </para>
 /// <para>
-/// <b>Time is bounded too.</b> Letting go of a font program and reading it again costs its whole
-/// decoding, so a page may read <see cref="PageProgramReadAllowance"/> of font program and no
-/// more. Past it a font program that would have to be read is not, and its glyphs are reported.
+/// <b>Time is bounded too.</b> Letting go of data and reading it again costs the whole of reading
+/// it, a font program's decoding or a <c>/W</c> table's building, so every read is charged to the
+/// page, and a page may read <see cref="PageReadAllowance"/> of font data and no more. Past it
+/// data that would have to be read is not, and the text that needed it is reported as the limit.
 /// </para>
 /// <para>
 /// Nothing here is synchronised. One page of a document is rendered at a time, as
@@ -100,12 +107,13 @@ internal sealed class RenderFontCache
     internal const long ProgramByteLimit = 64L << 20;
 
     /// <summary>
-    /// The most bytes of font program one page may read, counting each time a program is read
-    /// again after it was let go of. It is sixteen of the largest, which a page that cycles
-    /// through more large fonts than the budget holds can come to; past it a file is making the
-    /// renderer decode for the sake of decoding, at some hundreds of megabytes a second.
+    /// The most bytes of font data one page may read, counting each time data is read again after
+    /// it was let go of: font programs by what they decode to, tables by what they are built in.
+    /// It is sixteen of the largest font programs, which a page that cycles through more large
+    /// fonts than the budget holds can come to, or about 2,000 <c>/W</c> tables; past it a file is
+    /// making the renderer read for the sake of reading, at some hundreds of megabytes a second.
     /// </summary>
-    internal const long PageProgramReadAllowance = 1L << 30;
+    internal const long PageReadAllowance = 1L << 30;
 
     /// <summary>
     /// The most bytes of glyph outline a document keeps for all its fonts: what 1,048,576 points
@@ -140,7 +148,7 @@ internal sealed class RenderFontCache
     private readonly Dictionary<object, OutlineSet> _outlines = new(ReferenceIdentity.Instance);
     private long _dataBytes;
     private long _outlineBytes;
-    private long _programBytesRead;
+    private long _bytesRead;
     private long _clock;
 
     /// <summary>The font for a font dictionary, read the first time it is asked for. Never null.</summary>
@@ -160,13 +168,13 @@ internal sealed class RenderFontCache
     }
 
     /// <summary>
-    /// Called as a page begins: gives the page its allowance of font program to read, and where
+    /// Called as a page begins: gives the page its allowance of font data to read, and where
     /// outlines are over half their budget forgets those of the font programs least recently
     /// drawn from, so that a long render keeps room for each new page's glyphs.
     /// </summary>
     internal void BeginPage()
     {
-        _programBytesRead = 0;
+        _bytesRead = 0;
         if (_fonts.Count > MaximumFontsKept)
             _fonts.Clear();
         if (_outlineBytes <= OutlineByteBudget / 2)
@@ -190,7 +198,10 @@ internal sealed class RenderFontCache
     /// <param name="kind">What the data is.</param>
     /// <param name="source">The object it is read from, which with <paramref name="kind"/> is its key.</param>
     /// <param name="read">Reads it. What this throws is thrown on, and nothing is kept.</param>
-    internal T Data<TSource, T>(FontDataKind kind, TSource source, Func<TSource, RenderFontCache, T> read)
+    /// <exception cref="FontDataNotReadException">
+    /// The data is not kept and the page has read all it may. Nothing is kept of that: the next page may read it.
+    /// </exception>
+    internal T Data<TSource, T>(FontDataKind kind, TSource source, Func<TSource, T> read)
         where TSource : PdfObject
         where T : class, IFontData
     {
@@ -206,7 +217,14 @@ internal sealed class RenderFontCache
             return (T)node.Value.Data;
         }
 
-        var data = read(source, this);
+        if (_bytesRead >= PageReadAllowance)
+        {
+            throw new FontDataNotReadException(
+                $"The page has read {PageReadAllowance >> 20} MiB of font data, and this font's {NameOf(kind)} is not read for it.");
+        }
+
+        var data = read(source);
+        _bytesRead += data.ReadBytes;
         var entry = new FontDataEntry(key, data, DataEntryBytes + data.HeldBytes);
         _data[key] = node = _recent.AddFirst(entry);
         _dataBytes += entry.Bytes;
@@ -221,21 +239,16 @@ internal sealed class RenderFontCache
         return data;
     }
 
-    /// <summary>
-    /// Says a font program is about to be read, and throws where the page has read all it may.
-    /// </summary>
-    /// <exception cref="FontProgramNotReadException">The page has read its allowance of font program.</exception>
-    internal void BeforeProgramRead()
+    private static string NameOf(FontDataKind kind) => kind switch
     {
-        if (_programBytesRead >= PageProgramReadAllowance)
-        {
-            throw new FontProgramNotReadException(
-                $"The page has read {PageProgramReadAllowance >> 20} MiB of font program, and this font's is not read again for it.");
-        }
-    }
-
-    /// <summary>Counts what reading a font program decoded against the page's allowance.</summary>
-    internal void AfterProgramRead(long decoded) => _programBytesRead += decoded;
+        FontDataKind.Program => "font program",
+        FontDataKind.CidToGidMap => "/CIDToGIDMap",
+        FontDataKind.CidWidths => "/W",
+        FontDataKind.VerticalMetrics => "/W2",
+        FontDataKind.SimpleWidths => "/Widths",
+        FontDataKind.SimpleGlyphs => "encoding",
+        _ => kind.ToString()
+    };
 
     /// <summary>The outline kept for a glyph, where one is.</summary>
     /// <param name="owner">What the glyph is a glyph of: see <see cref="PageGlyphSource.OutlineOwner"/>.</param>
@@ -309,7 +322,8 @@ internal sealed class RenderFontCache
 }
 
 /// <summary>
-/// A font program was not read because the page has read all it may. Unlike a font program that
-/// cannot be read, this is true for the page and not for the font, so nothing is kept of it.
+/// Font data was not read because the page has read all it may. Unlike data that cannot be read,
+/// this is true for the page and not for the font, so nothing is kept of it, and it is reported as
+/// <see cref="PageRenderProblem.LimitReached"/> rather than as a glyph the font lacks.
 /// </summary>
-internal sealed class FontProgramNotReadException(string message) : Exception(message);
+internal sealed class FontDataNotReadException(string message) : Exception(message);

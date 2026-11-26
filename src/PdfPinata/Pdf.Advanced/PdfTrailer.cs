@@ -105,12 +105,13 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
     }
 
     /// <summary>
-    /// The bytes of the first document identifier, which the standard security handler derives its
-    /// key from. Not <see cref="GetDocumentID"/>, whose text loses an opening FE FF or FF FE.
+    /// The bytes of the first or second document identifier. The first is what the standard
+    /// security handler derives its key from. Not <see cref="GetDocumentID"/>, whose text loses an
+    /// opening FE FF or FF FE.
     /// </summary>
-    internal byte[] FirstDocumentIDBytes =>
+    internal byte[] DocumentIDBytes(int index) =>
         Elements[Keys.ID] is PdfArray { Elements.Count: >= 2 } array
-        && PdfItemValues.TryGetBytes(array.Elements[0], out var bytes)
+        && PdfItemValues.TryGetBytes(array.Elements[index], out var bytes)
             ? bytes
             : [];
 
@@ -122,7 +123,7 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
     /// </summary>
     internal byte[] PinFirstDocumentIDBytes()
     {
-        var bytes = FirstDocumentIDBytes;
+        var bytes = DocumentIDBytes(0);
         if (Elements[Keys.ID] is PdfArray { Elements.Count: >= 2 } array)
             array.Elements[0] = new PdfString(PdfEncoders.RawEncoding.GetString(bytes, 0, bytes.Length), PdfStringFlags.HexLiteral);
         return bytes;

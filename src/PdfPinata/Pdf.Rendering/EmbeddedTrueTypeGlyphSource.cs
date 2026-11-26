@@ -63,7 +63,7 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
         if (_descendant != null)
             return GlyphOfCid(code, glyphs);
 
-        var simple = _cache.Data(FontDataKind.SimpleGlyphs, _font, static (font, _) => new SimpleFontGlyphs(font));
+        var simple = _cache.Data(FontDataKind.SimpleGlyphs, _font, static font => new SimpleFontGlyphs(font));
         return simple.GlyphOf(code, glyphs);
     }
 
@@ -83,7 +83,7 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
     /// </summary>
     private TrueTypeGlyphs Glyphs()
     {
-        var program = _cache.Data(FontDataKind.Program, _fontFile, static (file, cache) => FontProgram.Read(file, cache));
+        var program = _cache.Data(FontDataKind.Program, _fontFile, FontProgram.Read);
         return program.Glyphs ?? throw new InvalidDataException(program.Unreadable);
     }
 
@@ -98,7 +98,7 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
         var glyph = cid;
         if (PdfReference.Dereference(_descendant.Elements["/CIDToGIDMap"]) is PdfDictionary stream)
         {
-            var map = _cache.Data(FontDataKind.CidToGidMap, stream, static (source, _) => CidToGidMap.Read(source));
+            var map = _cache.Data(FontDataKind.CidToGidMap, stream, CidToGidMap.Read);
             glyph = map.GlyphOf(cid);
         }
 
@@ -121,7 +121,7 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
     /// </remarks>
     private static bool TryRead(PdfDictionary stream, int limit, out byte[] bytes, out bool truncated, out long decoded)
     {
-        if (!PdfContentStreams.TryGetContent(stream, limit, out bytes, out truncated, out decoded))
+        if (!PdfContentStreams.TryGetContent(stream, limit, tolerateDamage: false, out bytes, out truncated, out _, out decoded))
             return false;
 
         if (bytes.Length > limit)
@@ -144,35 +144,34 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
 
         public long HeldBytes => Glyphs?.HeldBytes ?? 64 + 2L * Unreadable.Length;
 
+        /// <summary>What the stream decoded to, which for one past the limit is the limit and not what is held.</summary>
+        public long ReadBytes { get; private init; }
+
         /// <summary>
         /// Reads a <c>/FontFile2</c> stream. One that cannot be read is kept as that, so font
         /// dictionaries that name it do not each decode it to find out.
         /// </summary>
-        /// <exception cref="FontProgramNotReadException">
-        /// The page has read all the font program it may. That is not kept: the next page may read it.
-        /// </exception>
-        public static FontProgram Read(PdfDictionary fontFile, RenderFontCache cache)
+        public static FontProgram Read(PdfDictionary fontFile)
         {
-            cache.BeforeProgramRead();
             var read = TryRead(fontFile, (int)RenderFontCache.ProgramByteLimit, out var bytes, out var truncated, out var decoded);
-            cache.AfterProgramRead(decoded);
             if (!read)
-                return new FontProgram { Unreadable = "The embedded font program's stream cannot be decoded." };
+                return new FontProgram { ReadBytes = decoded, Unreadable = "The embedded font program's stream cannot be decoded." };
             if (truncated)
             {
                 return new FontProgram
                 {
+                    ReadBytes = decoded,
                     Unreadable = $"The embedded font program is larger than {RenderFontCache.ProgramByteLimit >> 20} MiB, and is not read."
                 };
             }
 
             try
             {
-                return new FontProgram { Glyphs = TrueTypeGlyphs.Read(bytes) };
+                return new FontProgram { ReadBytes = decoded, Glyphs = TrueTypeGlyphs.Read(bytes) };
             }
             catch (InvalidDataException ex)
             {
-                return new FontProgram { Unreadable = ex.Message };
+                return new FontProgram { ReadBytes = decoded, Unreadable = ex.Message };
             }
         }
     }
@@ -184,11 +183,13 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
 
         public long HeldBytes => 64 + (_map?.Length ?? 0);
 
+        public long ReadBytes { get; private init; }
+
         /// <summary>Reads the stream as far as the last CID there can be. One that cannot be decoded is kept as that.</summary>
         public static CidToGidMap Read(PdfDictionary stream)
         {
-            TryRead(stream, 2 * (FontWidths.MaximumCid + 1), out var map, out _, out _);
-            return new CidToGidMap { _map = map };
+            TryRead(stream, 2 * (FontWidths.MaximumCid + 1), out var map, out _, out var decoded);
+            return new CidToGidMap { _map = map, ReadBytes = decoded };
         }
 
         /// <summary>The glyph the stream maps a CID to, or -1 for a CID past its end.</summary>
@@ -275,6 +276,8 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
         }
 
         public long HeldBytes => 512 + 12 * 256 + _nameBytes;
+
+        public long ReadBytes => HeldBytes;
 
         /// <summary>The glyph of a code, or -1 where the font has none for it.</summary>
         /// <exception cref="InvalidDataException">

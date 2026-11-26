@@ -29,4 +29,6 @@ internal sealed class IdentityEncryptor(IEncryptor keys) : IEncryptor
     { }
 
     public byte[] Encrypt(byte[] bytes) => bytes;
+
+    public byte[] EncryptForWriting(byte[] bytes) => bytes;
 }

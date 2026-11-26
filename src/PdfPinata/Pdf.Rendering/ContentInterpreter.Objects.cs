@@ -125,8 +125,8 @@ internal sealed partial class ContentInterpreter
         var key = ReferenceIdentity.KeyOf(form);
         if (!_formContent.TryGetValue(key, out var content))
         {
-            var readable = PdfContentStreams.TryGetContent(form, Math.Max(0, _context.ContentBytesLeft), out var bytes,
-                out var truncated, out var charge);
+            var readable = PdfContentStreams.TryGetContent(form, Math.Max(0, _context.ContentBytesLeft), tolerateDamage: true,
+                out var bytes, out var truncated, out var damaged, out var charge);
             _context.ContentBytesLeft -= charge;
             if (readable)
             {
@@ -134,6 +134,12 @@ internal sealed partial class ContentInterpreter
                 {
                     _sink.Report(PageRenderProblem.UnreadableContent, name,
                         $"The content a render inflates is capped at {MaximumContentLength} bytes, and this form's was cut short.");
+                }
+
+                if (damaged)
+                {
+                    _sink.Report(PageRenderProblem.InvalidValue, name,
+                        "The content is damaged, and is drawn only as far as the damage.");
                 }
 
                 content = ParsedContent.Of(bytes);

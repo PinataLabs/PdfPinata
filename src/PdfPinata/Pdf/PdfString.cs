@@ -216,45 +216,48 @@ public sealed class PdfString : PdfItem
     internal byte[] EncryptionValue => _value == null ? [] : GetBytesFromEncoding();
 
     /// <summary>
-    /// Builds the string those bytes spell, once encryption has run over them.
+    /// Builds the string decrypted bytes spell, in place of one read with the flags <paramref name="encrypted"/>.
     /// </summary>
     /// <remarks>
-    /// A text string keeps its byte order mark inside the encrypted bytes, so whether it is
-    /// UTF-16BE only becomes apparent once it has been decrypted. The flags were decided by
-    /// the lexer, which saw the ciphertext and had nothing to go by, so the mark decides
-    /// here and the flags of the string returned say what the value now holds. This is a
-    /// factory rather than a setter because a PdfString is a simple type and must not change
-    /// after it is constructed; the caller replaces the entry that held the old one.
+    /// This is a factory rather than a setter because a PdfString is a simple type and must not
+    /// change after it is constructed; the caller replaces the entry that held the old one.
     /// </remarks>
-    internal static PdfString FromEncryptionValue(byte[] value, PdfStringFlags flags)
+    internal static PdfString FromDecryptedBytes(byte[] value, PdfStringFlags encrypted)
     {
-        flags &= ~PdfStringFlags.OddLength;
-        if ((flags & PdfStringFlags.LittleEndianMark) != 0)
-        {
-            // The lexer took the ciphertext's first two bytes for a mark. They said nothing about
-            // the plaintext, so the guess is withdrawn and the plaintext decides.
-            flags &= ~(PdfStringFlags.LittleEndianMark | PdfStringFlags.EncodingMask);
-        }
+        var (text, flags) = Decode(value, encrypted);
+        return new PdfString(text, flags);
+    }
+
+    /// <summary>
+    /// The text and flags of a string whose bytes, as the file holds them, have just been
+    /// decrypted, read as the lexer reads the same bytes unencrypted.
+    /// </summary>
+    /// <remarks>
+    /// A text string keeps its byte order mark inside the encrypted bytes, so whether it is UTF-16
+    /// only becomes apparent once it has been decrypted. The lexer saw the ciphertext and had
+    /// nothing to go by, so whatever it took the first two bytes for is withdrawn and the
+    /// plaintext decides. Only whether the string was written in hex is kept.
+    /// </remarks>
+    internal static (string Text, PdfStringFlags Flags) Decode(byte[] value, PdfStringFlags encrypted)
+    {
+        var flags = encrypted & ~(PdfStringFlags.OddLength | PdfStringFlags.LittleEndianMark);
+        if ((flags & PdfStringFlags.EncodingMask) == PdfStringFlags.Unicode)
+            flags &= ~PdfStringFlags.EncodingMask;
 
         if (CharacterScanning.StartsWithUtf16BigEndianMark(value))
         {
-            return new PdfString(
-                PdfEncoders.RawUnicodeEncoding.GetString(value, 2, value.Length - 2),
-                (flags & ~PdfStringFlags.EncodingMask) | PdfStringFlags.Unicode);
+            var odd = value.Length % 2 == 1 ? PdfStringFlags.OddLength : 0;
+            return (DecodeUtf16(value, bigEndian: true),
+                (flags & ~PdfStringFlags.EncodingMask) | PdfStringFlags.Unicode | odd);
         }
 
         if (IsLittleEndianPlaintext(value, flags))
         {
-            return new PdfString(DecodeLittleEndian(value),
+            return (DecodeUtf16(value, bigEndian: false),
                 (flags & ~PdfStringFlags.EncodingMask) | PdfStringFlags.Unicode | PdfStringFlags.LittleEndianMark);
         }
 
-        var encoding = (PdfStringEncoding)(flags & PdfStringFlags.EncodingMask);
-        return encoding switch
-        {
-            PdfStringEncoding.Unicode => new PdfString(PdfEncoders.RawUnicodeEncoding.GetString(value), flags),
-            _ => new PdfString(PdfEncoders.RawEncoding.GetString(value), flags)
-        };
+        return (PdfEncoders.RawEncoding.GetString(value), flags);
     }
 
     /// <summary>
@@ -279,16 +282,17 @@ public sealed class PdfString : PdfItem
         && (flags & PdfStringFlags.EncodingMask) == PdfStringFlags.Unicode;
 
     /// <summary>
-    /// The characters of bytes that open with FF FE. A last character short of its high byte takes a
-    /// zero for it, as the lexer does.
+    /// The characters of bytes that open with a byte order mark, in the order it names. A last
+    /// character short of a byte takes a zero for it, as the lexer does.
     /// </summary>
-    internal static string DecodeLittleEndian(byte[] value)
+    private static string DecodeUtf16(byte[] value, bool bigEndian)
     {
         var characters = new char[(value.Length - 1) / 2];
         for (var i = 0; i < characters.Length; i++)
         {
-            var high = 3 + 2 * i < value.Length ? value[3 + 2 * i] : 0;
-            characters[i] = (char)(256 * high + value[2 + 2 * i]);
+            int first = value[2 + 2 * i];
+            var second = 3 + 2 * i < value.Length ? value[3 + 2 * i] : 0;
+            characters[i] = (char)(bigEndian ? 256 * first + second : 256 * second + first);
         }
         return new string(characters);
     }

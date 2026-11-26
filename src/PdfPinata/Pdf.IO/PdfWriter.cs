@@ -423,7 +423,7 @@ internal class PdfWriter
         }
         else
         {
-            if (WriteStreamData(value.Stream))
+            if (WriteStreamData(value))
             {
                 // Unconditionally, even when the data already ends with one. /Length counts the
                 // data and nothing else, and ISO 32000-1 7.3.8.1 puts this end-of-line marker
@@ -448,8 +448,9 @@ internal class PdfWriter
     /// and without the stream ever holding it. Only encrypting it needs it in memory, and then
     /// for as long as it takes to write.
     /// </remarks>
-    private bool WriteStreamData(PdfDictionary.PdfStream stream)
+    private bool WriteStreamData(PdfDictionary dict)
     {
+        var stream = dict.Stream;
         if (stream.LongLength == 0)
             return false;
 
@@ -458,13 +459,13 @@ internal class PdfWriter
             if (SecurityHandler == null)
                 unread.CopyTo(_stream);
             else
-                Write(SecurityHandler.EncryptBytes(unread.Read()));
+                Write(SecurityHandler.EncryptStreamBytes(dict, unread.Read()));
             return true;
         }
 
         var bytes = stream.Value;
         if (SecurityHandler != null)
-            bytes = SecurityHandler.EncryptBytes((byte[])bytes.Clone());
+            bytes = SecurityHandler.EncryptStreamBytes(dict, (byte[])bytes.Clone());
         Write(bytes);
         return true;
     }

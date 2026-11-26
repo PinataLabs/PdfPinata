@@ -147,12 +147,8 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
             EncryptArray(array);
         else if ((str = value as PdfStringObject) != null)
         {
-            if (str.Length != 0)
-            {
-                var bytes = str.EncryptionValue;
-                bytes = stringEncryptor.Encrypt(bytes);
-                str.EncryptionValue = bytes;
-            }
+            if (PdfItemValues.TryGetBytes(str, out var bytes) && bytes.Length != 0)
+                str.EncryptionValue = DecryptString(bytes);
         }
     }
 
@@ -365,25 +361,125 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// </remarks>
     private PdfString EncryptString(PdfString value)
     {
-        if (value.Length == 0)
+        if (!PdfItemValues.TryGetBytes(value, out var bytes) || bytes.Length == 0)
             return value;
 
-        var bytes = stringEncryptor.Encrypt(value.EncryptionValue);
-        return PdfString.FromEncryptionValue(bytes, value.Flags);
+        return PdfString.FromDecryptedBytes(DecryptString(bytes), value.Flags);
     }
 
     /// <summary>
-    /// Encrypts an array.
+    /// The plaintext of a string, from its bytes as the file holds them. The lexer takes ciphertext
+    /// that opens FE FF for UTF-16 text and drops the mark, and decrypting what is left garbles the
+    /// string, or ends the open when the plaintext is a mark and an odd number of bytes (#408).
+    /// </summary>
+    private byte[] DecryptString(byte[] bytes)
+    {
+        // RC4 decrypts in place, so each reading is handed bytes of its own.
+        var plain = stringEncryptor.Encrypt([.. bytes]);
+        return MarkOutsideCiphertext(bytes, plain) ? [0xFE, 0xFF, .. stringEncryptor.Encrypt(bytes[2..])] : plain;
+    }
+
+    /// <summary>
+    /// Whether a string is one PDFsharp wrote, as this library did until it encrypted the mark
+    /// along with the text: FE FF in front of the ciphertext of the UTF-16BE text rather than
+    /// inside it. Those documents have to keep opening. AES ciphertext is whole blocks, so the
+    /// length settles it. RC4 ciphertext is as long as its plaintext, so the old form is told by
+    /// a whole number of UTF-16 characters, and by the string not decrypting to a mark as a whole;
+    /// an even number of bytes of RC4 ciphertext that opens FE FF by chance is still read the old
+    /// way, as it always was.
+    /// </summary>
+    private bool MarkOutsideCiphertext(byte[] bytes, byte[] plain)
+    {
+        if (!CharacterScanning.StartsWithUtf16BigEndianMark(bytes))
+            return false;
+        if (stringEncryptor is AESEncryptor)
+            return (bytes.Length - 2) % 16 == 0;
+        return bytes.Length % 2 == 0 && !CharacterScanning.StartsWithUtf16BigEndianMark(plain);
+    }
+
+    /// <summary>
+    /// Encrypts the bytes of a string of the object <see cref="SetHashKey"/> named.
     /// </summary>
     internal byte[] EncryptBytes(byte[] bytes)
     {
-        if (bytes != null && bytes.Length != 0)
-        {
-            _rc4.SetKey(_key, 0, _keySize);
-            _rc4.Apply(bytes);
-        }
+        if (bytes == null || bytes.Length == 0)
+            return bytes;
+
+        if (_writesWithTheKeysItWasReadWith)
+            return EncryptAsRead(stringEncryptor, bytes);
+
+        _rc4.SetKey(_key, 0, _keySize);
+        _rc4.Apply(bytes);
         return bytes;
     }
+
+    /// <summary>
+    /// Encrypts the data of the stream of <paramref name="dict"/>, the object <see cref="SetHashKey"/>
+    /// named.
+    /// </summary>
+    internal byte[] EncryptStreamBytes(PdfDictionary dict, byte[] bytes)
+    {
+        if (!_writesWithTheKeysItWasReadWith)
+            return EncryptBytes(bytes);
+
+        return bytes.Length == 0 || IsPlainMetadata(dict) ? bytes : EncryptAsRead(streamEncryptor, bytes);
+    }
+
+    /// <summary>
+    /// How many bytes <see cref="EncryptStreamBytes"/> makes of <paramref name="length"/> bytes of the
+    /// stream of <paramref name="dict"/>, which is the <c>/Length</c> the file has to declare.
+    /// </summary>
+    /// <remarks>
+    /// RC4 keeps the length. AES puts a 16-byte initialization vector in front and pads to the next
+    /// whole block, a full one when the data already ends on a boundary (PKCS #5), so the length is
+    /// known before anything is encrypted, and the dictionary can be written before its data.
+    /// </remarks>
+    internal long EncryptedStreamLength(PdfDictionary dict, long length) =>
+        _writesWithTheKeysItWasReadWith && length != 0 && !IsPlainMetadata(dict) && streamEncryptor is AESEncryptor
+            ? 16 + (length / 16 + 1) * 16
+            : length;
+
+    /// <summary>
+    /// Encrypts <paramref name="bytes"/> as the encryptor the document was read with would have:
+    /// the same file key, the same crypt filter.
+    /// </summary>
+    /// <remarks>
+    /// The object key is made afresh for every call rather than once in <see cref="SetHashKey"/>,
+    /// because the encryptors are the reader's as well, and anything read while an object is being
+    /// written would leave its own key behind.
+    /// </remarks>
+    private byte[] EncryptAsRead(IEncryptor encryptor, byte[] bytes)
+    {
+        encryptor.CreateHashKey(_writingObjectId);
+        return encryptor.EncryptForWriting(bytes);
+    }
+
+    /// <summary>
+    /// Prepares the handler to write a revision appended to the document it was read from, with the
+    /// keys and the crypt filters it was read with (ISO 32000-1 7.5.6). Nothing in the encryption
+    /// dictionary changes, so the earlier revisions and the new one open with the same password.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="PrepareEncryption"/> is the other way, for a full save: it makes new keys, which an
+    /// appended revision cannot, because the revisions before it stay encrypted with the old ones.
+    /// </remarks>
+    internal void PrepareToAppend()
+    {
+        // Set by ValidatePassword, which every document read encrypted has been through.
+        Debug.Assert(stringEncryptor != null && streamEncryptor != null);
+        _writesWithTheKeysItWasReadWith = true;
+    }
+
+    /// <summary>
+    /// Whether the writer encrypts with the keys this document was read with, for an appended
+    /// revision, rather than with those <see cref="PrepareEncryption"/> made.
+    /// </summary>
+    private bool _writesWithTheKeysItWasReadWith;
+
+    /// <summary>
+    /// The object <see cref="SetHashKey"/> named, whose strings and stream the writer is encrypting.
+    /// </summary>
+    private PdfObjectID _writingObjectId;
 
     #region Encryption Algorithms
 
@@ -424,7 +520,9 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// </summary>
     internal void SetHashKey(PdfObjectID id)
     {
-        _key = StandardSecurityAlgorithms.ObjectKey(_md5, _encryptionKey, id, aes: false, out _keySize);
+        _writingObjectId = id;
+        if (!_writesWithTheKeysItWasReadWith)
+            _key = StandardSecurityAlgorithms.ObjectKey(_md5, _encryptionKey, id, aes: false, out _keySize);
     }
 
     /// <summary>
@@ -433,6 +531,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     public void PrepareEncryption()
     {
         Debug.Assert(_document._securitySettings.DocumentSecurityLevel != PdfDocumentSecurityLevel.None);
+        _writesWithTheKeysItWasReadWith = false;
         var strongEncryption = StrongEncryption;
         var permissions = PermissionsToWrite;
 
