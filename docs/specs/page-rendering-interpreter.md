@@ -308,7 +308,11 @@ kind and is meant to be recorded by the same function.
 **A device repeats one rectangle.** `PageTiling.Tile` is the cell's `/BBox` corner with the steps
 as its size. A negative step tiles as its size does. Where a step is shorter than the cell, the
 neighbouring cells that reach into the tile are replayed into the picture, and the whole is
-clipped to the tile. So a device needs no notion of overlap.
+clipped to the tile. So a device needs no notion of overlap. The neighbours are replayed from
+the one furthest back, and the tile's own cell last, so where overlapping cells paint different
+colours, the tile's own cell is on top. ISO 32000-1 8.7.3.1 leaves that order undefined, and
+Ghostscript stacks overlapping cells in a different order, so such a pattern draws differently
+there (#436).
 
 **An uncoloured pattern's colour is in the picture.** The cell is recorded from a graphics state
 whose colours are the tint, and every operator that sets a colour is passed over. One recording
