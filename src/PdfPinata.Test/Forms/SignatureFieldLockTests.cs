@@ -155,6 +155,29 @@ public class SignatureFieldLockTests
         cert.Url.Should().Be("https://ca.example.invalid/");
     }
 
+    /// <summary>
+    ///   A certificate is DER bytes, written as a byte string. Bytes that open with FE FF or FF FE
+    ///   are taken by the lexer for UTF-16 text and decoded, and they have to come back as the
+    ///   bytes they were (#444).
+    /// </summary>
+    [Test]
+    [Arguments(new byte[] { 0xFE, 0xFF, 0x30, 0x82 })]
+    [Arguments(new byte[] { 0xFE, 0xFF, 0x30, 0x82, 0x01 })]
+    [Arguments(new byte[] { 0xFF, 0xFE, 0x30, 0x82 })]
+    public void ACertificateOpeningWithAByteOrderMarkSurvivesTheFile(byte[] certificate)
+    {
+        var document = FormWithSignatureField(out var field);
+        field.SeedValue = new PdfSignatureSeedValue(document)
+        {
+            Certificate = new PdfCertificateSeedValue { Subjects = [certificate], Issuers = [certificate] }
+        };
+
+        var read = SignatureField(document.Reopened()).SeedValue.Certificate;
+
+        read.Subjects.Should().ContainSingle().Which.Should().Equal(certificate);
+        read.Issuers.Should().ContainSingle().Which.Should().Equal(certificate);
+    }
+
     [Test]
     public void AnEmptySeedValueSaysNothing()
     {

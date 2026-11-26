@@ -33,7 +33,6 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.IO;
-using PdfPinata.Pdf.Internal;
 using PdfPinata.Pdf.IO;
 
 namespace PdfPinata.Pdf.Advanced;
@@ -63,7 +62,7 @@ public class PdfInternals
     /// <summary>
     /// Gets the first document identifier as GUID.
     /// </summary>
-    public Guid FirstDocumentGuid => GuidFromString(_document._trailer.GetDocumentID(0));
+    public Guid FirstDocumentGuid => GuidFromBytes(_document._trailer.DocumentIDBytes(0));
 
     /// <summary>
     /// Gets or sets the second document identifier.
@@ -75,18 +74,12 @@ public class PdfInternals
     }
 
     /// <summary>
-    /// Gets the first document identifier as GUID.
+    /// Gets the second document identifier as GUID.
     /// </summary>
-    public Guid SecondDocumentGuid => GuidFromString(_document._trailer.GetDocumentID(0));
+    public Guid SecondDocumentGuid => GuidFromBytes(_document._trailer.DocumentIDBytes(1));
 
-    private static Guid GuidFromString(string id)
-    {
-        if (id == null || id.Length != 16)
-            return Guid.Empty;
-
-        // One char per byte, as every PDF string is held.
-        return new Guid(Convert.ToHexString(PdfEncoders.RawEncoding.GetBytes(id)));
-    }
+    private static Guid GuidFromBytes(byte[] id) =>
+        id.Length == 16 ? new Guid(Convert.ToHexString(id)) : Guid.Empty;
 
     /// <summary>
     /// Gets the catalog dictionary.
