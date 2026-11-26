@@ -422,44 +422,48 @@ public class FormXObjectTests
     }
 
     [Test, Timeout(120_000)]
-    [NotInParallel]
     public async Task AMembershipIsReadOncePerRenderHoweverOftenContentNamesIt()
     {
-        // 40,000 runs in one membership whose expression is a group and nine levels of /And
-        // over the level below twice: 1,022 operands, every one readable, read in full each
-        // time it is read. Against as many runs in a plain group, which costs nothing to ask about.
-        var runs = string.Concat(Enumerable.Repeat("/OC /M BDC EMC ", 40_000));
-        Drawn Plain() => Layered(runs.Replace("/M", "/L1"), (_, _, _, _) => { });
-        Drawn Doubled() => Layered(runs, (_, _, _, _) => { }, (document, resources, _, second) =>
+        // Runs in one membership whose expression is a group and nine levels of /And over the
+        // level below twice: 1,022 operands, every one readable, read in full each time it is
+        // read. Against as many runs in a plain group, which costs nothing to ask about, and
+        // whose name is as long, so that the content is read alike.
+        //
+        // Reading the expression allocates, so what a render allocates beyond the plain group's
+        // is what reading the expression cost it. Counted in bytes on the one thread that
+        // renders, that is the same on every machine however loaded, where a time was not.
+        static string Runs(int count, string name) => string.Concat(Enumerable.Repeat($"/OC {name} BDC EMC ", count));
+        static Drawn Plain(int runs) => Layered(Runs(runs, "/L1"), (_, _, _, _) => { });
+        static Drawn Doubled(int runs) => Layered(Runs(runs, "/M1"), (_, _, _, _) => { }, (document, resources, _, second) =>
         {
             var membership = new PdfDictionary(document);
             membership.Elements.SetName("/Type", "/OCMD");
             membership.Elements["/VE"] = Doubling(document, second, 9);
-            Drawn.Add(document, resources, "/Properties", "/M", membership);
+            Drawn.Add(document, resources, "/Properties", "/M1", membership);
         });
 
-        // Read once a run, the expression costs about a hundred times the plain group. The two are
-        // timed in turn, so that a stall on a loaded machine falls on both alike.
-        var (plain, doubling) = await Interruptibly.Run(() =>
+        static long Allocated(Func<Drawn> render)
         {
-            var fastest = (Plain: TimeSpan.MaxValue, Doubling: TimeSpan.MaxValue);
-            for (var attempt = 0; attempt < 5; attempt++)
-            {
-                var watch = System.Diagnostics.Stopwatch.StartNew();
-                Plain();
-                if (watch.Elapsed < fastest.Plain)
-                    fastest.Plain = watch.Elapsed;
+            var before = GC.GetAllocatedBytesForCurrentThread();
+            render();
+            return GC.GetAllocatedBytesForCurrentThread() - before;
+        }
 
-                watch.Restart();
-                Doubled();
-                if (watch.Elapsed < fastest.Doubling)
-                    fastest.Doubling = watch.Elapsed;
-            }
+        static long Beyond(int runs) => Allocated(() => Doubled(runs)) - Allocated(() => Plain(runs));
 
-            return fastest;
+        var (read, after) = await Interruptibly.Run(() =>
+        {
+            Doubled(1);
+            Plain(1);
+            var once = Beyond(1);
+            return (Read: once - Beyond(0), After: Beyond(40_000) - once);
         });
 
-        doubling.Should().BeLessThan(plain * 10, $"the expression is read once, not once a run, and a plain group took {plain}");
+        // The first run reads the expression. Each of the 39,999 after it costs a little more in
+        // a membership than in a group, about a hundred bytes, and reading the expression again
+        // costs some ninety thousand; a run must cost under a tenth of a read.
+        read.Should().BePositive("reading the expression is what this measures, so reading it has to allocate");
+        (after / 39_999).Should().BeLessThan(read / 10, $"the expression is read once a render, not once a run, and reading it once allocated {read} bytes");
     }
 
     [Test]
