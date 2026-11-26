@@ -69,8 +69,8 @@ internal sealed class FontWidths
         if (!_stated)
             return null;
 
-        var table = _simpleFont != null ? cache.Data(FontDataKind.SimpleWidths, _simpleFont, static (font, _) => ReadSimple(font))
-            : _w != null ? cache.Data(FontDataKind.CidWidths, _w, static (w, _) => ReadComposite(w))
+        var table = _simpleFont != null ? cache.Data(FontDataKind.SimpleWidths, _simpleFont, ReadSimple)
+            : _w != null ? cache.Data(FontDataKind.CidWidths, _w, ReadComposite)
             : null;
         return table != null && table.TryGet(code, 0, out var width) ? width : _defaultWidth;
     }
@@ -187,13 +187,17 @@ internal sealed class WidthTable : IFontData
     private readonly double[] _values;
     private readonly int _each;
 
-    private WidthTable(double[] values, int each)
+    private WidthTable(double[] values, int each, long readBytes)
     {
         _values = values;
         _each = each;
+        ReadBytes = readBytes;
     }
 
     public long HeldBytes => 64 + 8L * _values.Length;
+
+    /// <summary>What the table was built in: room for every code there can be, however few are given a number.</summary>
+    public long ReadBytes { get; }
 
     /// <summary>One of the numbers stated for a code, where the code is given any.</summary>
     /// <param name="code">The code or CID.</param>
@@ -223,7 +227,7 @@ internal sealed class WidthTable : IFontData
             _used = Math.Max(_used, ((int)code + 1) * each);
         }
 
-        internal WidthTable ToTable() => new(_values.AsSpan(0, _used).ToArray(), each);
+        internal WidthTable ToTable() => new(_values.AsSpan(0, _used).ToArray(), each, 8L * _values.Length);
 
         private static double[] Filled(int length)
         {
@@ -289,7 +293,7 @@ internal sealed class VerticalMetrics
     {
         if (_w2 != null)
         {
-            var table = cache.Data(FontDataKind.VerticalMetrics, _w2, static (w2, _) => Read(w2));
+            var table = cache.Data(FontDataKind.VerticalMetrics, _w2, Read);
             if (table.TryGet(cid, 0, out var advance) && table.TryGet(cid, 1, out var x) && table.TryGet(cid, 2, out var y))
                 return (advance, x, y);
         }

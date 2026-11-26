@@ -925,11 +925,21 @@ The largest there are, CJK fonts embedded whole, run to 20 or 30 MB, and at the 
 reported as `MissingGlyph`, with the limit, against each glyph shown in it. The limit is under half
 the data budget so that two of the largest can be held together.
 
-**A page reads at most 1 GiB of font program.** Letting go of a font program and reading it again
-costs its whole decoding, so a page that selects three fonts of 63 MiB in turn decodes 63 MiB at
-each selection, a fifth of a second for 15 bytes of content. Past the allowance a font program that would
-have to be read is not, and its glyphs are reported with the reason. Fonts still held go on
-drawing. The next page has an allowance of its own, and nothing is kept of the refusal.
+**A page reads at most 1 GiB of font data.** Letting go of data and reading it again costs the
+whole of reading it, so a page that selects three fonts of 63 MiB in turn decodes 63 MiB at each
+selection, a fifth of a second for 15 bytes of content. A table costs the same way: a page that
+selected 400 fonts in turn, each with a `/W` of its own, built a 0.5 MiB table at every selection,
+and 200,000 selections took 126 s (405 s over `/W2`, 58 s over `/CIDToGIDMap`) when only font
+programs were charged (#435). So `RenderFontCache.Data` charges every read, of any kind, to the
+page: a font program or a `/CIDToGIDMap` what its stream decoded to, a `WidthTable` what it was
+built in, which is room for every code there can be however few are given a number. That is about
+2,000 `/W`, 700 `/W2` or 8,000 `/CIDToGIDMap` reads. Past the allowance data that would have to be
+read is not. A glyph whose program, map or encoding is not read is not drawn, and a string whose
+widths are not read is set no further, because where its codes advance to is not known. Both are
+reported as `LimitReached`, not as `MissingGlyph`: the diagnostics merge by problem and font, so a
+glyph the font genuinely lacks would otherwise hide every glyph the allowance dropped after it.
+Fonts still held go on drawing. The next page has an allowance of its own, and nothing is kept of
+the refusal.
 
 **Widths are a table, not a dictionary.** `/Widths`, `/W` and `/W2` are each read into a
 `WidthTable`, one array of doubles as long as the highest code given a number: at most 0.5 MiB for
@@ -946,7 +956,7 @@ charged to one of the two budgets.
 | `RenderFontCache` | `_fonts` | one `RenderFont` for each font dictionary selected | (a): each is of a fixed size, smaller than the dictionary it stands for. Past 4096 they are all forgotten as a page begins |
 | | `_data`, `_recent` | the data kept and its order of use | (b): each entry charged what it holds and 192 bytes |
 | | `_outlines` | the outlines kept, by owner and glyph | (b): each outline charged its points and 96 bytes, each owner 192 bytes |
-| | `_dataBytes`, `_outlineBytes`, `_programBytesRead`, `_clock` | four numbers | fixed |
+| | `_dataBytes`, `_outlineBytes`, `_bytesRead`, `_clock` | four numbers | fixed |
 | `RenderFont` | `_cache`, `Source` | the cache, and the glyph source | references |
 | | `_widths`, `_vertical` | `FontWidths` and `VerticalMetrics`, below | (a) |
 | | `IsComposite`, `UnsupportedReason`, `EncodingNote` | a flag and two messages | fixed |
