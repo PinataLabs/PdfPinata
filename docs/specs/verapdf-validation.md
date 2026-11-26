@@ -43,11 +43,17 @@ a summary and writes a report per document into `artifacts/verapdf-reports`. CI 
 script, so there is one behaviour to understand rather than two, and a developer reproducing a CI
 failure runs the thing that failed.
 
-**In Docker, pinned.** veraPDF is a Java application, and requiring a JRE on every machine that wants
-to run this — and on Windows, where a developer is least likely to have one — costs more than a
-container does. The image is pinned to `verapdf/cli:v1.30.2` so a validator release cannot change
-the answer underneath a build; raise it deliberately. A machine with no Docker is told what to
-install and nothing fails, because a developer who has not installed Docker has not broken anything.
+**In a container, pinned.** veraPDF is a Java application, and requiring a JRE on every machine that
+wants to run this — and on Windows, where a developer is least likely to have one — costs more than a
+container does. The image is pinned to `docker.io/verapdf/cli:v1.30.2` so a validator release cannot
+change the answer underneath a build; raise it deliberately. The registry is named because Podman
+has no default registry for a short name. A machine with no container engine is told what to
+install and nothing fails, because a developer who has not installed one has not broken anything.
+
+**Podman on a developer's machine, Docker on CI.** `-Engine` picks one, and defaults to `docker`
+when `CI` is set and to `podman` otherwise; the workflow also passes `-Engine docker` outright. On
+Windows and macOS Podman needs its machine running (`podman machine start`), and the script's check
+runs `podman version`, which fails when it is not, so a stopped machine is reported as unavailable.
 
 ## The ICC profile, which is its own small story
 
@@ -177,7 +183,7 @@ step carries no `continue-on-error`, because a step that cannot fail is a step t
 anything.
 
 **A validator that will not start fails the build too**, but only on a runner — the script checks
-`CI`. Locally, a developer who has not installed Docker has not broken anything and is told what to
+`CI`. Locally, a developer who has not installed Podman has not broken anything and is told what to
 install. On a runner the opposite holds: a validation step that quietly validates nothing is how a
 claim goes back to being self-certified without anybody deciding that it should.
 
@@ -192,11 +198,12 @@ it was written. Fixing them was cheaper than describing them.
 ./verapdf-check.ps1                 # build the corpus, validate, summarise, fail if it does not conform
 ./verapdf-check.ps1 -NoGate         # the same, but always succeed - for reading a failure
 ./verapdf-check.ps1 -SkipBuild      # validate what is already on disk, for iterating on a failure
-./verapdf-check.ps1 -Image verapdf/cli:latest   # try a different validator release
+./verapdf-check.ps1 -Image docker.io/verapdf/cli:latest   # try a different validator release
+./verapdf-check.ps1 -Engine docker  # run under Docker instead of Podman, as CI does
 ```
 
-Windows, Linux and macOS alike: it is PowerShell, which the GitHub runners carry on every platform,
-and the validator is a container. The only requirement is Docker.
+Windows, Linux and macOS alike: it is PowerShell 7, which the GitHub runners carry on every platform,
+and the validator is a container. The only requirement is Podman locally, or Docker on CI.
 
 Reports land in `artifacts/verapdf-reports`, one XML per document, and CI uploads them as a build
 artifact so a failure can be read without reproducing it.

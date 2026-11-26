@@ -8,10 +8,13 @@
     which rules those are and which it cannot reach. This is the outside opinion. It runs the same
     way on a developer's machine and on a CI runner, which is the point of it being one script.
 
-    veraPDF runs in Docker rather than being installed. It is a Java application, and requiring a JRE
-    on every machine that wants to run this - and on Windows, where a developer is least likely to
-    have one - costs more than a container does. The image is pinned so that a validator release
+    veraPDF runs in a container rather than being installed. It is a Java application, and requiring
+    a JRE on every machine that wants to run this - and on Windows, where a developer is least likely
+    to have one - costs more than a container does. The image is pinned so that a validator release
     cannot change the answer underneath a build; raise it deliberately.
+
+    The container engine is Podman on a developer's machine and Docker on CI, where the GitHub runners
+    carry it already. -Engine overrides the choice.
 
     This gates. It reported without failing for exactly as long as the corpus did not conform, which
     was the three defects the first run found - all since fixed, all with tests of their own.
@@ -34,7 +37,11 @@
     failure without paying for a rebuild each time.
 
 .PARAMETER Image
-    The veraPDF image to run. Pinned by default.
+    The veraPDF image to run. Pinned by default, and named with its registry so that Podman, which
+    has no default registry for a short name, resolves it to the same image Docker does.
+
+.PARAMETER Engine
+    The container engine: podman or docker. Defaults to docker when CI is set and podman otherwise.
 
 .EXAMPLE
     ./verapdf-check.ps1
@@ -49,7 +56,9 @@ param(
     [string] $Corpus = (Join-Path 'artifacts' 'conformance-corpus'),
     [switch] $NoGate,
     [switch] $SkipBuild,
-    [string] $Image = 'verapdf/cli:v1.30.2'
+    [string] $Image = 'docker.io/verapdf/cli:v1.30.2',
+    [ValidateSet('podman', 'docker')]
+    [string] $Engine = ($env:CI ? 'docker' : 'podman')
 )
 
 $ErrorActionPreference = 'Stop'
@@ -64,24 +73,34 @@ if (-not [System.IO.Path]::IsPathRooted($Corpus)) {
 
 $reports = Join-Path $repository 'artifacts/verapdf-reports'
 
-function Test-Docker {
-    # `docker version` rather than `--version`: the latter answers from the client alone and says
-    # nothing about whether a daemon is running, which is the failure a developer actually hits.
-    $null = & docker version 2>&1
+function Test-Engine {
+    # `version` rather than `--version`: the latter answers from the client alone and says nothing
+    # about whether a daemon - or, for Podman on Windows and macOS, its machine - is running, which
+    # is the failure a developer actually hits. Get-Command first, because invoking a command that
+    # does not exist is a terminating error under ErrorActionPreference Stop.
+    if (-not (Get-Command $Engine -CommandType Application -ErrorAction SilentlyContinue)) {
+        return $false
+    }
+    $null = & $Engine version 2>&1
     return $LASTEXITCODE -eq 0
 }
 
-if (-not (Test-Docker)) {
+if (-not (Test-Engine)) {
     Write-Host ''
-    Write-Host 'veraPDF runs in Docker, and Docker is not available here.' -ForegroundColor Yellow
+    Write-Host "veraPDF runs in a container, and $Engine is not available here." -ForegroundColor Yellow
     Write-Host ''
-    Write-Host '  Windows/macOS: install Docker Desktop - https://docs.docker.com/get-docker/'
-    Write-Host '  Linux:         sudo apt-get install -y docker.io, then add yourself to the'
-    Write-Host '                 docker group and log in again.'
+    if ($Engine -eq 'podman') {
+        Write-Host '  Install Podman - https://podman.io/docs/installation'
+        Write-Host '  Windows/macOS: podman machine init (once), then podman machine start.'
+    } else {
+        Write-Host '  Windows/macOS: install Docker Desktop - https://docs.docker.com/get-docker/'
+        Write-Host '  Linux:         sudo apt-get install -y docker.io, then add yourself to the'
+        Write-Host '                 docker group and log in again.'
+    }
     Write-Host ''
     Write-Host 'Nothing was validated.' -ForegroundColor Yellow
 
-    # A developer who has not installed Docker has not broken anything, and telling them so by
+    # A developer who has not installed a container engine has not broken anything, and telling them so by
     # failing their build teaches the wrong lesson. On a runner it is the opposite: a validation step
     # that quietly validates nothing is how a claim goes back to being self-certified without anyone
     # deciding that it should, so there it is an error. CI is set by GitHub Actions and by every
@@ -118,7 +137,7 @@ if ($documents.Count -eq 0) {
 New-Item -ItemType Directory -Force -Path $reports | Out-Null
 
 Write-Host ''
-Write-Host "Validating $($documents.Count) document(s) with $Image" -ForegroundColor Cyan
+Write-Host "Validating $($documents.Count) document(s) with $Image under $Engine" -ForegroundColor Cyan
 Write-Host ''
 
 $failed = @()
@@ -129,10 +148,10 @@ foreach ($document in $documents) {
     # context path and is far harder to read when several fail for different reasons.
     $name = $document.BaseName
 
-    $summary = & docker run --rm -v "$($Corpus):/data" $Image --format text "/data/$($document.Name)" 2>$null
+    $summary = & $Engine run --rm -v "$($Corpus):/data" $Image --format text "/data/$($document.Name)" 2>$null
     $conforms = $LASTEXITCODE -eq 0
 
-    $detail = & docker run --rm -v "$($Corpus):/data" $Image --format xml "/data/$($document.Name)" 2>$null
+    $detail = & $Engine run --rm -v "$($Corpus):/data" $Image --format xml "/data/$($document.Name)" 2>$null
     Set-Content -Path (Join-Path $reports "$name.xml") -Value $detail -Encoding UTF8
 
     if ($conforms) {

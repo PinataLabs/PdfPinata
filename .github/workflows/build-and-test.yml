@@ -199,7 +199,7 @@ jobs:
       # anybody deciding that it should.
       - name: veraPDF conformance
         shell: pwsh
-        run: ./verapdf-check.ps1
+        run: ./verapdf-check.ps1 -Engine docker
       - name: Upload veraPDF reports
         uses: actions/upload-artifact@v7
         if: always()
