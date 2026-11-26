@@ -12,7 +12,7 @@ dotnet test --project src/PdfPinata.Test --treenode-filter "/*/*/CLexerTests/*" 
 dotnet test --project src/PdfPinata.Test --treenode-filter "/*/*/CLexerTests/ScanNextToken*"    # one test
 dotnet test --solution src/PdfPinata.slnx --coverlet                                            # with coverage (Linux, macOS)
 dotnet test --solution src/PdfPinata.slnx --coverlet -p:EnableTUnitSourceGeneration=false       # with coverage (Windows)
-./verapdf-check.ps1                                 # conformance corpus + veraPDF; needs Docker. Gates.
+./verapdf-check.ps1                                 # conformance corpus + veraPDF; Podman locally, Docker on CI (-Engine). Gates.
 ./verapdf-check.ps1 -NoGate                         # the same, but always succeeds — for reading a failure
 ```
 
