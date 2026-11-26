@@ -133,7 +133,7 @@ public sealed class PdfStringObject : PdfObject
     /// Gets or sets the string value for encryption purposes.
     /// </summary>
     /// <remarks>
-    /// This still assigns in place where <see cref="PdfString.FromEncryptionValue"/> builds a new
+    /// This still assigns in place where <see cref="PdfString.FromDecryptedBytes"/> builds a new
     /// string instead. The difference is deliberate: the simple-type rule only covers types derived
     /// from PdfItem but not from PdfObject, and this is a PdfObject. It has identity rather than
     /// value semantics, it is reached through its own indirect reference rather than held directly
@@ -151,32 +151,7 @@ public sealed class PdfStringObject : PdfObject
                 ? PdfEncoders.RawUnicodeEncoding.GetBytes(_value)
                 : PdfEncoders.RawEncoding.GetBytes(_value);
         }
-        set
-        {
-            // As in PdfString: the byte order mark is inside the encrypted bytes, so it is only
-            // after decrypting that a string can be seen to be UTF-16BE. A little endian reading
-            // came from the ciphertext and says nothing about what it decrypts to, so it is dropped.
-            _flags &= ~PdfStringFlags.OddLength;
-            if ((_flags & PdfStringFlags.LittleEndianMark) != 0)
-                _flags &= ~(PdfStringFlags.LittleEndianMark | PdfStringFlags.EncodingMask);
-            if (CharacterScanning.StartsWithUtf16BigEndianMark(value))
-            {
-                _value = PdfEncoders.RawUnicodeEncoding.GetString(value, 2, value.Length - 2);
-                Encoding = PdfStringEncoding.Unicode;
-                return;
-            }
-
-            if (PdfString.IsLittleEndianPlaintext(value, _flags))
-            {
-                _value = PdfString.DecodeLittleEndian(value);
-                _flags = (_flags & ~PdfStringFlags.EncodingMask) | PdfStringFlags.Unicode | PdfStringFlags.LittleEndianMark;
-                return;
-            }
-
-            _value = Encoding == PdfStringEncoding.Unicode
-                ? PdfEncoders.RawUnicodeEncoding.GetString(value, 0, value.Length)
-                : PdfEncoders.RawEncoding.GetString(value, 0, value.Length);
-        }
+        set => (_value, _flags) = PdfString.Decode(value, _flags);
     }
 
     /// <summary>

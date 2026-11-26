@@ -401,7 +401,7 @@ public sealed class PdfCertificateSeedValue : PdfDictionary
     }
 
     private static byte[] BytesAt(PdfArray array, int index) =>
-        array.Elements[index] is PdfString text ? PdfEncoders.RawEncoding.GetBytes(text.Value) : [];
+        PdfItemValues.TryGetBytes(array.Elements[index], out var bytes) ? bytes : [];
 
     private static PdfItem ByteString(byte[] bytes) =>
         new PdfString(PdfEncoders.RawEncoding.GetString(bytes, 0, bytes.Length), PdfStringEncoding.RawEncoding);

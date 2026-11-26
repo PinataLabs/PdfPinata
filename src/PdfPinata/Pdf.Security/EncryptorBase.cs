@@ -97,7 +97,7 @@ internal abstract class EncryptorBase
         doc = document;
         encryptionDict = encryptionDictionary;
 
-        documentId = doc._trailer.FirstDocumentIDBytes;
+        documentId = doc._trailer.DocumentIDBytes(0);
         ownerValue = BytesOf(PdfStandardSecurityHandler.Keys.O);
         userValue = BytesOf(PdfStandardSecurityHandler.Keys.U);
         oeValue = BytesOf(PdfStandardSecurityHandler.Keys.OE);

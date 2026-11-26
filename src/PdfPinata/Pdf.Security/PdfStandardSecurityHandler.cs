@@ -147,12 +147,8 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
             EncryptArray(array);
         else if ((str = value as PdfStringObject) != null)
         {
-            if (str.Length != 0)
-            {
-                var bytes = str.EncryptionValue;
-                bytes = stringEncryptor.Encrypt(bytes);
-                str.EncryptionValue = bytes;
-            }
+            if (PdfItemValues.TryGetBytes(str, out var bytes) && bytes.Length != 0)
+                str.EncryptionValue = DecryptString(bytes);
         }
     }
 
@@ -365,11 +361,40 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// </remarks>
     private PdfString EncryptString(PdfString value)
     {
-        if (value.Length == 0)
+        if (!PdfItemValues.TryGetBytes(value, out var bytes) || bytes.Length == 0)
             return value;
 
-        var bytes = stringEncryptor.Encrypt(value.EncryptionValue);
-        return PdfString.FromEncryptionValue(bytes, value.Flags);
+        return PdfString.FromDecryptedBytes(DecryptString(bytes), value.Flags);
+    }
+
+    /// <summary>
+    /// The plaintext of a string, from its bytes as the file holds them. The lexer takes ciphertext
+    /// that opens FE FF for UTF-16 text and drops the mark, and decrypting what is left garbles the
+    /// string, or ends the open when the plaintext is a mark and an odd number of bytes (#408).
+    /// </summary>
+    private byte[] DecryptString(byte[] bytes)
+    {
+        // RC4 decrypts in place, so each reading is handed bytes of its own.
+        var plain = stringEncryptor.Encrypt([.. bytes]);
+        return MarkOutsideCiphertext(bytes, plain) ? [0xFE, 0xFF, .. stringEncryptor.Encrypt(bytes[2..])] : plain;
+    }
+
+    /// <summary>
+    /// Whether a string is one PDFsharp wrote, as this library did until it encrypted the mark
+    /// along with the text: FE FF in front of the ciphertext of the UTF-16BE text rather than
+    /// inside it. Those documents have to keep opening. AES ciphertext is whole blocks, so the
+    /// length settles it. RC4 ciphertext is as long as its plaintext, so the old form is told by
+    /// a whole number of UTF-16 characters, and by the string not decrypting to a mark as a whole;
+    /// an even number of bytes of RC4 ciphertext that opens FE FF by chance is still read the old
+    /// way, as it always was.
+    /// </summary>
+    private bool MarkOutsideCiphertext(byte[] bytes, byte[] plain)
+    {
+        if (!CharacterScanning.StartsWithUtf16BigEndianMark(bytes))
+            return false;
+        if (stringEncryptor is AESEncryptor)
+            return (bytes.Length - 2) % 16 == 0;
+        return bytes.Length % 2 == 0 && !CharacterScanning.StartsWithUtf16BigEndianMark(plain);
     }
 
     /// <summary>
