@@ -204,8 +204,15 @@ has inflated, and pdf.js and MuPDF draw them. `PageImages` sets `DecodeLimit.Tol
 `FlateDecode` returns what it inflated before the damage instead of throwing, and sets `Damaged`,
 which is reported as `InvalidValue`. What it returns is then held to the same rules as short data,
 below: padded with zeros, or refused under half. A stream from which nothing inflates still throws
-and is reported as undecodable. Every other caller passes no such limit and gets the exception, as
-it always did. Content streams do not opt in yet.
+and is reported as undecodable.
+
+**So is a damaged content stream** (#440). The page's content streams and those of the forms and
+tiling patterns it draws are read through `PdfContentStreams.TryGetContent` with `tolerateDamage`
+set, so what inflated before the damage is parsed and drawn, and the page or the form is reported
+as `InvalidValue`. A content stream cut mid-operator ends there, as one cut by the cap does. Font
+programs and shading streams do not tolerate damage, and neither does anything that reads content
+rather than drawing it, such as `PdfPageWalk` and `PdfImagePlacementReader`: a reader answering
+what a page says must not answer half of it. Every such caller gets the exception, as it always did.
 
 `PageImages` holds each filter of an image's chain to a limit of its own. The filter that produces
 the samples stops at the sample bytes, plus each row's tag byte under a PNG predictor, counted in

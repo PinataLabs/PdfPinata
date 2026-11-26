@@ -171,7 +171,7 @@ internal sealed partial class ContentInterpreter
 
             _context.Document = page.Owner;
             var readable = PdfContentStreams.TryGetReadablePageContent(page, _context.ContentBytesLeft, out var content,
-                out var unreadable, out var truncated, out var charged);
+                out var unreadable, out var truncated, out var damaged, out var charged);
             _context.ContentBytesLeft -= charged;
             if (!readable)
             {
@@ -190,6 +190,12 @@ internal sealed partial class ContentInterpreter
                 {
                     _sink.Report(PageRenderProblem.UnreadableContent, "page",
                         $"The page's content inflates to more than {MaximumContentLength} bytes. Only the start of it is drawn.");
+                }
+
+                if (damaged)
+                {
+                    _sink.Report(PageRenderProblem.InvalidValue, "page",
+                        "The page's content is damaged, and is drawn only as far as the damage.");
                 }
 
                 RunStream(ParsedContent.Of(content), ResourceScope.OfPage(page), "page", _surfaceTransform);
