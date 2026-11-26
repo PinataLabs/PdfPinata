@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -186,11 +185,11 @@ public class ShadingLimitTests
     public async Task AStitchingWhosePiecesNameOneFunctionIsSearchedForBreakpointsOnceForEachObject(string encode)
     {
         // Each piece's own breakpoints fall outside it, so none fills the list and every piece
-        // below is looked at: 256 to the fifth of them, were each looked at on each path.
-        var watch = Stopwatch.StartNew();
+        // below is looked at: 256 to the fifth of them, were each looked at on each path. That
+        // would not finish in hours, and the timeout is what fails it; a clock of its own in the
+        // test added only failures on loaded machines.
         var drawn = await Shaded(document => SharedStitching(document, 256, 5, encode));
 
-        watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(5));
         drawn.Device.Fills.First().ShaderAs<PageGradient>().Stops.Count.Should().BeInRange(2, 256);
         drawn.Problems.Should().BeEmpty();
     }
@@ -540,14 +539,14 @@ public class ShadingLimitTests
     [Test, Timeout(60_000)]
     public async Task ACalculatorProgramThatInflatesPastTheLimitIsDecodedNoFurtherAndOnce()
     {
-        // 256 MiB of zeros, which a program of 64 KiB at most is never read to the end of.
+        // 256 MiB of zeros, which a program of 64 KiB at most is never read to the end of. What
+        // the render allocates says so whatever the machine's load: reading to the end would
+        // allocate the whole 256 MiB.
         var bomb = DeflatedZeros(256L << 20);
         PdfDictionary program = null;
-        var watch = Stopwatch.StartNew();
         var (drawn, allocated) = await ShadedMany(64, (document, _) => program ??= Drawn.Stream(document, bomb,
             ("/FunctionType", "4"), ("/Domain", "[0 1]"), ("/Range", "[0 1]"), ("/Filter", "/FlateDecode")));
 
-        watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(5));
         allocated.Should().BeLessThan(64L << 20);
         drawn.Device.Fills.Should().BeEmpty();
         drawn.Problems.Should().Equal(Enumerable.Range(0, 64).Select(index => $"LimitReached /S{index}"));
