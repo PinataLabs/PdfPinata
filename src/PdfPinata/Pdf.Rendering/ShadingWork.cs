@@ -52,7 +52,7 @@ internal sealed class ShadingWork
             return null;
 
         var limit = Math.Min(most, _bytesLeft);
-        var read = PdfContentStreams.TryGetContent(stream, limit, out var content, out var truncated, out var charge);
+        var read = PdfContentStreams.TryGetContent(stream, limit, tolerateDamage: false, out var content, out var truncated, out _, out var charge);
         _bytesLeft -= charge;
         if (!read)
             return null;

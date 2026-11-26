@@ -121,7 +121,7 @@ internal sealed class EmbeddedTrueTypeGlyphSource : PageGlyphSource
     /// </remarks>
     private static bool TryRead(PdfDictionary stream, int limit, out byte[] bytes, out bool truncated, out long decoded)
     {
-        if (!PdfContentStreams.TryGetContent(stream, limit, out bytes, out truncated, out decoded))
+        if (!PdfContentStreams.TryGetContent(stream, limit, tolerateDamage: false, out bytes, out truncated, out _, out decoded))
             return false;
 
         if (bytes.Length > limit)
