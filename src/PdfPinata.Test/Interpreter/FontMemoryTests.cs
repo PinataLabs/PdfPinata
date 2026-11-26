@@ -47,12 +47,17 @@ public class FontMemoryTests
             rendering.GetType("PdfPinata.Pdf.Rendering.VerticalMetrics", true)
         ];
 
-        foreach (var name in new[] { "RenderFont", "EmbeddedTrueTypeGlyphSource", "FontWidths", "VerticalMetrics" })
+        // Every glyph source the library has is found rather than named, so that one added later,
+        // for CFF or Type 1, is held to the rule without anyone remembering to list it here.
+        var glyphSources = rendering.GetTypes().Where(type => type.IsSubclassOf(typeof(PageGlyphSource))).ToArray();
+        glyphSources.Select(type => type.Name).Should().Contain("EmbeddedTrueTypeGlyphSource");
+        var named = new[] { "RenderFont", "FontWidths", "VerticalMetrics" }
+            .Select(name => rendering.GetType("PdfPinata.Pdf.Rendering." + name, true));
+
+        foreach (var type in named.Concat(glyphSources))
         {
-            var type = rendering.GetType("PdfPinata.Pdf.Rendering." + name, true);
             var fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            fields.Should().NotBeEmpty();
-            fields.Where(field => !fixedSize.Contains(field.FieldType)).Select(field => $"{name}.{field.Name}")
+            fields.Where(field => !fixedSize.Contains(field.FieldType)).Select(field => $"{type.Name}.{field.Name}")
                 .Should().BeEmpty("what a font reads and keeps belongs in RenderFontCache, under the object it was read from");
         }
     }
