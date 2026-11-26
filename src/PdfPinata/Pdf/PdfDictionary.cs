@@ -217,8 +217,9 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         // The stream's own length is the one the file has to declare, whatever the entry says by
         // now. A stream keeps /Length current only in the dictionary that owns it, so one shared
         // with this dictionary through the Stream setter can have changed since it was assigned.
-        // The writer encrypts the data as it writes it, after this entry, which holds only because
-        // RC4 — the one cipher this library writes with — keeps the length. Before the keys are
+        // The writer encrypts the data as it writes it, after this entry, and AES - which an appended
+        // revision of an AES document is written with - makes it longer, so the entry stays the
+        // plain length here and WriteDictionaryElement writes the encrypted one. Before the keys are
         // listed, or an entry this adds would not be among them.
         DeclareStreamLength();
         var keys = Elements.KeyNames;
@@ -247,6 +248,8 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         key.WriteObject(writer);
         if (writer.SecurityHandler != null && PdfStandardSecurityHandler.IsSignatureValue(this, key.Value))
             writer.WriteUnencrypted(item);
+        else if (writer.SecurityHandler != null && _stream != null && key.Value == PdfStream.Keys.Length)
+            new PdfLong(writer.SecurityHandler.EncryptedStreamLength(this, _stream.LongLength)).WriteObject(writer);
         else
             item.WriteObject(writer);
         writer.NewLine();

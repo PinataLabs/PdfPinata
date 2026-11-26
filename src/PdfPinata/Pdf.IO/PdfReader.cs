@@ -419,6 +419,8 @@ public static class PdfReader
 
         if (lazy)
         {
+            // The catalog's /Version is not looked at here: reading it would read an object, and a
+            // lazy open reads none until asked. Version is the header's.
             ReadLazily(document, parser, stream, ownsStream);
             return document;
         }
@@ -442,6 +444,7 @@ public static class PdfReader
 
         // Fix references of trailer values and then objects and irefs are consistent.
         document._trailer.Finish();
+        TakeCatalogVersion(document);
 
         if (openmode is PdfDocumentOpenMode.Modify or PdfDocumentOpenMode.Append)
         {
@@ -458,6 +461,29 @@ public static class PdfReader
         }
 
         return document;
+    }
+
+    /// <summary>
+    /// Raises the document's version to the catalog's <c>/Version</c> when that is the later one,
+    /// and records the result as the version the file declares.
+    /// </summary>
+    /// <remarks>
+    /// ISO 32000-1 7.7.2: the entry exists so that an incremental update, which cannot rewrite the
+    /// header, can still say the document now needs a later version; when the header names the
+    /// later version, the header stands. An entry that names no version is ignored.
+    /// </remarks>
+    private static void TakeCatalogVersion(PdfDocument document)
+    {
+        var root = document._trailer.Elements[PdfTrailer.Keys.Root];
+        if (root is PdfReference reference)
+            root = reference.Value;
+
+        var name = (root as PdfDictionary)?.Elements[PdfCatalog.Keys.Version] as PdfName;
+        var version = name == null ? 0 : VersionIn("%PDF-" + name.Value.TrimStart('/'));
+        if (version > document._version)
+            document._version = version;
+
+        document._declaredVersion = document._version;
     }
 
     /// <summary>

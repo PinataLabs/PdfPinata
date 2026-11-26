@@ -74,10 +74,45 @@ and `/Encrypt` carried over. Three choices in it:
 - **A classic section after a stream is not written**, though ISO 32000-1 does not forbid it: this is
   the convention this note set out from — a file is updated in the form it was written in.
 
-`IncrementalUpdateOfCrossReferenceStreamTests` covers it. One thing it found and does not fix:
-`SaveIncremental` on an *encrypted* document whose change touches an object throws a
-`NullReferenceException` from the security handler, classic or stream alike, because nothing
-prepares the handler for writing on this path.
+`IncrementalUpdateOfCrossReferenceStreamTests` covers it.
+
+## An encrypted document is appended to with the keys it already has (#412)
+
+`SaveIncremental` on an encrypted document used to throw a `NullReferenceException` from the
+security handler, classic or stream alike, with either password: the handler had only ever been
+prepared for writing by `PrepareEncryption`, which a full save calls and which makes *new* keys. An
+appended revision cannot have new keys. The revisions before it stay encrypted under the old ones,
+and a file has one encryption dictionary and one first identifier (ISO 32000-1 7.5.6).
+
+So `SaveIncremental` calls `PdfStandardSecurityHandler.PrepareToAppend`, and the writer then
+encrypts with the encryptors the reader decrypted with: the same file key, the same crypt filters
+for strings (`/StrF`) and streams (`/StmF`), `/Identity` left plain, a metadata stream left plain
+under `/EncryptMetadata false`. RC4 at revisions 2 to 4, AES-128 (`/AESV2`) and AES-256 (`/AESV3`,
+revisions 5 and 6) are all written. The encryption dictionary is not rewritten, and `/Encrypt` and
+`/ID[0]` carry over in the new trailer.
+
+Two details:
+
+- **AES makes a stream longer**, by a 16-byte initialization vector and up to a block of padding,
+  while `/Length` is written before the data. The length is known in advance
+  (`EncryptedStreamLength`), so `PdfDictionary` writes that as `/Length` and leaves the in-memory
+  entry at the plain length. RC4 keeps the length, which is why a full save never needed this.
+- **The object key is made per string and per stream**, not once per object, because the encryptors
+  are the reader's too, and anything read while an object is written would leave its key behind.
+
+A new password set on the document before an incremental save is not applied: changing the keys
+means rewriting every revision, which is a full save. `IncrementalSaveOfEncryptedDocumentTests`
+checks the ciphertext with the independent `StandardSecurity` and `Aes256Security`, not only by
+reopening, because the reader hands back as it stands an AES string it cannot decrypt.
+
+## A raised version is declared in the catalog (#395)
+
+An appended revision cannot rewrite the header, so a change that raises `Version` — a `/UserUnit`,
+an OpenType `/FontFile3`, an `/AF` — reopened at the header's version. `SaveIncremental` now writes
+the catalog's `/Version` (ISO 32000-1 7.7.2) when `Version` is later than the version the file
+declared when it was read, and `PdfReader` takes the later of the header's version and the catalog's
+`/Version`, in every open mode but `Lazy`, which reads no object on opening and so reports the
+header's version. `IncrementalSaveVersionTests` covers both.
 
 ## An appended revision never shrinks `/Size`
 

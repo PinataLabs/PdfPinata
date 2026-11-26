@@ -324,4 +324,22 @@ internal class AESEncryptor : RC4Encryptor
         }
         return [..output.Take(dataLength)];
     }
+
+    /// <summary>
+    /// Encrypts a block of data: AES in CBC mode with PKCS #5 padding, behind a random
+    /// initialization vector of 16 bytes (ISO 32000-1 7.6.2).
+    /// </summary>
+    public override byte[] EncryptForWriting(byte[] bytes)
+    {
+        var iv = new byte[16];
+        using (var random = RandomNumberGenerator.Create())
+            random.GetBytes(iv);
+
+        using var aes = AesProvider.Create(rValue >= 5 ? AesProvider.Aes256 : AesProvider.Aes128);
+        aes.Mode = CipherMode.CBC;
+        aes.Padding = PaddingMode.PKCS7;
+        using var encryptor = aes.CreateEncryptor(key, iv);
+        var cipher = encryptor.TransformFinalBlock(bytes, 0, bytes.Length);
+        return [..iv, ..cipher];
+    }
 }
