@@ -259,6 +259,10 @@ internal sealed partial class ContentInterpreter
     /// advances by the PDF's own width for the code, the spacing the text state adds and the
     /// horizontal scaling.
     /// </summary>
+    /// <remarks>
+    /// Where the page has read all the font data it may and the font's widths are not kept, where
+    /// the code would advance to is not known, so the rest of the string is not set.
+    /// </remarks>
     /// <param name="text">The text object.</param>
     /// <param name="font">The font selected.</param>
     /// <param name="shown">The string, one character for each byte of it.</param>
@@ -268,31 +272,39 @@ internal sealed partial class ContentInterpreter
         var bytesPerCode = font.BytesPerCode;
         var draws = state.RenderMode != TextRenderMode.Invisible && font.Source != null;
 
-        // A byte left over at the end of a string of two-byte codes is no code, and is dropped.
-        for (var at = 0; at + bytesPerCode <= shown.Length; at += bytesPerCode)
+        try
         {
-            var code = shown[at] & 0xFF;
-            if (bytesPerCode == 2)
-                code = code << 8 | shown[at + 1] & 0xFF;
-
-            // Word spacing is added after the single byte 32 and after nothing else: not after
-            // a two-byte code that happens to be 32 (ISO 32000-1 9.3.3).
-            var spacing = state.CharacterSpacing + (bytesPerCode == 1 && code == 32 ? state.WordSpacing : 0);
-
-            if (font.IsVertical)
+            // A byte left over at the end of a string of two-byte codes is no code, and is dropped.
+            for (var at = 0; at + bytesPerCode <= shown.Length; at += bytesPerCode)
             {
-                // The glyph is placed with its position vector on the pen and the pen moves down
-                // (ISO 32000-1 9.7.4.3). Horizontal scaling plays no part in the advance.
-                var (advance, x, y) = font.VerticalMetricsOf(code);
-                if (draws)
-                    DrawGlyph(text, font, code, -x, -y);
-                AdvanceDown(text, advance * state.FontSize + spacing);
-                continue;
-            }
+                var code = shown[at] & 0xFF;
+                if (bytesPerCode == 2)
+                    code = code << 8 | shown[at + 1] & 0xFF;
 
-            if (draws)
-                DrawGlyph(text, font, code, 0, 0);
-            Advance(text, (font.WidthOf(code) * state.FontSize + spacing) * state.HorizontalScaling);
+                // Word spacing is added after the single byte 32 and after nothing else: not after
+                // a two-byte code that happens to be 32 (ISO 32000-1 9.3.3).
+                var spacing = state.CharacterSpacing + (bytesPerCode == 1 && code == 32 ? state.WordSpacing : 0);
+
+                if (font.IsVertical)
+                {
+                    // The glyph is placed with its position vector on the pen and the pen moves down
+                    // (ISO 32000-1 9.7.4.3). Horizontal scaling plays no part in the advance.
+                    var (advance, x, y) = font.VerticalMetricsOf(code);
+                    if (draws)
+                        DrawGlyph(text, font, code, -x, -y);
+                    AdvanceDown(text, advance * state.FontSize + spacing);
+                    continue;
+                }
+
+                var width = font.WidthOf(code);
+                if (draws)
+                    DrawGlyph(text, font, code, 0, 0);
+                Advance(text, (width * state.FontSize + spacing) * state.HorizontalScaling);
+            }
+        }
+        catch (FontDataNotReadException ex)
+        {
+            _sink.Report(PageRenderProblem.LimitReached, state.FontName, ex.Message);
         }
     }
 
@@ -314,7 +326,19 @@ internal sealed partial class ContentInterpreter
     private void DrawGlyph(TextObject text, RenderFont font, int code, double x, double y)
     {
         var state = State;
-        var outline = font.OutlineOf(code, out var why);
+        PagePath outline;
+        string why;
+        try
+        {
+            outline = font.OutlineOf(code, out why);
+        }
+        catch (FontDataNotReadException ex)
+        {
+            // Reported apart from a missing glyph: the two are merged by font, and one would hide the other.
+            _sink.Report(PageRenderProblem.LimitReached, state.FontName, ex.Message);
+            return;
+        }
+
         if (outline == null)
         {
             _sink.Report(PageRenderProblem.MissingGlyph, state.FontName, why);

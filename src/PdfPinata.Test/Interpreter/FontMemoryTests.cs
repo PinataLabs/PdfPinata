@@ -47,12 +47,17 @@ public class FontMemoryTests
             rendering.GetType("PdfPinata.Pdf.Rendering.VerticalMetrics", true)
         ];
 
-        foreach (var name in new[] { "RenderFont", "EmbeddedTrueTypeGlyphSource", "FontWidths", "VerticalMetrics" })
+        // Every glyph source the library has is found rather than named, so that one added later,
+        // for CFF or Type 1, is held to the rule without anyone remembering to list it here.
+        var glyphSources = rendering.GetTypes().Where(type => type.IsSubclassOf(typeof(PageGlyphSource))).ToArray();
+        glyphSources.Select(type => type.Name).Should().Contain("EmbeddedTrueTypeGlyphSource");
+        var named = new[] { "RenderFont", "FontWidths", "VerticalMetrics" }
+            .Select(name => rendering.GetType("PdfPinata.Pdf.Rendering." + name, true));
+
+        foreach (var type in named.Concat(glyphSources))
         {
-            var type = rendering.GetType("PdfPinata.Pdf.Rendering." + name, true);
             var fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            fields.Should().NotBeEmpty();
-            fields.Where(field => !fixedSize.Contains(field.FieldType)).Select(field => $"{name}.{field.Name}")
+            fields.Where(field => !fixedSize.Contains(field.FieldType)).Select(field => $"{type.Name}.{field.Name}")
                 .Should().BeEmpty("what a font reads and keeps belongs in RenderFontCache, under the object it was read from");
         }
     }
@@ -298,13 +303,15 @@ public class FontMemoryTests
     {
         // Three fonts of 63 MiB each, of which the document holds two, selected in turn: every
         // selection reads a program that was let go of for the one before, a fifth of a second
-        // of decoding each, for 15 bytes of content. A page reads 1 GiB of font program, 17 of
+        // of decoding each, for 15 bytes of content. A page reads 1 GiB of font data, 17 of
         // these, and after that a program is not read again for the page: the two fonts still
-        // held go on drawing, and the third is reported.
+        // held go on drawing, and the third is reported as the limit. /F2 also shows a code it
+        // has no glyph for. Reported as one problem under one font, that missing glyph hid
+        // every glyph the limit dropped after it.
         const int turns = 400;
         var content = new StringBuilder("BT ");
         for (var turn = 0; turn < turns; turn++)
-            content.Append($"/F{turn % 3} 1 Tf <0001> Tj ");
+            content.Append(turn % 3 == 2 ? "/F2 1 Tf <00050001> Tj " : $"/F{turn % 3} 1 Tf <0001> Tj ");
         var document = new PdfDocument();
         for (var p = 0; p < 2; p++)
         {
@@ -330,11 +337,86 @@ public class FontMemoryTests
         var (firstResult, secondResult) = await Interruptibly.Run(() =>
             (PageRendering.Render(document.Pages[0], first), PageRendering.Render(document.Pages[1], second)));
 
-        firstResult.Diagnostics.Should().NotBeEmpty().And.OnlyContain(d => d.Problem == PageRenderProblem.MissingGlyph
-                                                                           && d.Message.Contains("MiB of font program"));
+        firstResult.Diagnostics.Should().HaveCount(2);
+        firstResult.Diagnostics.Should().ContainSingle(d => d.Problem == PageRenderProblem.MissingGlyph && d.Subject == "/F2")
+            .Which.Message.Should().Contain("no glyph");
+        firstResult.Diagnostics.Should().ContainSingle(d => d.Problem == PageRenderProblem.LimitReached && d.Subject == "/F2")
+            .Which.Message.Should().Contain("MiB of font data");
         first.Fills.Should().Be(17 + 255, "17 programs are read, and then two of every three glyphs are of a font still held");
         secondResult.Diagnostics.Should().BeEmpty("the next page has an allowance of its own");
         second.Fills.Should().Be(1);
+    }
+
+    [Test, Timeout(300000), NotInParallel]
+    [Arguments("/W", 400, 6000)]
+    [Arguments("/W2", 200, 2400)]
+    [Arguments("/CIDToGIDMap", 1300, 24000)]
+    public async Task APageThatReadsFontTablesOverAndOverIsStoppedAtItsAllowance(string key, int fonts, int turns)
+    {
+        // Fonts over one font program, each with a table of its own, more of them than the
+        // document holds, selected in turn: every selection reads a table that was let go of for
+        // the ones before. Only font programs were charged to the page's allowance, and 200,000
+        // selections took 126 s over /W, 405 s over /W2 and 58 s over /CIDToGIDMap. The tables
+        // are charged to it as well, so the page stops reading them at 1 GiB: about 2,000 /W,
+        // 700 /W2 or 8,000 /CIDToGIDMap. The fonts whose tables are still held go on drawing.
+        var content = new StringBuilder("BT ");
+        for (var turn = 0; turn < turns; turn++)
+            content.Append($"/F{turn % fonts} 1 Tf <0001> Tj ");
+        var page = Drawn.PageOf(content.Append("ET").ToString(), (document, resources) =>
+        {
+            // A map of every CID there can be, CID 1 to glyph 1, deflated as files deflate them:
+            // one array of bytes under all the streams.
+            var map = new byte[2 * 65536];
+            map[3] = 1;
+            var deflated = Deflate(map);
+            PdfDictionary first = null;
+            for (var k = 0; k < fonts; k++)
+            {
+                var font = Composite(document, first == null ? OneBar() : [], key == "/CIDToGIDMap" ? map : null);
+                var descendant = Descendant(font);
+                if (first == null)
+                    first = font;
+                else
+                    descendant.Elements["/FontDescriptor"] = Descendant(first).Elements["/FontDescriptor"];
+                if (key == "/W")
+                    descendant.Elements["/W"] = Numbers(document, "[0 65535 500]");
+                if (key == "/W2")
+                {
+                    font.Elements.SetName("/Encoding", "/Identity-V");
+                    descendant.Elements["/W2"] = Numbers(document, "[0 65535 -1000 500 880]");
+                }
+                if (key == "/CIDToGIDMap")
+                {
+                    var stream = (PdfDictionary)((PdfReference)descendant.Elements["/CIDToGIDMap"]).Value;
+                    stream.Stream.Value = deflated;
+                    stream.Elements.SetName("/Filter", "/FlateDecode");
+                }
+
+                Drawn.Add(document, resources, "/Font", $"/F{k}", font);
+            }
+        });
+        var device = new PathCountingDevice();
+
+        var (result, allocated) = await Interruptibly.Run(() =>
+        {
+            var before = GC.GetAllocatedBytesForCurrentThread();
+            var rendered = PageRendering.Render(page, device);
+            return (rendered, GC.GetAllocatedBytesForCurrentThread() - before);
+        });
+
+        result.Diagnostics.Should().NotBeEmpty().And.OnlyContain(d => d.Problem == PageRenderProblem.LimitReached
+                                                                      && d.Message.Contains("MiB of font data"));
+        var reported = result.Diagnostics.Sum(d => d.Occurrences) + result.OmittedDiagnostics;
+        reported.Should().Be(turns - device.Fills, "each selection is one glyph, drawn or reported as the limit");
+        allocated.Should().BeLessThan(4L << 30, "the page reads 1 GiB of tables, and building or decoding one allocates two to four times its size");
+    }
+
+    private static byte[] Deflate(byte[] data)
+    {
+        using var compressed = new MemoryStream();
+        using (var zlib = new ZLibStream(compressed, CompressionLevel.Fastest, leaveOpen: true))
+            zlib.Write(data);
+        return compressed.ToArray();
     }
 
     [Test, Timeout(120000), NotInParallel]
