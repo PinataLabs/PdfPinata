@@ -550,11 +550,11 @@ public class ShadingLimitTests
         watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(5));
         allocated.Should().BeLessThan(64L << 20);
         drawn.Device.Fills.Should().BeEmpty();
-        drawn.Problems.Should().Equal("LimitReached /S0");
+        drawn.Problems.Should().Equal(Enumerable.Range(0, 64).Select(index => $"LimitReached /S{index}"));
     }
 
     [Test, Timeout(60_000)]
-    public async Task ASampledFunctionWhoseStreamFailsIsDecodedAndReportedOnce()
+    public async Task ASampledFunctionWhoseStreamFailsIsDecodedOnceAndReportedForEachShading()
     {
         // A table of 16 MiB whose stream is a byte short of it.
         var table = DeflatedZeros((1L << 24) - 1);
@@ -566,7 +566,19 @@ public class ShadingLimitTests
         // Each decode of it allocates more than 16 MiB.
         allocated.Should().BeLessThan(128L << 20);
         drawn.Device.Fills.Should().BeEmpty();
-        drawn.Problems.Should().Equal("InvalidValue /S0");
+        drawn.Problems.Should().Equal(Enumerable.Range(0, 64).Select(index => $"InvalidValue /S{index}"));
+    }
+
+    [Test, Timeout(30_000)]
+    public async Task EachShadingThatNamesAFunctionThatCannotBeReadIsReportedWithTheFirstFailure()
+    {
+        PdfDictionary program = null;
+        var (drawn, _) = await ShadedMany(3, (document, _) => program ??= Drawn.Stream(document, "{ 1 frobnicate }",
+            ("/FunctionType", "4"), ("/Domain", "[0 1]"), ("/Range", "[0 1]")));
+
+        drawn.Device.Fills.Should().BeEmpty();
+        drawn.Problems.Should().Equal("InvalidValue /S0", "InvalidValue /S1", "InvalidValue /S2");
+        drawn.Result.Diagnostics.Select(diagnostic => diagnostic.Message).Distinct().Should().ContainSingle();
     }
 
     [Test, Timeout(60_000)]
@@ -581,6 +593,45 @@ public class ShadingLimitTests
         const int kept = (int)(ShadingWork_MaximumBytes >> 24);
         drawn.Device.Fills.Should().HaveCount(kept);
         drawn.Problems.Should().Equal(Enumerable.Range(kept, 16 - kept).Select(index => $"LimitReached /S{index}"));
+    }
+
+    [Test, Timeout(60_000)]
+    public async Task ShadingsThatDecodeNothingAreDrawnAfterTheRenderHasDecodedAllItMay()
+    {
+        // Nine tables of 16 MiB spend the bytes. Then an exponential function, which has no
+        // stream, and the first table again, which was read already: neither decodes anything.
+        // Last a mesh, whose own stream is the one thing here past the limit.
+        var table = DeflatedZeros(1L << 24);
+        PdfDictionary first = null;
+        var drawn = await Interruptibly.Run(() => Drawn.Saved(
+            string.Concat(Enumerable.Range(0, 11).Select(index => $"/S{index} sh ")) + "/Mesh sh",
+            (document, resources) =>
+            {
+                for (var index = 0; index < 11; index++)
+                {
+                    var function = index switch
+                    {
+                        9 => Drawn.Object(document, ("/FunctionType", "2"), ("/Domain", "[0 1]"), ("/C0", "[0]"),
+                            ("/C1", "[1]"), ("/N", "1")),
+                        10 => first,
+                        _ => Drawn.Stream(document, table, ("/FunctionType", "0"), ("/Domain", "[0 1]"),
+                            ("/Range", "[0 1]"), ("/Size", "[16777216]"), ("/BitsPerSample", "8"),
+                            ("/Filter", "/FlateDecode"))
+                    };
+                    first ??= function;
+                    Drawn.Add(document, resources, "/Shading", $"/S{index}", Drawn.Object(document,
+                        ("/ShadingType", "2"), ("/ColorSpace", "/DeviceGray"), ("/Coords", $"[0 0 {100 + index} 0]"),
+                        ("/Function", function)));
+                }
+
+                Drawn.Add(document, resources, "/Shading", "/Mesh", Drawn.Stream(document, new byte[9],
+                    ("/ShadingType", "4"), ("/ColorSpace", "/DeviceGray"), ("/BitsPerCoordinate", "8"),
+                    ("/BitsPerComponent", "8"), ("/BitsPerFlag", "8"), ("/Decode", "[0 100 0 100 0 1]")));
+            }));
+
+        const int kept = (int)(ShadingWork_MaximumBytes >> 24);
+        drawn.Device.Fills.Should().HaveCount(kept + 2);
+        drawn.Problems.Should().Equal("LimitReached /S8", "LimitReached /Mesh");
     }
 
     [Test, Timeout(60_000)]
