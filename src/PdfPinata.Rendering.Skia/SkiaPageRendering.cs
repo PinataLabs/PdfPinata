@@ -71,11 +71,11 @@ public static class SkiaPageRendering
     /// </summary>
     /// <remarks>
     /// A picture holds every path drawn into it, where a bitmap holds only pixels. Paths with the
-    /// same points are recorded once however often they are drawn, such as a form XObject repeated
-    /// across the page or a glyph set many times. Distinct paths each cost the picture their points,
-    /// a glyph outline included, so a page that sets many different glyphs of a large font may
-    /// make a picture far larger than its bitmap. While recording, each distinct path is also kept
-    /// until the method returns.
+    /// same points are recorded at most twice however often they are drawn, such as a form XObject
+    /// repeated across the page or a glyph set many times. Distinct paths each cost the picture
+    /// their points, a glyph outline included, so a page that sets many different glyphs of a
+    /// large font may make a picture far larger than its bitmap. While recording, a path drawn
+    /// more than once is also kept until the method returns.
     /// </remarks>
     /// <param name="page">The page.</param>
     /// <param name="options">How to render it, or null for the defaults.</param>

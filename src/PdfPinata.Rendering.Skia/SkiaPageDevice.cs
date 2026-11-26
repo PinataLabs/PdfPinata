@@ -31,7 +31,8 @@ namespace PdfPinata.Rendering.Skia;
 /// as a glyph past the outline budget or a path repeated through a form XObject, as a path of its
 /// own, and the picture holds every one.
 /// <see cref="SkiaPageRendering.ToSKPicture(PdfPinata.Pdf.PdfPage, PageRenderOptions)"/> draws
-/// identical paths through one Skia path, which the picture holds once.
+/// identical paths through one Skia path from their second draw, so the picture holds them at
+/// most twice.
 /// </para>
 /// <para>
 /// It draws every shader page rendering hands over: gradients as Skia's own, a mesh and a tiling
@@ -45,8 +46,12 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
     private readonly SKMatrix _base;
     private readonly bool _antiAlias;
     private readonly SKPaint _paint;
-    private readonly bool _recording;
-    private readonly Dictionary<PagePath, SKPath> _paths;
+    private readonly Dictionary<PagePath, SKPath> _sharedPaths = [];
+
+    // Recording only: the content of each unshared path drawn, by its hash, and the paths whose
+    // content was drawn again, by that content. Null for a canvas that does not record.
+    private readonly HashSet<int> _drawnContent;
+    private readonly Dictionary<PagePath, SKPath> _repeatedPaths;
     private readonly Dictionary<PageShader, SKShader> _sharedShaders = [];
 
     // The most samples one image may have, as the core limits one, so that a JPEG whose header
@@ -64,7 +69,8 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
 
     // Recording, the canvas is an SKPictureRecorder's, which keeps every path drawn onto it.
     // A picture shares the points of one SKPath drawn twice, and not of two built alike, so
-    // the device draws identical content through one SKPath, which the picture holds anyway.
+    // the device draws content it has drawn before through one SKPath, which the picture holds
+    // anyway. Content drawn once is not kept, so a page of distinct glyphs costs no more.
     internal SkiaPageDevice(SKCanvas canvas, bool antiAlias, bool recording)
     {
         ArgumentNullException.ThrowIfNull(canvas);
@@ -72,8 +78,11 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
         _base = canvas.TotalMatrix;
         _antiAlias = antiAlias;
         _paint = new SKPaint { IsAntialias = antiAlias };
-        _recording = recording;
-        _paths = recording ? new(SameContent.Instance) : [];
+        if (recording)
+        {
+            _drawnContent = [];
+            _repeatedPaths = new(SameContent.Instance);
+        }
     }
 
     /// <inheritdoc />
@@ -306,9 +315,16 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
     /// <summary>Frees the paths, the shaders and the paint the device made. The canvas is left alone.</summary>
     public void Dispose()
     {
-        foreach (var path in _paths.Values)
+        foreach (var path in _sharedPaths.Values)
             path.Dispose();
-        _paths.Clear();
+        _sharedPaths.Clear();
+        if (_repeatedPaths != null)
+        {
+            foreach (var path in _repeatedPaths.Values)
+                path.Dispose();
+            _repeatedPaths.Clear();
+            _drawnContent.Clear();
+        }
         foreach (var shader in _sharedShaders.Values)
             shader.Dispose();
         _sharedShaders.Clear();
@@ -516,20 +532,32 @@ public sealed class SkiaPageDevice : PageDevice, IDisposable
 
     // The path a call draws. A glyph outline is handed over again, so its path is kept until the
     // device is disposed; any other is made for this call, and handed back as owned to be freed.
-    // While recording, every path is kept, by its content.
+    // While recording, a path whose content is drawn a second time is kept from then on, by that
+    // content, so the picture holds it at most twice; content drawn once is freed as before.
     private SKPath PathOf(PagePath path, XFillMode fillMode, out SKPath owned)
     {
         ArgumentNullException.ThrowIfNull(path);
         owned = null;
-        if (!_paths.TryGetValue(path, out var skPath))
+        if (path.IsShared)
         {
-            skPath = Build(path);
-            if (_recording || path.IsShared)
-                _paths.Add(path, skPath);
-            else
-                owned = skPath;
+            if (!_sharedPaths.TryGetValue(path, out var shared))
+                _sharedPaths.Add(path, shared = Build(path));
+            return WithFill(shared, fillMode);
         }
 
+        if (_repeatedPaths != null && !_drawnContent.Add(SameContent.Instance.GetHashCode(path)))
+        {
+            if (!_repeatedPaths.TryGetValue(path, out var repeated))
+                _repeatedPaths.Add(path, repeated = Build(path));
+            return WithFill(repeated, fillMode);
+        }
+
+        owned = Build(path);
+        return WithFill(owned, fillMode);
+    }
+
+    private static SKPath WithFill(SKPath skPath, XFillMode fillMode)
+    {
         skPath.FillType = fillMode == XFillMode.Alternate ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
         return skPath;
     }
