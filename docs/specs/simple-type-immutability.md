@@ -150,3 +150,10 @@ covered types), the AES/RC4 correctness in `src/PdfPinata.Test/Security/` is unt
 — unrenamed, as planned, because renaming it is a separate and unrelated fix. No source analyzer
 was added; the reflection test is the only enforcement mechanism, running on every `dotnet test`
 across both target frameworks as before.
+
+## Since #408
+
+`FromEncryptionValue` is now `FromDecryptedBytes`, and its decoding lives in `PdfString.Decode`, shared
+with `PdfStringObject`. Decryption starts from the bytes the file holds rather than from
+`EncryptionValue`, and whatever the lexer guessed about the ciphertext's encoding is dropped: only
+the plaintext's own byte order mark makes the string UTF-16.

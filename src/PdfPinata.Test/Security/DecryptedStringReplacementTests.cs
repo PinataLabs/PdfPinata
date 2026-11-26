@@ -23,7 +23,7 @@ namespace PdfPinata.Test.Security;
 ///
 ///   <para>
 ///   A <see cref="PdfString"/> is a simple type and so must be immutable. The repair is that
-///   <c>PdfString.FromEncryptionValue</c> builds the plaintext string and the caller puts it where
+///   <c>PdfString.FromDecryptedBytes</c> builds the plaintext string and the caller puts it where
 ///   the ciphertext one was, through the collection's own indexer - the same path every other
 ///   caller that replaces an entry already takes.
 ///   </para>
@@ -39,10 +39,10 @@ public class DecryptedStringReplacementTests
     private static readonly Assembly Library = typeof(PdfString).Assembly;
     private static readonly Type Flags = Library.GetType("PdfPinata.Pdf.PdfStringFlags", throwOnError: true);
 
-    /// <summary>Calls the internal PdfString.FromEncryptionValue with flags named as the enum spells them.</summary>
-    private static PdfString FromEncryptionValue(byte[] bytes, string flagName)
+    /// <summary>Calls the internal PdfString.FromDecryptedBytes with flags named as the enum spells them.</summary>
+    private static PdfString FromDecryptedBytes(byte[] bytes, string flagName)
     {
-        var factory = typeof(PdfString).GetMethod("FromEncryptionValue",
+        var factory = typeof(PdfString).GetMethod("FromDecryptedBytes",
             BindingFlags.Static | BindingFlags.NonPublic);
         factory.Should().NotBeNull("the setter was replaced by a factory, not deleted outright");
 
@@ -53,7 +53,7 @@ public class DecryptedStringReplacementTests
     [Test]
     public void PlainBytesBecomeThePlainStringTheySpell()
     {
-        var decrypted = FromEncryptionValue("Original title"u8.ToArray(), "RawEncoding");
+        var decrypted = FromDecryptedBytes("Original title"u8.ToArray(), "RawEncoding");
 
         decrypted.Value.Should().Be("Original title");
         decrypted.Encoding.Should().Be(PdfStringEncoding.RawEncoding);
@@ -67,7 +67,7 @@ public class DecryptedStringReplacementTests
         // string as raw. The mark decides once the bytes are readable.
         var bytes = new byte[] { 0xFE, 0xFF }.Concat(Encoding.BigEndianUnicode.GetBytes("Tîtlé")).ToArray();
 
-        var decrypted = FromEncryptionValue(bytes, "RawEncoding");
+        var decrypted = FromDecryptedBytes(bytes, "RawEncoding");
 
         decrypted.Value.Should().Be("Tîtlé");
         decrypted.Encoding.Should().Be(PdfStringEncoding.Unicode,
@@ -75,14 +75,16 @@ public class DecryptedStringReplacementTests
     }
 
     [Test]
-    public void BytesAlreadyKnownToBeUnicodeAreReadAsUnicode()
+    public void AUnicodeFlagTheLexerSetOnCiphertextIsWithdrawn()
     {
-        var bytes = Encoding.BigEndianUnicode.GetBytes("Ångström");
+        // The lexer flags a string Unicode when its ciphertext happens to open with a mark, which
+        // says nothing about the plaintext (#408). Plaintext without a mark is raw bytes.
+        var bytes = "plain"u8.ToArray();
 
-        var decrypted = FromEncryptionValue(bytes, "Unicode");
+        var decrypted = FromDecryptedBytes(bytes, "Unicode");
 
-        decrypted.Value.Should().Be("Ångström");
-        decrypted.Encoding.Should().Be(PdfStringEncoding.Unicode);
+        decrypted.Value.Should().Be("plain");
+        decrypted.Encoding.Should().Be(PdfStringEncoding.RawEncoding);
     }
 
     [Test]
@@ -90,7 +92,7 @@ public class DecryptedStringReplacementTests
     {
         // HexLiteral lives in the same field as the encoding, and the string has to go back out the
         // way it came in. Only the encoding bits are allowed to move.
-        var decrypted = FromEncryptionValue("(hex)"u8.ToArray(), "HexLiteral");
+        var decrypted = FromDecryptedBytes("(hex)"u8.ToArray(), "HexLiteral");
 
         decrypted.HexLiteral.Should().BeTrue();
     }
@@ -100,7 +102,7 @@ public class DecryptedStringReplacementTests
     {
         // The whole point: the string handed in is not the string handed back, so nothing holding
         // the old reference sees it change under them.
-        var factory = typeof(PdfString).GetMethod("FromEncryptionValue",
+        var factory = typeof(PdfString).GetMethod("FromDecryptedBytes",
             BindingFlags.Static | BindingFlags.NonPublic);
         var original = new PdfString("Original title");
 

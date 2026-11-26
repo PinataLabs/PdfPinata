@@ -1094,7 +1094,9 @@ public sealed class PdfDocument : PdfObject, IDisposable
 
     /// <summary>
     /// Gets or sets the PDF version number. Return value 14 e.g. means PDF 1.4 / Acrobat 5 etc.
-    /// Return value 20 means PDF 2.0.
+    /// Return value 20 means PDF 2.0. A document read from a file reports the later of its header's
+    /// version and its catalog's <c>/Version</c>, except one opened <see cref="PdfDocumentOpenMode.Lazy"/>,
+    /// which reads no object when it opens and so reports the header's.
     /// </summary>
     public int Version
     {
