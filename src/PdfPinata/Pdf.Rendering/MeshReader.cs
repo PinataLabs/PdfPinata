@@ -55,7 +55,7 @@ internal static class MeshReader
         if (colors.Work.IsSpent)
             return null;
 
-        if (!read && colors.Work.HasDecodedAll)
+        if (!read && mesh.Refused)
         {
             sink.Report(PageRenderProblem.LimitReached, subject,
                 "The page's shadings decode more than one render reads. This one is not drawn.");
@@ -110,7 +110,7 @@ internal static class MeshReader
     /// <summary>Types 4 and 5: vertices, joined into triangles by a flag on each or by rows of a lattice.</summary>
     private static bool ReadVertices(PdfDictionary shading, int type, ShadingColors colors, Triangles mesh)
     {
-        if (!VertexStream.TryOpen(shading, colors, type == 4, out var stream))
+        if (!VertexStream.TryOpen(shading, colors, type == 4, mesh, out var stream))
             return false;
 
         // Each vertex of a triangle mesh, with its flag where it has one, takes a whole number of
@@ -186,7 +186,7 @@ internal static class MeshReader
     /// </summary>
     private static bool ReadPatches(PdfDictionary shading, int type, ShadingColors colors, Triangles mesh)
     {
-        if (!VertexStream.TryOpen(shading, colors, true, out var stream))
+        if (!VertexStream.TryOpen(shading, colors, true, mesh, out var stream))
             return false;
 
         // A patch is not padded to a whole byte. ISO 32000-1 asks that of each vertex of a
@@ -390,6 +390,9 @@ internal static class MeshReader
         /// <summary>Whether triangles were left out at <see cref="MaximumTriangles"/>.</summary>
         internal bool Overflowed { get; private set; }
 
+        /// <summary>Whether the render had decoded all it may before the mesh's stream was.</summary>
+        internal bool Refused { get; set; }
+
         /// <summary>Whether no more triangles are read: there are as many as are kept, or the render's work is spent.</summary>
         internal bool Stopped => Overflowed || _work.IsSpent;
 
@@ -552,7 +555,8 @@ internal static class MeshReader
             PadsVertices = false;
         }
 
-        internal static bool TryOpen(PdfDictionary shading, ShadingColors colors, bool hasFlags, out VertexStream stream)
+        internal static bool TryOpen(PdfDictionary shading, ShadingColors colors, bool hasFlags, Triangles mesh,
+            out VertexStream stream)
         {
             stream = default;
             var elements = shading.Elements;
@@ -571,7 +575,8 @@ internal static class MeshReader
             // Decoded no further than the most triangles a shading is drawn as can reach, at three
             // whole vertices each. A patch takes far fewer bytes a triangle than that.
             var vertexBytes = (flagBits + 2 * coordinate + colors.ComponentCount * component + 7) / 8;
-            var data = colors.Work.Decode(shading, 3L * (MaximumTriangles + 1) * vertexBytes);
+            var data = colors.Work.Decode(shading, 3L * (MaximumTriangles + 1) * vertexBytes, out var refused);
+            mesh.Refused = refused;
             if (data == null)
                 return false;
 

@@ -36,6 +36,9 @@ internal sealed class DiagnosticSink
     /// </summary>
     internal (PageRenderProblem Problem, string Message) Last { get; private set; }
 
+    /// <summary>How many reports have been made, kept or not.</summary>
+    internal int Reports { get; private set; }
+
     /// <summary>Records a problem met at the operator being drawn.</summary>
     /// <param name="problem">What sort of problem.</param>
     /// <param name="subject">What it is about. With <paramref name="problem"/>, what makes two reports one entry.</param>
@@ -44,6 +47,7 @@ internal sealed class DiagnosticSink
     {
         subject ??= "";
         Last = (problem, message);
+        Reports++;
         if (_bySubject.TryGetValue((problem, subject), out var known))
         {
             if (known.Occurrences < int.MaxValue)

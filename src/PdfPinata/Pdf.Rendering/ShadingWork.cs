@@ -51,11 +51,12 @@ internal sealed class ShadingWork
     /// </summary>
     /// <returns>
     /// At most <paramref name="most"/> bytes, or null where the stream cannot be decoded or
-    /// where the render has decoded all it may, which <see cref="HasDecodedAll"/> then says.
+    /// where the render has decoded all it may, which <paramref name="refused"/> then says.
     /// </returns>
-    internal byte[] Decode(PdfDictionary stream, long most)
+    internal byte[] Decode(PdfDictionary stream, long most, out bool refused)
     {
-        if (HasDecodedAll)
+        refused = HasDecodedAll;
+        if (refused)
             return null;
 
         var limit = Math.Min(most, _bytesLeft);
@@ -75,6 +76,7 @@ internal sealed class ShadingWork
         if (truncated && limit < most)
         {
             _bytesLeft = -1;
+            refused = true;
             return null;
         }
 

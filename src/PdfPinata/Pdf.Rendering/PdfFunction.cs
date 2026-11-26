@@ -120,9 +120,9 @@ internal abstract class PdfFunction
     /// Reports a function whose stream could not be decoded: because the render has decoded all
     /// it may, or because the stream is broken.
     /// </summary>
-    internal static PdfFunction Undecodable(ShadingWork work, DiagnosticSink sink, string subject, string message)
+    internal static PdfFunction Undecodable(bool refused, DiagnosticSink sink, string subject, string message)
     {
-        if (!work.HasDecodedAll)
+        if (!refused)
             return Invalid(sink, subject, message);
 
         sink.Report(PageRenderProblem.LimitReached, subject,

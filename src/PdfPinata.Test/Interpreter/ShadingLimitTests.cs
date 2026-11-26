@@ -634,6 +634,33 @@ public class ShadingLimitTests
     }
 
     [Test, Timeout(300_000)]
+    public async Task AMeshLaidOutWronglyIsReportedAsThatAfterTheRenderHasDecodedAllItMay()
+    {
+        // Nine tables of 16 MiB spend the bytes. The mesh's /BitsPerCoordinate is no width a
+        // coordinate may have, so it fails before its stream would be decoded.
+        var table = DeflatedZeros(1L << 24);
+        var drawn = await Interruptibly.Run(() => Drawn.Saved(
+            string.Concat(Enumerable.Range(0, 9).Select(index => $"/S{index} sh ")) + "/Mesh sh",
+            (document, resources) =>
+            {
+                for (var index = 0; index < 9; index++)
+                {
+                    Drawn.Add(document, resources, "/Shading", $"/S{index}", Drawn.Object(document,
+                        ("/ShadingType", "2"), ("/ColorSpace", "/DeviceGray"), ("/Coords", $"[0 0 {100 + index} 0]"),
+                        ("/Function", Drawn.Stream(document, table, ("/FunctionType", "0"), ("/Domain", "[0 1]"),
+                            ("/Range", "[0 1]"), ("/Size", "[16777216]"), ("/BitsPerSample", "8"),
+                            ("/Filter", "/FlateDecode")))));
+                }
+
+                Drawn.Add(document, resources, "/Shading", "/Mesh", Drawn.Stream(document, new byte[9],
+                    ("/ShadingType", "4"), ("/ColorSpace", "/DeviceGray"), ("/BitsPerCoordinate", "3"),
+                    ("/BitsPerComponent", "8"), ("/BitsPerFlag", "8"), ("/Decode", "[0 100 0 100 0 1]")));
+            }));
+
+        drawn.Problems.Should().Equal("LimitReached /S8", "InvalidValue /Mesh");
+    }
+
+    [Test, Timeout(300_000)]
     public async Task AMeshIsDecodedNoFurtherThanTheTrianglesItIsDrawnAs()
     {
         // 256 MiB of zeros: a vertex of three bytes, flag 0, at the origin, so a triangle in nine.

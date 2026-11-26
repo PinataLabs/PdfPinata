@@ -78,9 +78,9 @@ internal sealed class SampledFunction : PdfFunction
 
         // Decoded no further than the table, which is all that is read of it.
         var needed = (entries * outputs * bits + 7) / 8;
-        var samples = work.Decode(dictionary, needed);
+        var samples = work.Decode(dictionary, needed, out var refused);
         if (samples == null || samples.Length < needed)
-            return Undecodable(work, sink, subject, "A sampled function's stream is shorter than its /Size, or cannot be decoded.");
+            return Undecodable(refused, sink, subject, "A sampled function's stream is shorter than its /Size, or cannot be decoded.");
 
         var encode = Numbers(elements["/Encode"]);
         if (encode == null || encode.Length != 2 * inputs)

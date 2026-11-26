@@ -83,13 +83,13 @@ internal sealed class FunctionReader(DiagnosticSink sink, ShadingWork work)
                 return null;
             }
 
+            var reports = sink.Reports;
             var function = ReadDictionary(dictionary, depth, subject, out height);
 
             // A stitching that fails may fail for where it was named, too deep or inside itself,
             // and is read again where it is named next. What it is made of is kept either way.
-            // Any other that fails reported why last, as every read that answers null does.
             if (function != null || !IsStitching(dictionary))
-                _read.Add(key, (function, height, function == null ? sink.Last : default));
+                _read.Add(key, (function, height, function == null ? FailureOf(reports, subject) : default));
             return function;
         }
         finally
@@ -194,6 +194,18 @@ internal sealed class FunctionReader(DiagnosticSink sink, ShadingWork work)
             return PdfFunction.Invalid(sink, subject, "A function's /Range is a low and a high for each output.");
 
         return new StitchingFunction(domain, range, functions, edges, encode);
+    }
+
+    // Why a read that answered null failed: what it reported last, or, where it reported nothing,
+    // a reason reported now, so that no shading naming the function goes unreported.
+    private (PageRenderProblem Problem, string Message) FailureOf(int reportsBefore, string subject)
+    {
+        if (sink.Reports > reportsBefore)
+            return sink.Last;
+
+        const string message = "A function cannot be read. What it colours is not drawn.";
+        sink.Report(PageRenderProblem.InvalidValue, subject, message);
+        return (PageRenderProblem.InvalidValue, message);
     }
 
     private static bool IsStitching(PdfDictionary dictionary) =>
