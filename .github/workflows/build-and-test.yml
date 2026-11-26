@@ -143,7 +143,7 @@ jobs:
           /d:sonar.token="$SONAR_TOKEN"
           /d:sonar.host.url="https://sonarcloud.io"
           /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.*.xml"
-          /d:sonar.coverage.exclusions="src/ConformanceCorpus/**,src/PinataLayout.AotSmokeTest/**,src/SampleApp/**,src/SampleBlazorWasm/**,docs-website/**"
+          /d:sonar.coverage.exclusions="src/ConformanceCorpus/**,src/PinataLayout.AotSmokeTest/**,src/SampleApp/**,src/SampleBlazorWasm/**,docs-website/**,**/*.ps1"
           /d:sonar.exclusions="tools/Core14MetricsGenerator/afm/**"
       - name: Build for tests
         run: dotnet build src/PdfPinata.slnx --configuration Debug --no-restore
