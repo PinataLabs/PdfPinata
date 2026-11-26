@@ -33,6 +33,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
@@ -411,6 +412,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         EnsureCanDeduplicate();
         EnsureNothingNestedTooDeepToRead();
         PrepareForSave();
+        DeclareRaisedVersion();
 
         stream.Write(_originalBytes, 0, _originalBytes.Length);
 
@@ -421,7 +423,12 @@ public sealed class PdfDocument : PdfObject, IDisposable
         // it. Whether the file was encrypted is therefore settled by the reader, not by the trailer.
         // The empty handler such a question made is an object in the table too, and is left out of
         // the revision along with the entry that pointed at it.
+        //
+        // The revision is encrypted with the keys the document was read with, not with new ones as
+        // a full save makes: the revisions before it stay encrypted under the old keys and the
+        // encryption dictionary that describes them, and a file has only one (ISO 32000-1 7.5.6).
         var securityHandler = _readEncrypted ? _trailer.SecurityHandler : null;
+        securityHandler?.PrepareToAppend();
         var strayHandler = _readEncrypted ? null : _trailer._securityHandler;
         if (!_readEncrypted)
             _trailer.Elements.Remove(PdfTrailer.Keys.Encrypt);
@@ -451,6 +458,19 @@ public sealed class PdfDocument : PdfObject, IDisposable
         {
             writer.Stream.Flush();
         }
+    }
+
+    /// <summary>
+    /// Writes <see cref="Version"/> into the catalog's <c>/Version</c> when it is later than the
+    /// version the file declared when it was read, which is the only way an appended revision can
+    /// raise it: the header is in the bytes copied through untouched (ISO 32000-1 7.7.2). A reader
+    /// takes the later of the two.
+    /// </summary>
+    private void DeclareRaisedVersion()
+    {
+        if (_version > _declaredVersion)
+            Catalog.Elements.SetName(PdfCatalog.Keys.Version,
+                "/" + (_version / 10).ToString(CultureInfo.InvariantCulture) + "." + (_version % 10).ToString(CultureInfo.InvariantCulture));
     }
 
     /// <summary>
@@ -1089,6 +1109,12 @@ public sealed class PdfDocument : PdfObject, IDisposable
     }
 
     internal int _version;
+
+    /// <summary>
+    /// The version the file declared when it was read: the later of its header's and its catalog's
+    /// <c>/Version</c>. An incremental save declares <see cref="Version"/> only when it is later.
+    /// </summary>
+    internal int _declaredVersion;
 
     /// <summary>
     /// Gets the number of pages in the document.

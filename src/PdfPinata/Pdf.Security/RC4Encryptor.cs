@@ -79,4 +79,7 @@ internal class RC4Encryptor : EncryptorBase, IEncryptor
         rc4.Apply(bytes);
         return bytes;
     }
+
+    /// <summary>RC4 is its own inverse, so this is <see cref="Encrypt"/>.</summary>
+    public virtual byte[] EncryptForWriting(byte[] bytes) => Encrypt(bytes);
 }

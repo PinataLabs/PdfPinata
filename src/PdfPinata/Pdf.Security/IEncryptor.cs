@@ -18,5 +18,14 @@ internal interface IEncryptor
 
     void CreateHashKey(PdfObjectID objectId);
 
+    /// <summary>
+    /// Decrypts <paramref name="bytes"/>, under the key <see cref="CreateHashKey"/> made. Named for
+    /// RC4, where the two directions are one.
+    /// </summary>
     byte[] Encrypt(byte[] bytes);
+
+    /// <summary>
+    /// Encrypts <paramref name="bytes"/> for writing, under the key <see cref="CreateHashKey"/> made.
+    /// </summary>
+    byte[] EncryptForWriting(byte[] bytes);
 }
