@@ -3,12 +3,21 @@ name: Build and Test
 on:
   # A branch with a pull request open is covered by the pull_request trigger below. Building it
   # here as well would run everything twice for the same commit.
+  #
+  # A change that touches Markdown and nothing else is not built: no project compiles a .md file.
+  # A change that touches any other file as well is built as usual. No ruleset requires this
+  # workflow's checks, so a pull request it skips can still be merged; if one ever does, a skipped
+  # required check stays pending and blocks the merge.
   push:
     branches:
       - main
+    paths-ignore:
+      - '**/*.md'
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - '**/*.md'
   # So that a branch with no pull request open can still be built, on request.
   workflow_dispatch:
 

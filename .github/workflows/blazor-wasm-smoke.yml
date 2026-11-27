@@ -14,6 +14,7 @@ on:
     branches: [main]
     paths:
       - 'src/**'
+      - '!**/*.md'
       - 'global.json'
       - 'Directory.Build.*'
       - '.github/workflows/blazor-wasm-smoke.yml'
@@ -21,6 +22,7 @@ on:
     branches: [main]
     paths:
       - 'src/**'
+      - '!**/*.md'
       - 'global.json'
       - 'Directory.Build.*'
       - '.github/workflows/blazor-wasm-smoke.yml'
