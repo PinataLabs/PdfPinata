@@ -9,7 +9,7 @@ investigation turned up. All three are tracked the same way, because what a read
 first is the same in each case: is this the code as it stands, or the code as somebody hoped it
 would be?
 
-**51 done · 5 in progress · 11 not started · 67 total.**
+**51 done · 5 in progress · 12 not started · 68 total.**
 
 Read the relevant spec before extending that feature area.
 
@@ -99,6 +99,7 @@ Written, argued, and not yet acted on.
 - [ ] [shared-character-scanner.md](shared-character-scanner.md) — one character scanner shared between the document lexer, the content lexer and the DDL scanner.
 - [ ] [shared-visual-order.md](shared-visual-order.md) — the leftmost-position rule written once instead of in both layout engines.
 - [ ] [structure-tagger-interface.md](structure-tagger-interface.md) — separating "my parent" from "the element I just opened" in the tagger.
+- [ ] [typography-font-programs.md](typography-font-programs.md) — **a decision note**: embedded CFF and Type 1 font programs read through `PinataLabs.Typography`'s `FontProgram`, outside the core, through the public glyph-source seam (#379, #380). The CFF path is checked against this library's own output. Two seam changes come first.
 
 ---
 
