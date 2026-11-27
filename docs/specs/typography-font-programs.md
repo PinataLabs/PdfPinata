@@ -13,9 +13,12 @@ repository that package could replace. It covers PinataLabs/PdfPinata#379 and #3
 | 4 | Type 1 and CID-keyed CFF sample PDFs in the test assets | not started |
 | 5 | The same source for Type 1 (`/FontFile`), #380 | not started |
 | 6 | The embedded TrueType source on `FontProgram` too, once its rasterized pages match today's | optional, not started |
-| — | A dependency on the package from the core `PdfPinata` assembly | deliberately not done |
-| — | Replacing `src/PdfPinata/Text`'s bidi, script and line-break algorithms | deliberately not done |
-| — | A managed `ITextShaper` over the package's layout API | deliberately not done, for now |
+| 7 | Typography publishes its Unicode algorithms as a package with no font code, PinataLabs/Typography#151 to #154 | requested |
+| 8 | `src/PdfPinata/Text` replaced by that package, at the Unicode version it reports | waits on 7 |
+| 9 | CFF subsetting, then TrueType, from Typography, keeping glyph IDs, PinataLabs/Typography#155 | requested |
+| 10 | A managed `ITextShaper` over a shaping API that returns clusters, PinataLabs/Typography#156 | requested |
+| 11 | Font descriptor metrics and `fsType`, and the standard encodings and Adobe Glyph List, from Typography, PinataLabs/Typography#157 and #158 | requested |
+| — | A dependency on `PinataLabs.Typography` from the core `PdfPinata` assembly | deliberately not done |
 
 ## Context
 
@@ -110,13 +113,14 @@ class. The adapter lives outside the core. In order of preference:
 **Start with CFF.** It is the format this library writes, it is the one verified above, and it is
 item 10's more urgent half.
 
-## What it does not replace
+## What it does not replace yet
 
 **The text algorithms in `src/PdfPinata/Text`.** The package has its own bidi and line breaking,
 but they are internal. This repository's versions are pinned to Unicode 17.0.0. They are checked
 against the full UAX #9 and UAX #14 conformance suites, and they carry tailorings that layout
 depends on: South-East Asian letters as ideographs, and Hangul as letters (`line-breaking.md`).
-Replacing them would lose all three, to save code that is already done and tested.
+Replacing them with what is public today would lose all three. The next section asks Typography for
+what replacing them would take.
 
 **HarfBuzz, for now.** A shaper with no native code would suit Blazor WebAssembly and Unity, and the
 package does apply GSUB and GPOS. But its public layout API hands a glyph renderer a glyph ID and a
@@ -127,6 +131,85 @@ clusters there is the way to reopen this. That is a guess, and was not tried.
 
 **Fonts that are not outlines.** Type 3 glyphs (#381) are PDF content streams, drawn by the
 interpreter.
+
+## Expanding PinataLabs.Typography
+
+Most of the font and text code in this repository duplicates what Typography already has, but keeps
+internal. This section records what Typography would have to expose or add for this repository to
+depend on it rather than grow, and the decision about where that dependency may live. Each item is
+a feature request on PinataLabs/Typography. Recorded 2026-11-27.
+
+### Decision: split the Unicode algorithms into a package with no font code
+
+Most of the duplicated code is in the core assembly, which by design takes no font dependency.
+There were two ways through that:
+
+- **Allow the core to take `PinataLabs.Typography`.** It is PinataLabs' own, Apache-2.0, targets
+  `netstandard2.1` and has no native code. But it would bring a font library into every consumer
+  of the core, Unity included, and the rule exists so that a consumer picks its font stack.
+- **Ask Typography to publish its Unicode algorithms as a package of their own**, with no font code,
+  which `PinataLabs.Typography` then depends on. The core can take that package without bending the
+  rule, because bidi, line breaking and script detection are text processing, not fonts.
+
+**The split is chosen** (PinataLabs/Typography#151). The font-level items below stay outside the
+core, as the font programs above do. They go in `PdfPinata.Rendering.Skia`, the backends, or a
+package of their own.
+
+### The Unicode package: what it must carry
+
+| request | what PdfPinata needs | why |
+|---|---|---|
+| Typography#151 | The package, and a public `UnicodeVersion` | A caller pins its conformance suites to the version, so it has to be told what it is. |
+| Typography#152 | Bidi: levels and runs in visual order for a paragraph, with U+200C and U+200D kept inside their run | The two layout engines, `DrawString` and `MeasureString` all reorder through it. The joining controls are what tell a shaper how letters join (`text-shaping-and-bidi.md`). |
+| Typography#153 | Line breaking: an enumerator, a question about one boundary between two runs, and two tailorings | PinataLayout asks about the seam between two runs (`ParagraphRenderer.IsJoinedTo`). It treats South-East Asian letters as ideographs and Hangul as letters (`line-breaking.md`). |
+| Typography#154 | Script: the property per code point, ISO 15924 codes, and an itemiser | `TextItemizer.Itemize` cuts text into runs of one script and one direction before shaping. |
+
+**The two sets of tables already disagree.** `CodePoint.GetBidiClass` and
+`CodePoint.GetLineBreakClass` in 0.1.1-alpha.26 were compared with this repository's Unicode 17.0.0
+tables across all 1,112,064 scalar values (measured):
+
+| property | code points that differ | example |
+|---|---|---|
+| bidi class | 112 | U+2E60, `L` here and `ON` in Typography |
+| line-break class | about 1,690 | U+18D1F, `XX` here and `ID` in Typography |
+
+Most of the differences are code points that Typography gives a class and that this repository
+treats as unassigned. So the two appear to be built from different Unicode versions (inferred).
+The package does not report its version, which is why #151 asks for it. This is drift between two
+PinataLabs implementations of one standard, and every Unicode bump is done twice today.
+
+**What switching over takes, once the package exists (item 8).**
+
+- Move to the Unicode version it reports. That moves the four things `CLAUDE.md` says move
+  together: the tables, the line-break tables, the gzipped conformance suites and the version
+  asserted in `UnicodePropertyTests`.
+- Keep `BidiConformanceTests` and `LineBreakConformanceTests`, run against the package, as the proof
+  that the switch held.
+- Delete `src/PdfPinata/Text`'s algorithms and generated tables (4,286 lines, 1,908 generated) and
+  `tools/UnicodeTableGenerator`.
+- The public types in `PdfPinata.Text`, `BidiParagraphDirection` among them, stay, as thin types
+  over the package, or are retired through the usual deprecation. That choice belongs to the PR
+  that makes the switch.
+
+### Font-level requests, outside the core
+
+| request | what it gives | what it saves or fixes here |
+|---|---|---|
+| Typography#155 | Subsetting, CFF first, then TrueType, keeping glyph IDs, with composite, `seac` and subroutine closure | **Fixes a gap:** a CFF font is embedded whole today (`font-embedding-gaps.md`). TrueType could follow, retiring the subsetting half of `Fonts.OpenType` (about 4,700 lines with the reading code). Glyph IDs have to stay put, because `/CIDToGIDMap /Identity` is written and PDF/A checks it. |
+| Typography#156 | Shaping that returns each glyph's cluster, advance and offset in design units | A managed `ITextShaper` with no native code, for Blazor WebAssembly and Unity, beside or instead of `PdfPinata.HarfBuzz`. Clusters are what `/ToUnicode` is written from. Whether it matches HarfBuzz needs a side-by-side comparison. |
+| Typography#157 | Font descriptor metrics and `OS/2` `fsType` | Parts of `OpenTypeDescriptor`, and the embedding permissions `font-embedding-restrictions.md` enforces. |
+| Typography#158 | The standard encodings and the Adobe Glyph List | The 1,324 lines of `Fonts/GlyphNames`. Type 1 support in Typography needs Standard Encoding anyway. |
+
+Where the core needs one of these, such as `fsType` when writing a font, it is reached through a
+seam, as the glyph sources are, or the item waits for a decision of its own.
+
+**Already possible, with no change to Typography:**
+
+- A backend-free `IGlyphOutlineProvider` over `FontProgram.TryWriteOutline`.
+- Replacing SixLabors.Fonts in the ImageSharp backends' font resolver and outline provider (471
+  lines).
+
+**What stays here regardless:** the Core14 AFM widths, and Type 3 glyphs. Both are PDF-specific.
 
 ## Consequences
 

@@ -99,7 +99,7 @@ Written, argued, and not yet acted on.
 - [ ] [shared-character-scanner.md](shared-character-scanner.md) — one character scanner shared between the document lexer, the content lexer and the DDL scanner.
 - [ ] [shared-visual-order.md](shared-visual-order.md) — the leftmost-position rule written once instead of in both layout engines.
 - [ ] [structure-tagger-interface.md](structure-tagger-interface.md) — separating "my parent" from "the element I just opened" in the tagger.
-- [ ] [typography-font-programs.md](typography-font-programs.md) — **a decision note**: embedded CFF and Type 1 font programs read through `PinataLabs.Typography`'s `FontProgram`, outside the core, through the public glyph-source seam (#379, #380). The CFF path is checked against this library's own output. Two seam changes come first.
+- [ ] [typography-font-programs.md](typography-font-programs.md) — **a decision note**: embedded CFF and Type 1 font programs read through `PinataLabs.Typography`'s `FontProgram`, outside the core, through the public glyph-source seam (#379, #380). The CFF path is checked against this library's own output. Two seam changes come first. Also records the decision to ask Typography to publish its Unicode algorithms as a package with no font code, so that `src/PdfPinata/Text` can be replaced, and seven more feature requests (PinataLabs/Typography#151 to #158).
 
 ---
 
